@@ -34,9 +34,25 @@ walkSource(app);
 let braceBalance = 0;
 for (const char of canonical) braceBalance += char === "{" ? 1 : char === "}" ? -1 : 0;
 
+const OWNED_GLOBAL_CSS = [
+  "app/canonical.css",
+  "app/design-tokens.css",
+  "app/design-system.css",
+  "app/employee-management.css",
+  "app/theme-policy.css",
+];
+
+const layoutCssImports = [...layout.matchAll(/import\s+"\.\/([^"]+\.css)"/g)].map((match) => `app/${match[1]}`);
+const cssSet = new Set(cssFiles);
+const ownedSet = new Set(OWNED_GLOBAL_CSS);
+const extraCss = cssFiles.filter((file) => !ownedSet.has(file)).sort();
+const missingCss = OWNED_GLOBAL_CSS.filter((file) => !cssSet.has(file));
+const layoutMismatch = OWNED_GLOBAL_CSS.some((file) => !layoutCssImports.includes(file))
+  || layoutCssImports.some((file) => !ownedSet.has(file));
+
 const checks = {
   canonicalStylesheet: fs.existsSync(css),
-  singleStylesheet: cssFiles.length === 1 && cssFiles[0] === "app/canonical.css",
+  ownedGlobalStylesheets: extraCss.length === 0 && missingCss.length === 0 && !layoutMismatch,
   rootOwnsCanonicalStylesheet: layout.includes('import "./canonical.css";'),
   noSecondaryStylesheetImport: !layout.includes("ui/styles.css"),
   balancedBraces: braceBalance === 0,
@@ -46,5 +62,5 @@ const checks = {
   p8CorporateEditorContract: [".p8-corporate-editor", ".p8-editor-grid", ".p8-preview-column"].every((selector) => canonical.includes(selector)),
 };
 
-console.log(JSON.stringify({ ...checks, cssFiles, routeCssImports }, null, 2));
+console.log(JSON.stringify({ ...checks, cssFiles, layoutCssImports, extraCss, missingCss, routeCssImports }, null, 2));
 if (!Object.values(checks).every(Boolean)) process.exit(1);

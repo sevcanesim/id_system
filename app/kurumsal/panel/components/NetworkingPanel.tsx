@@ -211,7 +211,7 @@ export default function NetworkingPanel({
 
       {loaded && view === "meetings" && (
         meetings.length === 0 ? (
-          <EmptyState compact icon="contact" title="Görüşme talebi yok" description="Karttaki Görüşme Talep Et formu buraya düşer." />
+          <EmptyState compact icon="contact" title="Görüşme talebi yok" description="Karttaki Görüşme Talep Et formu buraya düşer." action={{ href: "/kurumsal/panel/leadler", label: "Leadlere git" }} />
         ) : (
           <div className="p11-networking-list">
             {meetings.map((meeting) => (
@@ -236,13 +236,16 @@ export default function NetworkingPanel({
       {loaded && view === "events" && (
         <>
           <form className="p11-networking-form" onSubmit={createEvent}>
+            <p className="p11-networking-form-kicker">Yeni etkinlik</p>
             <label>Etkinlik adı<input required value={eventForm.name} onChange={(event) => setEventForm((current) => ({ ...current, name: event.target.value }))} /></label>
-            <label>Lokasyon<input value={eventForm.location} onChange={(event) => setEventForm((current) => ({ ...current, location: event.target.value }))} /></label>
-            <label>Stand<input value={eventForm.booth} onChange={(event) => setEventForm((current) => ({ ...current, booth: event.target.value }))} /></label>
-            <button type="submit" disabled={busy}>Etkinlik Oluştur</button>
+            <div className="p11-networking-form-row">
+              <label>Lokasyon<input value={eventForm.location} onChange={(event) => setEventForm((current) => ({ ...current, location: event.target.value }))} /></label>
+              <label>Stand<input value={eventForm.booth} onChange={(event) => setEventForm((current) => ({ ...current, booth: event.target.value }))} /></label>
+            </div>
+            <button type="submit" className="ds-button ds-button--primary" disabled={busy}>Etkinlik Oluştur</button>
           </form>
           {events.length === 0 ? (
-            <EmptyState compact icon="analytics" title="Etkinlik yok" description="Kişiye özel etkinlik QR’si oluşturmak için önce etkinliği kaydedin." />
+            <p className="p11-networking-form-hint">Kayıt sonrası kişiye özel etkinlik QR’si üretilir.</p>
           ) : events.map((eventRow) => (
             <article className="p11-networking-event" key={eventRow.id}>
               <div>

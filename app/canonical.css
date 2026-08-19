@@ -1399,7 +1399,7 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .enterprise-yenomi-copy { display:grid; gap:2px; }
 .enterprise-yenomi-copy strong { color:var(--ink); font-size:15px; }
 .enterprise-yenomi-copy small { color:var(--ink-3); font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
-.enterprise-canonical-nav { display:grid; gap:3px; }
+.enterprise-canonical-nav { display:grid; gap:3px; flex:1 1 auto; min-height:0; overflow-y:auto; }
 .enterprise-side-section-title { padding:14px 9px 6px; color:#70695f; font:700 11px var(--font-mono); letter-spacing:.12em; }
 .enterprise-nav-entry { min-height:42px; display:flex; align-items:center; gap:10px; padding:0 10px; border:1px solid transparent; border-radius:10px; color:var(--ink-2); font-size:14px; }
 .enterprise-nav-entry .yi-icon { width:16px; height:16px; min-width:16px; color:var(--ink-3); }
@@ -1407,6 +1407,7 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .enterprise-nav-entry.active { border-color:var(--border-gold); background:var(--gold-dim); color:var(--gold-hi); }
 .enterprise-nav-entry.active .yi-icon { color:var(--gold); }
 .enterprise-side-links { margin-top:auto; display:grid; gap:4px; padding-top:12px; border-top:1px solid var(--border); }
+.enterprise-side-links.enterprise-side-management { margin-top:0; padding-top:4px; border-top:0; }
 .enterprise-side-links a { display:flex; align-items:center; gap:8px; min-height:38px; padding:0 9px; border-radius:9px; color:var(--ink-3); font-size:12px; }
 .enterprise-side-links a:hover { background:var(--glass); color:var(--ink); }
 .enterprise-side-links .yi-icon { width:15px; height:15px; min-width:15px; }
@@ -1893,8 +1894,8 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .p11-networking-list strong { display:block; }
 .p11-networking-actions { display:flex; flex-wrap:wrap; gap:8px; }
 .p11-networking-actions button,
-.p11-networking-form button,
-.p11-networking-event button { min-height:40px; padding:0 12px; border:1px solid var(--border-gold); border-radius:10px; background:var(--gold-dim); color:var(--ink); font-weight:750; }
+.p11-networking-form button:not(.ds-button),
+.p11-networking-event button:not(.ds-button) { min-height:40px; padding:0 12px; border:1px solid var(--border-gold); border-radius:10px; background:var(--gold-dim); color:var(--ink); font-weight:750; }
 .p11-networking-form label,
 .p11-networking-event label { display:grid; gap:6px; font-size:12px; color:var(--ink-2); }
 .p11-networking-form input,
@@ -2338,7 +2339,7 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .p10-corporate-platform .business-kpis .amber > i { background:rgba(190,145,52,.11); color:#a47722; }
 .p10-corporate-platform .business-kpis .green > i { background:rgba(52,174,103,.09); color:#27804d; }
 .p10-corporate-platform .business-kpis .blue > i { background:rgba(63,128,207,.09); color:#3f80cf; }
-.p10-corporate-platform .business-seat-packs { margin-top:14px; }
+.p10-corporate-platform .business-seat-packs { margin-top:4px; }
 .p10-corporate-platform .enterprise-loading-shell { min-height:320px; display:grid; place-items:center; padding:30px 0; }
 .p10-corporate-platform .enterprise-loading-slow { margin:14px 0; padding:14px 16px; border:1px solid var(--border-gold); border-radius:12px; background:var(--gold-dim); }
 .p10-corporate-platform .enterprise-loading-slow strong { font-size:12px; }
@@ -9099,8 +9100,8 @@ body:has(.p10-corporate-platform) {
   background: #FFFFFF;
   border-right: 1px solid #E6E2D8;
   color: #1A1918;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
+  padding-bottom: 16px;
   scrollbar-width: thin;
   scrollbar-color: #D8D2C4 transparent;
 }
@@ -9906,16 +9907,16 @@ body:has(.p8-corporate-editor) {
 .p10-corporate-platform .license-reference-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(140px, 200px);
-  gap: 20px 28px;
+  gap: 16px 28px;
   align-items: start;
-  margin: 0 0 18px;
-  padding: 8px 0 4px;
-  overflow: hidden;
+  margin: 0 0 12px;
+  padding: 4px 0 0;
+  overflow: visible;
 }
 .p10-corporate-platform .license-reference-hero h2 {
-  margin: 8px 0 10px;
-  max-width: 22ch;
-  font-size: clamp(26px, 2.6vw, 36px);
+  margin: 6px 0 8px;
+  max-width: none;
+  font-size: clamp(22px, 2vw, 28px);
   line-height: 1.12;
   letter-spacing: -.04em;
 }
@@ -11196,7 +11197,7 @@ article[id] {
   border-radius: 16px;
   background: #FFFFFF;
 }
-.p11-networking .ds-empty,
+.p11-networking .ds-empty__illustration,
 .p11-analytics .ds-empty__illustration {
   width: 56px;
   height: 56px;
@@ -11223,7 +11224,71 @@ article[id] {
 @media (max-width: 720px) {
   .p10-corporate-platform .business-role-summary,
   .license-reference-features,
-  .company-settings-grid {
+  .company-settings-grid,
+  .p11-networking-form-row {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+.business-seat-pack-grid > article {
+  min-height: 0;
+  padding-bottom: 16px;
+}
+#seat-pack-grid {
+  scroll-margin-top: 88px;
+}
+.seat-pack-cta,
+.p10-corporate-platform .seat-pack-cta {
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: 44px;
+  margin-top: auto;
+  background: #A37B2C;
+  border-color: #A37B2C;
+  color: #FFFFFF;
+}
+.p11-networking-form {
+  max-width: 560px;
+  padding: 18px;
+  border: 1px solid #E6E2D8;
+  border-radius: 16px;
+  background: #FFFFFF;
+}
+.p11-networking-form-kicker {
+  margin: 0;
+  color: #6F5724;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.p11-networking-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.p11-networking-form .ds-button--primary {
+  width: fit-content;
+  min-width: 160px;
+  background: #A37B2C;
+  border-color: #A37B2C;
+  color: #FFFFFF;
+}
+.p11-networking-form-hint {
+  max-width: 560px;
+  margin: 12px 0 0;
+  color: #68645D;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.p11-networking .ds-empty {
+  margin-top: 8px;
+  padding: 32px 20px;
+  border: 1px solid #E6E2D8;
+  border-radius: 16px;
+  background: #FFFFFF;
+}
+.enterprise-side-plan,
+.enterprise-side-user {
+  margin-bottom: 8px;
 }

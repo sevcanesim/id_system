@@ -1944,7 +1944,6 @@ export default function CompanyPanel() {
                             <article><i className="green"><Icon name="contact" /></i><span><small>Aktif Kart</small><b>{digitalCardsReady} / {usedSeats || 0}</b><em>%{cardActivationPercent} aktivasyon oranı</em></span></article>
                             <article><i className="violet"><Icon name="analytics" /></i><span><small>Toplam Görüntülenme</small><b>{cardAnalytics?.available === false ? "—" : (cardAnalytics?.totalViews ?? 0).toLocaleString("tr-TR")}</b><em>Seçili dönem</em></span></article>
                             <article><i className="blue"><Icon name="qr" /></i><span><small>İçerik Etkileşimi</small><b>{cardAnalytics?.content?.clicks ?? 0}</b><em>URL tıklaması</em></span></article>
-                            <article><i className="amber"><Icon name="external" /></i><span><small>İçerik Açma</small><b>{cardAnalytics?.content?.downloads ?? 0}</b><em>PDF açma</em></span></article>
                           </section>
 
                           <div className="v26-reference-main-row">

@@ -43,5 +43,31 @@ if (!css.includes('enterprise-route-loading')) fail('route loading shell CSS is 
 if (!css.includes('enterprise-data-error')) fail('data error banner CSS is missing'); else pass('data error banner CSS exists');
 if (css.includes('!important')) fail('canonical CSS contains !important'); else pass('canonical CSS remains !important-free');
 
+if (css.includes('.v26-reference-dashboard,.v26-reference-main-row')) {
+  fail('overview dashboard must not share a 2-column rule with the chart/activity row');
+} else {
+  pass('overview dashboard is not coupled to the chart/activity row');
+}
+if (css.includes('.v26-reference-dashboard { display:grid; grid-template-columns:minmax(0,1fr);')) {
+  pass('overview dashboard uses a single shrinking column');
+} else {
+  fail('overview dashboard is missing minmax(0,1fr) column contract');
+}
+if (css.includes('repeat(4,minmax(0,1fr))') && css.includes('minmax(0,1.4fr) minmax(0,.6fr)')) {
+  pass('overview KPIs and chart/activity use shrinking minmax tracks');
+} else {
+  fail('overview KPI/chart grid contract is missing minmax(0) tracks');
+}
+if (/v26-reference-chart[\s\S]{0,120}overflow-wrap:\s*anywhere/.test(css) || /v26-reference-activity[\s\S]{0,120}overflow-wrap:\s*anywhere/.test(css)) {
+  fail('overview widgets must not use overflow-wrap:anywhere letter breaking');
+} else {
+  pass('overview widgets do not force letter-by-letter wrapping');
+}
+
+const overviewKpis = client.split('v26-reference-kpis')[1]?.split('v26-reference-main-row')[0] || '';
+const overviewKpiCount = (overviewKpis.match(/<article/g) || []).length;
+if (overviewKpiCount === 4) pass('overview KPI strip has four metric cards');
+else fail(`overview KPI strip should have 4 cards, found ${overviewKpiCount}`);
+
 const migrations = fs.readdirSync(path.join(root, 'supabase/migrations')).filter((name) => name.endsWith('.sql'));
 if (migrations.length === 55) pass('55 database migrations preserved'); else fail(`migration count changed: ${migrations.length}`);

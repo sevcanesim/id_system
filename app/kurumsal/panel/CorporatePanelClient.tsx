@@ -1391,9 +1391,11 @@ export default function CompanyPanel() {
                 }}
               />
             </div>
-            {canManageLicenses && <button type="button" onClick={() => openTab("licenses")}>
-              Yönet
-            </button>}
+            {canManageLicenses && currentTab !== "licenses" && (
+              <button type="button" onClick={() => openTab("licenses")}>
+                Yönet
+              </button>
+            )}
           </div>
           <div className="enterprise-side-user">
             <span>{(sidebarUser?.full_name || sidebarUser?.email || "Y").split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase()}</span>
@@ -1426,7 +1428,13 @@ export default function CompanyPanel() {
               {canManageLicenses && <button
                 type="button"
                 className="enterprise-quick-link"
-                onClick={goToLicenses}
+                onClick={() => {
+                  if (currentTab === "licenses") {
+                    document.getElementById("seat-pack-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    return;
+                  }
+                  goToLicenses();
+                }}
               >
                 Lisans Ekle
               </button>}
@@ -1537,17 +1545,12 @@ export default function CompanyPanel() {
                         <YenomiProductVisual variant="card" compact />
                         <span><i /> NFC + QR hazır</span>
                       </div>
-                      <div className="license-reference-proofs">
-                        <span><Icon name="shield" /><b>Güvenli Erişim</b><small>Rol ve şirket kontrolü</small></span>
-                        <span><Icon name="contact" /><b>Kolay Dağıtım</b><small>Kart başına tekil kimlik</small></span>
-                        <span><Icon name="analytics" /><b>Tam Entegrasyon</b><small>Panel ve raporlarla uyumlu</small></span>
-                      </div>
                     </div>
                     <p className="seat-pack-guide">
                       1–3 lisans küçük eklemeler, 5 lisans büyüyen ekipler, 10 lisans daha geniş dağıtım içindir.
                       5’li paket en çok tercih edilen seçimdir. Şu anda {usedSeats} lisans kullanılıyor.
                     </p>
-                    <div className="business-seat-pack-grid">
+                    <div id="seat-pack-grid" className="business-seat-pack-grid">
                       {seatPacks.map((pack) => (
                         <article
                           key={pack.sku}

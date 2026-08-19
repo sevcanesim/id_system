@@ -3745,12 +3745,153 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .p10-corporate-platform button:focus-visible,
 .p10-corporate-platform a:focus-visible,
 .p10-corporate-platform select:focus-visible,
-.v25-drawer-layer button:focus-visible,
-.v25-drawer-layer input:focus-visible,
-.v25-drawer-layer select:focus-visible,
-.v25-drawer-layer a:focus-visible {
-  outline: 2px solid var(--gold-hi);
-  outline-offset: 3px;
+/* Employee detail: overlay workspace, not an in-flow native HTML slab. */
+.ds-drawer.v25-employee-drawer {
+  width: min(1080px, 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+}
+.v25-drawer-identity {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px 14px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.v25-drawer-identity > div { min-width: 0; display: grid; gap: 2px; }
+.v25-drawer-identity strong { color: var(--ink); font-size: 15px; }
+.v25-drawer-identity small,
+.v25-drawer-identity span { color: var(--ink-3); font-size: 12px; }
+.v25-drawer-identity code {
+  color: var(--ink-3);
+  font: 700 11px var(--font-mono);
+}
+.v25-drawer-workspace {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 360px);
+  overflow: hidden;
+}
+.v25-drawer-main,
+.v25-drawer-preview {
+  min-width: 0;
+  overflow: auto;
+  padding: 16px 20px 24px;
+}
+.v25-drawer-preview {
+  border-left: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.v25-employee-drawer .ds-tabs { margin-bottom: 16px; }
+.v25-employee-drawer .v25-section-heading {
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+.v25-employee-drawer .v25-section-heading h3 { margin: 4px 0 0; color: var(--ink); font-size: 16px; }
+.v25-employee-drawer .v25-section-heading p { margin: 4px 0 0; color: var(--ink-3); font-size: 12px; line-height: 1.5; }
+.v25-employee-drawer .v25-section-heading small {
+  color: var(--gold-hi);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+.v25-employee-drawer .v25-section-heading .yi-icon { color: var(--gold-hi); }
+.v25-employee-form,
+.v25-invite-detail,
+.v25-card-drawer,
+.v25-lifecycle { display: grid; gap: 14px; }
+.v25-readonly-role,
+.v25-complete-state,
+.v25-inline-warning,
+.v25-empty-line,
+.v25-danger-zone,
+.v25-identity-audit,
+.v25-physical-control-row {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.v25-readonly-role,
+.v25-complete-state,
+.v25-inline-warning { display: grid; gap: 4px; }
+.v25-readonly-role small,
+.v25-identity-audit small { color: var(--ink-3); font-size: 11px; font-weight: 700; }
+.v25-readonly-role span,
+.v25-danger-zone p,
+.v25-identity-audit p { color: var(--ink-3); font-size: 12px; line-height: 1.5; }
+.v25-inline-warning { grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 10px; background: var(--gold-dim); border-color: var(--border-gold); }
+.v25-complete-state { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px; }
+.v25-drawer-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.v25-invite-detail dl { display: grid; gap: 8px; margin: 0; }
+.v25-invite-detail dl > div {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.v25-invite-detail dt { color: var(--ink-3); font-size: 12px; }
+.v25-invite-detail dd { margin: 0; color: var(--ink); font-size: 13px; }
+.v25-lifecycle ol { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.v25-lifecycle li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.v25-lifecycle li > i {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--ink-3);
+  font: 700 11px var(--font-mono);
+  font-style: normal;
+}
+.v25-lifecycle li.done > i { background: var(--gold-dim); color: var(--gold-hi); }
+.v25-lifecycle li strong { display: block; font-size: 13px; }
+.v25-lifecycle li span { color: var(--ink-3); font-size: 12px; }
+.v25-identity-audit { display: grid; gap: 12px; }
+.v25-identity-audit ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.v25-identity-audit li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+.v25-identity-audit-empty { margin: 0; color: var(--ink-3); font-size: 12px; }
+.v25-physical-control-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.v25-physical-control-row > div { min-width: 0; display: grid; gap: 2px; }
+.v25-physical-control-row strong { font-size: 13px; }
+.v25-physical-control-row span,
+.v25-physical-control-row small { color: var(--ink-3); font-size: 12px; }
+.v25-card-preview-wrap { min-width: 0; }
+.v25-employee-drawer .p8-preview-stage { max-width: 320px; margin: 0 auto; }
+.v25-employee-drawer .ds-empty { width: 100%; padding: 24px 8px; }
+
+@media (max-width: 860px) {
+  .v25-drawer-workspace { grid-template-columns: minmax(0, 1fr); }
+  .v25-drawer-preview { border-left: 0; border-top: 1px solid var(--border); }
+  .v25-drawer-identity { grid-template-columns: auto minmax(0, 1fr); }
+  .v25-drawer-identity .ds-badge,
+  .v25-drawer-identity code { justify-self: start; }
 }
 
 .p12-contact-list a,
@@ -7271,7 +7412,7 @@ body:has(.how-it-works-page) {
 .p10-corporate-platform textarea {
   font-family: inherit;
 }
-.p10-corporate-platform button:not(.enterprise-nav-entry):not(.enterprise-sidebar-mobile-close):not(.enterprise-mobile-menu-button):not(.enterprise-mobile-account-button) {
+.p10-corporate-platform button:not(.enterprise-nav-entry):not(.enterprise-sidebar-mobile-close):not(.enterprise-mobile-menu-button):not(.enterprise-mobile-account-button):not(.ds-button):not(.ds-tab):not(.ds-overlay) {
   border-radius: 9px;
 }
 .p10-corporate-platform .v25-dashboard-rail > .v25-panel { box-shadow: 0 18px 42px rgba(0,0,0,.14); }

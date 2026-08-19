@@ -105,6 +105,12 @@ if (css.includes('.p11-bulk-bar') && css.includes('.p11-capacity-warning')) {
 } else {
   fail('employee bulk bar / capacity warning CSS is missing');
 }
+const drawer = read('app/kurumsal/panel/components/EmployeeDrawer.tsx');
+if (drawer.includes('v25-drawer-workspace') && css.includes('.ds-drawer.v25-employee-drawer') && drawer.includes('title="Çalışan Detay"')) {
+  pass('employee detail uses overlay workspace with adjacent card preview');
+} else {
+  fail('employee detail overlay/workspace contract is missing');
+}
 
 const migrations = fs.readdirSync(path.join(root, 'supabase/migrations')).filter((name) => name.endsWith('.sql'));
 if (migrations.length === 55) pass('55 database migrations preserved'); else fail(`migration count changed: ${migrations.length}`);

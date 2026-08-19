@@ -1414,14 +1414,15 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .v25-sparkline,.v26-chart-canvas { min-height:140px; border-radius:12px; background:linear-gradient(180deg,rgba(109,61,224,.07),rgba(212,180,131,.02)); }
 .v25-license-meter,.enterprise-plan-meter { height:8px; overflow:hidden; border-radius:99px; background:rgba(255,255,255,.07); }
 .v25-license-meter::before,.enterprise-plan-meter::before { content:""; display:block; width:68%; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--violet),var(--gold)); }
-.v26-overview-hero { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr); gap:20px; padding:22px 24px; }
+.v26-overview-hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(156px,188px); gap:18px; padding:22px 24px; }
 .v26-overview-copy h2 { margin:5px 0 8px; font-size:clamp(24px,2.4vw,34px); }
-.v26-hero-capabilities { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+.v26-hero-capabilities { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:8px; }
 .v26-reference-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
-.v26-hero-capabilities > *, .v26-reference-kpis > * { min-width:0; padding:12px; border:1px solid var(--border); border-radius:10px; background:var(--glass); }
-.v26-card-stage { min-height:240px; display:grid; place-items:center; }
+.v26-hero-capabilities > button { min-width:0; min-height:52px; display:grid; grid-template-columns:18px minmax(0,1fr) auto; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:var(--glass); color:var(--ink); text-align:left; cursor:pointer; }
+.v26-reference-kpis > * { min-width:0; padding:12px; border:1px solid var(--border); border-radius:10px; background:var(--glass); }
+.v26-card-stage { min-height:0; display:grid; align-content:start; }
 .v26-card-stage > * { max-width:100%; }
-.v26-stage-glow { position:absolute; width:220px; height:220px; border-radius:50%; background:radial-gradient(circle,rgba(109,61,224,.18),transparent 68%); }
+.v26-stage-glow { display:none; }
 /* Genel Bakış: KPI şeridi, grafik satırı ve alt özetler dikey istiflenir.
    .v26-reference-dashboard ile .v26-reference-main-row aynı 1.2fr/.8fr
    kuralını paylaşırsa KPI kartları grafik+aktivite ile yan yana sıkışır
@@ -1854,8 +1855,8 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
   position:relative;
   overflow:hidden;
   display:grid;
-  grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);
-  gap:20px;
+  grid-template-columns:minmax(0,1fr) minmax(156px,188px);
+  gap:18px;
   min-height:0;
   padding:22px 24px 18px;
   border:1px solid var(--border);
@@ -1876,12 +1877,28 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .v25-dashboard-grid button { cursor:pointer; }
 .v26-overview-copy button { min-height:40px; display:inline-flex; align-items:center; gap:7px; padding:0 13px; border:1px solid var(--border-gold); border-radius:10px; background:var(--glass); color:var(--ink); font-size:12px; font-weight:750; }
 .v26-overview-copy button.primary { border-color:transparent; background:var(--gold); color:#17120c; }
-.v26-card-stage { position:relative; min-height:230px; display:grid; place-items:center; }
-.v26-card-stage > *:not(.v26-stage-glow) { position:relative; z-index:2; width:min(100%,260px); }
-.v26-stage-glow { width:240px; height:240px; }
-.v26-hero-capabilities { grid-column:1 / -1; grid-template-columns:repeat(4,minmax(0,1fr)); position:relative; z-index:2; margin:0; padding:0; list-style:none; }
-.v26-hero-capabilities > li { display:flex; align-items:center; gap:8px; min-width:0; color:var(--ink-2); font-size:12px; }
-.v26-hero-capabilities .yi-icon { width:15px; min-width:15px; color:var(--gold-hi); }
+.v26-card-stage { position:relative; min-height:0; display:grid; align-content:start; }
+.v26-card-stage > *:not(.v26-stage-glow) { position:relative; z-index:2; width:100%; }
+.v26-stage-glow { display:none; }
+.v26-share-card { min-width:0; display:grid; justify-items:center; gap:8px; padding:14px 12px; border:1px solid var(--border); border-radius:14px; background:#fff; text-align:center; }
+.v26-share-card header { display:grid; gap:2px; justify-items:center; }
+.v26-share-card small { color:var(--ink-3); font:700 10px var(--font-mono); letter-spacing:.12em; text-transform:uppercase; }
+.v26-share-card strong { font-size:12px; }
+.v26-card-qr { width:96px; height:96px; display:block; border-radius:8px; background:#fff; }
+.v26-card-qr-placeholder { width:96px; height:96px; border-radius:8px; background:var(--glass); }
+.v26-share-card p { margin:0; max-width:100%; color:var(--ink-3); font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.v26-share-card button { width:100%; min-height:36px; display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:0 8px; border:1px solid var(--border-gold); border-radius:9px; background:var(--gold-dim); color:var(--ink); font-size:11px; font-weight:750; cursor:pointer; }
+.v26-share-card button:disabled { cursor:default; opacity:.7; }
+.v26-share-card .yi-icon { width:14px; height:14px; min-width:14px; }
+.v26-hero-capabilities { grid-column:1 / -1; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); position:relative; z-index:2; margin:0; }
+.v26-hero-capabilities > button { min-width:0; }
+.v26-hero-capabilities > button:hover { border-color:var(--border-gold); }
+.v26-hero-capabilities > button:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+.v26-hero-capabilities .yi-icon { width:16px; min-width:16px; color:var(--gold-hi); }
+.v26-hero-capabilities span { min-width:0; display:grid; }
+.v26-hero-capabilities b { font-size:12px; }
+.v26-hero-capabilities small { color:var(--ink-3); font-size:10px; font-weight:600; }
+.v26-hero-capabilities em { color:var(--ink-3); font-size:13px; font-style:normal; }
 .v25-health-strip {
   min-width:0;
   display:grid;
@@ -2045,7 +2062,7 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 @media (max-width: 980px) {
   .v26-overview-hero { grid-template-columns:minmax(0,1fr); }
   .v26-overview-copy { max-width:none; }
-  .v26-card-stage { min-height:220px; }
+  .v26-card-stage { min-height:0; }
   .v26-hero-capabilities { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .v26-reference-main-row { grid-template-columns:minmax(0,1fr); }
   .v26-reference-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -2057,7 +2074,7 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
   .p10-corporate-platform .enterprise-mobile-commandbar { margin-inline:-12px; }
   .v26-overview-hero { padding:18px 16px; border-radius:16px; }
   .v26-overview-copy h2 { font-size:26px; }
-  .v26-card-stage { min-height:200px; }
+  .v26-card-stage { min-height:0; }
   .v26-hero-capabilities,.v26-reference-kpis,.v26-reference-bottom,.v25-kpi-grid,.v25-card-strip { grid-template-columns:1fr; }
   .v25-health-strip { grid-template-columns:auto minmax(0,1fr) auto; }
   .v25-health-strip small { grid-column:2 / -1; white-space:normal; }
@@ -7658,15 +7675,32 @@ body { background:#F9F8F6; color:#1A1918; }
 .p10-corporate-platform .v26-overview-copy button.primary:hover {
   background:#896420;
 }
-.p10-corporate-platform .v26-hero-capabilities > li {
-  color:#68645D;
+.p10-corporate-platform .v26-hero-capabilities > button {
+  color:#1A1918;
   background:#FFFFFF;
   border-color:#E6E2D8;
 }
+.p10-corporate-platform .v26-hero-capabilities > button:hover {
+  border-color:#A37B2C;
+}
 .p10-corporate-platform .v26-hero-capabilities .yi-icon { color:#9E7728; }
+.p10-corporate-platform .v26-hero-capabilities small,
+.p10-corporate-platform .v26-hero-capabilities em { color:#68645D; }
 
-.p10-corporate-platform .v26-stage-glow {
-  background:radial-gradient(circle,rgba(163,123,44,.12),transparent 68%);
+.p10-corporate-platform .v26-share-card {
+  background:#FFFFFF;
+  border-color:#E6E2D8;
+}
+.p10-corporate-platform .v26-share-card small,
+.p10-corporate-platform .v26-share-card p { color:#68645D; }
+.p10-corporate-platform .v26-share-card strong { color:#1A1918; }
+.p10-corporate-platform .v26-share-card button {
+  border-color:#E6E2D8;
+  background:#F5F4F0;
+  color:#1A1918;
+}
+.p10-corporate-platform .v26-share-card button:not(:disabled):hover {
+  border-color:#A37B2C;
 }
 .p10-corporate-platform .v25-health-strip {
   background:#F6F1E5;
@@ -7822,7 +7856,8 @@ body { background:#F9F8F6; color:#1A1918; }
     grid-template-columns:1fr;
     padding:20px;
   }
-  .p10-corporate-platform .v26-card-stage { order:2; }
+  .p10-corporate-platform .v26-hero-capabilities { order:2; }
+  .p10-corporate-platform .v26-card-stage { order:3; }
   .p10-corporate-platform .v26-hero-capabilities {
     grid-template-columns:repeat(2,minmax(0,1fr));
   }

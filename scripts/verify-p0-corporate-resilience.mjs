@@ -69,5 +69,23 @@ const overviewKpiCount = (overviewKpis.match(/<article/g) || []).length;
 if (overviewKpiCount === 4) pass('overview KPI strip has four metric cards');
 else fail(`overview KPI strip should have 4 cards, found ${overviewKpiCount}`);
 
+if (client.includes('NFC ile paylaşım') || client.includes('Anlık güncelleme')) {
+  fail('overview hero must not use passive marketing chips as fake actions');
+} else {
+  pass('overview hero no longer uses passive marketing chips');
+}
+if (client.includes('Birincil panel görevleri') && client.includes('Çalışanları yönet') && client.includes('openTab(key)')) {
+  pass('overview quick actions navigate to primary panel tasks');
+} else {
+  fail('overview quick actions are missing primary-task navigation');
+}
+
+const heroPreview = read('app/kurumsal/panel/components/CorporateHeroPreview.tsx');
+if (heroPreview.includes('width: 112') && heroPreview.includes('QR bağlantısını kopyala') && heroPreview.includes('Kart erişimi')) {
+  pass('hero QR is a compact share action rather than the main canvas');
+} else {
+  fail('hero QR share accessory contract is missing');
+}
+
 const migrations = fs.readdirSync(path.join(root, 'supabase/migrations')).filter((name) => name.endsWith('.sql'));
 if (migrations.length === 55) pass('55 database migrations preserved'); else fail(`migration count changed: ${migrations.length}`);

@@ -409,6 +409,7 @@ export default function CheckoutPage() {
                   <span><Icon name="check" /> Fiziksel kart üretim kaydı oluşturulur</span>
                 </div>
                 <button type="submit" className="checkout-pay-button" disabled={busy || !legalVersions || !buyerComplete || !shippingComplete || !approvalComplete}><Icon name="lock" />{busy ? "Ödeme hazırlanıyor…" : "Güvenli Ödeme"}</button>
+                {(!buyerComplete || !shippingComplete || !approvalComplete) && !busy ? <p className="checkout-pay-hint">Ödemeye geçmek için alıcı, teslimat ve onay adımlarını tamamlayın.</p> : null}
                 <div className="checkout-secure-list"><span><Icon name="lock" /> SSL Güvenli</span><span><Icon name="truck" /> Ücretsiz Kargo</span><span><Icon name="refresh" /> Kolay Aktivasyon</span><span><Icon name="shield" /> iyzico Güvencesi</span></div>
               </aside>
             </div>

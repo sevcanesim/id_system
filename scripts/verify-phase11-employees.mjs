@@ -52,6 +52,8 @@ pass('corporate version history has a stronger disclosure',links.includes('<stro
 const analytics=read('app/kurumsal/panel/components/AnalyticsPanel.tsx');
 pass('analytics empty state explains next action',analytics.includes('Henüz etkileşim verisi oluşmadı')&&analytics.includes('Kartımı Gör')&&analytics.includes('Paylaşım Ayarları'));
 pass('analytics workspace has trend comparison and top card',analytics.includes('Görüntülenme trendi')&&analytics.includes('En çok görüntülenen kart')&&analytics.includes('p11-analytics-compare')&&analytics.includes('v26-chart-canvas')&&corp.includes('<AnalyticsPanel'));
+const overview=read('app/kurumsal/panel/components/OverviewPanel.tsx');
+pass('corporate overview is a single workspace',corp.includes('<OverviewPanel')&&overview.includes('v26-reference-kpis')&&overview.includes('p11-overview-today')&&!corp.includes('v25-dashboard-grid')&&canonical.includes('.p11-overview-today'));
 pass('license packs have a recommended badge stacked price and primary CTA',corp.includes('seat-pack-badge')&&corp.includes('/ paket')&&corp.includes('seat-pack-cta')&&corp.includes('Paketi Seç')&&!corp.includes('<em>En çok tercih edilen</em>')&&canonical.includes('.seat-pack-badge'));
 const css=read('app/employee-management.css');
 pass('Phase 11 CSS uses no legacy token family',!/var\(--(?:yi|yp|store|brand|ui|y)-/.test(css));

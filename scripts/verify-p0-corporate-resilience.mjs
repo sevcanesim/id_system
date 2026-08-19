@@ -64,20 +64,36 @@ if (/v26-reference-chart[\s\S]{0,120}overflow-wrap:\s*anywhere/.test(css) || /v2
   pass('overview widgets do not force letter-by-letter wrapping');
 }
 
-const overviewKpis = client.split('v26-reference-kpis')[1]?.split('v26-reference-main-row')[0] || '';
+const overview = read('app/kurumsal/panel/components/OverviewPanel.tsx');
+const overviewKpis = overview.split('v26-reference-kpis')[1]?.split('v26-reference-main-row')[0] || '';
 const overviewKpiCount = (overviewKpis.match(/<article/g) || []).length;
 if (overviewKpiCount === 4) pass('overview KPI strip has four metric cards');
 else fail(`overview KPI strip should have 4 cards, found ${overviewKpiCount}`);
 
-if (client.includes('NFC ile paylaşım') || client.includes('Anlık güncelleme')) {
+if (client.includes('NFC ile paylaşım') || client.includes('Anlık güncelleme') || overview.includes('NFC ile paylaşım')) {
   fail('overview hero must not use passive marketing chips as fake actions');
 } else {
   pass('overview hero no longer uses passive marketing chips');
 }
-if (client.includes('Birincil panel görevleri') && client.includes('Çalışanları yönet') && client.includes('openTab(key)')) {
+if (
+  client.includes('<OverviewPanel') &&
+  overview.includes('Birincil panel görevleri') &&
+  overview.includes('Çalışanları yönet') &&
+  overview.includes('openTab(key)')
+) {
   pass('overview quick actions navigate to primary panel tasks');
 } else {
   fail('overview quick actions are missing primary-task navigation');
+}
+if (
+  !client.includes('v25-dashboard-grid') &&
+  !overview.includes('v25-dashboard-grid') &&
+  overview.includes('p11-overview-today') &&
+  css.includes('.p11-overview-today')
+) {
+  pass('overview is a single workspace without the legacy duplicate dashboard');
+} else {
+  fail('overview still stacks a duplicate dashboard or is missing the today queue');
 }
 
 const heroPreview = read('app/kurumsal/panel/components/CorporateHeroPreview.tsx');

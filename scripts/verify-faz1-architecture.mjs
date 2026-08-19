@@ -4,6 +4,7 @@ const checks=[];
 function check(label, ok, detail=''){ console.log(`${ok?'PASS':'FAIL'}  ${label}${detail?` — ${detail}`:''}`); checks.push(ok); }
 
 const corporate=read('app/kurumsal/panel/CorporatePanelClient.tsx');
+const overview=read('app/kurumsal/panel/components/OverviewPanel.tsx');
 const header=read('app/components/AppHeader.tsx');
 const shell=read('app/components/ui/AppShell.tsx');
 const cards=read('app/kartlarim/page.tsx');
@@ -18,7 +19,7 @@ const fetches=(corporate.match(/fetch\(/g)||[]).length;
 console.log(`INFO  CorporatePanelClient metrics — ${lines} LOC, ${useStates} useState, ${fetches} fetch calls`);
 check('corporate domain types extracted', corporate.includes('from "./domain/types"') && fs.existsSync('app/kurumsal/panel/domain/types.ts'));
 check('template field normalization extracted', corporate.includes('from "./domain/template-fields"') && fs.existsSync('app/kurumsal/panel/domain/template-fields.ts'));
-check('corporate hero preview is explicit imported component', corporate.includes('import CorporateHeroPreview from "./components/CorporateHeroPreview"') && corporate.includes('<CorporateHeroPreview'));
+check('corporate hero preview is explicit imported component', overview.includes('import CorporateHeroPreview from "./CorporateHeroPreview"') && overview.includes('<CorporateHeroPreview') && corporate.includes('<OverviewPanel'));
 check('corporate hero preview renders real QR from slug', hero.includes('QRCode.toDataURL') && hero.includes('`${origin}/${slug}`'));
 check('corporate panel has no duplicate global AppHeader', !corporate.includes('<AppHeader'));
 check('corporate panel remains pathname-aware', corporate.includes('usePathname') && corporate.includes('tabRoutes'));

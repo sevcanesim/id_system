@@ -3188,6 +3188,56 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
   padding: 0 14px;
   font-size: 13px;
 }
+.p11-overview { min-width: 0; }
+.p11-overview-org {
+  display: grid;
+  grid-template-columns: minmax(220px, .9fr) minmax(0, 1.1fr);
+  gap: 12px;
+}
+.p11-overview .business-company-picker,
+.p11-overview .business-account-strip { margin: 0; }
+.p11-overview-today {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.p11-overview-today button {
+  min-width: 0;
+  min-height: 118px;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  text-align: left;
+}
+.p11-overview-today small {
+  color: var(--gold-hi);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.p11-overview-today strong {
+  font: 700 28px/1 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.p11-overview-today span { font-size: 13px; font-weight: 750; line-height: 1.3; }
+.p11-overview-today em { color: var(--ink-3); font-size: 12px; font-style: normal; line-height: 1.4; }
+.p11-overview-chart-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.p11-overview-chart-tools button {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 750;
+}
 .p11-analytics { min-height: calc(100svh - 160px); }
 .p11-employees-header select {
   min-height: 44px;
@@ -4039,6 +4089,8 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
   .corp-links-panel > header { flex-direction: column; }
   .p11-org-capacity { width: 100%; text-align: left; }
   .p11-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .p11-overview-org,
+  .p11-overview-today,
   .p11-analytics-compare { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .p11-analytics-rankings { grid-template-columns: 1fr; }
   .p11-employee-card,
@@ -4050,6 +4102,8 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 }
 @media (max-width: 520px) {
   .p11-kpis { grid-template-columns: 1fr; }
+  .p11-overview-org,
+  .p11-overview-today,
   .p11-analytics-compare { grid-template-columns: 1fr; }
   .settings-tristate { grid-template-columns: 1fr; }
   .settings-tristate-head { display: none; }

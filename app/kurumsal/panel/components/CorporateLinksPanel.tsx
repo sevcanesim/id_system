@@ -63,6 +63,22 @@ function sourceLabel(link: CorporateLink) {
   return link.linkType === "FILE" ? "PDF aktif" : "URL aktif";
 }
 
+function compactFileName(name: string, max = 18) {
+  const trimmed = name.trim();
+  const dot = trimmed.lastIndexOf(".");
+  const ext = dot > 0 ? trimmed.slice(dot) : "";
+  const base = dot > 0 ? trimmed.slice(0, dot) : trimmed;
+  if (trimmed.length <= max) return trimmed;
+  const keep = Math.max(8, max - ext.length - 3);
+  return `${base.slice(0, keep)}...${ext}`;
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  if (bytes >= 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${bytes} B`;
+}
+
 // Çalışan kartındaki "Kurumsal Bağlantılar" bölümünün dört sabit slotu
 // (bkz. supabase/migrations/*_organization_links.sql — organization_links
 // tablosu). Her slot ya URL ya da yüklenmiş bir PDF; taslak/yayında durumu,
@@ -126,10 +142,23 @@ export default function CorporateLinksPanel({
                   <dd>
                     {link.configured ? (
                       link.linkType === "FILE" ? (
-                        <span className="corp-link-current">
-                          <Icon name="box" /> {link.fileName}{" "}
-                          {link.fileSize ? `· ${(link.fileSize / 1024 / 1024).toFixed(1)} MB` : ""}
-                        </span>
+                        <article className="corp-file">
+                          <span className="corp-file-badge">PDF</span>
+                          <div className="corp-file-copy">
+                            <strong title={link.fileName || "PDF"}>{compactFileName(link.fileName || "dosya.pdf")}</strong>
+                            <small>{link.fileSize ? formatFileSize(link.fileSize) : "Boyut yok"}</small>
+                          </div>
+                          <div className="corp-file-actions">
+                            {link.fileUrl ? (
+                              <a className="ds-button ds-button--secondary ds-button--sm" href={link.fileUrl} target="_blank" rel="noopener noreferrer">Görüntüle</a>
+                            ) : (
+                              <Button type="button" variant="secondary" size="sm" disabled>Görüntüle</Button>
+                            )}
+                            <label className="corp-link-upload corp-file-replace" htmlFor={`corp-link-replace-${link.kind}`}>
+                              {busy ? "Yükleniyor..." : "Değiştir"}
+                            </label>
+                          </div>
+                        </article>
                       ) : (
                         <span className="corp-link-current">
                           <Icon name="external" /> {link.url}
@@ -160,19 +189,23 @@ export default function CorporateLinksPanel({
                   >
                     URL Kaydet
                   </Button>
-                  <label className="corp-link-upload">
-                    {busy ? "Yükleniyor..." : "PDF Yükle"}
-                    <input
-                      type="file"
-                      accept="application/pdf"
-                      disabled={busy}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) void onUploadFile(link.kind, file);
-                        e.target.value = "";
-                      }}
-                    />
-                  </label>
+                  {link.linkType !== "FILE" && (
+                    <label className="corp-link-upload" htmlFor={`corp-link-replace-${link.kind}`}>
+                      {busy ? "Yükleniyor..." : "PDF Yükle"}
+                    </label>
+                  )}
+                  <input
+                    id={`corp-link-replace-${link.kind}`}
+                    type="file"
+                    accept="application/pdf"
+                    disabled={busy}
+                    hidden
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) void onUploadFile(link.kind, file);
+                      e.target.value = "";
+                    }}
+                  />
                 </div>
                 <Field label="Yayın zamanı">
                   <Input
@@ -196,7 +229,10 @@ export default function CorporateLinksPanel({
                       type="button"
                       variant="destructive"
                       disabled={busy}
-                      onClick={() => void onRemove(link.kind)}
+                      onClick={() => {
+                        if (!window.confirm(`${link.label} içeriğini silmek bu alanı karttan kaldırır. Devam edilsin mi?`)) return;
+                        void onRemove(link.kind);
+                      }}
                     >
                       Sil
                     </Button>
@@ -205,7 +241,14 @@ export default function CorporateLinksPanel({
               </div>
               {linkVersions.some((version) => version.kind === link.kind) && (
                 <details className="corp-link-history">
-                  <summary>Sürüm geçmişi</summary>
+                  <summary>
+                    <span>
+                      <Icon name="clock" />
+                      <strong>Sürüm geçmişi</strong>
+                      <small>{linkVersions.filter((version) => version.kind === link.kind).length} kayıt</small>
+                    </span>
+                    <Icon name="chevronDown" />
+                  </summary>
                   <ol>
                     {linkVersions
                       .filter((version) => version.kind === link.kind)
@@ -213,7 +256,9 @@ export default function CorporateLinksPanel({
                       .map((version) => (
                         <li key={version.id}>
                           <div>
-                            <strong>{version.file_name || version.url || "Boş sürüm"}</strong>
+                            <strong title={version.file_name || version.url || "Boş sürüm"}>
+                              {version.file_name ? compactFileName(version.file_name) : version.url || "Boş sürüm"}
+                            </strong>
                             <small>
                               {dateTimeMedium.format(new Date(version.created_at))} · {version.change_reason}
                             </small>

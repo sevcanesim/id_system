@@ -168,6 +168,28 @@ if (
 } else {
   fail('corporate links status/editor contract is missing');
 }
+if (
+  linksPanel.includes('className="corp-file"') &&
+  linksPanel.includes('Görüntüle') &&
+  linksPanel.includes('Değiştir') &&
+  linksPanel.includes('window.confirm') &&
+  linksPanel.includes('<strong>Sürüm geçmişi</strong>') &&
+  css.includes('.corp-file')
+) {
+  pass('corporate files are compact and delete/history are explicit');
+} else {
+  fail('corporate file chip / delete / history contract is missing');
+}
+if (
+  client.includes('Henüz etkileşim verisi oluşmadı') &&
+  client.includes('Kartımı Gör') &&
+  client.includes('Paylaşım Ayarları') &&
+  !client.includes('Bu dönem için görüntülenme verisi yok.')
+) {
+  pass('analytics empty state explains why data is missing and next actions');
+} else {
+  fail('analytics empty-state contract is missing');
+}
 
 const migrations = fs.readdirSync(path.join(root, 'supabase/migrations')).filter((name) => name.endsWith('.sql'));
 if (migrations.length === 55) pass('55 database migrations preserved'); else fail(`migration count changed: ${migrations.length}`);

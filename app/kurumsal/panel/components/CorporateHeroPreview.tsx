@@ -20,28 +20,23 @@ export default function CorporateHeroPreview({
 }: CorporateHeroPreviewProps) {
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [copied, setCopied] = useState(false);
+  const shareUrl = slug ? cardShareUrl(slug) : "";
+  const shareDisplay = shareUrl.replace(/^https?:\/\//, "");
 
   useEffect(() => {
-    if (!slug) {
+    if (!shareUrl) {
       setQrDataUrl("");
       return;
     }
 
-    const origin =
-      typeof window === "undefined" ? "https://yenomi.id" : window.location.origin;
-
-    QRCode.toDataURL(cardShareUrl(slug, origin), {
+    QRCode.toDataURL(shareUrl, {
       width: 112,
       margin: 1,
       errorCorrectionLevel: "H",
     })
       .then(setQrDataUrl)
       .catch(() => setQrDataUrl(""));
-  }, [slug]);
-
-  const shareUrl = slug
-    ? cardShareUrl(slug, typeof window === "undefined" ? "https://yenomi.id" : window.location.origin)
-    : "";
+  }, [shareUrl]);
 
   async function copyShareLink() {
     if (!shareUrl) return;
@@ -59,13 +54,14 @@ export default function CorporateHeroPreview({
       <header>
         <small>Kart erişimi</small>
         <strong>{company}</strong>
+        {name ? <span>{name}</span> : null}
       </header>
       {qrDataUrl ? (
-        <img className="v26-card-qr" src={qrDataUrl} alt={`${name} kart QR kodu`} width={96} height={96} />
+        <img className="v26-card-qr" src={qrDataUrl} alt={`${name || company} kart QR kodu`} width={96} height={96} />
       ) : (
         <span className="v26-card-qr-placeholder" aria-hidden="true" />
       )}
-      <p>{slug ? `yenomi.id/p/${slug}` : "Kart profili hazırlanıyor"}</p>
+      <p>{slug ? shareDisplay : "Kart profili hazırlanıyor"}</p>
       <button type="button" onClick={() => void copyShareLink()} disabled={!slug}>
         <Icon name="qr" />
         {copied ? "Bağlantı kopyalandı" : slug ? "QR bağlantısını kopyala" : "Paylaşım bekleniyor"}

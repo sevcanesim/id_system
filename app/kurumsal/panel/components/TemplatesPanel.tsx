@@ -42,8 +42,8 @@ export default function TemplatesPanel({
   return (
     <form className="business-settings-card business-template-editor" onSubmit={onSubmit}>
         <header className="template-reference-heading">
-          <div><span>ŞABLON YÖNETİMİ · Kurumsal kart şablonları</span><h2>Planda Değişiklik Yap</h2><p>Kurumsal görünümü seçin; renk, logo ve alanları canlı önizleme üzerinde yönetin.</p></div>
-          <strong>PREMIUM {variantLabel(templateVariant).toUpperCase()}</strong>
+          <div><span>ŞABLON YÖNETİMİ · Kurumsal kart şablonları</span><h2>Kurumsal kart görünümünü yönet</h2><p>Kurumsal görünümü seçin; renk, logo ve alanları canlı önizleme üzerinde yönetin.</p></div>
+          <strong>{variantLabel(templateVariant)}</strong>
         </header>
         <CorporateTemplateSelector value={templateVariant} onChange={onTemplateVariantChange} options={templateOptions} />
         <div className="business-template-workbench">
@@ -79,7 +79,7 @@ export default function TemplatesPanel({
               />
             </label>
             <div className="template-preview-note">
-              <Icon name="analytics" />
+              <Icon name="eye" />
               <span>Değişiklikler sağdaki önizlemeye anında uygulanır. Kaydetmeden tasarımı deneyebilirsin.</span>
             </div>
           </div>

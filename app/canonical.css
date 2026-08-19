@@ -3301,6 +3301,71 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
   letter-spacing: .06em;
   text-transform: uppercase;
 }
+.p11-table th button,
+.p11-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+.p11-table th button:hover,
+.p11-sort:hover { color: var(--ink); }
+.p11-sort-indicator { min-width: 10px; color: var(--gold-hi); font-size: 10px; }
+.p11-person {
+  min-width: 0;
+  width: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 4px 6px 4px 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.p11-person > span {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--gold-dim);
+  color: var(--gold-hi);
+  font: 700 10px var(--font-mono);
+}
+.p11-person:hover { background: var(--gold-dim); }
+.p11-person:hover i > strong { text-decoration: underline; text-underline-offset: 2px; }
+.p11-person:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 2px; }
+.p11-table td.actions { white-space: nowrap; }
+.p11-table td.actions button {
+  min-height: 32px;
+  margin-right: 6px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.p11-table td.actions button:hover { border-color: var(--gold); }
 .p11-table tbody tr:hover,
 .p11-bulk-invite-table tbody tr:hover { background: var(--gold-dim); }
 .p11-table tbody tr:last-child td,
@@ -7817,6 +7882,31 @@ body { background:#F9F8F6; color:#1A1918; }
 }
 .p10-corporate-platform .ds-table tbody tr:hover td {
   background:#F9F8F6;
+}
+
+.p10-corporate-platform .p11-table th button,
+.p10-corporate-platform .p11-sort {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  min-height: 0;
+  padding: 0;
+}
+.p10-corporate-platform .p11-person {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  min-height: 0;
+}
+.p10-corporate-platform .p11-person:hover {
+  background: #F6F1E5;
+}
+.p10-corporate-platform .p11-table td.actions button {
+  border-color: #E6E2D8;
+  background: #FFFFFF;
+  color: #1A1918;
 }
 
 .p10-corporate-platform .ds-empty,

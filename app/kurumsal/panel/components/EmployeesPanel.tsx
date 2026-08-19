@@ -195,6 +195,23 @@ export default function EmployeesPanel(props: Props) {
     else { setSortKey(next); setSortDirection("asc"); }
   }
 
+  function sortState(column: SortKey): "ascending" | "descending" | "none" {
+    if (sortKey !== column) return "none";
+    return sortDirection === "asc" ? "ascending" : "descending";
+  }
+
+  function sortHeader(column: SortKey, label: string) {
+    const state = sortState(column);
+    return (
+      <th aria-sort={state}>
+        <button type="button" className="p11-sort" onClick={() => sortBy(column)}>
+          {label}
+          <span className="p11-sort-indicator" aria-hidden="true">{state === "none" ? "" : state === "ascending" ? "↑" : "↓"}</span>
+        </button>
+      </th>
+    );
+  }
+
   return (
     <section className="p11-employees" aria-labelledby="p11-employees-title">
       <header className="p11-employees-header">
@@ -275,7 +292,7 @@ export default function EmployeesPanel(props: Props) {
 
         <div className="p11-table-wrap">
           <table className="p11-table">
-            <thead><tr><th className="select"><input type="checkbox" aria-label="Bu sayfadaki çalışanları seç" checked={pageAllSelected} onChange={togglePage} /></th><th><button type="button" onClick={() => sortBy("name")}>Çalışan</button></th><th><button type="button" onClick={() => sortBy("department")}>Departman</button></th><th><button type="button" onClick={() => sortBy("role")}>Rol</button></th><th>Dijital Kart</th><th>Fiziksel Kart</th><th><button type="button" onClick={() => sortBy("status")}>Durum</button></th><th><button type="button" onClick={() => sortBy("created")}>Son Güncelleme</button></th><th className="actions">İşlem</th></tr></thead>
+            <thead><tr><th className="select"><input type="checkbox" aria-label="Bu sayfadaki çalışanları seç" checked={pageAllSelected} onChange={togglePage} /></th>{sortHeader("name", "Çalışan")}{sortHeader("department", "Departman")}{sortHeader("role", "Rol")}<th>Dijital Kart</th><th>Fiziksel Kart</th>{sortHeader("status", "Durum")}{sortHeader("created", "Son Güncelleme")}<th className="actions">İşlem</th></tr></thead>
             <tbody>
               {pageMembers.map((member) => {
                 const cardState = memberCardStatuses.find((item) => item.memberId === member.id);
@@ -284,7 +301,7 @@ export default function EmployeesPanel(props: Props) {
                 const selectable = member.user_id !== currentUserId && member.role !== "OWNER";
                 return <tr key={member.id} data-status={member.status}>
                   <td className="select"><input type="checkbox" aria-label={`${member.full_name || member.email} seç`} checked={selectedIds.has(member.id)} disabled={!selectable} onChange={() => toggleMember(member.id)} /></td>
-                  <td><button className="p11-person" type="button" onClick={() => member.user_id === currentUserId ? onEditOwnCard() : openMemberDrawer(member, member.status === "INVITED" ? "invite" : "profile")}><span>{initials(member)}</span><i><strong>{member.full_name || member.email}</strong><small>{member.email}</small></i></button></td>
+                  <td><button className="p11-person" type="button" aria-label={`${member.full_name || member.email} detayını aç`} onClick={() => member.user_id === currentUserId ? onEditOwnCard() : openMemberDrawer(member, member.status === "INVITED" ? "invite" : "profile")}><span>{initials(member)}</span><i><strong>{member.full_name || member.email}</strong><small>{member.email}</small></i></button></td>
                   <td>{member.department || "—"}</td><td>{roleLabel(member.role)}</td>
                   <td><span className={`p11-status ${cardState?.digitalProfileState === "PUBLISHED" ? "success" : cardState?.digitalProfileState === "DISABLED" ? "error" : cardState?.digitalProfileState === "DRAFT" ? "warning" : "neutral"}`}>{digitalProfileLabel(cardState?.digitalProfileState ?? "NONE")}</span></td>
                   <td><span className={`p11-status ${physicalState === "ACTIVE" ? "success" : physicalState === "LOST" ? "warning" : physicalState === "DISABLED" ? "error" : "neutral"}`}>{physicalCardLabel(physicalState)}</span></td>

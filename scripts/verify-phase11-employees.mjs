@@ -18,6 +18,11 @@ pass('legacy /hesabim fallback renders no account-check UI',account.includes('re
 const employees=read('app/kurumsal/panel/components/EmployeesPanel.tsx');
 for(const needle of ['PAGE_SIZE = 25','sortKey','selectedIds','onBulkStatus','p11-mobile-list','p11-pagination','departmentFilter','statusFilter']) pass(`employee management capability present: ${needle}`,employees.includes(needle));
 pass('employee table exposes expected SaaS columns',['Çalışan','Departman','Rol','Dijital Kart','Fiziksel Kart','Durum','Son Güncelleme'].every(x=>employees.includes(x)));
+pass('employee sort headers use table-header language not chips',employees.includes('className="p11-sort"')&&employees.includes('aria-sort'));
+pass('employee name cells remain a real identity button',employees.includes('className="p11-person"')&&employees.includes('detayını aç'));
+const canonical=read('app/canonical.css');
+pass('employee sort headers reset button chrome',canonical.includes('.p11-table th button')&&canonical.includes('.p11-sort')&&canonical.includes('background: transparent'));
+pass('employee identity button has hover and focus states',canonical.includes('.p11-person:hover')&&canonical.includes('.p11-person:focus-visible'));
 pass('bulk destructive employee changes require confirmation',employees.includes('window.confirm')&&employees.includes('Şirketten Ayır'));
 pass('owner and current user excluded from destructive bulk selection',employees.includes('member.role !== "OWNER"')&&employees.includes('member.user_id !== currentUserId'));
 pass('mobile uses card/list representation instead of compressed table',employees.includes('p11-mobile-list'));

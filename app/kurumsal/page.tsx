@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "../icons";
 import { COMMERCIAL_PRICING } from "../../lib/config/commercial";
@@ -43,7 +42,7 @@ export default function CorporatePage() {
     { icon: "users" as const, title: "Toplu Yönetim", text: "Çalışanlarınızı ve kartlarını tek merkezden yönetin." },
     { icon: "building" as const, title: "Marka Kontrolü", text: "Şablon, logo, renk ve alan kurallarını merkezden belirleyin." },
     { icon: "shield" as const, title: "Yetki & Güvenlik", text: "Rol bazlı erişim ve güvenlik kontrollerini tek panelden yönetin." },
-    { icon: "chart" as const, title: "Ölçülebilir", text: "Görüntülenme ve temas verilerini ekip bazında takip edin." },
+    { icon: "analytics" as const, title: "Ölçülebilir", text: "Görüntülenme ve temas verilerini ekip bazında takip edin." },
   ];
 
   return (

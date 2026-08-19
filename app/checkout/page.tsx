@@ -3,8 +3,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import AppHeader from "../components/AppHeader";
-import AppFooter from "../components/AppFooter";
 import { readCart, setCartOwner, type CartItem } from "../../lib/cart";
 import { formatTryFromKurus } from "../../lib/config/product";
 import { COMMERCIAL_SKUS, isRenewalSku } from "../../lib/config/commercial";
@@ -295,8 +293,8 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main id="main-content" className="checkout-page p5-checkout-page">
-      <AppHeader context="Güvenli Ödeme" />
+    <main id="main-content" className="checkout-page p5-checkout-page yi-footer-compact">
+      {/* Public chrome is provided by PublicSiteShell. Do not remount AppHeader/AppFooter. */}
       <section className="checkout-shell checkout-confirm-shell">
         <div className="checkout-heading checkout-heading-compact">
           <h1>Siparişini tamamla.</h1>
@@ -416,7 +414,6 @@ export default function CheckoutPage() {
         )}
         {toast && <div className="checkout-toast" role="status"><Icon name="check" />{toast}</div>}
       </section>
-      <AppFooter variant="compact" />
     </main>
   );
 }

@@ -1,10 +1,7 @@
 import { ButtonLink } from "./ui/Button";
-import SiteFooter from "./ui/SiteFooter";
-import SiteHeader from "./ui/SiteHeader";
 
 export default function NotFound() {
   return <div className="yi-site">
-    <SiteHeader theme="light" />
     <main id="main-content" className="yi-section yi-section--light yi-empty-product">
       <div className="yi-container">
         <span className="yi-hero__eyebrow">404</span>
@@ -16,6 +13,5 @@ export default function NotFound() {
         </div>
       </div>
     </main>
-    <SiteFooter />
   </div>;
 }

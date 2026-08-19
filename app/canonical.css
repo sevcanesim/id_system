@@ -2428,7 +2428,7 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .how-benefits-grid { display:grid; grid-template-columns:repeat(4,1fr); border:1px solid rgba(30,25,19,.15); border-radius:18px; background:rgba(255,255,255,.62); box-shadow:0 12px 30px rgba(54,43,30,.07); overflow:hidden; }
 .how-benefits-grid article { min-height:112px; display:flex; align-items:center; gap:14px; padding:22px 24px; border-right:1px solid rgba(30,25,19,.12); }.how-benefits-grid article:last-child{border-right:0}
 .how-benefit-icon { width:44px; height:44px; flex:0 0 44px; display:grid; place-items:center; border:1px solid rgba(169,129,47,.52); border-radius:12px; color:#9a742e; background:rgba(169,129,47,.06); }
-.how-benefit-icon svg { width:23px; height:23px; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+.how-benefit-icon svg, .how-benefit-icon .yi-icon { width:23px; height:23px; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
 .how-benefits-grid h3 { margin:0 0 4px; font-size:15px; }.how-benefits-grid p { margin:0; color:#746d63; font-size:12px; line-height:1.45; }
 .how-it-works-page .yi-footer { margin-top:0; border-top:1px solid rgba(24,19,13,.1); background:rgba(255,255,255,.45); }
 .how-it-works-page .yi-footer p,.how-it-works-page .yi-footer a,.how-it-works-page .yi-footer span { color:#6d665d; }
@@ -2570,6 +2570,10 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .support-topic-arrow { color:#9a742e; font-size:16px; text-align:right; }
 .support-faq .support-section-head { margin-bottom:8px; }
 .support-faq-list { display:grid; gap:6px; }
+.support-faq-group { display:grid; gap:6px; scroll-margin-top:116px; }
+.support-faq-group + .support-faq-group { margin-top:12px; }
+.support-faq-group > h3 { margin:0 0 4px; color:#9a742e; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.support-empty { margin:0; color:#746d63; font-size:12px; line-height:1.5; }
 .support-faq details { border:1px solid rgba(30,25,19,.11); border-radius:10px; background:rgba(255,255,255,.55); }
 .support-faq summary { min-height:40px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 11px; color:var(--ink); font-size:12px; font-weight:700; cursor:pointer; list-style:none; }
 .support-faq summary::-webkit-details-marker { display:none; }
@@ -7653,7 +7657,7 @@ body:has(.how-it-works-page) {
 .nfc-product-hero__lead{max-width:620px;margin:26px 0 0;font-size:19px;line-height:1.55;color:#403a42}
 .nfc-product-hero__body{max-width:620px;margin:12px 0 0;color:#756e74;font-size:15px;line-height:1.7}
 .nfc-product-hero__visual{min-width:0;display:grid;place-items:center}
-.nfc-product-hero__visual img{width:min(100%,640px);height:auto;display:block;filter:drop-shadow(0 30px 55px rgba(28,20,34,.16));mix-blend-mode:multiply}
+.nfc-product-hero__visual img{width:min(100%,640px);height:auto;display:block;border-radius:28px;background:#0b0810;filter:drop-shadow(0 30px 55px rgba(28,20,34,.16))}
 .nfc-purchase-controls{margin-top:28px}.ds-product-option-group{border:0;margin:0;padding:0}.ds-product-option-group__label{padding:0;margin-bottom:9px;color:#5e565d;font-size:12px;font-weight:800}
 .ds-product-option-group__options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.ds-product-option{position:relative;min-height:62px;display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #ddd6cc;border-radius:12px;background:rgba(255,255,255,.65);cursor:pointer;transition:border-color 160ms ease,background 160ms ease,transform 160ms ease}.ds-product-option:hover{transform:translateY(-1px);border-color:#c6a25e}.ds-product-option--selected{border-color:#a9812f;background:#fffaf0;box-shadow:0 0 0 1px rgba(169,129,47,.15)}.ds-product-option__input{position:absolute;opacity:0;pointer-events:none}.ds-product-option__swatch{width:18px;height:18px;flex:0 0 18px;border-radius:50%;border:1px solid rgba(0,0,0,.16)}.ds-product-option__swatch--black{background:#17131c}.ds-product-option__swatch--white{background:#fff}.ds-product-option__swatch--purple{background:linear-gradient(135deg,#27133f,#8954c8)}.ds-product-option__copy{display:grid;gap:2px}.ds-product-option__copy strong{font-size:12px}.ds-product-option__copy small{color:#8a8188;font-size:10px}.ds-product-option__check{margin-left:auto;color:#a9812f;font-size:12px;opacity:0}.ds-product-option--selected .ds-product-option__check{opacity:1}
 .nfc-account-note{margin:12px 0;color:#7b7379;font-size:11px;line-height:1.5}.nfc-price-row{display:flex;align-items:end;justify-content:space-between;gap:20px;padding:18px 0;border-top:1px solid #dcd5ca;border-bottom:1px solid #dcd5ca}.nfc-price-tag{display:grid;gap:2px}.nfc-price-tag strong{font-size:38px;line-height:1;letter-spacing:-.045em}.nfc-price-tag small{color:#817980;font-size:11px}.nfc-price-actions .ds-button{min-height:48px;padding:0 24px;border-radius:11px}.nfc-trust-row{display:flex;flex-wrap:wrap;gap:14px 20px;margin-top:14px;color:#736b72;font-size:10px;font-weight:700}.nfc-trust-row span{display:inline-flex;align-items:center;gap:5px}.nfc-trust-row .yi-icon{width:12px;height:12px;color:#a9812f}

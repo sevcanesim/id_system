@@ -3,9 +3,10 @@
  * catalog → product detail). P2 QA finding: this strip existed on the
  * homepage and /urunler but not on /urunler/nfc-kart, so the same shopping
  * journey looked like two different systems mid-flow. Deliberately not
- * shown on checkout-sensitive pages (giriş, sepet, checkout, ödeme,
- * aktivasyon) — dropping promotional chrome during checkout to reduce
- * distraction is intentional, not an oversight.
+ * shown on checkout-sensitive pages (giriş, sepet, checkout, nfc-siparis,
+ * ödeme, aktivasyon) — dropping promotional chrome during checkout to reduce
+ * distraction is intentional, not an oversight. PublicSiteShell hides this
+ * bar on those quiet public routes.
  */
 export default function AnnouncementBar() {
   return (

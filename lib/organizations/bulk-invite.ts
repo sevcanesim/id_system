@@ -51,10 +51,14 @@ const HEADER_ALIASES: Record<string, string> = {
 const ROLE_ALIASES: Record<string, BulkInviteRole> = {
   admin: "ADMIN",
   yönetici: "ADMIN",
+  "kurumsal yönetici": "ADMIN",
+  "kurumsal yonetici": "ADMIN",
   ik: "HR",
   hr: "HR",
   "i̇nsan kaynakları": "HR",
   "insan kaynaklari": "HR",
+  "ik yöneticisi": "HR",
+  "ik yoneticisi": "HR",
   "departman yöneticisi": "DEPARTMENT_MANAGER",
   "departman yoneticisi": "DEPARTMENT_MANAGER",
   department_manager: "DEPARTMENT_MANAGER",
@@ -125,7 +129,7 @@ export function parseBulkInviteCsv(text: string): BulkInviteParseResult {
     const roleRaw = normalizeHeaderKey(get("role"));
     const role = ROLE_ALIASES[roleRaw];
     if (roleRaw && !role) {
-      errors.push({ line, raw, error: `Tanınmayan rol: "${get("role")}". Geçerli değerler: Çalışan, İK, Departman Yöneticisi, Admin.` });
+      errors.push({ line, raw, error: `Tanınmayan rol: "${get("role")}". Geçerli değerler: Çalışan, İK Yöneticisi, Departman Yöneticisi, Kurumsal Yönetici.` });
       continue;
     }
 

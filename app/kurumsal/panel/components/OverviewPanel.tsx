@@ -125,10 +125,10 @@ export default function OverviewPanel({
   const healthWarning = availableSeats === 0 || (daysUntilExpiry ?? 999) <= 30;
 
   const tasks = [
-    ["employees", `${invitedMembers} davet bekliyor`, "Davetleri takip et", invitedMembers],
-    ["cards", `${cardsWithoutDigital} dijital kart eksik`, "Kart kurulumunu tamamla", cardsWithoutDigital],
-    ["cards", `${unassignedPhysical} fiziksel kart atanmamış`, "Kart eşleştirmesini bitir", unassignedPhysical],
-    [canManageLicenses ? "licenses" : "employees", availableSeats === 0 ? "Lisans kapasitesi doldu" : `${availableSeats ?? "—"} boş lisans`, `${usedSeats} / ${subscription?.seat_limit ?? "—"} kullanım`, availableSeats ?? 0],
+    ["employees", `${invitedMembers} davet bekliyor`, "Davetleri takip et", invitedMembers, invitedMembers > 0],
+    ["cards", `${cardsWithoutDigital} dijital kart eksik`, "Kart kurulumunu tamamla", cardsWithoutDigital, cardsWithoutDigital > 0],
+    ["cards", `${unassignedPhysical} fiziksel kart atanmamış`, "Kart eşleştirmesini bitir", unassignedPhysical, unassignedPhysical > 0],
+    [canManageLicenses ? "licenses" : "employees", "Kalan lisans", availableSeats === 0 ? "Kapasite dolu · lisans ekle" : `${usedSeats} / ${subscription?.seat_limit ?? "—"} kullanım`, availableSeats ?? 0, availableSeats === 0],
   ] as const;
 
   return (
@@ -245,8 +245,8 @@ export default function OverviewPanel({
       </div>
 
       <section className="p11-overview-today" aria-label="Bugün yapılacaklar">
-        {tasks.map(([tab, title, hint, count]) => (
-          <button type="button" key={title} onClick={() => openTab(tab)}>
+        {tasks.map(([tab, title, hint, count, alert]) => (
+          <button type="button" key={title} className={alert ? "is-alert" : undefined} onClick={() => openTab(tab)}>
             <small>Bugün</small>
             <strong>{count}</strong>
             <span>{title}</span>

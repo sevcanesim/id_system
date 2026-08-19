@@ -50,4 +50,16 @@ describe("corporateSidebarItems", () => {
       "analytics",
     ]);
   });
+
+  it("keeps management destinations under YÖNETİM until networking starts", () => {
+    const groups = Object.fromEntries(corporateSidebarItems("OWNER").map((item) => [item.key, item.group]));
+    expect(groups.analytics).toBe("YÖNETİM");
+    expect(groups.licenses).toBe("YÖNETİM");
+    expect(groups.organization).toBe("YÖNETİM");
+    expect(groups.roles).toBe("YÖNETİM");
+    expect(groups.settings).toBe("YÖNETİM");
+    expect(groups.leads).toBe("NETWORKING");
+    expect(groups.events).toBe("NETWORKING");
+    expect(groups.meetings).toBe("NETWORKING");
+  });
 });

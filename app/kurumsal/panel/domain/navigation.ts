@@ -73,17 +73,17 @@ export const CORPORATE_PANEL_TAB_ORDER: readonly CorporatePanelTab[] = [
 export const CORPORATE_PANEL_TAB_META: Record<CorporatePanelTab, { label: string; icon: IconName; group?: string; loadingLabel: string }> = {
   overview: { label: "Genel Bakış", icon: "building", group: "GENEL", loadingLabel: "Genel Bakış yükleniyor" },
   employees: { label: "Çalışanlar", icon: "users", group: "EKİP & KARTLAR", loadingLabel: "Çalışanlar yükleniyor" },
-  cards: { label: "Kartlar", icon: "contact", loadingLabel: "Kartlar yükleniyor" },
+  cards: { label: "Kartlar", icon: "contact", group: "EKİP & KARTLAR", loadingLabel: "Kartlar yükleniyor" },
   templates: { label: "Marka & Şablon", icon: "id", group: "MARKA & İÇERİK", loadingLabel: "Kurumsal şablonlar yükleniyor" },
-  content: { label: "İçerik", icon: "link", loadingLabel: "İçerik yükleniyor" },
+  content: { label: "İçerik", icon: "link", group: "MARKA & İÇERİK", loadingLabel: "İçerik yükleniyor" },
   analytics: { label: "İstatistikler", icon: "analytics", group: "YÖNETİM", loadingLabel: "İstatistikler yükleniyor" },
-  licenses: { label: "Lisanslar", icon: "analytics", loadingLabel: "Lisanslar yükleniyor" },
-  organization: { label: "Organizasyon", icon: "building", loadingLabel: "Organizasyon yükleniyor" },
-  roles: { label: "Roller & Yetkiler", icon: "lock", loadingLabel: "Roller ve yetkiler yükleniyor" },
-  settings: { label: "Ayarlar", icon: "pencil", loadingLabel: "Şirket ayarları yükleniyor" },
-  leads: { label: "Leadler", icon: "users", group: "NETWORKING", loadingLabel: "Leadler yükleniyor" },
-  events: { label: "Etkinlikler", icon: "analytics", loadingLabel: "Etkinlikler yükleniyor" },
-  meetings: { label: "Görüşmeler", icon: "contact", loadingLabel: "Görüşmeler yükleniyor" },
+  licenses: { label: "Lisanslar", icon: "box", group: "YÖNETİM", loadingLabel: "Lisanslar yükleniyor" },
+  organization: { label: "Organizasyon", icon: "building", group: "YÖNETİM", loadingLabel: "Organizasyon yükleniyor" },
+  roles: { label: "Roller & Yetkiler", icon: "lock", group: "YÖNETİM", loadingLabel: "Roller ve yetkiler yükleniyor" },
+  settings: { label: "Ayarlar", icon: "adjustments", group: "YÖNETİM", loadingLabel: "Şirket ayarları yükleniyor" },
+  leads: { label: "Leadler", icon: "mail", group: "NETWORKING", loadingLabel: "Leadler yükleniyor" },
+  events: { label: "Etkinlikler", icon: "clock", group: "NETWORKING", loadingLabel: "Etkinlikler yükleniyor" },
+  meetings: { label: "Görüşmeler", icon: "contact", group: "NETWORKING", loadingLabel: "Görüşmeler yükleniyor" },
 };
 
 /** Sidebar görünürlüğü ile sunucu yetkilendirmesinin aynı rol dilini kullanması için tek kaynak. */

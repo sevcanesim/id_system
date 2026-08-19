@@ -55,12 +55,13 @@ export default function SidebarNav({
   return (
     <nav className={classNames.nav} role="navigation" aria-label={ariaLabel}>
       {visibleItems.map((item) => {
-        const showGroup = Boolean(item.group && item.group !== previousGroup);
-        previousGroup = item.group;
+        const group = item.group ?? previousGroup;
+        const showGroup = Boolean(group && group !== previousGroup);
+        previousGroup = group;
         const selected = item.key === activeKey;
         return (
           <Fragment key={item.key}>
-            {showGroup && <span className={classNames.group}>{item.group}</span>}
+            {showGroup && <span className={classNames.group}>{group}</span>}
             <div className={classNames.entry}>
               <Link
                 href={item.href}

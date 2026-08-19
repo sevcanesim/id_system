@@ -81,8 +81,39 @@ export const ROLE_MATRIX_COLUMNS = ORGANIZATION_ROLES;
 
 export const ROLE_LABELS: Record<OrganizationRole, string> = {
   OWNER: "Şirket Sahibi",
-  ADMIN: "Yönetici",
-  HR: "İnsan Kaynakları",
+  ADMIN: "Kurumsal Yönetici",
+  HR: "İK Yöneticisi",
   DEPARTMENT_MANAGER: "Departman Yöneticisi",
   EMPLOYEE: "Çalışan",
+};
+
+/** Capability copy for the corporate roles surface. Super Admin is platform-only. */
+export const ROLE_GUIDES: Record<OrganizationRole, readonly string[]> = {
+  OWNER: [
+    "Şirket ayarlarını yönetir.",
+    "Lisans satın alır.",
+    "Çalışan ekler.",
+    "Kart atar.",
+    "Şablon belirler.",
+  ],
+  ADMIN: [
+    "Lisans satın alır.",
+    "Çalışan ekler.",
+    "Kart atar.",
+    "Şablon belirler.",
+    "Şirket adını değiştiremez.",
+  ],
+  HR: [
+    "Çalışan ekler.",
+    "Davet gönderir.",
+    "Kart atar.",
+    "Çalışan durumunu değiştirir.",
+  ],
+  DEPARTMENT_MANAGER: [
+    "Yalnız kendi departmanındaki çalışanları yönetebilir.",
+  ],
+  EMPLOYEE: [
+    "Yalnız kendi dijital kartını düzenleyebilir.",
+    "Kendi istatistiklerini görebilir.",
+  ],
 };

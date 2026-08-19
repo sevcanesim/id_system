@@ -11,6 +11,7 @@ const panel =
   read("app/kurumsal/panel/CorporatePanelClient.tsx") +
   read("app/kurumsal/panel/components/EmployeesPanel.tsx") +
   read("app/kurumsal/panel/components/EmployeeDrawer.tsx") +
+  read("app/kurumsal/panel/components/OverviewPanel.tsx") +
   read("app/kurumsal/panel/components/CorporateHeroPreview.tsx");
 const hero = read("app/kurumsal/panel/components/CorporateHeroPreview.tsx");
 const staging = read(".github/workflows/staging-integration.yml");
@@ -19,8 +20,8 @@ const production = read(".github/workflows/production-deploy.yml");
 check(
   "CorporateHeroPreview is defined and imported",
   hero.includes("function CorporateHeroPreview") &&
-    read("app/kurumsal/panel/CorporatePanelClient.tsx").includes(
-      'import CorporateHeroPreview from "./components/CorporateHeroPreview"',
+    read("app/kurumsal/panel/components/OverviewPanel.tsx").includes(
+      'import CorporateHeroPreview from "./CorporateHeroPreview"',
     ),
 );
 check(

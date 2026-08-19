@@ -2813,7 +2813,29 @@ export default function CompanyPanel() {
                   <section className="p10-domain-panel">
                     <header><div><span>Analitik</span><h2>Kurumsal kart performansı</h2><p>Gerçek görüntülenme ve içerik etkileşim verilerini seçili dönem için inceleyin.</p></div><select value={analyticsDays} onChange={(event) => { const days=Number(event.target.value) as 7|30|90; setAnalyticsDays(days); if(selected) void loadCardAnalytics(selected,undefined,days); }}><option value={7}>Son 7 gün</option><option value={30}>Son 30 gün</option><option value={90}>Son 90 gün</option></select></header>
                     <div className="p10-metric-grid"><article><small>Toplam görüntülenme</small><strong>{cardAnalytics?.available===false ? "—" : (cardAnalytics?.totalViews ?? 0).toLocaleString("tr-TR")}</strong></article><article><small>Son 30 gün</small><strong>{cardAnalytics?.available===false ? "—" : (cardAnalytics?.last30DaysViews ?? 0).toLocaleString("tr-TR")}</strong></article><article><small>İçerik etkileşimi</small><strong>{cardAnalytics?.available===false ? "—" : (cardAnalytics?.content?.totalInteractions ?? 0).toLocaleString("tr-TR")}</strong></article></div>
-                    <div className="p10-ranking"><h3>En çok görüntülenen kartlar</h3>{cardAnalytics?.byCard?.length ? cardAnalytics.byCard.slice(0,10).map((item,index)=><div key={item.profileId}><span>{index+1}</span><strong>{item.name}</strong><small>{item.count.toLocaleString("tr-TR")} görüntülenme</small></div>) : <p className="p10-empty">Bu dönem için görüntülenme verisi yok.</p>}</div>
+                    {cardAnalytics?.available === false ? (
+                      <EmptyState
+                        compact
+                        icon="analytics"
+                        title="Analitik geçici olarak kullanılamıyor"
+                        description="Görüntülenme verisi şu anda alınamıyor. Daha sonra yeniden deneyin."
+                      />
+                    ) : cardAnalytics?.byCard?.length ? (
+                      <div className="p10-ranking"><h3>En çok görüntülenen kartlar</h3>{cardAnalytics.byCard.slice(0,10).map((item,index)=><div key={item.profileId}><span>{index+1}</span><strong>{item.name}</strong><small>{item.count.toLocaleString("tr-TR")} görüntülenme</small></div>)}</div>
+                    ) : (
+                      <EmptyState
+                        compact
+                        icon="analytics"
+                        title="Henüz etkileşim verisi oluşmadı"
+                        description="Kartınızı paylaşmaya başladığınızda görüntülenme ve etkileşim verileri burada görünecek."
+                        action={
+                          <div className="ds-empty-actions">
+                            <button type="button" className="ds-button ds-button--primary" onClick={() => router.push(ownCardEditorHref)}>Kartımı Gör</button>
+                            <button type="button" className="ds-button ds-button--secondary" onClick={() => openTab("templates")}>Paylaşım Ayarları</button>
+                          </div>
+                        }
+                      />
+                    )}
                   </section>
                 )}
                 {currentTab === "settings" && (

@@ -46,6 +46,10 @@ pass('employee drawer is a props element not a child wrapper',corp.includes('<Em
 pass('cards metrics show employee to digital to physical relationship',cards.includes('p11-card-flow')&&cards.includes('p11-card-flow-copy')&&cards.includes('variant="primary"')&&canonical.includes('.p11-card-flow'));
 const links=read('app/kurumsal/panel/components/CorporateLinksPanel.tsx');
 pass('corporate links expose labeled save publish and source state',links.includes('corp-link-status')&&links.includes('<dt>Kayıt</dt>')&&links.includes('<dt>Yayın</dt>')&&links.includes('<dt>Kaynak</dt>')&&links.includes('URL aktif')&&links.includes('PDF aktif')&&canonical.includes('.corp-link-status'));
+pass('corporate PDF files use a compact file chip with view/replace',links.includes('className="corp-file"')&&links.includes('Görüntüle')&&links.includes('Değiştir')&&links.includes('compactFileName')&&canonical.includes('.corp-file'));
+pass('corporate link delete is labeled and confirmed',links.includes('Sil')&&links.includes('window.confirm')&&links.includes('içeriğini silmek bu alanı karttan kaldırır')&&!links.includes('corp-link-remove'));
+pass('corporate version history has a stronger disclosure',links.includes('<strong>Sürüm geçmişi</strong>')&&links.includes('kayıt')&&canonical.includes('.corp-link-history summary'));
+pass('analytics empty state explains next action',corp.includes('Henüz etkileşim verisi oluşmadı')&&corp.includes('Kartımı Gör')&&corp.includes('Paylaşım Ayarları')&&!corp.includes('Bu dönem için görüntülenme verisi yok.'));
 const css=read('app/employee-management.css');
 pass('Phase 11 CSS uses no legacy token family',!/var\(--(?:yi|yp|store|brand|ui|y)-/.test(css));
 pass('Phase 11 employee chrome uses no gradients',!/gradient\(/.test(css));

@@ -1,0 +1,16 @@
+{
+  "phase": 8,
+  "version": "25.8.48",
+  "surface": "Profile Editor / CardWizard",
+  "informationArchitecture": ["Temel Bilgiler", "İletişim", "Şirket", "Sosyal Medya", "Bağlantılar", "Profil Görünümü"],
+  "individualShell": "canonical AppShell",
+  "desktopPreview": "sticky live preview",
+  "mobilePreview": "dedicated Drawer action",
+  "recoveredExistingCapabilities": ["profile image upload UI", "Instagram editor field"],
+  "businessLogicRetained": ["profile save API", "slug uniqueness RPC", "organization locks", "title requests", "location detection", "profile-images storage", "organization card-profile link", "entitlement checks"],
+  "corporateShellMigrationDeferred": true,
+  "canonicalCss": true,
+  "legacyTokensIntroduced": false,
+  "gradientsIntroduced": false,
+  "glassBlurIntroduced": false
+}

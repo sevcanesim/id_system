@@ -1,0 +1,6 @@
+/* Canonical product theme policy: public, individual and corporate shells are
+ * warm-light by default. Dark surfaces are opt-in to product previews only. */
+:root { color-scheme:light; }
+html, body { background: var(--surface-base, #F9F8F6); color: var(--warm-text-primary, #1A1918); }
+[data-ui-context="dark"], .p8-preview-stage { color-scheme: dark; }
+.global-app-header { background:var(--surface); }

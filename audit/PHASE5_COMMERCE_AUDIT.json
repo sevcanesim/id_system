@@ -1,0 +1,32 @@
+{
+  "phase": 5,
+  "version": "25.8.45",
+  "domain": "Product + Commerce",
+  "routes": [
+    "/urunler/nfc-kart",
+    "/sepet",
+    "/checkout",
+    "/odeme/basarili",
+    "/odeme/basarisiz",
+    "/aktivasyon"
+  ],
+  "businessLogicChanged": false,
+  "canonicalSurface": "app/commerce-flow.css",
+  "principles": [
+    "explicit package value",
+    "single primary conversion action",
+    "minimal commerce chrome",
+    "persistent order summary",
+    "payment trust through concrete information",
+    "post-payment next-step guidance",
+    "responsive single-column checkout",
+    "canonical tokens only"
+  ],
+  "deferred": [
+    "iyzico/API rewrite",
+    "cart data model changes",
+    "auth redesign",
+    "dashboard activation redesign",
+    "removal of legacy commerce selectors from legacy-surfaces.css"
+  ]
+}

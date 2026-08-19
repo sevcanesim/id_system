@@ -1,0 +1,46 @@
+name: Quality Gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Verify UI system contract
+        run: npm run verify:ui-system
+
+      - name: Verify P0 static release gates
+        run: npm run verify:p0:static
+
+      - name: Verify source and build
+        run: npm run verify:release
+
+      - name: Verify release packaging
+        run: npm run release:package
+
+      - name: Enforce release artifact budget and hygiene
+        run: npm run verify:release-artifact

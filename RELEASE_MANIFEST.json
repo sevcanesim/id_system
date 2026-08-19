@@ -1,0 +1,21 @@
+{
+  "package": "yenomi-id",
+  "version": "25.8.62-package.2",
+  "fileCount": 559,
+  "uncompressedBytes": 17868112,
+  "excludedDirectories": [
+    ".git",
+    ".next",
+    "coverage",
+    "node_modules",
+    "playwright-report",
+    "release",
+    "test-results"
+  ],
+  "excludedFiles": [
+    ".DS_Store",
+    ".env",
+    ".env.local",
+    "tsconfig.tsbuildinfo"
+  ]
+}

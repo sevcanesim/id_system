@@ -1,0 +1,29 @@
+{
+  "phase": 19,
+  "version": "25.8.60",
+  "scope": "Full QA / Regression / Edge Cases",
+  "p0_fixed": [
+    "Corporate offboarding no longer suspends unrelated personal or other-organization profiles",
+    "Corporate profiles require organization context for edits"
+  ],
+  "regression_domains": [
+    "authentication",
+    "checkout_idempotency",
+    "payment_callback_replay",
+    "fulfillment_review",
+    "renewal_grace",
+    "seat_capacity_concurrency",
+    "invitation_lifecycle",
+    "employee_lifecycle",
+    "profile_tenant_isolation",
+    "physical_card_replacement",
+    "public_runtime_smoke",
+    "responsive_overflow"
+  ],
+  "staging_only_remaining": [
+    "Real iyzico Sandbox checkout and internet-reachable callback",
+    "Fresh Supabase database replay with all migrations",
+    "Full visual snapshots after browser-backed run",
+    "Cross-browser release qualification"
+  ]
+}

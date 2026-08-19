@@ -1,0 +1,41 @@
+{
+  "phase": 6,
+  "version": "25.8.46",
+  "domain": "authentication_activation",
+  "surfaces": ["/giris", "/hesabim", "/aktivasyon", "/checkout -> /giris -> /checkout"],
+  "canonicalStylesheet": "app/auth-flow.css",
+  "design": {
+    "legacyTokenFamiliesIntroduced": 0,
+    "gradientsInAuthChrome": 0,
+    "activeBackdropBlur": 0,
+    "runtimeQrGenerationOnLogin": false,
+    "formFirstDesktop": true,
+    "mobileBreakpoints": [980, 640],
+    "reducedMotion": true,
+    "focusVisible": true
+  },
+  "journeys": {
+    "individualLogin": true,
+    "individualSignup": true,
+    "corporateLogin": true,
+    "corporateSelfSignupIntroduced": false,
+    "checkoutReturnPathPreserved": true,
+    "signupVerificationReturnPathPreserved": true,
+    "passwordReset": true,
+    "passwordRecovery": true,
+    "roleAwareAccountRouter": true,
+    "legacyOrderActivationRetained": true
+  },
+  "businessLogicRetained": [
+    "supabase.auth.signInWithPassword",
+    "supabase.auth.signUp",
+    "supabase.auth.signInWithOAuth",
+    "user_accounts portal validation",
+    "cart owner claim",
+    "auth session cookie bridge",
+    "/api/organizations/mine?management=true",
+    "/api/commerce/activate",
+    "/api/commerce/claim",
+    "/api/commerce/activation/resend"
+  ]
+}

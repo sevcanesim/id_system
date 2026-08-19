@@ -1,0 +1,26 @@
+{
+  "phase": 20,
+  "version": "25.8.61-rc.1",
+  "scope": "Production release candidate qualification",
+  "release_policy": "No new features; qualify existing product",
+  "gates": {
+    "static_rc_contract": "implemented",
+    "clean_typecheck_build": "runtime-required",
+    "full_unit": "runtime-required",
+    "phase19_browser": "runtime-required; authenticated cases must not skip in staging",
+    "staging_isolation": "required",
+    "migration_sync": "required",
+    "iyzico_sandbox_callback": "required",
+    "production_env": "required",
+    "secret_scan": "required",
+    "safe_source_package": "implemented"
+  },
+  "promotion_blockers": [
+    "Any failed typecheck/build/test",
+    "Skipped authenticated Phase 19 staging smoke",
+    "Staging and production Supabase identity collision",
+    "Iyzico production configured to sandbox endpoint",
+    "Unverified payment callback/fulfillment chain",
+    "Secret hygiene failure"
+  ]
+}

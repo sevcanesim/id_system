@@ -1,0 +1,8 @@
+{
+  "phase": 17,
+  "version": "25.8.58",
+  "scope": "organization member lifecycle and owner continuity",
+  "closed": ["atomic profile/card shutdown on suspension/offboarding", "guarded reactivation", "atomic ownership transfer"],
+  "retained": ["invitation resend/revoke", "member status history", "role hierarchy", "non-transferable physical card ownership"],
+  "deferred": ["bulk department/role/template assignment", "department/role template override"]
+}

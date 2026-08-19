@@ -1,0 +1,31 @@
+{
+  "version": "25.8.44",
+  "scope": "public_home_conversion",
+  "sections": [
+    "hero",
+    "product_proof",
+    "core_benefits",
+    "how_it_works",
+    "individual_corporate_split",
+    "trust",
+    "faq",
+    "final_cta"
+  ],
+  "legacy_token_references_in_new_css": 0,
+  "gradients_in_new_css": 0,
+  "active_backdrop_filters_in_new_css": 0,
+  "inline_style_objects_in_landing": 0,
+  "responsive_breakpoints": [
+    1024,
+    760,
+    430
+  ],
+  "business_logic_changed": false,
+  "phase5_deferred": [
+    "product_detail",
+    "cart",
+    "checkout",
+    "payment_success",
+    "activation_commerce_continuity"
+  ]
+}

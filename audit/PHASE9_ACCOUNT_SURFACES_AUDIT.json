@@ -1,0 +1,24 @@
+{
+  "version": "25.8.50",
+  "phase": 9,
+  "scope": ["/siparislerim", "/istatistikler", "/yenile", "/ayarlar"],
+  "orders": {
+    "legacyQrImportRemoved": true,
+    "canonicalStatusBadges": true,
+    "commerceApiPreserved": "/api/commerce/orders"
+  },
+  "analytics": {
+    "supportedMetrics": ["last30DaysViews", "totalViews90Days", "dailyTrend", "byCard"],
+    "unsupportedNotFabricated": ["qrScans", "nfcInteractions", "contactSaves", "linkClicks"]
+  },
+  "subscription": {
+    "hardcodedActiveRemoved": true,
+    "source": "/api/commerce/entitlements",
+    "technicalEntitlementCopyHidden": true
+  },
+  "settings": {
+    "sections": ["account", "security", "currentSession", "privacyLegal"],
+    "unsupportedUiNotInvented": ["notificationPreferences", "sessionHistory", "deleteAccount"]
+  },
+  "businessLogicProtected": true
+}

@@ -1,0 +1,27 @@
+{
+  "phase": 18,
+  "version": "25.8.59",
+  "scope": "Payment -> order -> fulfillment -> activation lifecycle",
+  "closed": [
+    "paid callback exactly-once contract",
+    "paid-but-fulfillment-review state",
+    "renewal expiry + grace extension",
+    "business seat-pack reconciliation ledger",
+    "ORDER_READY email event database contract",
+    "account-first auto-claim review reporting"
+  ],
+  "preserved": [
+    "iyzico provider verification",
+    "checkout idempotency key",
+    "server-authoritative product price",
+    "server-authoritative business seat count",
+    "activation token compatibility",
+    "physical fulfillment units"
+  ],
+  "requires_staging": [
+    "real iyzico sandbox redirect and callback",
+    "callback replay against deployed environment",
+    "seat-pack paid callback against active subscription",
+    "renewal paid callback against expiring entitlement"
+  ]
+}

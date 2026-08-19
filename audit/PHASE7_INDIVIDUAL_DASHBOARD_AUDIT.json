@@ -1,0 +1,13 @@
+{
+  "version": "25.8.47",
+  "phase": 7,
+  "scope": "Individual Dashboard Refactor",
+  "canonicalShell": "app/components/ui/AppShell.tsx",
+  "compatibilityShell": "app/components/UserPanelShell.tsx",
+  "navigationGroups": ["GENEL", "KART", "HESAP"],
+  "migratedSurfaces": ["/kartlarim", "/kartim", "/istatistikler", "/siparislerim", "/yenile", "/ayarlar"],
+  "deferred": ["/olustur CardWizard shell", "corporate dashboard"],
+  "businessLogicChanged": false,
+  "lostModeConfirmationAdded": true,
+  "envExampleRestored": true
+}

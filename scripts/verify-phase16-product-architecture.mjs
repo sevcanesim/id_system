@@ -1,0 +1,15 @@
+import fs from "node:fs";
+const pass=(n,c)=>{if(!c) throw new Error(`FAIL  ${n}`); console.log(`PASS  ${n}`)};
+const src=fs.readFileSync("app/kurumsal/panel/CorporatePanelClient.tsx","utf8");
+const nav=fs.readFileSync("app/kurumsal/panel/domain/navigation.ts","utf8");
+const css=fs.readFileSync("app/canonical.css","utf8");
+const pkg=JSON.parse(fs.readFileSync("package.json","utf8"));
+pass("corporate sidebar has canonical grouped navigation", css.includes('.enterprise-canonical-nav') && nav.includes('corporateSidebarItems'));
+pass("corporate navigation is centralized", nav.includes('CORPORATE_PANEL_TAB_ORDER') && nav.includes('CORPORATE_PANEL_TAB_META'));
+pass("personal card remains a distinct personal action", src.includes('Kartım'));
+pass("brand/template naming is consolidated", src.includes('["templates", "Marka & Şablon"]'));
+pass("content naming is concise", src.includes('["content", "İçerik"]'));
+pass("role-based license visibility remains centralized", nav.includes('canManageLicenses'));
+pass("Phase 16 hierarchy styles exist", css.includes('.enterprise-canonical-nav'));
+pass("package version retains Phase 16 architecture or later", /^25\.9\./.test(pkg.version) || /^25\.8\.(?:5[7-9]|[6-9]\d)$/.test(pkg.version));
+console.log("\nPhase 16 final product architecture verification passed.");

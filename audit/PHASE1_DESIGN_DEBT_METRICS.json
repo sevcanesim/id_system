@@ -1,0 +1,664 @@
+{
+  "css_files": [
+    {
+      "file": "app/globals.css",
+      "lines": 1868,
+      "important": 939,
+      "gradients": 346,
+      "backdrop_filters": 19,
+      "hardcoded_hex": 1690
+    },
+    {
+      "file": "app/site-system.css",
+      "lines": 231,
+      "important": 248,
+      "gradients": 22,
+      "backdrop_filters": 3,
+      "hardcoded_hex": 54
+    },
+    {
+      "file": "app/qr.css",
+      "lines": 860,
+      "important": 65,
+      "gradients": 146,
+      "backdrop_filters": 16,
+      "hardcoded_hex": 460
+    },
+    {
+      "file": "app/storefront.css",
+      "lines": 768,
+      "important": 413,
+      "gradients": 77,
+      "backdrop_filters": 5,
+      "hardcoded_hex": 256
+    },
+    {
+      "file": "app/foundation.css",
+      "lines": 241,
+      "important": 12,
+      "gradients": 9,
+      "backdrop_filters": 2,
+      "hardcoded_hex": 46
+    },
+    {
+      "file": "app/panel-system.css",
+      "lines": 379,
+      "important": 275,
+      "gradients": 0,
+      "backdrop_filters": 1,
+      "hardcoded_hex": 31
+    },
+    {
+      "file": "app/brand-system.css",
+      "lines": 973,
+      "important": 947,
+      "gradients": 42,
+      "backdrop_filters": 8,
+      "hardcoded_hex": 239
+    }
+  ],
+  "totals": {
+    "lines": 5320,
+    "important": 2899,
+    "gradients": 642,
+    "backdrop_filters": 54,
+    "hardcoded_hex": 2776
+  },
+  "shared_css_class_count": 419,
+  "top_shared_classes": {
+    "active": [
+      "brand-system.css",
+      "globals.css",
+      "panel-system.css",
+      "qr.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "css": [
+      "brand-system.css",
+      "foundation.css",
+      "globals.css",
+      "panel-system.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "primary": [
+      "brand-system.css",
+      "globals.css",
+      "panel-system.css",
+      "qr.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "secondary": [
+      "brand-system.css",
+      "globals.css",
+      "panel-system.css",
+      "qr.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "order-page": [
+      "brand-system.css",
+      "foundation.css",
+      "globals.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "section-kicker": [
+      "brand-system.css",
+      "globals.css",
+      "panel-system.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "yi-footer": [
+      "brand-system.css",
+      "foundation.css",
+      "globals.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "add-to-cart-button": [
+      "brand-system.css",
+      "globals.css",
+      "qr.css",
+      "storefront.css"
+    ],
+    "builder-page": [
+      "brand-system.css",
+      "foundation.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "embedded-card-preview": [
+      "globals.css",
+      "qr.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "global-app-header": [
+      "brand-system.css",
+      "foundation.css",
+      "globals.css",
+      "storefront.css"
+    ],
+    "global-header-cta": [
+      "brand-system.css",
+      "foundation.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "global-main-nav": [
+      "brand-system.css",
+      "foundation.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "is-disabled": [
+      "globals.css",
+      "panel-system.css",
+      "qr.css",
+      "storefront.css"
+    ],
+    "my-order-list": [
+      "globals.css",
+      "panel-system.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "nfc-detail-strip": [
+      "brand-system.css",
+      "globals.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "nfc-product-copy": [
+      "brand-system.css",
+      "globals.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "nfc-product-hero": [
+      "brand-system.css",
+      "globals.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "nfc-product-page": [
+      "brand-system.css",
+      "globals.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "nfc-purchase-card": [
+      "brand-system.css",
+      "globals.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "order-submit": [
+      "brand-system.css",
+      "globals.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "orders-page": [
+      "foundation.css",
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "premium-checkout-card": [
+      "brand-system.css",
+      "qr.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "premium-photo-upload": [
+      "brand-system.css",
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "products-page": [
+      "foundation.css",
+      "globals.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "yi-auth-form-side": [
+      "brand-system.css",
+      "foundation.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "yi-auth-form-wrap": [
+      "brand-system.css",
+      "foundation.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "yi-auth-page": [
+      "brand-system.css",
+      "foundation.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "yi-auth-session": [
+      "brand-system.css",
+      "foundation.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "yi-auth-shell": [
+      "brand-system.css",
+      "foundation.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "yi-auth-showcase": [
+      "brand-system.css",
+      "foundation.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "yi-auth-social": [
+      "brand-system.css",
+      "foundation.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "yi-auth-submit": [
+      "brand-system.css",
+      "foundation.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "yi-auth-text-button": [
+      "brand-system.css",
+      "foundation.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "yi-auth-trust": [
+      "brand-system.css",
+      "globals.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "admin-page": [
+      "brand-system.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "builder-form": [
+      "brand-system.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "builder-nav": [
+      "brand-system.css",
+      "globals.css",
+      "qr.css"
+    ],
+    "builder-page-v165": [
+      "brand-system.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "card-heading-v123": [
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "card-value-grid": [
+      "brand-system.css",
+      "globals.css",
+      "qr.css"
+    ],
+    "cart-layout": [
+      "brand-system.css",
+      "qr.css",
+      "storefront.css"
+    ],
+    "cart-page": [
+      "brand-system.css",
+      "qr.css",
+      "storefront.css"
+    ],
+    "cart-quantity": [
+      "brand-system.css",
+      "qr.css",
+      "storefront.css"
+    ],
+    "cart-shell": [
+      "brand-system.css",
+      "qr.css",
+      "storefront.css"
+    ],
+    "checkout-progress": [
+      "brand-system.css",
+      "qr.css",
+      "storefront.css"
+    ],
+    "checkout-step": [
+      "brand-system.css",
+      "qr.css",
+      "storefront.css"
+    ],
+    "compact-card": [
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "compact-cover": [
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "danger": [
+      "globals.css",
+      "panel-system.css",
+      "storefront.css"
+    ],
+    "dashboard-card-v123": [
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "dashboard-message": [
+      "panel-system.css",
+      "qr.css",
+      "storefront.css"
+    ],
+    "dashboard-title-v123": [
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "domestic-order-note": [
+      "brand-system.css",
+      "globals.css",
+      "storefront.css"
+    ],
+    "done": [
+      "globals.css",
+      "qr.css",
+      "storefront.css"
+    ],
+    "global-brand-copy": [
+      "brand-system.css",
+      "foundation.css",
+      "storefront.css"
+    ],
+    "global-header-context": [
+      "foundation.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "global-header-link": [
+      "brand-system.css",
+      "foundation.css",
+      "storefront.css"
+    ],
+    "hero-kicker": [
+      "brand-system.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "individual-mobile-actions": [
+      "brand-system.css",
+      "globals.css",
+      "panel-system.css"
+    ],
+    "link-card-head-v123": [
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "management-card-v123": [
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "my-order-card": [
+      "globals.css",
+      "panel-system.css",
+      "qr.css"
+    ],
+    "my-order-meta": [
+      "globals.css",
+      "panel-system.css",
+      "qr.css"
+    ],
+    "my-order-top": [
+      "globals.css",
+      "panel-system.css",
+      "qr.css"
+    ],
+    "nfc-card": [
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "nfc-product-faq": [
+      "brand-system.css",
+      "globals.css",
+      "storefront.css"
+    ],
+    "nfc-product-stage": [
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "nfc-product-story": [
+      "brand-system.css",
+      "globals.css",
+      "storefront.css"
+    ],
+    "offline": [
+      "panel-system.css",
+      "qr.css",
+      "storefront.css"
+    ],
+    "open": [
+      "foundation.css",
+      "globals.css",
+      "storefront.css"
+    ],
+    "order-form": [
+      "brand-system.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "order-progress": [
+      "globals.css",
+      "panel-system.css",
+      "qr.css"
+    ],
+    "order-success-actions": [
+      "brand-system.css",
+      "globals.css",
+      "qr.css"
+    ],
+    "orders-heading": [
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "premium-form-step": [
+      "brand-system.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "premium-product-stage": [
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "premium-publish-summary": [
+      "brand-system.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "premium-slug-card": [
+      "brand-system.css",
+      "globals.css",
+      "qr.css"
+    ],
+    "primary-action-v123": [
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "primary-actions-v123": [
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "product-card-action": [
+      "globals.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "product-hub-card-v2": [
+      "globals.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "product-stage-copy": [
+      "brand-system.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "products-path-v2": [
+      "globals.css",
+      "site-system.css",
+      "storefront.css"
+    ],
+    "qr-card-v123": [
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "qr-placeholder": [
+      "panel-system.css",
+      "qr.css",
+      "storefront.css"
+    ],
+    "result-empty": [
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "result-page": [
+      "foundation.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "selected": [
+      "globals.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "store-product-copy": [
+      "brand-system.css",
+      "globals.css",
+      "storefront.css"
+    ],
+    "story-list": [
+      "brand-system.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "wizard-actions": [
+      "brand-system.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "wizard-pane": [
+      "brand-system.css",
+      "qr.css",
+      "site-system.css"
+    ],
+    "yi-auth-security": [
+      "foundation.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "yi-auth-switch": [
+      "foundation.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "yi-eyebrow": [
+      "brand-system.css",
+      "globals.css",
+      "site-system.css"
+    ],
+    "activation-callout": [
+      "brand-system.css",
+      "storefront.css"
+    ],
+    "activation-shell": [
+      "brand-system.css",
+      "storefront.css"
+    ],
+    "activation-tabs": [
+      "brand-system.css",
+      "storefront.css"
+    ]
+  },
+  "inline_style_total": 54,
+  "inline_style_files": [
+    {
+      "file": "app/kartlarim/page.tsx",
+      "count": 14
+    },
+    {
+      "file": "app/yenile/page.tsx",
+      "count": 13
+    },
+    {
+      "file": "app/kurumsal/panel/page.tsx",
+      "count": 9
+    },
+    {
+      "file": "app/istatistikler/page.tsx",
+      "count": 3
+    },
+    {
+      "file": "app/iade-iptal/page.tsx",
+      "count": 3
+    },
+    {
+      "file": "app/admin/page.tsx",
+      "count": 3
+    },
+    {
+      "file": "app/ayarlar/page.tsx",
+      "count": 3
+    },
+    {
+      "file": "app/CardTemplate.tsx",
+      "count": 2
+    },
+    {
+      "file": "app/gizlilik/page.tsx",
+      "count": 1
+    },
+    {
+      "file": "app/kartim/page.tsx",
+      "count": 1
+    },
+    {
+      "file": "app/mesafeli-satis-sozlesmesi/page.tsx",
+      "count": 1
+    },
+    {
+      "file": "app/giris/page.tsx",
+      "count": 1
+    }
+  ]
+}

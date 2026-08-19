@@ -1,0 +1,17 @@
+{
+  "version": "25.8.55",
+  "removed": [
+    "app/panel-system.css",
+    "--yp-* token aliases",
+    "dead individual-* editor block",
+    "public-route qr.css imports"
+  ],
+  "remainingLegacyOwners": [
+    "globals.css",
+    "legacy-surfaces.css",
+    "qr.css"
+  ],
+  "cssFiles": 16,
+  "importantCount": 2924,
+  "legacyTokenRefs": 873
+}

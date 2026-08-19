@@ -1,0 +1,3 @@
+-- Superseded by 003_admin_audit_log_fixed.sql.
+-- This migration is intentionally a no-op so historical migration ordering remains stable.
+-- Audit table, RLS policies and triggers are installed by migration 003.

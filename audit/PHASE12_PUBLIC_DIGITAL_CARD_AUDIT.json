@@ -1,0 +1,29 @@
+{
+  "phase": 12,
+  "version": "25.8.53",
+  "surface": "Public Digital Card",
+  "routes": ["/p/[publicId]", "/c/[cardCode]", "/[slug]"],
+  "principles": [
+    "mobile-first",
+    "identity-first",
+    "save-contact-primary",
+    "no-portfolio-public-profile",
+    "controlled-corporate-branding"
+  ],
+  "preservedBusinessLogic": [
+    "lost/suspended/refunded state protection",
+    "service validity checks",
+    "organization branding and managed links",
+    "card view logging",
+    "public profile protection"
+  ],
+  "functionalFixes": [
+    "physical card vCard route added",
+    "public-id vCard now checks publication and service validity"
+  ],
+  "analyticsDebt": [
+    "contact save events",
+    "link click events",
+    "QR vs NFC interaction attribution"
+  ]
+}

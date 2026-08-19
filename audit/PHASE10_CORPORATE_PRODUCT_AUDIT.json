@@ -1,0 +1,28 @@
+{
+  "version": "25.8.51",
+  "color_regression": {
+    "canonical_root": "light",
+    "explicit_dark_context": true,
+    "routes_guarded": [
+      "/",
+      "/giris",
+      "/olustur?business=1",
+      "/kurumsal/panel"
+    ]
+  },
+  "corporate_routes": [
+    "/kurumsal/panel",
+    "/kurumsal/panel/calisanlar",
+    "/kurumsal/panel/kartlar",
+    "/kurumsal/panel/sablon",
+    "/kurumsal/panel/icerik",
+    "/kurumsal/panel/istatistikler",
+    "/kurumsal/panel/lisans",
+    "/kurumsal/panel/organizasyon",
+    "/kurumsal/panel/roller",
+    "/kurumsal/panel/ayarlar"
+  ],
+  "duplicate_global_header_removed": true,
+  "business_logic_rewrite": false,
+  "next_phase": "Employee Management domain split"
+}

@@ -1,0 +1,124 @@
+/* Yenomi ID — semantic design tokens
+ * Source of truth for all new UI. Legacy variables remain only as compatibility
+ * bridges; components must consume semantic tokens below.
+ */
+:root {
+  /* Color */
+  --background: #F9F8F6;
+  --surface: #ffffff;
+  --surface-secondary: #F2EFE9;
+  --surface-elevated: #ffffff;
+  --text-primary: var(--ink);
+  --text-secondary: var(--ink-2);
+  --text-tertiary: var(--ink-3);
+  --text-inverse: #ffffff;
+  --border: #E6E2D8;
+  --border-strong: #D8D2C4;
+  --primary: var(--gold);
+  --primary-hover: var(--gold-hi);
+  --primary-active: #896420;
+  --primary-subtle: var(--gold-dim);
+  --success: var(--green);
+  --success-subtle: rgba(47,158,95,.12);
+  --warning: var(--amber);
+  --warning-subtle: rgba(179,130,31,.12);
+  --error: var(--red);
+  --error-subtle: rgba(209,69,59,.10);
+  --info: var(--blue);
+  --info-subtle: rgba(58,107,196,.10);
+
+  /* Warm Premium canonical aliases */
+  --surface-base: #F9F8F6;
+  --surface-card: #FFFFFF;
+  --surface-soft: #F2EFE9;
+  --border-subdued: #E6E2D8;
+  --border-interactive: #D8D2C4;
+  --brand-gold: #A37B2C;
+  --brand-gold-deep: #9E7728;
+  --brand-gold-hover: #896420;
+  --brand-gold-soft: #F6F1E5;
+  --warm-text-primary: #1A1918;
+  --warm-text-secondary: #68645D;
+  --warm-success: #059669;
+  --warm-warning: #D97706;
+  --warm-muted: #78716C;
+  --warm-danger: #DC2626;
+
+  /* Radius */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 999px;
+
+  /* Elevation */
+  --shadow-xs: 0 1px 2px rgba(40,34,28,.06);
+  --shadow-sm: var(--shadow-soft);
+  --shadow-md: 0 18px 44px rgba(40,34,28,.12);
+  --shadow-overlay: var(--shadow);
+
+  /* Spacing — 4px base */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-30: 120px;
+
+  /* Type */
+  --font-family-ui: var(--font-ui);
+  --font-family-display: var(--font-display);
+  --font-size-label: var(--type-sm);
+  --font-size-body: var(--type-body);
+  --font-size-body-lg: var(--type-body-lg);
+  --font-size-title: var(--type-h3);
+  --font-size-page-title: var(--type-h2);
+  --font-size-display: var(--type-display);
+
+  /* Controls + motion */
+  --control-height-sm: 36px;
+  --control-height-md: 44px;
+  --control-height-lg: 52px;
+  --motion-fast: 140ms;
+  --motion-standard: 220ms;
+  --motion-emphasis: 380ms;
+  --ease-standard: cubic-bezier(.4,0,.2,1);
+  --ease-emphasis: cubic-bezier(.2,.8,.2,1);
+
+  /* Containers */
+  --container-content: var(--content);
+  --container-wide: var(--wide);
+
+  /* Compatibility bridges — do not use these in new components. */
+  --yi-bg: var(--background);
+  --brand-void: var(--background);
+  --store-bg: var(--background);
+  --ui-bg: var(--background);
+  --y-ink: var(--text-primary);
+}
+
+/* Tailwind / atomic component semantic contract. Keep these aliases stable. */
+:root {
+  --color-surface-base: #F9F8F6;
+  --color-surface-card: #FFFFFF;
+  --color-surface-soft: #F2EFE9;
+  --color-border-subdued: #E6E2D8;
+  --color-border-interactive: #D8D2C4;
+  --color-brand-gold: #A37B2C;
+  --color-brand-gold-deep: #9E7728;
+  --color-brand-gold-hover: #896420;
+  --color-brand-gold-soft: #F6F1E5;
+  --color-text-primary: #1A1918;
+  --color-text-secondary: #68645D;
+  --color-success: #059669;
+  --color-warning: #D97706;
+  --color-danger: #DC2626;
+}

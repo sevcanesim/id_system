@@ -1,0 +1,8 @@
+{
+  "phase": 13,
+  "version": "25.8.54",
+  "themePolicy": "light-product-chrome",
+  "darkAllowedOnlyFor": ["physical-card-artwork", "phone-artwork", "live-preview"],
+  "viewports": [375,390,430,768,1024,1280,1440,1920],
+  "checks": ["focus-visible","44px-touch-target","overflow-wrap","responsive-auth","responsive-data-surfaces","reduced-motion","theme-consistency"]
+}

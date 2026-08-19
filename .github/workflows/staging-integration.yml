@@ -1,0 +1,62 @@
+name: Staging Integration Gate
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yenomi-staging-integration
+  cancel-in-progress: false
+
+jobs:
+  integration:
+    environment: staging-e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.STAGING_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+      DEMO_SEED_PASSWORD: ${{ secrets.STAGING_DEMO_SEED_PASSWORD }}
+      STAGING_SUPABASE_PROJECT_REF: ${{ secrets.STAGING_SUPABASE_PROJECT_REF }}
+      PRODUCTION_SUPABASE_PROJECT_REF: ${{ secrets.PRODUCTION_SUPABASE_PROJECT_REF }}
+      PRODUCTION_SUPABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_URL }}
+      NEXT_PUBLIC_SITE_URL: ${{ secrets.STAGING_SITE_URL }}
+      IYZICO_API_KEY: ${{ secrets.STAGING_IYZICO_API_KEY }}
+      IYZICO_SECRET_KEY: ${{ secrets.STAGING_IYZICO_SECRET_KEY }}
+      IYZICO_BASE_URL: https://sandbox-api.iyzipay.com
+      ALLOW_STAGING_MUTATIONS: "true"
+      E2E_WORKERS: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+
+      - name: Verify source quality
+        run: npm run verify:release
+
+      - name: Prove database isolation before mutation
+        run: npm run verify:staging-isolation
+
+      - name: Verify local/remote migration drift
+        run: npm run verify:migration-drift
+
+      - name: Verify RC3 staging promotion contract
+        run: npm run verify:phase20:staging
+
+
+

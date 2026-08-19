@@ -1,0 +1,62 @@
+name: Protected Production Deploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yenomi-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  staging-gate:
+    uses: ./.github/workflows/staging-integration.yml
+    secrets: inherit
+
+  deploy:
+    needs: staging-gate
+    environment: production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.PRODUCTION_SUPABASE_PUBLISHABLE_KEY }}
+      NEXT_PUBLIC_SITE_URL: ${{ secrets.PRODUCTION_SITE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.PRODUCTION_SUPABASE_SERVICE_ROLE_KEY }}
+      PRODUCTION_SUPABASE_PROJECT_REF: ${{ secrets.PRODUCTION_SUPABASE_PROJECT_REF }}
+      IYZICO_API_KEY: ${{ secrets.PRODUCTION_IYZICO_API_KEY }}
+      IYZICO_SECRET_KEY: ${{ secrets.PRODUCTION_IYZICO_SECRET_KEY }}
+      IYZICO_BASE_URL: https://api.iyzipay.com
+      UPSTASH_REDIS_REST_URL: ${{ secrets.PRODUCTION_UPSTASH_REDIS_REST_URL }}
+      UPSTASH_REDIS_REST_TOKEN: ${{ secrets.PRODUCTION_UPSTASH_REDIS_REST_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Verify production promotion contract
+        run: npm run verify:phase20:production
+
+      - name: Pull Vercel production configuration
+        run: npx --yes vercel@58.9.1 pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build production artifact
+        run: npx --yes vercel@58.9.1 build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy verified artifact
+        run: npx --yes vercel@58.9.1 deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Verify production smoke surface
+        run: npm run verify:faz10:smoke

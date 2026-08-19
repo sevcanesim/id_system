@@ -1,0 +1,104 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Icon } from "../../icons";
+import { track } from "../../../lib/analytics";
+import { clearCheckoutSession } from "../../../lib/payments/browser-checkout";
+import FulfillmentReviewNotice from "./FulfillmentReviewNotice";
+import ActivationAction from "./ActivationAction";
+import PaymentSuccessShare from "./PaymentSuccessShare";
+
+type VerifyState = "checking" | "verified" | "invalid";
+
+/**
+ * Gates the payment-success content behind an order verification check.
+ *
+ * P0 QA finding: opening /odeme/basarili directly (no order, a stale order,
+ * or an order that never actually got paid) rendered "Ödemen başarıyla
+ * alındı." unconditionally — the page never checked whether the order in
+ * the URL exists or is paid. That is both a false status communication and
+ * a trust problem. This component checks /api/commerce/orders/status before
+ * showing success, and only fires the success analytics event / clears the
+ * checkout session once that check actually passes.
+ */
+export default function OrderResultGate() {
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get("order");
+  const [state, setState] = useState<VerifyState>(orderId ? "checking" : "invalid");
+  const tracked = useRef(false);
+
+  useEffect(() => {
+    if (!orderId) {
+      setState("invalid");
+      return;
+    }
+    let active = true;
+    setState("checking");
+    fetch(`/api/commerce/orders/status?order=${encodeURIComponent(orderId)}`, { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : { paid: false }))
+      .then((data: { paid?: boolean }) => {
+        if (!active) return;
+        setState(data?.paid ? "verified" : "invalid");
+      })
+      .catch(() => {
+        if (active) setState("invalid");
+      });
+    return () => {
+      active = false;
+    };
+  }, [orderId]);
+
+  useEffect(() => {
+    if (state !== "verified" || tracked.current) return;
+    tracked.current = true;
+    track("payment_success", orderId ? { orderId } : {});
+    clearCheckoutSession();
+  }, [state, orderId]);
+
+  if (state === "checking") {
+    return (
+      <section className="order-success p5-order-success" aria-busy="true" aria-live="polite">
+        <span className="section-kicker">SİPARİŞ DOĞRULANIYOR</span>
+        <h1>Ödeme durumun kontrol ediliyor…</h1>
+        <p>Bu birkaç saniye sürebilir, lütfen sayfadan ayrılma.</p>
+      </section>
+    );
+  }
+
+  if (state === "invalid") {
+    return (
+      <section className="order-success p5-order-success" role="alert">
+        <span className="section-kicker">DOĞRULANAMADI</span>
+        <h1>Bu siparişi doğrulayamadık.</h1>
+        <p>Bağlantı geçersiz olabilir ya da ödeme henüz tamamlanmamış olabilir. Ödemen alındıysa siparişlerim sayfasından durumunu görebilirsin; sorun devam ederse bizimle iletişime geç.</p>
+        <div className="order-success-actions">
+          <Link href="/siparislerim">Siparişlerimi Gör</Link>
+          <Link className="secondary" href="/urunler">Ürünlere Dön</Link>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="order-success p5-order-success">
+      <span className="p5-result-icon"><Icon name="check" /></span>
+      <span className="section-kicker">SİPARİŞ ALINDI</span>
+      <h1>Ödemen başarıyla alındı.</h1>
+      <p>Siparişin hesabına bağlandı. Kartın hazırlanırken dijital kartvizitini tamamlayabilir ve profilini kullanıma hazır hale getirebilirsin.</p>
+      <FulfillmentReviewNotice />
+      <div className="p5-next-steps" aria-label="Sipariş sonrası adımlar">
+        <div className="done"><b>1</b><span><strong>Ödeme tamamlandı</strong><small>Siparişin hesabına kaydedildi.</small></span></div>
+        <div><b>2</b><span><strong>Profilini hazırla</strong><small>İletişim bilgilerini ve bağlantılarını ekle.</small></span></div>
+        <div><b>3</b><span><strong>Kart hazırlanır</strong><small>Fiziksel kart üretim ve kargo sürecine alınır.</small></span></div>
+      </div>
+      <ActivationAction />
+      <div className="order-success-actions">
+        <Link href="/olustur?source=purchase">Kartvizitimi Hazırla</Link>
+        <Link className="secondary" href="/siparislerim">Siparişimi Takip Et</Link>
+      </div>
+      <PaymentSuccessShare />
+    </section>
+  );
+}

@@ -1,0 +1,205 @@
+[
+  {
+    "file": "app/CardTemplate.tsx",
+    "component": "CardTemplate",
+    "lines": 320,
+    "referenced_by_files": 8,
+    "client": true
+  },
+  {
+    "file": "app/LandingClient.tsx",
+    "component": "LandingClient",
+    "lines": 100,
+    "referenced_by_files": 1,
+    "client": true
+  },
+  {
+    "file": "app/components/AddToCartButton.tsx",
+    "component": "AddToCartButton",
+    "lines": 7,
+    "referenced_by_files": 3,
+    "client": true
+  },
+  {
+    "file": "app/components/AppFooter.tsx",
+    "component": "AppFooter",
+    "lines": 61,
+    "referenced_by_files": 10,
+    "client": false
+  },
+  {
+    "file": "app/components/AppHeader.tsx",
+    "component": "AppHeader",
+    "lines": 257,
+    "referenced_by_files": 19,
+    "client": true
+  },
+  {
+    "file": "app/components/AuthSessionBridge.tsx",
+    "component": "AuthSessionBridge",
+    "lines": 36,
+    "referenced_by_files": 3,
+    "client": true
+  },
+  {
+    "file": "app/components/HashScrollHandler.tsx",
+    "component": "HashScrollHandler",
+    "lines": 34,
+    "referenced_by_files": 1,
+    "client": true
+  },
+  {
+    "file": "app/components/NavigationLoadingHub.tsx",
+    "component": "NavigationLoadingHub",
+    "lines": 63,
+    "referenced_by_files": 1,
+    "client": true
+  },
+  {
+    "file": "app/components/OrderLocationMap.tsx",
+    "component": "OrderLocationMap",
+    "lines": 159,
+    "referenced_by_files": 1,
+    "client": true
+  },
+  {
+    "file": "app/components/UserPanelShell.tsx",
+    "component": "UserPanelShell",
+    "lines": 69,
+    "referenced_by_files": 6,
+    "client": true
+  },
+  {
+    "file": "app/components/security/PublicProfileProtection.tsx",
+    "component": "PublicProfileProtection",
+    "lines": 46,
+    "referenced_by_files": 2,
+    "client": true
+  },
+  {
+    "file": "app/components/ui/NfcCardArt.tsx",
+    "component": "NfcCardArt",
+    "lines": 59,
+    "referenced_by_files": 1,
+    "client": false
+  },
+  {
+    "file": "app/components/ui/States.tsx",
+    "component": "States",
+    "lines": 75,
+    "referenced_by_files": 4,
+    "client": false
+  },
+  {
+    "file": "app/icons.tsx",
+    "component": "icons",
+    "lines": 142,
+    "referenced_by_files": 29,
+    "client": false
+  },
+  {
+    "file": "app/kurumsal/panel/components/CompanySettingsPanel.tsx",
+    "component": "CompanySettingsPanel",
+    "lines": 107,
+    "referenced_by_files": 1,
+    "client": false
+  },
+  {
+    "file": "app/kurumsal/panel/components/CorporateLinksPanel.tsx",
+    "component": "CorporateLinksPanel",
+    "lines": 203,
+    "referenced_by_files": 1,
+    "client": false
+  },
+  {
+    "file": "app/kurumsal/panel/components/CorporateTemplateSelector.tsx",
+    "component": "CorporateTemplateSelector",
+    "lines": 62,
+    "referenced_by_files": 1,
+    "client": false
+  },
+  {
+    "file": "app/kurumsal/panel/components/EmployeeDrawer.tsx",
+    "component": "EmployeeDrawer",
+    "lines": 925,
+    "referenced_by_files": 1,
+    "client": false
+  },
+  {
+    "file": "app/kurumsal/panel/components/EmployeesPanel.tsx",
+    "component": "EmployeesPanel",
+    "lines": 1049,
+    "referenced_by_files": 1,
+    "client": false
+  },
+  {
+    "file": "app/kurumsal/panel/components/JobTitlesPanel.tsx",
+    "component": "JobTitlesPanel",
+    "lines": 119,
+    "referenced_by_files": 2,
+    "client": false
+  },
+  {
+    "file": "app/kurumsal/panel/components/RolesPanel.tsx",
+    "component": "RolesPanel",
+    "lines": 68,
+    "referenced_by_files": 2,
+    "client": false
+  },
+  {
+    "file": "app/kurumsal/panel/components/TemplatesPanel.tsx",
+    "component": "TemplatesPanel",
+    "lines": 107,
+    "referenced_by_files": 1,
+    "client": false
+  },
+  {
+    "file": "app/layout.tsx",
+    "component": "layout",
+    "lines": 45,
+    "referenced_by_files": 2,
+    "client": false
+  },
+  {
+    "file": "app/loading.tsx",
+    "component": "loading",
+    "lines": 9,
+    "referenced_by_files": 11,
+    "client": false
+  },
+  {
+    "file": "app/odeme/basarili/ActivationAction.tsx",
+    "component": "ActivationAction",
+    "lines": 31,
+    "referenced_by_files": 1,
+    "client": true
+  },
+  {
+    "file": "app/odeme/basarili/PaymentSuccessShare.tsx",
+    "component": "PaymentSuccessShare",
+    "lines": 69,
+    "referenced_by_files": 1,
+    "client": true
+  },
+  {
+    "file": "app/odeme/basarili/PaymentSuccessTracker.tsx",
+    "component": "PaymentSuccessTracker",
+    "lines": 22,
+    "referenced_by_files": 1,
+    "client": true
+  },
+  {
+    "file": "app/odeme/basarisiz/PaymentRetryActions.tsx",
+    "component": "PaymentRetryActions",
+    "lines": 29,
+    "referenced_by_files": 1,
+    "client": true
+  },
+  {
+    "file": "app/olustur/CardWizard.tsx",
+    "component": "CardWizard",
+    "lines": 800,
+    "referenced_by_files": 2,
+    "client": true
+  }
+]

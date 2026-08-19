@@ -1,0 +1,18 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import UserPanelShell from "../components/UserPanelShell";
+import { Button, Card, Field, Input } from "../components/ui";
+import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
+
+export default function SettingsPage(){
+  const router=useRouter(); const [email,setEmail]=useState(""); const [name,setName]=useState(""); const [password,setPassword]=useState(""); const [message,setMessage]=useState(""); const [saving,setSaving]=useState(false);
+  useEffect(()=>{void (async()=>{const sb=getSupabaseBrowserClient(); const {data}=await sb?.auth.getUser() || {data:{user:null}}; if(!data.user){router.replace("/giris?next=%2Fayarlar");return;} setEmail(data.user.email||""); setName(String(data.user.user_metadata?.name||data.user.user_metadata?.full_name||""));})()},[router]);
+  async function save(){const sb=getSupabaseBrowserClient(); if(!sb)return; setSaving(true);setMessage(""); const payload:{email?:string;password?:string;data?:{name:string}}={email:email.trim(),data:{name:name.trim()}}; if(password.trim())payload.password=password; const {error}=await sb.auth.updateUser(payload); setMessage(error?"Değişiklikler kaydedilemedi. Bilgileri kontrol edip tekrar deneyin.":"Hesap bilgileriniz güncellendi."); setPassword("");setSaving(false);}
+  async function signOut(){const sb=getSupabaseBrowserClient(); await sb?.auth.signOut(); router.replace("/giris");}
+  return <UserPanelShell activeKey="settings" eyebrow="HESAP" title="Profil ve Ayarlar" description="Hesap bilgilerinizi, güvenliğinizi, oturumunuzu ve gizlilik bağlantılarını yönetin.">
+    <div className="p9-settings-grid"><div className="p9-settings-main"><Card><h2 className="ds-card-title">Hesap bilgileri</h2><p className="p9-section-copy">Giriş ve hesap iletişim bilgileriniz. E-posta değişikliğinde yeniden doğrulama istenebilir.</p><div className="p9-form-grid"><Field label="Ad Soyad"><Input value={name} onChange={(e)=>setName(e.target.value)} autoComplete="name" /></Field><Field label="E-posta"><Input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} autoComplete="email" /></Field></div></Card><Card><h2 className="ds-card-title">Güvenlik</h2><p className="p9-section-copy">Yeni şifre belirlemek istiyorsanız aşağıdaki alanı doldurun. Boş bırakırsanız mevcut şifreniz korunur.</p><div className="p9-form-grid"><Field label="Yeni Şifre" help="En az 8 karakter"><Input type="password" minLength={8} value={password} onChange={(e)=>setPassword(e.target.value)} autoComplete="new-password" /></Field></div>{message&&<div className="p9-message" role="status">{message}</div>}<div className="p9-settings-actions"><Button variant="primary" onClick={save} disabled={saving}>{saving?"Kaydediliyor…":"Değişiklikleri Kaydet"}</Button></div></Card></div><aside className="p9-settings-side"><Card><h2 className="ds-card-title">Oturum</h2><p className="p9-section-copy">Bu cihazdaki Yenomi ID oturumunuzu yönetebilirsiniz.</p><div className="p9-session-row"><div><strong>Mevcut oturum</strong><span>Bu cihazda giriş yapılmış durumda.</span></div><Button onClick={signOut}>Çıkış Yap</Button></div></Card><Card><h2 className="ds-card-title">Gizlilik ve hesap</h2><p className="p9-section-copy">Verileriniz ve hizmet koşullarıyla ilgili temel belgeler.</p><ul className="p9-privacy-list"><li><Link href="/kvkk">KVKK Aydınlatma Metni</Link></li><li><Link href="/gizlilik">Gizlilik Politikası</Link></li><li><Link href="/iade-iptal">İade ve İptal Koşulları</Link></li></ul></Card></aside></div>
+  </UserPanelShell>;
+}

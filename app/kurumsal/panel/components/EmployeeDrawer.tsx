@@ -216,7 +216,7 @@ export default function EmployeeDrawer({
 
   const previewReady = viewedProfile?.memberId === drawerMember.id && viewedProfile.profiles.length > 0;
   const previewTitle =
-    viewLoading === drawerMember.id ? "Kart yükleniyor" : previewReady ? "Kart hazır" : "Kart henüz oluşturulmadı";
+    viewLoading === drawerMember.id ? "Kart önizlemesi" : previewReady ? "Kart hazır" : "Kart henüz oluşturulmadı";
   const roleSummary = drawerMember.role === "OWNER" ? "Şirket Sahibi" : roleLabel(drawerMember.role);
   const inviteSummary = cardState?.invitationState
     ? invitationStatusLabel(cardState.invitationState)

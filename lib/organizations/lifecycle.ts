@@ -157,6 +157,44 @@ export function physicalCardLabel(cardsOrState: LifecycleCard[] | PhysicalCardSt
   return physicalCardLabels[state];
 }
 
+export type PhysicalInventoryCounts = {
+  total: number;
+  active: number;
+  awaitingAssignment: number;
+  disabled: number;
+  lost: number;
+};
+
+/** Inventory buckets for physical hardware. DISABLED/LOST assigned cards are not "unassigned". */
+export function physicalInventoryCounts(cards: LifecycleCard[]): PhysicalInventoryCounts {
+  const current = currentLifecycleCards(cards);
+  return {
+    total: cards.length,
+    active: current.filter((card) => Boolean(card.ownerUserId) && card.status === "ACTIVE").length,
+    awaitingAssignment: current.filter((card) => !card.ownerUserId).length,
+    disabled: current.filter((card) => Boolean(card.ownerUserId) && card.status === "DISABLED").length,
+    lost: current.filter((card) => Boolean(card.ownerUserId) && card.status === "LOST").length,
+  };
+}
+
+export function countMembersWithoutPhysicalAssignment(
+  members: Array<{ status: string; user_id?: string | null }>,
+  physicalCards: LifecycleCard[],
+): number {
+  const cardsByOwner = new Map<string, LifecycleCard[]>();
+  for (const card of physicalCards) {
+    if (!card.ownerUserId) continue;
+    const list = cardsByOwner.get(card.ownerUserId) ?? [];
+    list.push(card);
+    cardsByOwner.set(card.ownerUserId, list);
+  }
+  return members.filter((member) => {
+    if (member.status === "LEFT" || member.status === "INVITED") return false;
+    if (!member.user_id) return false;
+    return getPhysicalCardState(cardsByOwner.get(member.user_id) ?? []) === "UNASSIGNED";
+  }).length;
+}
+
 export function getInvitationState(invitation?: LifecycleInvitation | null, now = new Date()): InvitationState | null {
   if (!invitation) return null;
   if (invitation.revokedAt) return "REVOKED";

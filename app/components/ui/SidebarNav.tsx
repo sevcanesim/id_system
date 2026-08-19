@@ -62,12 +62,15 @@ export default function SidebarNav({
         return (
           <Fragment key={item.key}>
             {showGroup && <span className={classNames.group}>{group}</span>}
-            <div className={classNames.entry}>
+            <div className={[classNames.entry, selected ? classNames.active : ""].filter(Boolean).join(" ") || undefined}>
               <Link
                 href={item.href}
                 aria-current={selected ? "page" : undefined}
                 className={selected ? classNames.active : ""}
-                onClick={() => onNavigate?.(item.key)}
+                onClick={(event) => {
+                  onNavigate?.(item.key);
+                  if (event.detail > 0) event.currentTarget.blur();
+                }}
               >
                 <Icon name={item.icon} />
                 <span>{item.label}</span>

@@ -4,8 +4,8 @@
  */
 
 import type { Metadata } from "next";
-import { getDatabaseCatalog, type DatabaseCatalogProduct } from "../../lib/config/database";
-import { formatTryFromKurus } from "../../lib/config/product";
+import { getDatabaseCatalog } from "../../lib/config/database";
+import { formatTryFromKurus, listingPriceKurus } from "../../lib/config/product";
 import { ProductVisual } from "../ui/ProductVisual";
 import { ButtonLink } from "../ui/Button";
 import { PublicPageTitle } from "../components/PublicPageTitle";
@@ -16,26 +16,14 @@ export const metadata: Metadata = {
   description: "Yenomi ID fiziksel NFC kart ve dijital kimlik paketleri.",
 };
 
-function primaryVariant(product: DatabaseCatalogProduct | undefined) {
-  if (!product?.variants?.length) return null;
-  // DB'den gelen varyant sırası garanti değildir (ana paket, yedek kart,
-  // yenileme, kayıp kart aynı ürüne bağlı olabilir). Listeleme sayfasında
-  // her zaman ana satın alma paketini göster; fulfillment_kind eksikse
-  // eski davranışa (ilk varyant) geri düş.
-  const initialBundle = product.variants.find(
-    (item) => (item.metadata as { fulfillment_kind?: string } | undefined)?.fulfillment_kind === "INITIAL_BUNDLE",
-  );
-  return initialBundle ?? product.variants[0];
-}
-
 export default async function ProductsPage() {
-  let products: DatabaseCatalogProduct[] = [];
+  let products: Awaited<ReturnType<typeof getDatabaseCatalog>> = [];
   let catalogError = false;
   try { products = await getDatabaseCatalog(); } catch { catalogError = true; }
 
   const available = products.filter((p) => String(p.status).toUpperCase() !== "COMING_SOON");
   const nfc = available.find((p) => p.slug === "nfc-kart") ?? available[0];
-  const variant = primaryVariant(nfc);
+  const listPriceKurus = listingPriceKurus(nfc?.variants);
 
   return (
     <div className="products-single-page yi-site">
@@ -71,7 +59,7 @@ export default async function ProductsPage() {
                   <span className="products-single-kicker">AKTİF ÜRÜN</span>
                   <h2 id="offer-title">{nfc?.name ?? "Yenomi ID NFC Kart"}</h2>
                 </div>
-                {variant && <strong className="products-single-price">{formatTryFromKurus(variant.priceKurus)}</strong>}
+                {!catalogError && <strong className="products-single-price">{formatTryFromKurus(listPriceKurus)}</strong>}
               </div>
               <div className="products-single-price-card__body">
                 <ul aria-label="Ürün avantajları">

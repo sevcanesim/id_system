@@ -4,7 +4,7 @@ import Image from "next/image";
 export function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <Link href="/" className={`yi-brand${compact ? " yi-brand--compact" : ""}`} aria-label="Yenomi Labs ana sayfa">
-      <span className="yi-brand__mark">
+      <span className="yi-brand__mark" style={{ backgroundColor: "#0B0810" }}>
         <Image
           src="/images/yenomilabs-mark-transparent.png"
           alt=""

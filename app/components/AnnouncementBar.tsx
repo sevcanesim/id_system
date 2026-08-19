@@ -2,6 +2,8 @@
  * Shared top brand ticker for public browsing chrome.
  * Quiet checkout routes hide this strip on purpose.
  */
+import { Icon } from "../icons";
+
 const COPIES = 8;
 
 export default function AnnouncementBar() {
@@ -10,9 +12,15 @@ export default function AnnouncementBar() {
       <div className="yi-brand-marquee__track">
         {Array.from({ length: COPIES }, (_, index) => (
           <span className="yi-brand-marquee__unit" key={index}>
-            <strong>YENOMI ID</strong>
+            <span className="yi-brand-marquee__item">
+              <Icon name="id" />
+              <strong>YENOMI ID</strong>
+            </span>
             <span className="yi-brand-marquee__stars" aria-hidden="true"><i /><i /><i /></span>
-            <strong>www.yenomilabs.com</strong>
+            <span className="yi-brand-marquee__item">
+              <Icon name="link" />
+              <strong>www.yenomilabs.com</strong>
+            </span>
           </span>
         ))}
       </div>

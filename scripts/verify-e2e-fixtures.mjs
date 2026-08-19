@@ -1,6 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
+
+const matrix = spawnSync(process.execPath, [path.join(process.cwd(), "scripts/verify-demo-qa-matrix.mjs")], { stdio: "inherit" });
+if (matrix.status) process.exit(matrix.status);
 
 function readEnv(filePath) {
   if (!fs.existsSync(filePath)) return {};

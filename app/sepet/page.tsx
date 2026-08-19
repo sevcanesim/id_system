@@ -62,21 +62,23 @@ export default function CartPage() {
             <p>Seçtiğin ürünleri kontrol et. Ödeme aşamasında fiyat ve uygunluk sunucu tarafından tekrar doğrulanır.</p>
           </div>
           {!items.length ? (
-            audience === "corporate" ? (
-              <EmptyState
-                icon="cart"
-                title="Koltuk paketleri Lisanslar’dan alınır."
-                description="Şirket sahibinin sepeti bireysel kimlik alışverişi değildir. Ek lisans ve koltuk paketleri kurumsal paneldeki Lisanslar sayfasından yönetilir."
-                action={{ label: "Lisanslara git", href: "/kurumsal/panel/lisans" }}
-              />
-            ) : (
-              <EmptyState
-                icon="cart"
-                title="Dijital kartvizitini almaya hazır mısın?"
-                description="Sepetinde henüz ürün yok. Bireysel NFC + QR dijital kartviziti inceleyerek başlayabilirsin."
-                action={{ label: "NFC Kartı incele", href: "/urunler/nfc-kart" }}
-              />
-            )
+            <EmptyState
+              icon="cart"
+              title="Dijital kartvizitini almaya hazır mısın?"
+              description={
+                audience === "corporate"
+                  ? "Sepetin boş. Bireysel NFC + QR kartını buradan ekleyebilirsin. Şirket koltuk paketleri ise kurumsal paneldeki Lisanslar sayfasından yönetilir."
+                  : "Sepetinde henüz ürün yok. Bireysel NFC + QR dijital kartviziti inceleyerek başlayabilirsin."
+              }
+              action={
+                <div className="ds-empty-actions">
+                  <Link className="ds-button ds-button--primary" href="/urunler/nfc-kart">NFC Kartı incele</Link>
+                  {audience === "corporate" ? (
+                    <Link className="ds-button ds-button--secondary" href="/kurumsal/panel/lisans">Lisanslara git</Link>
+                  ) : null}
+                </div>
+              }
+            />
           ) : (
             <div className="yi-cart-layout">
               <section className="yi-cart-items">

@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Icon } from "../../../icons";
 import { Button, Field, Input } from "../../../components/ui/DesignSystem";
 
@@ -51,41 +50,28 @@ type Props = {
 const dateTime = new Intl.DateTimeFormat("tr-TR", { dateStyle: "short", timeStyle: "short" });
 const dateTimeMedium = new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" });
 
-function isoLocalToTurkish(value: string) {
-  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
-  if (!match) return "";
-  return `${match[3]}.${match[2]}.${match[1]} ${match[4]}:${match[5]}`;
-}
-
 function turkishToIsoLocal(value: string) {
   const match = value.trim().match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})(?:[ T,]*)(\d{1,2}):(\d{2})$/);
   if (!match) return "";
   return `${match[3]}-${match[2].padStart(2, "0")}-${match[1].padStart(2, "0")}T${match[4].padStart(2, "0")}:${match[5]}`;
 }
 
-function TurkishDateTimeInput({ value, onChange }: { value: string; onChange: (value: string) => void }) {
-  const [text, setText] = useState(() => isoLocalToTurkish(value));
-  useEffect(() => { setText(isoLocalToTurkish(value)); }, [value]);
-  return (
-    <Input
-      type="text"
-      inputMode="numeric"
-      autoComplete="off"
-      lang="tr-TR"
-      placeholder="gg.aa.yyyy ss:dd"
-      value={text}
-      onChange={(event) => setText(event.target.value)}
-      onBlur={() => {
-        const next = turkishToIsoLocal(text);
-        if (next) onChange(next);
-        else setText(isoLocalToTurkish(value));
-      }}
-    />
-  );
+function toDatetimeLocalValue(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  const iso = trimmed.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/);
+  if (iso) return iso[1];
+  const fromTurkish = turkishToIsoLocal(trimmed);
+  if (fromTurkish) return fromTurkish;
+  const parsed = Date.parse(trimmed);
+  if (Number.isNaN(parsed)) return "";
+  const date = new Date(parsed);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 function publicationLabel(link: CorporateLink) {
-  if (!link.configured) return "Kayıt yok";
+  if (!link.configured) return "Yok";
   if (link.isPublished && link.publishAt && new Date(link.publishAt).getTime() > Date.now()) {
     return `Planlandı · ${dateTime.format(new Date(link.publishAt))}`;
   }
@@ -97,7 +83,7 @@ function sourceLabel(link: CorporateLink) {
   return link.linkType === "FILE" ? "PDF aktif" : "URL aktif";
 }
 
-function compactFileName(name: string, max = 18) {
+function compactFileName(name: string, max = 36) {
   const trimmed = name.trim();
   const dot = trimmed.lastIndexOf(".");
   const ext = dot > 0 ? trimmed.slice(dot) : "";
@@ -135,7 +121,7 @@ export default function CorporateLinksPanel({
     <section className="corp-links-panel">
       <header>
         <div>
-          <span>KART ŞABLONU</span>
+          <span>İÇERİK</span>
           <h2>Kurumsal Bağlantılar</h2>
           <p>
             Çalışan kartındaki &quot;Kurumsal Bağlantılar&quot; bölümünde
@@ -159,7 +145,7 @@ export default function CorporateLinksPanel({
               <dl className="corp-link-status" aria-label={`${link.label} yayın durumu`}>
                 <div>
                   <dt>Kayıt</dt>
-                  <dd>{link.configured ? "Kayıtlı" : "Kayıtlı değil"}</dd>
+                  <dd>{link.configured ? "Yapılandırıldı" : "Boş"}</dd>
                 </div>
                 <div>
                   <dt>Yayın</dt>
@@ -200,7 +186,7 @@ export default function CorporateLinksPanel({
                       )
                     ) : (
                       <span className="corp-link-current empty">
-                        Yapılandırılmadı — kartta varsayılan gösterilir
+                        Kartta varsayılan gösterilir. URL kaydedin veya PDF yükleyin.
                       </span>
                     )}
                   </dd>
@@ -217,7 +203,7 @@ export default function CorporateLinksPanel({
                 <div className="corp-link-source-actions">
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="primary"
                     disabled={busy || !(linkUrlDraft[link.kind] || "").trim()}
                     onClick={() => void onSaveUrl(link.kind)}
                   >
@@ -241,10 +227,12 @@ export default function CorporateLinksPanel({
                     }}
                   />
                 </div>
-                <Field label="Yayın zamanı" help="Türkiye saati · gg.aa.yyyy ss:dd">
-                  <TurkishDateTimeInput
-                    value={linkScheduleDraft[link.kind] || ""}
-                    onChange={(next) => onScheduleDraftChange(link.kind, next)}
+                <Field label="Yayın zamanı" help="Türkiye saati">
+                  <Input
+                    type="datetime-local"
+                    lang="tr-TR"
+                    value={toDatetimeLocalValue(linkScheduleDraft[link.kind] || "")}
+                    onChange={(event) => onScheduleDraftChange(link.kind, event.target.value)}
                   />
                 </Field>
                 {link.configured && (

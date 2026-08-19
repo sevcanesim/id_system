@@ -114,7 +114,7 @@ export default function PanelSidebar({
       : <button type="button" className="enterprise-side-brand enterprise-brand-button enterprise-yenomi-brand" onClick={onBrandClick}>{brand}</button>}
     {loading ? (
       <nav className="enterprise-canonical-nav enterprise-canonical-nav--loading" aria-label={ariaLabel} aria-busy="true">
-        <span className="enterprise-side-section-title">YETKİLER YÜKLENİYOR</span>
+        <p className="enterprise-nav-loading-note">Menü yükleniyor…</p>
         {Array.from({ length: 5 }).map((_, index) => (
           <span key={index} className="enterprise-nav-loading-row" aria-hidden="true">
             <i />

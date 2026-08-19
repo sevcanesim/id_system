@@ -10654,3 +10654,357 @@ article[id] {
   display: grid;
   gap: 16px;
 }
+
+/* ================================================================
+   CORPORATE PANEL VISUAL QA
+   Template selector, content density, drawer, networking chrome,
+   and card editor hierarchy. Appended last so historical panel
+   overrides cannot leak overlapping badges or disconnected fields.
+   ================================================================ */
+.business-template-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.business-template-options > button {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: start;
+  column-gap: 12px;
+  min-height: 92px;
+  padding: 14px 16px;
+  border: 1px solid #E6E2D8;
+  border-radius: 14px;
+  background: #FFFFFF;
+  color: #1A1918;
+  text-align: left;
+  cursor: pointer;
+}
+.business-template-options > button.active {
+  border-color: #A37B2C;
+  background: #F6F1E5;
+  box-shadow: 0 0 0 1px #A37B2C;
+}
+.business-template-option-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding-right: 72px;
+}
+.business-template-options strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #1A1918;
+}
+.business-template-options small {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #68645D;
+}
+.business-template-options mark {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #A37B2C;
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.template-mini {
+  width: 44px;
+  height: 58px;
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  padding: 7px;
+  border-radius: 8px;
+  background: #17121f;
+}
+.template-mini i,
+.template-mini b,
+.template-mini em {
+  display: block;
+  border-radius: 2px;
+  background: rgba(255,255,255,.22);
+  font-style: normal;
+}
+.template-mini i { width: 16px; height: 8px; }
+.template-mini b { width: 100%; height: 4px; }
+.template-mini em { width: 68%; height: 4px; }
+.template-mini.template-professional { background: #1c2433; }
+.template-mini.template-executive { background: #24180f; }
+
+.template-color-control {
+  display: flex;
+  align-items: stretch;
+  max-width: 280px;
+  overflow: hidden;
+  border: 1px solid #E6E2D8;
+  border-radius: 12px;
+  background: #FFFFFF;
+  gap: 0;
+}
+.template-color-control input[type="color"] {
+  width: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid #E6E2D8;
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.template-color-control input:not([type="color"]) {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.business-template-fields .optional-label {
+  margin-left: 6px;
+  color: #8A857D;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.p11-employees-header > div:first-child > span,
+.business-company-settings > header span,
+.business-settings-card > header span,
+.corp-links-panel > header span {
+  color: #6F5724;
+}
+.corp-link-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.corp-link-status > div:not(.corp-link-status-current) {
+  flex: 1 1 132px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 40px;
+  padding: 8px 12px;
+}
+.corp-link-status-current {
+  flex: 1 1 100%;
+  padding: 10px 12px;
+}
+.corp-link-current.empty {
+  font-style: normal;
+  color: #68645D;
+}
+.corp-file-copy strong {
+  max-width: 100%;
+}
+.corp-link-history summary {
+  min-height: 44px;
+  padding: 8px 12px;
+}
+.corp-link-upload {
+  min-height: 40px;
+  padding: 0 13px;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.p11-mail-credits {
+  min-width: 160px;
+  padding: 10px 14px;
+  text-align: right;
+}
+.p11-mail-credits strong { font-size: 18px; }
+.enterprise-topbar--chrome,
+.p10-corporate-platform .enterprise-topbar--chrome {
+  min-height: 64px;
+  justify-content: flex-end;
+}
+.enterprise-topbar--chrome .enterprise-quick-link,
+.p10-corporate-platform .enterprise-topbar--chrome .enterprise-quick-link {
+  background: #FFFFFF;
+  color: #68645D;
+  border-color: #E6E2D8;
+  box-shadow: none;
+}
+.enterprise-topbar--chrome .enterprise-quick-link:hover,
+.p10-corporate-platform .enterprise-topbar--chrome .enterprise-quick-link:hover {
+  background: #F6F1E5;
+  color: #1A1918;
+  border-color: #D8D2C4;
+}
+
+.enterprise-nav-loading-note {
+  margin: 8px 10px 10px;
+  color: #8A857D;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.enterprise-nav-entry.active a,
+.enterprise-nav-entry:has(a[aria-current="page"]) a,
+.p10-corporate-platform .enterprise-nav-entry.active a,
+.p10-corporate-platform .enterprise-nav-entry:has(a[aria-current="page"]) a {
+  padding: 0 12px 0 14px;
+}
+.enterprise-side-primary-links a {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  border-radius: 10px;
+  color: #68645D;
+  font-size: 14px;
+}
+.enterprise-side-primary-links a.active,
+.enterprise-side-primary-links a[aria-current="page"] {
+  background: #F6F1E5;
+  color: #1A1918;
+}
+.p8-corporate-editor .enterprise-sidebar {
+  padding-bottom: 24px;
+}
+.p8-corporate-editor .enterprise-side-management {
+  margin-top: 8px;
+  padding-bottom: 4px;
+}
+.p8-corporate-editor .enterprise-side-plan {
+  margin-bottom: 8px;
+}
+
+.v25-status-summary dl > div,
+.v25-status-jump {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid #E6E2D8;
+  border-radius: 12px;
+  background: #FFFFFF;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.v25-status-jump dt,
+.v25-status-jump span {
+  color: #8A857D;
+  font-size: 11px;
+  font-weight: 700;
+}
+.v25-status-jump dd,
+.v25-status-jump strong {
+  margin: 0;
+  color: #1A1918;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.v25-status-jump[aria-pressed="true"],
+.v25-status-jump:hover,
+.v25-status-jump:focus-visible {
+  border-color: #A37B2C;
+  background: #F6F1E5;
+  outline: none;
+}
+.v25-employee-drawer .v25-section-heading small {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #6F5724;
+}
+.v25-employee-drawer .v25-section-heading .yi-icon {
+  position: static;
+  width: 14px;
+  height: 14px;
+}
+.v25-drawer-preview .v25-section-heading small {
+  font-size: 11px;
+}
+.v25-readonly-role {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
+}
+.v25-readonly-role-value {
+  display: flex;
+  align-items: center;
+  background: #F9F8F6;
+  color: #1A1918;
+  cursor: default;
+}
+.v25-employee-form .v25-drawer-actions {
+  justify-content: flex-end;
+}
+
+.p8-section-heading {
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.p8-section-heading > span {
+  padding-top: 3px;
+  color: #8A857D;
+  font: 700 12px/1.2 var(--font-mono);
+}
+.p8-section-heading h2 {
+  margin: 0;
+  font-size: 18px;
+  text-align: left;
+}
+.p8-section-heading > div p {
+  margin: 4px 0 0;
+  color: #68645D;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: left;
+}
+.p8-section-nav a.is-active,
+.p8-section-nav a[aria-current="true"] {
+  background: #F6F1E5;
+  color: #1A1918;
+  box-shadow: inset 0 -2px 0 #A37B2C;
+}
+.p8-slug-field .ds-input {
+  padding-left: 6px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.p8-slug-field .ds-input:hover,
+.p8-slug-field .ds-input:focus {
+  border: 0;
+  box-shadow: none;
+}
+.p8-corporate-editor .ds-button--primary:not(:disabled) {
+  background: #A37B2C;
+  border-color: #A37B2C;
+  color: #FFFFFF;
+}
+.p8-corporate-editor .ds-button--primary:not(:disabled):hover {
+  background: #896420;
+  border-color: #896420;
+}
+
+@media (max-width: 900px) {
+  .business-template-options { grid-template-columns: 1fr; }
+}

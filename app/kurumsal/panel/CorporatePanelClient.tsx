@@ -1245,6 +1245,7 @@ export default function CompanyPanel() {
     organization: { title: "Organizasyon", description: "Şirket kimliği, alan politikaları ve ünvan standardını yönet.", icon: "building" },
     settings: { title: "Ayarlar", description: "Sık değişmeyen kurumsal yönetim alanlarına ulaş.", icon: "adjustments" },
   };
+  const pageOwnsTitle = currentTab === "content" || currentTab === "templates" || currentTab === "leads" || currentTab === "events" || currentTab === "meetings";
   const openTab = (tab: CorporatePanelTab) => {
     const allowed = !org || corporateSidebarItems(org.role).some((item) => item.key === tab);
     if (!allowed) {
@@ -1406,8 +1407,8 @@ export default function CompanyPanel() {
               <span>{(sidebarUser?.full_name || sidebarUser?.email || "Y").split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase()}</span>
             </button>
           </div>
-              <header className="enterprise-topbar">
-            <div>
+              <header className={`enterprise-topbar${pageOwnsTitle ? " enterprise-topbar--chrome" : ""}`}>
+            <div className={pageOwnsTitle ? "sr-only" : undefined}>
               <h1>{tabMeta[currentTab].title}</h1>
               <p>{tabMeta[currentTab].description}</p>
             </div>

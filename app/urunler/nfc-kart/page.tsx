@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { COMMERCIAL_COPY } from "../../../lib/config/commercial";
 import { NFC_PRODUCT, formatTryFromKurus } from "../../../lib/config/product";
 import NfcPurchasePanel from "./NfcPurchasePanel";
 import { PublicPageTitle } from "../../components/PublicPageTitle";
@@ -24,16 +25,16 @@ const steps = [
 ];
 
 const faq = [
-  ["₺799’ye tam olarak ne dahil?", "1 adet kişiselleştirilmiş NFC + QR kart, aynı karta bağlı dijital kartvizit, 1 yıllık dijital hizmet ve Türkiye içi ücretsiz kargo dahildir."],
+  [`${COMMERCIAL_COPY.initialPrice}’ye tam olarak ne dahil?`, "1 adet kişiselleştirilmiş NFC + QR kart, aynı karta bağlı dijital kartvizit, 1 yıllık dijital hizmet ve Türkiye içi ücretsiz kargo dahildir."],
   ["Kart kaç günde hazırlanır?", "Profil ve sipariş bilgileriniz tamamlandıktan sonra kartınız 2 iş günü içinde hazırlanıp kargoya teslim edilir. Kargo firmasının teslim süresi bu süreye dahil değildir."],
   ["Kargo dahil mi?", "Evet. Türkiye içi standart kargo ürün fiyatına dahildir. Şimdilik Türkiye dışına sipariş alınmamaktadır."],
   ["İlk yıl dijital hizmet fiyata dahil mi?", "Evet. Satın alma bedeli dijital kartvizit sayfasının 1 yıllık dijital hizmetini kapsar."],
-  ["Süre dolunca ne olur?", "Mevcut fiziksel kartınızı yeniden satın almadan dijital hizmetinizi ₺299/yıl karşılığında yenileyebilirsiniz. Kartınız ve profil bağlantınız değişmez."],
+  ["Süre dolunca ne olur?", `Mevcut fiziksel kartınızı yeniden satın almadan dijital hizmetinizi ${COMMERCIAL_COPY.renewalPrice}/yıl karşılığında yenileyebilirsiniz. Kartınız ve profil bağlantınız değişmez.`],
   ["Bilgilerimi kaç kez değiştirebilirim?", "Aktif kullanım süreniz boyunca telefon, unvan, şirket, sosyal medya, web sitesi ve diğer profil bilgilerinizi istediğiniz kadar güncelleyebilirsiniz."],
   ["NFC her telefonda çalışır mı?", "NFC destekli çoğu modern telefonda kartı yaklaştırarak profil açılır. NFC kapalıysa veya cihaz NFC desteklemiyorsa kart üzerindeki QR kod kullanılabilir."],
   ["QR kodum değişir mi?", "Hayır. Kart üzerindeki QR kod ve profil bağlantısı sabit kalır. Sayfadaki bilgiler değişse bile kartı yeniden bastırmanız gerekmez."],
   ["Kartımı kaybedersem ne olur?", "Hesabınızdan kartı kayıp moduna alabilirsiniz. Kayıp kart güvenli bir bilgilendirme sayfasına yönlenir; bulunmazsa aynı profile bağlı yedek kart sipariş edilebilir."],
-  ["İkinci veya yedek kart ne kadar?", "Aynı dijital profile bağlı 1 fiziksel NFC + QR ek/yedek kart ₺399’dir. Türkiye içi kargo dahildir; yeni profil veya yeni yıllık dijital hizmet süresi başlatmaz."],
+  ["İkinci veya yedek kart ne kadar?", `Aynı dijital profile bağlı 1 fiziksel NFC + QR ek/yedek kart ${COMMERCIAL_COPY.additionalCardPrice}’dir. Türkiye içi kargo dahildir; yeni profil veya yeni yıllık dijital hizmet süresi başlatmaz.`],
 ];
 
 export default function NfcKartPage() {

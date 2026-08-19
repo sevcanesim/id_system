@@ -11,6 +11,7 @@ import {
   getPhysicalCardState,
   memberStatusLabel,
   physicalCardLabel,
+  physicalInventoryCounts,
 } from "../../../../lib/organizations/lifecycle";
 
 type Props = {
@@ -37,8 +38,14 @@ export default function CardsPanel({
   initials,
 }: Props) {
   const [search, setSearch] = useState("");
-  const assignedActive = physicalCards.filter((card) => card.status === "ACTIVE" && Boolean(card.ownerUserId)).length;
+  const inventory = physicalInventoryCounts(physicalCards);
   const unassignedCards = physicalCards.filter((card) => !card.ownerUserId);
+  const inventoryBreakdown = [
+    `${inventory.active} aktif`,
+    `${inventory.awaitingAssignment} atama bekliyor`,
+    inventory.disabled > 0 ? `${inventory.disabled} devre dışı` : null,
+    inventory.lost > 0 ? `${inventory.lost} kayıp` : null,
+  ].filter(Boolean).join(" · ");
   const roster = useMemo(
     () => members.filter((member) => member.status !== "LEFT"),
     [members],
@@ -96,7 +103,7 @@ export default function CardsPanel({
           <article>
             <small>Fiziksel kart</small>
             <strong>{physicalCards.length}</strong>
-            <span>{assignedActive} aktif · {unassignedCards.length} atama bekliyor</span>
+            <span>{inventoryBreakdown}</span>
           </article>
         </div>
       </section>

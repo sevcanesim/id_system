@@ -1,4 +1,4 @@
-import { COMMERCIAL_PRICING } from "./commercial";
+import { COMMERCIAL_PRICING, COMMERCIAL_SKUS } from "./commercial";
 
 export type ProductKind = "DIGITAL" | "PHYSICAL";
 export type ProductCategory = "DIGITAL_ID" | "NFC" | "HEALTH_ID";
@@ -97,6 +97,42 @@ export const AVAILABLE_PRODUCTS = PRODUCT_CATALOG.filter((product) => product.st
 export const COMING_SOON_PRODUCTS = PRODUCT_CATALOG.filter((product) => product.status === "COMING_SOON");
 
 export const NFC_PRODUCT = PRODUCT_CATALOG[1];
+
+export type CatalogOfferVariant = {
+  sku: string;
+  priceKurus: number;
+  metadata?: Record<string, unknown> | null;
+};
+
+const NON_LISTING_OFFER_SKUS = new Set<string>([
+  COMMERCIAL_SKUS.ADDITIONAL_CARD,
+  COMMERCIAL_SKUS.REPLACEMENT_CARD,
+  COMMERCIAL_SKUS.RENEWAL,
+]);
+
+/**
+ * Public listing and product-detail must show the same initial bundle price.
+ * Database variant order is not guaranteed; extra/renewal SKUs must never win.
+ */
+export function selectInitialOfferVariant<T extends CatalogOfferVariant>(
+  variants: readonly T[] | undefined,
+): T | undefined {
+  if (!variants?.length) return undefined;
+  const bySku = variants.find((item) => item.sku === COMMERCIAL_SKUS.INITIAL);
+  if (bySku) return bySku;
+  const byKind = variants.find(
+    (item) => item.metadata?.fulfillment_kind === "INITIAL_BUNDLE" && !NON_LISTING_OFFER_SKUS.has(item.sku),
+  );
+  if (byKind) return byKind;
+  return undefined;
+}
+
+export function listingPriceKurus(
+  variants: readonly CatalogOfferVariant[] | undefined,
+  fallbackKurus = NFC_PRODUCT.unitPriceKurus,
+): number {
+  return selectInitialOfferVariant(variants)?.priceKurus ?? fallbackKurus;
+}
 
 export function getProductBySlug(slug: string): CatalogProduct | undefined {
   return PRODUCT_CATALOG.find((product) => product.slug === slug);

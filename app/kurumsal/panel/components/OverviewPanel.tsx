@@ -7,6 +7,7 @@ import type { CorporatePanelTab } from "../domain/navigation";
 import { CORPORATE_PANEL_TAB_META } from "../domain/navigation";
 import { normalizeOrganizationRole } from "../../../../lib/organizations/permissions";
 import { ROLE_LABELS } from "../../../../lib/organizations/role-matrix";
+import { countMembersWithoutPhysicalAssignment } from "../../../../lib/organizations/lifecycle";
 
 type Props = {
   org: Org | null | undefined;
@@ -86,12 +87,7 @@ export default function OverviewPanel({
   const cardActivationPercent = usedSeats ? Math.round((digitalCardsReady / usedSeats) * 100) : 0;
   const acceptedMembers = members.filter((member) => member.status !== "LEFT" && member.status !== "INVITED");
   const cardsWithoutDigital = Math.max(0, acceptedMembers.length - digitalCardsReady);
-  const membersWithActivePhysical = new Set(
-    physicalCards.filter((card) => card.status === "ACTIVE" && card.ownerUserId).map((card) => card.ownerUserId),
-  );
-  const unassignedPhysical = members.filter(
-    (member) => member.status !== "LEFT" && member.status !== "INVITED" && Boolean(member.user_id) && !membersWithActivePhysical.has(member.user_id || ""),
-  ).length;
+  const unassignedPhysical = countMembersWithoutPhysicalAssignment(members, physicalCards);
   const recentActivity = [...members]
     .sort((a, b) => new Date(b.last_activity_at || b.created_at).getTime() - new Date(a.last_activity_at || a.created_at).getTime())
     .slice(0, 5);

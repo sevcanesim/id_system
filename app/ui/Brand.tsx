@@ -6,7 +6,7 @@ export function Brand({ compact = false }: { compact?: boolean }) {
     <Link href="/" className={`yi-brand${compact ? " yi-brand--compact" : ""}`} aria-label="Yenomi Labs ana sayfa">
       <span className="yi-brand__mark">
         <Image
-          src="/images/yenomilabs-mark.webp"
+          src="/images/yenomilabs-mark-transparent.png"
           alt=""
           width={compact ? 40 : 64}
           height={compact ? 40 : 64}

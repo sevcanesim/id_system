@@ -2,21 +2,18 @@
  * Shared top brand ticker for public browsing chrome.
  * Quiet checkout routes hide this strip on purpose.
  */
-const MARQUEE_UNIT = [
-  "YENOMI ID",
-  "www.yenomilabs.com",
-  "SSL ile şifrelenmiş bağlantı",
-  "iyzico güvenceli ödeme",
-  "Türkiye içi ücretsiz kargo",
-].join("  |  ");
+const COPIES = 8;
 
 export default function AnnouncementBar() {
-  const copies = Array.from({ length: 8 }, () => MARQUEE_UNIT);
   return (
-    <div className="yi-brand-marquee" role="note" aria-label="Yenomi ID, yenomilabs.com, SSL, iyzico ve ücretsiz kargo">
+    <div className="yi-brand-marquee" role="note" aria-label="Yenomi ID · yenomilabs.com">
       <div className="yi-brand-marquee__track">
-        {copies.map((text, index) => (
-          <span key={`${text}-${index}`}>{text}</span>
+        {Array.from({ length: COPIES }, (_, index) => (
+          <span className="yi-brand-marquee__unit" key={index}>
+            <strong>YENOMI ID</strong>
+            <span className="yi-brand-marquee__stars" aria-hidden="true"><i /><i /><i /></span>
+            <strong>www.yenomilabs.com</strong>
+          </span>
         ))}
       </div>
     </div>

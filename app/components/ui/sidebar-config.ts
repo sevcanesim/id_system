@@ -22,17 +22,17 @@ const CORPORATE_ADMIN_OR_HR: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR", "
 export const CORPORATE_SIDEBAR_CONFIG = [
   { key: "overview", href: "/kurumsal/panel", label: "Genel Bakış", icon: "building", group: "GENEL" },
   { key: "employees", href: "/kurumsal/panel/calisanlar", label: "Çalışanlar", icon: "users", group: "EKİP & KARTLAR", roles: CORPORATE_MANAGEMENT },
-  { key: "cards", href: "/kurumsal/panel/kartlar", label: "Kartlar", icon: "contact", roles: CORPORATE_MANAGEMENT },
+  { key: "cards", href: "/kurumsal/panel/kartlar", label: "Kartlar", icon: "contact", group: "EKİP & KARTLAR", roles: CORPORATE_MANAGEMENT },
   { key: "templates", href: "/kurumsal/panel/sablon", label: "Marka & Şablon", icon: "id", group: "MARKA & İÇERİK", roles: CORPORATE_ADMIN },
-  { key: "content", href: "/kurumsal/panel/icerik", label: "İçerik", icon: "link", roles: CORPORATE_ADMIN },
+  { key: "content", href: "/kurumsal/panel/icerik", label: "İçerik", icon: "link", group: "MARKA & İÇERİK", roles: CORPORATE_ADMIN },
   { key: "analytics", href: "/kurumsal/panel/istatistikler", label: "İstatistikler", icon: "analytics", group: "YÖNETİM", roles: CORPORATE_ADMIN_OR_HR },
-  { key: "licenses", href: "/kurumsal/panel/lisans", label: "Lisanslar", icon: "analytics", roles: CORPORATE_ADMIN },
-  { key: "organization", href: "/kurumsal/panel/organizasyon", label: "Organizasyon", icon: "building", roles: CORPORATE_ADMIN },
-  { key: "roles", href: "/kurumsal/panel/roller", label: "Roller & Yetkiler", icon: "lock", roles: CORPORATE_ADMIN },
-  { key: "settings", href: "/kurumsal/panel/ayarlar", label: "Ayarlar", icon: "pencil", roles: CORPORATE_ADMIN },
-  { key: "leads", href: "/kurumsal/panel/leadler", label: "Leadler", icon: "users", group: "NETWORKING", roles: CORPORATE_ADMIN },
-  { key: "events", href: "/kurumsal/panel/etkinlikler", label: "Etkinlikler", icon: "analytics", roles: CORPORATE_ADMIN },
-  { key: "meetings", href: "/kurumsal/panel/gorusmeler", label: "Görüşmeler", icon: "contact", roles: CORPORATE_ADMIN },
+  { key: "licenses", href: "/kurumsal/panel/lisans", label: "Lisanslar", icon: "box", group: "YÖNETİM", roles: CORPORATE_ADMIN },
+  { key: "organization", href: "/kurumsal/panel/organizasyon", label: "Organizasyon", icon: "building", group: "YÖNETİM", roles: CORPORATE_ADMIN },
+  { key: "roles", href: "/kurumsal/panel/roller", label: "Roller & Yetkiler", icon: "lock", group: "YÖNETİM", roles: CORPORATE_ADMIN },
+  { key: "settings", href: "/kurumsal/panel/ayarlar", label: "Ayarlar", icon: "adjustments", group: "YÖNETİM", roles: CORPORATE_ADMIN },
+  { key: "leads", href: "/kurumsal/panel/leadler", label: "Leadler", icon: "mail", group: "NETWORKING", roles: CORPORATE_ADMIN },
+  { key: "events", href: "/kurumsal/panel/etkinlikler", label: "Etkinlikler", icon: "clock", group: "NETWORKING", roles: CORPORATE_ADMIN },
+  { key: "meetings", href: "/kurumsal/panel/gorusmeler", label: "Görüşmeler", icon: "contact", group: "NETWORKING", roles: CORPORATE_ADMIN },
 ] satisfies readonly SidebarConfigItem[];
 
 /** Shared personal-workspace nav. Live DashboardShell and the AppShell PanelSidebar artifact both consume this. */

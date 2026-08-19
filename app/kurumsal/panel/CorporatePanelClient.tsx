@@ -11,9 +11,7 @@ import type { SidebarNavItem } from "../../components/ui/SidebarNav";
 import PanelSidebar from "../../components/ui/PanelSidebar";
 import { YenomiProductVisual } from "../../ui/YenomiProductVisual";
 import {
-  ROLE_CAPABILITIES,
   ROLE_LABELS,
-  ROLE_MATRIX_COLUMNS,
 } from "../../../lib/organizations/role-matrix";
 import CardTemplate, { type CardBranding } from "../../CardTemplate";
 import { getSeatBreakdown } from "../../../lib/organizations/lifecycle";
@@ -1214,21 +1212,8 @@ export default function CompanyPanel() {
   const departmentManager = org?.role === "DEPARTMENT_MANAGER";
   const canManageLicenses = org?.role === "OWNER" || org?.role === "ADMIN";
   const canManageNetworking = canManageLicenses;
-  const allTabs: ReadonlyArray<readonly [CorporatePanelTab, string]> = [
-        ["overview", "Genel Bakış"],
-        ["employees", "Çalışanlar"],
-        ["cards", "Kartlar"],
-        ["templates", "Marka & Şablon"],
-        ["content", "İçerik"],
-        ["analytics", "İstatistikler"],
-        ["licenses", "Lisanslar"],
-        ["organization", "Organizasyon"],
-        ["roles", "Roller & Yetkiler"],
-        ["settings", "Ayarlar"],
-      ];
-  const tabs: ReadonlyArray<readonly [CorporatePanelTab, string]> = org
-    ? corporateSidebarItems(org.role).map(({ key, label }) => [key, label] as const)
-    : [];
+  const sidebarItems = org ? corporateSidebarItems(org.role) : [];
+  const tabs: ReadonlyArray<readonly [CorporatePanelTab, string]> = sidebarItems.map(({ key, label }) => [key, label] as const);
   const sidebarPermissionsLoading = !org && loading;
   const tabRoutes: Record<CorporatePanelTab, string> = {
     overview: "/kurumsal/panel",
@@ -1253,12 +1238,12 @@ export default function CompanyPanel() {
     templates: { title: "Marka & Şablon", description: "Kurumsal kart görünümünü ve marka standartlarını merkezi olarak yönet.", icon: "id" },
     content: { title: "İçerik", description: "Merkezi bağlantıları ve kurumsal dosyaları çalışan kartlarına dağıt.", icon: "link" },
     analytics: { title: "İstatistikler", description: "Kart görüntülenmelerini ve içerik etkileşimlerini gerçek verilerle izle.", icon: "analytics" },
-    leads: { title: "Leadler", description: "Karttan düşen networking lead’lerini, mail ve görüşme takibini yönet.", icon: "users" },
-    events: { title: "Etkinlikler", description: "Etkinlik QR attribution katmanını kişi kartından ayrı tut.", icon: "analytics" },
+    leads: { title: "Leadler", description: "Karttan düşen networking lead’lerini, mail ve görüşme takibini yönet.", icon: "mail" },
+    events: { title: "Etkinlikler", description: "Etkinlik QR attribution katmanını kişi kartından ayrı tut.", icon: "clock" },
     meetings: { title: "Görüşmeler", description: "Online ve yüz yüze görüşme taleplerini kabul et, alternatif öner veya reddet.", icon: "contact" },
-    licenses: { title: "Lisanslar", description: "Toplam, kullanılan ve boş lisansları; ek kullanıcı paketleriyle birlikte yönet.", icon: "analytics" },
+    licenses: { title: "Lisanslar", description: "Toplam, kullanılan ve boş lisansları; ek kullanıcı paketleriyle birlikte yönet.", icon: "box" },
     organization: { title: "Organizasyon", description: "Şirket kimliği, alan politikaları ve ünvan standardını yönet.", icon: "building" },
-    settings: { title: "Ayarlar", description: "Sık değişmeyen kurumsal yönetim alanlarına ulaş.", icon: "pencil" },
+    settings: { title: "Ayarlar", description: "Sık değişmeyen kurumsal yönetim alanlarına ulaş.", icon: "adjustments" },
   };
   const openTab = (tab: CorporatePanelTab) => {
     const allowed = !org || corporateSidebarItems(org.role).some((item) => item.key === tab);
@@ -1360,12 +1345,12 @@ export default function CompanyPanel() {
           onNavigate={(key) => setActiveTab(key as CorporatePanelTab)}
           loading={sidebarPermissionsLoading}
           storageKey="yenomi:corporate-sidebar:collapsed"
-          items={tabs.map<SidebarNavItem>(([key, label]) => ({
-              key,
-              label,
-              href: tabRoutes[key],
-              icon: tabMeta[key].icon as SidebarNavItem["icon"],
-              group: CORPORATE_PANEL_TAB_META[key].group,
+          items={sidebarItems.map<SidebarNavItem>((item) => ({
+              key: item.key,
+              label: item.label,
+              href: item.href,
+              icon: item.icon,
+              group: item.group,
           }))}
         >
           <div className="enterprise-side-links enterprise-side-primary-links">
@@ -1767,103 +1752,6 @@ export default function CompanyPanel() {
                   </section>
                 )}
                 {currentTab === "roles" && <RolesPanel members={members} />}
-                {false && (
-                  <section className="business-role-panel">
-                    <header>
-                      <div>
-                        <span>ERİŞİM YÖNETİMİ</span>
-                        <h2>Rol ve yetki matrisi</h2>
-                        <p>
-                          Roller açıklama kartı değil, gerçek işlem yetkilerini
-                          gösterir.
-                        </p>
-                      </div>
-                      <b>4 sistem rolü</b>
-                    </header>
-                    <div className="business-role-summary">
-                      <article>
-                        <small>Şirket Sahibi</small>
-                        <strong>
-                          {
-                            members.filter(
-                              (m) => m.role === "OWNER" && m.status !== "LEFT",
-                            ).length
-                          }
-                        </strong>
-                      </article>
-                      <article>
-                        <small>Yönetici</small>
-                        <strong>
-                          {
-                            members.filter(
-                              (m) => m.role === "ADMIN" && m.status !== "LEFT",
-                            ).length
-                          }
-                        </strong>
-                      </article>
-                      <article>
-                        <small>İnsan Kaynakları</small>
-                        <strong>
-                          {
-                            members.filter(
-                              (m) => m.role === "HR" && m.status !== "LEFT",
-                            ).length
-                          }
-                        </strong>
-                      </article>
-                      <article>
-                        <small>Çalışan</small>
-                        <strong>
-                          {
-                            members.filter(
-                              (m) =>
-                                m.role === "EMPLOYEE" && m.status !== "LEFT",
-                            ).length
-                          }
-                        </strong>
-                      </article>
-                    </div>
-                    <div className="business-role-matrix">
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>Yetki</th>
-                            {ROLE_MATRIX_COLUMNS.map((role) => (
-                              <th key={role}>{ROLE_LABELS[role]}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {ROLE_CAPABILITIES.map((capability) => (
-                            <tr key={capability.label}>
-                              <td>{capability.label}</td>
-                              {ROLE_MATRIX_COLUMNS.map((role) => {
-                                const allowed = capability.allows(role);
-                                return (
-                                  <td
-                                    key={role}
-                                    className={allowed ? "allowed" : "denied"}
-                                  >
-                                    {allowed ? "✓" : "—"}
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    <aside>
-                      <Icon name="lock" />
-                      <p>
-                        <strong>Güvenlik kuralı:</strong> Kullanıcı kendi rolünü
-                        yükseltemez. Şirket Sahibi rolü panelden silinemez veya
-                        pasife alınamaz; rol değişiklikleri sunucu tarafında
-                        yetki kontrolünden geçer.
-                      </p>
-                    </aside>
-                  </section>
-                )}
                 {currentTab === "organization" && (
                   <div className="p11-org-workspace">
                     <CompanySettingsPanel

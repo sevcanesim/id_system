@@ -1,40 +1,53 @@
-import { Icon } from "../../../icons";
+import { Icon, type IconName } from "../../../icons";
 import {
   ROLE_CAPABILITIES,
+  ROLE_GUIDES,
   ROLE_LABELS,
   ROLE_MATRIX_COLUMNS,
 } from "../../../../lib/organizations/role-matrix";
+import type { OrganizationRole } from "../../../../lib/organizations/permissions";
 
 type RoleMember = { role: string; status: string };
 
-export default function RolesPanel({ members }: { members: RoleMember[] }) {
-  const roles = [
-    ["OWNER", "Şirket Sahibi", "Şirket sahibi rolü", "violet"],
-    ["ADMIN", "Yönetici", "Yönetici rolü", "green"],
-    ["HR", "İnsan Kaynakları", "İK rolü", "amber"],
-    ["DEPARTMENT_MANAGER", "Departman Yöneticisi", "Departman rolü", "blue"],
-    ["EMPLOYEE", "Çalışan", "Kullanıcı rolü", "purple"],
-  ] as const;
+const ROLE_ICONS: Record<OrganizationRole, IconName> = {
+  OWNER: "building",
+  ADMIN: "shield",
+  HR: "users",
+  DEPARTMENT_MANAGER: "adjustments",
+  EMPLOYEE: "id",
+};
 
+export default function RolesPanel({ members }: { members: RoleMember[] }) {
   return (
     <section className="business-role-panel">
       <header>
         <div>
           <span>ERİŞİM YÖNETİMİ</span>
           <h2>Rol ve yetki matrisi</h2>
-          <p>Roller açıklama kartı değil, gerçek işlem yetkilerini gösterir.</p>
+          <p>Şirket içi roller, sunucunun uyguladığı işlem yetkilerini gösterir. Super Admin bu panelde bir şirket rolü değildir.</p>
         </div>
-        <b>{ROLE_MATRIX_COLUMNS.length} sistem rolü</b>
+        <b>{ROLE_MATRIX_COLUMNS.length} şirket rolü</b>
       </header>
+      <aside className="business-role-platform">
+        <i><Icon name="lock" /></i>
+        <div>
+          <strong>Super Admin</strong>
+          <p>Platform rolüdür: tüm şirketleri görür, sistemi yönetir, lisans tanımlar ve destek işlemleri yapar. Bu yetkiler /admin yüzeyindedir; şirket paneline üye olarak eklenmez.</p>
+        </div>
+      </aside>
       <div className="business-role-summary">
-        {roles.map(([role, label, description, tone]) => (
-          <article key={role} className={`tone-${tone}`}>
-            <i><Icon name={role === "HR" ? "mail" : "users"} /></i>
-            <div>
-              <small>{label}</small>
-              <strong>{members.filter((member) => member.role === role && member.status !== "LEFT").length}</strong>
-              <span>{description}</span>
+        {ROLE_MATRIX_COLUMNS.map((role) => (
+          <article key={role}>
+            <div className="business-role-summary__head">
+              <i><Icon name={ROLE_ICONS[role]} /></i>
+              <div>
+                <small>{ROLE_LABELS[role]}</small>
+                <strong>{members.filter((member) => member.role === role && member.status !== "LEFT").length}</strong>
+              </div>
             </div>
+            <ul>
+              {ROLE_GUIDES[role].map((line) => <li key={line}>{line}</li>)}
+            </ul>
           </article>
         ))}
       </div>
@@ -50,16 +63,16 @@ export default function RolesPanel({ members }: { members: RoleMember[] }) {
             {ROLE_CAPABILITIES.map((capability) => (
               <tr key={capability.label}>
                 <td>{capability.label}</td>
-                {ROLE_MATRIX_COLUMNS.map((role) => {
-                  const allowed = capability.allows(role);
-                  return <td key={role} className={allowed ? "allowed" : "denied"}>{allowed ? "✓" : "—"}</td>;
+                {ROLE_MATRIX_COLUMNS.map((matrixRole) => {
+                  const allowed = capability.allows(matrixRole);
+                  return <td key={matrixRole} className={allowed ? "allowed" : "denied"}>{allowed ? "✓" : "—"}</td>;
                 })}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <aside>
+      <aside className="business-role-security">
         <Icon name="lock" />
         <p><strong>Güvenlik kuralı:</strong> Kullanıcı kendi rolünü yükseltemez. Şirket Sahibi rolü panelden silinemez veya pasife alınamaz; rol değişiklikleri sunucu tarafında yetki kontrolünden geçer.</p>
       </aside>

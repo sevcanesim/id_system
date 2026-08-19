@@ -9650,26 +9650,31 @@ body:has(.p8-corporate-editor) {
   display: grid;
   gap: 16px;
 }
-.p10-corporate-platform .business-role-summary {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+.p10-corporate-platform .business-role-panel > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 12px;
-  padding: 0;
-  border: 0;
-  background: transparent;
 }
-.p10-corporate-platform .business-role-summary > article {
-  min-width: 0;
+.p10-corporate-platform .business-role-panel > header h2 {
+  letter-spacing: -0.03em;
+  overflow-wrap: normal;
+}
+.p10-corporate-platform .business-role-platform,
+.p10-corporate-platform .business-role-security {
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr);
-  gap: 10px;
+  gap: 12px;
   align-items: start;
-  padding: 14px;
+  padding: 14px 16px;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: #fff;
 }
-.p10-corporate-platform .business-role-summary > article > i {
+.p10-corporate-platform .business-role-platform > i,
+.p10-corporate-platform .business-role-security > svg,
+.p10-corporate-platform .business-role-security > .yi-icon {
   width: 32px;
   height: 32px;
   display: grid;
@@ -9679,16 +9684,53 @@ body:has(.p8-corporate-editor) {
   color: var(--gold-hi);
   font-style: normal;
 }
-.p10-corporate-platform .business-role-summary > article > div {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
+.p10-corporate-platform .business-role-platform p,
+.p10-corporate-platform .business-role-security p {
+  margin: 4px 0 0;
+  color: var(--ink-3);
+  font-size: 13px;
+  line-height: 1.45;
 }
-.p10-corporate-platform .business-role-summary small,
-.p10-corporate-platform .business-role-summary strong,
-.p10-corporate-platform .business-role-summary span {
+.p10-corporate-platform .business-role-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.p10-corporate-platform .business-role-summary > article {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+}
+.p10-corporate-platform .business-role-summary__head {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+.p10-corporate-platform .business-role-summary > article > i,
+.p10-corporate-platform .business-role-summary__head > i {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--gold-dim);
+  color: var(--gold-hi);
+  font-style: normal;
+}
+.p10-corporate-platform .business-role-summary__head small,
+.p10-corporate-platform .business-role-summary__head strong {
   display: block;
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 .p10-corporate-platform .business-role-summary small {
   color: var(--ink-3);
@@ -9699,10 +9741,57 @@ body:has(.p8-corporate-editor) {
   line-height: 1.1;
   letter-spacing: -.03em;
 }
-.p10-corporate-platform .business-role-summary span {
+.p10-corporate-platform .business-role-summary ul {
+  margin: 0;
+  padding-left: 1.1em;
+  color: var(--ink-2);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.p10-corporate-platform .business-role-summary li + li {
+  margin-top: 4px;
+}
+.p10-corporate-platform .business-role-matrix {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+}
+.p10-corporate-platform .business-role-matrix table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.p10-corporate-platform .business-role-matrix th,
+.p10-corporate-platform .business-role-matrix td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.p10-corporate-platform .business-role-matrix th:first-child,
+.p10-corporate-platform .business-role-matrix td:first-child {
+  text-align: left;
+  width: 26%;
+}
+.p10-corporate-platform .business-role-matrix thead th {
+  background: #F2EFE9;
+  color: var(--ink);
+  font-weight: 700;
+}
+.p10-corporate-platform .business-role-matrix .allowed {
+  color: #2f7d4f;
+  font-weight: 700;
+}
+.p10-corporate-platform .business-role-matrix .denied {
   color: var(--ink-3);
-  font-size: 11px;
-  line-height: 1.4;
+}
+.p11-overview-today button.is-alert {
+  border-color: var(--border-gold, #d9c59a);
+  background: var(--gold-dim);
 }
 .enterprise-canonical-nav > .enterprise-side-section-title {
   display: block;

@@ -9,9 +9,9 @@ export const metadata: Metadata = {
 };
 
 const steps = [
-  { number: "01", title: "Kartınızı Alın", text: "Bireysel NFC + QR kartınızı seçin. Kart elinize ulaştığında dijital kartvizitinizle eşleşmeye hazırdır.", visual: "card" },
-  { number: "02", title: "Profilinizi Özelleştirin", text: "İletişim bilgilerinizi ve profesyonel kartvizitinizi tek canlı profilde düzenleyin.", visual: "profile" },
-  { number: "03", title: "Temas Edin", text: "Kartı telefona yaklaştırın veya QR’ı okutun. Kartvizitiniz tarayıcıda açılır; uygulama gerekmez.", visual: "card" },
+  { number: "01", title: "Kartınızı Alın", text: "Bireysel NFC + QR kartınızı seçin. Kart elinize ulaştığında dijital kartvizitinizle eşleşmeye hazırdır.", visual: "card" as const },
+  { number: "02", title: "Profilinizi Özelleştirin", text: "İletişim bilgilerinizi ve profesyonel kartvizitinizi tek canlı profilde düzenleyin.", visual: "profile" as const },
+  { number: "03", title: "Temas Edin", text: "Kartı telefona yaklaştırın veya QR’ı okutun. Kartvizitiniz tarayıcıda açılır; uygulama gerekmez.", visual: "tap" as const },
   { number: "04", title: "Yönetin", text: "Profili güncel tutun, görüntülenmeleri izleyin. Ekipler için kartları ve markayı kurumsal panelden yönetin.", premium: true },
 ];
 
@@ -49,9 +49,19 @@ export default function HowItWorksPage() {
               </div>
               <h3>{step.title}</h3>
               <p>{step.text}</p>
-              {step.visual ? (
+              {step.visual === "tap" ? (
                 <div className={`how-step-visual how-step-visual--${step.number}`}>
-                  <YenomiProductVisual variant={step.visual as "profile" | "card"} compact />
+                  <div className="how-phone-mockup">
+                    <span className="how-phone-speaker" />
+                    <div className="how-phone-screen">
+                      <YenomiProductVisual variant="profile" compact />
+                    </div>
+                  </div>
+                  <div className="how-qr" aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /><i /><i /></div>
+                </div>
+              ) : step.visual ? (
+                <div className={`how-step-visual how-step-visual--${step.number}`}>
+                  <YenomiProductVisual variant={step.visual} compact />
                 </div>
               ) : (
                 <div className="how-dashboard" aria-label="Yönetim paneli önizlemesi">

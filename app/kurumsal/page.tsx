@@ -170,7 +170,7 @@ export default async function CorporatePage({
             <p>10 NFC kart, 10 dijital profil, 1 şirket paneli, 1.000 Network Mail.</p>
             <strong>{formatTryFromKurus(990_000)} <small>/ yıl</small></strong>
             <ul>{CORPORATE_SHARED_FEATURES.slice(0, 8).map((item) => <li key={item}>{item}</li>)}</ul>
-            <a href="/kurumsal?plan=CORP-10#teklif" className="corporate-plan-link">Teklif Al <span>→</span></a>
+            <a href="/kurumsal?plan=CORP-10#teklif" className="corporate-cta">Teklif Al <span aria-hidden="true">→</span></a>
           </article>
           <article className="enterprise">
             <span>ENTERPRISE</span>
@@ -182,7 +182,7 @@ export default async function CorporatePage({
               <li>Kuruma özel uygulama planı</li>
               <li>Merkezi yönetim ve raporlama</li>
             </ul>
-            <a href="/kurumsal?plan=ENTERPRISE#teklif" className="corporate-plan-link">Teklif Al <span>→</span></a>
+            <a href="/kurumsal?plan=ENTERPRISE#teklif" className="corporate-cta">Teklif Al <span aria-hidden="true">→</span></a>
           </article>
         </div>
         <div className="corporate-mail-packs">
@@ -195,7 +195,7 @@ export default async function CorporatePage({
                 <li key={pack.sku}><b>{pack.credits.toLocaleString("tr-TR")} kredi</b> {formatTryFromKurus(pack.priceKurus)}</li>
               ))}
             </ul>
-            <a href="/kurumsal?plan=NETWORK-MAIL#teklif" className="corporate-plan-link">Kredi paketi teklifi <span>→</span></a>
+            <a href="/kurumsal?plan=NETWORK-MAIL#teklif" className="corporate-cta">Kredi paketi teklifi <span aria-hidden="true">→</span></a>
           </article>
           <article>
             <span>CAMPAIGN MAIL</span>
@@ -206,6 +206,7 @@ export default async function CorporatePage({
                 <li key={pack.sku}><b>{pack.credits.toLocaleString("tr-TR")} Campaign Mail</b> {formatTryFromKurus(pack.priceKurus)}</li>
               ))}
             </ul>
+            <a href="/kurumsal?plan=CAMPAIGN-MAIL#teklif" className="corporate-cta">Teklif Al <span aria-hidden="true">→</span></a>
           </article>
         </div>
       </section>

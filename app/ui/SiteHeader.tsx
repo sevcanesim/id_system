@@ -36,7 +36,7 @@ export default function SiteHeader({ theme = "light", actions = [] }: { theme?: 
         <Brand />
         <nav className={`yi-nav${open ? " is-open" : ""}`} aria-label="Ana menü">
           {links.map(([href, label]) => (
-            <Link key={href} href={href} style={{ fontWeight: 800 }} aria-current={pathname === href || pathname.startsWith(`${href}/`) ? "page" : undefined}>
+            <Link key={href} href={href} aria-current={pathname === href || pathname.startsWith(`${href}/`) ? "page" : undefined}>
               {label}
             </Link>
           ))}

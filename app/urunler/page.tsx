@@ -71,12 +71,21 @@ export default async function ProductsPage() {
               <ul aria-label="Bireysel paket içeriği">
                 {INDIVIDUAL_FEATURES.map((item) => <li key={item}>{item}</li>)}
               </ul>
-              {nfc && <ButtonLink href={`/urunler/${nfc.slug}`} variant="primary">Satın Al</ButtonLink>}
+              {nfc && !catalogError && (
+                <AddToCartButton
+                  productId={NFC_PRODUCT.slug}
+                  variantSku={COMMERCIAL_SKUS.INITIAL}
+                  kind="NFC_PHYSICAL_CARD"
+                  name="Yenomi ID NFC Kart"
+                  unitPriceKurus={listPriceKurus}
+                  label="Sepete Ekle"
+                />
+              )}
             </article>
             <article className="products-plan-card is-popular">
               <div className="products-plan-card__head">
                 <span className="products-single-kicker">BİREYSEL PREMIUM</span>
-                <h2>En çok tercih edilen</h2>
+                <h2>{INDIVIDUAL_PREMIUM_PLAN.name} <span className="products-plan-badge">En çok tercih edilen</span></h2>
                 <strong className="products-single-price">{formatTryFromKurus(INDIVIDUAL_PREMIUM_PLAN.priceKurus)}</strong>
               </div>
               <p>Bireysel paketteki her şey, artı toplantı, sunum, kişi yönetimi ve 100 Network Mail. Kredi ödeme sonrası yazılır.</p>

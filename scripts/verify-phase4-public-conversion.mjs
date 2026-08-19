@@ -42,11 +42,11 @@ check(landing.includes("Kart → NFC → Profil"), "hero visually states card-to
 check(landing.includes("Bireysel") && landing.includes("Kurumsal"), "individual/corporate discovery split is explicit");
 check(landing.includes("1 yıl dijital hizmet dahil") && landing.includes("Ücretsiz kargo") && landing.includes("Güvenli kayıp modu"), "trust/value layer covers service, delivery and lost-card safety");
 check(
-  header.includes('"Kartlar & Fiyatlar"') &&
+  header.includes('"Dijital Kartvizit"') &&
   header.includes('"Nasıl Çalışır"') &&
   header.includes('"Kurumsal Çözümler"') &&
   header.includes('"Yardım Merkezi"'),
-  "public navigation matches current Phase 4 IA"
+  "public navigation matches live Digital ID IA",
 );
 check(header.includes('"/giris"') && header.includes('"NFC Kartı İncele"'), "landing header preserves login + primary product CTA");
 check(!header.includes('{menuOpen ? "×" : "☰"}'), "mobile navigation no longer uses menu glyphs");

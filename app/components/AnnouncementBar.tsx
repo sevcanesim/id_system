@@ -1,21 +1,18 @@
 /**
- * Shared top service bar for the pre-purchase browsing journey (home →
- * catalog → product detail). P2 QA finding: this strip existed on the
- * homepage and /urunler but not on /urunler/nfc-kart, so the same shopping
- * journey looked like two different systems mid-flow. Deliberately not
- * shown on checkout-sensitive pages (giriş, sepet, checkout, nfc-siparis,
- * ödeme, aktivasyon) — dropping promotional chrome during checkout to reduce
- * distraction is intentional, not an oversight. PublicSiteShell hides this
- * bar on those quiet public routes.
+ * Shared top brand ticker for public browsing chrome.
+ * Quiet checkout routes hide this strip on purpose.
  */
+const MARQUEE_UNIT = "YENOMI ID  |  www.yenomilabs.com  |  YENOMI ID";
+
 export default function AnnouncementBar() {
+  const copies = Array.from({ length: 8 }, () => MARQUEE_UNIT);
   return (
-    <div className="p4-announcement" role="note" aria-label="Yenomi ID hizmet bilgileri">
-      <span className="p4-announcement__item">Türkiye içi ücretsiz kargo</span>
-      <i aria-hidden="true" />
-      <span className="p4-announcement__item">2 iş günü hazırlık</span>
-      <i aria-hidden="true" />
-      <span className="p4-announcement__item">1 yıl dijital hizmet dahil</span>
+    <div className="yi-brand-marquee" role="note" aria-label="Yenomi ID · yenomilabs.com">
+      <div className="yi-brand-marquee__track">
+        {copies.map((text, index) => (
+          <span key={`${text}-${index}`}>{text}</span>
+        ))}
+      </div>
     </div>
   );
 }

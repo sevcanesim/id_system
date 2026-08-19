@@ -12,8 +12,8 @@ import { PublicPageTitle } from "../components/PublicPageTitle";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Kartlar & Fiyatlar",
-  description: "Yenomi ID fiziksel NFC kart ve dijital kimlik paketleri.",
+  title: "Dijital Kartvizit",
+  description: "Yenomi ID bireysel NFC + QR dijital kartvizit. Kurumsal ekip çözümü ayrı incelenir.",
 };
 
 export default async function ProductsPage() {
@@ -29,17 +29,17 @@ export default async function ProductsPage() {
     <div className="products-single-page yi-site">
       <main id="main-content" className="products-single-main">
         <PublicPageTitle
-          kicker="YENOMI ID · KARTLAR & FİYATLAR"
-          title={<>Fiziksel kart.<br /><em>Dijital kimlik.</em></>}
-          description="Tek bir premium NFC kartla iletişim bilgilerini canlı tut. Profilini istediğin zaman güncelle, bağlantını hep aynı yerde bırak."
+          kicker="YENOMI ID · DİJİTAL KARTVİZİT"
+          title={<>Bireysel kartvizit.<br /><em>NFC + QR.</em></>}
+          description="Kendi dijital kartvizitini al. Ekibin için marka, yetki ve analitik yönetimi kurumsal çözümde."
           className="public-page-title--catalog"
         />
         <section className="products-single-hero" aria-labelledby="products-title">
           <div className="yi-container products-single-hero__inner">
             <div className="products-single-copy">
               <span className="yi-hero__eyebrow">ÜRÜNÜ İNCELE</span>
-              <h2 id="products-title">Yenomi ID NFC + QR Kart</h2>
-              <p>Fiziksel kartını seç, dijital profilini aynı kalıcı bağlantıya bağla ve iletişim bilgilerini istediğin zaman güncelle.</p>
+              <h2 id="products-title">Bireysel dijital kartvizit</h2>
+              <p>NFC + QR kartını seç, canlı profilini bağla. Unvanın değişince kartı yenileme. Ekip yönetimi için kurumsal çözümü incele.</p>
               <div className="products-single-actions">
                 {nfc && <ButtonLink href={`/urunler/${nfc.slug}`} variant="dark">NFC Kartını İncele</ButtonLink>}
                 <ButtonLink href="/kurumsal" variant="secondary">Kurumsal Çözümler</ButtonLink>

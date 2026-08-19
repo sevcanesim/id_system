@@ -22,7 +22,7 @@ export function YenomiProductVisual({ variant="profile", compact=false }: { vari
     return (
       <div className={`yi-product-ui yi-product-ui--card${compact ? " yi-product-ui--compact" : ""}`} aria-hidden="true">
         <div className="yi-card-brand">YENOMI ID</div>
-        <div className="yi-card-title">DIGITAL<br/>IDENTITY</div>
+        <div className="yi-card-title">DIGITAL<br/>CARD</div>
         <div className="yi-card-nfc">))))</div>
         <div className="yi-card-bottom"><span>Yaklaştır.<br/>Profilini paylaş.</span><b>{[1,2,3,4,5,6,7,8,9].map(i=><i key={i}/>)}</b></div>
       </div>
@@ -36,8 +36,8 @@ export function YenomiProductVisual({ variant="profile", compact=false }: { vari
       </div>
       <div className="yi-profile-avatar">YI</div>
       <div className="yi-profile-body">
-        <strong>Profesyonel Profil</strong>
-        <span>Dijital kimliğin · tek bağlantıda</span>
+        <strong>Adın Soyadın</strong>
+        <span>Ünvanın · Şirketin</span>
         <div className="yi-profile-actions"><i>☎</i><i>✉</i><i>in</i><i>↗</i></div>
         <div className="yi-profile-save">Rehbere Kaydet</div>
       </div>

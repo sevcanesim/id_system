@@ -821,6 +821,47 @@ export default function CompanyPanel() {
     else setMessage(`${successful.length} çalışanın durumu güncellendi.`);
   }
 
+  async function changeMembersDepartment(memberIds: string[], department: string) {
+    const access = await token();
+    if (!access || !selected || !memberIds.length) return;
+    setMessage("");
+    const successful: string[] = [];
+    const failures: string[] = [];
+    const membersById = new Map(members.map((member) => [member.id, member]));
+    for (const memberId of memberIds) {
+      const member = membersById.get(memberId);
+      if (!member) {
+        failures.push(memberId);
+        continue;
+      }
+      const fullName = (member.full_name || "").trim().length >= 2 ? member.full_name!.trim() : member.email;
+      try {
+        const response = await fetch("/api/organizations/members", {
+          method: "PATCH",
+          headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
+          body: JSON.stringify({
+            action: "IDENTITY",
+            organizationId: selected,
+            memberId,
+            fullName,
+            email: member.email,
+            title: member.title || "",
+            department,
+          }),
+        });
+        if (response.ok) successful.push(memberId);
+        else failures.push(memberId);
+      } catch {
+        failures.push(memberId);
+      }
+    }
+    if (successful.length) {
+      setMembers((current) => current.map((member) => successful.includes(member.id) ? { ...member, department } : member));
+    }
+    if (failures.length) setMessage(`${successful.length} çalışanın departmanı güncellendi; ${failures.length} çalışan için işlem tamamlanamadı.`);
+    else setMessage(`${successful.length} çalışanın departmanı güncellendi.`);
+  }
+
   async function changeRole(memberId: string, role: string) {
     const result = await mutateMember(
       memberId,
@@ -1672,6 +1713,9 @@ export default function CompanyPanel() {
                     onBulkInviteFile={handleBulkInviteFile}
                     onSubmitBulkInvite={submitBulkInvite}
                     onBulkStatus={changeMembersStatus}
+                    onBulkDepartment={changeMembersDepartment}
+                    canBulkDepartment={org?.role !== "DEPARTMENT_MANAGER"}
+                    canManageLicenses={canManageLicenses}
                   />
                 )}
 

@@ -107,7 +107,14 @@ type Props = {
   onBulkInviteFile: (file: File) => void | Promise<void>;
   onSubmitBulkInvite: () => void | Promise<void>;
   onBulkStatus: (memberIds: string[], status: BulkStatus) => Promise<void>;
+  onBulkDepartment: (memberIds: string[], department: string) => Promise<void>;
+  canBulkDepartment: boolean;
+  canManageLicenses: boolean;
 };
+
+function isBulkSelectable(member: EmployeeListMember, currentUserId: string) {
+  return member.user_id !== currentUserId && member.role !== "OWNER";
+}
 
 function compareText(a: string | null | undefined, b: string | null | undefined) {
   return String(a || "").localeCompare(String(b || ""), "tr", { sensitivity: "base" });
@@ -122,7 +129,7 @@ export default function EmployeesPanel(props: Props) {
     setForm, add, currentUserId, onEditOwnCard, initials, roleLabel, relativeTime,
     openMemberDrawer, showBulkInvite, onToggleBulkInvite, onCloseBulkInvite,
     bulkInvitePreview, bulkInviteBusy, bulkInviteResults, onBulkInviteFile,
-    onSubmitBulkInvite, onBulkStatus,
+    onSubmitBulkInvite, onBulkStatus, onBulkDepartment, canBulkDepartment, canManageLicenses,
   } = props;
 
   const [sortKey, setSortKey] = useState<SortKey>("name");
@@ -130,6 +137,12 @@ export default function EmployeesPanel(props: Props) {
   const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkDepartment, setBulkDepartment] = useState("");
+  const seatLimit = subscription?.seat_limit ?? "—";
+  const bulkDepartmentChoices = useMemo(() => {
+    const fromMembers = departmentOptions.filter((department) => department !== "Belirtilmemiş");
+    return Array.from(new Set([...DEPARTMENT_OPTIONS, ...fromMembers])).sort((a, b) => compareText(a, b));
+  }, [departmentOptions]);
 
   const sortedMembers = useMemo(() => {
     const next = [...filteredMembers];
@@ -157,7 +170,7 @@ export default function EmployeesPanel(props: Props) {
     () => filteredMembers.filter((member) => selectedIds.has(member.id)),
     [filteredMembers, selectedIds],
   );
-  const selectablePageMembers = pageMembers.filter((member) => member.user_id !== currentUserId && member.role !== "OWNER");
+  const selectablePageMembers = pageMembers.filter((member) => isBulkSelectable(member, currentUserId));
   const pageAllSelected = selectablePageMembers.length > 0 && selectablePageMembers.every((member) => selectedIds.has(member.id));
 
   function toggleMember(id: string) {
@@ -176,8 +189,12 @@ export default function EmployeesPanel(props: Props) {
     });
   }
 
+  function selectedBulkIds() {
+    return selectedMembers.filter((member) => isBulkSelectable(member, currentUserId)).map((member) => member.id);
+  }
+
   async function runBulkStatus(status: BulkStatus) {
-    const ids = selectedMembers.filter((member) => member.user_id !== currentUserId && member.role !== "OWNER").map((member) => member.id);
+    const ids = selectedBulkIds();
     if (!ids.length) return;
     const action = status === "ACTIVE" ? "aktif hale getirmek" : status === "SUSPENDED" ? "pasife almak" : "şirketten ayırmak";
     if (!window.confirm(`${ids.length} çalışanı ${action} istediğine emin misin?`)) return;
@@ -188,6 +205,26 @@ export default function EmployeesPanel(props: Props) {
     } finally {
       setBulkBusy(false);
     }
+  }
+
+  async function runBulkDepartment() {
+    const ids = selectedBulkIds();
+    const department = bulkDepartment.trim();
+    if (!ids.length || !department) return;
+    if (!window.confirm(`${ids.length} çalışanın departmanını “${department}” olarak güncellemek istediğine emin misin?`)) return;
+    setBulkBusy(true);
+    try {
+      await onBulkDepartment(ids, department);
+      setSelectedIds(new Set());
+      setBulkDepartment("");
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
+  function openProfile(member: EmployeeListMember) {
+    if (member.user_id === currentUserId) onEditOwnCard();
+    else openMemberDrawer(member, member.status === "INVITED" ? "invite" : "profile");
   }
 
   function sortBy(next: SortKey) {
@@ -222,7 +259,7 @@ export default function EmployeesPanel(props: Props) {
         </div>
         <div className="p11-org-capacity" aria-label="Organizasyon kapasitesi">
           <small>{org?.organizations?.name || "Şirket"}</small>
-          <strong>{usedSeats} / {subscription?.seat_limit ?? "—"}</strong>
+          <strong>{usedSeats} / {seatLimit}</strong>
           <span>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} lisans boş`}</span>
         </div>
       </header>
@@ -246,8 +283,12 @@ export default function EmployeesPanel(props: Props) {
           <select aria-label="Sıralama" className="p11-filter-control" value={`${sortKey}:${sortDirection}`} onChange={(event) => { const [key, direction] = event.target.value.split(":") as [SortKey, SortDirection]; setSortKey(key); setSortDirection(direction); }}>
             <option value="name:asc">Ad A–Z</option><option value="name:desc">Ad Z–A</option><option value="created:desc">En yeni</option><option value="created:asc">En eski</option><option value="department:asc">Departman</option><option value="status:asc">Durum</option>
           </select>
-          <button type="button" className="p11-secondary" onClick={onToggleBulkInvite} disabled={!canInvite}><Icon name="box" /> CSV ile Davet</button>
-          <button type="button" className="p11-primary" onClick={() => { if (!canInvite) { setActiveTab("licenses"); return; } setShowInviteForm((value) => !value); }}><Icon name={canInvite ? "users" : "lock"} />{canInvite ? "Çalışan Ekle" : "Lisans Gerekli"}</button>
+          {canInvite && (
+            <>
+              <button type="button" className="p11-secondary" onClick={onToggleBulkInvite}><Icon name="box" /> CSV ile Davet</button>
+              <button type="button" className="p11-primary" onClick={() => setShowInviteForm((value) => !value)}><Icon name="users" /> Çalışan Ekle</button>
+            </>
+          )}
         </div>
 
         {showBulkInvite && canInvite && (
@@ -279,12 +320,45 @@ export default function EmployeesPanel(props: Props) {
           </form>
         )}
 
-        {!canInvite && <div className="p11-capacity-warning"><span><Icon name="lock" /><b>Lisans kapasitesi dolu.</b> Yeni çalışan eklemek için kapasite artır.</span><button type="button" onClick={() => setActiveTab("licenses")}>Lisansları Yönet</button></div>}
+        {!canInvite && (
+          <div className="p11-capacity-warning" role="status">
+            <span>
+              <Icon name="lock" />
+              <span>
+                <b>{usedSeats} / {seatLimit} lisans kullanılıyor.</b>
+                {" "}{canManageLicenses
+                  ? "Yeni çalışan eklemek için +1 lisans satın almanız gerekiyor."
+                  : "Yeni çalışan eklemek için yöneticinin +1 lisans satın alması gerekiyor."}
+              </span>
+            </span>
+            {canManageLicenses && (
+              <button type="button" className="p11-primary" onClick={() => setActiveTab("licenses")}>Lisansları Yönet</button>
+            )}
+          </div>
+        )}
 
         {selectedIds.size > 0 && (
           <div className="p11-bulk-bar" role="region" aria-label="Toplu çalışan işlemleri">
-            <strong>{selectedIds.size} çalışan seçildi</strong><span>Durum değişikliği yalnız yetkin olan kayıtlar için uygulanır.</span>
-            <div><button type="button" disabled={bulkBusy} onClick={() => void runBulkStatus("ACTIVE")}>Aktifleştir</button><button type="button" disabled={bulkBusy} onClick={() => void runBulkStatus("SUSPENDED")}>Pasife Al</button><button type="button" className="danger" disabled={bulkBusy} onClick={() => void runBulkStatus("LEFT")}>Şirketten Ayır</button><button type="button" disabled={bulkBusy} onClick={() => setSelectedIds(new Set())}>Seçimi Temizle</button></div>
+            <div className="p11-bulk-bar-copy">
+              <strong>{selectedIds.size} çalışan seçildi</strong>
+              <span>Toplu işlem yalnız yetkin olan kayıtlar için uygulanır.</span>
+            </div>
+            <div className="p11-bulk-bar-actions">
+              <button type="button" disabled={bulkBusy} onClick={() => void runBulkStatus("ACTIVE")}>Aktifleştir</button>
+              <button type="button" disabled={bulkBusy} onClick={() => void runBulkStatus("SUSPENDED")}>Pasife Al</button>
+              {canBulkDepartment && (
+                <label className="p11-bulk-department">
+                  <span className="sr-only">Toplu departman</span>
+                  <select aria-label="Toplu departman" value={bulkDepartment} disabled={bulkBusy} onChange={(event) => setBulkDepartment(event.target.value)}>
+                    <option value="">Departman seç</option>
+                    {bulkDepartmentChoices.map((department) => <option key={department} value={department}>{department}</option>)}
+                  </select>
+                  <button type="button" disabled={bulkBusy || !bulkDepartment} onClick={() => void runBulkDepartment()}>Departmanı Uygula</button>
+                </label>
+              )}
+              <button type="button" className="danger" disabled={bulkBusy} onClick={() => void runBulkStatus("LEFT")}>Şirketten Ayır</button>
+              <button type="button" disabled={bulkBusy} onClick={() => setSelectedIds(new Set())}>Seçimi Temizle</button>
+            </div>
           </div>
         )}
 
@@ -298,16 +372,16 @@ export default function EmployeesPanel(props: Props) {
                 const cardState = memberCardStatuses.find((item) => item.memberId === member.id);
                 const assignedCards = physicalCards.filter((card) => Boolean(member.user_id) && card.ownerUserId === member.user_id);
                 const physicalState = cardState?.physicalCardState ?? getPhysicalCardState(assignedCards);
-                const selectable = member.user_id !== currentUserId && member.role !== "OWNER";
+                const selectable = isBulkSelectable(member, currentUserId);
                 return <tr key={member.id} data-status={member.status}>
                   <td className="select"><input type="checkbox" aria-label={`${member.full_name || member.email} seç`} checked={selectedIds.has(member.id)} disabled={!selectable} onChange={() => toggleMember(member.id)} /></td>
-                  <td><button className="p11-person" type="button" aria-label={`${member.full_name || member.email} detayını aç`} onClick={() => member.user_id === currentUserId ? onEditOwnCard() : openMemberDrawer(member, member.status === "INVITED" ? "invite" : "profile")}><span>{initials(member)}</span><i><strong>{member.full_name || member.email}</strong><small>{member.email}</small></i></button></td>
+                  <td><button className="p11-person" type="button" aria-label={`${member.full_name || member.email} detayını aç`} onClick={() => openProfile(member)}><span>{initials(member)}</span><i><strong>{member.full_name || member.email}</strong><small>{member.email}</small></i></button></td>
                   <td>{member.department || "—"}</td><td>{roleLabel(member.role)}</td>
                   <td><span className={`p11-status ${cardState?.digitalProfileState === "PUBLISHED" ? "success" : cardState?.digitalProfileState === "DISABLED" ? "error" : cardState?.digitalProfileState === "DRAFT" ? "warning" : "neutral"}`}>{digitalProfileLabel(cardState?.digitalProfileState ?? "NONE")}</span></td>
                   <td><span className={`p11-status ${physicalState === "ACTIVE" ? "success" : physicalState === "LOST" ? "warning" : physicalState === "DISABLED" ? "error" : "neutral"}`}>{physicalCardLabel(physicalState)}</span></td>
                   <td><span className={`p11-status status-${member.status.toLowerCase()}`}>{memberStatusLabel(member.status)}</span></td>
                   <td><span className="p11-relative">{relativeTime(member.created_at)}</span></td>
-                  <td className="actions"><button type="button" onClick={() => member.user_id === currentUserId ? onEditOwnCard() : openMemberDrawer(member, member.status === "INVITED" ? "invite" : "profile")}>{member.user_id === currentUserId ? "Kartım" : "Detay"}</button><button type="button" onClick={() => openMemberDrawer(member, "card")}>Kart</button></td>
+                  <td className="actions"><button type="button" onClick={() => openProfile(member)}>Detay</button><button type="button" onClick={() => openMemberDrawer(member, "card")}>Kartı Yönet</button></td>
                 </tr>;
               })}
             </tbody>
@@ -319,7 +393,28 @@ export default function EmployeesPanel(props: Props) {
             const cardState = memberCardStatuses.find((item) => item.memberId === member.id);
             const assignedCards = physicalCards.filter((card) => Boolean(member.user_id) && card.ownerUserId === member.user_id);
             const physicalState = cardState?.physicalCardState ?? getPhysicalCardState(assignedCards);
-            return <article key={member.id}><header><span className="p11-mobile-avatar">{initials(member)}</span><div><strong>{member.full_name || member.email}</strong><small>{member.title || roleLabel(member.role)} · {member.department || "Departman yok"}</small></div><span className={`p11-status status-${member.status.toLowerCase()}`}>{memberStatusLabel(member.status)}</span></header><div className="p11-mobile-meta"><span><small>Dijital kart</small><b>{digitalProfileLabel(cardState?.digitalProfileState ?? "NONE")}</b></span><span><small>Fiziksel kart</small><b>{physicalCardLabel(physicalState)}</b></span></div><footer><button type="button" onClick={() => member.user_id === currentUserId ? onEditOwnCard() : openMemberDrawer(member, member.status === "INVITED" ? "invite" : "profile")}>Detay</button><button type="button" onClick={() => openMemberDrawer(member, "card")}>Kart Yönetimi</button></footer></article>;
+            const selectable = isBulkSelectable(member, currentUserId);
+            return <article key={member.id}>
+              <header>
+                <label className="p11-mobile-select">
+                  <input type="checkbox" aria-label={`${member.full_name || member.email} seç`} checked={selectedIds.has(member.id)} disabled={!selectable} onChange={() => toggleMember(member.id)} />
+                </label>
+                <span className="p11-mobile-avatar">{initials(member)}</span>
+                <div>
+                  <strong>{member.full_name || member.email}</strong>
+                  <small>{member.title || roleLabel(member.role)} · {member.department || "Departman yok"}</small>
+                </div>
+                <span className={`p11-status status-${member.status.toLowerCase()}`}>{memberStatusLabel(member.status)}</span>
+              </header>
+              <div className="p11-mobile-meta">
+                <span><small>Dijital kart</small><b>{digitalProfileLabel(cardState?.digitalProfileState ?? "NONE")}</b></span>
+                <span><small>Fiziksel kart</small><b>{physicalCardLabel(physicalState)}</b></span>
+              </div>
+              <footer>
+                <button type="button" onClick={() => openProfile(member)}>Detay</button>
+                <button type="button" onClick={() => openMemberDrawer(member, "card")}>Kartı Yönet</button>
+              </footer>
+            </article>;
           })}
         </div>
 

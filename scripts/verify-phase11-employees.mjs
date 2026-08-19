@@ -29,6 +29,10 @@ pass('mobile uses card/list representation instead of compressed table',employee
 const corp=read('app/kurumsal/panel/CorporatePanelClient.tsx');
 pass('bulk member status handler uses existing members API',corp.includes('changeMembersStatus')&&corp.includes('/api/organizations/members'));
 pass('employee panel receives bulk status handler',corp.includes('onBulkStatus={changeMembersStatus}'));
+pass('full-seat employees state uses count and a single license CTA',employees.includes('lisans kullanılıyor')&&employees.includes('+1 lisans satın almanız gerekiyor')&&!employees.includes('Lisans Gerekli')&&!employees.includes('Lisans kapasitesi dolu.'));
+pass('invite actions stay behind remaining seat capacity',employees.includes('{canInvite &&')&&employees.includes('CSV ile Davet')&&employees.includes('Çalışan Ekle'));
+pass('bulk employee toolbar is visible and uses existing member APIs',employees.includes('className="p11-bulk-bar"')&&canonical.includes('.p11-bulk-bar')&&employees.includes('Aktifleştir')&&employees.includes('Departmanı Uygula')&&corp.includes('changeMembersDepartment')&&corp.includes('onBulkDepartment={changeMembersDepartment}'));
+pass('corporate employee row actions use Detay and Kartı Yönet',employees.includes('Kartı Yönet')&&!employees.includes('Kartım')&&!employees.includes('Kart Yönetimi'));
 const drawer=read('app/kurumsal/panel/components/EmployeeDrawer.tsx');
 pass('employee detail retains profile/card/invite/access domains',['setDrawerTab("profile")','setDrawerTab("card")','setDrawerTab("invite")','setDrawerTab("lifecycle")'].every(x=>drawer.includes(x)));
 pass('offboarding requires explicit confirmation',drawer.includes('şirketten ayırmak profil erişimini durdurur'));

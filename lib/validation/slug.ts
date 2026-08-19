@@ -24,9 +24,9 @@ export function normalizeCardSlug(value: string): string {
 }
 
 export function validateCardSlug(value: string): string {
+  if (RESERVED_CARD_SLUGS.has(value)) return "Bu bağlantı sistem tarafından kullanılıyor.";
   if (value.length < 3) return "Bağlantı en az 3 karakter olmalı.";
   if (value.length > 50) return "Bağlantı en fazla 50 karakter olabilir.";
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)) return "Yalnızca küçük harf, rakam ve tire kullanabilirsin.";
-  if (RESERVED_CARD_SLUGS.has(value)) return "Bu bağlantı sistem tarafından kullanılıyor.";
   return "";
 }

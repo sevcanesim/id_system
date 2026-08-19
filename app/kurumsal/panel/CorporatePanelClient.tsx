@@ -513,7 +513,7 @@ export default function CompanyPanel() {
     }
   }
 
-  const loadingLabel = CORPORATE_PANEL_TAB_META[currentTab].loadingLabel;
+  const loadingLabel = CORPORATE_PANEL_TAB_META[activeTab].loadingLabel;
 
   async function reloadPanelData() {
     setLoading(true);

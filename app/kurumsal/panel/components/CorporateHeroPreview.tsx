@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { Icon } from "../../../icons";
+import { cardShareUrl } from "../../../../lib/public-card/urls";
 
 type CorporateHeroPreviewProps = {
   company: string;
@@ -29,7 +30,7 @@ export default function CorporateHeroPreview({
     const origin =
       typeof window === "undefined" ? "https://yenomi.id" : window.location.origin;
 
-    QRCode.toDataURL(`${origin}/${slug}`, {
+    QRCode.toDataURL(cardShareUrl(slug, origin), {
       width: 112,
       margin: 1,
       errorCorrectionLevel: "H",
@@ -39,7 +40,7 @@ export default function CorporateHeroPreview({
   }, [slug]);
 
   const shareUrl = slug
-    ? `${typeof window === "undefined" ? "https://yenomi.id" : window.location.origin}/${slug}`
+    ? cardShareUrl(slug, typeof window === "undefined" ? "https://yenomi.id" : window.location.origin)
     : "";
 
   async function copyShareLink() {
@@ -64,7 +65,7 @@ export default function CorporateHeroPreview({
       ) : (
         <span className="v26-card-qr-placeholder" aria-hidden="true" />
       )}
-      <p>{slug ? `yenomi.id/${slug}` : "Kart profili hazırlanıyor"}</p>
+      <p>{slug ? `yenomi.id/p/${slug}` : "Kart profili hazırlanıyor"}</p>
       <button type="button" onClick={() => void copyShareLink()} disabled={!slug}>
         <Icon name="qr" />
         {copied ? "Bağlantı kopyalandı" : slug ? "QR bağlantısını kopyala" : "Paylaşım bekleniyor"}

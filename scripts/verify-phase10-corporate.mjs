@@ -10,6 +10,11 @@ const pkg = JSON.parse(read("package.json"));
 const css = read("app/canonical.css");
 const corp = read("app/kurumsal/panel/CorporatePanelClient.tsx");
 const editor = read("app/olustur/CardWizard.tsx");
+const layout = read("app/kurumsal/panel/layout.tsx");
+const kartim = read("app/kurumsal/panel/kartim/page.tsx");
+const gate = fs.existsSync("app/kurumsal/panel/CorporatePanelGate.tsx")
+  ? read("app/kurumsal/panel/CorporatePanelGate.tsx")
+  : "";
 
 for (const path of [
   "app/canonical.css",
@@ -23,6 +28,14 @@ pass("canonical CSS contains no !important", !css.includes("!important"));
 pass("canonical CSS contains no legacy yi token family", !/var\(--(?:yi|yp|store|brand|ui|y)-/.test(css));
 pass("corporate panel activates dashboard context", corp.includes("p10-corporate-platform") && corp.includes('data-ui-context="dashboard"'));
 pass("corporate panel uses pathname-aware tab routing", corp.includes("usePathname") && corp.includes("tabRoutes"));
+pass(
+  "corporate Kartım route mounts CardWizard instead of the management shell",
+  layout.includes("CorporatePanelGate") &&
+    !layout.includes("void children") &&
+    gate.includes('pathname === "/kurumsal/panel/kartim"') &&
+    kartim.includes("<CardWizard") &&
+    editor.includes("/kurumsal/panel/kartim?business=1"),
+);
 pass("duplicate desktop business tabs remain removed", !corp.includes('className="business-tabs"'));
 pass("duplicate AppHeader remains removed from corporate panel", !corp.includes("<AppHeader"));
 pass("corporate editor retains dashboard context", editor.includes("p8-corporate-editor") && editor.includes('data-ui-context="dashboard"'));

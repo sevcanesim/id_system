@@ -571,7 +571,7 @@ export default function CardWizard() {
     icon: CORPORATE_PANEL_TAB_META[key].icon,
     group: CORPORATE_PANEL_TAB_META[key].group,
   }));
-  const ownCardHref = `/olustur?business=1&organizationId=${encodeURIComponent(businessOrganizationId || "")}${profileId ? `&id=${encodeURIComponent(profileId)}` : "&new=1"}`;
+  const ownCardHref = `/kurumsal/panel/kartim?business=1&organizationId=${encodeURIComponent(businessOrganizationId || "")}${profileId ? `&id=${encodeURIComponent(profileId)}` : "&new=1"}`;
   const signOut = async () => {
     const supabase = getSupabaseBrowserClient();
     if (supabase) await supabase.auth.signOut();

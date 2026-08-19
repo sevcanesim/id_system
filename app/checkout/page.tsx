@@ -107,6 +107,12 @@ export default function CheckoutPage() {
     });
   }, []);
 
+  useEffect(() => {
+    const wipeIdentity = () => setForm((current) => (current.identityNumber ? { ...current, identityNumber: "" } : current));
+    window.addEventListener("pagehide", wipeIdentity);
+    return () => window.removeEventListener("pagehide", wipeIdentity);
+  }, []);
+
   const total = useMemo(
     () => items.reduce((sum, item) => sum + item.unitPriceKurus * item.quantity, 0),
     [items],
@@ -290,6 +296,7 @@ export default function CheckoutPage() {
       if (!data.paymentPageUrl) throw new Error("Ödeme sayfası oluşturulamadı.");
       if (data.orderId) setPendingCheckoutOrderId(data.orderId);
       track("payment_start", { orderId: data.orderId, reused: Boolean(data.reused) });
+      update("identityNumber", "");
       window.location.href = data.paymentPageUrl;
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Ödeme başlatılamadı.");
@@ -343,7 +350,7 @@ export default function CheckoutPage() {
                   <label>Ad Soyad<input required autoComplete="name" value={form.recipientName} onChange={(e) => update("recipientName", e.target.value)} placeholder="Ad Soyad" /></label>
                   <label>Telefon<input required inputMode="tel" autoComplete="tel" value={form.phone} onChange={(e) => update("phone", normalizeTrPhone(e.target.value))} placeholder="+90 5xx xxx xx xx" />{form.phone.replace(/\D/g, "").length >= 10 && <small className="field-ok"><Icon name="check" /> Telefon doğrulandı</small>}</label>
                   <label>E-posta<input required type="email" autoComplete="email" value={form.email} onChange={(e) => !isAuthenticated && update("email", e.target.value)} readOnly={isAuthenticated} />{isAuthenticated ? <small className="field-ok"><Icon name="check" /> Hesabına bağlı e-posta</small> : <small>Hesap açmadan güvenli ödeme yapabilirsin. Sipariş bilgilerin bu e-posta adresine gönderilir.</small>}</label>
-                  <label>T.C. kimlik numarası<input required inputMode="numeric" maxLength={11} value={form.identityNumber} onChange={(e) => update("identityNumber", e.target.value.replace(/\D/g, ""))} placeholder="11 haneli T.C. kimlik numarası" /><small>iyzico ödeme doğrulaması için kullanılır.</small></label>
+                  <label>T.C. kimlik numarası<input required inputMode="numeric" maxLength={11} name="iyzico-identity" autoComplete="off" autoCorrect="off" spellCheck={false} value={form.identityNumber} onChange={(e) => update("identityNumber", e.target.value.replace(/\D/g, ""))} placeholder="11 haneli T.C. kimlik numarası" /><small>iyzico ödeme doğrulaması için kullanılır; saklanmaz.</small></label>
                   <button type="button" className="checkout-next" onClick={advanceBuyer}>{digitalOnlyCart ? "Fatura Bilgilerine Devam Et" : "Teslimata Devam Et"} <Icon name="chevronRight" /></button>
                 </div>}
               </section>

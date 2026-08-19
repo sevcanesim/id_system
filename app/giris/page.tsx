@@ -73,7 +73,7 @@ export default function LoginPage() {
         return;
       }
       if (await isAdminSession(data.session.access_token)) {
-        writeSessionCookie(data.session.access_token, data.session.expires_at);
+        await writeSessionCookie(data.session.access_token, data.session.expires_at);
         router.replace("/admin");
         return;
       }
@@ -234,7 +234,7 @@ export default function LoginPage() {
         return showMessage(allowed.message, "error");
       }
       setCartOwner(result.data.session.user.id, { claimGuest: true });
-      writeSessionCookie(result.data.session.access_token, result.data.session.expires_at);
+      await writeSessionCookie(result.data.session.access_token, result.data.session.expires_at);
       if (await isAdminSession(result.data.session.access_token)) {
         setLoading(false);
         router.replace("/admin");

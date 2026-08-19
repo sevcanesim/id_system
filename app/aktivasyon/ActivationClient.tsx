@@ -1,16 +1,29 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import AppHeader from "../components/AppHeader";
 import AppFooter from "../components/AppFooter";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { normalizeEmailField } from "../../lib/form-standards";
 
+const ACTIVATION_TOKEN_KEY = "yenomi-activation-token";
+
+function readHeldToken() {
+  if (typeof window === "undefined") return "";
+  return window.sessionStorage.getItem(ACTIVATION_TOKEN_KEY) || "";
+}
+
+function clearHeldToken() {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem(ACTIVATION_TOKEN_KEY);
+}
+
 export default function ActivationClient() {
   const params = useSearchParams();
   const router = useRouter();
-  const token = params.get("token") || "";
+  const urlToken = params.get("token") || "";
+  const [token, setToken] = useState(urlToken || readHeldToken());
   const [mode, setMode] = useState<"new" | "existing">("new");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,6 +31,20 @@ export default function ActivationClient() {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [resending, setResending] = useState(false);
+
+  useEffect(() => {
+    if (!urlToken) {
+      setToken(readHeldToken());
+      return;
+    }
+    window.sessionStorage.setItem(ACTIVATION_TOKEN_KEY, urlToken);
+    setToken(urlToken);
+    router.replace("/aktivasyon", { scroll: false });
+  }, [router, urlToken]);
+
+  useEffect(() => () => {
+    setPassword("");
+  }, []);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -41,6 +68,8 @@ export default function ActivationClient() {
         const payload = await response.json();
         if (!response.ok) throw new Error(payload.error || "Sipariş hesaba bağlanamadı.");
       }
+      clearHeldToken();
+      setPassword("");
       router.push("/kartlarim?legacy-activated=1");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Aktivasyon tamamlanamadı.");
@@ -69,7 +98,7 @@ export default function ActivationClient() {
     {token ? (
       <>
         <div className="activation-tabs"><button className={mode === "new" ? "active" : ""} onClick={() => setMode("new")}>Yeni hesap</button><button className={mode === "existing" ? "active" : ""} onClick={() => setMode("existing")}>Mevcut hesabım</button></div>
-        <form onSubmit={submit}><label>E-posta<input required type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} value={email} onChange={(event) => setEmail(event.target.value)} onBlur={() => setEmail(normalizeEmailField(email))} placeholder="ornek@mail.com" /></label><label>Şifre<input required type="password" minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} /></label>{message && <div className="checkout-message">{message}</div>}<button disabled={busy}>{busy ? "Bağlanıyor…" : mode === "new" ? "Hesabımı Oluştur ve Bağla" : "Giriş Yap ve Siparişi Bağla"}</button></form>
+        <form onSubmit={submit} autoComplete="off"><label>E-posta<input required type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} value={email} onChange={(event) => setEmail(event.target.value)} onBlur={() => setEmail(normalizeEmailField(email))} placeholder="ornek@mail.com" /></label><label>Şifre<input required type="password" minLength={8} autoComplete={mode === "new" ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} /></label>{message && <div className="checkout-message">{message}</div>}<button disabled={busy}>{busy ? "Bağlanıyor…" : mode === "new" ? "Hesabımı Oluştur ve Bağla" : "Giriş Yap ve Siparişi Bağla"}</button></form>
       </>
     ) : (
       <p>E-postandaki bağlantı bu sayfayı token ile açar. Bağlantın yoksa veya süresi dolduysa aşağıdaki formdan yeni bağlantı iste.</p>

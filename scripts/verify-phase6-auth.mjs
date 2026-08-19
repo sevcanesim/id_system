@@ -52,6 +52,9 @@ check(!/className="p6-auth-submit"[\s\S]{0,500}<Icon name="external"/.test(login
 check(login.includes("validatePortal") && portalGuard.includes('from("user_accounts")'), "existing account portal authorization retained (validatePortal extracted to lib/auth/portal-guard.ts)");
 check(login.includes("setCartOwner(result.data.session.user.id"), "cart ownership claim retained after authentication");
 check(login.includes("writeSessionCookie"), "middleware auth cookie handoff retained");
+check(exists("app/api/auth/session/route.ts"), "session cookie is issued by a server route, not document.cookie");
+const sessionRoute = read("app/api/auth/session/route.ts");
+check(sessionRoute.includes("httpOnly: true") && sessionRoute.includes("auth.getUser"), "session cookie is HttpOnly and token-verified");
 check(accountRouter.includes('from("user_accounts")') && accountRouter.includes('account_type'), "account router resolves the canonical user account type before portal routing");
 check(accountRouter.includes('ACCOUNT_ROUTE_CORPORATE = "/kurumsal/panel"') && accountRouter.includes('ACCOUNT_ROUTE_INDIVIDUAL = "/kartlarim"') && account.includes("resolveAccountDestination"), "account router resolves corporate versus individual destination (lib/auth/account-router.ts)");
 check(activation.includes("p6-activation-page"), "legacy activation included in Phase 6 visual continuity");

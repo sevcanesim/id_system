@@ -98,6 +98,29 @@ export async function fetchProfileByPublicId(
   return { data: (profile as CardProfileRow | null) ?? null, error: error?.message ?? null };
 }
 
+export async function fetchPublicCardByToken(
+  supabase: SupabaseClient,
+  token: string
+): Promise<{ data: CardProfileRow | null; redirectedFrom?: string; error: string | null }> {
+  const byId = await fetchProfileByPublicId(supabase, token);
+  if (byId.data) return byId;
+  const bySlug = await fetchProfileBySlug(supabase, token);
+  if (bySlug.data) return bySlug;
+  const { data: redirectRow } = await supabase
+    .from("card_profile_slug_redirects")
+    .select("profile_id")
+    .eq("old_slug", token)
+    .maybeSingle();
+  if (!redirectRow?.profile_id) return { data: null, error: bySlug.error };
+  const { data: profile } = await supabase
+    .from("card_profiles")
+    .select(PROFILE_COLUMNS)
+    .eq("id", redirectRow.profile_id)
+    .maybeSingle();
+  if (!profile) return { data: null, error: null };
+  return { data: profile as CardProfileRow, redirectedFrom: token, error: null };
+}
+
 export async function setProfilePublished(
   supabase: SupabaseClient,
   userId: string,
@@ -137,6 +160,20 @@ export async function upsertProfile(
     patch = { ...patch, slug: normalizedSlug };
   }
   if (profileId) {
+    if (typeof patch.slug === "string") {
+      const { data: current } = await supabase
+        .from("card_profiles")
+        .select("slug")
+        .eq("id", profileId)
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (current?.slug && current.slug !== patch.slug) {
+        await supabase.from("card_profile_slug_redirects").upsert({
+          old_slug: current.slug,
+          profile_id: profileId,
+        });
+      }
+    }
     const { data, error } = await supabase
       .from("card_profiles")
       .update(patch)

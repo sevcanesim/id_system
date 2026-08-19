@@ -4,10 +4,10 @@ import { notFound, permanentRedirect } from "next/navigation";
 import CardTemplate from "../CardTemplate";
 import { profiles } from "../data";
 import { getPublicSupabaseClient } from "../../lib/supabase/public";
-import { isCardProfileServiceActive, rowToCardData, type CardProfileRow } from "../../lib/card-profile";
+import { isCardProfileServiceActive, type CardProfileRow } from "../../lib/card-profile";
 import { demoProfileToCardData } from "../../lib/demo-card-profile";
 import { fetchProfileBySlug } from "../../lib/repositories/profiles";
-import { fetchCardBranding, fetchOrganizationLinks } from "../../lib/organizations/card-branding";
+import { cardSharePath } from "../../lib/public-card/urls";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         title: "Yenomi ID",
         description: "Bu profil şu anda kullanıma açık değil.",
         robots: { index: false, follow: false, noarchive: true, nosnippet: true },
-        alternates: { canonical: `/${databaseProfile.slug}` },
+        alternates: { canonical: cardSharePath(databaseProfile.slug) },
       };
     }
     const description = `${databaseProfile.name} — ${[databaseProfile.role, databaseProfile.company].filter(Boolean).join(" | ")} dijital kartviziti.`;
@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       alternates: { canonical: `/${databaseProfile.slug}` },
       openGraph: {
         type: "profile",
-        url: `https://qr.yenomilabs.com/${databaseProfile.slug}`,
+        url: `https://qr.yenomilabs.com${cardSharePath(databaseProfile.slug)}`,
         title: `${databaseProfile.name} | Yenomilabs`,
         description,
         images: databaseProfile.image_url ? [databaseProfile.image_url] : [],
@@ -103,27 +103,13 @@ export default async function ProfilePage({ params }: PageProps) {
   const databaseProfile = await getPublishedProfile(slug);
 
   if (databaseProfile) {
-    if (databaseProfile.public_id) permanentRedirect(`/p/${databaseProfile.public_id}`);
-    if (databaseProfile.card_status === "LOST") {
-      return <main className="profile-state-page p12-profile-state"><section><span>YENOMI ID</span><h1>Bu kart kayıp olarak bildirildi.</h1><p>Kart sahibinin kişisel bilgileri güvenlik nedeniyle gösterilmiyor. Kartı bulduysanız sahibine doğrudan kart üzerindeki bilgiler dışında ulaşmaya çalışmayın.</p></section></main>;
-    }
-    if (!isCardProfileServiceActive(databaseProfile)) {
-      return <main className="profile-state-page p12-profile-state"><section><span>YENOMI ID</span><h1>Bu profil şu anda aktif değil.</h1><p>Dijital profil şu anda kullanılamıyor. Daha sonra tekrar deneyebilirsiniz.</p></section></main>;
-    }
-    if (databaseProfile.card_status === "SUSPENDED" || databaseProfile.card_status === "REFUNDED") {
-      return <main className="profile-state-page p12-profile-state"><section><span>YENOMI ID</span><h1>Bu profil şu anda aktif değil.</h1><p>Profil yeniden etkinleştirildiğinde aynı bağlantı tekrar kullanılabilir olacaktır.</p></section></main>;
-    }
-    return (
-      <main className="p12-public-card-page">
-        <CardTemplate data={{ ...rowToCardData(databaseProfile), links: await fetchOrganizationLinks(databaseProfile.user_id, databaseProfile.id) }} slug={databaseProfile.slug} branding={await fetchCardBranding(databaseProfile.user_id)} />
-      </main>
-    );
+    permanentRedirect(cardSharePath(databaseProfile.slug));
   }
 
   const profile = profiles[slug];
   if (!profile) {
     const redirectTarget = await getRedirectTarget(slug);
-    if (redirectTarget) permanentRedirect(`/${redirectTarget}`);
+    if (redirectTarget) permanentRedirect(cardSharePath(redirectTarget));
     notFound();
   }
 

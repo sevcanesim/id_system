@@ -35,6 +35,7 @@ import {
 } from "./domain/profile-editor";
 import type { CardBranding } from "../CardTemplate";
 import { fetchOrganizationIdentity, type OrgLock } from "./domain/organization-identity";
+import { cardShareUrl } from "../../lib/public-card/urls";
 
 export default function CardWizard() {
   const [data, setData] = useState<CardData>(INITIAL_CARD_DATA);
@@ -42,6 +43,9 @@ export default function CardWizard() {
   const [profileId, setProfileId] = useState<string | null>(null);
   const [newCardEntitlementId, setNewCardEntitlementId] = useState<string | null>(null);
   const [profileSlug, setProfileSlug] = useState("");
+  const [publicId, setPublicId] = useState("");
+  const [englishRole, setEnglishRole] = useState("");
+  const [englishAbout, setEnglishAbout] = useState("");
   const [slugTouched, setSlugTouched] = useState(false);
   const [slugStatus, setSlugStatus] = useState<"idle" | "checking" | "available" | "unavailable" | "invalid">("idle");
   const [slugMessage, setSlugMessage] = useState("");
@@ -186,6 +190,7 @@ export default function CardWizard() {
       track("creation_start", { hasExistingProfile: Boolean(profile), isNewCard });
       if (profile) {
         setProfileId(profile.id);
+        setPublicId(profile.public_id || "");
         const imageUrl = profile.image_url ?? "";
         setOriginalImageUrl(imageUrl);
         setProfileSlug(profile.slug ?? "");
@@ -196,6 +201,9 @@ export default function CardWizard() {
           website: profile.website ?? "", linkedin: profile.linkedin ?? "", instagram: profile.instagram ?? "",
           location: profile.location ?? "", image: imageUrl, bio: profile.bio ?? ""
         });
+        const { data: localeRows } = await supabase.from("card_profile_locales").select("locale,role,about").eq("profile_id", profile.id).eq("locale", "en").maybeSingle();
+        setEnglishRole(localeRows?.role || "");
+        setEnglishAbout(localeRows?.about || "");
       } else {
         const metadata = user.user_metadata ?? {};
         const linkedInName = metadata.full_name ?? metadata.name ?? [metadata.given_name, metadata.family_name].filter(Boolean).join(" ");
@@ -495,6 +503,15 @@ export default function CardWizard() {
         await deletePreviousImageIfNeeded(originalImageUrl, uploaded.path);
         setOriginalImageUrl(uploaded.url);
         setData((current) => ({ ...current, image: uploaded?.url ?? current.image }));
+        if (saved) {
+          const { error: localeError } = await supabase.from("card_profile_locales").upsert({
+            profile_id: saved.id,
+            locale: "en",
+            role: englishRole.trim() || null,
+            about: englishAbout.trim() || null,
+          });
+          if (localeError) setMessage("Kart kaydedildi; İngilizce içerik katmanı ayrıca kaydedilemedi.");
+        }
         if (!isBusinessCard) localStorage.setItem("yenomi-card-draft", JSON.stringify({ ...data, image: uploaded.url }));
         localStorage.setItem("yenomi-card-slug", slug);
         setProfileSlug(slug);
@@ -540,7 +557,10 @@ export default function CardWizard() {
   const departmentManager = orgLock?.membershipRole === "DEPARTMENT_MANAGER";
   const canManageLicenses = orgLock?.membershipRole === "OWNER" || orgLock?.membershipRole === "ADMIN";
   const corporateNavItems: SidebarNavItem[] = (
-    departmentManager ? (["employees"] as const) : CORPORATE_PANEL_TAB_ORDER.filter((key) => key !== "licenses" || canManageLicenses)
+    departmentManager ? (["employees"] as const) : CORPORATE_PANEL_TAB_ORDER.filter((key) => {
+      if (key === "licenses" || key === "leads" || key === "events" || key === "meetings") return canManageLicenses;
+      return true;
+    })
   ).map((key) => ({
     key,
     href: CORPORATE_PANEL_TAB_ROUTE[key],
@@ -628,8 +648,8 @@ export default function CardWizard() {
           <div className="p8-section-heading"><span>05</span><div><h2>Bağlantılar</h2><p>Web sitenizi ve kalıcı Yenomi ID adresinizi yönetin.</p></div></div>
           <div className="p8-field-grid">
             <Field label="Web Sitesi"><Input type="url" value={data.website} onChange={(e) => update("website", e.target.value)} placeholder="https://firma.com" inputMode="url" autoCapitalize="none" spellCheck={false}/></Field>
-            <Field label="Yenomi ID" help="Bu bağlantı QR ve NFC kartınız değişmeden kalıcı olarak kullanılabilir.">
-              <div className="p8-slug-field"><span>qr.yenomilabs.com/</span><Input value={profileSlug} onChange={(e) => updateSlug(e.target.value)} onBlur={() => setProfileSlug(normalizeProfileSlug(profileSlug))} placeholder="adsoyad" minLength={3} maxLength={40}/></div>
+            <Field label="Yenomi ID" help="Paylaşım adresi /p/{slug} şeklindedir. QR kimliği ayrı ve sabittir; slug değişince QR yeniden basılmaz.">
+              <div className="p8-slug-field"><span>qr.yenomilabs.com/p/</span><Input value={profileSlug} onChange={(e) => updateSlug(e.target.value)} onBlur={() => setProfileSlug(normalizeProfileSlug(profileSlug))} placeholder="adsoyad" minLength={3} maxLength={40}/></div>
             </Field>
           </div>
           <div className={`p8-slug-feedback p8-slug-feedback--${slugStatus}`} aria-live="polite"><span>{slugMessage || "Ad-soyadından otomatik önerilir; yayınlamadan önce değiştirebilirsiniz."}</span>{slugTouched && <Button size="sm" variant="ghost" onClick={() => { setSlugTouched(false); setProfileSlug(createProfileSlug(data.name)); }}>Otomatik Öner</Button>}</div>
@@ -645,6 +665,12 @@ export default function CardWizard() {
           <Field label="Kısa Biyografi" help={`${(data.bio || "").length}/280 karakter`}>
             <Textarea value={data.bio || ""} onChange={(e) => update("bio", e.target.value)} maxLength={280} rows={5} placeholder="Kısa ve profesyonel bir tanıtım yazın..." />
           </Field>
+          <Field label="English title" help="International networking content layer. Leave empty to keep the Turkish title on EN.">
+            <Input value={englishRole} onChange={(e) => setEnglishRole(e.target.value)} placeholder="Head of Partnerships" />
+          </Field>
+          <Field label="About you (EN)" help={`${englishAbout.length}/280 characters`}>
+            <Textarea value={englishAbout} onChange={(e) => setEnglishAbout(e.target.value)} maxLength={280} rows={4} placeholder="Short English introduction for international events." />
+          </Field>
         </section>
 
         {message && <div className="p8-message p8-message--error" role="alert">{message}</div>}
@@ -657,7 +683,7 @@ export default function CardWizard() {
 
       <aside className="p8-preview-column" aria-label="Canlı kart önizlemesi">
         <section className="p8-preview-card"><div className="p8-preview-title"><div><h2>Kart Önizlemesi</h2><p>Kaydetmeden önce profilinizin nasıl görüneceğini kontrol edin.</p></div><Badge>Önizleme</Badge></div>{preview}</section>
-        <section className="p8-url-card"><div><h3>Kart bağlantınız</h3><p>QR ve NFC aynı kalıcı profile yönlenir.</p></div><div className="p8-url-row"><span>qr.yenomilabs.com/{profileSlug || "yenomi-id"}</span><Button size="sm" variant="secondary" onClick={() => navigator.clipboard?.writeText(`https://qr.yenomilabs.com/${profileSlug || ""}`)}><Icon name="copy" />Kopyala</Button></div></section>
+        <section className="p8-url-card"><div><h3>Kart bağlantınız</h3><p>Paylaşım adresi okunabilir slug kullanır. QR kimliği ayrıdır ve değişmez.</p></div><div className="p8-url-row"><span>{cardShareUrl(profileSlug || "yenomi-id").replace(/^https?:\/\//, "")}</span><Button size="sm" variant="secondary" onClick={() => navigator.clipboard?.writeText(cardShareUrl(profileSlug || ""))}><Icon name="copy" />Kopyala</Button></div>{publicId && <p>QR kimliği: /p/{publicId}</p>}</section>
         <section className="p8-note"><Icon name="refresh" /><div><strong>Anlık güncelleme</strong><p>Kaydettiğiniz değişiklikler QR ve NFC kartınızı yeniden üretmeden aynı bağlantıda yayınlanır.</p></div></section>
       </aside>
     </div>

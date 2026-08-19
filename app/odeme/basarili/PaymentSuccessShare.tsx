@@ -5,6 +5,7 @@ import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 import { fetchOwnProfile } from "../../../lib/repositories/profiles";
 import { Icon } from "../../icons";
 import { track } from "../../../lib/analytics";
+import { cardShareUrl } from "../../../lib/public-card/urls";
 
 function getPublicOrigin() {
   if (typeof window !== "undefined") return window.location.origin;
@@ -28,8 +29,8 @@ export default function PaymentSuccessShare() {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
       const { data: profile } = await fetchOwnProfile(supabase, data.user.id);
-      if (profile?.public_id) setPublicUrl(`${getPublicOrigin()}/p/${profile.public_id}`);
-      else if (profile?.slug) setPublicUrl(`${getPublicOrigin()}/${profile.slug}`);
+      if (profile?.slug) setPublicUrl(cardShareUrl(profile.slug, getPublicOrigin()));
+      else if (profile?.public_id) setPublicUrl(`${getPublicOrigin()}/p/${profile.public_id}`);
     });
   }, []);
 

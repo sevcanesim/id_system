@@ -16,8 +16,8 @@ export type SidebarConfigItem = {
 };
 
 const CORPORATE_ADMIN: readonly SidebarRole[] = ["OWNER", "ADMIN"];
-const CORPORATE_MANAGEMENT: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR_MANAGER", "DEPARTMENT_MANAGER"];
-const CORPORATE_ADMIN_OR_HR: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR_MANAGER"];
+const CORPORATE_MANAGEMENT: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR", "HR_MANAGER", "DEPARTMENT_MANAGER"];
+const CORPORATE_ADMIN_OR_HR: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR", "HR_MANAGER"];
 
 export const CORPORATE_SIDEBAR_CONFIG = [
   { key: "overview", href: "/kurumsal/panel", label: "Genel Bakış", icon: "building", group: "GENEL" },
@@ -26,6 +26,9 @@ export const CORPORATE_SIDEBAR_CONFIG = [
   { key: "templates", href: "/kurumsal/panel/sablon", label: "Marka & Şablon", icon: "contact", group: "MARKA & İÇERİK", roles: CORPORATE_ADMIN },
   { key: "content", href: "/kurumsal/panel/icerik", label: "İçerik", icon: "link", roles: CORPORATE_ADMIN },
   { key: "analytics", href: "/kurumsal/panel/istatistikler", label: "İstatistikler", icon: "analytics", group: "YÖNETİM", roles: CORPORATE_ADMIN_OR_HR },
+  { key: "leads", href: "/kurumsal/panel/leadler", label: "Leadler", icon: "users", group: "NETWORKING", roles: CORPORATE_ADMIN },
+  { key: "events", href: "/kurumsal/panel/etkinlikler", label: "Etkinlikler", icon: "analytics", roles: CORPORATE_ADMIN },
+  { key: "meetings", href: "/kurumsal/panel/gorusmeler", label: "Görüşmeler", icon: "contact", roles: CORPORATE_ADMIN },
   { key: "licenses", href: "/kurumsal/panel/lisans", label: "Lisanslar", icon: "analytics", roles: CORPORATE_ADMIN },
   { key: "organization", href: "/kurumsal/panel/organizasyon", label: "Organizasyon", icon: "building", roles: CORPORATE_ADMIN },
   { key: "roles", href: "/kurumsal/panel/roller", label: "Roller & Yetkiler", icon: "lock", roles: CORPORATE_ADMIN },

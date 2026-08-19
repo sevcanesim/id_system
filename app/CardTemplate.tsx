@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties, type MouseEvent } from "react";
+import { useEffect, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import QRCode from "qrcode";
 import { Arrow, Icon } from "./icons";
 import { toGoogleMapsUrl } from "../lib/maps";
 import type { OrganizationRole } from "../lib/organizations/permissions";
+import { cardQrUrl, cardVcardPath } from "../lib/public-card/urls";
 
 export type CardTemplateLink = {
   title: string;
@@ -42,6 +43,9 @@ type Props = {
   data: EditableCardData;
   preview?: boolean;
   slug?: string;
+  publicId?: string | null;
+  extras?: ReactNode;
+  saveLabel?: { title: string; subtitle: string };
   imagePosition?: string;
   branding?: CardBranding | null;
   corporateRole?: OrganizationRole | null;
@@ -68,7 +72,7 @@ function external(value: string) {
   return /^https?:\/\//i.test(value) ? value : `https://${value}`;
 }
 
-export default function CardTemplate({ data, preview = false, slug, imagePosition, branding, corporateRole }: Props) {
+export default function CardTemplate({ data, preview = false, slug, publicId, extras, saveLabel, imagePosition, branding, corporateRole }: Props) {
   const role = [data.role, data.company].filter(Boolean).join(" · ") || "Ünvan · Şirket";
   const phone = cleanPhone(data.phone);
   const whatsapp = cleanPhone(data.whatsapp || data.phone).replace(/^\+/, "");
@@ -86,9 +90,9 @@ export default function CardTemplate({ data, preview = false, slug, imagePositio
   const links = data.links?.length ? data.links : generatedLinks;
 
   const clickProps = preview ? { onClick: (event: MouseEvent<HTMLAnchorElement>) => event.preventDefault() } : {};
-  const saveHref = data.saveHref || (slug ? `/${slug}/vcard` : "#");
+  const saveHref = data.saveHref || (publicId ? cardVcardPath(publicId) : slug ? `/${slug}/vcard` : "#");
   const whatsappHref = data.whatsappHref || (whatsapp ? `https://wa.me/${whatsapp}` : "");
-  const publicHref = slug ? `https://qr.yenomilabs.com/${slug.replace(/^\//, "")}` : "https://qr.yenomilabs.com";
+  const publicHref = publicId ? cardQrUrl(publicId) : slug ? `https://qr.yenomilabs.com/${slug.replace(/^\//, "")}` : "https://qr.yenomilabs.com";
 
   const brandColor = safeHexColor(branding?.primaryColor);
   const brandLogo = safeImageUrl(branding?.logoUrl);
@@ -157,7 +161,7 @@ export default function CardTemplate({ data, preview = false, slug, imagePositio
 
         <a className="p12-save-contact" href={saveHref}>
           <span className="p12-save-icon"><Icon name="save" /></span>
-          <span><strong>Rehbere Kaydet</strong><small>İletişim bilgilerini tek dokunuşla ekle</small></span>
+          <span><strong>{saveLabel?.title || "Rehbere Kaydet"}</strong><small>{saveLabel?.subtitle || "İletişim bilgilerini tek dokunuşla ekle"}</small></span>
           <Arrow />
         </a>
 
@@ -188,6 +192,8 @@ export default function CardTemplate({ data, preview = false, slug, imagePositio
             {managedLinks.slice(0, 6).map((link) => <a href={link.href} key={`${link.title}-${link.href}`} target={link.href.startsWith("http") ? "_blank" : undefined} rel={link.href.startsWith("http") ? "noopener" : undefined}><span><strong>{link.title}</strong><small>{link.subtitle}</small></span><Arrow /></a>)}
           </div>
         </section>}
+
+        {extras}
 
         <footer className="p12-card-footer">
           <a href="https://qr.yenomilabs.com">Yenomi ID</a>

@@ -2,7 +2,8 @@ export const RESERVED_CARD_SLUGS = new Set([
   "api", "admin", "aktivasyon", "checkout", "giris", "gizlilik", "iade-iptal",
   "kartim", "kartlarim", "kayit", "kurumsal", "mesafeli-satis-sozlesmesi",
   "nfc-siparis", "odeme", "olustur", "p", "sepet", "siparislerim", "urunler",
-  "ayarlar", "destek", "fiyatlar",
+  "login", "api", "support", "company", "settings", "superadmin", "help",
+  "e", "event", "events", "card", "cards",
   "sevcanesimkaradeniz", "aliemrekaradeniz",
 ]);
 

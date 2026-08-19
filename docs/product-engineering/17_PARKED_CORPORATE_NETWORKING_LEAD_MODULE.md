@@ -1,10 +1,10 @@
-# PARKED — Yenomi ID Business Networking + Tenant Provisioning
+# APPLIED — Yenomi ID Business Networking + Tenant Provisioning
 
-**Durum:** park edildi. Kod yok. Şema yok. Sahte ekran yok.
+**Durum:** uygulandı. Aşağıdaki kalanlar bilerek kapsam dışı bırakıldı: Exchange Contacts, tam Calendly uygunluk takvimi, sunum görüntüleme tracking UI, custom domain, Super Admin Users/Finance/Audit IA, bireysel (şirketsiz) lead inbox.
 
-**Aktivasyon cümlesi:** ürün sahibi **`notu uygula`** dediğinde bu belge uygulanır.
+**Aktivasyon:** ürün sahibi notları uygulamayı istedi; bu belge artık hedef spesifikasyondur.
 
-Bu belge bir ürün notudur; `00_MASTER_PRODUCT_ENGINEERING_CONTRACT.md` yerine geçmez. Uygulanana kadar mevcut üretim davranışı korunur.
+Bu belge bir ürün notudur; `00_MASTER_PRODUCT_ENGINEERING_CONTRACT.md` yerine geçmez.
 
 Dört not birleştirildi:
 
@@ -18,7 +18,6 @@ Dört not birleştirildi:
 ## 0. Sert kısıtlar
 
 - Test hataları ve mevcut QA işleri bu nottan bağımsız devam eder.
-- **`notu uygula` denmeden uygulanmaz.**
 - Kartvizitin temel amacı değişmez. Yeni katman kartın **sonunda** B2B networking alanıdır.
 - Canonical QR: **QR → mevcut dijital kartvizit sayfası.** Ayrı lead landing’e gitmez.
   - *“Kartvizit QR’ı her zaman aynı kart sayfasını açar.”*

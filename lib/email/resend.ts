@@ -30,3 +30,18 @@ export function sendCorporateLeadEmail(input:{id:string;fullName:string;email:st
   });
 }
 
+export function sendNetworkingFollowUpEmail(input:{to:string;organizationName:string;leadName:string;template:"EVENT_BEFORE"|"EVENT_MET"|"AFTER_MEETING"}) {
+  const org = escapeHtml(input.organizationName);
+  const name = escapeHtml(input.leadName);
+  const copy = {
+    EVENT_BEFORE: { subject: `${input.organizationName} — etkinlikte görüşmek isteriz`, body: `<p>Merhaba ${name},</p><p>${org} olarak yaklaşan etkinlikte sizinle tanışmak isteriz.</p>` },
+    EVENT_MET: { subject: `Etkinlikte sizinle tanışmıştık — ${input.organizationName}`, body: `<p>Merhaba ${name},</p><p>Etkinlikte sizinle tanışmıştık. ${org} olarak bağlantıda kalmak isteriz.</p>` },
+    AFTER_MEETING: { subject: `Görüşmemizin ardından — ${input.organizationName}`, body: `<p>Merhaba ${name},</p><p>${org} ile görüşmenizin ardından sonraki adımı birlikte netleştirmek isteriz.</p>` },
+  }[input.template];
+  return sendMail({
+    to: input.to,
+    subject: copy.subject,
+    html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto">${emailHeader()}<h1>${org}</h1>${copy.body}<p>Bu ileti, paylaştığınız iletişim bilgisi üzerine gönderildi.</p></div>`,
+  });
+}
+

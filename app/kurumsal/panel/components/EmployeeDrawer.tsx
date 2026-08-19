@@ -3,12 +3,17 @@
 import { useEffect, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { Icon } from "../../../icons";
 import { EmptyState, LoadingState } from "../../../components/ui/States";
-import { Badge, Button } from "../../../components/ui/DesignSystem";
+import { Button } from "../../../components/ui/DesignSystem";
 import { Drawer, Tabs } from "../../../components/ui/Interactive";
 import CardTemplate, { type CardBranding } from "../../../CardTemplate";
 import { DEPARTMENT_OPTIONS, TITLE_OPTIONS, normalizeEmailField } from "../../../../lib/form-standards";
 import type { MemberActionTarget, MemberCardStatus } from "../domain/types";
-import { memberStatusLabel, physicalCardLabel } from "../../../../lib/organizations/lifecycle";
+import {
+  digitalProfileLabel,
+  invitationStatusLabel,
+  memberStatusLabel,
+  physicalCardLabel,
+} from "../../../../lib/organizations/lifecycle";
 import type { MemberStatus, PhysicalCardStatus } from "../../../../lib/organizations/lifecycle";
 import { isOrganizationRole } from "../../../../lib/organizations/permissions";
 
@@ -126,13 +131,6 @@ type Props = {
   roleLabel: (role: string) => string;
 };
 
-function statusTone(status: MemberStatus): "success" | "warning" | "error" | "neutral" {
-  if (status === "ACTIVE") return "success";
-  if (status === "INVITED") return "warning";
-  if (status === "SUSPENDED" || status === "LEFT") return "error";
-  return "neutral";
-}
-
 function templateVariant(fields: Record<string, string | boolean>): CardBranding["variant"] {
   const value = String(fields.templateVariant);
   if (value === "CLASSIC") return "ESSENTIAL";
@@ -219,6 +217,20 @@ export default function EmployeeDrawer({
   const previewReady = viewedProfile?.memberId === drawerMember.id && viewedProfile.profiles.length > 0;
   const previewTitle =
     viewLoading === drawerMember.id ? "Kart yükleniyor" : previewReady ? "Kart hazır" : "Kart henüz oluşturulmadı";
+  const roleSummary = drawerMember.role === "OWNER" ? "Şirket Sahibi" : roleLabel(drawerMember.role);
+  const inviteSummary = cardState?.invitationState
+    ? invitationStatusLabel(cardState.invitationState)
+    : drawerMember.status === "INVITED"
+      ? "Davet bekliyor"
+      : "Tamamlandı";
+  const accessSummary =
+    drawerMember.status === "ACTIVE"
+      ? "Açık"
+      : drawerMember.status === "INVITED"
+        ? "Davet bekliyor"
+        : drawerMember.status === "SUSPENDED"
+          ? "Sınırlı"
+          : "Kapalı";
 
   return (
     <Drawer open title="Çalışan Detay" className="v25-employee-drawer" onClose={closeDrawer}>
@@ -228,16 +240,28 @@ export default function EmployeeDrawer({
           <strong>{drawerMember.full_name || drawerMember.email}</strong>
           <small>{drawerMember.email}</small>
           <span>
-            {drawerMember.title || roleLabel(drawerMember.role)}
+            {drawerMember.title || roleSummary}
             {drawerMember.department ? ` · ${drawerMember.department}` : ""}
           </span>
         </div>
-        <Badge tone={statusTone(drawerMember.status)}>{memberStatusLabel(drawerMember.status)}</Badge>
-        <code>{memberPublicId}</code>
       </div>
+      <section className="v25-status-summary" aria-labelledby="v25-status-summary-title">
+        <header>
+          <small id="v25-status-summary-title">Durum özeti</small>
+        </header>
+        <dl>
+          <div><dt>Rol</dt><dd>{roleSummary}</dd></div>
+          <div><dt>Durum</dt><dd>{memberStatusLabel(drawerMember.status)}</dd></div>
+          <div><dt>Dijital kart</dt><dd>{digitalProfileLabel(cardState?.digitalProfileState ?? "NONE")}</dd></div>
+          <div><dt>Fiziksel kart</dt><dd>{physicalCardLabel(cardState?.physicalCardState ?? (assignedCards.length ? "ASSIGNED" : "UNASSIGNED"))}</dd></div>
+          <div><dt>Davet</dt><dd>{inviteSummary}</dd></div>
+          <div><dt>Erişim</dt><dd>{accessSummary}</dd></div>
+        </dl>
+      </section>
 
       <div className="v25-drawer-workspace">
         <div className="v25-drawer-main">
+          <p className="v25-drawer-manage-label">Çalışanı yönet</p>
           <Tabs
             label="Çalışan detay alanları"
             active={drawerTab}

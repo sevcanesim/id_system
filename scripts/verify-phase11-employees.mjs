@@ -39,6 +39,9 @@ pass('offboarding requires explicit confirmation',drawer.includes('şirketten ay
 pass('card replacement/assignment flow retained',drawer.includes('linkReplacementCard')&&drawer.includes('Yeni Kartla Eşleştir'));
 pass('employee drawer uses design-system overlay and close control',drawer.includes('className="v25-employee-drawer"')&&drawer.includes('title="Çalışan Detay"'));
 pass('employee drawer keeps identity beside card preview',drawer.includes('v25-drawer-workspace')&&drawer.includes('v25-drawer-preview')&&canonical.includes('.v25-drawer-workspace'));
+pass('employee status summary is a labeled field group',drawer.includes('v25-status-summary')&&drawer.includes('Durum özeti')&&['Rol','Dijital kart','Fiziksel kart','Davet','Erişim'].every(x=>drawer.includes(`<dt>${x}</dt>`))&&canonical.includes('.v25-status-summary'));
+const cards=read('app/kurumsal/panel/components/CardsPanel.tsx');
+pass('cards inventory uses employee workspace chrome',cards.includes('p11-cards')&&cards.includes('Kartı Yönet')&&cards.includes('Henüz fiziksel kart kaydı yok.')&&corp.includes('<CardsPanel')&&canonical.includes('.p11-cards'));
 const css=read('app/employee-management.css');
 pass('Phase 11 CSS uses no legacy token family',!/var\(--(?:yi|yp|store|brand|ui|y)-/.test(css));
 pass('Phase 11 employee chrome uses no gradients',!/gradient\(/.test(css));

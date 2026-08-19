@@ -8,6 +8,9 @@
 -- keeps the current primary triple. Coming-soon families are catalogued with
 -- live=false so checkout is not implied.
 
+alter table public.entitlements
+  add column if not exists package_code text;
+
 do $$ begin
   create type public.identity_product_family as enum (
     'DIGITAL_ID',

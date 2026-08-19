@@ -506,6 +506,29 @@ for (const scenario of corporateScenarios) {
     },{onConflict:"organization_id,email"}).throwOnError();
   }
 
+  // Duplicate-email error is a procedure, not a second fixture: as owner, invite
+  // demo.calisan.dijital@yenomi.test again. Server must return the existing-member error.
+
+  // Unassigned physical stock on the org the Turkish owner actually opens.
+  for (const code of ["YN-QASTOCK0001A", "YN-QASTOCK0002A"]) {
+    const stock = await supabase.from("physical_cards").select("id").eq("card_code", code).maybeSingle();
+    if (stock.error) throw stock.error;
+    if (!stock.data) {
+      await supabase.from("physical_cards").insert({
+        card_code: code,
+        organization_id: qaOrg.id,
+        status: "UNASSIGNED",
+      }).throwOnError();
+    } else {
+      await supabase.from("physical_cards").update({
+        organization_id: qaOrg.id,
+        owner_profile_id: null,
+        owner_user_id: null,
+        status: "UNASSIGNED",
+      }).eq("id", stock.data.id).throwOnError();
+    }
+  }
+
   // Second organization for cross-org context/isolation tests.
   const { data: orgB, error: orgBError } = await supabase.from("organizations").upsert({slug:"demo-qa-ikinci-sirket",name:"Demo QA / İkinci Şirket",status:"ACTIVE"},{onConflict:"slug"}).select("id").single();
   if(orgBError) throw orgBError;

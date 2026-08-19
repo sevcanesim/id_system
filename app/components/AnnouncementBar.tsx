@@ -5,7 +5,7 @@
 import { Fragment } from "react";
 import { Icon, type IconName } from "../icons";
 
-const COPIES = 8;
+const COPIES = 3;
 
 const ITEMS: Array<{ icon: IconName; label: string }> = [
   { icon: "id", label: "YENOMI ID" },

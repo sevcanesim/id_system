@@ -78,13 +78,13 @@ export default function HomePage() {
               <span>BİREYSEL</span>
               <h3>Dijital kartvizit bireysel</h3>
               <p>Kendi NFC + QR kartın, canlı profilin ve görüntülenme takibin.</p>
-              <Link href="/urunler/nfc-kart">Kartı incele <span aria-hidden>→</span></Link>
+              <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">Kartı incele <span aria-hidden>→</span></Link>
             </article>
             <article>
               <span>KURUMSAL</span>
               <h3>Dijital kartvizit kurumsal</h3>
               <p>Çalışan kartları, marka standardı, yetkiler ve ekip analitikleri tek panelde.</p>
-              <Link href="/kurumsal">Kurumsal çözümü incele <span aria-hidden>→</span></Link>
+              <Link className="home-mockup__button home-premium__path-secondary" href="/kurumsal">Kurumsal çözümü incele <span aria-hidden>→</span></Link>
             </article>
           </div>
         </section>

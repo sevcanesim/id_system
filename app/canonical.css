@@ -11292,3 +11292,221 @@ article[id] {
 .enterprise-side-user {
   margin-bottom: 8px;
 }
+
+/* ================================================================
+   PUBLIC PREMIUM CRO
+   Header hierarchy, ticker quieting, conversion CTAs, card rhythm.
+   Appended last so earlier public-chrome gold-cart and text-link
+   rules cannot keep competing with the primary product action.
+   ================================================================ */
+.yi-brand-marquee__track {
+  animation-duration: 72s;
+}
+.yi-brand-marquee__stars {
+  gap: 0;
+  margin: 0 32px;
+}
+.yi-brand-marquee__stars i + i {
+  display: none;
+}
+
+.public-site-chrome .yi-nav {
+  gap: 8px;
+}
+.public-site-chrome .yi-nav a {
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-weight: 650;
+  opacity: .78;
+}
+.public-site-chrome .yi-nav a:hover {
+  opacity: 1;
+  background: rgba(26, 25, 24, .04);
+}
+.public-site-chrome .yi-nav a[aria-current="page"] {
+  padding: 8px 14px;
+  border-color: rgba(26, 25, 24, .88);
+  opacity: 1;
+  font-weight: 700;
+}
+
+.public-site-chrome .yi-header__actions {
+  gap: 10px;
+}
+.public-site-chrome .yi-cart {
+  background: transparent;
+  color: #1A1918;
+  border: 1px solid rgba(26, 25, 24, .16);
+  font-weight: 650;
+}
+.public-site-chrome .yi-cart:hover {
+  background: rgba(26, 25, 24, .04);
+  color: #1A1918;
+}
+.public-site-chrome .yi-cart .yi-icon {
+  color: #1A1918;
+}
+.public-site-chrome .yi-header__actions .yi-btn--primary {
+  color: #17110a;
+}
+
+.home-mockup__copy h1,
+.home-premium__paths-head h2,
+.how-hero h1,
+.corporate-single-copy h1 {
+  line-height: 1.08;
+}
+
+.home-premium__path-grid article {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 220px;
+  padding: 28px 24px;
+}
+.home-premium__path-grid .home-mockup__button {
+  margin-top: auto;
+  justify-self: start;
+  color: #19140e;
+}
+.home-premium__path-secondary {
+  background: transparent;
+  border: 1px solid rgba(26, 25, 24, .18);
+  color: #1A1918;
+  box-shadow: none;
+}
+.home-premium__path-secondary:hover {
+  background: rgba(26, 25, 24, .04);
+  color: #1A1918;
+}
+
+.products-plan-grid {
+  align-items: stretch;
+}
+.products-plan-card {
+  min-height: 100%;
+  padding: 24px 24px 22px;
+  gap: 14px;
+}
+.products-plan-card__head {
+  min-height: 92px;
+  align-content: start;
+}
+.products-plan-card h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+}
+.products-plan-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #17121f;
+  color: #f6efe4;
+  font: 700 9px/1 var(--font-mono);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.products-plan-card .ds-button,
+.products-plan-card .yi-btn {
+  min-height: 44px;
+  align-self: stretch;
+  width: 100%;
+}
+
+.corporate-plan-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 0;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: #A37B2C;
+  border: 1px solid #A37B2C;
+  color: #17120c;
+  font-size: 12px;
+  font-weight: 750;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.corporate-plan-link:hover {
+  background: #8c6824;
+  color: #17120c;
+}
+.corporate-pack-table td:last-child {
+  width: 1%;
+  text-align: right;
+}
+.corporate-pricing-grid article,
+.corporate-mail-packs article {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 26px 24px;
+}
+.corporate-pricing-grid .corporate-cta,
+.corporate-mail-packs .corporate-cta {
+  margin-top: auto;
+  align-self: flex-start;
+  min-height: 44px;
+  color: #17120c;
+}
+.corporate-single-cta .corporate-cta,
+.corporate-single-cta .corporate-secondary-cta {
+  min-height: 48px;
+  font-size: 14px;
+}
+.corporate-single-proof {
+  align-items: stretch;
+}
+.corporate-single-proof div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 72px;
+}
+.corporate-capability-bar article {
+  padding: 22px 20px;
+  align-items: flex-start;
+}
+
+.how-step-card {
+  padding: 22px 22px 20px;
+}
+.how-step-visual--03 {
+  min-height: 240px;
+}
+.how-step-visual--03 .how-phone-mockup {
+  width: 128px;
+  height: 216px;
+  transform: rotate(-7deg) translateY(16px);
+}
+.how-step-visual--03 .yi-product-ui--profile {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  border-radius: 16px;
+  border-width: 0;
+}
+.how-step-visual--03 .how-qr {
+  right: 16px;
+  left: auto;
+  bottom: 22px;
+}
+
+.yi-footer--new .yi-footer__brand p,
+.yi-footer--new .yi-footer__layer p,
+.yi-footer--new .yi-footer__base a,
+.yi-footer--new .yi-footer__base span {
+  color: #3f3b36;
+  font-size: 14px;
+  line-height: 1.5;
+}

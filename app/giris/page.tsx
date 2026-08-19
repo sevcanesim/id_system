@@ -283,104 +283,222 @@ export default function LoginPage() {
             ? "Önce hesabını oluştur. Profil bilgilerini daha sonra, ihtiyaç oldukça tamamlayabilirsin."
             : "Kartlarını, siparişlerini ve dijital kimliğini tek hesaptan yönet.";
 
-  return <main id="main-content" className="p6-auth-page" data-ui-context="public">
-    <AppHeader context="Giriş" />
-    <section className="p6-auth-shell">
-      <aside className="p6-auth-story" aria-label="Yenomi ID ürün özeti">
-        <span className="p6-auth-kicker">YENOMI ID</span>
-        <h1>Fiziksel kartın.<br />Canlı dijital kimliğin.</h1>
-        <p>Kartını telefona dokundur. Güncel iletişim bilgilerin ve profesyonel profilin saniyeler içinde açılsın.</p>
-        <div className="p6-auth-product-flow" aria-label="Karttan dijital profile geçiş">
-          <div className="p6-auth-mini-card">
-            <span>YENOMI ID</span>
-            <strong>Sevcan Eşim Karadeniz</strong>
-            <small>NFC + QR</small>
+  const busy = loading || transitioning;
+  const showWorkspace = (transitioning || activeSessionEmail) && mode !== "recovery";
+
+  return (
+    <main id="main-content" className="p6-auth-page" data-ui-context="public">
+      <AppHeader context="Giriş" />
+      <section className="p6-auth-shell">
+        <aside className="p6-auth-story" aria-label="Yenomi ID ürün özeti">
+          <span className="p6-auth-kicker">YENOMI ID</span>
+          <h1>Fiziksel kartın.<br />Canlı dijital kimliğin.</h1>
+          <p>Kartını telefona dokundur. Güncel iletişim bilgilerin ve profesyonel profilin saniyeler içinde açılsın.</p>
+          <div className="p6-auth-product-flow" aria-label="Karttan dijital profile geçiş">
+            <div className="p6-auth-mini-card">
+              <span>YENOMI ID</span>
+              <strong>Dijital kimlik kartı</strong>
+              <small>NFC + QR</small>
+            </div>
+            <div className="p6-auth-flow-arrow" aria-hidden="true"><Icon name="external" /></div>
+            <div className="p6-auth-mini-phone">
+              <div className="p6-auth-mini-avatar" aria-hidden="true">YI</div>
+              <strong>Profesyonel profil</strong>
+              <small>Canlı dijital kimlik</small>
+              <div>
+                <span><Icon name="phone" /></span>
+                <span><Icon name="mail" /></span>
+                <span><Icon name="link" /></span>
+              </div>
+            </div>
           </div>
-          <div className="p6-auth-flow-arrow" aria-hidden="true"><Icon name="external" /></div>
-          <div className="p6-auth-mini-phone">
-            <div className="p6-auth-mini-avatar" aria-hidden="true">YI</div>
-            <strong>Sevcan Eşim Karadeniz</strong>
-            <small>Yenomilabs Kurucu</small>
-            <div><span><Icon name="phone" /></span><span><Icon name="mail" /></span><span><Icon name="link" /></span></div>
+          <ul className="p6-auth-features" aria-label="Yenomi ID avantajları">
+            <li><Icon name="nfc" /><span><strong>Tek dokunuşla paylaş</strong><small>NFC veya QR ile uygulama gerektirmeden.</small></span></li>
+            <li><Icon name="refresh" /><span><strong>Bilgilerin hep güncel</strong><small>Kartı yeniden bastırmadan profilini değiştir.</small></span></li>
+            <li><Icon name="shield" /><span><strong>Tek hesap, kontrollü erişim</strong><small>Bireysel ve kurumsal yetkiler güvenli erişim kurallarıyla korunur.</small></span></li>
+            <li><Icon name="link" /><span><strong>Fiziksel + dijital birlikte</strong><small>Kartın, profilin ve paylaşılan bağlantın tek deneyimde birleşir.</small></span></li>
+          </ul>
+        </aside>
+
+        <section className="p6-auth-form-side">
+          <div className="p6-auth-form-card">
+            {returnPath === "/checkout" && mode !== "recovery" && (
+              <div className="p6-checkout-context" role="status">
+                <span>ADIM 1 / 3 · HESAP</span>
+              </div>
+            )}
+
+            {mode !== "recovery" && (
+              <div className="p6-auth-portal-tabs" role="tablist" aria-label="Hesap bağlamı">
+                <button type="button" role="tab" aria-selected={portal === "individual"} className={portal === "individual" ? "active" : ""} onClick={() => choosePortal("individual")}>Bireysel</button>
+                <button type="button" role="tab" aria-selected={portal === "business"} className={portal === "business" ? "active" : ""} onClick={() => choosePortal("business")}>Kurumsal / Ekip</button>
+              </div>
+            )}
+
+            {showWorkspace ? (
+              <div className="p6-auth-state" role="status" aria-live="polite">
+                <span className="p6-auth-state-icon"><Icon name="lock" /></span>
+                <h2>Hesabın açılıyor</h2>
+                <p>
+                  {activeSessionEmail ? <><strong>{activeSessionEmail}</strong> olarak giriş yaptın. </> : null}
+                  Doğru çalışma alanına yönlendiriliyorsun.
+                </p>
+              </div>
+            ) : signupCompleted ? (
+              <div className="p6-auth-state" role="status" aria-live="polite">
+                <span className="p6-auth-state-icon"><Icon name="mail" /></span>
+                <h2>E-postanı doğrula</h2>
+                <p><strong>{email}</strong> adresine gönderdiğimiz bağlantıya tıkla. Ardından bu ekrandan giriş yapabilirsin.</p>
+                {message && <div className={`p6-auth-message ${messageTone}`}>{message}</div>}
+                <button className="p6-auth-submit" type="button" onClick={() => { setSignupCompleted(false); setMode("login"); setPassword(""); setMessage(""); }}>
+                  Giriş ekranına dön <Icon name="chevronRight" />
+                </button>
+                <small>Mail görünmüyorsa Gereksiz / Diğer klasörlerini kontrol et.</small>
+              </div>
+            ) : (
+              <>
+                <header className="p6-auth-heading">
+                  <span>{portal === "business" ? "Kurumsal çalışma alanı" : "Yenomi hesabı"}</span>
+                  <h2>{title}</h2>
+                  <p>{description}</p>
+                </header>
+
+                {mode === "login" && (
+                  <div className="p6-auth-socials">
+                    <button type="button" onClick={() => void signInWithGoogle()} disabled={busy}>
+                      <span className="p6-auth-google" aria-hidden="true">G</span>
+                      <span>Google ile devam et</span>
+                    </button>
+                    <button type="button" onClick={() => void signInWithLinkedIn()} disabled={busy}>
+                      <span className="p6-auth-linkedin" aria-hidden="true"><Icon name="social" /></span>
+                      <span>LinkedIn ile devam et</span>
+                    </button>
+                  </div>
+                )}
+
+                {mode === "login" && <div className="p6-auth-divider"><span>veya e-posta ile</span></div>}
+
+                {mode === "forgot" ? (
+                  <form className="p6-auth-form" onSubmit={(event) => { event.preventDefault(); void sendPasswordReset(); }}>
+                    <label>
+                      <span>E-posta adresi</span>
+                      <div className="p6-auth-input">
+                        <Icon name="mail" />
+                        <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} onBlur={() => setEmail(normalizeEmail(email))} required maxLength={254} autoComplete="email" placeholder="ornek@mail.com" />
+                      </div>
+                    </label>
+                    {message && <div className={`p6-auth-message ${messageTone}`} role="status">{message}</div>}
+                    <button className="p6-auth-submit" disabled={busy}>
+                      {loading ? "Gönderiliyor…" : "Yenileme bağlantısı gönder"}
+                      <Icon name="chevronRight" />
+                    </button>
+                    <button className="p6-auth-text-action" type="button" onClick={() => { setMode("login"); setMessage(""); }}>Giriş ekranına dön</button>
+                  </form>
+                ) : mode === "recovery" ? (
+                  <form className="p6-auth-form" onSubmit={updateRecoveredPassword}>
+                    <label>
+                      <span>Yeni şifre</span>
+                      <div className="p6-auth-input">
+                        <Icon name="lock" />
+                        <input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} maxLength={72} autoComplete="new-password" placeholder="Yeni şifren" />
+                        <button type="button" className="p6-auth-password-toggle" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"} aria-pressed={showPassword}>
+                          <Icon name={showPassword ? "eye-off" : "eye"} />
+                        </button>
+                      </div>
+                    </label>
+                    <div className="p6-auth-password-rules" aria-label="Şifre kuralları">
+                      {SIGNUP_PASSWORD_RULES.map((rule) => (
+                        <span key={rule.key} className={rule.test(password) ? "valid" : ""}>
+                          <i aria-hidden="true" />
+                          {rule.label}
+                        </span>
+                      ))}
+                    </div>
+                    {message && <div className={`p6-auth-message ${messageTone}`} role="status">{message}</div>}
+                    <button className="p6-auth-submit" disabled={busy}>
+                      {loading ? "Güncelleniyor…" : "Şifremi güncelle"}
+                      <Icon name="check" />
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={submit} className="p6-auth-form">
+                    <label>
+                      <span>E-posta adresi</span>
+                      <div className="p6-auth-input">
+                        <Icon name="mail" />
+                        <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} onBlur={() => setEmail(normalizeEmail(email))} required maxLength={254} placeholder="ornek@mail.com" autoComplete="email" />
+                      </div>
+                    </label>
+                    <label>
+                      <span>Şifre</span>
+                      <div className="p6-auth-input">
+                        <Icon name="lock" />
+                        <input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={mode === "signup" ? 8 : 6} maxLength={72} placeholder="Şifreni gir" autoComplete={mode === "signup" ? "new-password" : "current-password"} />
+                        <button type="button" className="p6-auth-password-toggle" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"} aria-pressed={showPassword}>
+                          <Icon name={showPassword ? "eye-off" : "eye"} />
+                        </button>
+                      </div>
+                    </label>
+
+                    {mode === "login" && (
+                      <div className="p6-auth-login-options">
+                        <label className="p6-auth-remember">
+                          <input type="checkbox" checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} />
+                          <span>Beni hatırla</span>
+                        </label>
+                        <button type="button" onClick={() => { setMode("forgot"); setPassword(""); setMessage(""); }}>Şifremi unuttum</button>
+                      </div>
+                    )}
+
+                    {mode === "signup" && (
+                      <div className="p6-auth-password-rules" aria-label="Şifre kuralları">
+                        {SIGNUP_PASSWORD_RULES.map((rule) => (
+                          <span key={rule.key} className={rule.test(password) ? "valid" : ""}>
+                            <i aria-hidden="true" />
+                            {rule.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {message && <div className={`p6-auth-message ${messageTone}`} role="status" aria-live="polite">{message}</div>}
+                    <button className="p6-auth-submit" disabled={busy}>
+                      {loading ? "İşleniyor…" : mode === "signup" ? "Hesap oluştur" : "Giriş yap"}
+                      <Icon name="chevronRight" />
+                    </button>
+                  </form>
+                )}
+
+                {mode !== "forgot" && mode !== "recovery" && portal === "individual" && (
+                  <button
+                    className="p6-auth-switch"
+                    type="button"
+                    onClick={() => { setMode(mode === "login" ? "signup" : "login"); setMessage(""); setSignupCompleted(false); setPassword(""); }}
+                  >
+                    {mode === "login" ? "Hesabın yok mu? Hesap oluştur" : "Zaten hesabın var mı? Giriş yap"}
+                  </button>
+                )}
+                {mode === "login" && portal === "business" && (
+                  <div className="p6-auth-business-note" role="note">
+                    <Icon name="alert" />
+                    <span>Kurumsal hesaplar davet veya şirket kurulumu ile açılır. Yeni kurumsal hesap oluşturmak için <Link href="/kurumsal#teklif">Kurumsal teklif formuna git</Link>.</span>
+                  </div>
+                )}
+              </>
+            )}
+
+            <div className="p6-auth-security">
+              <Icon name="secure" />
+              <span>
+                <strong>Güvenli oturum</strong>
+                <small>Oturumun güvenli biçimde korunur. Ödeme bilgileri bu ekranda alınmaz.</small>
+              </span>
+            </div>
+            {!isSupabaseConfigured && <div className="p6-auth-message error">Giriş hizmeti şu anda yapılandırılıyor. Lütfen daha sonra tekrar dene.</div>}
           </div>
-        </div>
-        <ul className="p6-auth-features" aria-label="Yenomi ID avantajları">
-          <li><Icon name="nfc" /><span><strong>Tek dokunuşla paylaş</strong><small>NFC veya QR ile uygulama gerektirmeden.</small></span></li>
-          <li><Icon name="refresh" /><span><strong>Bilgilerin hep güncel</strong><small>Kartı yeniden bastırmadan profilini değiştir.</small></span></li>
-          <li><Icon name="shield" /><span><strong>Tek hesap, kontrollü erişim</strong><small>Bireysel ve kurumsal yetkiler güvenli erişim kurallarıyla korunur.</small></span></li>
-          <li><Icon name="link" /><span><strong>Fiziksel + dijital birlikte</strong><small>Kartın, profilin ve paylaşılan bağlantın tek deneyimde birleşir.</small></span></li>
-        </ul>
-      </aside>
-
-      <section className="p6-auth-form-side">
-        <div className="p6-auth-form-card">
-          {returnPath === "/checkout" && mode !== "recovery" && <div className="p6-checkout-context" role="status"><span>ADIM 1 / 3 · HESAP</span></div>}
-          {mode !== "recovery" && <div className="p6-auth-portal-tabs" role="tablist" aria-label="Hesap bağlamı">
-            <button type="button" role="tab" aria-selected={portal === "individual"} className={portal === "individual" ? "active" : ""} onClick={() => choosePortal("individual")}>Bireysel</button>
-            <button type="button" role="tab" aria-selected={portal === "business"} className={portal === "business" ? "active" : ""} onClick={() => choosePortal("business")}>Kurumsal / Ekip</button>
-          </div>}
-
-          {(transitioning || activeSessionEmail) && mode !== "recovery" ? <div className="p6-auth-state" role="status" aria-live="polite">
-            <span className="p6-auth-state-icon"><Icon name="lock" /></span>
-            <h2>Hesabın açılıyor</h2>
-            <p>{activeSessionEmail ? <><strong>{activeSessionEmail}</strong> olarak giriş yaptın. </> : null}Doğru çalışma alanına yönlendiriliyorsun.</p>
-          </div> : signupCompleted ? <div className="p6-auth-state" role="status" aria-live="polite">
-            <span className="p6-auth-state-icon"><Icon name="mail" /></span>
-            <h2>E-postanı doğrula</h2>
-            <p><strong>{email}</strong> adresine gönderdiğimiz bağlantıya tıkla. Ardından bu ekrandan giriş yapabilirsin.</p>
-            {message && <div className={`p6-auth-message ${messageTone}`}>{message}</div>}
-            <button className="p6-auth-submit" type="button" onClick={() => { setSignupCompleted(false); setMode("login"); setPassword(""); setMessage(""); }}>Giriş ekranına dön <Icon name="chevronRight" /></button>
-            <small>Mail görünmüyorsa Gereksiz / Diğer klasörlerini kontrol et.</small>
-          </div> : <>
-            <header className="p6-auth-heading">
-              <span>{portal === "business" ? "Kurumsal çalışma alanı" : "Yenomi hesabı"}</span>
-              <h2>{title}</h2>
-              <p>{description}</p>
-            </header>
-
-            {mode === "login" && <div className="p6-auth-socials">
-              <button type="button" onClick={() => void signInWithGoogle()} disabled={loading}><span className="p6-auth-google" aria-hidden="true">G</span><span>Google ile devam et</span></button>
-              <button type="button" onClick={() => void signInWithLinkedIn()} disabled={loading}><span className="p6-auth-linkedin" aria-hidden="true"><Icon name="social" /></span><span>LinkedIn ile devam et</span></button>
-            </div>}
-
-            {mode === "login" && <div className="p6-auth-divider"><span>veya e-posta ile</span></div>}
-
-            {mode === "forgot" ? <form className="p6-auth-form" onSubmit={(event) => { event.preventDefault(); void sendPasswordReset(); }}>
-              <label><span>E-posta adresi</span><div className="p6-auth-input"><Icon name="mail" /><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} onBlur={() => setEmail(normalizeEmail(email))} required maxLength={254} autoComplete="email" placeholder="ornek@mail.com" /></div></label>
-              {message && <div className={`p6-auth-message ${messageTone}`} role="status">{message}</div>}
-              <button className="p6-auth-submit" disabled={loading}>{loading ? "Gönderiliyor…" : "Yenileme bağlantısı gönder"}<Icon name="chevronRight" /></button>
-              <button className="p6-auth-text-action" type="button" onClick={() => { setMode("login"); setMessage(""); }}>Giriş ekranına dön</button>
-            </form> : mode === "recovery" ? <form className="p6-auth-form" onSubmit={updateRecoveredPassword}>
-              <label><span>Yeni şifre</span><div className="p6-auth-input"><Icon name="lock" /><input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} maxLength={72} autoComplete="new-password" placeholder="Yeni şifren" />
-                <button type="button" className="p6-auth-password-toggle" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"} aria-pressed={showPassword}><Icon name={showPassword ? "eye-off" : "eye"} /></button></div></label>
-              <div className="p6-auth-password-rules" aria-label="Şifre kuralları">{SIGNUP_PASSWORD_RULES.map((rule) => <span key={rule.key} className={rule.test(password) ? "valid" : ""}><i aria-hidden="true" />{rule.label}</span>)}</div>
-              {message && <div className={`p6-auth-message ${messageTone}`} role="status">{message}</div>}
-              <button className="p6-auth-submit" disabled={loading}>{loading ? "Güncelleniyor…" : "Şifremi güncelle"}<Icon name="check" /></button>
-            </form> : <form onSubmit={submit} className="p6-auth-form">
-              <label><span>E-posta adresi</span><div className="p6-auth-input"><Icon name="mail" /><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} onBlur={() => setEmail(normalizeEmail(email))} required maxLength={254} placeholder="ornek@mail.com" autoComplete="email" /></div></label>
-              <label><span>Şifre</span><div className="p6-auth-input"><Icon name="lock" /><input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={mode === "signup" ? 8 : 6} maxLength={72} placeholder="Şifreni gir" autoComplete={mode === "signup" ? "new-password" : "current-password"} />
-                <button type="button" className="p6-auth-password-toggle" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"} aria-pressed={showPassword}><Icon name={showPassword ? "eye-off" : "eye"} /></button></div></label>
-
-              {mode === "login" && <div className="p6-auth-login-options">
-                <label className="p6-auth-remember"><input type="checkbox" checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} /><span>Beni hatırla</span></label>
-                <button type="button" onClick={() => { setMode("forgot"); setPassword(""); setMessage(""); }}>Şifremi unuttum</button>
-              </div>}
-
-              {mode === "signup" && <div className="p6-auth-password-rules" aria-label="Şifre kuralları">{SIGNUP_PASSWORD_RULES.map((rule) => <span key={rule.key} className={rule.test(password) ? "valid" : ""}><i aria-hidden="true" />{rule.label}</span>)}</div>}
-
-              {message && <div className={`p6-auth-message ${messageTone}`} role="status" aria-live="polite">{message}</div>}
-              <button className="p6-auth-submit" disabled={loading}>{loading ? "İşleniyor…" : mode === "signup" ? "Hesap oluştur" : "Giriş yap"}<Icon name="chevronRight" /></button>
-            </form>}
-
-            {mode !== "forgot" && mode !== "recovery" && portal === "individual" && <button className="p6-auth-switch" type="button" onClick={() => { setMode(mode === "login" ? "signup" : "login"); setMessage(""); setSignupCompleted(false); setPassword(""); }}>{mode === "login" ? "Hesabın yok mu? Hesap oluştur" : "Zaten hesabın var mı? Giriş yap"}</button>}
-            {mode === "login" && portal === "business" && <div className="p6-auth-business-note" role="note"><Icon name="alert" /><span>Kurumsal hesaplar davet veya şirket kurulumu ile açılır. Yeni kurumsal hesap oluşturmak için <Link href="/kurumsal#teklif">Kurumsal teklif formuna git</Link>.</span></div>}
-          </>}
-
-          <div className="p6-auth-security"><Icon name="secure" /><span><strong>Güvenli oturum</strong><small>Oturumun güvenli biçimde korunur. Ödeme bilgileri bu ekranda alınmaz.</small></span></div>
-          {!isSupabaseConfigured && <div className="p6-auth-message error">Giriş hizmeti şu anda yapılandırılıyor. Lütfen daha sonra tekrar dene.</div>}
-        </div>
+        </section>
       </section>
-    </section>
-    <AppFooter variant="compact" />
-  </main>;
+      <AppFooter variant="compact" />
+    </main>
+  );
 }

@@ -94,6 +94,12 @@ export default function CompanyPanel() {
   });
   const [orgNameDraft, setOrgNameDraft] = useState("");
   const [orgNameBusy, setOrgNameBusy] = useState(false);
+  const [orgNameError, setOrgNameError] = useState<string | null>(null);
+  const [orgNameSaved, setOrgNameSaved] = useState(false);
+  const [profileBusy, setProfileBusy] = useState(false);
+  const [profileDirty, setProfileDirty] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileSaved, setProfileSaved] = useState(false);
   const [companyFields, setCompanyFields] = useState<
     Record<string, string | boolean>
   >({
@@ -259,6 +265,9 @@ export default function CompanyPanel() {
           logoUrl: current.logo_url || "",
         });
         setCompanyFields((value) => ({ ...value, ...normalizeLockFields(current.fields || {}) }));
+        setProfileDirty(false);
+        setProfileSaved(false);
+        setProfileError(null);
       }
     } else {
       setDataError("templates", data.error || "Kurumsal şablonlar yüklenemedi.");
@@ -759,6 +768,9 @@ export default function CompanyPanel() {
     event.preventDefault();
     const access = await token();
     if (!access || !selected) return;
+    setProfileBusy(true);
+    setProfileError(null);
+    setProfileSaved(false);
     const existingDefault = templates.find((item) => item.is_default);
     // Aktif/varsayılan şablon zaten kayıtlıysa YERİNDE güncelle (PATCH) —
     // her kaydetmede yeni satır biriktirmemek için. Hiç şablon yoksa (ilk
@@ -780,8 +792,14 @@ export default function CompanyPanel() {
         const next = current.filter((item) => item.id !== data.template.id);
         return [data.template, ...next].sort((a, b) => Number(b.is_default) - Number(a.is_default));
       });
+      setProfileDirty(false);
+      setProfileSaved(true);
       setMessage("Varsayılan kurumsal şablon güncellendi.");
-    } else setMessage(data.error || "Şablon kaydedilemedi.");
+    } else {
+      setProfileError(data.error || "Şablon kaydedilemedi.");
+      setMessage(data.error || "Şablon kaydedilemedi.");
+    }
+    setProfileBusy(false);
   }
 
   async function mutateMember(
@@ -952,6 +970,8 @@ export default function CompanyPanel() {
     const name = orgNameDraft.trim();
     if (!selected || name.length < 2 || name === org?.organizations?.name) return;
     setOrgNameBusy(true);
+    setOrgNameError(null);
+    setOrgNameSaved(false);
     const access = await token();
     const response = await fetch("/api/organizations/rename", {
       method: "PATCH",
@@ -967,8 +987,12 @@ export default function CompanyPanel() {
             : item,
         ),
       );
+      setOrgNameSaved(true);
       setMessage("Şirket adı güncellendi.");
-    } else setMessage(data.error || "Şirket adı güncellenemedi.");
+    } else {
+      setOrgNameError(data.error || "Şirket adı güncellenemedi.");
+      setMessage(data.error || "Şirket adı güncellenemedi.");
+    }
     setOrgNameBusy(false);
   }
   const activeMembers = useMemo(
@@ -1336,12 +1360,12 @@ export default function CompanyPanel() {
           </div>
           <div className="enterprise-side-plan">
             <small>
-              {subscription?.business_plans?.name || "Business Plan"}
+              {subscription?.business_plans?.name || "Business"}
             </small>
             <strong>
-              {loading ? "—" : usedSeats} / {subscription?.seat_limit ?? "—"} lisans kullanılıyor
+              {loading ? "—" : usedSeats} / {subscription?.seat_limit ?? "—"} Lisans
             </strong>
-            <div className="enterprise-plan-meter">
+            <div className="enterprise-plan-meter" aria-hidden="true">
               <span
                 style={{
                   width: `${subscription?.seat_limit ? Math.min(100, Math.round((usedSeats / subscription.seat_limit) * 100)) : 0}%`,
@@ -1349,7 +1373,7 @@ export default function CompanyPanel() {
               />
             </div>
             {canManageLicenses && <button type="button" onClick={() => openTab("licenses")}>
-              Lisansları Yönet
+              Yönet
             </button>}
           </div>
           <div className="enterprise-side-user">
@@ -1688,8 +1712,27 @@ export default function CompanyPanel() {
                 )}
                 {currentTab === "settings" && (
                   <section className="p10-domain-panel p10-settings-hub">
-                    <header><div><span>Ayarlar</span><h2>Kurumsal yönetim ayarları</h2><p>Sık değişmeyen yönetim alanlarına buradan ulaşın.</p></div></header>
-                    <div className="p10-settings-grid"><button type="button" onClick={() => openTab("organization")}><strong>Organizasyon</strong><span>Şirket kimliği, alan politikaları ve ünvanlar</span></button><button type="button" onClick={() => openTab("roles")}><strong>Roller & Yetkiler</strong><span>Kim hangi işlemleri yapabilir?</span></button><button type="button" onClick={() => openTab("content")}><strong>İçerik Merkezi</strong><span>Merkezi bağlantılar ve kurumsal dosyalar</span></button></div>
+                    <header><div><span>Ayarlar</span><h2>Kurumsal yönetim ayarları</h2><p>Sık değişmeyen yönetim alanlarına buradan ulaşın. Her kart bir çalışma alanına gider.</p></div></header>
+                    <div className="p10-settings-grid">
+                      <button type="button" onClick={() => openTab("organization")}>
+                        <Icon name="building" />
+                        <strong>Organizasyon</strong>
+                        <span>Şirket kimliği, iletişim bilgileri, alan politikaları ve ünvanlar</span>
+                        <em>Organizasyona git →</em>
+                      </button>
+                      <button type="button" onClick={() => openTab("roles")}>
+                        <Icon name="lock" />
+                        <strong>Roller & Yetkiler</strong>
+                        <span>Kim hangi işlemleri yapabilir?</span>
+                        <em>Rolleri gör →</em>
+                      </button>
+                      <button type="button" onClick={() => openTab("content")}>
+                        <Icon name="link" />
+                        <strong>İçerik Merkezi</strong>
+                        <span>Merkezi bağlantılar ve kurumsal dosyalar</span>
+                        <em>İçeriği yönet →</em>
+                      </button>
+                    </div>
                   </section>
                 )}
                 {currentTab === "roles" && <RolesPanel members={members} />}
@@ -1791,19 +1834,33 @@ export default function CompanyPanel() {
                   </section>
                 )}
                 {currentTab === "organization" && (
-                  <CompanySettingsPanel
+                  <div className="p11-org-workspace">
+                    <CompanySettingsPanel
                     fields={companyFields}
-                    setFields={setCompanyFields}
+                    setFields={(value) => {
+                      setCompanyFields(value);
+                      setProfileDirty(true);
+                      setProfileSaved(false);
+                    }}
                     onSubmit={saveTemplate}
                     organizationName={orgNameDraft}
-                    onOrganizationNameChange={setOrgNameDraft}
+                    savedOrganizationName={org?.organizations?.name || ""}
+                    onOrganizationNameChange={(value) => {
+                      setOrgNameDraft(value);
+                      setOrgNameSaved(false);
+                      setOrgNameError(null);
+                    }}
                     onSaveOrganizationName={renameOrganization}
                     canRenameOrganization={org?.role === "OWNER"}
                     organizationNameBusy={orgNameBusy}
+                    organizationNameError={orgNameError}
+                    organizationNameSaved={orgNameSaved}
+                    profileBusy={profileBusy}
+                    profileDirty={profileDirty}
+                    profileSaved={profileSaved}
+                    profileError={profileError}
                   />
-                )}
-                {currentTab === "organization" && (
-                  <JobTitlesPanel
+                    <JobTitlesPanel
                     jobTitles={jobTitles}
                     newJobTitle={newJobTitle}
                     onNewJobTitleChange={setNewJobTitle}
@@ -1814,6 +1871,7 @@ export default function CompanyPanel() {
                     titleRequestBusyId={titleRequestBusyId}
                     onResolveTitleRequest={resolveTitleRequest}
                   />
+                  </div>
                 )}
                 {currentTab === "content" && (
                   <CorporateLinksPanel

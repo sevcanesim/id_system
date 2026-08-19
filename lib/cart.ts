@@ -194,3 +194,25 @@ export function removeCartItem(items: CartItem[], cartItemId: string): CartItem[
 export function cartCount() {
   return readCart().reduce((sum, item) => sum + item.quantity, 0);
 }
+
+export function cartItemPresentation(item: CartItem): {
+  eyebrow: string;
+  title: string;
+  lines: string[];
+} {
+  const seatCount = Number(item.configuration?.seatCount);
+  const namedSeats = item.name.match(/Ek\s+(\d+)\s+Kullanıcı/i);
+  const seats = Number.isFinite(seatCount) && seatCount > 0 ? seatCount : Number(namedSeats?.[1] || 0);
+  if (item.productId === "yenomi-business-seat-pack" || seats > 0) {
+    return {
+      eyebrow: "LİSANS PAKETİ",
+      title: `${seats} Ek Kullanıcı`,
+      lines: [`${seats} Ek Kullanıcı`, `${seats} Yenomi ID Kart`],
+    };
+  }
+  return {
+    eyebrow: item.kind === "NFC_PHYSICAL_CARD" ? "NFC KART" : "DİJİTAL ÜRÜN",
+    title: item.name,
+    lines: [item.name],
+  };
+}

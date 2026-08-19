@@ -50,14 +50,17 @@ export default function JobTitlesPanel({
         </div>
       </header>
       <form className="job-title-add-form" onSubmit={onAddJobTitle}>
-        <input
-          value={newJobTitle}
-          onChange={(e) => onNewJobTitleChange(e.target.value)}
-          placeholder="Örn. Kıdemli Saha Mühendisi"
-          maxLength={120}
-        />
+        <label>
+          Yeni unvan ekle
+          <input
+            value={newJobTitle}
+            onChange={(e) => onNewJobTitleChange(e.target.value)}
+            placeholder="Unvan adı..."
+            maxLength={120}
+          />
+        </label>
         <button disabled={jobTitleBusy || newJobTitle.trim().length < 2}>
-          {jobTitleBusy ? "Ekleniyor..." : "Pozisyon ekle"}
+          {jobTitleBusy ? "Ekleniyor..." : "+ Ekle"}
         </button>
       </form>
       <ul className="job-title-list">

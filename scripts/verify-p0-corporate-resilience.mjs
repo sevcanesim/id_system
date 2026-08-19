@@ -63,6 +63,55 @@ if (/v26-reference-chart[\s\S]{0,120}overflow-wrap:\s*anywhere/.test(css) || /v2
 } else {
   pass('overview widgets do not force letter-by-letter wrapping');
 }
+if (css.includes('PANEL LAYOUT CONTRACT') && css.includes('min-width: min(100%, 14rem)') && css.includes('flex-wrap: wrap')) {
+  pass('panel layout contract stacks chart headers before titles can squeeze');
+} else {
+  fail('panel layout contract is missing stack-before-squeeze header rules');
+}
+if (css.includes('.p11-org-workspace') && !css.includes('.business-company-settings { min-height:100vh')) {
+  pass('organization cards no longer consume a full viewport each');
+} else {
+  fail('organization workspace still uses full-viewport cards');
+}
+if (client.includes('Organizasyona git') && client.includes('p10-settings-grid') && css.includes('.p10-settings-grid > button:hover')) {
+  pass('settings hub navigation tiles have explicit affordance');
+} else {
+  fail('settings hub navigation affordance is missing');
+}
+
+const cart = read('app/sepet/page.tsx');
+const cartLib = read('lib/cart.ts');
+if (
+  cartLib.includes('cartItemPresentation') &&
+  cart.includes('Ürün toplamı') &&
+  cart.includes('KDV dahil') &&
+  cart.includes('Ücretsiz') &&
+  cart.includes('disabled={item.quantity <= 1}') &&
+  cart.includes('Satın alma sırasında giriş yapar veya hesap oluşturursun')
+) {
+  pass('cart shows structured totals, readable pack names, and 44px quantity controls');
+} else {
+  fail('cart summary / pack-name / quantity contract is missing');
+}
+
+const companySettings = read('app/kurumsal/panel/components/CompanySettingsPanel.tsx');
+const jobTitles = read('app/kurumsal/panel/components/JobTitlesPanel.tsx');
+if (
+  companySettings.includes('settings-tristate-legend') &&
+  companySettings.includes('Şirket sahibi tarafından yönetiliyor') &&
+  companySettings.includes('org-save-status') &&
+  jobTitles.includes('Yeni unvan ekle') &&
+  client.includes('p11-org-workspace')
+) {
+  pass('organization groups identity, explains permissions, and shows save state');
+} else {
+  fail('organization permission / save-state / grouping contract is missing');
+}
+if (client.includes('/ {subscription?.seat_limit ?? "—"} Lisans') && css.includes('.enterprise-plan-meter > span')) {
+  pass('sidebar license widget is compact and uses the real fill meter');
+} else {
+  fail('sidebar compact license widget contract is missing');
+}
 
 const overview = read('app/kurumsal/panel/components/OverviewPanel.tsx');
 const overviewKpis = overview.split('v26-reference-kpis')[1]?.split('v26-reference-main-row')[0] || '';

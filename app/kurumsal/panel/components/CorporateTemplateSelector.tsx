@@ -52,8 +52,10 @@ export default function CorporateTemplateSelector({
             <b />
             <em />
           </span>
-          <strong>{option.title}</strong>
-          <small>{option.description}</small>
+          <span className="business-template-option-copy">
+            <strong>{option.title}</strong>
+            <small>{option.description}</small>
+          </span>
           {selected === option.value && <mark>Seçili</mark>}
         </button>
       ))}

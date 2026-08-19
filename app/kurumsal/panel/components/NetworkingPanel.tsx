@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { FOLLOW_UP_SCENARIOS } from "../../../../lib/commerce/packages";
-import { EmptyState } from "../../../components/ui/States";
+import { EmptyState, LoadingState } from "../../../components/ui/States";
 import { LEAD_STATUSES } from "../../../../lib/networking/catalog";
 import { eventAttributionPath } from "../../../../lib/public-card/urls";
 import type { Member, MemberCardStatus } from "../domain/types";
@@ -71,6 +71,8 @@ export default function NetworkingPanel({
   const [eventLinks, setEventLinks] = useState<EventLink[]>([]);
   const [timeline, setTimeline] = useState<Timeline[]>([]);
   const [credits, setCredits] = useState(0);
+  const [creditLimit, setCreditLimit] = useState(0);
+  const [loaded, setLoaded] = useState(false);
   const [templates, setTemplates] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -78,26 +80,37 @@ export default function NetworkingPanel({
 
   async function load() {
     const access = await token();
-    if (!access || !organizationId) return;
-    const response = await fetch(`/api/organizations/networking?organizationId=${encodeURIComponent(organizationId)}`, {
-      headers: { authorization: `Bearer ${access}` },
-      cache: "no-store",
-    });
-    const payload = await response.json();
-    if (!response.ok) {
-      setMessage(payload.error || "Networking verisi yüklenemedi.");
+    if (!access || !organizationId) {
+      setLoaded(true);
       return;
     }
-    setLeads(payload.leads || []);
-    setMeetings(payload.meetings || []);
-    setEvents(payload.events || []);
-    setEventLinks(payload.eventLinks || []);
-    setTimeline(payload.timeline || []);
-    setCredits(payload.mailCredits?.mail_credits_remaining ?? 0);
-    setMessage("");
+    try {
+      const response = await fetch(`/api/organizations/networking?organizationId=${encodeURIComponent(organizationId)}`, {
+        headers: { authorization: `Bearer ${access}` },
+        cache: "no-store",
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        setMessage(payload.error || "Networking verisi yüklenemedi.");
+        return;
+      }
+      setLeads(payload.leads || []);
+      setMeetings(payload.meetings || []);
+      setEvents(payload.events || []);
+      setEventLinks(payload.eventLinks || []);
+      setTimeline(payload.timeline || []);
+      setCredits(payload.mailCredits?.mail_credits_remaining ?? 0);
+      setCreditLimit(payload.mailCredits?.mail_credit_limit ?? 0);
+      setMessage("");
+    } finally {
+      setLoaded(true);
+    }
   }
 
-  useEffect(() => { void load(); }, [organizationId, view]);
+  useEffect(() => {
+    setLoaded(false);
+    void load();
+  }, [organizationId, view]);
 
   async function post(body: Record<string, unknown>) {
     const access = await token();
@@ -142,23 +155,24 @@ export default function NetworkingPanel({
           <h2 id="p11-networking-title">{view === "leads" ? "Leadler" : view === "events" ? "Etkinlikler" : "Görüşmeler"}</h2>
           <p>
             {view === "leads"
-<<<<<<< HEAD
-              ? "Karttan paylaşılan iletişim. Network Mail kişisel follow-up’tır: 1 alıcı = 1 kredi. Toplu Campaign Mail bu bakiyeden düşmez."
-=======
               ? "NFC/QR sonrası kişi kartın sonundaki ‘İletişimde Kalalım’ formundan buraya düşer. Gönderen Yenomi ID’dir; yanıtlar doğrulanmış e-postanıza gelir. ‘Tanıştığımıza memnun oldum’ 1 Network Mail kredisi harcar; Campaign Mail bu bakiyeden düşmez."
->>>>>>> 69a595b (Open Individual Premium checkout with a real Network Mail ledger.)
               : view === "events"
                 ? "Etkinlik QR’si kişi URL’sini değiştirmez. /e/{id} aynı dijital kartı açar."
                 : "Yüz yüze talepler lokasyon ve ekip uygunluğuna göre planlanır. GPS kullanılmaz."}
           </p>
         </div>
-        <b>Network Mail: {credits}</b>
+        <div className="p11-org-capacity p11-mail-credits">
+          <small>Network Mail</small>
+          <strong>{credits} / {creditLimit}</strong>
+          <span>Kalan kredi</span>
+        </div>
       </header>
       {message && <p className="p11-networking-message" role="status">{message}</p>}
+      {!loaded && <LoadingState label={view === "leads" ? "Leadler yükleniyor" : view === "events" ? "Etkinlikler yükleniyor" : "Görüşmeler yükleniyor"} />}
 
-      {view === "leads" && (
+      {loaded && view === "leads" && (
         leads.length === 0 ? (
-          <EmptyState compact icon="users" title="Henüz networking lead’i yok" description="QR veya NFC ile açılan kartın sonundaki paylaş / görüşme talebi buraya düşer. /kurumsal satış formu bu listeye yazılmaz." />
+          <EmptyState compact icon="users" title="Henüz networking lead’i yok" description="QR veya NFC ile açılan kartın sonundaki paylaş / görüşme talebi buraya düşer. /kurumsal satış formu bu listeye yazılmaz." action={{ href: "/kurumsal/panel/etkinlikler", label: "Etkinlik QR’si oluştur" }} />
         ) : (
           <div className="p11-networking-list">
             {leads.map((lead) => {
@@ -195,7 +209,7 @@ export default function NetworkingPanel({
         )
       )}
 
-      {view === "meetings" && (
+      {loaded && view === "meetings" && (
         meetings.length === 0 ? (
           <EmptyState compact icon="contact" title="Görüşme talebi yok" description="Karttaki Görüşme Talep Et formu buraya düşer." />
         ) : (
@@ -219,7 +233,7 @@ export default function NetworkingPanel({
         )
       )}
 
-      {view === "events" && (
+      {loaded && view === "events" && (
         <>
           <form className="p11-networking-form" onSubmit={createEvent}>
             <label>Etkinlik adı<input required value={eventForm.name} onChange={(event) => setEventForm((current) => ({ ...current, name: event.target.value }))} /></label>

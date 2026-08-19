@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type Dispatch, type FormEvent, type SetStateAction } from "react";
+import { useEffect, type Dispatch, type FormEvent, type KeyboardEvent, type SetStateAction } from "react";
 import { Icon } from "../../../icons";
 import { EmptyState, LoadingState } from "../../../components/ui/States";
 import { Button } from "../../../components/ui/DesignSystem";
@@ -232,6 +232,22 @@ export default function EmployeeDrawer({
           ? "Sınırlı"
           : "Kapalı";
 
+  function statusJumpProps(tab: Props["drawerTab"]) {
+    return {
+      role: "button" as const,
+      tabIndex: 0,
+      className: "v25-status-jump",
+      "aria-pressed": drawerTab === tab,
+      onClick: () => setDrawerTab(tab),
+      onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          setDrawerTab(tab);
+        }
+      },
+    };
+  }
+
   return (
     <Drawer open title="Çalışan Detay" className="v25-employee-drawer" onClose={closeDrawer}>
       <div className="v25-drawer-identity">
@@ -250,12 +266,30 @@ export default function EmployeeDrawer({
           <small id="v25-status-summary-title">Durum özeti</small>
         </header>
         <dl>
-          <div><dt>Rol</dt><dd>{roleSummary}</dd></div>
-          <div><dt>Durum</dt><dd>{memberStatusLabel(drawerMember.status)}</dd></div>
-          <div><dt>Dijital kart</dt><dd>{digitalProfileLabel(cardState?.digitalProfileState ?? "NONE")}</dd></div>
-          <div><dt>Fiziksel kart</dt><dd>{physicalCardLabel(cardState?.physicalCardState ?? (assignedCards.length ? "ASSIGNED" : "UNASSIGNED"))}</dd></div>
-          <div><dt>Davet</dt><dd>{inviteSummary}</dd></div>
-          <div><dt>Erişim</dt><dd>{accessSummary}</dd></div>
+          <div {...statusJumpProps("lifecycle")}>
+            <dt>Rol</dt>
+            <dd>{roleSummary}</dd>
+          </div>
+          <div {...statusJumpProps("lifecycle")}>
+            <dt>Durum</dt>
+            <dd>{memberStatusLabel(drawerMember.status)}</dd>
+          </div>
+          <div {...statusJumpProps("card")}>
+            <dt>Dijital kart</dt>
+            <dd>{digitalProfileLabel(cardState?.digitalProfileState ?? "NONE")}</dd>
+          </div>
+          <div {...statusJumpProps("card")}>
+            <dt>Fiziksel kart</dt>
+            <dd>{physicalCardLabel(cardState?.physicalCardState ?? (assignedCards.length ? "ASSIGNED" : "UNASSIGNED"))}</dd>
+          </div>
+          <div {...statusJumpProps("invite")}>
+            <dt>Davet</dt>
+            <dd>{inviteSummary}</dd>
+          </div>
+          <div {...statusJumpProps("lifecycle")}>
+            <dt>Erişim</dt>
+            <dd>{accessSummary}</dd>
+          </div>
         </dl>
       </section>
 
@@ -283,11 +317,10 @@ export default function EmployeeDrawer({
             <form className="v25-employee-form" onSubmit={saveMemberIdentity}>
               <div className="v25-section-heading">
                 <div>
-                  <small>ŞİRKET TARAFINDAN YÖNETİLİR</small>
+                  <small>ŞİRKET TARAFINDAN YÖNETİLİR <Icon name="lock" /></small>
                   <h3>Kurumsal kimlik</h3>
                   <p>Bu alanlar İK/yönetici tarafından merkezi olarak yönetilir ve kurumsal karta yansır.</p>
                 </div>
-                <Icon name="lock" />
               </div>
               <div className="ds-form-grid">
                 <label className="ds-field">
@@ -323,10 +356,10 @@ export default function EmployeeDrawer({
                   <span className="ds-label">Departman</span>
                   <input className="ds-input" list="corporate-department-options" value={memberEdit.department} placeholder="Seç veya yaz" onChange={(event) => setMemberEdit((value) => ({ ...value, department: event.target.value }))} />
                 </label>
-                <div className="corporate-lead-full v25-readonly-role">
-                  <small>Sistem rolü</small>
-                  <strong>{roleLabel(drawerMember.role)}</strong>
-                  <span>Rol değişiklikleri yetki matrisi üzerinden ayrı olarak yönetilir.</span>
+                <div className="ds-field corporate-lead-full v25-readonly-role">
+                  <span className="ds-label">Sistem rolü</span>
+                  <div className="ds-input v25-readonly-role-value" aria-readonly="true">{roleLabel(drawerMember.role)}</div>
+                  <small className="ds-help">Rol değişiklikleri yetki matrisi üzerinden ayrı olarak yönetilir.</small>
                 </div>
               </div>
               <datalist id="corporate-title-options">{TITLE_OPTIONS.map((item) => <option key={item} value={item} />)}</datalist>

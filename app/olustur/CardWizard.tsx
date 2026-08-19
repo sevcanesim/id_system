@@ -37,6 +37,15 @@ import type { CardBranding } from "../CardTemplate";
 import { fetchOrganizationIdentity, type OrgLock } from "./domain/organization-identity";
 import { cardShareUrl } from "../../lib/public-card/urls";
 
+const CARD_SECTIONS = [
+  { id: "p8-basic", label: "Temel Bilgiler" },
+  { id: "p8-contact", label: "İletişim" },
+  { id: "p8-company", label: "Şirket" },
+  { id: "p8-social", label: "Sosyal Medya" },
+  { id: "p8-links", label: "Bağlantılar" },
+  { id: "p8-appearance", label: "Profil Görünümü" },
+] as const;
+
 export default function CardWizard() {
   const [data, setData] = useState<CardData>(INITIAL_CARD_DATA);
   const [userId, setUserId] = useState<string | null>(null);
@@ -65,12 +74,25 @@ export default function CardWizard() {
   const [titleRequestMessage, setTitleRequestMessage] = useState("");
   const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<(typeof CARD_SECTIONS)[number]["id"]>("p8-basic");
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedProfileId = searchParams.get("id");
   const isNewCard = searchParams.get("new") === "1";
   const businessOrganizationId = searchParams.get("organizationId");
   const isBusinessCard = searchParams.get("business") === "1" && Boolean(businessOrganizationId);
+
+  useEffect(() => {
+    const applyHash = () => {
+      const id = window.location.hash.replace("#", "");
+      if (CARD_SECTIONS.some((section) => section.id === id)) {
+        setActiveSection(id as (typeof CARD_SECTIONS)[number]["id"]);
+      }
+    };
+    applyHash();
+    window.addEventListener("hashchange", applyHash);
+    return () => window.removeEventListener("hashchange", applyHash);
+  }, []);
 
   useEffect(() => {
     // Eski global taslak anahtarı aynı tarayıcıdaki farklı kurumsal demo
@@ -580,12 +602,17 @@ export default function CardWizard() {
 
   const editorBody = <div className="p8-editor" data-surface="dashboard">
     <nav className="p8-section-nav" aria-label="Profil bölümleri">
-      <a href="#p8-basic">Temel Bilgiler</a>
-      <a href="#p8-contact">İletişim</a>
-      <a href="#p8-company">Şirket</a>
-      <a href="#p8-social">Sosyal Medya</a>
-      <a href="#p8-links">Bağlantılar</a>
-      <a href="#p8-appearance">Profil Görünümü</a>
+      {CARD_SECTIONS.map((section) => (
+        <a
+          key={section.id}
+          href={`#${section.id}`}
+          className={activeSection === section.id ? "is-active" : undefined}
+          aria-current={activeSection === section.id ? "true" : undefined}
+          onClick={() => setActiveSection(section.id)}
+        >
+          {section.label}
+        </a>
+      ))}
     </nav>
 
     <div className="p8-editor-grid">
@@ -655,7 +682,7 @@ export default function CardWizard() {
               <div className="p8-slug-field"><span>qr.yenomilabs.com/p/</span><Input value={profileSlug} onChange={(e) => updateSlug(e.target.value)} onBlur={() => setProfileSlug(normalizeProfileSlug(profileSlug))} placeholder="adsoyad" minLength={3} maxLength={40}/></div>
             </Field>
           </div>
-          <div className={`p8-slug-feedback p8-slug-feedback--${slugStatus}`} aria-live="polite"><span>{slugMessage || "Ad-soyadından otomatik önerilir; yayınlamadan önce değiştirebilirsiniz."}</span>{slugTouched && <Button size="sm" variant="ghost" onClick={() => { setSlugTouched(false); setProfileSlug(createProfileSlug(data.name)); }}>Otomatik Öner</Button>}</div>
+          <div className={`p8-slug-feedback p8-slug-feedback--${slugStatus}`} aria-live="polite"><span>{slugMessage || "Ad-soyadından otomatik önerilir; yayınlamadan önce değiştirebilirsiniz."}</span>{slugTouched && <Button size="sm" variant="secondary" onClick={() => { setSlugTouched(false); setProfileSlug(createProfileSlug(data.name)); }}>Otomatik Öner</Button>}</div>
           {slugSuggestions.length > 0 && <div className="p8-slug-suggestions" aria-label="Uygun bağlantı önerileri">{slugSuggestions.map((suggestion) => <button type="button" key={suggestion} onClick={() => updateSlug(suggestion)}>{suggestion}</button>)}</div>}
         </section>
 
@@ -668,11 +695,11 @@ export default function CardWizard() {
           <Field label="Kısa Biyografi" help={`${(data.bio || "").length}/280 karakter`}>
             <Textarea value={data.bio || ""} onChange={(e) => update("bio", e.target.value)} maxLength={280} rows={5} placeholder="Kısa ve profesyonel bir tanıtım yazın..." />
           </Field>
-          <Field label="English title" help="International networking content layer. Leave empty to keep the Turkish title on EN.">
+          <Field label="İngilizce ünvan" help="Uluslararası networking katmanı. Boş bırakılırsa İngilizce görünümde Türkçe ünvan kullanılır.">
             <Input value={englishRole} onChange={(e) => setEnglishRole(e.target.value)} placeholder="Head of Partnerships" />
           </Field>
-          <Field label="About you (EN)" help={`${englishAbout.length}/280 characters`}>
-            <Textarea value={englishAbout} onChange={(e) => setEnglishAbout(e.target.value)} maxLength={280} rows={4} placeholder="Short English introduction for international events." />
+          <Field label="Hakkında (EN)" help={`${englishAbout.length}/280 karakter`}>
+            <Textarea value={englishAbout} onChange={(e) => setEnglishAbout(e.target.value)} maxLength={280} rows={4} placeholder="Uluslararası etkinlikler için kısa İngilizce tanıtım." />
           </Field>
         </section>
 

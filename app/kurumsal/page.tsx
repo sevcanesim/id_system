@@ -1,6 +1,13 @@
-import Link from "next/link";
 import { Icon } from "../icons";
-import { COMMERCIAL_PRICING } from "../../lib/config/commercial";
+import {
+  CAMPAIGN_MAIL_PACKS,
+  CORPORATE_PACKAGE_LADDER,
+  CORPORATE_SHARED_FEATURES,
+  NETWORK_MAIL_CREDIT_PACKS,
+  NETWORK_MAIL_POSITIONING,
+  networkMailGrant,
+  perSeatKurus,
+} from "../../lib/commerce/packages";
 import { formatTryFromKurus } from "../../lib/config/product";
 import CorporateLeadForm from "./CorporateLeadForm";
 
@@ -37,7 +44,13 @@ const steps = [
   ["03", "Kartları teslim edelim", "NFC + QR kartlar üretilir, profiller eşleştirilir ve yönetim paneliniz kullanıma açılır."],
 ];
 
-export default function CorporatePage() {
+export default async function CorporatePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ plan?: string | string[] }>;
+}) {
+  const params = await searchParams;
+  const selectedPlan = Array.isArray(params.plan) ? params.plan[0] : params.plan;
   const capabilities = [
     { icon: "users" as const, title: "Toplu Yönetim", text: "Çalışanlarınızı ve kartlarını tek merkezden yönetin." },
     { icon: "building" as const, title: "Marka Kontrolü", text: "Şablon, logo, renk ve alan kurallarını merkezden belirleyin." },
@@ -51,8 +64,8 @@ export default function CorporatePage() {
       <section className="corporate-single-hero" aria-labelledby="corporate-single-title">
         <div className="corporate-single-copy">
           <span className="section-kicker">YENOMI BUSINESS</span>
-          <h1 id="corporate-single-title">Şirketinizin dijital kimlik standardını <em>tek merkezden yönetin.</em></h1>
-          <p>Çalışan kartları, marka standartları, erişim yetkileri ve analitik verileri tek bir yönetim sisteminde birleştirin.</p>
+          <h1 id="corporate-single-title">Şirket NFC kart almıyor. <em>Çalışanların networking altyapısını satın alıyor.</em></h1>
+          <p>Tanışılan kişiyi kaydedin, ilişkiyi yönetin, görüşmeyi fırsata dönüştürün. Kart, panel, Network Mail ve kurumsal analitik tek pakettedir.</p>
           <div className="corporate-hero-actions">
             <a href="#teklif" className="corporate-cta">Demo İste <span aria-hidden="true">→</span></a>
             <a href="#business-pricing-title" className="corporate-secondary-cta">Paketleri İncele <span aria-hidden="true">→</span></a>
@@ -74,11 +87,11 @@ export default function CorporatePage() {
                 <span className="active" /><span /><span /><span /><span />
               </aside>
               <div className="corporate-dashboard-content">
-                <div className="corporate-dashboard-heading"><div><small>EKİP GENEL BAKIŞ</small><strong>Merhaba, Yenomi Business</strong></div><span>•••</span></div>
+                <div className="corporate-dashboard-heading"><div><small>BU AY</small><strong>Networking özeti</strong></div><span>•••</span></div>
                 <div className="corporate-dashboard-kpis">
-                  <div><small>Çalışanlar</small><strong>248</strong><span>+12 bu ay</span></div>
-                  <div><small>Aktif Kartlar</small><strong>231</strong><span>93.1% aktif</span></div>
-                  <div><small>Görüntülenme</small><strong>12.8K</strong><span>+18.4%</span></div>
+                  <div><small>Bağlantı</small><strong>482</strong><span>kişiyle tanışıldı</span></div>
+                  <div><small>Follow-up</small><strong>219</strong><span>Network Mail</span></div>
+                  <div><small>Yeni lead</small><strong>87</strong><span>64 toplantı</span></div>
                 </div>
                 <div className="corporate-dashboard-grid">
                   <div className="corporate-dashboard-chart"><small>KART ETKİLEŞİMLERİ</small><div className="corporate-bars"><i /><i /><i /><i /><i /><i /><i /></div></div>
@@ -112,15 +125,88 @@ export default function CorporatePage() {
       </section>
 
       <section className="corporate-pricing-section corporate-single-details" aria-labelledby="business-pricing-title">
-        <div className="corporate-section-heading"><span className="section-kicker">YILLIK KURUMSAL SİSTEM</span><h2 id="business-pricing-title">Ekibiniz için net kapasite, tek yönetim standardı.</h2><p>Fiyatlar kart adedinin yanında çalışan dijital kartvizitlerini, yönetim panelini ve yıllık dijital hizmeti kapsar.</p></div>
-        <div className="corporate-pricing-grid">
-          {[COMMERCIAL_PRICING.BUSINESS_STARTER, COMMERCIAL_PRICING.BUSINESS_GROWTH, COMMERCIAL_PRICING.BUSINESS].map((plan) => <article key={plan.code}>
-            <span>{plan.code}</span><h3>{plan.code === "STARTER" ? "Starter" : plan.code === "GROWTH" ? "Growth" : "Business"}</h3>
-            <p>{plan.seats} çalışan için Kurumsal Dijital Kartvizit Sistemi</p><strong>{formatTryFromKurus(plan.priceKurus)} <small>/ yıl</small></strong>
-            <ul><li>Kurumsal yönetim paneli</li><li>{plan.seats} çalışan dijital kartviziti</li><li>NFC + QR kartlar</li><li>Rol, şablon ve şirket bilgisi yönetimi</li></ul>
-            <a href="#teklif" className="corporate-plan-link">Teklif Al <span>→</span></a>
-          </article>)}
-          <article className="enterprise"><span>ENTERPRISE</span><h3>Enterprise</h3><p>Özel kapasite ve kurulum ihtiyaçları için birlikte tasarlanan sistem.</p><strong>Özel teklif</strong><ul><li>Özel çalışan kapasitesi</li><li>Kuruma özel uygulama planı</li><li>Merkezi yönetim ve raporlama</li></ul><a href="#teklif" className="corporate-plan-link">Teklif Al <span>→</span></a></article>
+        <div className="corporate-section-heading">
+          <span className="section-kicker">YILLIK KURUMSAL SİSTEM</span>
+          <h2 id="business-pricing-title">Kişi başı fiyat düştükçe paket büyür.</h2>
+          <p>Her pakette NFC kart + 1 yıl üyelik + Türkiye içi ücretsiz kargo birlikte düşünülür. Network Mail kişi başı 100 kredidir; 10 kişi 5 kişiyle aynı fiyat olmaz.</p>
+        </div>
+        <div className="corporate-pack-table-wrap">
+          <table className="corporate-pack-table">
+            <caption className="sr-only">Kurumsal paket merdiveni</caption>
+            <thead>
+              <tr>
+                <th scope="col">Paket</th>
+                <th scope="col">Kullanıcı</th>
+                <th scope="col">NFC kart</th>
+                <th scope="col">Network Mail</th>
+                <th scope="col">Kişi başı</th>
+                <th scope="col">Yıllık fiyat</th>
+                <th scope="col"><span className="sr-only">Teklif</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {CORPORATE_PACKAGE_LADDER.map((plan) => (
+                <tr key={plan.code} className={"popular" in plan && plan.popular ? "is-popular" : undefined}>
+                  <th scope="row">
+                    {plan.name}
+                    {"popular" in plan && plan.popular ? <span className="corporate-pack-badge">Öne çıkan</span> : null}
+                  </th>
+                  <td>{plan.seats}</td>
+                  <td>{plan.seats}</td>
+                  <td>{networkMailGrant(plan.seats).toLocaleString("tr-TR")}</td>
+                  <td>{formatTryFromKurus(perSeatKurus(plan.priceKurus, plan.seats))}</td>
+                  <td><strong>{formatTryFromKurus(plan.priceKurus)}</strong></td>
+                  <td><a href={`/kurumsal?plan=${plan.code}#teklif`} className="corporate-plan-link">Teklif Al</a></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="corporate-pack-note">Tüm paketlerde: 1 yıllık kullanım + NFC kart + ücretsiz kargo. Kullanılmayan Network Mail kredisi paket yenilenirse devreder; yenilenmezse yanar.</p>
+        <div className="corporate-pricing-grid corporate-pricing-grid--compact">
+          <article className="is-featured">
+            <span>CORP-10</span>
+            <h3>Kurumsal 10</h3>
+            <p>10 NFC kart, 10 dijital profil, 1 şirket paneli, 1.000 Network Mail.</p>
+            <strong>{formatTryFromKurus(990_000)} <small>/ yıl</small></strong>
+            <ul>{CORPORATE_SHARED_FEATURES.slice(0, 8).map((item) => <li key={item}>{item}</li>)}</ul>
+            <a href="/kurumsal?plan=CORP-10#teklif" className="corporate-plan-link">Teklif Al <span>→</span></a>
+          </article>
+          <article className="enterprise">
+            <span>ENTERPRISE</span>
+            <h3>Enterprise</h3>
+            <p>100 kişiyi aşan kapasite, özel kurulum ve raporlama.</p>
+            <strong>Özel teklif</strong>
+            <ul>
+              <li>Özel çalışan kapasitesi</li>
+              <li>Kuruma özel uygulama planı</li>
+              <li>Merkezi yönetim ve raporlama</li>
+            </ul>
+            <a href="/kurumsal?plan=ENTERPRISE#teklif" className="corporate-plan-link">Teklif Al <span>→</span></a>
+          </article>
+        </div>
+        <div className="corporate-mail-packs">
+          <article>
+            <span>NETWORK MAIL</span>
+            <h3>{NETWORK_MAIL_POSITIONING.name}</h3>
+            <p>{NETWORK_MAIL_POSITIONING.promise} {NETWORK_MAIL_POSITIONING.unit}. {NETWORK_MAIL_POSITIONING.notBulk}</p>
+            <ul>
+              {NETWORK_MAIL_CREDIT_PACKS.map((pack) => (
+                <li key={pack.sku}><b>{pack.credits.toLocaleString("tr-TR")} kredi</b> {formatTryFromKurus(pack.priceKurus)}</li>
+              ))}
+            </ul>
+            <a href="/kurumsal?plan=NETWORK-MAIL#teklif" className="corporate-plan-link">Kredi paketi teklifi <span>→</span></a>
+          </article>
+          <article>
+            <span>CAMPAIGN MAIL</span>
+            <h3>Toplu kampanya — ikinci aşama</h3>
+            <p>Pazarlama gönderimi Network Mail kredisinden düşmez. Bu katalog henüz checkout’ta satılmaz.</p>
+            <ul>
+              {CAMPAIGN_MAIL_PACKS.map((pack) => (
+                <li key={pack.sku}><b>{pack.credits.toLocaleString("tr-TR")} Campaign Mail</b> {formatTryFromKurus(pack.priceKurus)}</li>
+              ))}
+            </ul>
+          </article>
         </div>
       </section>
 
@@ -131,7 +217,7 @@ export default function CorporatePage() {
           <p>Çalışan sayısı, paket tercihi ve kullanım senaryonuzu gönderin. Talebiniz kayda alınır ve ekibimiz 1 iş günü içinde sizinle iletişime geçer.</p>
           <ul><li>Kurulum ve kart kapsamı birlikte netleştirilir.</li><li>Özel kapasite gerekiyorsa Enterprise planı ayrıca değerlendirilir.</li><li>İsterseniz <a href="mailto:hello@yenomilabs.com?subject=Yenomi%20Business%20Teklif">e-posta ile</a> ulaşabilirsiniz.</li></ul>
         </div>
-        <CorporateLeadForm />
+        <CorporateLeadForm plan={selectedPlan || "GENEL"} />
       </section>
     </main>
   );

@@ -13,6 +13,7 @@ const commercial = read("lib/config/commercial.ts");
 const product = read("lib/config/product.ts");
 const cart = read("lib/cart.ts");
 const productPage = read("app/urunler/nfc-kart/page.tsx");
+const purchasePanel = read("app/urunler/nfc-kart/NfcPurchasePanel.tsx");
 const legacyOrder = read("app/nfc-siparis/page.tsx");
 const checkoutPage = read("app/checkout/page.tsx");
 const checkoutApi = read("app/api/commerce/checkout/route.ts");
@@ -20,7 +21,7 @@ const architectureAudit = read("audit/PHASE1_PRODUCT_ARCHITECTURE_AUDIT.md");
 
 check(commercial.includes("export const COMMERCIAL_SKUS"), "commercial SKU dictionary is canonical");
 check(product.includes("defaultOfferSku?: string") && product.includes("defaultOfferSku: COMMERCIAL_PRICING.YENOMI_ID_INITIAL.sku"), "catalog product explicitly points to its default sellable offer");
-check(productPage.includes("variantSku={NFC_PRODUCT.defaultOfferSku}"), "canonical NFC product purchase sends explicit initial offer SKU");
+check(purchasePanel.includes("variantSku={product.defaultOfferSku}") || productPage.includes("variantSku={NFC_PRODUCT.defaultOfferSku}"), "canonical NFC product purchase sends explicit initial offer SKU");
 check(legacyOrder.includes("variantSku: NFC_PRODUCT.defaultOfferSku"), "legacy NFC order bridge also sends explicit initial offer SKU");
 check(cart.includes("legacyInitialOffer") && cart.includes("COMMERCIAL_SKUS.INITIAL"), "legacy carts without variant SKU migrate deterministically to initial offer");
 check(checkoutApi.includes("variantSku: z.string().min(2).max(100),") && !checkoutApi.includes("variantSku: z.string().min(2).max(100).optional()"), "checkout API requires an explicit offer SKU");

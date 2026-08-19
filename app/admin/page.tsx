@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { networkMailGrant } from "../../lib/commerce/packages";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import AppHeader from "../components/AppHeader";
 import { EmptyState, LoadingState } from "../components/ui/States";
@@ -63,7 +64,7 @@ export default function AdminPage() {
   const [corporateLoading, setCorporateLoading] = useState(false);
   const [corporateMessage, setCorporateMessage] = useState("");
   const [provisioning, setProvisioning] = useState(false);
-  const [form, setForm] = useState({ name: "", taxNumber: "", taxOffice: "", legalAddress: "", city: "", planCode: "STARTER", employeeLimit: "", digitalCardLimit: "", physicalCardLimit: "", mailCreditLimit: "", billingPeriod: "YEARLY" as "MONTHLY" | "YEARLY", termDays: "", status: "ACTIVE" as "ACTIVE" | "SUSPENDED" });
+  const [form, setForm] = useState({ name: "", taxNumber: "", taxOffice: "", legalAddress: "", city: "", planCode: "CORP-10", employeeLimit: "", digitalCardLimit: "", physicalCardLimit: "", mailCreditLimit: "", billingPeriod: "YEARLY" as "MONTHLY" | "YEARLY", termDays: "", status: "ACTIVE" as "ACTIVE" | "SUSPENDED" });
   const [attachForm, setAttachForm] = useState<Record<string, { email: string; fullName: string; role: "OWNER" | "ADMIN" | "HR" }>>({});
 
   async function getToken() {
@@ -166,7 +167,7 @@ export default function AdminPage() {
       const result = await response.json();
       if (!response.ok) { setCorporateMessage(result.error ?? "Şirket oluşturulamadı."); return; }
       setCorporateMessage(`${result.organization.name} oluşturuldu. Corporate ID: ${result.organization.corporate_id || "atanacak"}. Kullanıcılar ayrıca bağlanır.`);
-      setForm({ name: "", taxNumber: "", taxOffice: "", legalAddress: "", city: "", planCode: "STARTER", employeeLimit: "", digitalCardLimit: "", physicalCardLimit: "", mailCreditLimit: "", billingPeriod: "YEARLY", termDays: "", status: "ACTIVE" });
+      setForm({ name: "", taxNumber: "", taxOffice: "", legalAddress: "", city: "", planCode: "CORP-10", employeeLimit: "", digitalCardLimit: "", physicalCardLimit: "", mailCreditLimit: "", billingPeriod: "YEARLY", termDays: "", status: "ACTIVE" });
       await loadCorporate();
     } catch { setCorporateMessage("Sunucuya ulaşılamadı."); }
     finally { setProvisioning(false); }
@@ -323,7 +324,7 @@ export default function AdminPage() {
               <label>Çalışan limiti<input type="number" min={1} value={form.employeeLimit} onChange={(e) => setForm((v) => ({ ...v, employeeLimit: e.target.value }))} placeholder={selectedPlan?.seat_limit ? String(selectedPlan.seat_limit) : "Zorunlu"} /></label>
               <label>Dijital kart limiti<input type="number" min={0} value={form.digitalCardLimit} onChange={(e) => setForm((v) => ({ ...v, digitalCardLimit: e.target.value }))} /></label>
               <label>Fiziksel kart limiti<input type="number" min={0} value={form.physicalCardLimit} onChange={(e) => setForm((v) => ({ ...v, physicalCardLimit: e.target.value }))} /></label>
-              <label>Mail kredisi<input type="number" min={0} value={form.mailCreditLimit} onChange={(e) => setForm((v) => ({ ...v, mailCreditLimit: e.target.value }))} placeholder="1000" /></label>
+              <label>Mail kredisi<input type="number" min={0} value={form.mailCreditLimit} onChange={(e) => setForm((v) => ({ ...v, mailCreditLimit: e.target.value }))} placeholder={selectedPlan?.seat_limit ? String(networkMailGrant(selectedPlan.seat_limit)) : "Kişi başı 100"} /></label>
               <label>Durum<select value={form.status} onChange={(e) => setForm((v) => ({ ...v, status: e.target.value as "ACTIVE" | "SUSPENDED" }))}><option value="ACTIVE">Aktif</option><option value="SUSPENDED">Pasif</option></select></label>
               <label>Abonelik süresi (gün) <small className="optional-label">İsteğe bağlı — boş bırakılırsa {form.billingPeriod === "MONTHLY" ? "30" : "365"} gün</small><input type="number" min={1} max={3650} value={form.termDays} onChange={(e) => setForm((v) => ({ ...v, termDays: e.target.value }))} /></label>
               <button className="admin-provision-button order-submit" disabled={provisioning}>{provisioning ? "Oluşturuluyor..." : "Şirketi Oluştur"}</button>

@@ -30,13 +30,18 @@ export function sendCorporateLeadEmail(input:{id:string;fullName:string;email:st
   });
 }
 
-export function sendNetworkingFollowUpEmail(input:{to:string;organizationName:string;leadName:string;template:"EVENT_BEFORE"|"EVENT_MET"|"AFTER_MEETING"}) {
+export function sendNetworkingFollowUpEmail(input:{to:string;organizationName:string;leadName:string;template:"EVENT_BEFORE"|"EVENT_MET"|"OFFER"|"AFTER_MEETING"|"PRESENTATION"|"EVENT_THANKS"|"PRODUCT_INFO"|"CUSTOM"}) {
   const org = escapeHtml(input.organizationName);
   const name = escapeHtml(input.leadName);
   const copy = {
     EVENT_BEFORE: { subject: `${input.organizationName} — etkinlikte görüşmek isteriz`, body: `<p>Merhaba ${name},</p><p>${org} olarak yaklaşan etkinlikte sizinle tanışmak isteriz.</p>` },
-    EVENT_MET: { subject: `Etkinlikte sizinle tanışmıştık — ${input.organizationName}`, body: `<p>Merhaba ${name},</p><p>Etkinlikte sizinle tanışmıştık. ${org} olarak bağlantıda kalmak isteriz.</p>` },
+    EVENT_MET: { subject: `Tanıştığımıza memnun oldum — ${input.organizationName}`, body: `<p>Merhaba ${name},</p><p>Bugün tanıştığımıza memnun oldum. Konuştuğumuz konu hakkında ${org} olarak bağlantıda kalmak isteriz.</p>` },
+    OFFER: { subject: `Teklifimizi iletiyorum — ${input.organizationName}`, body: `<p>Merhaba ${name},</p><p>Görüşmemizin ardından ${org} teklifimizi sizinle paylaşmak isteriz.</p>` },
     AFTER_MEETING: { subject: `Görüşmemizin ardından — ${input.organizationName}`, body: `<p>Merhaba ${name},</p><p>${org} ile görüşmenizin ardından sonraki adımı birlikte netleştirmek isteriz.</p>` },
+    PRESENTATION: { subject: `Sunumu iletiyorum — ${input.organizationName}`, body: `<p>Merhaba ${name},</p><p>Konuştuğumuz sunumu ${org} olarak sizinle paylaşıyorum.</p>` },
+    EVENT_THANKS: { subject: `Etkinlik sonrası teşekkür — ${input.organizationName}`, body: `<p>Merhaba ${name},</p><p>Etkinlikte ayırdığınız zaman için teşekkür ederiz. ${org} olarak bağlantıda kalalım.</p>` },
+    PRODUCT_INFO: { subject: `Ürün bilgisi — ${input.organizationName}`, body: `<p>Merhaba ${name},</p><p>İstediğiniz ürün bilgilerini ${org} olarak iletiyorum.</p>` },
+    CUSTOM: { subject: `${input.organizationName} — bağlantıda kalalım`, body: `<p>Merhaba ${name},</p><p>${org} olarak sizinle bağlantıda kalmak isteriz.</p>` },
   }[input.template];
   return sendMail({
     to: input.to,

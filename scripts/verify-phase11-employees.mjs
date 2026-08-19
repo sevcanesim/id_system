@@ -42,6 +42,10 @@ pass('employee drawer keeps identity beside card preview',drawer.includes('v25-d
 pass('employee status summary is a labeled field group',drawer.includes('v25-status-summary')&&drawer.includes('Durum özeti')&&['Rol','Dijital kart','Fiziksel kart','Davet','Erişim'].every(x=>drawer.includes(`<dt>${x}</dt>`))&&canonical.includes('.v25-status-summary'));
 const cards=read('app/kurumsal/panel/components/CardsPanel.tsx');
 pass('cards inventory uses employee workspace chrome',cards.includes('p11-cards')&&cards.includes('Kartı Yönet')&&cards.includes('Henüz fiziksel kart kaydı yok.')&&corp.includes('<CardsPanel')&&canonical.includes('.p11-cards'));
+pass('employee drawer is a props element not a child wrapper',corp.includes('<EmployeeDrawer')&&!corp.includes('<EmployeeDrawer>'));
+pass('cards metrics show employee to digital to physical relationship',cards.includes('p11-card-flow')&&cards.includes('p11-card-flow-copy')&&cards.includes('variant="primary"')&&canonical.includes('.p11-card-flow'));
+const links=read('app/kurumsal/panel/components/CorporateLinksPanel.tsx');
+pass('corporate links expose labeled save publish and source state',links.includes('corp-link-status')&&links.includes('<dt>Kayıt</dt>')&&links.includes('<dt>Yayın</dt>')&&links.includes('<dt>Kaynak</dt>')&&links.includes('URL aktif')&&links.includes('PDF aktif')&&canonical.includes('.corp-link-status'));
 const css=read('app/employee-management.css');
 pass('Phase 11 CSS uses no legacy token family',!/var\(--(?:yi|yp|store|brand|ui|y)-/.test(css));
 pass('Phase 11 employee chrome uses no gradients',!/gradient\(/.test(css));

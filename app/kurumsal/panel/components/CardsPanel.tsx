@@ -70,12 +70,34 @@ export default function CardsPanel({
         <Button type="button" variant="secondary" onClick={openEmployees}>Çalışanlara Git</Button>
       </header>
 
-      <div className="p11-kpis">
-        <article><small>Dijital kart hazır</small><strong>{digitalCardsReady}</strong><span>Yayında olan profiller</span></article>
-        <article><small>Fiziksel kart</small><strong>{physicalCards.length}</strong><span>Kayıtlı donanım</span></article>
-        <article><small>Aktif fiziksel kart</small><strong>{assignedActive}</strong><span>Çalışana bağlı ve açık</span></article>
-        <article><small>Atama bekleyen</small><strong>{unassignedCards.length}</strong><span>Sahipsiz fiziksel kart</span></article>
-      </div>
+      <section className="p11-card-relation" aria-label="Kart ilişkisi">
+        <p className="p11-card-flow-copy">
+          <strong>{roster.length}</strong> çalışan
+          <span aria-hidden="true"> → </span>
+          <strong>{digitalCardsReady}</strong> dijital kart
+          <span aria-hidden="true"> → </span>
+          <strong>{physicalCards.length}</strong> fiziksel kart
+        </p>
+        <div className="p11-card-flow">
+          <article>
+            <small>Çalışan</small>
+            <strong>{roster.length}</strong>
+            <span>Ekip kaydı</span>
+          </article>
+          <span className="p11-card-flow-join" aria-hidden="true">→</span>
+          <article>
+            <small>Dijital kart</small>
+            <strong>{digitalCardsReady}</strong>
+            <span>Yayında olan profil</span>
+          </article>
+          <span className="p11-card-flow-join" aria-hidden="true">→</span>
+          <article>
+            <small>Fiziksel kart</small>
+            <strong>{physicalCards.length}</strong>
+            <span>{assignedActive} aktif · {unassignedCards.length} atama bekliyor</span>
+          </article>
+        </div>
+      </section>
 
       <section className="p11-employee-card">
         <div className="p11-toolbar">
@@ -192,11 +214,13 @@ export default function CardsPanel({
                     <small>{card.cardCodeMasked} · {card.ownerUserId ? "Çalışana atanmış" : "Atama bekliyor"}</small>
                   </div>
                   <span data-status={card.status}>{physicalCardLabel(card.status)}</span>
-                  {card.status === "ACTIVE" ? (
-                    <button type="button" disabled={cardBusy === card.id} onClick={() => void toggleCardStatus(card.id, "DISABLED")}>Pasife Al</button>
-                  ) : card.status === "DISABLED" ? (
-                    <button type="button" disabled={cardBusy === card.id} onClick={() => void toggleCardStatus(card.id, "ACTIVE")}>Aktifleştir</button>
-                  ) : <i />}
+                  <div className="p11-card-hardware-action">
+                    {card.status === "ACTIVE" ? (
+                      <Button type="button" variant="secondary" disabled={cardBusy === card.id} onClick={() => void toggleCardStatus(card.id, "DISABLED")}>Pasife Al</Button>
+                    ) : card.status === "DISABLED" ? (
+                      <Button type="button" variant="primary" disabled={cardBusy === card.id} onClick={() => void toggleCardStatus(card.id, "ACTIVE")}>Aktifleştir</Button>
+                    ) : null}
+                  </div>
                 </article>
               ))}
             </div>

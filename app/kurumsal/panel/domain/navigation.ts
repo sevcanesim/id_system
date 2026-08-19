@@ -74,7 +74,7 @@ export const CORPORATE_PANEL_TAB_META: Record<CorporatePanelTab, { label: string
   overview: { label: "Genel Bakış", icon: "building", group: "GENEL", loadingLabel: "Genel Bakış yükleniyor" },
   employees: { label: "Çalışanlar", icon: "users", group: "EKİP & KARTLAR", loadingLabel: "Çalışanlar yükleniyor" },
   cards: { label: "Kartlar", icon: "contact", loadingLabel: "Kartlar yükleniyor" },
-  templates: { label: "Marka & Şablon", icon: "contact", group: "MARKA & İÇERİK", loadingLabel: "Kurumsal şablonlar yükleniyor" },
+  templates: { label: "Marka & Şablon", icon: "id", group: "MARKA & İÇERİK", loadingLabel: "Kurumsal şablonlar yükleniyor" },
   content: { label: "İçerik", icon: "link", loadingLabel: "İçerik yükleniyor" },
   analytics: { label: "İstatistikler", icon: "analytics", group: "YÖNETİM", loadingLabel: "İstatistikler yükleniyor" },
   leads: { label: "Leadler", icon: "users", group: "NETWORKING", loadingLabel: "Leadler yükleniyor" },

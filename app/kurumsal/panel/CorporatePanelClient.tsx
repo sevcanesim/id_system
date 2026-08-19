@@ -1253,7 +1253,7 @@ export default function CompanyPanel() {
     employees: { title: "Çalışanlar", description: "Ekibini, davetleri ve kart yaşam döngüsünü buradan yönet.", icon: "users" },
     cards: { title: "Kartlar", description: "Fiziksel ve dijital kart durumlarını tek yerde yönet.", icon: "contact" },
     roles: { title: "Roller & Yetkiler", description: "Kurumsal yetki sınırlarını ve rol dağılımını kontrol et.", icon: "lock" },
-    templates: { title: "Marka & Şablon", description: "Kurumsal kart görünümünü ve marka standartlarını merkezi olarak yönet.", icon: "contact" },
+    templates: { title: "Marka & Şablon", description: "Kurumsal kart görünümünü ve marka standartlarını merkezi olarak yönet.", icon: "id" },
     content: { title: "İçerik", description: "Merkezi bağlantıları ve kurumsal dosyaları çalışan kartlarına dağıt.", icon: "link" },
     analytics: { title: "İstatistikler", description: "Kart görüntülenmelerini ve içerik etkileşimlerini gerçek verilerle izle.", icon: "analytics" },
     leads: { title: "Leadler", description: "Karttan düşen networking lead’lerini, mail ve görüşme takibini yönet.", icon: "users" },
@@ -1406,7 +1406,6 @@ export default function CompanyPanel() {
               <strong>{sidebarUser?.full_name || sidebarUser?.email || "Yönetici"}</strong>
               <small>{sidebarUser?.role === "OWNER" ? "Yönetici" : roleLabel(sidebarUser?.role || "EMPLOYEE")}</small>
             </div>
-            <b aria-hidden><Icon name="chevronDown" /></b>
           </div>
         </PanelSidebar>
         <section className="enterprise-dashboard-main">

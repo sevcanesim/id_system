@@ -1979,6 +1979,7 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .v26-share-card header { display:grid; gap:2px; justify-items:center; }
 .v26-share-card small { color:var(--ink-3); font:700 10px var(--font-mono); letter-spacing:.12em; text-transform:uppercase; }
 .v26-share-card strong { font-size:12px; }
+.v26-share-card header span { max-width:100%; color:var(--ink-2); font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .v26-card-qr { width:96px; height:96px; display:block; border-radius:8px; background:#fff; }
 .v26-card-qr-placeholder { width:96px; height:96px; border-radius:8px; background:var(--glass); }
 .v26-share-card p { margin:0; max-width:100%; color:var(--ink-3); font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -8572,6 +8573,7 @@ body { background:#F9F8F6; color:#1A1918; }
 .p10-corporate-platform .v26-share-card small,
 .p10-corporate-platform .v26-share-card p { color:#68645D; }
 .p10-corporate-platform .v26-share-card strong { color:#1A1918; }
+.p10-corporate-platform .v26-share-card header span { color:#3F3C37; }
 .p10-corporate-platform .v26-share-card button {
   border-color:#E6E2D8;
   background:#F5F4F0;

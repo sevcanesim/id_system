@@ -49,9 +49,11 @@ export type IconName =
   | "adjustments"
   | "menu"
   | "chevronDown"
+  | "chevronLeft"
   | "sparkles"
   | "eye"
-  | "eye-off";
+  | "eye-off"
+  | "logout";
 
 const strokeProps = {
   fill: "none" as const,
@@ -117,8 +119,12 @@ function renderIcon(name?: IconName | string) {
       return <svg viewBox="0 0 24 24" {...strokeProps}><path d="M6 6l12 12M18 6 6 18" /></svg>;
     case "chevronRight":
       return <svg viewBox="0 0 24 24" width="16" height="16" {...strokeProps}><path d="M8 5l8 7-8 7" /></svg>;
+    case "chevronLeft":
+      return <svg viewBox="0 0 24 24" width="16" height="16" {...strokeProps}><path d="M16 5l-8 7 8 7" /></svg>;
     case "chevronDown":
       return <svg viewBox="0 0 24 24" width="16" height="16" {...strokeProps}><path d="m6 9 6 6 6-6" /></svg>;
+    case "logout":
+      return <svg viewBox="0 0 24 24" {...strokeProps}><path d="M15 4.5h3.5A2.5 2.5 0 0 1 21 7v10a2.5 2.5 0 0 1-2.5 2.5H15" /><path d="M10 12h9" /><path d="m16.5 8.5 3.5 3.5-3.5 3.5" /><path d="M12 19.5H6.5A2.5 2.5 0 0 1 4 17V7a2.5 2.5 0 0 1 2.5-2.5H12" /></svg>;
     case "menu":
       return <svg viewBox="0 0 24 24" {...strokeProps}><path d="M4 7h16M4 12h16M4 17h16" /></svg>;
     case "eye":

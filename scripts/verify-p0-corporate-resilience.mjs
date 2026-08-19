@@ -180,15 +180,40 @@ if (
 } else {
   fail('corporate file chip / delete / history contract is missing');
 }
+const analyticsPanel = read('app/kurumsal/panel/components/AnalyticsPanel.tsx');
 if (
-  client.includes('Henüz etkileşim verisi oluşmadı') &&
-  client.includes('Kartımı Gör') &&
-  client.includes('Paylaşım Ayarları') &&
+  analyticsPanel.includes('Henüz etkileşim verisi oluşmadı') &&
+  analyticsPanel.includes('Kartımı Gör') &&
+  analyticsPanel.includes('Paylaşım Ayarları') &&
   !client.includes('Bu dönem için görüntülenme verisi yok.')
 ) {
   pass('analytics empty state explains why data is missing and next actions');
 } else {
   fail('analytics empty-state contract is missing');
+}
+if (
+  client.includes('<AnalyticsPanel') &&
+  analyticsPanel.includes('Görüntülenme trendi') &&
+  analyticsPanel.includes('En çok görüntülenen kart') &&
+  analyticsPanel.includes('p11-analytics-compare') &&
+  analyticsPanel.includes('v26-chart-canvas')
+) {
+  pass('analytics tab shows trend, comparison, and top card from real data');
+} else {
+  fail('analytics workspace contract is missing');
+}
+if (
+  client.includes('seat-pack-badge') &&
+  client.includes('/ paket') &&
+  client.includes('seat-pack-cta') &&
+  client.includes('Paketi Seç') &&
+  !client.includes('<em>En çok tercih edilen</em>') &&
+  css.includes('.seat-pack-badge') &&
+  css.includes('display: block')
+) {
+  pass('license packs have badge, stacked price, and primary CTA');
+} else {
+  fail('license pack hierarchy/price/CTA contract is missing');
 }
 
 const migrations = fs.readdirSync(path.join(root, 'supabase/migrations')).filter((name) => name.endsWith('.sql'));

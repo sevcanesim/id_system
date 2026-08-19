@@ -16,3 +16,6 @@ release/
 .env*
 .env.*
 !.env.example
+scripts/_qa-*.local.mjs
+supabase/config.toml
+supabase/.gitignore

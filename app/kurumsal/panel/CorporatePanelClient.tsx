@@ -1245,7 +1245,17 @@ export default function CompanyPanel() {
     organization: { title: "Organizasyon", description: "Şirket kimliği, alan politikaları ve ünvan standardını yönet.", icon: "building" },
     settings: { title: "Ayarlar", description: "Sık değişmeyen kurumsal yönetim alanlarına ulaş.", icon: "adjustments" },
   };
-  const pageOwnsTitle = currentTab === "content" || currentTab === "templates" || currentTab === "leads" || currentTab === "events" || currentTab === "meetings";
+  const pageOwnsTitle =
+    currentTab === "content" ||
+    currentTab === "templates" ||
+    currentTab === "leads" ||
+    currentTab === "events" ||
+    currentTab === "meetings" ||
+    currentTab === "settings" ||
+    currentTab === "roles" ||
+    currentTab === "organization" ||
+    currentTab === "licenses" ||
+    currentTab === "analytics";
   const openTab = (tab: CorporatePanelTab) => {
     const allowed = !org || corporateSidebarItems(org.role).some((item) => item.key === tab);
     if (!allowed) {
@@ -1588,10 +1598,10 @@ export default function CompanyPanel() {
                       devredilemez.
                     </small>
                     <div className="license-reference-features">
-                      <span><Icon name="shield" /><b>Güvenli ve Kişiye Özel</b><small>Her kart tek çalışan için üretilir</small></span>
-                      <span><Icon name="contact" /><b>NFC + Kişisel QR</b><small>Temassız ve hızlı paylaşım</small></span>
-                      <span><Icon name="box" /><b>Kargo Dahil</b><small>Türkiye içi standart teslimat</small></span>
-                      <span><Icon name="analytics" /><b>Panelden Kontrol</b><small>Kapasite ve kart takibi</small></span>
+                      <span><i><Icon name="shield" /></i><b>Güvenli ve Kişiye Özel</b><small>Her kart tek çalışan için üretilir</small></span>
+                      <span><i><Icon name="contact" /></i><b>NFC + Kişisel QR</b><small>Temassız ve hızlı paylaşım</small></span>
+                      <span><i><Icon name="box" /></i><b>Kargo Dahil</b><small>Türkiye içi standart teslimat</small></span>
+                      <span><i><Icon name="analytics" /></i><b>Panelden Kontrol</b><small>Kapasite ve kart takibi</small></span>
                     </div>
                   </section>
                 )}

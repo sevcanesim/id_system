@@ -36,20 +36,23 @@ export default function RolesPanel({ members }: { members: RoleMember[] }) {
         </div>
       </aside>
       <div className="business-role-summary">
-        {ROLE_MATRIX_COLUMNS.map((role) => (
-          <article key={role}>
-            <div className="business-role-summary__head">
-              <i><Icon name={ROLE_ICONS[role]} /></i>
-              <div>
-                <small>{ROLE_LABELS[role]}</small>
-                <strong>{members.filter((member) => member.role === role && member.status !== "LEFT").length}</strong>
+        {ROLE_MATRIX_COLUMNS.map((role) => {
+          const count = members.filter((member) => member.role === role && member.status !== "LEFT").length;
+          return (
+            <article key={role} className={count === 0 ? "is-empty" : undefined}>
+              <div className="business-role-summary__head">
+                <i><Icon name={ROLE_ICONS[role]} /></i>
+                <div>
+                  <small>{ROLE_LABELS[role]}</small>
+                  <strong>{count}</strong>
+                </div>
               </div>
-            </div>
-            <ul>
-              {ROLE_GUIDES[role].map((line) => <li key={line}>{line}</li>)}
-            </ul>
-          </article>
-        ))}
+              <ul>
+                {ROLE_GUIDES[role].map((line) => <li key={line}>{line}</li>)}
+              </ul>
+            </article>
+          );
+        })}
       </div>
       <div className="business-role-matrix">
         <table>

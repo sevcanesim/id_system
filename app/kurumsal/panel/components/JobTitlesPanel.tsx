@@ -1,5 +1,6 @@
 import type { FormEvent } from "react";
 import { Icon } from "../../../icons";
+import { Button } from "../../../components/ui/DesignSystem";
 
 type JobTitle = { id: string; title: string };
 type TitleRequest = {
@@ -59,9 +60,9 @@ export default function JobTitlesPanel({
             maxLength={120}
           />
         </label>
-        <button disabled={jobTitleBusy || newJobTitle.trim().length < 2}>
+        <Button type="submit" variant="primary" disabled={jobTitleBusy || newJobTitle.trim().length < 2}>
           {jobTitleBusy ? "Ekleniyor..." : "+ Ekle"}
-        </button>
+        </Button>
       </form>
       <ul className="job-title-list">
         {jobTitles.length === 0 && (

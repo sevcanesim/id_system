@@ -6,9 +6,9 @@ function ActivationLoading() {
   return (
     <main id="main-content" className="activation-page p5-activation-page p6-activation-page" aria-busy="true">
       <section className="activation-shell" aria-live="polite">
-        <span className="section-kicker">GEÇMİŞ SİPARİŞ</span>
+        <span className="section-kicker">HESABI BAĞLA</span>
         <h1>Aktivasyon hazırlanıyor…</h1>
-        <p>Eski sipariş bağlantın kontrol ediliyor.</p>
+        <p>Sipariş bağlantın kontrol ediliyor.</p>
       </section>
     </main>
   );

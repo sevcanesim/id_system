@@ -3,11 +3,12 @@ import { consumeDistributedRateLimit, requestIp } from "./lib/security/rate-limi
 
 const AUTH_COOKIE = "yenomi-access-token";
 const PROTECTED_PAGES = ["/admin", "/kurumsal/panel", "/siparislerim", "/kartim", "/kartlarim", "/olustur", "/yenile", "/ayarlar", "/istatistikler"];
-const PRIVATE_OR_PROFILE_PREFIXES = ["/admin", "/dashboard", "/giris", "/hesabim", "/kartim", "/kartlarim", "/siparisler", "/siparislerim", "/olustur", "/aktivasyon", "/checkout", "/odeme", "/kurumsal/panel", "/kurumsal/davet", "/p", "/e", "/qr", "/api"];
+const PRIVATE_OR_PROFILE_PREFIXES = ["/admin", "/dashboard", "/giris", "/hesabim", "/kartim", "/kartlarim", "/siparisler", "/siparislerim", "/olustur", "/aktivasyon", "/checkout", "/odeme", "/sepet", "/kurumsal/panel", "/kurumsal/davet", "/p", "/e", "/qr", "/api"];
 
 type LimitRule = { limit: number; windowMs: number; scope: string };
 
 function ruleFor(pathname: string, method: string): LimitRule | null {
+  if (pathname === "/api/auth/session") return { limit: 30, windowMs: 60_000, scope: "auth-session-cookie" };
   if (pathname === "/giris") return { limit: 30, windowMs: 60_000, scope: "login-page" };
   if (pathname === "/api/location/reverse") return { limit: 40, windowMs: 60_000, scope: "location" };
   if (pathname === "/api/commerce/checkout") return { limit: 12, windowMs: 60_000, scope: "checkout" };
@@ -75,12 +76,16 @@ export async function middleware(request: NextRequest) {
     response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive, nosnippet");
     response.headers.set("Cache-Control", pathname.startsWith("/api/") ? "private, no-store" : "private, no-store, max-age=0");
   }
+  if (pathname === "/aktivasyon" || pathname.startsWith("/aktivasyon/") || pathname === "/checkout" || pathname.startsWith("/checkout/") || pathname.startsWith("/odeme/")) {
+    response.headers.set("Referrer-Policy", "no-referrer");
+    response.headers.set("Cache-Control", "private, no-store, no-cache, max-age=0, must-revalidate");
+  }
   return response;
 }
 
 export const config = {
   matcher: [
     "/admin/:path*", "/kurumsal/panel/:path*", "/siparislerim/:path*", "/kartim/:path*", "/kartlarim/:path*", "/olustur/:path*", "/yenile/:path*", "/ayarlar/:path*", "/istatistikler/:path*",
-    "/giris", "/api/:path*", "/p/:path*", "/e/:path*", "/qr/:path*", "/aktivasyon/:path*", "/checkout/:path*", "/odeme/:path*", "/api/location/reverse", "/api/commerce/checkout", "/api/commerce/activate", "/api/commerce/claim", "/api/commerce/activation/resend", "/api/commerce/entitlements", "/api/organizations/members", "/api/organizations/invites", "/api/payments/iyzico/checkout",
+    "/giris", "/hesabim", "/hesabim/:path*", "/sepet", "/aktivasyon", "/aktivasyon/:path*", "/checkout", "/checkout/:path*", "/odeme/:path*", "/api/:path*", "/p/:path*", "/e/:path*", "/qr/:path*", "/api/location/reverse", "/api/commerce/checkout", "/api/commerce/activate", "/api/commerce/claim", "/api/commerce/activation/resend", "/api/commerce/entitlements", "/api/organizations/members", "/api/organizations/invites", "/api/payments/iyzico/checkout", "/api/auth/session",
   ],
 };

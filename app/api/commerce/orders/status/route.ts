@@ -12,11 +12,12 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 /**
  * Public, unauthenticated order-status check used by the /odeme/basarili and
  * /odeme/basarisiz result pages so they can verify a payment before showing
- * success content. Deliberately returns only a coarse status enum — never
- * email, amount, items, or any other order detail — so it stays safe to call
- * without auth for a guest checkout flow. The order id itself is already a
- * public, unguessable UUID that the payment callback puts in the redirect
- * URL, so exposing this minimal status by id does not leak anything new.
+ * success content. Deliberately returns only a coarse status enum plus a
+ * boolean activationRequired flag — never email, amount, items, user id, or
+ * any other order detail — so it stays safe to call without auth for a guest
+ * checkout flow. The order id itself is already a public, unguessable UUID
+ * that the payment callback puts in the redirect URL, so exposing this
+ * minimal status by id does not leak anything new.
  */
 export async function GET(request: NextRequest) {
   const orderId = request.nextUrl.searchParams.get("order") || "";
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
     const admin = getSupabaseAdminClient();
     const { data, error } = await admin
       .from("commerce_orders")
-      .select("status")
+      .select("status,user_id,activation_claimed_at")
       .eq("id", orderId)
       .maybeSingle();
 
@@ -45,6 +46,7 @@ export async function GET(request: NextRequest) {
       found: true,
       paid: PAID_STATUSES.has(String(data.status)),
       status: data.status,
+      activationRequired: PAID_STATUSES.has(String(data.status)) && !data.user_id && !data.activation_claimed_at,
     });
   } catch (error) {
     console.error("commerce order status error", { orderId, error });

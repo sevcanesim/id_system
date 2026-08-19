@@ -1283,7 +1283,7 @@ export default function CompanyPanel() {
   const signOut = async () => {
     const supabase = getSupabaseBrowserClient();
     if (supabase) await supabase.auth.signOut();
-    writeSessionCookie(null);
+    await writeSessionCookie(null);
     clearLegacyCart();
     setCartOwner(null, { claimGuest: false });
     router.replace("/giris?portal=business");

@@ -31,6 +31,7 @@ pass("corporate panel uses pathname-aware tab routing", corp.includes("usePathna
 pass(
   "corporate Kartım route mounts CardWizard instead of the management shell",
   layout.includes("CorporatePanelGate") &&
+    layout.includes("Suspense") &&
     !layout.includes("void children") &&
     gate.includes('pathname === "/kurumsal/panel/kartim"') &&
     kartim.includes("<CardWizard") &&

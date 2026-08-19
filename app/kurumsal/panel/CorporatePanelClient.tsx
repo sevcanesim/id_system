@@ -1721,7 +1721,7 @@ export default function CompanyPanel() {
                 )}
 
                 {(currentTab === "employees" || currentTab === "cards") && drawerMember && (
-                  <EmployeeDrawer>
+                  <EmployeeDrawer
                     drawerMember={drawerMember}
                     drawerTab={drawerTab}
                     setDrawerTab={setDrawerTab}

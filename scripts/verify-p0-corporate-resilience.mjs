@@ -125,6 +125,14 @@ if (
 
 const cardsPanel = read('app/kurumsal/panel/components/CardsPanel.tsx');
 if (
+  client.includes('<EmployeeDrawer') &&
+  !client.includes('<EmployeeDrawer>')
+) {
+  pass('employee drawer JSX is a props element');
+} else {
+  fail('employee drawer JSX wrapper would fail to parse');
+}
+if (
   client.includes('<CardsPanel') &&
   cardsPanel.includes('p11-cards') &&
   cardsPanel.includes('Kartı Yönet') &&
@@ -135,6 +143,30 @@ if (
   pass('cards tab uses a full-height inventory workspace');
 } else {
   fail('cards tab full-height inventory contract is missing');
+}
+if (
+  cardsPanel.includes('p11-card-flow') &&
+  cardsPanel.includes('p11-card-flow-copy') &&
+  cardsPanel.includes('variant="primary"') &&
+  css.includes('.p11-card-hardware-action')
+) {
+  pass('cards metrics form a relationship chain and activate is a primary action');
+} else {
+  fail('cards relationship/activate contract is missing');
+}
+
+const linksPanel = read('app/kurumsal/panel/components/CorporateLinksPanel.tsx');
+if (
+  linksPanel.includes('corp-link-status') &&
+  linksPanel.includes('<dt>Kayıt</dt>') &&
+  linksPanel.includes('<dt>Yayın</dt>') &&
+  linksPanel.includes('<dt>Kaynak</dt>') &&
+  linksPanel.includes('corp-link-editor') &&
+  css.includes('.corp-link-status')
+) {
+  pass('corporate links show labeled save/publish/source state in a stacked editor');
+} else {
+  fail('corporate links status/editor contract is missing');
 }
 
 const migrations = fs.readdirSync(path.join(root, 'supabase/migrations')).filter((name) => name.endsWith('.sql'));

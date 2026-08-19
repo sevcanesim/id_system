@@ -1,4 +1,7 @@
+"use client";
+
 import { Icon } from "../../../icons";
+import { Button, Field, Input } from "../../../components/ui/DesignSystem";
 
 type CorporateLink = {
   id: string | null;
@@ -47,6 +50,19 @@ type Props = {
 const dateTime = new Intl.DateTimeFormat("tr-TR", { dateStyle: "short", timeStyle: "short" });
 const dateTimeMedium = new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" });
 
+function publicationLabel(link: CorporateLink) {
+  if (!link.configured) return "Kayıt yok";
+  if (link.isPublished && link.publishAt && new Date(link.publishAt).getTime() > Date.now()) {
+    return `Planlandı · ${dateTime.format(new Date(link.publishAt))}`;
+  }
+  return link.isPublished ? "Yayında" : "Taslak";
+}
+
+function sourceLabel(link: CorporateLink) {
+  if (!link.configured) return "Varsayılan";
+  return link.linkType === "FILE" ? "PDF aktif" : "URL aktif";
+}
+
 // Çalışan kartındaki "Kurumsal Bağlantılar" bölümünün dört sabit slotu
 // (bkz. supabase/migrations/*_organization_links.sql — organization_links
 // tablosu). Her slot ya URL ya da yüklenmiş bir PDF; taslak/yayında durumu,
@@ -83,92 +99,108 @@ export default function CorporateLinksPanel({
       <ul className="corp-links-list">
         {links.map((link) => {
           const busy = linkBusyKind === link.kind;
+          const scheduled = Boolean(link.isPublished && link.publishAt && new Date(link.publishAt).getTime() > Date.now());
           return (
             <li key={link.kind}>
               <div className="corp-link-info">
                 <strong>{link.label}</strong>
                 <small>{link.subtitle}</small>
-                {link.configured && (
-                  <span className={`corp-link-publication ${link.isPublished ? "published" : "draft"}`}>
-                    {link.isPublished && link.publishAt && new Date(link.publishAt).getTime() > Date.now()
-                      ? `Planlandı · ${dateTime.format(new Date(link.publishAt))}`
-                      : link.isPublished
-                        ? "Yayında"
-                        : "Taslak"}
-                  </span>
-                )}
-                {link.configured ? (
-                  link.linkType === "FILE" ? (
-                    <span className="corp-link-current">
-                      <Icon name="box" /> {link.fileName}{" "}
-                      {link.fileSize ? `· ${(link.fileSize / 1024 / 1024).toFixed(1)} MB` : ""}
-                    </span>
-                  ) : (
-                    <span className="corp-link-current">
-                      <Icon name="external" /> {link.url}
-                    </span>
-                  )
-                ) : (
-                  <span className="corp-link-current empty">
-                    Yapılandırılmadı — kartta varsayılan gösterilir
-                  </span>
-                )}
               </div>
-              <div className="corp-link-actions">
-                <label className="corp-link-schedule">
-                  <span>Yayın zamanı</span>
-                  <input
+              <dl className="corp-link-status" aria-label={`${link.label} yayın durumu`}>
+                <div>
+                  <dt>Kayıt</dt>
+                  <dd>{link.configured ? "Kayıtlı" : "Kayıtlı değil"}</dd>
+                </div>
+                <div>
+                  <dt>Yayın</dt>
+                  <dd className={link.isPublished ? (scheduled ? "scheduled" : "published") : link.configured ? "draft" : "empty"}>
+                    {publicationLabel(link)}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Kaynak</dt>
+                  <dd>{sourceLabel(link)}</dd>
+                </div>
+                <div className="corp-link-status-current">
+                  <dt>Aktif içerik</dt>
+                  <dd>
+                    {link.configured ? (
+                      link.linkType === "FILE" ? (
+                        <span className="corp-link-current">
+                          <Icon name="box" /> {link.fileName}{" "}
+                          {link.fileSize ? `· ${(link.fileSize / 1024 / 1024).toFixed(1)} MB` : ""}
+                        </span>
+                      ) : (
+                        <span className="corp-link-current">
+                          <Icon name="external" /> {link.url}
+                        </span>
+                      )
+                    ) : (
+                      <span className="corp-link-current empty">
+                        Yapılandırılmadı — kartta varsayılan gösterilir
+                      </span>
+                    )}
+                  </dd>
+                </div>
+              </dl>
+              <div className="corp-link-editor">
+                <Field label="URL">
+                  <Input
+                    placeholder="https://..."
+                    value={linkUrlDraft[link.kind] || ""}
+                    onChange={(e) => onUrlDraftChange(link.kind, e.target.value)}
+                  />
+                </Field>
+                <div className="corp-link-source-actions">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={busy || !(linkUrlDraft[link.kind] || "").trim()}
+                    onClick={() => void onSaveUrl(link.kind)}
+                  >
+                    URL Kaydet
+                  </Button>
+                  <label className="corp-link-upload">
+                    {busy ? "Yükleniyor..." : "PDF Yükle"}
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      disabled={busy}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void onUploadFile(link.kind, file);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                </div>
+                <Field label="Yayın zamanı">
+                  <Input
                     type="datetime-local"
                     value={linkScheduleDraft[link.kind] || ""}
                     min={new Date().toISOString().slice(0, 16)}
                     onChange={(event) => onScheduleDraftChange(link.kind, event.target.value)}
                   />
-                </label>
-                <input
-                  placeholder="https://..."
-                  value={linkUrlDraft[link.kind] || ""}
-                  onChange={(e) => onUrlDraftChange(link.kind, e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="secondary"
-                  disabled={busy || !(linkUrlDraft[link.kind] || "").trim()}
-                  onClick={() => void onSaveUrl(link.kind)}
-                >
-                  URL Kaydet
-                </button>
-                <label className="corp-link-upload">
-                  {busy ? "Yükleniyor..." : "PDF Yükle"}
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    disabled={busy}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) void onUploadFile(link.kind, file);
-                      e.target.value = "";
-                    }}
-                  />
-                </label>
+                </Field>
                 {link.configured && (
-                  <button
-                    type="button"
-                    className="secondary"
-                    disabled={busy}
-                    onClick={() => void onTogglePublication(link.kind, !link.isPublished)}
-                  >
-                    {link.isPublished ? "Taslağa Al" : "Yayınla"}
-                  </button>
-                )}
-                {link.configured && (
-                  <button
-                    type="button"
-                    className="corp-link-remove"
-                    disabled={busy}
-                    onClick={() => void onRemove(link.kind)}
-                  >
-                    <Icon name="close" />
-                  </button>
+                  <div className="corp-link-toolbar">
+                    <Button
+                      type="button"
+                      variant={link.isPublished ? "secondary" : "primary"}
+                      disabled={busy}
+                      onClick={() => void onTogglePublication(link.kind, !link.isPublished)}
+                    >
+                      {link.isPublished ? "Taslağa Al" : "Yayınla"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      disabled={busy}
+                      onClick={() => void onRemove(link.kind)}
+                    >
+                      Sil
+                    </Button>
+                  </div>
                 )}
               </div>
               {linkVersions.some((version) => version.kind === link.kind) && (
@@ -186,9 +218,9 @@ export default function CorporateLinksPanel({
                               {dateTimeMedium.format(new Date(version.created_at))} · {version.change_reason}
                             </small>
                           </div>
-                          <button type="button" disabled={busy} onClick={() => void onRollback(version.id, link.kind)}>
+                          <Button type="button" variant="secondary" size="sm" disabled={busy} onClick={() => void onRollback(version.id, link.kind)}>
                             Geri al
-                          </button>
+                          </Button>
                         </li>
                       ))}
                   </ol>

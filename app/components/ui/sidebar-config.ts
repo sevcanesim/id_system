@@ -49,9 +49,18 @@ export function normalizeSidebarRole(role?: string | null): OrganizationRole | n
   return normalizeOrganizationRole(role);
 }
 
+function sidebarRoleAllowed(itemRoles: readonly SidebarRole[] | undefined, role?: string | null): boolean {
+  if (!itemRoles) return true;
+  const normalized = normalizeSidebarRole(role);
+  if (!normalized) return false;
+  if (itemRoles.includes(normalized)) return true;
+  // Persisted DB role is HR; some nav configs still list the HR_MANAGER UI alias.
+  return normalized === "HR" && itemRoles.includes("HR_MANAGER");
+}
+
 export function filterSidebarByRole<T extends SidebarConfigItem>(items: readonly T[], role?: string | null): T[] {
   if (!role) return [...items];
   const normalized = normalizeSidebarRole(role);
   if (!normalized) return [];
-  return items.filter((item) => !item.roles || item.roles.includes(normalized) || (role === "HR_MANAGER" && item.roles.includes("HR_MANAGER")));
+  return items.filter((item) => sidebarRoleAllowed(item.roles, role));
 }

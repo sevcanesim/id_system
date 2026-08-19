@@ -92,6 +92,8 @@ export type CorporateSidebarRole = "OWNER" | "ADMIN" | "HR_MANAGER" | "DEPARTMEN
 export function corporateSidebarTabs(role?: string): readonly CorporatePanelTab[] {
   const normalizedRole = normalizeOrganizationRole(role);
   if (!normalizedRole) return CORPORATE_PANEL_TAB_ORDER;
+  if (role === "DEPARTMENT_MANAGER") return ["employees"];
+  if (role === "EMPLOYEE") return [];
   if (normalizedRole === "DEPARTMENT_MANAGER") return ["employees"];
   if (normalizedRole === "EMPLOYEE") return [];
   const canManageLicenses = normalizedRole === "OWNER" || normalizedRole === "ADMIN";
@@ -102,11 +104,14 @@ export function corporateSidebarTabs(role?: string): readonly CorporatePanelTab[
 }
 
 export function corporateSidebarItems(role?: string) {
-  return filterSidebarByRole(CORPORATE_SIDEBAR_CONFIG, role).map((item) => ({
-    key: item.key as CorporatePanelTab,
-    href: item.href,
-    label: item.label,
-    icon: item.icon,
-    group: item.group,
-  }));
+  const allowedTabs = new Set(corporateSidebarTabs(role));
+  return filterSidebarByRole(CORPORATE_SIDEBAR_CONFIG, role)
+    .filter((item) => allowedTabs.has(item.key as CorporatePanelTab))
+    .map((item) => ({
+      key: item.key as CorporatePanelTab,
+      href: item.href,
+      label: item.label,
+      icon: item.icon,
+      group: item.group,
+    }));
 }

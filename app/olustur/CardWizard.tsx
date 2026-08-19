@@ -264,7 +264,10 @@ export default function CardWizard() {
     setSlugStatus("checking");
     setSlugMessage("Bağlantı kontrol ediliyor...");
     const timer = window.setTimeout(async () => {
-      const { data: available, error } = await supabase.rpc("is_card_slug_available", { candidate, current_user_id: userId });
+      const { data: available, error } = await supabase.rpc("is_card_slug_available", {
+        candidate,
+        current_profile_id: profileId,
+      });
       if (error) {
         setSlugStatus("idle");
         setSlugMessage("Uygunluk yayınlama sırasında kontrol edilecek.");
@@ -281,7 +284,7 @@ export default function CardWizard() {
       }
     }, 450);
     return () => window.clearTimeout(timer);
-  }, [profileSlug, userId]);
+  }, [profileId, profileSlug, userId]);
 
   function update(field: keyof CardData, value: string) {
     setData((current) => ({ ...current, [field]: value }));

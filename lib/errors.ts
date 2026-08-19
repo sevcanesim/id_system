@@ -66,7 +66,16 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   over_email_send_rate_limit: "Çok fazla deneme yapıldı. Lütfen birkaç dakika sonra tekrar dene.",
   over_request_rate_limit: "Çok fazla istek gönderildi. Lütfen biraz bekleyip tekrar dene.",
   provider_email_needs_verification: "Bu sağlayıcı ile giriş için e-posta doğrulaması gerekiyor.",
+  unexpected_failure: "Giriş hizmetine ulaşılamadı. Bağlantını kontrol edip yeniden dene.",
 };
+
+function isAuthTransportError(error: object): boolean {
+  const candidate = error as { name?: unknown; code?: unknown; status?: unknown };
+  if (candidate.name === "AuthRetryableFetchError") return true;
+  if (candidate.code === "unexpected_failure") return true;
+  if (candidate.status === 0) return true;
+  return false;
+}
 
 /**
  * Maps a Supabase Auth SDK error to a safe, localized message. Never returns
@@ -75,6 +84,9 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
  */
 export function authErrorMessage(error: unknown, fallback: string): string {
   if (!error || typeof error !== "object") return fallback;
+  if (isAuthTransportError(error)) {
+    return AUTH_ERROR_MESSAGES.unexpected_failure;
+  }
   const code = (error as { code?: unknown }).code;
   if (typeof code === "string" && AUTH_ERROR_MESSAGES[code]) return AUTH_ERROR_MESSAGES[code];
   return fallback;

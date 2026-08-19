@@ -1,5 +1,23 @@
 import type { NextConfig } from "next";
 
+function supabaseConnectSources(): string {
+  const hosted = "https://*.supabase.co wss://*.supabase.co";
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  if (!raw) return hosted;
+  try {
+    const origin = new URL(raw).origin;
+    if (origin.endsWith(".supabase.co")) return hosted;
+    const websocketOrigin = origin.startsWith("https:")
+      ? `wss://${new URL(raw).host}`
+      : `ws://${new URL(raw).host}`;
+    return `${hosted} ${origin} ${websocketOrigin}`;
+  } catch {
+    return hosted;
+  }
+}
+
+const connectSrc = `'self' ${supabaseConnectSources()} https://maps.googleapis.com`;
+
 const nextConfig: NextConfig = {
   experimental: {
     middlewareClientMaxBodySize: "21mb",
@@ -12,7 +30,7 @@ const nextConfig: NextConfig = {
     return [{
       source: "/(.*)",
       headers: [
-        { key: "Content-Security-Policy", value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://maps.googleapis.com; frame-src 'self' https://*.iyzipay.com https://*.iyzico.com; form-action 'self' https://*.iyzipay.com https://*.iyzico.com; base-uri 'self'; object-src 'none'; frame-ancestors 'none'" },
+        { key: "Content-Security-Policy", value: `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src ${connectSrc}; frame-src 'self' https://*.iyzipay.com https://*.iyzico.com; form-action 'self' https://*.iyzipay.com https://*.iyzico.com; base-uri 'self'; object-src 'none'; frame-ancestors 'none'` },
         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
         { key: "X-Content-Type-Options", value: "nosniff" },
         { key: "X-Frame-Options", value: "DENY" },

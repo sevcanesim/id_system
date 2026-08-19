@@ -24,18 +24,34 @@ const password = env.DEMO_SEED_PASSWORD;
 if (!url || !serviceKey) throw new Error("Supabase URL ve service role/secret key gerekli.");
 if (apply && (!password || password.length < 12)) throw new Error("--apply için en az 12 karakterli DEMO_SEED_PASSWORD gerekli.");
 
+function isLocalSupabaseUrl(targetUrl) {
+  try {
+    const host = new URL(targetUrl).hostname;
+    return host === "127.0.0.1" || host === "localhost";
+  } catch {
+    return false;
+  }
+}
+
 if (apply) {
-  const stagingRef = String(env.STAGING_SUPABASE_PROJECT_REF || "").trim();
-  const productionRef = String(env.PRODUCTION_SUPABASE_PROJECT_REF || "").trim();
-  const urlRef = String(url).match(/^https:\/\/([a-z0-9-]+)\.supabase\.co\/?$/i)?.[1] || "";
-  if (env.ALLOW_STAGING_MUTATIONS !== "true") {
-    throw new Error("Demo seed yalnız izole staging için çalışır: ALLOW_STAGING_MUTATIONS=true gerekli.");
-  }
-  if (!stagingRef || urlRef !== stagingRef) {
-    throw new Error("Demo seed engellendi: Supabase URL, STAGING_SUPABASE_PROJECT_REF ile eşleşmiyor.");
-  }
-  if (productionRef && stagingRef === productionRef) {
-    throw new Error("Demo seed engellendi: staging ve production project ref aynı olamaz.");
+  const local = isLocalSupabaseUrl(url);
+  if (local) {
+    if (env.ALLOW_LOCAL_DEMO_SEED !== "true") {
+      throw new Error("Local demo seed yalnız 127.0.0.1/localhost için çalışır: ALLOW_LOCAL_DEMO_SEED=true gerekli.");
+    }
+  } else {
+    const stagingRef = String(env.STAGING_SUPABASE_PROJECT_REF || "").trim();
+    const productionRef = String(env.PRODUCTION_SUPABASE_PROJECT_REF || "").trim();
+    const urlRef = String(url).match(/^https:\/\/([a-z0-9-]+)\.supabase\.co\/?$/i)?.[1] || "";
+    if (env.ALLOW_STAGING_MUTATIONS !== "true") {
+      throw new Error("Demo seed yalnız izole staging için çalışır: ALLOW_STAGING_MUTATIONS=true gerekli.");
+    }
+    if (!stagingRef || urlRef !== stagingRef) {
+      throw new Error("Demo seed engellendi: Supabase URL, STAGING_SUPABASE_PROJECT_REF ile eşleşmiyor.");
+    }
+    if (productionRef && stagingRef === productionRef) {
+      throw new Error("Demo seed engellendi: staging ve production project ref aynı olamaz.");
+    }
   }
 }
 

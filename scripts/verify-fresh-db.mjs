@@ -56,7 +56,9 @@ const checks = [
   ['organization_card_templates', 'id,organization_id,name,is_default,primary_color'],
   ['card_view_events', 'id,profile_id,viewed_at,country,city,referrer'],
   ['commerce_order_consents', 'order_id,distance_sales_accepted,personalization_accepted'],
-  ['user_accounts', 'id,account_type,test_login_scope'],
+  ['user_accounts', 'id,account_type,test_login_scope,identity_product_family,package_code'],
+  ['user_identity_types', 'id,user_id,product_family,occupancy,package_code'],
+  ['identity_package_catalog', 'code,occupancy,product_family'],
 ]
 
 let failed = false

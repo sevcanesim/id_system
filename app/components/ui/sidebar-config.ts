@@ -16,8 +16,8 @@ export type SidebarConfigItem = {
 };
 
 const CORPORATE_ADMIN: readonly SidebarRole[] = ["OWNER", "ADMIN"];
-const CORPORATE_MANAGEMENT: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR_MANAGER", "DEPARTMENT_MANAGER"];
-const CORPORATE_ADMIN_OR_HR: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR_MANAGER"];
+const CORPORATE_MANAGEMENT: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR", "HR_MANAGER", "DEPARTMENT_MANAGER"];
+const CORPORATE_ADMIN_OR_HR: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR", "HR_MANAGER"];
 
 export const CORPORATE_SIDEBAR_CONFIG = [
   { key: "overview", href: "/kurumsal/panel", label: "Genel Bakış", icon: "building", group: "GENEL" },
@@ -46,9 +46,18 @@ export function normalizeSidebarRole(role?: string | null): OrganizationRole | n
   return normalizeOrganizationRole(role);
 }
 
+function sidebarRoleAllowed(itemRoles: readonly SidebarRole[] | undefined, role?: string | null): boolean {
+  if (!itemRoles) return true;
+  const normalized = normalizeSidebarRole(role);
+  if (!normalized) return false;
+  if (itemRoles.includes(normalized)) return true;
+  // Persisted DB role is HR; some nav configs still list the HR_MANAGER UI alias.
+  return normalized === "HR" && itemRoles.includes("HR_MANAGER");
+}
+
 export function filterSidebarByRole<T extends SidebarConfigItem>(items: readonly T[], role?: string | null): T[] {
   if (!role) return [...items];
   const normalized = normalizeSidebarRole(role);
   if (!normalized) return [];
-  return items.filter((item) => !item.roles || item.roles.includes(normalized) || (role === "HR_MANAGER" && item.roles.includes("HR_MANAGER")));
+  return items.filter((item) => sidebarRoleAllowed(item.roles, role));
 }

@@ -6,14 +6,36 @@ export { EmptyState } from "./DesignSystem";
 export { EmptyState as FoundationEmptyState } from "./DesignSystem";
 export type { EmptyStateAction } from "./DesignSystem";
 
-export function LoadingState({ label = "Yükleniyor", className = "" }: { label?: string; className?: string }) {
+export function LoadingState({
+  label = "Yükleniyor",
+  className = "",
+  variant = "inline",
+}: {
+  label?: string;
+  className?: string;
+  variant?: "inline" | "panel";
+}) {
   return (
-    <div className={`ds-view-loading ${className}`.trim()} role="status" aria-live="polite" aria-busy="true">
+    <div className={`ds-view-loading${variant === "panel" ? " ds-view-loading--panel" : ""}${className ? ` ${className}` : ""}`.trim()} role="status" aria-live="polite" aria-busy="true">
       <Stack gap={3}>
         <strong>{label}</strong>
-        <Skeleton height={14} />
-        <Skeleton width="86%" height={14} />
-        <Skeleton width="64%" height={14} />
+        {variant === "panel" ? (
+          <>
+            <div className="ds-view-loading__hero" aria-hidden="true"><Skeleton height={148} /></div>
+            <div className="ds-view-loading__kpis" aria-hidden="true">
+              <Skeleton height={84} />
+              <Skeleton height={84} />
+              <Skeleton height={84} />
+              <Skeleton height={84} />
+            </div>
+          </>
+        ) : (
+          <>
+            <Skeleton height={14} />
+            <Skeleton width="86%" height={14} />
+            <Skeleton width="64%" height={14} />
+          </>
+        )}
       </Stack>
     </div>
   );

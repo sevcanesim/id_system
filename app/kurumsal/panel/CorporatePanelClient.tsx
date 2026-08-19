@@ -1472,7 +1472,7 @@ export default function CompanyPanel() {
           <section className="business-shell">
             {loading ? (
               <div className="enterprise-loading-shell" aria-live="polite">
-                <LoadingState label={loadingLabel} />
+                <LoadingState label={loadingLabel} variant="panel" />
                 {loadingSlow ? <div className="enterprise-loading-slow"><strong>Bu işlem beklenenden uzun sürüyor.</strong><p>Panel sonsuz yüklemede kalmaz; yanıt vermeyen istekler zaman aşımına uğrar ve panel kullanılabilir hale gelir.</p><button type="button" onClick={() => void reloadPanelData()}>Yeniden Dene</button></div> : null}
               </div>
             ) : !orgs.length ? (

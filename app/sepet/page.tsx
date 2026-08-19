@@ -54,7 +54,7 @@ export default function CartPage() {
 
   return (
     <div className="yi-site">
-      <main id="main-content" className="yi-section yi-section--light yi-cart-page yi-footer-compact">
+      <main id="main-content" className="cart-page p5-cart-page yi-section yi-section--light yi-cart-page yi-footer-compact">
         <div className="yi-container">
           <div className="yi-page-head">
             <span>COMMERCE</span>
@@ -144,7 +144,7 @@ export default function CartPage() {
                 </div>
                 <p>Satın alma sırasında giriş yapar veya hesap oluşturursun. Sipariş uygunluğu checkout tarafında gerçek veri üzerinden doğrulanır.</p>
                 <Link href="/checkout" className="yi-btn yi-btn--primary">
-                  Ödemeye geç
+                  Güvenli Satın Almaya Geç
                 </Link>
                 <Link href="/urunler" className="yi-btn yi-btn--ghost">
                   Alışverişe devam et

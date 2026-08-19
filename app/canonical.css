@@ -692,12 +692,23 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .checkout-heading { margin-bottom:25px; }
 .checkout-trust-row { display:flex; flex-wrap:wrap; gap:8px; color:var(--ink-3); font-size:12px; }
 .checkout-progress { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:20px 0; }
-.checkout-progress button { min-height:54px; display:flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid var(--border); border-radius:12px; background:var(--glass); color:var(--ink-3); }
-.checkout-progress button.active,.checkout-progress button.done { border-color:var(--border-gold); color:var(--ink); }
-.checkout-progress button span { width:26px; height:26px; display:grid; place-items:center; border-radius:50%; background:rgba(255,255,255,.05); font:700 12px var(--font-mono); }
-.checkout-progress button.active span,.checkout-progress button.done span { background:var(--gold); color:#17120c; }
+.checkout-progress > b { display: none; }
+.checkout-progress > div,
+.checkout-progress button { min-height:54px; display:flex; align-items:center; gap:10px; padding:8px 12px; border:1px solid var(--border); border-radius:12px; background:#fff; color:var(--ink-3); text-align:left; }
+.checkout-progress button.active,
+.checkout-progress button.done,
+.checkout-progress > div.done { border-color:var(--border-gold); color:var(--ink); }
+.checkout-progress i { width:26px; height:26px; min-width:26px; display:grid; place-items:center; border-radius:50%; background:#ece8e0; color:#17120c; font:700 12px var(--font-mono); }
+.checkout-progress button.active i,
+.checkout-progress button.done i,
+.checkout-progress > div.done i { background:var(--gold); color:#17120c; }
+.checkout-progress span { min-width:0; font:650 13px/1.2 var(--font-ui); }
 .checkout-accordion { overflow:hidden; }
 .checkout-step-trigger { width:100%; display:flex; align-items:center; gap:12px; padding:17px 18px; border:0; border-bottom:1px solid var(--border); background:transparent; color:var(--ink); text-align:left; font-weight:800; }
+.checkout-step-trigger > span { display:grid; gap:3px; min-width:0; }
+.checkout-step-trigger strong,
+.checkout-step-trigger small { display:block; }
+.checkout-step-trigger small { font-weight:500; color:var(--ink-3); }
 .checkout-step-icon { width:28px; height:28px; display:grid; place-items:center; border-radius:50%; background:var(--gold-dim); color:var(--gold); }
 .checkout-step-body { padding:20px; border-bottom:1px solid var(--border); }
 .checkout-step-body:last-child { border-bottom:0; }
@@ -736,16 +747,17 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .checkout-summary-benefits span { display:flex; align-items:center; gap:8px; color:var(--ink-2); font-size:12px; line-height:1.4; }
 .checkout-summary-benefits .yi-icon { width:14px; height:14px; min-width:14px; color:var(--green,#2f9e5f); }
 
-.checkout-pay-button { width:100%; min-height:52px; display:flex; align-items:center; justify-content:center; gap:9px; margin-top:6px; border:0; border-radius:13px; background:var(--gold); color:#17120c; font-size:14px; font-weight:800; letter-spacing:-.01em; cursor:pointer; transition:transform var(--motion-standard) var(--ease-standard),box-shadow var(--motion-standard) var(--ease-standard),opacity var(--motion-standard) var(--ease-standard); }
+.checkout-pay-button { width:100%; min-height:52px; display:flex; align-items:center; justify-content:center; gap:9px; margin-top:6px; border:0; border-radius:13px; background:#A37B2C; color:#17120c; font-size:14px; font-weight:800; letter-spacing:-.01em; cursor:pointer; transition:transform var(--motion-standard) var(--ease-standard),box-shadow var(--motion-standard) var(--ease-standard),background var(--motion-standard) var(--ease-standard); }
 .checkout-pay-button:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 14px 32px rgba(169,129,47,.28); }
 .checkout-pay-button:active:not(:disabled) { transform:translateY(0) scale(.99); }
-.checkout-pay-button:disabled { opacity:.5; cursor:not-allowed; }
+.checkout-pay-button:disabled { background:#ece8e0; color:#5c564e; box-shadow:none; cursor:not-allowed; }
+.checkout-pay-hint { margin:8px 0 0; color:#5c564e; font-size:12px; line-height:1.45; text-align:center; }
 .checkout-pay-button .yi-icon { width:15px; height:15px; }
 
 .checkout-secure-list { display:flex; flex-wrap:wrap; justify-content:center; gap:8px 14px; margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
 .checkout-secure-list span { display:inline-flex; align-items:center; gap:6px; color:var(--ink-3); font-size:11px; font-weight:650; }
 .checkout-secure-list .yi-icon { width:13px; height:13px; min-width:13px; color:var(--gold-hi); }
-.checkout-next { margin-top:18px; min-height:44px; padding:0 18px; border:0; border-radius:10px; background:var(--gold); color:#17120c; font-weight:800; }
+.checkout-next { margin-top:18px; min-height:48px; width:100%; padding:0 18px; border:0; border-radius:10px; background:#A37B2C; color:#17120c; font-weight:800; }
 .checkout-summary { position:sticky; top:20px; padding:22px; }
 .checkout-summary-head { margin-bottom:15px; font-weight:800; }
 .checkout-summary-line { display:flex; justify-content:space-between; gap:10px; padding:9px 0; color:var(--ink-2); font-size:14px; }
@@ -1106,7 +1118,7 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .p8-section-card { min-width:0; }
 .p8-field-grid { min-width:0; }
 .p8-field-wide { grid-column:1/-1; }
-.p8-inline-field { grid-template-columns:minmax(0,1fr) auto; align-items:flex-end; gap:8px; }
+.p8-inline-field { grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; }
 .p8-inline-field > * { min-width:0; }
 .p8-slug-field { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; overflow:hidden; border:1px solid var(--border); border-radius:9px; background:#fff; }
 .p8-slug-field > span { padding-left:11px; color:var(--ink-3); font:600 12px var(--font-mono); white-space:nowrap; }
@@ -10999,7 +11011,7 @@ article[id] {
 .p8-corporate-editor .ds-button--primary:not(:disabled) {
   background: #A37B2C;
   border-color: #A37B2C;
-  color: #FFFFFF;
+  color: #17120c;
 }
 .p8-corporate-editor .ds-button--primary:not(:disabled):hover {
   background: #896420;
@@ -11509,4 +11521,97 @@ article[id] {
   color: #3f3b36;
   font-size: 14px;
   line-height: 1.5;
+}
+
+/* ================================================================
+   CHECKOUT / HELP / PANEL CRO
+   Progress numerals were styled onto labels; pay CTAs washed out
+   when disabled; help search and panel loading lacked structure.
+   ================================================================ */
+.yi-cart-summary .yi-btn--primary {
+  width: 100%;
+  min-height: 48px;
+  background: #A37B2C;
+  color: #17120c;
+}
+.yi-cart-summary .yi-btn--ghost {
+  width: 100%;
+  justify-content: center;
+}
+
+.support-search {
+  min-height: 52px;
+  padding: 6px 6px 6px 14px;
+  gap: 8px;
+}
+.support-search button {
+  min-height: 40px;
+  padding: 0 16px;
+  color: #17120c;
+}
+.support-topic-grid {
+  align-items: stretch;
+}
+.support-topic-card {
+  align-items: start;
+  min-height: 124px;
+}
+.support-contact {
+  align-items: center;
+}
+.support-contact-cta {
+  min-height: 48px;
+  padding: 0 18px;
+  color: #17120c;
+  font-size: 14px;
+}
+
+.ds-view-loading {
+  width: 100%;
+  max-width: 720px;
+}
+.ds-view-loading strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #1A1918;
+  font-size: 18px;
+}
+.ds-view-loading--panel {
+  max-width: none;
+  text-align: left;
+}
+.ds-view-loading__hero,
+.ds-view-loading__kpis {
+  width: 100%;
+}
+.ds-view-loading__kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.p10-corporate-platform .enterprise-loading-shell,
+.enterprise-loading-shell {
+  min-height: 52vh;
+  width: 100%;
+  justify-items: stretch;
+  align-content: start;
+  padding: 8px 0 40px;
+}
+
+.p8-inline-field .ds-button,
+.p8-inline-field button {
+  min-height: 44px;
+  height: 44px;
+  align-self: center;
+}
+
+.ds-input::placeholder,
+.ds-textarea::placeholder {
+  color: #6e665d;
+}
+
+@media (max-width: 900px) {
+  .ds-view-loading__kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

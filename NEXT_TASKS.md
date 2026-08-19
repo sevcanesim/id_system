@@ -46,7 +46,7 @@ Güncel durum: v25.8.4 kurumsal kart formundaki alan yetki matrisini tamamladı 
 ## Sıradaki P2 (güncellendi)
 - Gerçek ödeme callback → entitlement → aktivasyon claim zincirini sandbox ödeme ile E2E'ye bağla.
 - Davet expired/revoked, pasif/ayrıldı, replacement ve aynı isim çalışan senaryolarını UI-level Playwright testleriyle genişlet.
-- Lead modülü ürün backlog'unda açık kalıyor (kapsam kararı bekliyor).
+- Lead modülü ürün backlog'unda açık kalıyor (kapsam kararı bekliyor). Park edilmiş not: `docs/product-engineering/17_PARKED_CORPORATE_NETWORKING_LEAD_MODULE.md` — yalnız **`notu uygula`** denince uygulanır.
 - "Toplantı Planla" slotu düz URL/PDF; Calendly/Cal.com gömme widget'ı değil.
 - CSV toplu yüklemenin canlı ortamda Playwright ile uçtan uca (gerçek dosya seçimi, gerçek RPC) doğrulanması — bu oturumda yalnız statik/unit test yapılabildi.
 
@@ -112,7 +112,7 @@ Güncel durum: v25.8.4 kurumsal kart formundaki alan yetki matrisini tamamladı 
 
 ## Sıradaki P1
 - Önceki ZIP içindeki Supabase, iyzico, Maps, DB ve demo kimlik bilgilerini rotate et.
-- Lead/CRM modülünün ürün kapsamına alınıp alınmayacağına karar ver; mevcut fixture yalnız "modül bekliyor" organizasyonudur.
+- Lead/CRM modülünün ürün kapsamına alınıp alınmayacağına karar ver; mevcut fixture yalnız "modül bekliyor" organizasyonudur. Birleşik park notu (networking + TR|EN kart + Super Admin tenant): `docs/product-engineering/17_PARKED_CORPORATE_NETWORKING_LEAD_MODULE.md`. Uygulama kapısı: **`notu uygula`**.
 - `app/kurumsal/panel/page.tsx` bileşenleştirmesi: Employees + EmployeeDrawer v25.8.8'de tamamlandı (bkz. yukarı); yalnız Overview kaldı.
 
 ## Release kapıları (v25.5'ten beri değişmedi)

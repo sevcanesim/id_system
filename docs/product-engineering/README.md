@@ -8,7 +8,8 @@ This directory is the project-level operating contract for product and engineeri
 2. `01_CURRENT_ARCHITECTURE_BASELINE.md` — current repository reality
 3. `16_AGENT_WORKING_CONTRACT.md` — concise agent execution rules
 4. Run `npm run verify:runtime-prerequisites` before runtime tests when dependencies are available.
-4. Existing phase/QA documents in `/docs` — detailed historical and phase-specific contracts
+5. Existing phase/QA documents in `/docs` — detailed historical and phase-specific contracts
+6. Parked product notes (`17_PARKED_*.md`) are **not** active contracts. Apply them only when the product owner says `notu uygula`.
 
 ## Source of truth
 

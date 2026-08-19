@@ -1,3 +1,4 @@
+import { ADMIN_PROVISION_PLAN_CODES, defaultMailCreditLimit } from "../../../../lib/commerce/packages";
 import { createHash, randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -17,7 +18,7 @@ const tenantSchema = z.object({
   city: z.string().trim().max(80).optional().default(""),
   district: z.string().trim().max(80).optional().default(""),
   country: z.string().trim().max(80).optional().default("Türkiye"),
-  planCode: z.enum(["DEMO-2", "DEMO-5", "DEMO-10", "STARTER", "GROWTH", "BUSINESS", "ENTERPRISE"]),
+  planCode: z.enum(ADMIN_PROVISION_PLAN_CODES),
   employeeLimit: z.number().int().min(1).max(100000).optional(),
   digitalCardLimit: z.number().int().min(0).max(100000).optional(),
   physicalCardLimit: z.number().int().min(0).max(100000).optional(),
@@ -44,7 +45,7 @@ const provisionSchema = z.object({
   name: z.string().trim().min(2).max(120),
   ownerEmail: z.string().trim().email(),
   ownerFullName: z.string().trim().min(2).max(120),
-  planCode: z.enum(["DEMO-2", "DEMO-5", "DEMO-10", "STARTER", "GROWTH", "BUSINESS", "ENTERPRISE"]),
+  planCode: z.enum(ADMIN_PROVISION_PLAN_CODES),
   seatLimitOverride: z.number().int().min(1).max(100000).optional(),
   billingPeriod: z.enum(["MONTHLY", "YEARLY"]).default("YEARLY"),
   termDays: z.number().int().min(1).max(3650).optional(),
@@ -135,7 +136,7 @@ export async function POST(request: NextRequest) {
         p_employee_limit: employeeLimit,
         p_digital_card_limit: body.digitalCardLimit ?? employeeLimit,
         p_physical_card_limit: body.physicalCardLimit ?? employeeLimit,
-        p_mail_credit_limit: body.mailCreditLimit ?? 1000,
+        p_mail_credit_limit: body.mailCreditLimit ?? defaultMailCreditLimit(employeeLimit),
         p_storage_bytes: 10 * 1024 * 1024 * 1024,
         p_status: body.status,
         p_plan_code: body.planCode,

@@ -22,11 +22,12 @@ describe("selectInitialOfferVariant", () => {
     expect(listingPriceKurus(variants)).toBe(79_900);
   });
 
-  it("uses INITIAL_BUNDLE metadata when the canonical SKU is absent", () => {
+  it("keeps public listing on the 799 SKU even if Premium is also INITIAL_BUNDLE", () => {
     const variants = [
-      { sku: "LEGACY-EXTRA", priceKurus: 39_900, metadata: { fulfillment_kind: "ADDITIONAL_CARD" } },
-      { sku: "LEGACY-INITIAL", priceKurus: 79_900, metadata: { fulfillment_kind: "INITIAL_BUNDLE" } },
+      { sku: COMMERCIAL_SKUS.PREMIUM, priceKurus: COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.priceKurus, metadata: { fulfillment_kind: "INITIAL_BUNDLE" } },
+      { sku: COMMERCIAL_SKUS.INITIAL, priceKurus: COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus, metadata: { fulfillment_kind: "INITIAL_BUNDLE" } },
     ];
-    expect(selectInitialOfferVariant(variants)?.sku).toBe("LEGACY-INITIAL");
+    expect(selectInitialOfferVariant(variants)?.sku).toBe(COMMERCIAL_SKUS.INITIAL);
+    expect(listingPriceKurus(variants)).toBe(79_900);
   });
 });

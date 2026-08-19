@@ -1,3 +1,4 @@
+import { assertNetworkDailyCap, debitNetworkMail } from "../../../../lib/commerce/packages";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireOrganizationRole } from "../../../../lib/organizations/authorization";
@@ -25,11 +26,22 @@ const createLinkSchema = z.object({
   profileId: z.string().uuid(),
 });
 
+const FOLLOWUP_TEMPLATES = [
+  "EVENT_BEFORE",
+  "EVENT_MET",
+  "OFFER",
+  "AFTER_MEETING",
+  "PRESENTATION",
+  "EVENT_THANKS",
+  "PRODUCT_INFO",
+  "CUSTOM",
+] as const;
+
 const followUpSchema = z.object({
   action: z.literal("send_followup"),
   organizationId: z.string().uuid(),
   leadId: z.string().uuid(),
-  template: z.enum(["EVENT_BEFORE", "EVENT_MET", "AFTER_MEETING"]).default("EVENT_MET"),
+  template: z.enum(FOLLOWUP_TEMPLATES).default("EVENT_MET"),
 });
 
 const meetingSchema = z.object({
@@ -141,8 +153,31 @@ export async function POST(request: NextRequest) {
       .select("mail_credits_remaining")
       .eq("organization_id", parsed.data.organizationId)
       .maybeSingle();
-    if (!entitlements || entitlements.mail_credits_remaining < 1) {
-      return NextResponse.json({ error: "Tanıtım maili kredisi kalmadı. İstek kredi düşmez." }, { status: 409 });
+    const debit = debitNetworkMail({
+      remaining: entitlements?.mail_credits_remaining ?? 0,
+      recipientCount: 1,
+      kind: "NETWORK",
+    });
+    if (!debit.ok) {
+      return NextResponse.json({ error: "Network Mail kredisi kalmadı. İstek kredi düşmez." }, { status: 409 });
+    }
+    const dayStart = new Date();
+    dayStart.setUTCHours(0, 0, 0, 0);
+    const { data: orgLeads } = await admin
+      .from("networking_leads")
+      .select("id")
+      .eq("organization_id", parsed.data.organizationId);
+    const leadIds = (orgLeads || []).map((row: { id: string }) => row.id);
+    const { count: sentToday } = leadIds.length
+      ? await admin
+          .from("networking_lead_events")
+          .select("id", { count: "exact", head: true })
+          .eq("kind", "MAIL_SENT")
+          .in("lead_id", leadIds)
+          .gte("created_at", dayStart.toISOString())
+      : { count: 0 };
+    if (!assertNetworkDailyCap(sentToday ?? 0, 1)) {
+      return NextResponse.json({ error: "Günlük Network Mail limiti doldu. İstek kredi düşmez." }, { status: 429 });
     }
     const { data: org } = await admin.from("organizations").select("name").eq("id", parsed.data.organizationId).maybeSingle();
     const sent = await sendNetworkingFollowUpEmail({
@@ -157,24 +192,24 @@ export async function POST(request: NextRequest) {
         : "Tanıtım maili gönderilemedi. Kredi düşülmedi.";
       return NextResponse.json({ error: message, reason: sent.reason }, { status: 503 });
     }
-    const nextCredits = entitlements.mail_credits_remaining - 1;
-    const { data: debit, error: creditError } = await admin
+    const nextCredits = debit.remaining;
+    const { data: credited, error: creditError } = await admin
       .from("organization_entitlements")
       .update({ mail_credits_remaining: nextCredits, updated_at: new Date().toISOString() })
       .eq("organization_id", parsed.data.organizationId)
-      .eq("mail_credits_remaining", entitlements.mail_credits_remaining)
+      .eq("mail_credits_remaining", debit.remaining + debit.debit)
       .select("mail_credits_remaining")
       .maybeSingle();
-    if (creditError || !debit) {
+    if (creditError || !credited) {
       return NextResponse.json({ error: "Mail gönderildi; kredi düşümü doğrulanamadı." }, { status: 503 });
     }
     await admin.from("networking_leads").update({ status: "MAIL_SENT", updated_at: new Date().toISOString() }).eq("id", lead.id);
     await admin.from("networking_lead_events").insert({
       lead_id: lead.id,
       kind: "MAIL_SENT",
-      payload: { template: parsed.data.template, credited: true },
+      payload: { template: parsed.data.template, credited: true, ledger: "NETWORK", debit: debit.debit },
     });
-    return NextResponse.json({ ok: true, mailCreditsRemaining: debit.mail_credits_remaining });
+    return NextResponse.json({ ok: true, mailCreditsRemaining: credited.mail_credits_remaining });
   }
 
   if (action === "update_meeting") {

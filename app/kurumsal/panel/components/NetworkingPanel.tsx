@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FOLLOW_UP_SCENARIOS } from "../../../../lib/commerce/packages";
 import { EmptyState } from "../../../components/ui/States";
 import { LEAD_STATUSES } from "../../../../lib/networking/catalog";
 import { eventAttributionPath } from "../../../../lib/public-card/urls";
@@ -70,6 +71,7 @@ export default function NetworkingPanel({
   const [eventLinks, setEventLinks] = useState<EventLink[]>([]);
   const [timeline, setTimeline] = useState<Timeline[]>([]);
   const [credits, setCredits] = useState(0);
+  const [templates, setTemplates] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [eventForm, setEventForm] = useState({ name: "", location: "", booth: "", profileId: "" });
@@ -140,13 +142,13 @@ export default function NetworkingPanel({
           <h2 id="p11-networking-title">{view === "leads" ? "Leadler" : view === "events" ? "Etkinlikler" : "Görüşmeler"}</h2>
           <p>
             {view === "leads"
-              ? "Karttan paylaşılan iletişim ve görüşme talepleri. Mail karttan gitmez; başarılı gönderimde 1 kredi düşer."
+              ? "Karttan paylaşılan iletişim. Network Mail kişisel follow-up’tır: 1 alıcı = 1 kredi. Toplu Campaign Mail bu bakiyeden düşmez."
               : view === "events"
                 ? "Etkinlik QR’si kişi URL’sini değiştirmez. /e/{id} aynı dijital kartı açar."
                 : "Yüz yüze talepler lokasyon ve ekip uygunluğuna göre planlanır. GPS kullanılmaz."}
           </p>
         </div>
-        <b>Mail kredisi: {credits}</b>
+        <b>Network Mail: {credits}</b>
       </header>
       {message && <p className="p11-networking-message" role="status">{message}</p>}
 
@@ -173,7 +175,14 @@ export default function NetworkingPanel({
                     <select aria-label="Lead durumu" value={lead.status} onChange={(event) => void post({ action: "update_lead", leadId: lead.id, status: event.target.value })}>
                       {LEAD_STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}
                     </select>
-                    <button type="button" disabled={busy} onClick={() => void post({ action: "send_followup", leadId: lead.id, template: "EVENT_MET" })}>Tanıtım Maili Gönder</button>
+                    <select
+                      aria-label="Follow-up senaryosu"
+                      value={templates[lead.id] || "EVENT_MET"}
+                      onChange={(event) => setTemplates((current) => ({ ...current, [lead.id]: event.target.value }))}
+                    >
+                      {FOLLOW_UP_SCENARIOS.map((scenario) => <option key={scenario.code} value={scenario.code}>{scenario.label}</option>)}
+                    </select>
+                    <button type="button" disabled={busy} onClick={() => void post({ action: "send_followup", leadId: lead.id, template: templates[lead.id] || "EVENT_MET" })}>Mail Gönder</button>
                   </div>
                 </article>
               );

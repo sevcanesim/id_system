@@ -9,6 +9,12 @@ import { formatTryFromKurus, listingPriceKurus } from "../../lib/config/product"
 import { ProductVisual } from "../ui/ProductVisual";
 import { ButtonLink } from "../ui/Button";
 import { PublicPageTitle } from "../components/PublicPageTitle";
+import {
+  INDIVIDUAL_FEATURES,
+  INDIVIDUAL_PLAN,
+  INDIVIDUAL_PREMIUM_FEATURES,
+  INDIVIDUAL_PREMIUM_PLAN,
+} from "../../lib/commerce/packages";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -30,8 +36,8 @@ export default async function ProductsPage() {
       <main id="main-content" className="products-single-main">
         <PublicPageTitle
           kicker="YENOMI ID · DİJİTAL KARTVİZİT"
-          title={<>Bireysel kartvizit.<br /><em>NFC + QR.</em></>}
-          description="Kendi dijital kartvizitini al. Ekibin için marka, yetki ve analitik yönetimi kurumsal çözümde."
+          title={<>Bireysel kartvizit.<br /><em>Networking’e giden giriş.</em></>}
+          description="799 TL bireysel NFC + QR kart. Premium 1.250 TL ile toplantı, sunum ve 100 Network Mail. Ekip için kurumsal merdiven ayrı incelenir."
           className="public-page-title--catalog"
         />
         <section className="products-single-hero" aria-labelledby="products-title">
@@ -52,30 +58,31 @@ export default async function ProductsPage() {
         </section>
 
         <section className="products-single-offer" aria-labelledby="offer-title">
-          <div className="yi-container products-single-offer__inner">
-            <div className="products-single-price-card">
-              <div className="products-single-price-card__head">
-                <div>
-                  <span className="products-single-kicker">AKTİF ÜRÜN</span>
-                  <h2 id="offer-title">{nfc?.name ?? "Yenomi ID NFC Kart"}</h2>
-                </div>
+          <div className="yi-container products-plan-grid">
+            <article className="products-plan-card">
+              <div className="products-plan-card__head">
+                <span className="products-single-kicker">BİREYSEL</span>
+                <h2 id="offer-title">{INDIVIDUAL_PLAN.name}</h2>
                 {!catalogError && <strong className="products-single-price">{formatTryFromKurus(listPriceKurus)}</strong>}
               </div>
-              <div className="products-single-price-card__body">
-                <ul aria-label="Ürün avantajları">
-                  <li>Premium NFC kart</li>
-                  <li>1 yıl dijital hizmet dahil</li>
-                  <li>Canlı profil ve QR bağlantısı</li>
-                  <li>Türkiye içi ücretsiz kargo</li>
-                </ul>
-                {nfc && <ButtonLink href={`/urunler/${nfc.slug}`} variant="primary">Paketi İncele</ButtonLink>}
+              <p>NFC kart + 1 yıllık dijital kartvizit + Türkiye içi ücretsiz kargo.</p>
+              <ul aria-label="Bireysel paket içeriği">
+                {INDIVIDUAL_FEATURES.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+              {nfc && <ButtonLink href={`/urunler/${nfc.slug}`} variant="primary">Satın Al</ButtonLink>}
+            </article>
+            <article className="products-plan-card is-popular">
+              <div className="products-plan-card__head">
+                <span className="products-single-kicker">BİREYSEL PREMIUM</span>
+                <h2>En çok tercih edilen</h2>
+                <strong className="products-single-price">{formatTryFromKurus(INDIVIDUAL_PREMIUM_PLAN.priceKurus)}</strong>
               </div>
-            </div>
-            <div className="products-single-benefits" aria-label="Satın alma güven bilgileri">
-              <article><span>01</span><strong>Tek bağlantı</strong><p>Kart değişse bile dijital profilin aynı kalır.</p></article>
-              <article><span>02</span><strong>Anında güncelle</strong><p>Unvanın veya iletişim bilgin değiştiğinde kartı yenileme.</p></article>
-              <article><span>03</span><strong>Uygulama gerekmez</strong><p>NFC veya QR ile profil doğrudan açılır.</p></article>
-            </div>
+              <p>Bireysel paketteki her şey, artı toplantı, sunum, kişi yönetimi ve 100 Network Mail.</p>
+              <ul aria-label="Premium paket içeriği">
+                {INDIVIDUAL_PREMIUM_FEATURES.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+              <ButtonLink href="/kurumsal?plan=INDIVIDUAL_PREMIUM#teklif" variant="dark">Premium teklifi al</ButtonLink>
+            </article>
           </div>
         </section>
 

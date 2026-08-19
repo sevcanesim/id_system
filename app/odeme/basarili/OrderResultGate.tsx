@@ -27,6 +27,7 @@ export default function OrderResultGate() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("order");
   const [state, setState] = useState<VerifyState>(orderId ? "checking" : "invalid");
+  const [activationRequired, setActivationRequired] = useState(false);
   const tracked = useRef(false);
 
   useEffect(() => {
@@ -38,9 +39,10 @@ export default function OrderResultGate() {
     setState("checking");
     fetch(`/api/commerce/orders/status?order=${encodeURIComponent(orderId)}`, { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : { paid: false }))
-      .then((data: { paid?: boolean }) => {
+      .then((data: { paid?: boolean; activationRequired?: boolean }) => {
         if (!active) return;
         setState(data?.paid ? "verified" : "invalid");
+        setActivationRequired(Boolean(data?.activationRequired));
       })
       .catch(() => {
         if (active) setState("invalid");
@@ -86,17 +88,28 @@ export default function OrderResultGate() {
       <span className="p5-result-icon"><Icon name="check" /></span>
       <span className="section-kicker">SİPARİŞ ALINDI</span>
       <h1>Ödemen başarıyla alındı.</h1>
-      <p>Siparişin hesabına bağlandı. Kartın hazırlanırken dijital kartvizitini tamamlayabilir ve profilini kullanıma hazır hale getirebilirsin.</p>
+      <p>{activationRequired
+        ? "Siparişin henüz bir hesaba bağlı değil. E-postandaki bağlantı ile hesabını oluştur; dijital kullanım hakkın orada açılır."
+        : "Siparişin hesabına bağlandı. Kartın hazırlanırken dijital kartvizitini tamamlayabilir ve profilini kullanıma hazır hale getirebilirsin."}</p>
       <FulfillmentReviewNotice />
       <div className="p5-next-steps" aria-label="Sipariş sonrası adımlar">
-        <div className="done"><b>1</b><span><strong>Ödeme tamamlandı</strong><small>Siparişin hesabına kaydedildi.</small></span></div>
-        <div><b>2</b><span><strong>Profilini hazırla</strong><small>İletişim bilgilerini ve bağlantılarını ekle.</small></span></div>
+        <div className="done"><b>1</b><span><strong>Ödeme tamamlandı</strong><small>{activationRequired ? "Ödemen alındı; sipariş e-postana kaydedildi." : "Siparişin hesabına kaydedildi."}</small></span></div>
+        <div><b>2</b><span><strong>{activationRequired ? "Hesabını bağla" : "Profilini hazırla"}</strong><small>{activationRequired ? "Maildeki bağlantı ile hesap oluştur veya giriş yap." : "İletişim bilgilerini ve bağlantılarını ekle."}</small></span></div>
         <div><b>3</b><span><strong>Kart hazırlanır</strong><small>Fiziksel kart üretim ve kargo sürecine alınır.</small></span></div>
       </div>
-      <ActivationAction />
+      <ActivationAction activationRequired={activationRequired} />
       <div className="order-success-actions">
-        <Link href="/olustur?source=purchase">Kartvizitimi Hazırla</Link>
-        <Link className="secondary" href="/siparislerim">Siparişimi Takip Et</Link>
+        {activationRequired ? (
+          <>
+            <Link href="/aktivasyon">Hesabımı Bağla</Link>
+            <Link className="secondary" href="/urunler">Ürünlere Dön</Link>
+          </>
+        ) : (
+          <>
+            <Link href="/olustur?source=purchase">Kartvizitimi Hazırla</Link>
+            <Link className="secondary" href="/siparislerim">Siparişimi Takip Et</Link>
+          </>
+        )}
       </div>
       <PaymentSuccessShare />
     </section>

@@ -9,6 +9,7 @@ import { COMMERCIAL_SKUS, isDigitalOnlySku, isPhysicalBundleSku, isPremiumUpgrad
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { Icon } from "../icons";
 import { TURKEY_CITIES, normalizeTrPhone } from "../../lib/form-standards";
+import { track } from "../../lib/analytics";
 
 import { clearPendingCheckoutOrderId, getOrCreateCheckoutIdempotencyKey, getPendingCheckoutOrderId, rotateCheckoutIdempotencyKey, setPendingCheckoutOrderId, setCheckoutReturnPath } from "../../lib/payments/browser-checkout";
 type FormState = {
@@ -86,8 +87,10 @@ export default function CheckoutPage() {
 
       setIsAuthenticated(true);
       setCartOwner(session.user.id, { claimGuest: true });
+      const mergedCart = readCart();
+      setItems(mergedCart);
       setForm((current) => ({ ...current, email: session.user.email ?? current.email }));
-      const organizationIds = Array.from(new Set(cart.map((item) => item.configuration?.organizationId).filter((id): id is string => typeof id === "string")));
+      const organizationIds = Array.from(new Set(mergedCart.map((item) => item.configuration?.organizationId).filter((id): id is string => typeof id === "string")));
       if (organizationIds.length && session.access_token) {
         void fetch("/api/organizations/mine?management=true", { headers: { authorization: `Bearer ${session.access_token}` } })
           .then((response) => response.ok ? response.json() : null)
@@ -229,6 +232,7 @@ export default function CheckoutPage() {
 
     setCheckoutReturnPath("/checkout");
     setBusy(true);
+    track("checkout_started", { itemCount: items.length, authenticated: isAuthenticated });
     try {
       const supabase = getSupabaseBrowserClient();
       const { data: sessionData } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
@@ -285,6 +289,7 @@ export default function CheckoutPage() {
       }
       if (!data.paymentPageUrl) throw new Error("Ödeme sayfası oluşturulamadı.");
       if (data.orderId) setPendingCheckoutOrderId(data.orderId);
+      track("payment_start", { orderId: data.orderId, reused: Boolean(data.reused) });
       window.location.href = data.paymentPageUrl;
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Ödeme başlatılamadı.");

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import AppHeader from "../components/AppHeader";
 import AppFooter from "../components/AppFooter";
@@ -19,12 +19,12 @@ export default function ActivationClient() {
   const [busy, setBusy] = useState(false);
   const [resending, setResending] = useState(false);
 
-  useEffect(() => {
-    if (!token) router.replace("/urunler");
-  }, [router, token]);
-
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (!token) {
+      setMessage("Aktivasyon bağlantısı eksik. E-postandaki bağlantıyı kullan veya aşağıdan yeni bağlantı iste.");
+      return;
+    }
     setBusy(true);
     setMessage("");
     try {
@@ -64,10 +64,16 @@ export default function ActivationClient() {
     }
   }
 
-  return <main id="main-content" className="activation-page p5-activation-page p6-activation-page"><AppHeader context="Eski Sipariş Bağlantısı" /><section className="activation-shell">
-    <span className="section-kicker">GEÇMİŞ SİPARİŞ</span><h1>Eski siparişini hesabına bağla.</h1><p>Bu ekran yalnız daha önce gönderilmiş aktivasyon bağlantıları için kullanılabilir. Yeni satın almalarda hak otomatik tanımlanır.</p>
-    <div className="activation-tabs"><button className={mode === "new" ? "active" : ""} onClick={() => setMode("new")}>Yeni hesap</button><button className={mode === "existing" ? "active" : ""} onClick={() => setMode("existing")}>Mevcut hesabım</button></div>
-    <form onSubmit={submit}><label>E-posta<input required type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} value={email} onChange={(event) => setEmail(event.target.value)} onBlur={() => setEmail(normalizeEmailField(email))} placeholder="ornek@mail.com" /></label><label>Şifre<input required type="password" minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} /></label>{message && <div className="checkout-message">{message}</div>}<button disabled={busy}>{busy ? "Bağlanıyor…" : mode === "new" ? "Hesabımı Oluştur ve Bağla" : "Giriş Yap ve Siparişi Bağla"}</button></form>
-    <div className="activation-resend"><h2>Bağlantının süresi mi doldu?</h2><p>Eski sipariş e-postana yeni bir bağlantı gönderebilirsin.</p><label>Sipariş numarası <small>(isteğe bağlı)</small><input value={orderNumber} onChange={(event) => setOrderNumber(event.target.value)} placeholder="YI-..." /></label><button type="button" onClick={resend} disabled={resending || !email}>{resending ? "Gönderiliyor…" : "Yeni Bağlantı Gönder"}</button></div>
+  return <main id="main-content" className="activation-page p5-activation-page p6-activation-page"><AppHeader context="Sipariş Aktivasyonu" /><section className="activation-shell">
+    <span className="section-kicker">HESABI BAĞLA</span><h1>Siparişini hesabına bağla.</h1><p>Misafir satın almalarda dijital hak, e-postandaki bağlantı ile hesaba bağlanır. Girişli satın almalarda hak otomatik tanımlanır.</p>
+    {token ? (
+      <>
+        <div className="activation-tabs"><button className={mode === "new" ? "active" : ""} onClick={() => setMode("new")}>Yeni hesap</button><button className={mode === "existing" ? "active" : ""} onClick={() => setMode("existing")}>Mevcut hesabım</button></div>
+        <form onSubmit={submit}><label>E-posta<input required type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} value={email} onChange={(event) => setEmail(event.target.value)} onBlur={() => setEmail(normalizeEmailField(email))} placeholder="ornek@mail.com" /></label><label>Şifre<input required type="password" minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} /></label>{message && <div className="checkout-message">{message}</div>}<button disabled={busy}>{busy ? "Bağlanıyor…" : mode === "new" ? "Hesabımı Oluştur ve Bağla" : "Giriş Yap ve Siparişi Bağla"}</button></form>
+      </>
+    ) : (
+      <p>E-postandaki bağlantı bu sayfayı token ile açar. Bağlantın yoksa veya süresi dolduysa aşağıdaki formdan yeni bağlantı iste.</p>
+    )}
+    <div className="activation-resend"><h2>Bağlantın gelmedi mi?</h2><p>Ödeme aldığın e-postaya yeni bir aktivasyon bağlantısı gönderebilirsin.</p>{!token && message && <div className="checkout-message">{message}</div>}<label>E-posta<input required type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} value={email} onChange={(event) => setEmail(event.target.value)} onBlur={() => setEmail(normalizeEmailField(email))} placeholder="ornek@mail.com" /></label><label>Sipariş numarası <small>(isteğe bağlı)</small><input value={orderNumber} onChange={(event) => setOrderNumber(event.target.value)} placeholder="YI-..." /></label><button type="button" onClick={resend} disabled={resending || !email}>{resending ? "Gönderiliyor…" : "Yeni Bağlantı Gönder"}</button></div>
   </section><AppFooter variant="compact" /></main>;
 }

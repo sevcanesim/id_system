@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { sendOrderReadyEmail } from "../../../../../lib/email/resend";
+import { COMMERCIAL_PRICING } from "../../../../../lib/config/commercial";
+import { sendActivationEmail, sendOrderReadyEmail } from "../../../../../lib/email/resend";
 import { verifyIyzicoCheckoutResult } from "../../../../../lib/payments/callback-verification";
 import { publicSiteUrl } from "../../../../../lib/payments/config";
 import { retrieveCheckout } from "../../../../../lib/payments/iyzico";
@@ -16,9 +17,18 @@ function failure(reason: string) {
   );
 }
 
+async function isGuestCommerceOrder(admin: ReturnType<typeof getSupabaseAdminClient>, orderId: string) {
+  const { data } = await admin.from("commerce_orders").select("user_id").eq("id", orderId).maybeSingle();
+  return !data?.user_id;
+}
+
 async function autoClaimAuthenticatedOrder(admin: ReturnType<typeof getSupabaseAdminClient>, orderId: string) {
   const { data, error } = await admin.rpc("finalize_authenticated_commerce_order", { p_order_id: orderId });
   const payload = (data as { ok?: boolean; review_required?: boolean; open_issue_count?: number; code?: string } | null) || null;
+  // Guest checkout is first-class: ACCOUNT_REQUIRED means "claim by email", not a fulfillment defect.
+  if (payload?.code === "ACCOUNT_REQUIRED") {
+    return { ok: true, reviewRequired: false, openIssueCount: 0 };
+  }
   const ok = !error && Boolean(payload?.ok);
   if (!ok) {
     console.error("authenticated order auto claim failed", { orderId, error, result: data });
@@ -31,6 +41,41 @@ async function autoClaimAuthenticatedOrder(admin: ReturnType<typeof getSupabaseA
     if (issueError) console.error("claim failure reconciliation issue could not be recorded", { orderId, issueError });
   }
   return { ok, reviewRequired: !ok || Boolean(payload?.review_required), openIssueCount: Number(payload?.open_issue_count || 0) };
+}
+
+async function sendGuestActivationIfTokenPersisted(
+  admin: ReturnType<typeof getSupabaseAdminClient>,
+  input: { orderId: string; guestEmail: string | null; orderNumber: string; rawActivationToken: string },
+) {
+  if (!input.guestEmail) {
+    console.error("guest activation email skipped: missing recipient", { orderId: input.orderId });
+    return;
+  }
+  const tokenHash = createHash("sha256").update(input.rawActivationToken).digest("hex");
+  const { data: storedToken } = await admin
+    .from("activation_tokens")
+    .select("id")
+    .eq("order_id", input.orderId)
+    .eq("token_hash", tokenHash)
+    .is("used_at", null)
+    .is("invalidated_at", null)
+    .maybeSingle();
+  if (!storedToken) return;
+
+  const hoursValid = COMMERCIAL_PRICING.SERVICE.activationLinkDays * 24;
+  const mailResult = await sendActivationEmail({
+    to: input.guestEmail,
+    orderNumber: input.orderNumber,
+    hoursValid,
+    activationUrl: `${publicSiteUrl}/aktivasyon?token=${encodeURIComponent(input.rawActivationToken)}`,
+  });
+  await admin.from("commerce_email_events").insert({
+    order_id: input.orderId,
+    event_type: "ACTIVATION",
+    recipient: input.guestEmail,
+    status: mailResult.sent ? "SENT" : "SKIPPED",
+    provider_message: mailResult.sent ? null : mailResult.reason,
+  });
 }
 
 function paidSuccessRedirect(orderId: string, reviewRequired = false) {
@@ -55,6 +100,9 @@ export async function POST(request: NextRequest) {
 
     if (commerceAttempt) {
       if (commerceAttempt.status === "PAID") {
+        if (await isGuestCommerceOrder(admin, commerceAttempt.order_id)) {
+          return paidSuccessRedirect(commerceAttempt.order_id);
+        }
         const claim = await autoClaimAuthenticatedOrder(admin, commerceAttempt.order_id);
         return paidSuccessRedirect(commerceAttempt.order_id, claim.reviewRequired);
       }
@@ -111,12 +159,35 @@ export async function POST(request: NextRequest) {
       }
 
       if (processed.outcome === "ALREADY_PAID" || processed.outcome === "PAID_REVIEW_REQUIRED") {
+        const guestOrder = await isGuestCommerceOrder(admin, processed.order_id);
+        if (guestOrder) {
+          // First-time PAID_REVIEW_REQUIRED still stored this token. Callback replays did not.
+          if (processed.outcome === "PAID_REVIEW_REQUIRED") {
+            await sendGuestActivationIfTokenPersisted(admin, {
+              orderId: processed.order_id,
+              guestEmail: processed.guest_email,
+              orderNumber: processed.order_number,
+              rawActivationToken,
+            });
+          }
+          return paidSuccessRedirect(processed.order_id, processed.outcome === "PAID_REVIEW_REQUIRED");
+        }
         const claim = await autoClaimAuthenticatedOrder(admin, processed.order_id);
         const reviewRequired = processed.outcome === "PAID_REVIEW_REQUIRED" || claim.reviewRequired;
         return paidSuccessRedirect(processed.order_id, reviewRequired);
       }
 
       if (processed.outcome !== "PAID_PROCESSED") return failure("callback");
+
+      if (await isGuestCommerceOrder(admin, processed.order_id)) {
+        await sendGuestActivationIfTokenPersisted(admin, {
+          orderId: processed.order_id,
+          guestEmail: processed.guest_email,
+          orderNumber: processed.order_number,
+          rawActivationToken,
+        });
+        return paidSuccessRedirect(processed.order_id);
+      }
 
       const claim = await autoClaimAuthenticatedOrder(admin, processed.order_id);
       if (claim.reviewRequired) {

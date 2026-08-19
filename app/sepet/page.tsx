@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { cartItemPresentation, readCart, removeCartItem, updateCartItemQuantity, writeCart, type CartItem } from "../../lib/cart";
+import { cartItemPresentation, readCart, removeCartItem, setCartOwner, updateCartItemQuantity, writeCart, type CartItem } from "../../lib/cart";
 import { COMMERCIAL_PRICING } from "../../lib/config/commercial";
 import { formatTryFromKurus } from "../../lib/config/product";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
@@ -23,10 +23,12 @@ export default function CartPage() {
     if (!supabase) return;
     void supabase.auth.getSession().then(async ({ data }) => {
       const token = data.session?.access_token;
-      if (!token) {
+      const userId = data.session?.user.id;
+      if (!token || !userId) {
         setAudience("guest");
         return;
       }
+      setCartOwner(userId, { claimGuest: true });
       const response = await fetch("/api/organizations/mine?management=true", {
         headers: { authorization: `Bearer ${token}` },
         cache: "no-store",
@@ -142,7 +144,7 @@ export default function CartPage() {
                     <b>{formatTryFromKurus(total)}</b>
                   </div>
                 </div>
-                <p>Satın alma sırasında giriş yapar veya hesap oluşturursun. Sipariş uygunluğu checkout tarafında gerçek veri üzerinden doğrulanır.</p>
+                <p>Hesap açmadan ödeme yapabilirsin. Satın alma sonrası siparişini bu e-posta ile hesabına bağlarsın. Sipariş uygunluğu checkout tarafında gerçek veri üzerinden doğrulanır.</p>
                 <Link href="/checkout" className="yi-btn yi-btn--primary">
                   Güvenli Satın Almaya Geç
                 </Link>

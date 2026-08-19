@@ -19,7 +19,7 @@ export default function KvkkPage() {
         backHref="/"
       />
       <div className="legal-shell">
-        <p className="legal-updated">Yürürlük tarihi: {legal.effectiveDate}</p>
+        <p className="legal-updated">Yürürlük tarihi: {legal.effectiveDate}. Ayrıntılı gizlilik politikası için <Link href="/gizlilik" className="legal-link">Gizlilik</Link> sayfasını inceleyebilirsiniz.</p>
         <ul className="legal-toc" aria-label="İçindekiler">
           <li><a href="#veri-sorumlusu">01 · Veri sorumlusu</a></li><li><a href="#veriler">02 · İşlenen veriler</a></li>
           <li><a href="#amac">03 · İşleme amaçları</a></li><li><a href="#hukuki-sebep">04 · Hukuki sebepler</a></li>

@@ -128,8 +128,11 @@ export default async function SupportPage({
 
       <section className="support-contact" aria-label="Doğrudan destek">
         <div><span className="section-kicker">DOĞRUDAN DESTEK</span><h2>Aradığınız cevap burada yoksa bize ulaşın.</h2></div>
-        <p>Mesajınızı gönderin; ekibimiz hesabınızın bağlamını inceleyerek yardımcı olsun.</p>
-        <a className="support-contact-cta" href="mailto:hello@yenomilabs.com">Destek Ekibine Yazın <span aria-hidden="true">→</span></a>
+        <p>Mesajınızı gönderin; ekibimiz hesabınızın bağlamını inceleyerek yardımcı olsun. Hesabınız varsa panele de dönebilirsiniz.</p>
+        <div className="support-contact-actions">
+          <a className="support-contact-cta" href="mailto:hello@yenomilabs.com">Destek Ekibine Yazın <span aria-hidden="true">→</span></a>
+          <Link href="/giris">Hesabıma Git</Link>
+        </div>
       </section>
 
     </main>

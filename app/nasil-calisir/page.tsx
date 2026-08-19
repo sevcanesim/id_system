@@ -33,7 +33,7 @@ export default function HowItWorksPage() {
         <div className="how-hero-inner">
           <span className="section-kicker">YENOMI ID</span>
           <h1 id="how-title">YENOMI ID: <em>Nasıl Çalışır?</em></h1>
-          <p>Fiziksel Prestij, Dijital Güç: Adım Adım Entegre Kimlik Deneyimi</p>
+          <p>Kartını al, profilini kur, NFC veya QR ile paylaş. Dört adımda aynı dijital kimlik.</p>
         </div>
       </section>
 
@@ -75,6 +75,7 @@ export default function HowItWorksPage() {
             </article>
           ))}
         </div>
+        <p className="how-account-note">Kartın ve profilin hazırsa <Link href="/giris">Giriş Yap</Link></p>
       </section>
 </main>
   );

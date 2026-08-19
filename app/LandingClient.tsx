@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Frozen Phase 4 public-conversion artifact.
+ * The live homepage is `app/page.tsx`. This file is not mounted; historical
+ * verifiers still read it as a contract snapshot. Do not delete without
+ * repointing those verifiers to the live homepage.
+ */
+
 import Link from "next/link";
 import AppHeader from "./components/AppHeader";
 import AppFooter from "./components/AppFooter";

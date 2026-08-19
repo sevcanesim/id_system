@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function GizlilikPage() {
   const legal = getLegalIdentity();
   return (
-    <main id="main-content" className="legal-page">
+    <main id="main-content" className="legal-page legal-page--premium">
       <PublicPageTitle
         kicker="YENOMI ID · HUKUKİ BİLGİ"
         title="Gizlilik Politikası ve KVKK Aydınlatma Metni"
@@ -19,7 +19,7 @@ export default function GizlilikPage() {
         backHref="/"
       />
       <div className="legal-shell">
-        <p className="legal-updated">Yürürlük tarihi: {legal.effectiveDate}</p>
+        <p className="legal-updated">Yürürlük tarihi: {legal.effectiveDate}. Kısa KVKK aydınlatma metni için <Link href="/kvkk" className="legal-link">KVKK</Link> sayfasına bakabilirsiniz.</p>
 
         <ul className="legal-toc">
           <li><a href="#veri-sorumlusu">Veri Sorumlusu</a></li>

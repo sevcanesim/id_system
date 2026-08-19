@@ -17,25 +17,25 @@ import PublicSiteShell from "./components/PublicSiteShell";
 export const metadata: Metadata = {
   metadataBase: new URL("https://qr.yenomilabs.com"),
   title: {
-    default: "Yenomi ID | Dijital kimliğin, sana ait.",
+    default: "Yenomi ID | Dijital kartvizit",
     template: "%s | Yenomi ID",
   },
-  description: "Digital Identity, beautifully yours. Profesyonel dijital kimliğini tek bir bağlantıda oluştur, paylaş ve dilediğin an güncelle.",
+  description: "Yenomi ID dijital kartvizit: bireysel NFC + QR kart veya kurumsal ekip yönetimi. Canlı profil, görüntülenme ve bağlantı takibi.",
   applicationName: "Yenomi ID",
   icons: { icon: "/favicon.ico", apple: "/apple-touch-icon.png" },
   openGraph: {
     type: "website",
     locale: "tr_TR",
     siteName: "Yenomi ID",
-    title: "Yenomi ID | Dijital kimliğin, sana ait.",
-    description: "Digital Identity, beautifully yours. Profesyonel dijital kimliğini tek bir bağlantıda oluştur, paylaş ve dilediğin an güncelle.",
+    title: "Yenomi ID | Dijital kartvizit",
+    description: "Bireysel veya kurumsal dijital kartvizit. NFC + QR kart, canlı profil ve görüntülenme takibi.",
     url: "https://qr.yenomilabs.com",
     images: ["/images/yenomilabs-share.png"],
   },
   twitter: {
     card: "summary",
-    title: "Yenomi ID | Dijital kimliğin, sana ait.",
-    description: "Digital Identity, beautifully yours. Profesyonel dijital kimliğini tek bir bağlantıda oluştur, paylaş ve dilediğin an güncelle.",
+    title: "Yenomi ID | Dijital kartvizit",
+    description: "Bireysel veya kurumsal dijital kartvizit. NFC + QR kart, canlı profil ve görüntülenme takibi.",
     images: ["/images/yenomilabs-share.png"],
   },
 };

@@ -72,8 +72,8 @@ export default function CartPage() {
             ) : (
               <EmptyState
                 icon="cart"
-                title="Kimliğini oluşturmaya hazır mısın?"
-                description="Sepetinde henüz ürün yok. Yenomi ID ürünlerini inceleyerek dijital kimliğini oluşturmaya başlayabilirsin."
+                title="Dijital kartvizitini almaya hazır mısın?"
+                description="Sepetinde henüz ürün yok. Bireysel NFC + QR dijital kartviziti inceleyerek başlayabilirsin."
                 action={{ label: "NFC Kartı incele", href: "/urunler/nfc-kart" }}
               />
             )

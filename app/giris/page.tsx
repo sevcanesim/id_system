@@ -296,8 +296,8 @@ export default function LoginPage() {
       <section className="p6-auth-shell">
         <aside className="p6-auth-story" aria-label="Yenomi ID ürün özeti">
           <span className="p6-auth-kicker">YENOMI ID</span>
-          <h1>Fiziksel kartın.<br />Canlı dijital kimliğin.</h1>
-          <p>Kartını telefona dokundur. Güncel iletişim bilgilerin ve profesyonel profilin saniyeler içinde açılsın.</p>
+          <h1>Fiziksel kartın.<br />Canlı dijital kartvizitin.</h1>
+          <p>Kartını telefona dokundur. Güncel iletişim bilgilerin ve profesyonel kartvizitin saniyeler içinde açılsın.</p>
           <div className="p6-auth-product-flow" aria-label="Karttan dijital profile geçiş">
             <div className="p6-auth-visual-card">
               <YenomiProductVisual variant="card" compact />
@@ -305,7 +305,7 @@ export default function LoginPage() {
             <div className="p6-auth-flow-arrow" aria-hidden="true"><Icon name="external" /></div>
             <div className="p6-auth-mini-phone">
               <YenomiProductVisual variant="profile" compact />
-              <small>Canlı dijital kimlik</small>
+              <small>Canlı dijital kartvizit</small>
             </div>
           </div>
           <ul className="p6-auth-features" aria-label="Yenomi ID avantajları">

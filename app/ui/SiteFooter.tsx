@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Brand } from "./Brand";
-import { Icon } from "../icons";
 
 type FooterVariant = "default" | "compact" | "how-it-works";
 
@@ -10,7 +9,7 @@ function FooterContent() {
       <div className="yi-footer__identity">
         <div className="yi-footer__brand">
           <Brand compact />
-          <p>Fiziksel kimlik, dijital profil ve kurumsal yönetim tek sistemde.</p>
+          <p>Dijital kartvizit: bireysel kullanım ve kurumsal ekip yönetimi.</p>
         </div>
 
         <div className="yi-footer__layers" aria-label="Ürün katmanları">
@@ -24,7 +23,7 @@ function FooterContent() {
             <span>Yazılım katmanımız</span>
             <strong>Yenomilabs</strong>
             <a className="yi-footer__layer-link" href="https://yenomilabs.com" target="_blank" rel="noreferrer">yenomilabs.com ↗</a>
-            <p>Profil, içerik, ekip, marka ve dijital kimlik altyapısının yazılım katmanı.</p>
+            <p>Dijital kartvizit, içerik, ekip ve marka altyapısının yazılım katmanı.</p>
           </div>
         </div>
       </div>
@@ -40,12 +39,6 @@ function FooterContent() {
           <Link href="/kvkk">KVKK</Link>
           <Link href="/gizlilik">Gizlilik</Link>
         </nav>
-      </div>
-
-      <div className="yi-footer__trust" aria-label="Güven ve güvenlik">
-        <span><Icon name="lock" /> SSL ile şifrelenmiş bağlantı</span>
-        <span><Icon name="shield" /> iyzico güvenceli ödeme</span>
-        <span><Icon name="truck" /> Türkiye içi ücretsiz kargo</span>
       </div>
     </>
   );

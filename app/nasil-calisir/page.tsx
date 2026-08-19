@@ -5,14 +5,14 @@ import { YenomiProductVisual } from "../ui/YenomiProductVisual";
 
 export const metadata: Metadata = {
   title: "Nasıl Çalışır — Yenomi ID",
-  description: "Yenomi ID ile fiziksel kartınızı alın, dijital profilinizi oluşturun, temas edin ve kimliğinizi yönetin.",
+  description: "Bireysel veya kurumsal dijital kartvizit: NFC + QR kartını alın, canlı profili yayınlayın, paylaşın ve görüntülenmeyi izleyin.",
 };
 
 const steps = [
-  { number: "01", title: "Kartınızı Alın", text: "Premium NFC kartınızı seçin. Kartınız elinize ulaştığında dijital kimliğinizle eşleşmeye hazırdır.", visual: "card" },
-  { number: "02", title: "Profilinizi Özelleştirin", text: "İletişim bilgilerinizi, sosyal bağlantılarınızı ve profesyonel kimliğinizi tek bir canlı profilde düzenleyin.", visual: "profile" },
-  { number: "03", title: "Temas Edin", text: "Kartınızı telefona yaklaştırın veya QR kodunuzu okutun. Profiliniz anında açılır; uygulama indirmek gerekmez.", visual: "card" },
-  { number: "04", title: "Yönetin & Ölçekleyin", text: "Profilinizi güncel tutun, görüntülenmeleri takip edin ve ekipler için kartları, şablonları ve marka kurallarını merkezi yönetin.", premium: true },
+  { number: "01", title: "Kartınızı Alın", text: "Bireysel NFC + QR kartınızı seçin. Kart elinize ulaştığında dijital kartvizitinizle eşleşmeye hazırdır.", visual: "card" },
+  { number: "02", title: "Profilinizi Özelleştirin", text: "İletişim bilgilerinizi ve profesyonel kartvizitinizi tek canlı profilde düzenleyin.", visual: "profile" },
+  { number: "03", title: "Temas Edin", text: "Kartı telefona yaklaştırın veya QR’ı okutun. Kartvizitiniz tarayıcıda açılır; uygulama gerekmez.", visual: "card" },
+  { number: "04", title: "Yönetin", text: "Profili güncel tutun, görüntülenmeleri izleyin. Ekipler için kartları ve markayı kurumsal panelden yönetin.", premium: true },
 ];
 
 const benefits: Array<[string, string, IconName]> = [
@@ -33,7 +33,7 @@ export default function HowItWorksPage() {
         <div className="how-hero-inner">
           <span className="section-kicker">YENOMI ID</span>
           <h1 id="how-title">YENOMI ID: <em>Nasıl Çalışır?</em></h1>
-          <p>Kartını al, profilini kur, NFC veya QR ile paylaş. Dört adımda aynı dijital kimlik.</p>
+          <p>Kartını al, dijital kartvizitini kur, NFC veya QR ile paylaş. Bireysel kullanım veya kurumsal ekip yönetimi.</p>
         </div>
       </section>
 

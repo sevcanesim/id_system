@@ -6,11 +6,12 @@
 
 Bu belge bir ürün notudur; `00_MASTER_PRODUCT_ENGINEERING_CONTRACT.md` yerine geçmez. Uygulanana kadar mevcut üretim davranışı korunur.
 
-Üç not birleştirildi:
+Dört not birleştirildi:
 
 1. Kurumsal Networking + Lead Capture + Follow-up CRM
 2. International Networking Profile (TR | EN İngilizce kart)
 3. Super Admin şirket provisioning / tenant management
+4. Public card URL mimarisi (immutable ID + okunabilir slug)
 
 ---
 
@@ -22,6 +23,9 @@ Bu belge bir ürün notudur; `00_MASTER_PRODUCT_ENGINEERING_CONTRACT.md` yerine 
 - Canonical QR: **QR → mevcut dijital kartvizit sayfası.** Ayrı lead landing’e gitmez.
   - *“Kartvizit QR’ı her zaman aynı kart sayfasını açar.”*
   - *“QR okutulduğunda ayrı bir lead sayfasına gitme yaklaşımını değiştirelim. Mevcut davranış korunmalı.”*
+- QR’ın basılı / yazılı payload’ı **statik** kalır. Kart profili ve okunabilir slug değişebilir; QR yeniden basılmaz.
+  - QR içindeki URL: immutable `https://id.yenomi.com/p/{publicId}`
+  - Kullanıcıya gösterilen canonical paylaşım URL’si: `https://id.yenomi.com/p/{slug}`
 - NFC ve QR aynı networking backend’ine düşer; ikisi de **Open Digital Card**.
 - **GPS kullanılmaz.** Lead ili / şehir / ülke kullanıcının beyanıdır.
   - `lead.city` (ve uluslararası katmanda `lead.country`) kart sahibinin şirket lokasyonu ile karıştırılmaz.
@@ -614,18 +618,123 @@ Uygulama başladığında bu gerçeklikten evrilinir; üzerine sahte ekran örü
 - `public.corporate_leads` = `/kurumsal` teklif formu. Networking CRM bu tabloyu reuse etmez.
 - Kartta “İletişimde Kalalım”, TR|EN içerik katmanı, event query, meeting timezone, lead scoring, exchange-contact **yok**.
 - Kurumsal “Toplantı Planla” bugün düz URL/PDF slotudur; Calendly değildir. Book a Meeting bu not uygulanınca ayrı ürün kararıdır.
+- Public kart bugün üç yüzey: `/[slug]` (okunabilir, kök), `/p/[publicId]` (immutable), `/c/[cardCode]` (fiziksel kart kodu). Kullanıcıya gösterilen paylaşım hâlâ çoğu yerde slug; QR hedefi bu nottaki gibi `/p/{publicId}` altında tek host’ta toplanmış değil. `id.yenomi.com` public kart host’u henüz ürün kararı olarak uygulanmadı.
 
 ---
 
-## F. Uygulama kapısı
+## F. Public card URL mimarisi (dördüncü not)
+
+URL yapısı **baştan** doğru kurulmalı. QR’ın üzerine basılan link sonradan değiştirilmez. QR statik kalır; arkasındaki kart profili değişebilir.
+
+### F.1 Hedef host ve iki URL
+
+Öneri host: `id.yenomi.com`
+
+Okunabilir / paylaşılabilir:
+
+```
+id.yenomi.com/p/{slug}
+id.yenomi.com/p/ahmet-yilmaz
+id.yenomi.com/p/ahmet-yilmaz-abc    (şirket çalışanı)
+```
+
+Asıl backend kimliği (immutable public profile ID):
+
+```
+id.yenomi.com/p/{publicId}
+id.yenomi.com/p/8Kx4mQ72
+```
+
+Slug kullanıcıya tamamen bırakılmaz.
+
+### F.2 Çözümleme
+
+```
+ahmet-yilmaz          ← kullanıcıya gösterilen slug
+      ↓
+public profile ID
+      ↓
+8Kx4mQ72              ← QR / NFC / sistem kimliği
+      ↓
+kişinin aktif kartı
+```
+
+Ahmet soyadını değiştirirse slug `ahmet-yilmaz` → `ahmet-demir` olabilir. QR değişmez. Eski slug yeni profile yönlendirilir.
+
+### F.3 QR’ın içine ne konur?
+
+QR doğrudan immutable public profile URL’sini içerir:
+
+```
+https://id.yenomi.com/p/8Kx4mQ72
+```
+
+```
+QR
+ ↓
+/p/8Kx4mQ72
+ ↓
+kart profili
+```
+
+Slug değişse bile QR çalışmaya devam eder. Event bağlamı (`?event=websummit2026`) **ayrı bir kampanya QR’si** olabilir; ana kart QR’sinin publicId’sini değiştirmez.
+
+### F.4 Kullanıcıya gösterilen link
+
+Kart sahibinin panelinde:
+
+Dijital Kartım → Kart bağlantım
+
+```
+id.yenomi.com/p/ahmet-yilmaz
+[ Kopyala ] [ Paylaş ] [ QR Kodunu Gör ]
+```
+
+QR önizlemesi immutable `/p/{publicId}` payload’ını basar; kopyalanan paylaşım linki okunabilir slug’dır.
+
+### F.5 Kullanıcı slug’ı kontrollü seçer
+
+```
+Kart bağlantısı
+id.yenomi.com/p/
+[ ahmet-yilmaz              ]
+Kullanılabilir ✓
+```
+
+Kurallar:
+
+- sadece `a-z`, `0-9`, `-`
+- Türkçe karakter yok
+- boşluk yok
+- minimum uzunluk
+- unique
+- reserved words yasak
+
+Yasak örnekleri: `admin`, `login`, `api`, `support`, `company`, `settings`, `superadmin`, `help`
+
+### F.6 Uygulanırken mevcut route’lardan evrilme (hedef değil, harita)
+
+Bugünkü kod:
+
+- `/p/{publicId}` zaten `card_profiles.public_id` ile çalışır; isim/e-posta/telefondan türetilmez.
+- Okunabilir slug bugün kökte `/[slug]`; bu not slug’ı da `/p/{slug}` altına alır.
+- Eski slug yönlendirmesi ürün kuralıdır (`ahmet-yilmaz` → yeni slug). Kök `/[slug]` geriye dönük kalıcı yönlendirme olarak korunabilir.
+- Fiziksel NFC `/c/{cardCode}` ayrı immutable kimliktir; networking notu NFC’nin de aynı kart profilini açmasını ister. PublicId QR ile fiziksel cardCode birleştirilmez; ikisi de aktif karta çözülür.
+
+`/p/{slug}` ile `/p/{publicId}` aynı path parametresini paylaşır. Uygulama sırasında token önce publicId, değilse slug, değilse eski-slug redirect olarak çözülür. Slug, publicId formatını taklit edemez.
+
+---
+
+## G. Uygulama kapısı
 
 Bu belge **spesifikasyondur, iş emri değildir.**
 
 Yapılacaklar `notu uygula` sonrası, inspect-first sırayla:
 
 1. Tenant provisioning (şirket ≠ üye atama, Corporate ID, vergi uniqueness, transaction)
-2. Kart sonu lead/meeting (TR, GPS yok, mevcut kart korunur)
-3. International profile (TR|EN içerik katmanı, event context)
-4. CRM lifecycle, mail kredisi, sunum tracking, analytics
+2. Public URL sözleşmesi (QR = `/p/{publicId}`, paylaşım = `/p/{slug}`, eski slug redirect, reserved words)
+3. Kart sonu lead/meeting (TR, GPS yok, mevcut kart korunur)
+4. International profile (TR|EN içerik katmanı, event context)
+5. CRM lifecycle, mail kredisi, sunum tracking, analytics
 
 O cümle gelene kadar QA / bugfix / mevcut panel işleri bu notu uygulamaya açmaz.

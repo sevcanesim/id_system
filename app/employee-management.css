@@ -9,4 +9,5 @@
 @media(max-width:520px) {
   .p11-toolbar .p11-primary,
   .p11-toolbar .p11-secondary { width: 100%; }
+  .v25-invite-detail dl > div { grid-template-columns: 1fr; }
 }

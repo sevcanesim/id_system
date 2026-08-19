@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { Icon } from "../../icons";
 import { Button } from "./DesignSystem";
 
 type DialogProps = { open: boolean; title: ReactNode; children: ReactNode; onClose: () => void; footer?: ReactNode };
@@ -56,21 +57,21 @@ export function Modal({ open, title, children, onClose, footer }: DialogProps) {
   return <>
     <button type="button" className="ds-overlay" aria-label="Pencereyi kapat" onClick={onClose} />
     <section ref={dialogRef} className="ds-modal" role="dialog" aria-modal="true" aria-labelledby={titleId}>
-      <div className="ds-dialog-header"><h2 id={titleId}>{title}</h2><Button variant="icon" aria-label="Kapat" onClick={onClose}>×</Button></div>
+      <div className="ds-dialog-header"><h2 id={titleId}>{title}</h2><Button variant="icon" aria-label="Kapat" onClick={onClose}><Icon name="close" /></Button></div>
       {children}{footer}
     </section>
   </>;
 }
 
-export function Drawer({ open, title, children, onClose }: Omit<DialogProps, "footer">) {
+export function Drawer({ open, title, children, onClose, className }: Omit<DialogProps, "footer"> & { className?: string }) {
   const dialogRef = useRef<HTMLElement>(null);
   const titleId = useId();
   useDialogFocus(open, onClose, dialogRef);
   if (!open) return null;
   return <>
     <button type="button" className="ds-overlay" aria-label="Paneli kapat" onClick={onClose} />
-    <aside ref={dialogRef} className="ds-drawer" role="dialog" aria-modal="true" aria-labelledby={titleId}>
-      <div className="ds-dialog-header"><h2 id={titleId}>{title}</h2><Button variant="icon" aria-label="Kapat" onClick={onClose}>×</Button></div>
+    <aside ref={dialogRef} className={["ds-drawer", className].filter(Boolean).join(" ")} role="dialog" aria-modal="true" aria-labelledby={titleId}>
+      <div className="ds-dialog-header"><h2 id={titleId}>{title}</h2><Button variant="icon" aria-label="Kapat" onClick={onClose}><Icon name="close" /></Button></div>
       {children}
     </aside>
   </>;

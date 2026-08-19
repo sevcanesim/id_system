@@ -37,6 +37,8 @@ const drawer=read('app/kurumsal/panel/components/EmployeeDrawer.tsx');
 pass('employee detail retains profile/card/invite/access domains',['setDrawerTab("profile")','setDrawerTab("card")','setDrawerTab("invite")','setDrawerTab("lifecycle")'].every(x=>drawer.includes(x)));
 pass('offboarding requires explicit confirmation',drawer.includes('şirketten ayırmak profil erişimini durdurur'));
 pass('card replacement/assignment flow retained',drawer.includes('linkReplacementCard')&&drawer.includes('Yeni Kartla Eşleştir'));
+pass('employee drawer uses design-system overlay and close control',drawer.includes('className="v25-employee-drawer"')&&drawer.includes('title="Çalışan Detay"'));
+pass('employee drawer keeps identity beside card preview',drawer.includes('v25-drawer-workspace')&&drawer.includes('v25-drawer-preview')&&canonical.includes('.v25-drawer-workspace'));
 const css=read('app/employee-management.css');
 pass('Phase 11 CSS uses no legacy token family',!/var\(--(?:yi|yp|store|brand|ui|y)-/.test(css));
 pass('Phase 11 employee chrome uses no gradients',!/gradient\(/.test(css));

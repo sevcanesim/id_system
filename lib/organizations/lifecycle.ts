@@ -169,6 +169,9 @@ export function invitationStatusLabel(state: InvitationState) {
   return invitationLabels[state];
 }
 
+// Five-state entitlement machine and derived member actions. The live panel
+// uses seat/license status and explicit EmployeeDrawer buttons, not this list.
+// Kept as unused domain layer — do not fake-wire into UI.
 export function getEntitlementState(entitlement?: LifecycleEntitlement | null, now = new Date()): EntitlementState | null {
   if (!entitlement) return null;
   const raw = String(entitlement.status || "").toUpperCase();

@@ -20,17 +20,3 @@ export function getIdentityInitials(value: string | null | undefined, fallback =
     .toLocaleUpperCase("tr-TR");
   return initials || fallback;
 }
-
-export function createCanonicalProfileSlug(value: string | null | undefined, fallback = "kurumsal-kart") {
-  const normalized = normalizeIdentityName(value, "")
-    .toLocaleLowerCase("tr-TR")
-    .replace(/ğ/g, "g")
-    .replace(/ü/g, "u")
-    .replace(/ş/g, "s")
-    .replace(/ı/g, "i")
-    .replace(/ö/g, "o")
-    .replace(/ç/g, "c")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return normalized || fallback;
-}

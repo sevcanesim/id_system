@@ -41,8 +41,6 @@ export const LEAD_STATUSES = [
   "CLOSED",
 ] as const;
 
-export type LeadStatus = (typeof LEAD_STATUSES)[number];
-
 export const MEETING_TYPES = ["ONLINE", "IN_PERSON"] as const;
 export type MeetingType = (typeof MEETING_TYPES)[number];
 

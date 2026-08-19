@@ -92,6 +92,7 @@ export const PRODUCT_CATALOG = [
   },
 ] as const satisfies readonly CatalogProduct[];
 
+/** Catalog slices for roadmap surfaces. Live purchase paths use NFC_PRODUCT. */
 export const AVAILABLE_PRODUCTS = PRODUCT_CATALOG.filter((product) => product.status === "AVAILABLE");
 export const COMING_SOON_PRODUCTS = PRODUCT_CATALOG.filter((product) => product.status === "COMING_SOON");
 

@@ -86,8 +86,6 @@ export const CORPORATE_PANEL_TAB_META: Record<CorporatePanelTab, { label: string
   meetings: { label: "Görüşmeler", icon: "contact", loadingLabel: "Görüşmeler yükleniyor" },
 };
 
-export type CorporateSidebarRole = "OWNER" | "ADMIN" | "HR_MANAGER" | "DEPARTMENT_MANAGER" | "EMPLOYEE";
-
 /** Sidebar görünürlüğü ile sunucu yetkilendirmesinin aynı rol dilini kullanması için tek kaynak. */
 export function corporateSidebarTabs(role?: string): readonly CorporatePanelTab[] {
   const normalizedRole = normalizeOrganizationRole(role);

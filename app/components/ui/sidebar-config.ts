@@ -35,6 +35,7 @@ export const CORPORATE_SIDEBAR_CONFIG = [
   { key: "meetings", href: "/kurumsal/panel/gorusmeler", label: "Görüşmeler", icon: "contact", roles: CORPORATE_ADMIN },
 ] satisfies readonly SidebarConfigItem[];
 
+/** Shared personal-workspace nav. Live DashboardShell and the AppShell PanelSidebar artifact both consume this. */
 export const INDIVIDUAL_SIDEBAR_CONFIG = [
   { key: "home", href: "/kartlarim", label: "Genel Bakış", icon: "analytics", group: "KİMLİK" },
   { key: "card", href: "/kartim", label: "Dijital Kart", icon: "id", group: "KİMLİK" },

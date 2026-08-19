@@ -112,7 +112,7 @@ Güncel durum: v25.8.4 kurumsal kart formundaki alan yetki matrisini tamamladı 
 
 ## Sıradaki P1
 - Önceki ZIP içindeki Supabase, iyzico, Maps, DB ve demo kimlik bilgilerini rotate et.
-- Lead/CRM modülünün ürün kapsamına alınıp alınmayacağına karar ver; mevcut fixture yalnız "modül bekliyor" organizasyonudur. Birleşik park notu (networking + TR|EN kart + Super Admin tenant): `docs/product-engineering/17_PARKED_CORPORATE_NETWORKING_LEAD_MODULE.md`. Uygulama kapısı: **`notu uygula`**.
+- Lead/CRM modülünün ürün kapsamına alınıp alınmayacağına karar ver; mevcut fixture yalnız "modül bekliyor" organizasyonudur. Birleşik park notu (networking + TR|EN kart + Super Admin tenant + public URL): `docs/product-engineering/17_PARKED_CORPORATE_NETWORKING_LEAD_MODULE.md`. Uygulama kapısı: **`notu uygula`**.
 - `app/kurumsal/panel/page.tsx` bileşenleştirmesi: Employees + EmployeeDrawer v25.8.8'de tamamlandı (bkz. yukarı); yalnız Overview kaldı.
 
 ## Release kapıları (v25.5'ten beri değişmedi)

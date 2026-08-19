@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import { Icon, type IconName } from "../../icons";
 
@@ -58,18 +59,20 @@ export default function SidebarNav({
         previousGroup = item.group;
         const selected = item.key === activeKey;
         return (
-          <div key={item.key} className={classNames.entry}>
+          <Fragment key={item.key}>
             {showGroup && <span className={classNames.group}>{item.group}</span>}
-            <Link
-              href={item.href}
-              aria-current={selected ? "page" : undefined}
-              className={selected ? classNames.active : ""}
-              onClick={() => onNavigate?.(item.key)}
-            >
-              <Icon name={item.icon} />
-              <span>{item.label}</span>
-            </Link>
-          </div>
+            <div className={classNames.entry}>
+              <Link
+                href={item.href}
+                aria-current={selected ? "page" : undefined}
+                className={selected ? classNames.active : ""}
+                onClick={() => onNavigate?.(item.key)}
+              >
+                <Icon name={item.icon} />
+                <span>{item.label}</span>
+              </Link>
+            </div>
+          </Fragment>
         );
       })}
     </nav>

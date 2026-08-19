@@ -113,13 +113,15 @@ export default function OverviewPanel({
   const interactionDownloads = analytics?.content?.downloads ?? 0;
   const interactionTotal = interactionClicks + interactionDownloads;
   const clickPercent = interactionTotal ? Math.round((interactionClicks / interactionTotal) * 100) : 0;
+  const ringHole = "radial-gradient(circle at center,#fff 55%,transparent 57%)";
+  const ringTrack = "#E6E2D8";
   const cardRing = distributedCardTotal
-    ? `radial-gradient(circle at center,#10111e 55%,transparent 57%),conic-gradient(#8d3ff0 0 ${digitalCardPercent}%,#4f8ee8 ${digitalCardPercent}% 100%)`
-    : "radial-gradient(circle at center,#10111e 55%,transparent 57%),conic-gradient(#292638 0 100%)";
+    ? `${ringHole},conic-gradient(#8d3ff0 0 ${digitalCardPercent}%,#4f8ee8 ${digitalCardPercent}% 100%)`
+    : `${ringHole},conic-gradient(${ringTrack} 0 100%)`;
   const interactionRing = interactionTotal
-    ? `radial-gradient(circle at center,#10111e 55%,transparent 57%),conic-gradient(#8d3ff0 0 ${clickPercent}%,#dca12d ${clickPercent}% 100%)`
-    : "radial-gradient(circle at center,#10111e 55%,transparent 57%),conic-gradient(#292638 0 100%)";
-  const licenseRing = `radial-gradient(circle at center,#10111e 55%,transparent 57%),conic-gradient(#8d3ff0 0 ${seatPercent}%,#292638 ${seatPercent}% 100%)`;
+    ? `${ringHole},conic-gradient(#8d3ff0 0 ${clickPercent}%,#dca12d ${clickPercent}% 100%)`
+    : `${ringHole},conic-gradient(${ringTrack} 0 100%)`;
+  const licenseRing = `${ringHole},conic-gradient(#8d3ff0 0 ${seatPercent}%,${ringTrack} ${seatPercent}% 100%)`;
   const healthWarning = availableSeats === 0 || (daysUntilExpiry ?? 999) <= 30;
 
   const tasks = [
@@ -258,7 +260,7 @@ export default function OverviewPanel({
           <article><i className="violet"><Icon name="users" /></i><span><small>Aktif Çalışan</small><b>{usedSeats}</b><em>Kullanılan lisans</em></span></article>
           <article><i className="green"><Icon name="contact" /></i><span><small>Aktif Kart</small><b>{digitalCardsReady} / {usedSeats || 0}</b><em>%{cardActivationPercent} aktivasyon oranı</em></span></article>
           <article><i className="violet"><Icon name="analytics" /></i><span><small>Toplam Görüntülenme</small><b>{analytics?.available === false ? "—" : (analytics?.totalViews ?? 0).toLocaleString("tr-TR")}</b><em>Seçili dönem</em></span></article>
-          <article><i className="blue"><Icon name="qr" /></i><span><small>İçerik Etkileşimi</small><b>{analytics?.content?.clicks ?? 0}</b><em>URL tıklaması</em></span></article>
+          <article><i className="blue"><Icon name="link" /></i><span><small>İçerik Etkileşimi</small><b>{analytics?.content?.clicks ?? 0}</b><em>URL tıklaması</em></span></article>
         </section>
 
         <div className="v26-reference-main-row">

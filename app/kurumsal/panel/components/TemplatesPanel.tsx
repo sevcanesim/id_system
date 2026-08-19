@@ -79,7 +79,7 @@ export default function TemplatesPanel({
               />
             </label>
             <div className="template-preview-note">
-              <Icon name="analytics" />
+              <Icon name="eye" />
               <span>Değişiklikler sağdaki önizlemeye anında uygulanır. Kaydetmeden tasarımı deneyebilirsin.</span>
             </div>
           </div>

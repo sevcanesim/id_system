@@ -26,13 +26,13 @@ export const CORPORATE_SIDEBAR_CONFIG = [
   { key: "templates", href: "/kurumsal/panel/sablon", label: "Marka & Şablon", icon: "id", group: "MARKA & İÇERİK", roles: CORPORATE_ADMIN },
   { key: "content", href: "/kurumsal/panel/icerik", label: "İçerik", icon: "link", roles: CORPORATE_ADMIN },
   { key: "analytics", href: "/kurumsal/panel/istatistikler", label: "İstatistikler", icon: "analytics", group: "YÖNETİM", roles: CORPORATE_ADMIN_OR_HR },
-  { key: "leads", href: "/kurumsal/panel/leadler", label: "Leadler", icon: "users", group: "NETWORKING", roles: CORPORATE_ADMIN },
-  { key: "events", href: "/kurumsal/panel/etkinlikler", label: "Etkinlikler", icon: "analytics", roles: CORPORATE_ADMIN },
-  { key: "meetings", href: "/kurumsal/panel/gorusmeler", label: "Görüşmeler", icon: "contact", roles: CORPORATE_ADMIN },
   { key: "licenses", href: "/kurumsal/panel/lisans", label: "Lisanslar", icon: "analytics", roles: CORPORATE_ADMIN },
   { key: "organization", href: "/kurumsal/panel/organizasyon", label: "Organizasyon", icon: "building", roles: CORPORATE_ADMIN },
   { key: "roles", href: "/kurumsal/panel/roller", label: "Roller & Yetkiler", icon: "lock", roles: CORPORATE_ADMIN },
   { key: "settings", href: "/kurumsal/panel/ayarlar", label: "Ayarlar", icon: "pencil", roles: CORPORATE_ADMIN },
+  { key: "leads", href: "/kurumsal/panel/leadler", label: "Leadler", icon: "users", group: "NETWORKING", roles: CORPORATE_ADMIN },
+  { key: "events", href: "/kurumsal/panel/etkinlikler", label: "Etkinlikler", icon: "analytics", roles: CORPORATE_ADMIN },
+  { key: "meetings", href: "/kurumsal/panel/gorusmeler", label: "Görüşmeler", icon: "contact", roles: CORPORATE_ADMIN },
 ] satisfies readonly SidebarConfigItem[];
 
 export const INDIVIDUAL_SIDEBAR_CONFIG = [

@@ -61,7 +61,7 @@ import { fetchWithPanelTimeout, waitForInitialPanelLoads } from "./domain/runtim
 import { useJobTitlesAndRequests } from "./hooks/useJobTitlesAndRequests";
 import { useCorporateLinks } from "./hooks/useCorporateLinks";
 import { getIdentityInitials } from "../../../lib/organizations/identity";
-import { isOrganizationRole } from "../../../lib/organizations/permissions";
+import { isOrganizationRole, normalizeOrganizationRole } from "../../../lib/organizations/permissions";
 
 export default function CompanyPanel() {
   const router = useRouter();
@@ -1087,15 +1087,12 @@ export default function CompanyPanel() {
       ).sort(),
     [members],
   );
-  const roleLabel = (role: string) =>
-    ({
-      OWNER: "Yönetim",
-      ADMIN: "Yönetim",
-      HR: "İnsan Kaynakları",
-      HR_MANAGER: "İnsan Kaynakları",
-      DEPARTMENT_MANAGER: "Departman Yöneticisi",
-      EMPLOYEE: "Çalışan",
-    })[role] || role;
+  const roleLabel = (role: string) => {
+    const normalized = normalizeOrganizationRole(role);
+    if (normalized) return ROLE_LABELS[normalized];
+    if (role === "HR_MANAGER") return ROLE_LABELS.HR;
+    return role;
+  };
   const initials = (member: MemberActionTarget) => getIdentityInitials(member.full_name || member.email);
   const relativeTime = (value: string) => {
     const diff = Math.max(0, Date.now() - new Date(value).getTime());
@@ -1306,6 +1303,8 @@ export default function CompanyPanel() {
   const ownCardEditorHref = selected
     ? `/kurumsal/panel/kartim?business=1&organizationId=${encodeURIComponent(selected)}${sidebarCardProfile?.profileId ? `&id=${encodeURIComponent(sidebarCardProfile.profileId)}` : "&new=1"}`
     : "/kurumsal/panel/calisanlar";
+  const sidebarRole = normalizeOrganizationRole(sidebarUser?.role);
+  const sidebarRoleLabel = sidebarRole ? ROLE_LABELS[sidebarRole] : roleLabel(sidebarUser?.role || "EMPLOYEE");
   const templatePreviewMember =
     members.find((member) => member.status === "ACTIVE") || members[0];
   const templatePreviewBranding: CardBranding = {
@@ -1327,16 +1326,16 @@ export default function CompanyPanel() {
       : "ESSENTIAL") as CardBranding["variant"],
   };
   const templatePreviewData = {
-    name: templatePreviewMember?.full_name || "Ayşe Yılmaz",
-    role: templatePreviewMember?.title || "Satış Yöneticisi",
+    name: templatePreviewMember?.full_name || org?.organizations?.name || "Çalışan",
+    role: templatePreviewMember?.title || "Ünvan",
     company: org?.organizations?.name || "Şirketiniz",
-    phone: String(companyFields.phone || "+90 555 123 45 67"),
-    whatsapp: String(companyFields.phone || "+90 555 123 45 67"),
-    email: templatePreviewMember?.email || "ayse@firma.com",
-    website: String(companyFields.website || "www.firma.com"),
-    linkedin: "linkedin.com/in/ayseyilmaz",
+    phone: String(companyFields.phone || ""),
+    whatsapp: String(companyFields.phone || ""),
+    email: templatePreviewMember?.email || "",
+    website: String(companyFields.website || ""),
+    linkedin: "",
     instagram: "",
-    location: String(companyFields.address || "İzmir, Türkiye"),
+    location: String(companyFields.address || ""),
     image: "",
     links: corporateLinks
       .filter((link) => link.configured && Boolean(link.fileUrl || link.url))
@@ -1404,7 +1403,7 @@ export default function CompanyPanel() {
             <span>{(sidebarUser?.full_name || sidebarUser?.email || "Y").split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase()}</span>
             <div>
               <strong>{sidebarUser?.full_name || sidebarUser?.email || "Yönetici"}</strong>
-              <small>{sidebarUser?.role === "OWNER" ? "Yönetici" : roleLabel(sidebarUser?.role || "EMPLOYEE")}</small>
+              <small>{sidebarRoleLabel}</small>
             </div>
           </div>
         </PanelSidebar>
@@ -1535,7 +1534,7 @@ export default function CompanyPanel() {
                         <span>{availableSeats === 0 ? "KAPASİTE DOLDU" : "KAPASİTEYİ BÜYÜT"}</span>
                         <h2 id="seat-pack-title">Ekibiniz büyüdükçe Yenomi sizinle büyür.</h2>
                         <p>Her paket kişiye özel NFC + QR kartı, merkezi yönetimi ve mevcut abonelik döneminiz boyunca ek çalışan kapasitesini birlikte sunar.</p>
-                        {availableSeats === 0 && <b className="license-reference-alert"><Icon name="contact" /> Yeni çalışan için ek lisans gerekli</b>}
+                        {availableSeats === 0 && <b className="license-reference-alert"><Icon name="plus" /> Yeni çalışan için ek lisans gerekli</b>}
                       </div>
                       <div className="license-reference-art" aria-hidden="true">
                         <div className="license-reference-product-glow" />

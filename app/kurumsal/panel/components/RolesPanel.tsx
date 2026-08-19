@@ -9,7 +9,7 @@ type RoleMember = { role: string; status: string };
 
 export default function RolesPanel({ members }: { members: RoleMember[] }) {
   const roles = [
-    ["OWNER", "Şirket Sahibi", "Yönetici rolü", "violet"],
+    ["OWNER", "Şirket Sahibi", "Şirket sahibi rolü", "violet"],
     ["ADMIN", "Yönetici", "Yönetici rolü", "green"],
     ["HR", "İnsan Kaynakları", "İK rolü", "amber"],
     ["DEPARTMENT_MANAGER", "Departman Yöneticisi", "Departman rolü", "blue"],

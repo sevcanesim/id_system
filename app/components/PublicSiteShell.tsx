@@ -3,7 +3,6 @@
 import { usePathname } from "next/navigation";
 import AppHeader from "./AppHeader";
 import AnnouncementBar from "./AnnouncementBar";
-import HeaderTrustBar from "./HeaderTrustBar";
 import AppFooter from "./AppFooter";
 
 function isPublicSiteSurface(pathname: string) {
@@ -44,7 +43,6 @@ export default function PublicSiteShell({ children }: { children: React.ReactNod
       <div className="public-site-chrome">
         {!quiet && <AnnouncementBar />}
         <AppHeader landing />
-        {!quiet && <HeaderTrustBar />}
       </div>
       {children}
       <AppFooter variant={quiet ? "compact" : "default"} />

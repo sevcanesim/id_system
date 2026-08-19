@@ -17,13 +17,13 @@ function FooterContent() {
             <span>Endüstri katmanımız</span>
             <strong>Opsola</strong>
             <a className="yi-footer__layer-link" href="https://opsola.com" target="_blank" rel="noreferrer">opsola.com ↗</a>
-            <p>Fiziksel ürün, NFC deneyimi ve gerçek dünyadaki bağlantı altyapısı.</p>
+            <p>Karmaşık sistemlere mühendislik çözümleri. Mühendislik, imalat, otomasyon ve devreye alma — kapsamı belirsiz projeleri netleştirir, çalışan sistem teslim ederiz.</p>
           </div>
           <div className="yi-footer__layer">
             <span>Yazılım katmanımız</span>
             <strong>Yenomilabs</strong>
             <a className="yi-footer__layer-link" href="https://yenomilabs.com" target="_blank" rel="noreferrer">yenomilabs.com ↗</a>
-            <p>Dijital kartvizit, içerik, ekip ve marka altyapısının yazılım katmanı.</p>
+            <p>Markalar ve endüstriyel operasyonlar için özel yazılım sistemleri, Digital Twin altyapıları, QR tabanlı platformlar, portal çözümleri ve AI destekli dijital deneyimler geliştirir.</p>
           </div>
         </div>
       </div>

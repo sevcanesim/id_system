@@ -325,7 +325,7 @@ export default function EmployeesPanel(props: Props) {
             <span>
               <Icon name="lock" />
               <span>
-                <b>{usedSeats} / {seatLimit} lisans kullanılıyor.</b>
+                <b lang="tr">{usedSeats} / {seatLimit} lisans kullanılıyor.</b>
                 {" "}{canManageLicenses
                   ? "Yeni çalışan eklemek için +1 lisans satın almanız gerekiyor."
                   : "Yeni çalışan eklemek için yöneticinin +1 lisans satın alması gerekiyor."}

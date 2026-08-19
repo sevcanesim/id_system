@@ -18,6 +18,16 @@ export function canReadOrganization(role: OrganizationRole, status: string) {
   return status === "ACTIVE" && roleRank[role] >= roleRank.EMPLOYEE;
 }
 
+export const ORGANIZATION_MANAGEMENT_ROLES = ["OWNER", "ADMIN", "HR", "DEPARTMENT_MANAGER"] as const;
+
+export function isManagementRole(role: string): role is OrganizationRole {
+  return (ORGANIZATION_MANAGEMENT_ROLES as readonly string[]).includes(role);
+}
+
+export function canViewOrganizationCards(role: OrganizationRole, status: string) {
+  return status === "ACTIVE" && isManagementRole(role);
+}
+
 export function canManageTemplates(role: OrganizationRole, status: string) {
   return status === "ACTIVE" && roleRank[role] >= roleRank.ADMIN;
 }

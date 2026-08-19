@@ -10,6 +10,20 @@ export function isPortalAllowed(accountType: AccountType, portal: LoginPortal, t
   return portal === "business" ? accountType === "CORPORATE" : accountType === "INDIVIDUAL";
 }
 
+/** Kurumsal giriş sekmesi gereken hesap — çalışan da buna dahildir. */
+export function isCorporateScopedAccount(accountType: AccountType, testScope?: TestLoginScope | null) {
+  if (accountType === "CORPORATE") return true;
+  return accountType === "TEST" && testScope === "CORPORATE";
+}
+
+/**
+ * Kartım / Kartlarım kabuğu: bireysel hesaplar ve kurumsal çalışanlar.
+ * Yönetici girişi hâlâ iş portalındadır; çalışan yönetim paneline düşmez.
+ */
+export function canUseCardWorkspace(accountType: AccountType, testScope?: TestLoginScope | null) {
+  return isPortalAllowed(accountType, "individual", testScope) || isCorporateScopedAccount(accountType, testScope);
+}
+
 export function wrongPortalMessage(accountType: AccountType, testScope?: TestLoginScope | null) {
   const corporatePortal = accountType === "CORPORATE" || accountType === "TEST" && testScope === "CORPORATE";
   return corporatePortal

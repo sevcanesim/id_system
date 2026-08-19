@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { AccountType, isPortalAllowed, LoginPortal, TestLoginScope, wrongPortalMessage } from "./account-type";
+import { AccountType, canUseCardWorkspace, isPortalAllowed, LoginPortal, TestLoginScope, wrongPortalMessage } from "./account-type";
 
 export type PortalCheckResult = { ok: true; message: "" } | { ok: false; message: string };
 
@@ -45,6 +45,37 @@ export async function validatePortal(
       const testScope = data.test_login_scope as TestLoginScope | null;
 
       return isPortalAllowed(accountType, selectedPortal, testScope)
+        ? { ok: true, message: "" }
+        : { ok: false, message: wrongPortalMessage(accountType, testScope) };
+    }
+
+    if (attempt < PORTAL_VALIDATION_ATTEMPTS - 1) {
+      await wait(PORTAL_VALIDATION_DELAY_MS * (attempt + 1));
+    }
+  }
+
+  return { ok: false, message: "Hesap türü doğrulanamadı. Lütfen destek ekibiyle iletişime geçin." };
+}
+
+/**
+ * Kartım / Kartlarım kabuğu: kurumsal çalışan, yönetim paneline düşmeden
+ * kendi kart çalışma alanını kullanabilir. Giriş sekmesi hâlâ validatePortal.
+ */
+export async function validateCardWorkspace(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<PortalCheckResult> {
+  for (let attempt = 0; attempt < PORTAL_VALIDATION_ATTEMPTS; attempt += 1) {
+    const { data, error } = await supabase
+      .from("user_accounts")
+      .select("account_type,test_login_scope")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (!error && data?.account_type) {
+      const accountType = data.account_type as AccountType;
+      const testScope = data.test_login_scope as TestLoginScope | null;
+      return canUseCardWorkspace(accountType, testScope)
         ? { ok: true, message: "" }
         : { ok: false, message: wrongPortalMessage(accountType, testScope) };
     }

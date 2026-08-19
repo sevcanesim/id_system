@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendOrganizationInviteEmail } from "../../../../lib/email/resend";
+import { getSeatBreakdown } from "../../../../lib/organizations/lifecycle";
 import { canInviteRole, canManageMemberIdentity, canManageMemberInDepartment, isDepartmentScoped, isOrganizationRole } from "../../../../lib/organizations/permissions";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 
@@ -86,7 +87,12 @@ export async function GET(request: NextRequest) {
     console.error("[organizations/members] Çalışanlar sorgusu başarısız:", { organizationId, code: error.code, message: error.message });
     return NextResponse.json({ error: "Çalışanlar yüklenemedi." }, { status: 500 });
   }
-  return NextResponse.json({ members: data || [], permissions: { canInviteAdmin: actor.role === "OWNER", canManageTemplates: ["OWNER", "ADMIN"].includes(actor.role) } });
+  const { data: seatRows } = await ctx.admin.from("organization_members").select("role,status").eq("organization_id", organizationId);
+  return NextResponse.json({
+    members: data || [],
+    seatUsage: getSeatBreakdown(seatRows || []),
+    permissions: { canInviteAdmin: actor.role === "OWNER", canManageTemplates: ["OWNER", "ADMIN"].includes(actor.role) },
+  });
 }
 
 export async function POST(request: NextRequest) {

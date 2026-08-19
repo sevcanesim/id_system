@@ -6,6 +6,7 @@ import { EmptyState } from "../../../components/ui/States";
 import { Button } from "../../../components/ui/DesignSystem";
 import type { MemberActionTarget, MemberCardStatus, PhysicalCard } from "../domain/types";
 import {
+  currentLifecycleCards,
   digitalProfileLabel,
   getPhysicalCardState,
   memberStatusLabel,
@@ -55,8 +56,9 @@ export default function CardsPanel({
   function cardTone(member: MemberActionTarget) {
     const cardState = memberCardStatuses.find((item) => item.memberId === member.id);
     const assignedCards = physicalCards.filter((card) => Boolean(member.user_id) && card.ownerUserId === member.user_id);
+    const currentCards = currentLifecycleCards(assignedCards);
     const physicalState = cardState?.physicalCardState ?? getPhysicalCardState(assignedCards);
-    return { cardState, assignedCards, physicalState };
+    return { cardState, assignedCards, currentCards, physicalState };
   }
 
   return (
@@ -128,7 +130,7 @@ export default function CardsPanel({
             </thead>
             <tbody>
               {visibleRoster.map((member) => {
-                const { cardState, assignedCards, physicalState } = cardTone(member);
+                const { cardState, currentCards, physicalState } = cardTone(member);
                 return (
                   <tr key={member.id}>
                     <td>
@@ -147,7 +149,7 @@ export default function CardsPanel({
                     </td>
                     <td>
                       <span className={`p11-status ${physicalState === "ACTIVE" ? "success" : physicalState === "LOST" ? "warning" : physicalState === "DISABLED" ? "error" : "neutral"}`}>
-                        {assignedCards.length > 1 ? `${physicalCardLabel(physicalState)} · ${assignedCards.length} kart` : physicalCardLabel(physicalState)}
+                        {currentCards.length > 1 ? `${physicalCardLabel(physicalState)} · ${currentCards.length} kart` : physicalCardLabel(physicalState)}
                       </span>
                     </td>
                     <td><span className={`p11-status status-${member.status.toLowerCase()}`}>{memberStatusLabel(member.status)}</span></td>
@@ -163,7 +165,7 @@ export default function CardsPanel({
 
         <div className="p11-mobile-list">
           {visibleRoster.map((member) => {
-            const { cardState, assignedCards, physicalState } = cardTone(member);
+            const { cardState, currentCards, physicalState } = cardTone(member);
             return (
               <article key={member.id}>
                 <header>
@@ -176,7 +178,7 @@ export default function CardsPanel({
                 </header>
                 <div className="p11-mobile-meta">
                   <span><small>Dijital kart</small><b>{digitalProfileLabel(cardState?.digitalProfileState ?? "NONE")}</b></span>
-                  <span><small>Fiziksel kart</small><b>{assignedCards.length > 1 ? `${physicalCardLabel(physicalState)} · ${assignedCards.length} kart` : physicalCardLabel(physicalState)}</b></span>
+                  <span><small>Fiziksel kart</small><b>{currentCards.length > 1 ? `${physicalCardLabel(physicalState)} · ${currentCards.length} kart` : physicalCardLabel(physicalState)}</b></span>
                 </div>
                 <footer>
                   <button type="button" onClick={() => openMemberDrawer(member, "profile")}>Detay</button>

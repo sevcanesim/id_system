@@ -237,3 +237,14 @@ Any change to a baseline contract must state:
 7. whether production behavior changes
 
 No silent contract changes.
+
+## 13. User identity types
+
+Every `user_accounts` row stores three types:
+
+1. `account_type` — login occupancy (`INDIVIDUAL` / `CORPORATE` / `TEST`)
+2. `identity_product_family` — Digital ID, Pet ID, Emergency ID, Restaurant, Business Mini Site, Vehicle ID
+3. `package_code` — determined by the purchased or provisioned package (`UNASSIGNED` until then)
+
+`user_identity_types` holds every triple a user may have so Digital ID and Pet ID can coexist. Analytics remains a measurement capability, not a user type. Canonical mapping: `lib/identity/user-types.ts`. Migration: `supabase/migrations/20260819230000_user_identity_types.sql`.
+

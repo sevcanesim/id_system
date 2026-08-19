@@ -1,3 +1,4 @@
+/** Login occupancy overlay. Product family and package live in lib/identity/user-types.ts. */
 export type AccountType = "TEST" | "INDIVIDUAL" | "CORPORATE";
 export type LoginPortal = "individual" | "business";
 export type TestLoginScope = "BOTH" | "INDIVIDUAL" | "CORPORATE";

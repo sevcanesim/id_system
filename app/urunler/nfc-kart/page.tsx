@@ -86,7 +86,7 @@ export default function NfcKartPage() {
 
       <section className="nfc-faq">
         <div className="yi-container"><span className="nfc-kicker">SIK SORULAN SORULAR</span><h2>Satın almadan önce<br /><em>bilmen gerekenler.</em></h2><p className="nfc-faq__intro">Karar vermeden önce fiyat, teslimat, yıllık kullanım, uyumluluk ve kayıp kart sürecini netleştir.</p>
-          <div className="nfc-faq__list">{faq.map(([q,a],i) => <details key={q} open={i===0}><summary>{q}</summary><p>{a}</p></details>)}</div>
+          <div className="nfc-faq__list">{faq.map(([q,a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div>
         </div>
       </section>
 

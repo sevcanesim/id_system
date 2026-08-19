@@ -10003,7 +10003,7 @@ body:has(.p8-corporate-editor) {
   display: flex;
   width: max-content;
   gap: 0;
-  animation: yi-brand-marquee 36s linear infinite;
+  animation: yi-brand-marquee 90s linear infinite;
 }
 .yi-brand-marquee__unit {
   display: inline-flex;

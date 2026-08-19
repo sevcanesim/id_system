@@ -32,6 +32,12 @@ export function canManageTemplates(role: OrganizationRole, status: string) {
   return status === "ACTIVE" && roleRank[role] >= roleRank.ADMIN;
 }
 
+export const NETWORKING_MANAGER_ROLES = ["OWNER", "ADMIN"] as const;
+
+export function canManageNetworking(role: OrganizationRole, status: string) {
+  return status === "ACTIVE" && (NETWORKING_MANAGER_ROLES as readonly string[]).includes(role);
+}
+
 // Şirketin resmi/görünen adını değiştirmek, şablon rengi seçmekten farklı bir
 // ağırlıkta bir işlem: bu isim her çalışan kartının "Şirket" alanına
 // (lockCompany kilitli/öneri olduğunda) ve genel kart sayfalarına yayılır.

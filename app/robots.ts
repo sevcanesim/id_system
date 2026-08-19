@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       disallow: [
         "/api/", "/admin", "/dashboard", "/giris", "/hesabim", "/kartim", "/kartlarim",
         "/siparisler", "/siparislerim", "/olustur", "/aktivasyon", "/checkout",
-        "/odeme/", "/kurumsal/panel", "/kurumsal/davet", "/p/", "/qr/"
+        "/odeme/", "/kurumsal/panel", "/kurumsal/davet", "/p/", "/e/", "/qr/"
       ],
     },
     sitemap: "https://qr.yenomilabs.com/sitemap.xml",

@@ -36,6 +36,7 @@ import EmployeeDrawer from "./components/EmployeeDrawer";
 import CardsPanel from "./components/CardsPanel";
 import AnalyticsPanel from "./components/AnalyticsPanel";
 import OverviewPanel from "./components/OverviewPanel";
+import NetworkingPanel from "./components/NetworkingPanel";
 import type {
   BulkInvitePreview,
   BulkInviteResults,
@@ -512,7 +513,7 @@ export default function CompanyPanel() {
     }
   }
 
-  const loadingLabel = CORPORATE_PANEL_TAB_META[currentTab].loadingLabel;
+  const loadingLabel = CORPORATE_PANEL_TAB_META[activeTab].loadingLabel;
 
   async function reloadPanelData() {
     setLoading(true);
@@ -1215,6 +1216,7 @@ export default function CompanyPanel() {
 
   const departmentManager = org?.role === "DEPARTMENT_MANAGER";
   const canManageLicenses = org?.role === "OWNER" || org?.role === "ADMIN";
+  const canManageNetworking = canManageLicenses;
   const allTabs: ReadonlyArray<readonly [CorporatePanelTab, string]> = [
         ["overview", "Genel Bakış"],
         ["employees", "Çalışanlar"],
@@ -1239,6 +1241,9 @@ export default function CompanyPanel() {
     templates: "/kurumsal/panel/sablon",
     content: "/kurumsal/panel/icerik",
     analytics: "/kurumsal/panel/istatistikler",
+    leads: "/kurumsal/panel/leadler",
+    events: "/kurumsal/panel/etkinlikler",
+    meetings: "/kurumsal/panel/gorusmeler",
     licenses: "/kurumsal/panel/lisans",
     organization: "/kurumsal/panel/organizasyon",
     settings: "/kurumsal/panel/ayarlar",
@@ -1251,6 +1256,9 @@ export default function CompanyPanel() {
     templates: { title: "Marka & Şablon", description: "Kurumsal kart görünümünü ve marka standartlarını merkezi olarak yönet.", icon: "contact" },
     content: { title: "İçerik", description: "Merkezi bağlantıları ve kurumsal dosyaları çalışan kartlarına dağıt.", icon: "link" },
     analytics: { title: "İstatistikler", description: "Kart görüntülenmelerini ve içerik etkileşimlerini gerçek verilerle izle.", icon: "analytics" },
+    leads: { title: "Leadler", description: "Karttan düşen networking lead’lerini, mail ve görüşme takibini yönet.", icon: "users" },
+    events: { title: "Etkinlikler", description: "Etkinlik QR attribution katmanını kişi kartından ayrı tut.", icon: "analytics" },
+    meetings: { title: "Görüşmeler", description: "Online ve yüz yüze görüşme taleplerini kabul et, alternatif öner veya reddet.", icon: "contact" },
     licenses: { title: "Lisanslar", description: "Toplam, kullanılan ve boş lisansları; ek kullanıcı paketleriyle birlikte yönet.", icon: "analytics" },
     organization: { title: "Organizasyon", description: "Şirket kimliği, alan politikaları ve ünvan standardını yönet.", icon: "building" },
     settings: { title: "Ayarlar", description: "Sık değişmeyen kurumsal yönetim alanlarına ulaş.", icon: "pencil" },
@@ -1725,6 +1733,15 @@ export default function CompanyPanel() {
                     onViewOwnCard={() => router.push(ownCardEditorHref)}
                     onShareSettings={() => openTab("templates")}
                   />
+                )}
+                {currentTab === "leads" && canManageNetworking && (
+                  <NetworkingPanel view="leads" organizationId={selected} token={token} members={members} memberCardStatuses={memberCardStatuses} />
+                )}
+                {currentTab === "events" && canManageNetworking && (
+                  <NetworkingPanel view="events" organizationId={selected} token={token} members={members} memberCardStatuses={memberCardStatuses} />
+                )}
+                {currentTab === "meetings" && canManageNetworking && (
+                  <NetworkingPanel view="meetings" organizationId={selected} token={token} members={members} memberCardStatuses={memberCardStatuses} />
                 )}
                 {currentTab === "settings" && (
                   <section className="p10-domain-panel p10-settings-hub">

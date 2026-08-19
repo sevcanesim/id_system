@@ -6,8 +6,6 @@ import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import AppHeader from "../components/AppHeader";
 import { EmptyState, LoadingState } from "../components/ui/States";
 
-import { normalizeEmailField } from "../../lib/form-standards";
-
 type Status = "PAID" | "PREPARING" | "SHIPPED" | "COMPLETED" | "CANCELLED" | "REFUNDED";
 type ShippingAddress = { recipient_name: string; phone: string; address_line: string; district: string; city: string; postal_code: string | null; delivery_note: string | null };
 
@@ -33,9 +31,12 @@ type ReconciliationSummary = { checkedOrders: number; requiresReview: number; op
 
 type CorporateAccount = {
   id: string; name: string; slug: string; status: string; createdAt: string;
+  corporateId: string | null; taxNumber: string | null;
   subscription: { id: string; status: string; seat_limit: number; starts_at: string | null; expires_at: string | null; billing_period: "MONTHLY" | "YEARLY"; business_plans: { code: string; name: string } | null } | null;
+  entitlements: { employee_limit: number; digital_card_limit: number; physical_card_limit: number; mail_credit_limit: number; mail_credits_remaining: number } | null;
   usedSeats: number;
   memberCount: number;
+  managers: { id: string; role: string; status: string; email: string }[];
 };
 
 const labels: Record<Status, string> = { PAID: "Ödeme alındı", PREPARING: "Hazırlanıyor", SHIPPED: "Kargolandı", COMPLETED: "Tamamlandı", CANCELLED: "İptal", REFUNDED: "İade" };
@@ -62,7 +63,8 @@ export default function AdminPage() {
   const [corporateLoading, setCorporateLoading] = useState(false);
   const [corporateMessage, setCorporateMessage] = useState("");
   const [provisioning, setProvisioning] = useState(false);
-  const [form, setForm] = useState({ name: "", ownerEmail: "", ownerFullName: "", planCode: "STARTER", seatLimitOverride: "", billingPeriod: "YEARLY" as "MONTHLY" | "YEARLY", termDays: "" });
+  const [form, setForm] = useState({ name: "", taxNumber: "", taxOffice: "", legalAddress: "", city: "", planCode: "STARTER", employeeLimit: "", digitalCardLimit: "", physicalCardLimit: "", mailCreditLimit: "", billingPeriod: "YEARLY" as "MONTHLY" | "YEARLY", termDays: "", status: "ACTIVE" as "ACTIVE" | "SUSPENDED" });
+  const [attachForm, setAttachForm] = useState<Record<string, { email: string; fullName: string; role: "OWNER" | "ADMIN" | "HR" }>>({});
 
   async function getToken() {
     const supabase = getSupabaseBrowserClient();
@@ -145,24 +147,61 @@ export default function AdminPage() {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
+          action: "create_tenant",
           name: form.name,
-          ownerEmail: form.ownerEmail,
-          ownerFullName: form.ownerFullName,
+          taxNumber: form.taxNumber,
+          taxOffice: form.taxOffice,
+          legalAddress: form.legalAddress,
+          city: form.city,
           planCode: form.planCode,
-          seatLimitOverride: form.seatLimitOverride ? Number(form.seatLimitOverride) : undefined,
+          employeeLimit: form.employeeLimit ? Number(form.employeeLimit) : undefined,
+          digitalCardLimit: form.digitalCardLimit ? Number(form.digitalCardLimit) : undefined,
+          physicalCardLimit: form.physicalCardLimit ? Number(form.physicalCardLimit) : undefined,
+          mailCreditLimit: form.mailCreditLimit ? Number(form.mailCreditLimit) : undefined,
           billingPeriod: form.billingPeriod,
           termDays: form.termDays ? Number(form.termDays) : undefined,
+          status: form.status,
         }),
       });
       const result = await response.json();
-      if (!response.ok) { setCorporateMessage(result.error ?? "Kurumsal hesap oluşturulamadı."); return; }
-      setCorporateMessage(result.emailSent
-        ? `${result.organization.name} oluşturuldu. Sahip daveti ${form.ownerEmail} adresine gönderildi.`
-        : `${result.organization.name} oluşturuldu ama davet e-postası gönderilemedi — üye panelinden yeniden gönderilmeli.`);
-      setForm({ name: "", ownerEmail: "", ownerFullName: "", planCode: "STARTER", seatLimitOverride: "", billingPeriod: "YEARLY", termDays: "" });
+      if (!response.ok) { setCorporateMessage(result.error ?? "Şirket oluşturulamadı."); return; }
+      setCorporateMessage(`${result.organization.name} oluşturuldu. Corporate ID: ${result.organization.corporate_id || "atanacak"}. Kullanıcılar ayrıca bağlanır.`);
+      setForm({ name: "", taxNumber: "", taxOffice: "", legalAddress: "", city: "", planCode: "STARTER", employeeLimit: "", digitalCardLimit: "", physicalCardLimit: "", mailCreditLimit: "", billingPeriod: "YEARLY", termDays: "", status: "ACTIVE" });
       await loadCorporate();
     } catch { setCorporateMessage("Sunucuya ulaşılamadı."); }
     finally { setProvisioning(false); }
+  }
+
+  async function attachManager(organizationId: string) {
+    const fields = attachForm[organizationId];
+    if (!fields?.email || !fields.fullName) { setCorporateMessage("Yönetici e-postası ve adı gerekli."); return; }
+    const token = await getToken(); if (!token) return;
+    setProvisioning(true); setCorporateMessage("");
+    try {
+      const response = await fetch("/api/admin/organizations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ action: "attach_manager", organizationId, email: fields.email, fullName: fields.fullName, role: fields.role || "OWNER" }),
+      });
+      const result = await response.json();
+      if (!response.ok) { setCorporateMessage(result.error ?? "Yönetici bağlanamadı."); return; }
+      setCorporateMessage(result.existingUser ? `${fields.email} mevcut kullanıcı olarak bağlandı.` : (result.emailSent ? `${fields.email} adresine davet gönderildi.` : `${fields.email} davet edildi ama e-posta gönderilemedi.`));
+      setAttachForm((current) => ({ ...current, [organizationId]: { email: "", fullName: "", role: "OWNER" } }));
+      await loadCorporate();
+    } catch { setCorporateMessage("Sunucuya ulaşılamadı."); }
+    finally { setProvisioning(false); }
+  }
+
+  async function setOrganizationStatus(organizationId: string, status: "ACTIVE" | "SUSPENDED") {
+    const token = await getToken(); if (!token) return;
+    const response = await fetch("/api/admin/organizations", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ organizationId, status }),
+    });
+    const result = await response.json();
+    if (!response.ok) setCorporateMessage(result.error ?? "Durum güncellenemedi.");
+    else await loadCorporate();
   }
 
   const selectedPlan = plans.find((plan) => plan.code === form.planCode);
@@ -273,38 +312,48 @@ export default function AdminPage() {
         <div className="admin-corporate-shell">
           <form className="order-form" onSubmit={provisionOrganization}>
             <section>
-              <h2>Yeni kurumsal hesap oluştur</h2>
-              <p className="admin-helper-copy">Şirketi, ilk aboneliğini ve OWNER davetini tek işlemde oluşturur. Sahip, e-postasına gelen daveti kabul edince kurumsal panele erişir.</p>
+              <h2>Yeni şirket (tenant) oluştur</h2>
+              <p className="admin-helper-copy">Şirket oluşturmak kullanıcı bağlamaz. Corporate ID otomatik üretilir ve değişmez. Vergi numarası tektir; şirket adı tekrar edebilir. Owner/Admin/HR ayrıca bağlanır.</p>
               <label>Şirket adı<input required value={form.name} onChange={(e) => setForm((v) => ({ ...v, name: e.target.value }))} placeholder="Örn. Acme Mühendislik" /></label>
-              <label>Sahip (OWNER) e-postası<input required type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} value={form.ownerEmail} onChange={(e) => setForm((v) => ({ ...v, ownerEmail: e.target.value }))} onBlur={() => setForm((v) => ({ ...v, ownerEmail: normalizeEmailField(v.ownerEmail) }))} placeholder="sahip@sirket.com" /></label>
-              <label>Sahip adı soyadı<input required value={form.ownerFullName} onChange={(e) => setForm((v) => ({ ...v, ownerFullName: e.target.value }))} placeholder="Ad Soyad" /></label>
-              <label>Paket<select value={form.planCode} onChange={(e) => setForm((v) => ({ ...v, planCode: e.target.value }))}>{plans.map((plan) => <option key={plan.code} value={plan.code}>{plan.name} {plan.seat_limit ? `(${plan.seat_limit} koltuk)` : "(özel koltuk sayısı gerekir)"}</option>)}</select></label>
-              <label>Faturalama dönemi<select value={form.billingPeriod} onChange={(e) => setForm((v) => ({ ...v, billingPeriod: e.target.value as "MONTHLY" | "YEARLY" }))}>
-                <option value="YEARLY">Yıllık{selectedPlan?.annual_price_kurus ? ` — ${(selectedPlan.annual_price_kurus / 100).toLocaleString("tr-TR")} TL/yıl` : ""}</option>
-              </select></label>
-              <label>Koltuk sayısı {selectedPlan?.seat_limit ? <small className="optional-label">İsteğe bağlı — boş bırakılırsa paketin varsayılanı ({selectedPlan.seat_limit}) kullanılır</small> : <small className="optional-label">Bu paket için zorunlu</small>}<input type="number" min={1} max={100000} value={form.seatLimitOverride} onChange={(e) => setForm((v) => ({ ...v, seatLimitOverride: e.target.value }))} placeholder={selectedPlan?.seat_limit ? String(selectedPlan.seat_limit) : "Özel koltuk sayısı"} /></label>
-              <label>Abonelik süresi (gün) <small className="optional-label">İsteğe bağlı — boş bırakılırsa {form.billingPeriod === "MONTHLY" ? "30" : "365"} gün kullanılır</small><input type="number" min={1} max={3650} value={form.termDays} onChange={(e) => setForm((v) => ({ ...v, termDays: e.target.value }))} placeholder={form.billingPeriod === "MONTHLY" ? "30" : "365"} /></label>
-              <p className="admin-muted-copy">Production kurumsal paketleri yalnız yıllıktır. Süre dolmadan önce yenileme teklifi ve onayı alınmalıdır.</p>
-              <button className="admin-provision-button order-submit" disabled={provisioning}>{provisioning ? "Oluşturuluyor..." : "Kurumsal Hesabı Oluştur"}</button>
+              <label>Vergi numarası<input required value={form.taxNumber} onChange={(e) => setForm((v) => ({ ...v, taxNumber: e.target.value }))} placeholder="Vergi kimlik no" /></label>
+              <label>Vergi dairesi<input value={form.taxOffice} onChange={(e) => setForm((v) => ({ ...v, taxOffice: e.target.value }))} placeholder="İsteğe bağlı" /></label>
+              <label>Yasal adres<input value={form.legalAddress} onChange={(e) => setForm((v) => ({ ...v, legalAddress: e.target.value }))} /></label>
+              <label>Şehir<input value={form.city} onChange={(e) => setForm((v) => ({ ...v, city: e.target.value }))} /></label>
+              <label>Paket<select value={form.planCode} onChange={(e) => setForm((v) => ({ ...v, planCode: e.target.value }))}>{plans.map((plan) => <option key={plan.code} value={plan.code}>{plan.name} {plan.seat_limit ? `(${plan.seat_limit} çalışan)` : "(özel limit gerekir)"}</option>)}</select></label>
+              <label>Çalışan limiti<input type="number" min={1} value={form.employeeLimit} onChange={(e) => setForm((v) => ({ ...v, employeeLimit: e.target.value }))} placeholder={selectedPlan?.seat_limit ? String(selectedPlan.seat_limit) : "Zorunlu"} /></label>
+              <label>Dijital kart limiti<input type="number" min={0} value={form.digitalCardLimit} onChange={(e) => setForm((v) => ({ ...v, digitalCardLimit: e.target.value }))} /></label>
+              <label>Fiziksel kart limiti<input type="number" min={0} value={form.physicalCardLimit} onChange={(e) => setForm((v) => ({ ...v, physicalCardLimit: e.target.value }))} /></label>
+              <label>Mail kredisi<input type="number" min={0} value={form.mailCreditLimit} onChange={(e) => setForm((v) => ({ ...v, mailCreditLimit: e.target.value }))} placeholder="1000" /></label>
+              <label>Durum<select value={form.status} onChange={(e) => setForm((v) => ({ ...v, status: e.target.value as "ACTIVE" | "SUSPENDED" }))}><option value="ACTIVE">Aktif</option><option value="SUSPENDED">Pasif</option></select></label>
+              <label>Abonelik süresi (gün) <small className="optional-label">İsteğe bağlı — boş bırakılırsa {form.billingPeriod === "MONTHLY" ? "30" : "365"} gün</small><input type="number" min={1} max={3650} value={form.termDays} onChange={(e) => setForm((v) => ({ ...v, termDays: e.target.value }))} /></label>
+              <button className="admin-provision-button order-submit" disabled={provisioning}>{provisioning ? "Oluşturuluyor..." : "Şirketi Oluştur"}</button>
               {corporateMessage && <div className="auth-message">{corporateMessage}</div>}
             </section>
           </form>
 
           <div className="admin-corporate-list">
-            <h2>Mevcut kurumsal hesaplar</h2>
-            {corporateLoading ? <LoadingState label="Kurumsal hesaplar yükleniyor" /> : accounts.length === 0 ? <EmptyState icon="building" title="Henüz kurumsal hesap yok." description="Soldaki formu doldurarak ilk kurumsal müşteriyi oluşturabilirsin." /> : accounts.map((account) => (
+            <h2>Mevcut şirketler</h2>
+            {corporateLoading ? <LoadingState label="Kurumsal hesaplar yükleniyor" /> : accounts.length === 0 ? <EmptyState icon="building" title="Henüz şirket yok." description="Soldaki form şirket oluşturur; kullanıcılar sonra bağlanır." /> : accounts.map((account) => {
+              const attach = attachForm[account.id] || { email: "", fullName: "", role: "OWNER" as const };
+              return (
               <article className="admin-order" key={account.id}>
                 <div className="admin-order-top">
-                  <div><span>{new Date(account.createdAt).toLocaleDateString("tr-TR")}</span><h2>{account.name}</h2><p>{account.subscription?.business_plans?.name ?? "Abonelik yok"}{account.subscription?.billing_period ? ` · ${account.subscription.billing_period === "MONTHLY" ? "Aylık" : "Yıllık"}` : ""}</p></div>
-                  <div className="admin-status-controls"><em className={`payment-badge payment-${(account.subscription?.status ?? "none").toLowerCase()}`}>{account.subscription?.status ?? "ABONELİK YOK"}</em></div>
+                  <div><span>{account.corporateId || "Corporate ID bekleniyor"}</span><h2>{account.name}</h2><p>{account.subscription?.business_plans?.name ?? "Abonelik yok"} · VN {account.taxNumber || "—"}</p></div>
+                  <div className="admin-status-controls"><em className={`payment-badge payment-${account.status.toLowerCase()}`}>{account.status === "ACTIVE" ? "Aktif" : "Pasif"}</em><button type="button" className="secondary" onClick={() => void setOrganizationStatus(account.id, account.status === "ACTIVE" ? "SUSPENDED" : "ACTIVE")}>{account.status === "ACTIVE" ? "Pasife al" : "Aktifleştir"}</button></div>
                 </div>
                 <div className="admin-order-grid">
-                  <div><small>Koltuk kullanımı</small><b>{account.usedSeats} / {account.subscription?.seat_limit ?? "—"}</b></div>
-                  <div><small>Toplam üye kaydı</small><b>{account.memberCount}</b></div>
-                  <div><small>Abonelik bitişi</small><b>{account.subscription?.expires_at ? new Date(account.subscription.expires_at).toLocaleDateString("tr-TR") : "—"}</b></div>
+                  <div><small>Çalışan / dijital / fiziksel</small><b>{account.entitlements ? `${account.usedSeats}/${account.entitlements.employee_limit} · ${account.entitlements.digital_card_limit} · ${account.entitlements.physical_card_limit}` : `${account.usedSeats} / ${account.subscription?.seat_limit ?? "—"}`}</b></div>
+                  <div><small>Mail kredisi</small><b>{account.entitlements ? `${account.entitlements.mail_credits_remaining} / ${account.entitlements.mail_credit_limit}` : "—"}</b></div>
+                  <div><small>Yöneticiler</small><b>{account.managers.length ? account.managers.map((manager) => `${manager.role} ${manager.email}`).join(" · ") : "Bağlı değil"}</b></div>
+                </div>
+                <div className="payment-retry">
+                  <label>E-posta ile bağla<input type="email" value={attach.email} onChange={(e) => setAttachForm((current) => ({ ...current, [account.id]: { ...attach, email: e.target.value } }))} placeholder="mevcut kullanıcı veya davet" /></label>
+                  <label>Ad soyad<input value={attach.fullName} onChange={(e) => setAttachForm((current) => ({ ...current, [account.id]: { ...attach, fullName: e.target.value } }))} /></label>
+                  <label>Rol<select value={attach.role} onChange={(e) => setAttachForm((current) => ({ ...current, [account.id]: { ...attach, role: e.target.value as "OWNER" | "ADMIN" | "HR" } }))}><option value="OWNER">Owner</option><option value="ADMIN">Admin</option><option value="HR">HR</option></select></label>
+                  <button type="button" onClick={() => void attachManager(account.id)} disabled={provisioning}>Kullanıcıyı Bağla</button>
                 </div>
               </article>
-            ))}
+            ); })}
           </div>
         </div>
       </>}

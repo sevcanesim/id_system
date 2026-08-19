@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const nav = fs.readFileSync('app/kurumsal/panel/domain/navigation.ts', 'utf8');
 const client = fs.readFileSync('app/kurumsal/panel/CorporatePanelClient.tsx', 'utf8');
 
-const tabs = ['overview','employees','cards','templates','content','analytics','licenses','organization','roles','settings'];
+const tabs = ['overview','employees','cards','templates','content','analytics','licenses','organization','roles','settings','leads','events','meetings'];
 for (const tab of tabs) {
   assert.match(nav, new RegExp(`${tab}: \\{[^}]*loadingLabel:`), `Missing loadingLabel for ${tab}`);
 }

@@ -10,6 +10,9 @@ export const CORPORATE_PANEL_TABS = [
   "templates",
   "content",
   "analytics",
+  "leads",
+  "events",
+  "meetings",
   "licenses",
   "organization",
   "settings",
@@ -25,6 +28,9 @@ export const CORPORATE_PANEL_ROUTE_TO_TAB: Record<string, CorporatePanelTab> = {
   "/kurumsal/panel/sablon": "templates",
   "/kurumsal/panel/icerik": "content",
   "/kurumsal/panel/istatistikler": "analytics",
+  "/kurumsal/panel/leadler": "leads",
+  "/kurumsal/panel/etkinlikler": "events",
+  "/kurumsal/panel/gorusmeler": "meetings",
   "/kurumsal/panel/lisans": "licenses",
   "/kurumsal/panel/organizasyon": "organization",
   "/kurumsal/panel/ayarlar": "settings",
@@ -47,6 +53,9 @@ export const CORPORATE_PANEL_TAB_ORDER: readonly CorporatePanelTab[] = [
   "templates",
   "content",
   "analytics",
+  "leads",
+  "events",
+  "meetings",
   "licenses",
   "organization",
   "roles",
@@ -68,6 +77,9 @@ export const CORPORATE_PANEL_TAB_META: Record<CorporatePanelTab, { label: string
   templates: { label: "Marka & Şablon", icon: "contact", group: "MARKA & İÇERİK", loadingLabel: "Kurumsal şablonlar yükleniyor" },
   content: { label: "İçerik", icon: "link", loadingLabel: "İçerik yükleniyor" },
   analytics: { label: "İstatistikler", icon: "analytics", group: "YÖNETİM", loadingLabel: "İstatistikler yükleniyor" },
+  leads: { label: "Leadler", icon: "users", group: "NETWORKING", loadingLabel: "Leadler yükleniyor" },
+  events: { label: "Etkinlikler", icon: "analytics", loadingLabel: "Etkinlikler yükleniyor" },
+  meetings: { label: "Görüşmeler", icon: "contact", loadingLabel: "Görüşmeler yükleniyor" },
   licenses: { label: "Lisanslar", icon: "analytics", loadingLabel: "Lisanslar yükleniyor" },
   organization: { label: "Organizasyon", icon: "building", loadingLabel: "Organizasyon yükleniyor" },
   roles: { label: "Roller & Yetkiler", icon: "lock", loadingLabel: "Roller ve yetkiler yükleniyor" },
@@ -85,7 +97,10 @@ export function corporateSidebarTabs(role?: string): readonly CorporatePanelTab[
   if (normalizedRole === "DEPARTMENT_MANAGER") return ["employees"];
   if (normalizedRole === "EMPLOYEE") return [];
   const canManageLicenses = normalizedRole === "OWNER" || normalizedRole === "ADMIN";
-  return CORPORATE_PANEL_TAB_ORDER.filter((tab) => tab !== "licenses" || canManageLicenses);
+  return CORPORATE_PANEL_TAB_ORDER.filter((tab) => {
+    if (tab === "licenses" || tab === "leads" || tab === "events" || tab === "meetings") return canManageLicenses;
+    return true;
+  });
 }
 
 export function corporateSidebarItems(role?: string) {

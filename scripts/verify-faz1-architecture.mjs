@@ -20,7 +20,7 @@ console.log(`INFO  CorporatePanelClient metrics — ${lines} LOC, ${useStates} u
 check('corporate domain types extracted', corporate.includes('from "./domain/types"') && fs.existsSync('app/kurumsal/panel/domain/types.ts'));
 check('template field normalization extracted', corporate.includes('from "./domain/template-fields"') && fs.existsSync('app/kurumsal/panel/domain/template-fields.ts'));
 check('corporate hero preview is explicit imported component', overview.includes('import CorporateHeroPreview from "./CorporateHeroPreview"') && overview.includes('<CorporateHeroPreview') && corporate.includes('<OverviewPanel'));
-check('corporate hero preview renders real QR from slug', hero.includes('QRCode.toDataURL') && hero.includes('`${origin}/${slug}`'));
+check('corporate hero preview renders real QR from slug', hero.includes('QRCode.toDataURL') && hero.includes('cardShareUrl'));
 check('corporate panel has no duplicate global AppHeader', !corporate.includes('<AppHeader'));
 check('corporate panel remains pathname-aware', corporate.includes('usePathname') && corporate.includes('tabRoutes'));
 check('/kartlarim remains dashboard/list intent', cards.includes('activeKey="home"') && cards.includes('Profilinizi, dijital kartınızı ve kişisel marka bilgilerinizi tek bir kimlik stüdyosundan yönetin.'));

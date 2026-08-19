@@ -3,7 +3,7 @@ import { consumeDistributedRateLimit, requestIp } from "./lib/security/rate-limi
 
 const AUTH_COOKIE = "yenomi-access-token";
 const PROTECTED_PAGES = ["/admin", "/kurumsal/panel", "/siparislerim", "/kartim", "/kartlarim", "/olustur", "/yenile", "/ayarlar", "/istatistikler"];
-const PRIVATE_OR_PROFILE_PREFIXES = ["/admin", "/dashboard", "/giris", "/hesabim", "/kartim", "/kartlarim", "/siparisler", "/siparislerim", "/olustur", "/aktivasyon", "/checkout", "/odeme", "/kurumsal/panel", "/kurumsal/davet", "/p", "/qr", "/api"];
+const PRIVATE_OR_PROFILE_PREFIXES = ["/admin", "/dashboard", "/giris", "/hesabim", "/kartim", "/kartlarim", "/siparisler", "/siparislerim", "/olustur", "/aktivasyon", "/checkout", "/odeme", "/kurumsal/panel", "/kurumsal/davet", "/p", "/e", "/qr", "/api"];
 
 type LimitRule = { limit: number; windowMs: number; scope: string };
 
@@ -81,6 +81,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/admin/:path*", "/kurumsal/panel/:path*", "/siparislerim/:path*", "/kartim/:path*", "/kartlarim/:path*", "/olustur/:path*", "/yenile/:path*", "/ayarlar/:path*", "/istatistikler/:path*",
-    "/giris", "/api/:path*", "/p/:path*", "/qr/:path*", "/aktivasyon/:path*", "/checkout/:path*", "/odeme/:path*", "/api/location/reverse", "/api/commerce/checkout", "/api/commerce/activate", "/api/commerce/claim", "/api/commerce/activation/resend", "/api/commerce/entitlements", "/api/organizations/members", "/api/organizations/invites", "/api/payments/iyzico/checkout",
+    "/giris", "/api/:path*", "/p/:path*", "/e/:path*", "/qr/:path*", "/aktivasyon/:path*", "/checkout/:path*", "/odeme/:path*", "/api/location/reverse", "/api/commerce/checkout", "/api/commerce/activate", "/api/commerce/claim", "/api/commerce/activation/resend", "/api/commerce/entitlements", "/api/organizations/members", "/api/organizations/invites", "/api/payments/iyzico/checkout",
   ],
 };

@@ -1,11 +1,12 @@
 
 import { notFound } from "next/navigation";
-import CardTemplate from "../../CardTemplate";
+import PublicCardWithNetworking from "../../components/public/PublicCardWithNetworking";
 import PublicProfileProtection from "../../components/security/PublicProfileProtection";
 import { getSupabaseAdminClient } from "../../../lib/supabase/server-admin";
 import { isCardProfileServiceActive, rowToCardData, type CardProfileRow } from "../../../lib/card-profile";
 import { fetchCardBranding, fetchOrganizationLinks } from "../../../lib/organizations/card-branding";
 import { logCardView } from "../../../lib/analytics/card-views";
+import { fetchCardLocaleOverlays } from "../../../lib/public-card/locales";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -35,7 +36,7 @@ export default async function PhysicalCardRoute({ params }: { params: Promise<{ 
 
   const { data: rawProfile } = await admin
     .from("card_profiles")
-    .select("id,user_id,entitlement_id,slug,public_id,name,role,company,phone,whatsapp,email,website,linkedin,instagram,location,image_url,is_published,card_status,service_started_at,service_expires_at,grace_ends_at")
+    .select("id,user_id,entitlement_id,slug,public_id,name,role,company,phone,whatsapp,email,website,linkedin,instagram,location,image_url,bio,is_published,card_status,service_started_at,service_expires_at,grace_ends_at")
     .eq("id", card.owner_profile_id)
     .maybeSingle();
   const profile = rawProfile as CardProfileRow | null;
@@ -47,11 +48,22 @@ export default async function PhysicalCardRoute({ params }: { params: Promise<{ 
   await logCardView(profile.id);
   const branding = await fetchCardBranding(profile.user_id);
   const links = await fetchOrganizationLinks(profile.user_id, profile.id);
+  const locales = await fetchCardLocaleOverlays(admin, profile.id);
 
   return (
     <main className="p12-public-card-page">
       <PublicProfileProtection profileId={profile.public_id || profile.id.slice(0, 8)} generatedAt={new Date().toISOString()} />
-      <CardTemplate data={{ ...rowToCardData(profile), links }} slug={`c/${normalizedCode}`} branding={branding} />
+      <PublicCardWithNetworking
+        data={{ ...rowToCardData(profile), links }}
+        slug={profile.slug}
+        publicId={profile.public_id}
+        branding={branding}
+        profileId={profile.id}
+        profileName={profile.name}
+        organizationName={profile.company || branding?.companyName}
+        source="NFC"
+        locales={locales}
+      />
     </main>
   );
 }

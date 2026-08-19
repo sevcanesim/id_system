@@ -15,6 +15,7 @@ import { Icon } from "../icons";
 import AddToCartButton from "../components/AddToCartButton";
 import { EXTRA_NFC_CARD_PRICE_KURUS, formatTryFromKurus, NFC_PRODUCT, REPLACEMENT_NFC_CARD_PRICE_KURUS } from "../../lib/config/product";
 import { COMMERCIAL_PRICING } from "../../lib/config/commercial";
+import { cardQrUrl, cardSharePath, cardShareUrl, physicalCardPath } from "../../lib/public-card/urls";
 
 type CardData = EditableCardData;
 type PhysicalCard = { id:string;card_code:string;status:"ACTIVE"|"LOST"|"DISABLED";replaced_by_card_id:string|null };
@@ -29,6 +30,7 @@ export default function MyCardPage() {
   const [data, setData] = useState<CardData | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [savedSlug, setSavedSlug] = useState("");
+  const [publicId, setPublicId] = useState("");
   const [isPublished, setIsPublished] = useState(false);
   const [cardStatus, setCardStatusState] = useState<"ACTIVE" | "LOST">("ACTIVE");
   const [physicalCard, setPhysicalCard] = useState<PhysicalCard | null>(null);
@@ -66,6 +68,7 @@ export default function MyCardPage() {
       if (profile) {
         setProfileId(profile.id);
         setSavedSlug(profile.slug);
+        setPublicId(profile.public_id || "");
         setIsPublished(Boolean(profile.is_published));
         setCardStatusState(profile.card_status === "LOST" ? "LOST" : "ACTIVE");
         if (token) {
@@ -92,8 +95,11 @@ export default function MyCardPage() {
   const generatedSlug = useMemo(() => data?.name.toLocaleLowerCase("tr").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ı/g,"i").replace(/[^a-z0-9]+/g, "").slice(0, 40) || "kartim", [data]);
   const slug = savedSlug || generatedSlug;
   const editHref = profileId ? `/olustur?id=${encodeURIComponent(profileId)}` : "/olustur";
-  const publicUrl = `${getPublicOrigin()}/${slug}`;
-  const physicalCardUrl = physicalCard ? `${getPublicOrigin()}/c/${physicalCard.card_code}` : publicUrl;
+  const publicUrl = cardShareUrl(slug, getPublicOrigin());
+  const qrUrl = physicalCard
+    ? `${getPublicOrigin()}${physicalCardPath(physicalCard.card_code)}`
+    : (publicId ? cardQrUrl(publicId, getPublicOrigin()) : publicUrl);
+  const liveHref = cardSharePath(slug);
   const completion = data ? Math.min(100, [data.name, data.role, data.email, data.phone, data.image].filter(Boolean).length * 20) : 0;
 
   useEffect(() => {
@@ -101,13 +107,13 @@ export default function MyCardPage() {
       setQrDataUrl("");
       return;
     }
-    QRCode.toDataURL(physicalCardUrl, {
+    QRCode.toDataURL(qrUrl, {
       width: 760,
       margin: 2,
       errorCorrectionLevel: "H",
       color: { dark: "#17121f", light: "#ffffff" }
     }).then(setQrDataUrl).catch(() => setMessage("QR kod oluşturulamadı."));
-  }, [physicalCardUrl, savedSlug, isPublished]);
+  }, [qrUrl, savedSlug, isPublished]);
 
   async function togglePublished() {
     const supabase = getSupabaseBrowserClient();
@@ -195,7 +201,7 @@ export default function MyCardPage() {
       <div className="p14-card-main">
         <div className="p14-status-group p7-card-status-row">
           <span className={`p14-status-pill ${isPublished && cardStatus === "ACTIVE" ? "online" : "offline"}`}><i />{cardStatus === "LOST" ? "Kayıp modu" : isPublished ? "Aktif" : "Yayında değil"}</span>
-          {isPublished && <a href={`/${slug}`} target="_blank" rel="noopener" className="p14-preview-link">Canlı önizleme <span aria-hidden>↗</span></a>}
+          {isPublished && <a href={liveHref} target="_blank" rel="noopener" className="p14-preview-link">Canlı önizleme <span aria-hidden>↗</span></a>}
         </div>
         <div className="p7-card-health" aria-label="Kart sağlık özeti">
           <div><small>Profil</small><strong>%{completion}</strong><span>tamamlandı</span></div>
@@ -209,7 +215,7 @@ export default function MyCardPage() {
             <button type="button" className="p14-copy-btn" onClick={copyLink}><Icon name="copy" />Kopyala</button>
           </div>
           <div className="p14-link-actions">
-            {isPublished && <a href={`/${slug}`} target="_blank" rel="noopener" className="p14-action primary">Kartviziti Aç</a>}
+            {isPublished && <a href={liveHref} target="_blank" rel="noopener" className="p14-action primary">Kartviziti Aç</a>}
             <button type="button" className="p14-action" onClick={downloadQr} disabled={!qrDataUrl}><Icon name="qr" />QR İndir</button>
             <button type="button" className="p14-action" onClick={shareLink}><Icon name="share" />Bağlantıyı Paylaş</button>
           </div>
@@ -220,7 +226,7 @@ export default function MyCardPage() {
             <small>QR KODUN</small>
             <h2>Her yerde<br />paylaş.</h2>
             {qrDataUrl ? <img src={qrDataUrl} alt={`${data.name} kartvizit QR kodu`} /> : <div className="p14-qr-placeholder">QR</div>}
-            <p>Kart bilgilerini değiştirdiğinde QR kodun otomatik güncellenir.</p>
+            <p>{physicalCard ? "Basılı NFC kartın kendi sabit kodunu kullanır. Dijital QR, profil veya paylaşım bağlantısı değişse de aynı kalır." : "Dijital QR, profil veya paylaşım bağlantısı değişse de aynı kalır."}</p>
           </div>
 
           <div className="p14-panel p14-management-panel">

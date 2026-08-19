@@ -2,6 +2,7 @@ import {
   ORGANIZATION_ROLES,
   canInviteRole,
   canManageTemplates,
+  canManageNetworking,
   canChangeMemberStatus,
   type OrganizationRole,
 } from "./permissions";
@@ -69,6 +70,10 @@ export const ROLE_CAPABILITIES: RoleCapability[] = [
   {
     label: "Kendi kartını görüntüleme / düzenleme",
     allows: () => true,
+  },
+  {
+    label: "Networking lead ve görüşme yönetimi",
+    allows: (role) => canManageNetworking(role, "ACTIVE"),
   },
 ];
 

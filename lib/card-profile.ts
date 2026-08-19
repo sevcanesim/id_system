@@ -71,7 +71,7 @@ export function createVCard(profile: CardProfileRow) {
     profile.linkedin ? `X-SOCIALPROFILE;TYPE=linkedin:${profile.linkedin}` : "",
     profile.instagram ? `X-SOCIALPROFILE;TYPE=instagram:${profile.instagram}` : "",
     profile.location ? `URL;TYPE=location:${profile.location}` : "",
-    `URL;TYPE=profile:https://qr.yenomilabs.com/${profile.public_id ? `p/${profile.public_id}` : profile.slug}`,
+    `URL;TYPE=profile:https://qr.yenomilabs.com/${profile.slug ? `p/${profile.slug}` : profile.public_id ? `p/${profile.public_id}` : ""}`,
     "END:VCARD"
   ].filter(Boolean);
   return `${lines.join("\r\n")}\r\n`;

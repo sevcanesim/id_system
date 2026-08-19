@@ -42,9 +42,8 @@ export default function CorporateLeadForm({ plan = "GENEL", compact = false }: P
         <Field label="Kurumsal e-posta" required><Input name="email" type="email" required maxLength={254} autoComplete="email" placeholder="ornek@sirket.com" /></Field>
         <Field label="Şirket" required><Input name="company" required minLength={2} maxLength={160} autoComplete="organization" placeholder="Şirket adı" /></Field>
         <Field label="Paket">
-          <Select name="plan" defaultValue={plan}>
+          <Select name="plan" defaultValue={plan === "INDIVIDUAL_PREMIUM" ? "GENEL" : plan}>
             <option value="GENEL">Genel teklif</option>
-            <option value="INDIVIDUAL_PREMIUM">Bireysel Premium</option>
             {CORPORATE_PACKAGE_LADDER.map((row) => (
               <option key={row.code} value={row.code}>{row.name} — {row.seats} kişi</option>
             ))}

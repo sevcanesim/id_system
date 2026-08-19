@@ -5,26 +5,56 @@ import AddToCartButton from "../../components/AddToCartButton";
 import { ProductVariantSelector } from "../../components/ui/ProductVariantSelector";
 import type { CatalogProduct } from "../../../lib/config/product";
 import { formatTryFromKurus } from "../../../lib/config/product";
+import { COMMERCIAL_PRICING, COMMERCIAL_SKUS } from "../../../lib/config/commercial";
+import { INDIVIDUAL_PLAN, INDIVIDUAL_PREMIUM_PLAN } from "../../../lib/commerce/packages";
 import { Icon } from "../../icons";
 import MobileBuyBar from "./MobileBuyBar";
 
-export default function NfcPurchasePanel({ product }: { product: CatalogProduct }) {
+export default function NfcPurchasePanel({
+  product,
+  initialPackage = "individual",
+}: {
+  product: CatalogProduct;
+  initialPackage?: "individual" | "premium";
+}) {
   const variants = product.variants.filter((variant) => variant.active);
   const [selectedVariantId, setSelectedVariantId] = useState(variants[0]?.id ?? "");
+  const [packageId, setPackageId] = useState<"individual" | "premium">(initialPackage);
   const selectedVariant = variants.find((variant) => variant.id === selectedVariantId) ?? variants[0];
-  const unitPriceKurus = product.unitPriceKurus + (selectedVariant?.priceDeltaKurus ?? 0);
+  const offerSku = packageId === "premium" ? COMMERCIAL_SKUS.PREMIUM : product.defaultOfferSku;
+  const offerPriceKurus = packageId === "premium"
+    ? COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.priceKurus
+    : product.unitPriceKurus;
+  const unitPriceKurus = offerPriceKurus + (selectedVariant?.priceDeltaKurus ?? 0);
   const price = formatTryFromKurus(unitPriceKurus);
-  const productName = selectedVariant ? `${product.name} — ${selectedVariant.name}` : product.name;
+  const productName = selectedVariant
+    ? `${packageId === "premium" ? "Yenomi ID Bireysel Premium" : product.name} — ${selectedVariant.name}`
+    : packageId === "premium" ? "Yenomi ID Bireysel Premium" : product.name;
   const configuration = useMemo(
     () => selectedVariant
-      ? { variantId: selectedVariant.id, variantName: selectedVariant.name }
+      ? { variantId: selectedVariant.id, variantName: selectedVariant.name, packageCode: packageId === "premium" ? INDIVIDUAL_PREMIUM_PLAN.code : INDIVIDUAL_PLAN.code }
       : undefined,
-    [selectedVariant],
+    [selectedVariant, packageId],
   );
 
   return (
     <>
       <div className="nfc-purchase-controls">
+        <ProductVariantSelector
+          name="product-package"
+          label="Paket"
+          variants={[
+            { id: "individual", name: INDIVIDUAL_PLAN.name },
+            { id: "premium", name: INDIVIDUAL_PREMIUM_PLAN.name },
+          ]}
+          value={packageId}
+          onChange={(value) => setPackageId(value === "premium" ? "premium" : "individual")}
+          renderPrice={(variant) => formatTryFromKurus(
+            variant.id === "premium"
+              ? COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.priceKurus
+              : COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus,
+          )}
+        />
         <ProductVariantSelector
           label="Kart rengi"
           variants={variants}
@@ -38,18 +68,20 @@ export default function NfcPurchasePanel({ product }: { product: CatalogProduct 
       </div>
 
       <p className="nfc-account-note" role="note">
-        Ödeme sırasında bilgilerini girersin. Hesabın varsa siparişin hesabına bağlanır; hesabın yoksa satın alma işlemini hesap açmadan tamamlayabilirsin.
+        {packageId === "premium"
+          ? "Premium, NFC kart + 1 yıl + 100 Network Mail verir. Ödeme sonrası kredi hesabına yazılır."
+          : "Ödeme sırasında bilgilerini girersin. Hesabın varsa siparişin hesabına bağlanır; hesabın yoksa satın alma işlemini hesap açmadan tamamlayabilirsin."}
       </p>
 
       <div className="nfc-price-row" id="nfc-hero-price-row">
         <div className="nfc-price-tag">
           <strong>{price}</strong>
-          <small>kart + 1 yıllık kullanım</small>
+          <small>{packageId === "premium" ? "kart + 1 yıl + 100 Network Mail" : "kart + 1 yıllık kullanım"}</small>
         </div>
         <div className="nfc-price-actions">
           <AddToCartButton
             productId={product.slug}
-            variantSku={product.defaultOfferSku}
+            variantSku={offerSku}
             kind="NFC_PHYSICAL_CARD"
             name={productName}
             unitPriceKurus={unitPriceKurus}
@@ -73,6 +105,7 @@ export default function NfcPurchasePanel({ product }: { product: CatalogProduct 
         configuration={configuration}
         productName={productName}
         unitPriceKurus={unitPriceKurus}
+        variantSku={offerSku}
       />
     </>
   );

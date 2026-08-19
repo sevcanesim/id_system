@@ -10645,3 +10645,12 @@ article[id] {
     font-size: 12px;
   }
 }
+
+.products-plan-card .ds-button {
+  margin-top: auto;
+  align-self: flex-start;
+}
+.nfc-purchase-controls {
+  display: grid;
+  gap: 16px;
+}

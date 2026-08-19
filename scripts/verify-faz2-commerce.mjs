@@ -21,13 +21,18 @@ const architectureAudit = read("audit/PHASE1_PRODUCT_ARCHITECTURE_AUDIT.md");
 
 check(commercial.includes("export const COMMERCIAL_SKUS"), "commercial SKU dictionary is canonical");
 check(product.includes("defaultOfferSku?: string") && product.includes("defaultOfferSku: COMMERCIAL_PRICING.YENOMI_ID_INITIAL.sku"), "catalog product explicitly points to its default sellable offer");
-check(purchasePanel.includes("variantSku={product.defaultOfferSku}") || productPage.includes("variantSku={NFC_PRODUCT.defaultOfferSku}"), "canonical NFC product purchase sends explicit initial offer SKU");
+check(
+  (purchasePanel.includes("product.defaultOfferSku") && purchasePanel.includes("COMMERCIAL_SKUS.PREMIUM") && purchasePanel.includes("variantSku={offerSku}"))
+  || purchasePanel.includes("variantSku={product.defaultOfferSku}")
+  || productPage.includes("variantSku={NFC_PRODUCT.defaultOfferSku}"),
+  "canonical NFC product purchase sends an explicit offer SKU (799 default, Premium optional)",
+);
 check(legacyOrder.includes("variantSku: NFC_PRODUCT.defaultOfferSku"), "legacy NFC order bridge also sends explicit initial offer SKU");
 check(cart.includes("legacyInitialOffer") && cart.includes("COMMERCIAL_SKUS.INITIAL"), "legacy carts without variant SKU migrate deterministically to initial offer");
 check(checkoutApi.includes("variantSku: z.string().min(2).max(100),") && !checkoutApi.includes("variantSku: z.string().min(2).max(100).optional()"), "checkout API requires an explicit offer SKU");
 check(checkoutApi.includes("row.is_active && row.sku === item.variantSku") && !checkoutApi.includes("!item.variantSku ||"), "checkout never selects the first arbitrary active variant");
 check(checkoutApi.includes("Number(variant.price_kurus)"), "checkout price remains server-authoritative from DB variant");
-check(checkoutPage.includes("COMMERCIAL_SKUS.INITIAL") && checkoutPage.includes("isRenewalSku(item.variantSku)"), "checkout UI uses canonical SKU helpers instead of duplicated literals");
+check(checkoutPage.includes("COMMERCIAL_SKUS") && checkoutPage.includes("isPhysicalBundleSku") && checkoutPage.includes("isDigitalOnlySku"), "checkout UI uses canonical SKU helpers instead of duplicated literals");
 check(architectureAudit.includes("Legacy candidates — do not delete yet") && architectureAudit.includes("/nfc-siparis"), "legacy /nfc-siparis remains retained until usage/backward-compatibility evidence exists");
 check(cart.includes('const LEGACY_KEY = "yenomi-cart-v1"') && cart.includes("They are only claimed once we know the authenticated user id"), "legacy cart compatibility remains privacy-scoped and intentional");
 
@@ -36,6 +41,9 @@ const skuLiterals = [
   "YENOMI-DIGITAL-RENEWAL-ANNUAL",
   "YENOMI-NFC-EXTRA",
   "YENOMI-NFC-REPLACEMENT",
+  "YENOMI-NFC-PREMIUM-ANNUAL",
+  "YENOMI-PREMIUM-RENEWAL-ANNUAL",
+  "YENOMI-PREMIUM-UPGRADE",
 ];
 const sourceFiles = [];
 for (const base of ["app", "lib"]) {

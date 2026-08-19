@@ -142,7 +142,11 @@ export default function NetworkingPanel({
           <h2 id="p11-networking-title">{view === "leads" ? "Leadler" : view === "events" ? "Etkinlikler" : "Görüşmeler"}</h2>
           <p>
             {view === "leads"
+<<<<<<< HEAD
               ? "Karttan paylaşılan iletişim. Network Mail kişisel follow-up’tır: 1 alıcı = 1 kredi. Toplu Campaign Mail bu bakiyeden düşmez."
+=======
+              ? "NFC/QR sonrası kişi kartın sonundaki ‘İletişimde Kalalım’ formundan buraya düşer. Gönderen Yenomi ID’dir; yanıtlar doğrulanmış e-postanıza gelir. ‘Tanıştığımıza memnun oldum’ 1 Network Mail kredisi harcar; Campaign Mail bu bakiyeden düşmez."
+>>>>>>> 69a595b (Open Individual Premium checkout with a real Network Mail ledger.)
               : view === "events"
                 ? "Etkinlik QR’si kişi URL’sini değiştirmez. /e/{id} aynı dijital kartı açar."
                 : "Yüz yüze talepler lokasyon ve ekip uygunluğuna göre planlanır. GPS kullanılmaz."}

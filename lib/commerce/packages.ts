@@ -32,6 +32,28 @@ export const INDIVIDUAL_PREMIUM_PLAN = {
   popular: true,
 } as const;
 
+/** Year-2+ Premium: no NFC, unused Network Mail rolls over. */
+export const INDIVIDUAL_PREMIUM_RENEWAL_PLAN = {
+  code: "INDIVIDUAL_PREMIUM_RENEWAL",
+  name: "Bireysel Premium yenileme",
+  priceKurus: 59_900,
+  durationMonths: 12,
+  nfcCards: 0,
+  networkMailCredits: INDIVIDUAL_PREMIUM_NETWORK_MAIL,
+} as const;
+
+/**
+ * Active 799 → Premium for the remaining term. 1.250 − 799.
+ * No second NFC, no extra year.
+ */
+export const INDIVIDUAL_PREMIUM_UPGRADE_PLAN = {
+  code: "INDIVIDUAL_PREMIUM_UPGRADE",
+  name: "Bireysel Premium yükseltme",
+  priceKurus: INDIVIDUAL_PREMIUM_PLAN.priceKurus - INDIVIDUAL_PLAN.priceKurus,
+  nfcCards: 0,
+  networkMailCredits: INDIVIDUAL_PREMIUM_NETWORK_MAIL,
+} as const;
+
 export const CORPORATE_PACKAGE_LADDER = [
   { code: "CORP-2", name: "Kurumsal 2", seats: 2, priceKurus: 240_000 },
   { code: "CORP-3", name: "Kurumsal 3", seats: 3, priceKurus: 350_000 },
@@ -103,8 +125,8 @@ export const ADMIN_PROVISION_PLAN_CODES = [
 export type AdminProvisionPlanCode = (typeof ADMIN_PROVISION_PLAN_CODES)[number];
 
 export const INDIVIDUAL_PREMIUM_CHECKOUT = {
-  live: false,
-  reason: "INDIVIDUAL_NETWORK_MAIL_LEDGER_NOT_LIVE",
+  live: true,
+  reason: null,
 } as const;
 
 export const NETWORK_MAIL_PACK_CHECKOUT = {
@@ -185,6 +207,77 @@ export function rolloverNetworkMail(input: {
     return { remaining: unused + newGrant, expired: 0 };
   }
   return { remaining: 0, expired: unused };
+}
+
+export type IndividualNetworkMailMode = "GRANT" | "ROLLOVER" | "EXPIRE";
+
+export function applyIndividualNetworkMail(input: {
+  remaining: number;
+  limit: number;
+  mode: IndividualNetworkMailMode;
+  grant: number;
+}): { remaining: number; limit: number; expired: number } {
+  const remaining = Math.max(0, Math.trunc(input.remaining));
+  const grant = Math.max(0, Math.trunc(input.grant));
+  if (input.mode === "EXPIRE") {
+    return { remaining: 0, limit: 0, expired: remaining };
+  }
+  if (input.mode === "ROLLOVER") {
+    const rolled = rolloverNetworkMail({ unused: remaining, newGrant: grant, renewed: true });
+    return { remaining: rolled.remaining, limit: grant, expired: 0 };
+  }
+  const nextRemaining = remaining + grant;
+  return {
+    remaining: nextRemaining,
+    limit: Math.max(Math.max(0, Math.trunc(input.limit)), nextRemaining),
+    expired: 0,
+  };
+}
+
+export function isIndividualPremiumPackage(packageCode?: string | null): boolean {
+  return packageCode === INDIVIDUAL_PREMIUM_PLAN.code;
+}
+
+export type IndividualSubscriptionOfferId = "BASIC_RENEWAL" | "PREMIUM_RENEWAL" | "PREMIUM_UPGRADE";
+
+export function individualSubscriptionOffers(input: {
+  signedIn: boolean;
+  hasEntitlement: boolean;
+  isPremium: boolean;
+}): IndividualSubscriptionOfferId[] {
+  if (!input.signedIn || !input.hasEntitlement) return [];
+  if (input.isPremium) return ["PREMIUM_RENEWAL"];
+  return ["BASIC_RENEWAL", "PREMIUM_UPGRADE"];
+}
+
+/**
+ * Launch sender policy: platform From, verified actor Reply-To.
+ * Custom sending domains are catalogued, not live.
+ */
+export const NETWORK_MAIL_SENDER_POLICY = {
+  from: "PLATFORM" as const,
+  replyTo: "VERIFIED_ACTOR_EMAIL" as const,
+  requireEmailConfirmed: true,
+  customDomainLive: false,
+  reason: "CUSTOM_SENDING_DOMAIN_NOT_LIVE",
+} as const;
+
+export function assertVerifiedNetworkMailSender(input: {
+  email?: string | null;
+  emailConfirmedAt?: string | Date | null;
+  customFromDomain?: string | null;
+}): { ok: true; replyTo: string } | { ok: false; reason: string } {
+  if (input.customFromDomain?.trim()) {
+    return { ok: false, reason: NETWORK_MAIL_SENDER_POLICY.reason };
+  }
+  const email = input.email?.trim().toLowerCase() ?? "";
+  if (!email || !email.includes("@")) {
+    return { ok: false, reason: "SENDER_EMAIL_MISSING" };
+  }
+  if (!input.emailConfirmedAt) {
+    return { ok: false, reason: "SENDER_EMAIL_UNVERIFIED" };
+  }
+  return { ok: true, replyTo: email };
 }
 
 export function assertNetworkDailyCap(sentToday: number, additional: number): boolean {

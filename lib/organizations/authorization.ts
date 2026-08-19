@@ -8,6 +8,8 @@ export type OrganizationActor = {
   role: OrganizationRole;
   status: string;
   department: string | null;
+  email: string | null;
+  emailConfirmedAt: string | null;
 };
 
 /**
@@ -39,6 +41,8 @@ export async function getOrganizationActor(request: NextRequest, organizationId:
     role: data.role,
     status: data.status,
     department: data.department ?? null,
+    email: authData.user.email ?? null,
+    emailConfirmedAt: authData.user.email_confirmed_at ?? null,
   };
 }
 

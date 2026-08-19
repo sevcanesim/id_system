@@ -21,6 +21,7 @@ export default function MobileBuyBar({
   configuration,
   productName,
   unitPriceKurus,
+  variantSku,
 }: {
   price: string;
   product: CatalogProduct;
@@ -28,6 +29,7 @@ export default function MobileBuyBar({
   configuration?: Record<string, unknown>;
   productName: string;
   unitPriceKurus: number;
+  variantSku?: string;
 }) {
   const [visible, setVisible] = useState(false);
 
@@ -53,7 +55,7 @@ export default function MobileBuyBar({
       inert={!visible ? true : undefined}
     >
       <span><small>Kargo dahil</small><strong>{price}</strong></span>
-      <AddToCartButton productId={product.slug} variantSku={product.defaultOfferSku} kind="NFC_PHYSICAL_CARD" name={productName} unitPriceKurus={unitPriceKurus} configuration={configuration} label={variant ? `${variant.name} — Sepete Ekle` : "Sepete Ekle"} />
+      <AddToCartButton productId={product.slug} variantSku={variantSku ?? product.defaultOfferSku} kind="NFC_PHYSICAL_CARD" name={productName} unitPriceKurus={unitPriceKurus} configuration={configuration} label={variant ? `${variant.name} — Sepete Ekle` : "Sepete Ekle"} />
     </div>
   );
 }

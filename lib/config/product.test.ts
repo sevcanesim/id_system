@@ -30,4 +30,14 @@ describe("selectInitialOfferVariant", () => {
     expect(selectInitialOfferVariant(variants)?.sku).toBe(COMMERCIAL_SKUS.INITIAL);
     expect(listingPriceKurus(variants)).toBe(79_900);
   });
+
+  it("does not list Premium renewal or upgrade as the public NFC price", () => {
+    const variants = [
+      { sku: COMMERCIAL_SKUS.PREMIUM_RENEWAL, priceKurus: COMMERCIAL_PRICING.YENOMI_ID_PREMIUM_RENEWAL.priceKurus, metadata: { fulfillment_kind: "DIGITAL_RENEWAL" } },
+      { sku: COMMERCIAL_SKUS.PREMIUM_UPGRADE, priceKurus: COMMERCIAL_PRICING.YENOMI_ID_PREMIUM_UPGRADE.priceKurus, metadata: { fulfillment_kind: "PREMIUM_UPGRADE" } },
+      { sku: COMMERCIAL_SKUS.INITIAL, priceKurus: COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus, metadata: { fulfillment_kind: "INITIAL_BUNDLE" } },
+    ];
+    expect(selectInitialOfferVariant(variants)?.sku).toBe(COMMERCIAL_SKUS.INITIAL);
+    expect(listingPriceKurus(variants)).toBe(79_900);
+  });
 });

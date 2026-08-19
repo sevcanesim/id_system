@@ -111,6 +111,31 @@ if (drawer.includes('v25-drawer-workspace') && css.includes('.ds-drawer.v25-empl
 } else {
   fail('employee detail overlay/workspace contract is missing');
 }
+if (
+  drawer.includes('v25-status-summary') &&
+  drawer.includes('Durum özeti') &&
+  css.includes('.v25-status-summary') &&
+  drawer.includes('<dt>Rol</dt>') &&
+  drawer.includes('<dt>Erişim</dt>')
+) {
+  pass('employee status chips are consolidated into a labeled summary');
+} else {
+  fail('employee status summary contract is missing');
+}
+
+const cardsPanel = read('app/kurumsal/panel/components/CardsPanel.tsx');
+if (
+  client.includes('<CardsPanel') &&
+  cardsPanel.includes('p11-cards') &&
+  cardsPanel.includes('Kartı Yönet') &&
+  cardsPanel.includes('Henüz fiziksel kart kaydı yok.') &&
+  css.includes('.p11-cards') &&
+  css.includes('min-height: calc(100svh - 160px)')
+) {
+  pass('cards tab uses a full-height inventory workspace');
+} else {
+  fail('cards tab full-height inventory contract is missing');
+}
 
 const migrations = fs.readdirSync(path.join(root, 'supabase/migrations')).filter((name) => name.endsWith('.sql'));
 if (migrations.length === 55) pass('55 database migrations preserved'); else fail(`migration count changed: ${migrations.length}`);

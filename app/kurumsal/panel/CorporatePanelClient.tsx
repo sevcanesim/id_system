@@ -16,7 +16,7 @@ import {
   ROLE_MATRIX_COLUMNS,
 } from "../../../lib/organizations/role-matrix";
 import CardTemplate, { type CardBranding } from "../../CardTemplate";
-import { getSeatBreakdown, physicalCardLabel } from "../../../lib/organizations/lifecycle";
+import { getSeatBreakdown } from "../../../lib/organizations/lifecycle";
 import { formatTryFromKurus } from "../../../lib/config/product";
 import type { DatabaseSeatPack, DatabaseTemplateOption } from "../../../lib/config/database";
 import { addCartItem, clearLegacyCart, setCartOwner } from "../../../lib/cart";
@@ -33,6 +33,7 @@ import CompanySettingsPanel from "./components/CompanySettingsPanel";
 import RolesPanel from "./components/RolesPanel";
 import EmployeesPanel from "./components/EmployeesPanel";
 import EmployeeDrawer from "./components/EmployeeDrawer";
+import CardsPanel from "./components/CardsPanel";
 import CorporateHeroPreview from "./components/CorporateHeroPreview";
 import type {
   BulkInvitePreview,
@@ -1719,8 +1720,8 @@ export default function CompanyPanel() {
                   />
                 )}
 
-                {currentTab === "employees" && drawerMember && (
-                  <EmployeeDrawer
+                {(currentTab === "employees" || currentTab === "cards") && drawerMember && (
+                  <EmployeeDrawer>
                     drawerMember={drawerMember}
                     drawerTab={drawerTab}
                     setDrawerTab={setDrawerTab}
@@ -2796,11 +2797,17 @@ export default function CompanyPanel() {
                     );
                   })()}
                 {currentTab === "cards" && (
-                  <section className="p10-domain-panel">
-                    <header><div><span>Kart Yönetimi</span><h2>Fiziksel ve dijital kartlar</h2><p>Kart durumunu çalışan profilinden bağımsız fakat aynı operasyon akışı içinde yönetin.</p></div><button type="button" onClick={() => openTab("employees")}>Çalışanlara Git</button></header>
-                    <div className="p10-metric-grid"><article><small>Fiziksel kart</small><strong>{physicalCards.length}</strong></article><article><small>Aktif fiziksel kart</small><strong>{physicalCards.filter((card) => card.status === "ACTIVE").length}</strong></article><article><small>Dijital kart hazır</small><strong>{digitalCardsReady}</strong></article></div>
-                    <div className="p10-card-list">{physicalCards.length ? physicalCards.map((card) => <article key={card.id}><div><strong>{card.ownerName || "Atanmamış kart"}</strong><small>{card.cardCodeMasked} · {card.ownerUserId ? "Çalışana atanmış" : "Atama bekliyor"}</small></div><span data-status={card.status}>{physicalCardLabel(card.status)}</span>{card.status === "ACTIVE" ? <button disabled={cardBusy===card.id} onClick={() => void toggleCardStatus(card.id,"DISABLED")}>Pasife Al</button> : card.status === "DISABLED" ? <button disabled={cardBusy===card.id} onClick={() => void toggleCardStatus(card.id,"ACTIVE")}>Aktifleştir</button> : <i />}</article>) : <p className="p10-empty">Henüz fiziksel kart kaydı yok.</p>}</div>
-                  </section>
+                  <CardsPanel
+                    members={members}
+                    physicalCards={physicalCards}
+                    memberCardStatuses={memberCardStatuses}
+                    digitalCardsReady={digitalCardsReady}
+                    cardBusy={cardBusy}
+                    toggleCardStatus={toggleCardStatus}
+                    openMemberDrawer={openMemberDrawer}
+                    openEmployees={() => openTab("employees")}
+                    initials={initials}
+                  />
                 )}
                 {currentTab === "analytics" && (
                   <section className="p10-domain-panel">

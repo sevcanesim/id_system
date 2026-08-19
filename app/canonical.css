@@ -3060,6 +3060,30 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
   gap: 20px;
   min-width: 0;
 }
+.p11-cards {
+  min-height: calc(100svh - 160px);
+  align-content: stretch;
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+.p11-cards > .p11-employee-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.p11-cards .p11-table-wrap {
+  flex: 1 1 auto;
+  min-height: 280px;
+}
+.p11-cards .p11-unassigned-cards {
+  display: grid;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.p11-cards .p11-mobile-list > article > header {
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+}
 .p11-employees-header,
 .business-company-settings > header,
 .business-settings-card > header,
@@ -3745,6 +3769,14 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .p10-corporate-platform button:focus-visible,
 .p10-corporate-platform a:focus-visible,
 .p10-corporate-platform select:focus-visible,
+.v25-employee-drawer button:focus-visible,
+.v25-employee-drawer input:focus-visible,
+.v25-employee-drawer select:focus-visible,
+.v25-employee-drawer a:focus-visible {
+  outline: 2px solid var(--gold-hi);
+  outline-offset: 3px;
+}
+
 /* Employee detail: overlay workspace, not an in-flow native HTML slab. */
 .ds-drawer.v25-employee-drawer {
   width: min(1080px, 100%);
@@ -3755,19 +3787,61 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 }
 .v25-drawer-identity {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 12px 14px;
   padding: 12px 20px;
   border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
 }
 .v25-drawer-identity > div { min-width: 0; display: grid; gap: 2px; }
 .v25-drawer-identity strong { color: var(--ink); font-size: 15px; }
 .v25-drawer-identity small,
 .v25-drawer-identity span { color: var(--ink-3); font-size: 12px; }
-.v25-drawer-identity code {
+.v25-status-summary {
+  display: grid;
+  gap: 10px;
+  padding: 12px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  flex: 0 0 auto;
+}
+.v25-status-summary header small,
+.v25-drawer-manage-label {
+  display: block;
+  margin: 0;
+  color: var(--gold-hi);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.v25-drawer-manage-label { margin: 0 0 8px; }
+.v25-status-summary dl {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.v25-status-summary dl > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.v25-status-summary dt {
   color: var(--ink-3);
-  font: 700 11px var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+.v25-status-summary dd {
+  margin: 0;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 750;
 }
 .v25-drawer-workspace {
   flex: 1;
@@ -3889,9 +3963,10 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 @media (max-width: 860px) {
   .v25-drawer-workspace { grid-template-columns: minmax(0, 1fr); }
   .v25-drawer-preview { border-left: 0; border-top: 1px solid var(--border); }
-  .v25-drawer-identity { grid-template-columns: auto minmax(0, 1fr); }
-  .v25-drawer-identity .ds-badge,
-  .v25-drawer-identity code { justify-self: start; }
+  .v25-status-summary dl { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .v25-status-summary dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 .p12-contact-list a,

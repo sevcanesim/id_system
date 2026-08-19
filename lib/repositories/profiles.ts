@@ -141,11 +141,14 @@ export async function setProfilePublished(
 }
 
 /**
- * `profileId` verilirse o satır güncellenir (owner kontrolüyle). `profileId`
- * `null` ise **yeni bir kart profili** oluşturulur — artık `onConflict:
- * "user_id"` kullanılmıyor, yani ikinci bir kart kaydı birinciyi ezmez.
- * Yeni satırın id'sini döner ki çağıran taraf (CardWizard) sonraki
- * kaydetmelerde doğru satırı hedefleyebilsin.
+ * Direct `card_profiles` insert/update plus slug-redirect writes.
+ * `profileId` updates that row (with owner check); `null` inserts a new
+ * profile instead of upserting on `user_id`.
+ *
+ * Live CardWizard saves go through `POST /api/profiles/save` → RPC
+ * `save_own_card_profile` (service role), which enforces org field locks
+ * and the title catalog. Do not call this from the wizard — that would
+ * bypass server authorization.
  */
 export async function upsertProfile(
   supabase: SupabaseClient,

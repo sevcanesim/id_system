@@ -92,9 +92,6 @@ export function canChangeMemberStatus(actorRole: OrganizationRole, targetRole: O
   return roleRank[actorRole] > roleRank[targetRole];
 }
 
-/** UI alias accepted by product copy without changing the persisted DB role. */
-export type OrganizationUiRole = OrganizationRole | "HR_MANAGER";
-
 export function normalizeOrganizationRole(value: unknown): OrganizationRole | null {
   if (value === "HR_MANAGER") return "HR";
   return isOrganizationRole(value) ? value : null;

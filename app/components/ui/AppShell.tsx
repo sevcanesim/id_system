@@ -3,26 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useEffect, useId, useState } from "react";
-import { Icon, type IconName } from "../../icons";
+import { Icon } from "../../icons";
 import { AdminPageHeader, Button, ButtonLink } from "./DesignSystem";
 import PanelSidebar from "./PanelSidebar";
 import type { SidebarNavItem } from "./SidebarNav";
+import { INDIVIDUAL_SIDEBAR_CONFIG } from "./sidebar-config";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 
-export type AppShellNavKey = "home" | "card" | "edit" | "analytics" | "orders" | "subscription" | "settings";
+export type AppShellNavKey = (typeof INDIVIDUAL_SIDEBAR_CONFIG)[number]["key"];
 export type AppShellAction = { href?: string; label: string; onClick?: () => void; primary?: boolean; disabled?: boolean };
-
-type NavItem = { key: AppShellNavKey; href: string; label: string; icon: IconName; group?: string };
-
-const individualNav: NavItem[] = [
-  { key: "home", href: "/kartlarim", label: "Genel Bakış", icon: "analytics", group: "KİMLİK" },
-  { key: "card", href: "/kartim", label: "Dijital Kart", icon: "id", group: "KİMLİK" },
-  { key: "edit", href: "/olustur", label: "Kimlik Stüdyosu", icon: "pencil", group: "KİMLİK" },
-  { key: "analytics", href: "/istatistikler", label: "İstatistikler", icon: "analytics", group: "İÇGÖRÜLER" },
-  { key: "orders", href: "/siparislerim", label: "Siparişlerim", icon: "box", group: "HESAP" },
-  { key: "subscription", href: "/yenile", label: "Hizmet", icon: "refresh" },
-  { key: "settings", href: "/ayarlar", label: "Ayarlar", icon: "users" },
-];
 
 export default function AppShell({ title, description, eyebrow, actions = [], children, activeKey }: {
   title: string;
@@ -75,9 +64,9 @@ export default function AppShell({ title, description, eyebrow, actions = [], ch
       brandHref="/kartlarim"
       open={mobileOpen}
       onClose={() => setMobileOpen(false)}
-      activeKey={activeKey ?? individualNav.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))?.key}
+      activeKey={activeKey ?? INDIVIDUAL_SIDEBAR_CONFIG.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))?.key}
       storageKey="yenomi:individual-sidebar:collapsed"
-      items={individualNav.map<SidebarNavItem>((item) => ({
+      items={INDIVIDUAL_SIDEBAR_CONFIG.map<SidebarNavItem>((item) => ({
           ...item,
           hidden: item.key === "subscription" && hasCorporateSubscription,
       }))}

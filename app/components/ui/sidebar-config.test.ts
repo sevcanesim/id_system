@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CORPORATE_SIDEBAR_CONFIG, filterSidebarByRole } from "./sidebar-config";
+import { CORPORATE_SIDEBAR_CONFIG, INDIVIDUAL_SIDEBAR_CONFIG, filterSidebarByRole } from "./sidebar-config";
 import { corporateSidebarItems } from "../../kurumsal/panel/domain/navigation";
 
 describe("filterSidebarByRole", () => {
@@ -20,6 +20,20 @@ describe("filterSidebarByRole", () => {
 
   it("hides licenses from HR", () => {
     expect(filterSidebarByRole(CORPORATE_SIDEBAR_CONFIG, "HR").map((item) => item.key)).not.toContain("licenses");
+  });
+});
+
+describe("INDIVIDUAL_SIDEBAR_CONFIG", () => {
+  it("keeps the Identity / Insights / Account hierarchy for the personal workspace", () => {
+    expect(INDIVIDUAL_SIDEBAR_CONFIG.map((item) => [item.key, item.href, item.label, item.group])).toEqual([
+      ["home", "/kartlarim", "Genel Bakış", "KİMLİK"],
+      ["card", "/kartim", "Dijital Kart", "KİMLİK"],
+      ["edit", "/olustur", "Kimlik Stüdyosu", "KİMLİK"],
+      ["analytics", "/istatistikler", "İstatistikler", "İÇGÖRÜLER"],
+      ["orders", "/siparislerim", "Siparişlerim", "HESAP"],
+      ["subscription", "/yenile", "Hizmet", undefined],
+      ["settings", "/ayarlar", "Ayarlar", undefined],
+    ]);
   });
 });
 

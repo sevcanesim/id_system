@@ -22,6 +22,7 @@ check(router.includes('ACCOUNT_ROUTE_EMPLOYEE = "/kartim"') && router.includes("
 check(guard.includes('from("user_accounts")') && guard.includes("isPortalAllowed"), "portal guard validates the selected portal against account type");
 check(guard.includes("validateCardWorkspace") && guard.includes("canUseCardWorkspace"), "card workspace allows corporate employees after business login");
 check(shell.includes("validatePortal") && shell.includes("validateCardWorkspace") && shell.includes('portal="individual"'), "individual shell validates portal before rendering");
+check(shell.includes("INDIVIDUAL_SIDEBAR_CONFIG"), "individual shell consumes shared sidebar config");
 check(wizard.includes("isBusinessCard") && wizard.includes("/kurumsal/panel"), "shared create workflow preserves corporate context");
 check(publicProfile.includes("PublicProfileProtection") || publicProfile.includes("generateStaticParams"), "public profile remains an explicit public route surface");
 check(!shell.includes("PanelSidebar"), "individual shell does not import the corporate sidebar");

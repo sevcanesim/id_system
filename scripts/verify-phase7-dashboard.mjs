@@ -9,7 +9,9 @@ const css=read("app/dashboard-flow.css"); !/(--yp-|--yi-|--store-|--brand-|--ui-
 !css.includes("linear-gradient")?pass("Phase 7 dashboard chrome uses no gradients"):fail("Phase 7 dashboard chrome uses no gradients");
 !/(backdrop-filter|\-webkit-backdrop-filter)\s*:\s*blur\(/.test(css)?pass("Phase 7 dashboard chrome uses no glass blur"):pass("Phase 7 dashboard chrome uses no glass blur");
 const shell=read("app/components/ui/AppShell.tsx");
-shell.includes('group: "KİMLİK"')&&shell.includes('group: "İÇGÖRÜLER"')&&shell.includes('group: "HESAP"')?pass("individual navigation has Identity / Insights / Account hierarchy"):fail("individual navigation hierarchy");
+const individualNav=read("app/components/ui/sidebar-config.ts");
+individualNav.includes('export const INDIVIDUAL_SIDEBAR_CONFIG')&&individualNav.includes('group: "KİMLİK"')&&individualNav.includes('group: "İÇGÖRÜLER"')&&individualNav.includes('group: "HESAP"')?pass("individual navigation has Identity / Insights / Account hierarchy"):fail("individual navigation hierarchy");
+shell.includes("INDIVIDUAL_SIDEBAR_CONFIG")?pass("AppShell consumes shared individual sidebar config"):fail("AppShell consumes shared individual sidebar config");
 read("app/components/ui/SidebarNav.tsx").includes('aria-current={selected ? "page"')?pass("active navigation is exposed accessibly"):fail("active navigation accessibility");
 shell.includes("PageHeader")&&shell.includes("ButtonLink")?pass("AppShell uses canonical PageHeader and ButtonLink"):fail("AppShell canonical primitives");
 shell.includes('data-ui-context="dashboard"')?pass("AppShell activates canonical dashboard token context"):fail("AppShell dashboard token context");

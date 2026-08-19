@@ -42,18 +42,6 @@ export function Card({ variant = "surface", className, ...props }: HTMLAttribute
   return <div className={cx("ds-card", variant !== "surface" && `ds-card--${variant}`, className)} {...props} />;
 }
 
-export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx("ds-card__header", className)} {...props} />;
-}
-
-export function CardBody({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx("ds-card__body", className)} {...props} />;
-}
-
-export function CardFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx("ds-card__footer", className)} {...props} />;
-}
-
 export function Badge({ tone = "neutral", className, ...props }: HTMLAttributes<HTMLSpanElement> & { tone?: "neutral" | "success" | "warning" | "error" | "info" }) {
   return <span className={cx("ds-badge", tone !== "neutral" && `ds-badge--${tone}`, className)} {...props} />;
 }

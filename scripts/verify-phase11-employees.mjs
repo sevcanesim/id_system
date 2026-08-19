@@ -49,7 +49,10 @@ pass('corporate links expose labeled save publish and source state',links.includ
 pass('corporate PDF files use a compact file chip with view/replace',links.includes('className="corp-file"')&&links.includes('Görüntüle')&&links.includes('Değiştir')&&links.includes('compactFileName')&&canonical.includes('.corp-file'));
 pass('corporate link delete is labeled and confirmed',links.includes('Sil')&&links.includes('window.confirm')&&links.includes('içeriğini silmek bu alanı karttan kaldırır')&&!links.includes('corp-link-remove'));
 pass('corporate version history has a stronger disclosure',links.includes('<strong>Sürüm geçmişi</strong>')&&links.includes('kayıt')&&canonical.includes('.corp-link-history summary'));
-pass('analytics empty state explains next action',corp.includes('Henüz etkileşim verisi oluşmadı')&&corp.includes('Kartımı Gör')&&corp.includes('Paylaşım Ayarları')&&!corp.includes('Bu dönem için görüntülenme verisi yok.'));
+const analytics=read('app/kurumsal/panel/components/AnalyticsPanel.tsx');
+pass('analytics empty state explains next action',analytics.includes('Henüz etkileşim verisi oluşmadı')&&analytics.includes('Kartımı Gör')&&analytics.includes('Paylaşım Ayarları'));
+pass('analytics workspace has trend comparison and top card',analytics.includes('Görüntülenme trendi')&&analytics.includes('En çok görüntülenen kart')&&analytics.includes('p11-analytics-compare')&&analytics.includes('v26-chart-canvas')&&corp.includes('<AnalyticsPanel'));
+pass('license packs have a recommended badge stacked price and primary CTA',corp.includes('seat-pack-badge')&&corp.includes('/ paket')&&corp.includes('seat-pack-cta')&&corp.includes('Paketi Seç')&&!corp.includes('<em>En çok tercih edilen</em>')&&canonical.includes('.seat-pack-badge'));
 const css=read('app/employee-management.css');
 pass('Phase 11 CSS uses no legacy token family',!/var\(--(?:yi|yp|store|brand|ui|y)-/.test(css));
 pass('Phase 11 employee chrome uses no gradients',!/gradient\(/.test(css));

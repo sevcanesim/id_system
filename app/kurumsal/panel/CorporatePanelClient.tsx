@@ -34,6 +34,7 @@ import RolesPanel from "./components/RolesPanel";
 import EmployeesPanel from "./components/EmployeesPanel";
 import EmployeeDrawer from "./components/EmployeeDrawer";
 import CardsPanel from "./components/CardsPanel";
+import AnalyticsPanel from "./components/AnalyticsPanel";
 import CorporateHeroPreview from "./components/CorporateHeroPreview";
 import type {
   BulkInvitePreview,
@@ -1612,13 +1613,17 @@ export default function CompanyPanel() {
                         <span><Icon name="analytics" /><b>Tam Entegrasyon</b><small>Panel ve raporlarla uyumlu</small></span>
                       </div>
                     </div>
+                    <p className="seat-pack-guide">
+                      1–3 lisans küçük eklemeler, 5 lisans büyüyen ekipler, 10 lisans daha geniş dağıtım içindir.
+                      5’li paket en çok tercih edilen seçimdir. Şu anda {usedSeats} lisans kullanılıyor.
+                    </p>
                     <div className="business-seat-pack-grid">
                       {seatPacks.map((pack) => (
                         <article
                           key={pack.sku}
                           className={pack.seats === 5 ? "recommended" : ""}
                         >
-                          {pack.seats === 5 && <em>En çok tercih edilen</em>}
+                          {pack.seats === 5 && <span className="seat-pack-badge">En çok tercih edilen</span>}
                           <div className="seat-pack-count">
                             <strong>+{pack.seats}</strong>
                             <span>kullanıcı</span>
@@ -1626,6 +1631,9 @@ export default function CompanyPanel() {
                           <h3>
                             {pack.seats} lisans + {pack.seats} kart
                           </h3>
+                          <p className="seat-pack-fit">
+                            {pack.seats <= 1 ? "Tek ekleme" : pack.seats <= 3 ? "Küçük ekip" : pack.seats === 5 ? "Büyüyen ekip" : "Geniş dağıtım"}
+                          </p>
                           <ul>
                             <li>
                               <Icon name="check" /> Mevcut abonelik dönemi sonuna kadar
@@ -1641,14 +1649,15 @@ export default function CompanyPanel() {
                             <strong>
                               {formatTryFromKurus(pack.priceKurus)}
                             </strong>
+                            <span>/ paket</span>
                             <small>KDV dahil</small>
                           </div>
                           <button
                             type="button"
-                            className="ds-button ds-button--accent ds-button--sm"
+                            className="ds-button ds-button--primary seat-pack-cta"
                             onClick={() => buySeatPack(pack)}
                           >
-                            Paketi Seç <span>→</span>
+                            Paketi Seç
                           </button>
                         </article>
                       ))}
@@ -2810,33 +2819,16 @@ export default function CompanyPanel() {
                   />
                 )}
                 {currentTab === "analytics" && (
-                  <section className="p10-domain-panel">
-                    <header><div><span>Analitik</span><h2>Kurumsal kart performansı</h2><p>Gerçek görüntülenme ve içerik etkileşim verilerini seçili dönem için inceleyin.</p></div><select value={analyticsDays} onChange={(event) => { const days=Number(event.target.value) as 7|30|90; setAnalyticsDays(days); if(selected) void loadCardAnalytics(selected,undefined,days); }}><option value={7}>Son 7 gün</option><option value={30}>Son 30 gün</option><option value={90}>Son 90 gün</option></select></header>
-                    <div className="p10-metric-grid"><article><small>Toplam görüntülenme</small><strong>{cardAnalytics?.available===false ? "—" : (cardAnalytics?.totalViews ?? 0).toLocaleString("tr-TR")}</strong></article><article><small>Son 30 gün</small><strong>{cardAnalytics?.available===false ? "—" : (cardAnalytics?.last30DaysViews ?? 0).toLocaleString("tr-TR")}</strong></article><article><small>İçerik etkileşimi</small><strong>{cardAnalytics?.available===false ? "—" : (cardAnalytics?.content?.totalInteractions ?? 0).toLocaleString("tr-TR")}</strong></article></div>
-                    {cardAnalytics?.available === false ? (
-                      <EmptyState
-                        compact
-                        icon="analytics"
-                        title="Analitik geçici olarak kullanılamıyor"
-                        description="Görüntülenme verisi şu anda alınamıyor. Daha sonra yeniden deneyin."
-                      />
-                    ) : cardAnalytics?.byCard?.length ? (
-                      <div className="p10-ranking"><h3>En çok görüntülenen kartlar</h3>{cardAnalytics.byCard.slice(0,10).map((item,index)=><div key={item.profileId}><span>{index+1}</span><strong>{item.name}</strong><small>{item.count.toLocaleString("tr-TR")} görüntülenme</small></div>)}</div>
-                    ) : (
-                      <EmptyState
-                        compact
-                        icon="analytics"
-                        title="Henüz etkileşim verisi oluşmadı"
-                        description="Kartınızı paylaşmaya başladığınızda görüntülenme ve etkileşim verileri burada görünecek."
-                        action={
-                          <div className="ds-empty-actions">
-                            <button type="button" className="ds-button ds-button--primary" onClick={() => router.push(ownCardEditorHref)}>Kartımı Gör</button>
-                            <button type="button" className="ds-button ds-button--secondary" onClick={() => openTab("templates")}>Paylaşım Ayarları</button>
-                          </div>
-                        }
-                      />
-                    )}
-                  </section>
+                  <AnalyticsPanel
+                    analytics={cardAnalytics}
+                    analyticsDays={analyticsDays}
+                    onPeriodChange={(days) => {
+                      setAnalyticsDays(days);
+                      if (selected) void loadCardAnalytics(selected, undefined, days);
+                    }}
+                    onViewOwnCard={() => router.push(ownCardEditorHref)}
+                    onShareSettings={() => openTab("templates")}
+                  />
                 )}
                 {currentTab === "settings" && (
                   <section className="p10-domain-panel p10-settings-hub">

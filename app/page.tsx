@@ -45,7 +45,7 @@ export default function HomePage() {
                 Yenomi ID’mi Başlat <span aria-hidden>→</span>
               </Link>
               <Link className="home-mockup__link-secondary" href="#proof-title">
-                Nasıl çalıştığını gör <span aria-hidden>↓</span>
+                Kartı ve profili gör <span aria-hidden>↓</span>
               </Link>
             </div>
 

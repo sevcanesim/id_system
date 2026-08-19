@@ -7,6 +7,7 @@ import { getRememberedLogin, getSupabaseBrowserClient, setRememberedLogin } from
 import { isSupabaseConfigured, supabaseConfigIssue } from "../../lib/supabase/config";
 import { writeSessionCookie } from "../components/AuthSessionBridge";
 import { Icon } from "../icons";
+import { YenomiProductVisual } from "../ui/YenomiProductVisual";
 import { authErrorMessage } from "../../lib/errors";
 import { normalizeEmail, SIGNUP_PASSWORD_RULES, validateEmail, validateSignupPassword } from "../../lib/auth/credentials";
 import { LoginPortal } from "../../lib/auth/account-type";
@@ -298,21 +299,13 @@ export default function LoginPage() {
           <h1>Fiziksel kartın.<br />Canlı dijital kimliğin.</h1>
           <p>Kartını telefona dokundur. Güncel iletişim bilgilerin ve profesyonel profilin saniyeler içinde açılsın.</p>
           <div className="p6-auth-product-flow" aria-label="Karttan dijital profile geçiş">
-            <div className="p6-auth-mini-card">
-              <span>YENOMI ID</span>
-              <strong>Dijital kimlik kartı</strong>
-              <small>NFC + QR</small>
+            <div className="p6-auth-visual-card">
+              <YenomiProductVisual variant="card" compact />
             </div>
             <div className="p6-auth-flow-arrow" aria-hidden="true"><Icon name="external" /></div>
             <div className="p6-auth-mini-phone">
-              <div className="p6-auth-mini-avatar" aria-hidden="true">YI</div>
-              <strong>Profesyonel profil</strong>
+              <YenomiProductVisual variant="profile" compact />
               <small>Canlı dijital kimlik</small>
-              <div>
-                <span><Icon name="phone" /></span>
-                <span><Icon name="mail" /></span>
-                <span><Icon name="link" /></span>
-              </div>
             </div>
           </div>
           <ul className="p6-auth-features" aria-label="Yenomi ID avantajları">

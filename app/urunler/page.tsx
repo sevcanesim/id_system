@@ -101,6 +101,7 @@ export default async function ProductsPage() {
         </section>
 
         {catalogError && <p className="products-single-error" role="status">Ürün fiyatı şu anda görüntülenemiyor. Lütfen kısa süre sonra tekrar deneyin.</p>}
+        {!catalogError && !nfc && <p className="products-single-error" role="status">Şu anda listelenecek aktif bir kart paketi yok.</p>}
       </main>
     </div>
   );

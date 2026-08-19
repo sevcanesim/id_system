@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function IadeIptalPage() {
   const legal = getLegalIdentity();
   return (
-    <main id="main-content" className="legal-page">
+    <main id="main-content" className="legal-page legal-page--premium">
       <PublicPageTitle
         kicker="YENOMI ID · İADE & İPTAL"
         title="İade ve İptal Koşulları"

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function MesafeliSatisPage() {
   const legal = getLegalIdentity();
   return (
-    <main id="main-content" className="legal-page">
+    <main id="main-content" className="legal-page legal-page--premium">
       <PublicPageTitle
         kicker="YENOMI ID · SATIŞ SÖZLEŞMESİ"
         title="Mesafeli Satış Sözleşmesi ve Ön Bilgilendirme Formu"

@@ -10049,8 +10049,11 @@ body:has(.p8-corporate-editor) {
   gap: 12px;
 }
 .public-site-chrome .yi-brand__mark {
-  width: 64px;
-  height: 64px;
+  width: 58px;
+  height: 58px;
+  padding: 9px;
+  background: #0E0B14;
+  border: 1px solid rgba(212,180,131,.42);
 }
 .public-site-chrome .yi-nav a {
   font-weight: 800;
@@ -10191,5 +10194,152 @@ article[id] {
     animation: none;
     justify-content: center;
     width: 100%;
+  }
+}
+
+/* Public surfaces: later editorial rules inflated heroes; keep chrome + page rhythm tight. */
+.public-page-title,
+.public-page-title--catalog,
+.public-page-title--product {
+  min-height: 0;
+  padding: 22px 24px 18px;
+}
+.how-hero,
+.support-hero {
+  min-height: 0;
+  height: auto;
+  padding: 22px 0 16px;
+}
+.how-hero-inner,
+.support-hero-inner {
+  padding: 0;
+}
+.how-steps {
+  padding: 20px 0 16px;
+}
+.how-step-card {
+  min-height: 0;
+}
+.how-step-card > p {
+  min-height: 0;
+}
+.how-step-visual {
+  min-height: 180px;
+  overflow: hidden;
+}
+.how-step-visual .yi-product-ui {
+  width: min(168px, 78%);
+  max-height: 210px;
+}
+.how-benefits {
+  margin-bottom: 20px;
+}
+.corporate-resource-hero {
+  min-height: 0;
+  padding: 28px 0 24px;
+  gap: 32px;
+}
+.corporate-resource-visual {
+  min-height: 420px;
+}
+.corporate-buyer-section,
+.corporate-pricing-section,
+.corporate-workflow {
+  padding: 32px 0;
+}
+.corporate-section-heading {
+  margin-bottom: 18px;
+}
+.corporate-conversion,
+.corporate-lead-section {
+  margin: 12px auto 36px;
+}
+.corporate-hero-actions {
+  justify-content: flex-start;
+}
+.corporate-plan-link {
+  align-self: center;
+}
+.corporate-lead-actions {
+  justify-content: flex-start;
+}
+.support-main {
+  padding: 16px 0 12px;
+}
+.support-contact {
+  margin-bottom: 16px;
+}
+.support-contact-cta,
+.support-contact-actions {
+  justify-self: start;
+  justify-items: start;
+}
+.cart-shell,
+.checkout-shell {
+  padding: 24px 0 48px;
+}
+.ds-empty {
+  padding: 28px 16px;
+}
+.p6-auth-shell {
+  min-height: 0;
+  gap: 32px;
+  padding: 24px 0 36px;
+}
+.p6-auth-product-flow {
+  margin-top: 18px;
+}
+.p6-auth-features {
+  margin-top: 16px;
+}
+.nfc-product-hero {
+  padding: 28px 0 36px;
+}
+.nfc-purchase-controls {
+  margin-top: 18px;
+}
+.nfc-benefits article {
+  min-height: 0;
+  padding: 20px 22px;
+}
+.nfc-benefits h2 {
+  margin: 10px 0 8px;
+}
+.nfc-story,
+.nfc-includes,
+.nfc-faq {
+  padding: 36px 0;
+}
+.nfc-story__inner {
+  gap: 24px;
+  align-items: start;
+}
+.nfc-steps {
+  margin-top: 24px;
+}
+.nfc-steps article {
+  min-height: 0;
+}
+.nfc-steps h3 {
+  margin: 12px 0 8px;
+}
+.nfc-includes__cta a {
+  justify-self: start;
+}
+.nfc-faq__list {
+  margin-top: 20px;
+}
+.nfc-final {
+  padding: 40px 0;
+}
+.yi-footer--new {
+  padding: 20px 0 14px;
+}
+
+@media (max-width: 620px) {
+  .public-site-chrome .yi-brand__mark {
+    width: 48px;
+    height: 48px;
+    padding: 7px;
   }
 }

@@ -24,8 +24,11 @@ Dört not birleştirildi:
   - *“Kartvizit QR’ı her zaman aynı kart sayfasını açar.”*
   - *“QR okutulduğunda ayrı bir lead sayfasına gitme yaklaşımını değiştirelim. Mevcut davranış korunmalı.”*
 - QR’ın basılı / yazılı payload’ı **statik** kalır. Kart profili ve okunabilir slug değişebilir; QR yeniden basılmaz.
-  - QR içindeki URL: immutable `https://id.yenomi.com/p/{publicId}`
+  - Kişi QR: immutable `https://id.yenomi.com/p/{publicId}`
   - Kullanıcıya gösterilen canonical paylaşım URL’si: `https://id.yenomi.com/p/{slug}`
+  - Dil prefix yok (`/tr/`, `/en/` yok). Aynı URL TR | EN içerik katmanını açar.
+  - Kişi URL’si kişiye aittir; şirket slug’ı path’te yoktur.
+  - Etkinlik QR ayrı attribution katmanı: `https://id.yenomi.com/e/{eventPublicId}` — yine aynı kişi kartına gider.
 - NFC ve QR aynı networking backend’ine düşer; ikisi de **Open Digital Card**.
 - **GPS kullanılmaz.** Lead ili / şehir / ülke kullanıcının beyanıdır.
   - `lead.city` (ve uluslararası katmanda `lead.country`) kart sahibinin şirket lokasyonu ile karıştırılmaz.
@@ -47,7 +50,7 @@ QR / NFC
 - Mevcut `public.corporate_leads` tablosu `/kurumsal` satış formu içindir. Bu CRM/networking lead deposu **o tabloyu yeniden kullanmaz.**
 - `demo.kurumsal.lead@yenomi.test` bir fixture’dır; eksik CRM modülünün yer tutucusudur, çalışan ürün değildir.
 
-Orta blokta geçen ayrı **“İletişim QR → [Şirket Adı] ile iletişim kurun”** sayfası kapanış kararıyla ana yol olmaktan çıkar. Ana QR mevcut kartı açar. Event bağlamı panelde seçilir / `?event=` ile taşınır; QR yine aynı kartı açar, lead’e etkinlik bağlanır.
+Orta blokta geçen ayrı **“İletişim QR → [Şirket Adı] ile iletişim kurun”** sayfası kapanış kararıyla ana yol olmaktan çıkar. Ana kişi QR’si mevcut kartı açar. Event bağlamı kişi URL’sini değiştirmez; ayrı `/e/{eventPublicId}` attribution katmanıdır, sonunda aynı dijital karta gider.
 
 ---
 
@@ -269,10 +272,14 @@ Booth B42
 
 ### B.9 Event-specific card
 
-Normal: `yenomi.com/card/company`  
-Etkinlik: `yenomi.com/card/company?event=websummit2026`
+İlk taslak `?event=` query’si kullanıyordu. URL notunun kapanış kararı bunu **ayrı event public ID** ile değiştirir (bkz. F.8):
 
-QR aynı kartı açar. Sistem ziyaretçinin Web Summit 2026 üzerinden geldiğini kaydeder.
+```
+Kişi kartı     id.yenomi.com/p/{slug}          ve QR: /p/{publicId}
+Etkinlik QR    id.yenomi.com/e/{eventPublicId}
+```
+
+İkisi de aynı dijital karta gider. Sistem `event_id` + `person_id` taşır. Kişi URL’si etkinlik için değişmez. `/tr/` `/en/` path’i yoktur.
 
 ### B.10 About You
 
@@ -635,8 +642,9 @@ Okunabilir / paylaşılabilir:
 ```
 id.yenomi.com/p/{slug}
 id.yenomi.com/p/ahmet-yilmaz
-id.yenomi.com/p/ahmet-yilmaz-abc    (şirket çalışanı)
 ```
+
+Şirket çalışanı için de aynı şekil. Path’e şirket slug’ı konmaz (F.7).
 
 Asıl backend kimliği (immutable public profile ID):
 
@@ -677,7 +685,7 @@ QR
 kart profili
 ```
 
-Slug değişse bile QR çalışmaya devam eder. Event bağlamı (`?event=websummit2026`) **ayrı bir kampanya QR’si** olabilir; ana kart QR’sinin publicId’sini değiştirmez.
+Slug değişse bile QR çalışmaya devam eder. Etkinlik attribution’ı kişi QR’sine query eklemez; ayrı `/e/{eventPublicId}` katmanıdır (F.8).
 
 ### F.4 Kullanıcıya gösterilen link
 
@@ -712,7 +720,116 @@ Kurallar:
 
 Yasak örnekleri: `admin`, `login`, `api`, `support`, `company`, `settings`, `superadmin`, `help`
 
-### F.6 Uygulanırken mevcut route’lardan evrilme (hedef değil, harita)
+### F.6 Aynı isim
+
+Aynı isim çakışırsa slug unique kalır; backend kimliği zaten farklıdır:
+
+```
+id.yenomi.com/p/ahmet-yilmaz
+id.yenomi.com/p/ahmet-yilmaz-2
+id.yenomi.com/p/ahmet-yilmaz-istanbul
+```
+
+### F.7 Kişi URL’si kişiye aittir — şirket path’te yok
+
+Şirket çalışanlarında şirket slug’ı kullanılmaz.
+
+Kaçınılacak:
+
+```
+id.yenomi.com/company/abc/ahmet
+id.yenomi.com/abc-teknoloji/ahmet-yilmaz
+```
+
+Gerekçe: Ahmet şirket değiştirirse, şirket adı değişirse, şirket birleşirse veya bireysel karta geçerse URL kırılır.
+
+Doğru:
+
+```
+id.yenomi.com/p/ahmet-yilmaz
+```
+
+Kurumsal kart ile kişisel kart URL’de ayrılmaz. İkisi de **Person Profile**.
+
+- Kurumsal: kartın içinde `ABC Teknoloji` / `Corporate Sales Manager` görünür
+- Bireysel: kartın içinde `Freelancer` / `Business Consultant` görünür
+
+Aynı URL şekli: `id.yenomi.com/p/ahmet-yilmaz`
+
+### F.8 Dil URL’de yok
+
+Şöyle yapmayalım:
+
+```
+/tr/ahmet-yilmaz
+/en/ahmet-yilmaz
+```
+
+QR için gereksiz. Tek URL:
+
+```
+id.yenomi.com/p/ahmet-yilmaz
+```
+
+Sistem: browser language → TR kart / EN kart. Kullanıcı her zaman **TR | EN** ile değiştirir. Aynı QR hem Türkçe hem İngilizce networking kartını açar.
+
+### F.9 Etkinlik QR’ı ayrı attribution katmanı
+
+Kişi URL’si etkinlik için değişmez.
+
+```
+Ahmet’in kartı     /p/ahmet-yilmaz     (paylaşım)
+                   /p/8Kx4mQ72         (kişi QR)
+
+Web Summit QR      /e/7F3k92
+```
+
+`/e/web-summit-2026/ahmet-yilmaz` okunabilir görünür ama backend’de **event public ID** daha güvenli: `id.yenomi.com/e/7F3k92`
+
+İkisi de sonunda aynı dijital karta gider. Sistem taşır:
+
+- `event` = Web Summit 2026
+- `person` = Ahmet Yılmaz
+
+Lead kaydı:
+
+```
+person_id + visitor_id + event_id
+```
+
+### F.10 QR immutable — fiziksel basım için kritik
+
+QR oluşturulduktan sonra **QR’ın kendisi immutable** olmalı.
+
+Kart sahibi şunları değiştirse bile QR aynı karta gider:
+
+- ad, şirket, pozisyon
+- TR/EN içerik
+- sunum
+- telefon
+
+Bu fiziksel kart açısından kritiktir. Basılmış metal / PVC / NFC kart, sticker, masa QR’ı, fuar standı aylarca/yıllarca kullanılır. Profil değişir, paylaşım slug’ı değişebilir, **QR değişmez**.
+
+### F.11 Custom domain (ileri)
+
+Premium şirketlere ileride `card.abc.com/ahmet` sunulabilir. Backend yine `person_id` / `person_public_id` üzerinden çalışır.
+
+Temel kural: **URL ≠ kullanıcı kimliği.**
+
+### F.12 Final sözleşme
+
+| Katman | Değer |
+| --- | --- |
+| Public canonical (gösterilen) | `id.yenomi.com/p/{slug}` |
+| Backend identity | `person_public_id` örn. `8Kx4mQ72` |
+| Kişi QR | immutable `/p/{publicId}` |
+| Dil | aynı URL, TR / EN |
+| Event | ayrı `/e/{eventPublicId}` |
+| Lead | `person_id` + `visitor_id` + `event_id` |
+
+Bu yapı dijital kart + İngilizce kart + QR/NFC + B2B lead + etkinlik + görüşmeyi destekler; URL mimarisini sonra yeniden yazma ihtiyacını kaldırır.
+
+### F.13 Uygulanırken mevcut route’lardan evrilme (hedef değil, harita)
 
 Bugünkü kod:
 
@@ -732,7 +849,7 @@ Bu belge **spesifikasyondur, iş emri değildir.**
 Yapılacaklar `notu uygula` sonrası, inspect-first sırayla:
 
 1. Tenant provisioning (şirket ≠ üye atama, Corporate ID, vergi uniqueness, transaction)
-2. Public URL sözleşmesi (QR = `/p/{publicId}`, paylaşım = `/p/{slug}`, eski slug redirect, reserved words)
+2. Public URL sözleşmesi (kişi QR = `/p/{publicId}`, paylaşım = `/p/{slug}`, dil prefix yok, şirket path yok, event = `/e/{eventPublicId}`, eski slug redirect, reserved words)
 3. Kart sonu lead/meeting (TR, GPS yok, mevcut kart korunur)
 4. International profile (TR|EN içerik katmanı, event context)
 5. CRM lifecycle, mail kredisi, sunum tracking, analytics

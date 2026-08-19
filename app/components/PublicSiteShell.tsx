@@ -13,11 +13,21 @@ function isPublicSiteSurface(pathname: string) {
     /^\/panel(?:\/|$)/,
     /^\/p(?:\/|$)/,
     /^\/c(?:\/|$)/,
+    /^\/e(?:\/|$)/,
     /^\/aktivasyon(?:\/|$)/,
     /^\/odeme(?:\/|$)/,
     /^\/kurumsal\/davet(?:\/|$)/,
   ];
   return !excluded.some((pattern) => pattern.test(pathname));
+}
+
+function isQuietPublicChrome(pathname: string) {
+  return [
+    /^\/giris(?:\/|$)/,
+    /^\/sepet(?:\/|$)/,
+    /^\/checkout(?:\/|$)/,
+    /^\/nfc-siparis(?:\/|$)/,
+  ].some((pattern) => pattern.test(pathname));
 }
 
 export default function PublicSiteShell({ children }: { children: React.ReactNode }) {
@@ -26,14 +36,16 @@ export default function PublicSiteShell({ children }: { children: React.ReactNod
 
   if (!isPublic) return <>{children}</>;
 
+  const quiet = isQuietPublicChrome(pathname);
+
   return (
     <>
       <div className="public-site-chrome">
-        <AnnouncementBar />
+        {!quiet && <AnnouncementBar />}
         <AppHeader landing />
       </div>
       {children}
-      <AppFooter />
+      <AppFooter variant={quiet ? "compact" : "default"} />
     </>
   );
 }

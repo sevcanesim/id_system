@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Icon, type IconName } from "../icons";
 import { YenomiProductVisual } from "../ui/YenomiProductVisual";
 
 export const metadata: Metadata = {
@@ -14,19 +15,12 @@ const steps = [
   { number: "04", title: "Yönetin & Ölçekleyin", text: "Profilinizi güncel tutun, görüntülenmeleri takip edin ve ekipler için kartları, şablonları ve marka kurallarını merkezi yönetin.", premium: true },
 ];
 
-const benefits = [
+const benefits: Array<[string, string, IconName]> = [
   ["Güvenli & Şifreli", "Verileriniz güçlü güvenlik katmanlarıyla korunur.", "shield"],
-  ["Anında Güncellenir", "Bilginiz her zaman güncel, her yerde etkili.", "bolt"],
-  ["Global & Sınırsız", "Dünyanın her yerinden erişilebilir dijital profil.", "globe"],
+  ["Anında Güncellenir", "Bilginiz her zaman güncel, her yerde etkili.", "refresh"],
+  ["Global & Sınırsız", "Dünyanın her yerinden erişilebilir dijital profil.", "link"],
   ["Kontrol Sizde", "Paylaşım izinlerinizi ve profilinizi siz belirlersiniz.", "lock"],
-] as const;
-
-function FeatureIcon({ type }: { type: string }) {
-  if (type === "shield") return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 20 6v5c0 5-3.2 8.5-8 10-4.8-1.5-8-5-8-10V6l8-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>;
-  if (type === "bolt") return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-9 12h7l-1 8 9-12h-7l1-8Z"/></svg>;
-  if (type === "globe") return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.4 2.4 3.5 5.4 3.5 9S14.4 18.6 12 21c-2.4-2.4-3.5-5.4-3.5-9S9.6 5.4 12 3Z"/></svg>;
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>;
-}
+];
 
 export default function HowItWorksPage() {
   return (
@@ -76,7 +70,7 @@ export default function HowItWorksPage() {
         <div className="how-benefits-grid">
           {benefits.map(([title, text, icon]) => (
             <article key={title}>
-              <span className="how-benefit-icon"><FeatureIcon type={icon} /></span>
+              <span className="how-benefit-icon"><Icon name={icon} /></span>
               <div><h3>{title}</h3><p>{text}</p></div>
             </article>
           ))}

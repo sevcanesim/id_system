@@ -54,7 +54,7 @@ export default function CartPage() {
 
   return (
     <div className="yi-site">
-      <main id="main-content" className="yi-section yi-section--light yi-cart-page">
+      <main id="main-content" className="yi-section yi-section--light yi-cart-page yi-footer-compact">
         <div className="yi-container">
           <div className="yi-page-head">
             <span>COMMERCE</span>

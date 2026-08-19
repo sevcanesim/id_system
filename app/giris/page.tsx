@@ -5,8 +5,6 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getRememberedLogin, getSupabaseBrowserClient, setRememberedLogin } from "../../lib/supabase/browser";
 import { isSupabaseConfigured, supabaseConfigIssue } from "../../lib/supabase/config";
-import AppHeader from "../components/AppHeader";
-import AppFooter from "../components/AppFooter";
 import { writeSessionCookie } from "../components/AuthSessionBridge";
 import { Icon } from "../icons";
 import { authErrorMessage } from "../../lib/errors";
@@ -293,7 +291,7 @@ export default function LoginPage() {
 
   return (
     <main id="main-content" className="p6-auth-page" data-ui-context="public">
-      <AppHeader context="Giriş" />
+      {/* Public chrome is provided by PublicSiteShell. Do not remount AppHeader/AppFooter. */}
       <section className="p6-auth-shell">
         <aside className="p6-auth-story" aria-label="Yenomi ID ürün özeti">
           <span className="p6-auth-kicker">YENOMI ID</span>
@@ -503,7 +501,6 @@ export default function LoginPage() {
           </div>
         </section>
       </section>
-      <AppFooter variant="compact" />
     </main>
   );
 }

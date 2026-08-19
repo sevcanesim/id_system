@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
-import { isOrganizationRole } from "../../../../lib/organizations/permissions";
+import { canViewOrganizationCards, isOrganizationRole } from "../../../../lib/organizations/permissions";
 import {
   getDigitalProfileState,
   getInvitationState,
@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
   const organizationId = request.nextUrl.searchParams.get("organizationId");
   if (!organizationId) return NextResponse.json({ error: "Şirket seçimi gerekli." }, { status: 400 });
 
-  const { data: actor } = await ctx.admin.from("organization_members").select("role,status").eq("organization_id", organizationId).eq("user_id", ctx.user.id).maybeSingle();
-  if (!actor || actor.status !== "ACTIVE" || !isOrganizationRole(actor.role) || !["OWNER","ADMIN","HR"].includes(actor.role)) {
+  const { data: actor } = await ctx.admin.from("organization_members").select("role,status,department").eq("organization_id", organizationId).eq("user_id", ctx.user.id).maybeSingle();
+  if (!actor || !isOrganizationRole(actor.role) || !canViewOrganizationCards(actor.role, actor.status)) {
     return NextResponse.json({ error: "Kart durumlarını görme yetkin yok." }, { status: 403 });
   }
 
@@ -31,7 +31,11 @@ export async function GET(request: NextRequest) {
     ctx.admin.from("organizations").select("name").eq("id", organizationId).maybeSingle(),
     // LEFT is intentionally included: historical members still have digital,
     // physical and invitation lifecycle states that must remain auditable.
-    ctx.admin.from("organization_members").select("id,user_id,status").eq("organization_id", organizationId),
+    (() => {
+      let membersQuery = ctx.admin.from("organization_members").select("id,user_id,status,department").eq("organization_id", organizationId);
+      if (actor.role === "DEPARTMENT_MANAGER") membersQuery = membersQuery.eq("department", actor.department as string);
+      return membersQuery;
+    })(),
     ctx.admin.from("physical_cards").select("id,owner_user_id,owner_profile_id,status,activated_at,replaced_by_card_id").eq("organization_id", organizationId),
     ctx.admin.from("organization_invites").select("member_id,expires_at,used_at,accepted_at,revoked_at,created_at").eq("organization_id", organizationId).order("created_at", { ascending: false }),
   ]);

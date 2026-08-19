@@ -69,6 +69,7 @@ export default function CompanyPanel() {
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [selected, setSelected] = useState("");
   const [members, setMembers] = useState<Member[]>([]);
+  const [organizationSeatUsage, setOrganizationSeatUsage] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [seatPacks, setSeatPacks] = useState<DatabaseSeatPack[]>([]);
   const [templateOptions, setTemplateOptions] = useState<DatabaseTemplateOption[]>([]);
@@ -236,6 +237,7 @@ export default function CompanyPanel() {
     const data = await response.json();
     if (response.ok) {
       setMembers(data.members || []);
+      if (typeof data.seatUsage?.used === "number") setOrganizationSeatUsage(data.seatUsage.used);
       setDataError("employees", null);
     } else {
       const detail = data.error || "Çalışanlar yüklenemedi.";
@@ -327,6 +329,7 @@ export default function CompanyPanel() {
     setSelected(id);
     setViewedProfile(null);
     setMembers([]);
+    setOrganizationSeatUsage(null);
     setTemplates([]);
     setPhysicalCards([]);
     setMemberCardStatuses([]);
@@ -528,7 +531,16 @@ export default function CompanyPanel() {
       });
       const data = await response.json();
       if (!response.ok) {
+        if (response.status === 403) {
+          router.replace("/kartim");
+          return;
+        }
+        if (response.status === 401) {
+          router.replace("/giris?portal=business&next=%2Fkurumsal%2Fpanel");
+          return;
+        }
         setLoadingError(data.error || "Şirket bilgileri yüklenemedi.");
+        setLoading(false);
         return;
       }
       const nextOrgs = data.organizations || [];
@@ -566,6 +578,7 @@ export default function CompanyPanel() {
 
   useEffect(() => {
     void (async () => {
+      let redirecting = false;
       try {
         const access = await token();
         if (!access) {
@@ -577,18 +590,15 @@ export default function CompanyPanel() {
         });
         const data = await response.json();
         if (!response.ok) {
-          // Yönetim paneli yalnız OWNER / ADMIN / HR içindir. Aktif kurumsal
-          // çalışanı hata ekranında bırakmak yerine kendi kurumsal kart alanına
-          // yönlendir; böylece /kurumsal/panel URL'si EMPLOYEE için fiilen
-          // erişilebilir bir ekran gibi görünmez.
+          // Yönetim paneli yalnız OWNER / ADMIN / HR / DEPARTMENT_MANAGER içindir.
+          // EMPLOYEE'yi boş-şirket ekranında bırakmak yerine Kartım'a götür.
           if (response.status === 403) {
-            // EMPLOYEE / non-manager roles may belong to an organization,
-            // but they must never be routed into the profile editor from a
-            // management-panel denial. Their canonical workspace is Kartım.
+            redirecting = true;
             router.replace("/kartim");
             return;
           }
           if (response.status === 401) {
+            redirecting = true;
             router.replace("/giris?portal=business&next=%2Fkurumsal%2Fpanel");
             return;
           }
@@ -610,6 +620,8 @@ export default function CompanyPanel() {
           setLoading(false);
           const result = await waitForInitialPanelLoads([
             loadMembers(id, access),
+            loadPhysicalCards(id, access),
+            loadMemberCardStatuses(id, access),
             loadJobTitles(id, access),
             loadTitleRequests(id, access),
           ]);
@@ -636,7 +648,7 @@ export default function CompanyPanel() {
         setLoadingError("Kurumsal panel verileri yüklenemedi. Bağlantıyı kontrol edip yeniden deneyin.");
         setMessage("");
       } finally {
-        setLoading(false);
+        if (!redirecting) setLoading(false);
       }
     })();
   }, []);
@@ -1010,7 +1022,7 @@ export default function CompanyPanel() {
     [members],
   );
   const seatBreakdown = useMemo(() => getSeatBreakdown(members), [members]);
-  const usedSeats = seatBreakdown.used;
+  const usedSeats = organizationSeatUsage ?? seatBreakdown.used;
   const availableSeats =
     subscription?.seat_limit == null
       ? null
@@ -1233,7 +1245,7 @@ export default function CompanyPanel() {
   };
   const tabMeta: Record<CorporatePanelTab, { title: string; description: string; icon: Parameters<typeof Icon>[0]["name"] }> = {
     overview: { title: "Genel Bakış", description: "Şirket sağlığını, lisansları ve kart operasyonlarını tek ekrandan izle.", icon: "building" },
-    employees: { title: "Çalışanlar", description: "Ekibini yönet, davetleri ve çalışan yaşam döngüsünü takip et.", icon: "users" },
+    employees: { title: "Çalışanlar", description: "Ekibini, davetleri ve kart yaşam döngüsünü buradan yönet.", icon: "users" },
     cards: { title: "Kartlar", description: "Fiziksel ve dijital kart durumlarını tek yerde yönet.", icon: "contact" },
     roles: { title: "Roller & Yetkiler", description: "Kurumsal yetki sınırlarını ve rol dağılımını kontrol et.", icon: "lock" },
     templates: { title: "Marka & Şablon", description: "Kurumsal kart görünümünü ve marka standartlarını merkezi olarak yönet.", icon: "contact" },
@@ -1325,7 +1337,7 @@ export default function CompanyPanel() {
   };
 
   return (
-    <main id="main-content" className="business-console business-console--compact p10-corporate-platform" data-ui-context="dashboard">
+    <main id="main-content" className="business-console business-console--compact p10-corporate-platform" data-ui-context="dashboard" lang="tr" translate="no">
       <div className="enterprise-dashboard-shell">
         <PanelSidebar
           ariaLabel="Kurumsal yönetim menüsü"

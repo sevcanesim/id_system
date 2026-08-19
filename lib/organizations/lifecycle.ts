@@ -122,6 +122,10 @@ export function getSeatBreakdown(members: Array<{ role: string; status: string }
   };
 }
 
+export function currentLifecycleCards(cards: LifecycleCard[]): LifecycleCard[] {
+  return cards.filter((card) => !card.replacedByCardId);
+}
+
 export function getDigitalProfileState(profile?: LifecycleProfile | null): DigitalProfileState {
   if (!profile?.hasDigitalCard) return "NONE";
   if (["SUSPENDED", "REFUNDED", "DISABLED"].includes(String(profile.cardStatus || "").toUpperCase())) return "DISABLED";
@@ -135,12 +139,16 @@ export function digitalProfileLabel(profileOrState?: LifecycleProfile | DigitalP
 
 export function getPhysicalCardState(cards: LifecycleCard[]): PhysicalCardStatus {
   if (!cards.length) return "UNASSIGNED";
-  if (cards.some((card) => Boolean(card.replacedByCardId))) return "REPLACED";
-  if (cards.some((card) => card.status === "LOST")) return "LOST";
-  if (cards.some((card) => card.status === "DISABLED")) return "DISABLED";
-  if (cards.some((card) => card.status === "ACTIVE" && Boolean(card.activatedAt))) return "ACTIVE";
-  if (cards.some((card) => card.status === "ACTIVE" && Boolean(card.ownerUserId))) return "ASSIGNED";
-  if (cards.some((card) => card.status === "ACTIVE")) return "ACTIVE"; // legacy rows without timestamps
+  // replaced_by_card_id is historical: a current ACTIVE/ASSIGNED card must win
+  // over an older replaced row, otherwise assigned members show "Değiştirildi".
+  const current = currentLifecycleCards(cards);
+  if (!current.length) return "REPLACED";
+  if (current.some((card) => card.status === "LOST")) return "LOST";
+  if (current.some((card) => card.status === "DISABLED")) return "DISABLED";
+  if (current.some((card) => card.status === "ACTIVE" && Boolean(card.activatedAt))) return "ACTIVE";
+  if (current.some((card) => card.status === "ACTIVE" && Boolean(card.ownerUserId))) return "ASSIGNED";
+  if (current.some((card) => card.status === "ACTIVE")) return "ACTIVE";
+  if (current.some((card) => card.status === "ASSIGNED")) return "ASSIGNED";
   return "UNASSIGNED";
 }
 

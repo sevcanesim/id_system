@@ -18,9 +18,11 @@ const packageJson = JSON.parse(read("package.json"));
 
 check(router.includes('from("user_accounts")') && router.includes('account_type'), "account router uses canonical account type");
 check(router.includes('account.account_type === "CORPORATE"') && router.includes('account.account_type === "INDIVIDUAL"'), "normal accounts have deterministic portal destinations");
+check(router.includes('ACCOUNT_ROUTE_EMPLOYEE = "/kartim"') && router.includes("hasManagementOrganization"), "corporate employees land on Kartım instead of the management panel");
 check(guard.includes('from("user_accounts")') && guard.includes("isPortalAllowed"), "portal guard validates the selected portal against account type");
-check(shell.includes("validatePortal") && shell.includes('portal="individual"'), "individual shell validates portal before rendering");
-check(wizard.includes("isBusinessCard") && wizard.includes("/kurumsal/panel/calisanlar"), "shared create workflow preserves corporate context");
+check(guard.includes("validateCardWorkspace") && guard.includes("canUseCardWorkspace"), "card workspace allows corporate employees after business login");
+check(shell.includes("validatePortal") && shell.includes("validateCardWorkspace") && shell.includes('portal="individual"'), "individual shell validates portal before rendering");
+check(wizard.includes("isBusinessCard") && wizard.includes("/kurumsal/panel"), "shared create workflow preserves corporate context");
 check(publicProfile.includes("PublicProfileProtection") || publicProfile.includes("generateStaticParams"), "public profile remains an explicit public route surface");
 check(!shell.includes("PanelSidebar"), "individual shell does not import the corporate sidebar");
 check(packageJson.scripts?.["verify:portal-context"] === "node scripts/verify-portal-context.mjs", "portal context verifier is registered");

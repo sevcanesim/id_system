@@ -4,15 +4,40 @@ import { useEffect, useMemo, useState } from "react";
 import { cartItemPresentation, readCart, removeCartItem, updateCartItemQuantity, writeCart, type CartItem } from "../../lib/cart";
 import { COMMERCIAL_PRICING } from "../../lib/config/commercial";
 import { formatTryFromKurus } from "../../lib/config/product";
+import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { EmptyState } from "../components/ui/States";
+
+type CartAudience = "guest" | "individual" | "corporate";
 
 export default function CartPage() {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [audience, setAudience] = useState<CartAudience>("guest");
   useEffect(() => {
     const sync = () => setItems(readCart());
     sync();
     window.addEventListener("yenomi-cart-change", sync);
     return () => window.removeEventListener("yenomi-cart-change", sync);
+  }, []);
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+    void supabase.auth.getSession().then(async ({ data }) => {
+      const token = data.session?.access_token;
+      if (!token) {
+        setAudience("guest");
+        return;
+      }
+      const response = await fetch("/api/organizations/mine?management=true", {
+        headers: { authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (response.ok) {
+        const payload = await response.json() as { organizations?: unknown[] };
+        setAudience((payload.organizations ?? []).length ? "corporate" : "individual");
+        return;
+      }
+      setAudience("individual");
+    });
   }, []);
   const total = useMemo(() => items.reduce((sum, item) => sum + item.unitPriceKurus * item.quantity, 0), [items]);
   const shippingIncluded = COMMERCIAL_PRICING.DOMESTIC_SHIPPING.includedForPhysicalProducts;
@@ -37,12 +62,21 @@ export default function CartPage() {
             <p>Seçtiğin ürünleri kontrol et. Ödeme aşamasında fiyat ve uygunluk sunucu tarafından tekrar doğrulanır.</p>
           </div>
           {!items.length ? (
-            <EmptyState
-              icon="cart"
-              title="Kimliğini oluşturmaya hazır mısın?"
-              description="Sepetinde henüz ürün yok. Yenomi ID ürünlerini inceleyerek dijital kimliğini oluşturmaya başlayabilirsin."
-              action={{ label: "NFC Kartı incele", href: "/urunler/nfc-kart" }}
-            />
+            audience === "corporate" ? (
+              <EmptyState
+                icon="cart"
+                title="Koltuk paketleri Lisanslar’dan alınır."
+                description="Şirket sahibinin sepeti bireysel kimlik alışverişi değildir. Ek lisans ve koltuk paketleri kurumsal paneldeki Lisanslar sayfasından yönetilir."
+                action={{ label: "Lisanslara git", href: "/kurumsal/panel/lisans" }}
+              />
+            ) : (
+              <EmptyState
+                icon="cart"
+                title="Kimliğini oluşturmaya hazır mısın?"
+                description="Sepetinde henüz ürün yok. Yenomi ID ürünlerini inceleyerek dijital kimliğini oluşturmaya başlayabilirsin."
+                action={{ label: "NFC Kartı incele", href: "/urunler/nfc-kart" }}
+              />
+            )
           ) : (
             <div className="yi-cart-layout">
               <section className="yi-cart-items">

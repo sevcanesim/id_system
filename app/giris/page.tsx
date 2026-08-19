@@ -13,6 +13,7 @@ import { authErrorMessage } from "../../lib/errors";
 import { normalizeEmail, SIGNUP_PASSWORD_RULES, validateEmail, validateSignupPassword } from "../../lib/auth/credentials";
 import { LoginPortal } from "../../lib/auth/account-type";
 import { isAdminSession, validatePortal } from "../../lib/auth/portal-guard";
+import { resolveLoginDestination } from "../../lib/auth/account-router";
 import { clearLegacyCart, setCartOwner } from "../../lib/cart";
 
 type AuthMode = "login" | "signup" | "forgot" | "recovery";
@@ -99,8 +100,11 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!activeSessionEmail || mode === "recovery") return;
-    router.replace(returnPath);
-  }, [activeSessionEmail, mode, returnPath, router]);
+    const supabase = getSupabaseBrowserClient();
+    void resolveLoginDestination(supabase, portal, returnPath).then((destination) => {
+      router.replace(destination);
+    });
+  }, [activeSessionEmail, mode, portal, returnPath, router]);
 
   async function signInWithGoogle() {
     showMessage("");
@@ -239,7 +243,8 @@ export default function LoginPage() {
       }
       setLoading(false);
       setActiveSessionEmail(result.data.session.user.email ?? normalizedEmail);
-      window.location.replace(returnPath);
+      const destination = await resolveLoginDestination(supabase, portal, returnPath);
+      window.location.replace(destination);
       return;
     }
     setLoading(false);

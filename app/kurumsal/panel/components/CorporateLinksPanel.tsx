@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Icon } from "../../../icons";
 import { Button, Field, Input } from "../../../components/ui/DesignSystem";
 
@@ -49,6 +50,39 @@ type Props = {
 
 const dateTime = new Intl.DateTimeFormat("tr-TR", { dateStyle: "short", timeStyle: "short" });
 const dateTimeMedium = new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" });
+
+function isoLocalToTurkish(value: string) {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!match) return "";
+  return `${match[3]}.${match[2]}.${match[1]} ${match[4]}:${match[5]}`;
+}
+
+function turkishToIsoLocal(value: string) {
+  const match = value.trim().match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})(?:[ T,]*)(\d{1,2}):(\d{2})$/);
+  if (!match) return "";
+  return `${match[3]}-${match[2].padStart(2, "0")}-${match[1].padStart(2, "0")}T${match[4].padStart(2, "0")}:${match[5]}`;
+}
+
+function TurkishDateTimeInput({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const [text, setText] = useState(() => isoLocalToTurkish(value));
+  useEffect(() => { setText(isoLocalToTurkish(value)); }, [value]);
+  return (
+    <Input
+      type="text"
+      inputMode="numeric"
+      autoComplete="off"
+      lang="tr-TR"
+      placeholder="gg.aa.yyyy ss:dd"
+      value={text}
+      onChange={(event) => setText(event.target.value)}
+      onBlur={() => {
+        const next = turkishToIsoLocal(text);
+        if (next) onChange(next);
+        else setText(isoLocalToTurkish(value));
+      }}
+    />
+  );
+}
 
 function publicationLabel(link: CorporateLink) {
   if (!link.configured) return "Kayıt yok";
@@ -207,12 +241,10 @@ export default function CorporateLinksPanel({
                     }}
                   />
                 </div>
-                <Field label="Yayın zamanı">
-                  <Input
-                    type="datetime-local"
+                <Field label="Yayın zamanı" help="Türkiye saati · gg.aa.yyyy ss:dd">
+                  <TurkishDateTimeInput
                     value={linkScheduleDraft[link.kind] || ""}
-                    min={new Date().toISOString().slice(0, 16)}
-                    onChange={(event) => onScheduleDraftChange(link.kind, event.target.value)}
+                    onChange={(next) => onScheduleDraftChange(link.kind, next)}
                   />
                 </Field>
                 {link.configured && (

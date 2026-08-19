@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdminClient, getSupabaseAuthClient, getSupabaseUserClient } from "../../../../lib/supabase/server-admin";
-import { isOrganizationRole } from "../../../../lib/organizations/permissions";
+import { canViewOrganizationCards, isOrganizationRole } from "../../../../lib/organizations/permissions";
 
 const patchSchema = z.object({
   organizationId: z.string().uuid(),
@@ -25,8 +25,13 @@ async function context(request: NextRequest) {
 }
 
 async function manager(admin: ReturnType<typeof getSupabaseAdminClient>, userId: string, organizationId: string) {
-  const { data } = await admin.from("organization_members").select("role,status").eq("organization_id", organizationId).eq("user_id", userId).maybeSingle();
+  const { data } = await admin.from("organization_members").select("role,status,department").eq("organization_id", organizationId).eq("user_id", userId).maybeSingle();
   return data && data.status === "ACTIVE" && isOrganizationRole(data.role) && ["OWNER", "ADMIN", "HR"].includes(data.role) ? data : null;
+}
+
+async function cardViewer(admin: ReturnType<typeof getSupabaseAdminClient>, userId: string, organizationId: string) {
+  const { data } = await admin.from("organization_members").select("role,status,department").eq("organization_id", organizationId).eq("user_id", userId).maybeSingle();
+  return data && isOrganizationRole(data.role) && canViewOrganizationCards(data.role, data.status) ? data : null;
 }
 
 // GET: physical NFC card status for every employee in the organization who
@@ -37,7 +42,7 @@ export async function GET(request: NextRequest) {
   if (!ctx) return NextResponse.json({ error: "Oturum gerekli." }, { status: 401 });
   const organizationId = request.nextUrl.searchParams.get("organizationId");
   if (!organizationId) return NextResponse.json({ error: "Şirket seçimi gerekli." }, { status: 400 });
-  const actor = await manager(ctx.admin, ctx.user.id, organizationId);
+  const actor = await cardViewer(ctx.admin, ctx.user.id, organizationId);
   if (!actor) return NextResponse.json({ error: "Fiziksel kartları görme yetkin yok." }, { status: 403 });
 
   const { data, error } = await ctx.admin
@@ -48,9 +53,13 @@ export async function GET(request: NextRequest) {
   if (error) return NextResponse.json({ error: "Kartlar yüklenemedi." }, { status: 500 });
 
   const ownerIds = [...new Set((data || []).map((card) => card.owner_user_id).filter(Boolean))] as string[];
-  const { data: owners } = ownerIds.length
-    ? await ctx.admin.from("organization_members").select("user_id,full_name,email").eq("organization_id", organizationId).in("user_id", ownerIds)
-    : { data: [] };
+  let ownersQuery = ownerIds.length
+    ? ctx.admin.from("organization_members").select("user_id,full_name,email").eq("organization_id", organizationId).in("user_id", ownerIds)
+    : null;
+  if (ownersQuery && actor.role === "DEPARTMENT_MANAGER") {
+    ownersQuery = ownersQuery.eq("department", actor.department as string);
+  }
+  const { data: owners } = ownersQuery ? await ownersQuery : { data: [] };
   const ownerByUserId = new Map((owners || []).map((owner) => [owner.user_id, owner.full_name || owner.email]));
 
   const cards = (data || []).map((card) => ({
@@ -63,7 +72,10 @@ export async function GET(request: NextRequest) {
     lostAt: card.lost_at,
     disabledAt: card.disabled_at,
     replacedByCardId: card.replaced_by_card_id,
-  }));
+  })).filter((card) => {
+    if (actor.role !== "DEPARTMENT_MANAGER") return true;
+    return Boolean(card.ownerUserId && ownerByUserId.has(card.ownerUserId));
+  });
   return NextResponse.json({ cards });
 }
 

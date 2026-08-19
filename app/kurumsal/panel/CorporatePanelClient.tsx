@@ -1872,10 +1872,16 @@ export default function CompanyPanel() {
                             <small>Merhaba, {representative?.full_name?.split(" ")[0] || "Yönetici"}.</small>
                             <h2>Dijital kartvizit altyapınız <em>tam kontrol</em> altında.</h2>
                             <p>Çalışan kartlarını, kurumsal bağlantıları, lisans kapasitesini ve gerçek etkileşim verilerini tek merkezden yönetin.</p>
-                            <div><button type="button" className="primary" onClick={() => router.push(ownCardEditorHref)}><Icon name="pencil" /> Kartımı Düzenle</button><button type="button" onClick={() => setActiveTab("employees")}><Icon name="users" /> Ekibi Yönet</button></div>
+                            <div>
+                              <button type="button" className="primary" onClick={() => openTab("employees")}>
+                                <Icon name="users" /> Ekibi Yönet
+                              </button>
+                              <button type="button" onClick={() => router.push(ownCardEditorHref)}>
+                                <Icon name="pencil" /> Kartımı Düzenle
+                              </button>
+                            </div>
                           </div>
-                          <div className="v26-card-stage" aria-label="Kurumsal kart önizlemesi">
-                            <div className="v26-stage-glow" />
+                          <aside className="v26-card-stage" aria-label="Kart paylaşımı">
                             <CorporateHeroPreview
                               company={org?.organizations?.name || "Şirket"}
                               name={representative?.full_name || org?.organizations?.name || "Kurumsal Kart"}
@@ -1883,8 +1889,27 @@ export default function CompanyPanel() {
                               email={representative?.email || "Kurumsal profil"}
                               slug={representativeCard?.slug || ""}
                             />
-                          </div>
-                          <ul className="v26-hero-capabilities"><li><Icon name="contact" /><span>NFC ile paylaşım</span></li><li><Icon name="qr" /><span>QR kod ile erişim</span></li><li><Icon name="refresh" /><span>Anlık güncelleme</span></li><li><Icon name="shield" /><span>Merkezi marka kontrolü</span></li></ul>
+                          </aside>
+                          <nav className="v26-hero-capabilities" aria-label="Birincil panel görevleri">
+                            {([
+                              ["employees", "Çalışanları yönet", "Davet ve ekip"],
+                              ["cards", "Kartları yönet", "Fiziksel ve dijital"],
+                              ["licenses", "Lisansları yönet", "Kapasite ve paket"],
+                              ["content", "İçerik dağıt", "Bağlantı ve dosya"],
+                              ["analytics", "Performansı gör", "Görüntülenme"],
+                            ] as const)
+                              .filter(([key]) => tabs.some(([tab]) => tab === key))
+                              .map(([key, label, hint]) => (
+                                <button type="button" key={key} onClick={() => openTab(key)}>
+                                  <Icon name={tabMeta[key].icon} />
+                                  <span>
+                                    <b>{label}</b>
+                                    <small>{hint}</small>
+                                  </span>
+                                  <em aria-hidden="true">→</em>
+                                </button>
+                              ))}
+                          </nav>
                         </section>
 
                         <div
@@ -1944,7 +1969,6 @@ export default function CompanyPanel() {
                             <article><i className="green"><Icon name="contact" /></i><span><small>Aktif Kart</small><b>{digitalCardsReady} / {usedSeats || 0}</b><em>%{cardActivationPercent} aktivasyon oranı</em></span></article>
                             <article><i className="violet"><Icon name="analytics" /></i><span><small>Toplam Görüntülenme</small><b>{cardAnalytics?.available === false ? "—" : (cardAnalytics?.totalViews ?? 0).toLocaleString("tr-TR")}</b><em>Seçili dönem</em></span></article>
                             <article><i className="blue"><Icon name="qr" /></i><span><small>İçerik Etkileşimi</small><b>{cardAnalytics?.content?.clicks ?? 0}</b><em>URL tıklaması</em></span></article>
-                            <article><i className="amber"><Icon name="external" /></i><span><small>İçerik Açma</small><b>{cardAnalytics?.content?.downloads ?? 0}</b><em>PDF açma</em></span></article>
                           </section>
 
                           <div className="v26-reference-main-row">

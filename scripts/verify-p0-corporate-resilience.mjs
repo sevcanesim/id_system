@@ -87,5 +87,24 @@ if (heroPreview.includes('width: 112') && heroPreview.includes('QR bağlantısı
   fail('hero QR share accessory contract is missing');
 }
 
+const employees = read('app/kurumsal/panel/components/EmployeesPanel.tsx');
+if (
+  employees.includes('lisans kullanılıyor') &&
+  employees.includes('+1 lisans satın almanız gerekiyor') &&
+  !employees.includes('Lisans Gerekli') &&
+  employees.includes('className="p11-bulk-bar"') &&
+  employees.includes('Kartı Yönet') &&
+  !employees.includes('Kartım')
+) {
+  pass('employees license-full, bulk toolbar, and card-action language are aligned');
+} else {
+  fail('employees license-full / bulk / card-action contract is missing');
+}
+if (css.includes('.p11-bulk-bar') && css.includes('.p11-capacity-warning')) {
+  pass('employee bulk bar and capacity warning have panel styles');
+} else {
+  fail('employee bulk bar / capacity warning CSS is missing');
+}
+
 const migrations = fs.readdirSync(path.join(root, 'supabase/migrations')).filter((name) => name.endsWith('.sql'));
 if (migrations.length === 55) pass('55 database migrations preserved'); else fail(`migration count changed: ${migrations.length}`);

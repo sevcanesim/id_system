@@ -11008,3 +11008,222 @@ article[id] {
 @media (max-width: 900px) {
   .business-template-options { grid-template-columns: 1fr; }
 }
+
+.p11-employees-header h2,
+.corp-links-panel h2,
+.business-company-settings h2,
+.business-settings-card h2,
+.p10-settings-hub h2,
+.job-titles-panel h2,
+.p10-corporate-platform .business-role-panel > header h2 {
+  font-size: clamp(22px, 2.2vw, 28px);
+}
+.p10-settings-hub header p,
+.p11-employees-header p {
+  max-width: 62ch;
+}
+.p10-settings-grid {
+  margin-top: 12px;
+}
+.p10-settings-grid > button {
+  min-height: 124px;
+  padding: 16px;
+}
+.p10-corporate-platform .business-role-summary {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+}
+.p10-corporate-platform .business-role-summary > article {
+  height: 100%;
+  grid-template-rows: auto 1fr;
+}
+.p10-corporate-platform .business-role-summary__head {
+  align-items: center;
+}
+.p10-corporate-platform .business-role-summary > article.is-empty {
+  background: #F9F8F6;
+}
+.p10-corporate-platform .business-role-summary > article.is-empty strong {
+  color: #8A857D;
+}
+.p10-corporate-platform .business-role-matrix tbody tr:hover {
+  background: #F9F8F6;
+}
+.p10-corporate-platform .business-role-matrix th,
+.p10-corporate-platform .business-role-matrix td {
+  border-bottom-color: #E6E2D8;
+}
+.business-seat-pack-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  overflow: visible;
+}
+.business-seat-pack-grid > article {
+  overflow: visible;
+}
+.business-seat-pack-grid > article.recommended {
+  padding-top: 28px;
+}
+.seat-pack-badge {
+  top: 8px;
+  z-index: 1;
+}
+.seat-pack-count {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 12px;
+}
+.business-seat-pack-grid ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+.business-seat-pack-grid li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+.business-seat-pack-grid li .yi-icon {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  margin-top: 2px;
+  color: #2f7d4f;
+}
+.license-reference-features {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+.license-reference-features span {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  row-gap: 2px;
+  align-items: start;
+  padding: 12px 14px;
+  border: 1px solid #E6E2D8;
+  border-radius: 12px;
+  background: #FFFFFF;
+}
+.license-reference-features span > i {
+  grid-row: 1 / span 2;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: #F6F1E5;
+  color: #A37B2C;
+}
+.license-reference-features b {
+  color: #1A1918;
+  font-size: 13px;
+}
+.license-reference-features small {
+  color: #68645D;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.p10-corporate-platform .license-reference-hero {
+  overflow: visible;
+}
+.org-name-save,
+.p10-corporate-platform .business-company-settings .org-name-save {
+  border: 1px solid #E6E2D8;
+  background: #FFFFFF;
+  color: #1A1918;
+  box-shadow: none;
+}
+.org-name-save:hover:not(:disabled),
+.p10-corporate-platform .business-company-settings .org-name-save:hover:not(:disabled) {
+  border-color: #A37B2C;
+  background: #F6F1E5;
+}
+.settings-tristate {
+  padding: 10px 0;
+}
+.settings-tristate-copy,
+.settings-tristate > span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.settings-tristate-copy strong,
+.settings-tristate > span > strong {
+  color: #1A1918;
+  font-size: 13px;
+  font-weight: 750;
+}
+.settings-tristate-copy small,
+.settings-tristate > span > small {
+  color: #68645D;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.settings-tristate-head {
+  color: #6F5724;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+.settings-tristate-head > span:first-child {
+  text-align: left;
+}
+.settings-tristate-legend {
+  margin-bottom: 10px;
+}
+.settings-tristate-legend article {
+  padding: 10px 12px;
+}
+.job-title-add-form .ds-button {
+  min-height: 44px;
+}
+.p11-analytics {
+  min-height: 0;
+}
+.p11-analytics .ds-empty {
+  margin-top: 8px;
+  padding: 32px 20px;
+  border: 1px solid #E6E2D8;
+  border-radius: 16px;
+  background: #FFFFFF;
+}
+.p11-networking .ds-empty,
+.p11-analytics .ds-empty__illustration {
+  width: 56px;
+  height: 56px;
+}
+.enterprise-topbar-actions {
+  align-items: center;
+}
+.enterprise-org-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+.company-settings-grid {
+  grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+}
+
+@media (max-width: 1100px) {
+  .license-reference-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 720px) {
+  .p10-corporate-platform .business-role-summary,
+  .license-reference-features,
+  .company-settings-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

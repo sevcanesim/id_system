@@ -114,6 +114,7 @@ export default function CompanySettingsPanel({
           {canRenameOrganization ? (
             <button
               type="button"
+              className="org-name-save"
               onClick={() => void onSaveOrganizationName()}
               disabled={organizationNameBusy || organizationName.trim().length < 2 || !nameDirty}
             >
@@ -148,13 +149,13 @@ export default function CompanySettingsPanel({
               </article>
             ))}
           </div>
-          <div className="settings-tristate-head"><span /><span>Serbest</span><span>Öneri</span><span>Kilitli</span></div>
+          <div className="settings-tristate-head"><span>Alan</span><span>Serbest</span><span>Öneri</span><span>Kilitli</span></div>
           {LOCK_FIELDS.map(([key, label, freeText, suggestedText, lockedText]) => {
             const currentMode = String(fields[key] || "free");
             const description = currentMode === "locked" ? lockedText : currentMode === "suggested" ? suggestedText : freeText;
             return (
               <div className="settings-tristate" key={key}>
-                <span>
+                <span className="settings-tristate-copy">
                   <strong>{label}</strong>
                   <small>{description}</small>
                 </span>

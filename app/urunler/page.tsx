@@ -5,9 +5,10 @@
 
 import type { Metadata } from "next";
 import { getDatabaseCatalog } from "../../lib/config/database";
-import { formatTryFromKurus, listingPriceKurus } from "../../lib/config/product";
+import { formatTryFromKurus, listingPriceKurus, NFC_PRODUCT } from "../../lib/config/product";
 import { ProductVisual } from "../ui/ProductVisual";
 import { ButtonLink } from "../ui/Button";
+import AddToCartButton from "../components/AddToCartButton";
 import { PublicPageTitle } from "../components/PublicPageTitle";
 import {
   INDIVIDUAL_FEATURES,
@@ -15,6 +16,7 @@ import {
   INDIVIDUAL_PREMIUM_FEATURES,
   INDIVIDUAL_PREMIUM_PLAN,
 } from "../../lib/commerce/packages";
+import { COMMERCIAL_PRICING, COMMERCIAL_SKUS } from "../../lib/config/commercial";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -77,11 +79,18 @@ export default async function ProductsPage() {
                 <h2>En çok tercih edilen</h2>
                 <strong className="products-single-price">{formatTryFromKurus(INDIVIDUAL_PREMIUM_PLAN.priceKurus)}</strong>
               </div>
-              <p>Bireysel paketteki her şey, artı toplantı, sunum, kişi yönetimi ve 100 Network Mail.</p>
+              <p>Bireysel paketteki her şey, artı toplantı, sunum, kişi yönetimi ve 100 Network Mail. Kredi ödeme sonrası yazılır.</p>
               <ul aria-label="Premium paket içeriği">
                 {INDIVIDUAL_PREMIUM_FEATURES.map((item) => <li key={item}>{item}</li>)}
               </ul>
-              <ButtonLink href="/kurumsal?plan=INDIVIDUAL_PREMIUM#teklif" variant="dark">Premium teklifi al</ButtonLink>
+              <AddToCartButton
+                productId={NFC_PRODUCT.slug}
+                variantSku={COMMERCIAL_SKUS.PREMIUM}
+                kind="NFC_PHYSICAL_CARD"
+                name="Yenomi ID Bireysel Premium — NFC + 100 Network Mail"
+                unitPriceKurus={COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.priceKurus}
+                label="Sepete Ekle"
+              />
             </article>
           </div>
         </section>

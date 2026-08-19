@@ -14,7 +14,7 @@ import {
   normalizeIdempotencyKey,
 } from "../../../../lib/payments/idempotency";
 import { getDatabaseLegalVersions } from "../../../../lib/config/database";
-import { COMMERCIAL_SKUS } from "../../../../lib/config/commercial";
+import { COMMERCIAL_SKUS, isPremiumUpgradeSku } from "../../../../lib/config/commercial";
 
 export const runtime = "nodejs";
 
@@ -227,22 +227,47 @@ export async function POST(request: NextRequest) {
     });
     const includesNewDigitalService = calculated.some((item) => {
       const metadata = (item.variant.metadata || {}) as Record<string, unknown>;
-      return metadata.digital_service_included === true || metadata.fulfillment_kind === "INITIAL_BUNDLE" || item.variant.sku === COMMERCIAL_SKUS.INITIAL;
+      return metadata.digital_service_included === true || metadata.fulfillment_kind === "INITIAL_BUNDLE" || item.variant.sku === COMMERCIAL_SKUS.INITIAL || item.variant.sku === COMMERCIAL_SKUS.PREMIUM;
     });
     const physicalOnlyCardNeedsActiveEntitlement = hasPhysicalOnlyCard && !includesNewDigitalService;
     const includesRenewal = calculated.some((item) => ((item.variant.metadata || {}) as Record<string, unknown>).fulfillment_kind === "DIGITAL_RENEWAL");
+    const includesPremiumUpgrade = calculated.some((item) => {
+      const metadata = (item.variant.metadata || {}) as Record<string, unknown>;
+      return metadata.fulfillment_kind === "PREMIUM_UPGRADE" || isPremiumUpgradeSku(item.variant.sku);
+    });
     const includesReplacement = calculated.some((item) => ((item.variant.metadata || {}) as Record<string, unknown>).fulfillment_kind === "REPLACEMENT_CARD");
+    const includesPremiumRenewal = calculated.some((item) => item.variant.sku === COMMERCIAL_SKUS.PREMIUM_RENEWAL);
+    const includesBasicRenewal = calculated.some((item) => item.variant.sku === COMMERCIAL_SKUS.RENEWAL);
 
-    if (physicalOnlyCardNeedsActiveEntitlement || includesRenewal) {
+    if (includesPremiumRenewal && includesBasicRenewal) {
+      return NextResponse.json({ error: "Aynı siparişte temel ve Premium yenileme birlikte alınamaz." }, { status: 400 });
+    }
+
+    if (physicalOnlyCardNeedsActiveEntitlement || includesRenewal || includesPremiumUpgrade) {
+      const statuses = includesRenewal && !includesPremiumUpgrade ? ["ACTIVE", "EXPIRED"] : ["ACTIVE"];
       const { data: activeEntitlement } = await admin
         .from("entitlements")
-        .select("id")
+        .select("id,package_code,status")
         .eq("user_id", authenticatedUserId)
-        .in("status", includesRenewal ? ["ACTIVE", "EXPIRED"] : ["ACTIVE"])
+        .in("status", statuses)
         .in("kind", ["BUSINESS_CARD", "NFC_PHYSICAL_CARD"])
+        .order("expires_at", { ascending: false, nullsFirst: false })
         .limit(1)
         .maybeSingle();
-      if (!activeEntitlement) return NextResponse.json({ error: includesRenewal ? "Yenileme için mevcut veya süresi dolmuş bir Yenomi ID hizmetin bulunmalı." : "Ek kart satın almak için aktif bir Yenomi ID paketin bulunmalı." }, { status: 403 });
+      if (!activeEntitlement) {
+        const message = includesPremiumUpgrade
+          ? "Premium yükseltme için aktif bir Yenomi ID hizmetin bulunmalı."
+          : includesRenewal
+            ? "Yenileme için mevcut veya süresi dolmuş bir Yenomi ID hizmetin bulunmalı."
+            : "Ek kart satın almak için aktif bir Yenomi ID paketin bulunmalı.";
+        return NextResponse.json({ error: message }, { status: 403 });
+      }
+      if (includesPremiumUpgrade && activeEntitlement.package_code === "INDIVIDUAL_PREMIUM") {
+        return NextResponse.json({ error: "Hesabın zaten Bireysel Premium. Yenileme fiyatından devam et." }, { status: 409 });
+      }
+      if (includesPremiumRenewal && activeEntitlement.package_code !== "INDIVIDUAL_PREMIUM") {
+        return NextResponse.json({ error: "Premium yenileme yalnız Bireysel Premium hesaplara açıktır. Önce yükseltme paketini kullan." }, { status: 403 });
+      }
     }
     if (includesReplacement) {
       const { data: lostCard } = await admin.from("physical_cards").select("id").eq("owner_user_id", authenticatedUserId).eq("status", "LOST").limit(1).maybeSingle();

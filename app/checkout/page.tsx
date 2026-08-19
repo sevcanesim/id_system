@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { readCart, setCartOwner, type CartItem } from "../../lib/cart";
 import { formatTryFromKurus } from "../../lib/config/product";
-import { COMMERCIAL_SKUS, isRenewalSku } from "../../lib/config/commercial";
+import { COMMERCIAL_SKUS, isDigitalOnlySku, isPhysicalBundleSku, isPremiumUpgradeSku, isRenewalSku } from "../../lib/config/commercial";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { Icon } from "../icons";
 import { TURKEY_CITIES, normalizeTrPhone } from "../../lib/form-standards";
@@ -108,12 +108,13 @@ export default function CheckoutPage() {
     () => items.reduce((sum, item) => sum + item.unitPriceKurus * item.quantity, 0),
     [items],
   );
-  const hasInitialBundle = items.some((item) => item.variantSku === COMMERCIAL_SKUS.INITIAL);
+  const hasInitialBundle = items.some((item) => isPhysicalBundleSku(item.variantSku));
   const hasExtraCard = items.some((item) => item.variantSku === COMMERCIAL_SKUS.ADDITIONAL_CARD);
   const hasRenewal = items.some((item) => isRenewalSku(item.variantSku));
+  const hasPremiumUpgrade = items.some((item) => isPremiumUpgradeSku(item.variantSku));
   const hasReplacement = items.some((item) => item.variantSku === COMMERCIAL_SKUS.REPLACEMENT_CARD);
   const hasBusinessCapacity = items.some((item) => typeof item.configuration?.organizationId === "string");
-  const renewalOnly = hasRenewal && items.every((item) => isRenewalSku(item.variantSku));
+  const digitalOnlyCart = items.length > 0 && items.every((item) => isDigitalOnlySku(item.variantSku));
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -301,7 +302,7 @@ export default function CheckoutPage() {
           <p>Alıcı ve teslimat bilgilerini doğrula. Son adımda iyzico güvenli ödeme sayfasına geçeceksin.</p>
           <div className="checkout-account-note" role="status">{isAuthenticated ? <><Icon name="check" /> Hesabın bağlı. Siparişin hesabına otomatik eklenir.</> : <><Icon name="mail" /> Hesap açmadan tamamlayabilirsin. Satın alma sonrası siparişini bu e-posta ile hesabına bağlayabilirsin.</>}</div>
           <div className="checkout-trust-row checkout-trust-row-compact" aria-label="Sipariş avantajları">
-            {!renewalOnly && <span><Icon name="truck" />Ücretsiz kargo</span>}
+            {!digitalOnlyCart && <span><Icon name="truck" />Ücretsiz kargo</span>}
             {hasInitialBundle && <span><Icon name="clock" />Ana kart 2 iş gününde hazırlanır</span>}
             {hasInitialBundle && <span><Icon name="shield" />1 yıllık dijital kullanım</span>}
             {hasExtraCard && <span><Icon name="shield" />Mevcut Yenomi ID hizmetine bağlı</span>}
@@ -314,7 +315,7 @@ export default function CheckoutPage() {
             <b />
             <button type="button" className={activeStep === "buyer" ? "active" : buyerComplete ? "done" : ""} onClick={() => setActiveStep("buyer")}><i>{buyerComplete ? <Icon name="check" /> : "2"}</i><span>Bilgiler</span></button>
             <b />
-            <button type="button" className={activeStep === "shipping" ? "active" : shippingComplete ? "done" : ""} onClick={() => buyerComplete && setActiveStep("shipping")}><i>{shippingComplete ? <Icon name="check" /> : "3"}</i><span>{renewalOnly ? "Fatura" : "Teslimat"}</span></button>
+            <button type="button" className={activeStep === "shipping" ? "active" : shippingComplete ? "done" : ""} onClick={() => buyerComplete && setActiveStep("shipping")}><i>{shippingComplete ? <Icon name="check" /> : "3"}</i><span>{digitalOnlyCart ? "Fatura" : "Teslimat"}</span></button>
             <b />
             <button type="button" className={activeStep === "approval" ? "active" : approvalComplete ? "done" : ""} onClick={() => buyerComplete && shippingComplete && setActiveStep("approval")}><i>{approvalComplete ? <Icon name="check" /> : "4"}</i><span>Ödeme</span></button>
           </div>
@@ -338,14 +339,14 @@ export default function CheckoutPage() {
                   <label>Telefon<input required inputMode="tel" autoComplete="tel" value={form.phone} onChange={(e) => update("phone", normalizeTrPhone(e.target.value))} placeholder="+90 5xx xxx xx xx" />{form.phone.replace(/\D/g, "").length >= 10 && <small className="field-ok"><Icon name="check" /> Telefon doğrulandı</small>}</label>
                   <label>E-posta<input required type="email" autoComplete="email" value={form.email} onChange={(e) => !isAuthenticated && update("email", e.target.value)} readOnly={isAuthenticated} />{isAuthenticated ? <small className="field-ok"><Icon name="check" /> Hesabına bağlı e-posta</small> : <small>Hesap açmadan güvenli ödeme yapabilirsin. Sipariş bilgilerin bu e-posta adresine gönderilir.</small>}</label>
                   <label>T.C. kimlik numarası<input required inputMode="numeric" maxLength={11} value={form.identityNumber} onChange={(e) => update("identityNumber", e.target.value.replace(/\D/g, ""))} placeholder="11 haneli T.C. kimlik numarası" /><small>iyzico ödeme doğrulaması için kullanılır.</small></label>
-                  <button type="button" className="checkout-next" onClick={advanceBuyer}>{renewalOnly ? "Fatura Bilgilerine Devam Et" : "Teslimata Devam Et"} <Icon name="chevronRight" /></button>
+                  <button type="button" className="checkout-next" onClick={advanceBuyer}>{digitalOnlyCart ? "Fatura Bilgilerine Devam Et" : "Teslimata Devam Et"} <Icon name="chevronRight" /></button>
                 </div>}
               </section>
 
               <section className={`checkout-step ${activeStep === "shipping" ? "open" : ""} ${shippingComplete ? "complete" : ""}`}>
                 <button type="button" className="checkout-step-trigger" onClick={() => buyerComplete && setActiveStep("shipping")} disabled={!buyerComplete}>
                   <span className="checkout-step-icon"><Icon name="map" /></span>
-                  <span><strong>{renewalOnly ? "Fatura adresi" : "Teslimat"}</strong>{shippingComplete && activeStep !== "shipping" ? <small>{form.district}, {form.city}</small> : <small>{renewalOnly ? "Ödeme ve fatura doğrulaması için" : "Türkiye içi ücretsiz teslimat"}</small>}</span>
+                  <span><strong>{digitalOnlyCart ? "Fatura adresi" : "Teslimat"}</strong>{shippingComplete && activeStep !== "shipping" ? <small>{form.district}, {form.city}</small> : <small>{digitalOnlyCart ? "Ödeme ve fatura doğrulaması için" : "Türkiye içi ücretsiz teslimat"}</small>}</span>
                   <em>{shippingComplete ? <Icon name="check" /> : <Icon name="chevronRight" />}</em>
                 </button>
                 {activeStep === "shipping" && <div className="checkout-step-body">
@@ -391,9 +392,9 @@ export default function CheckoutPage() {
                     </div>;
                   })}
                 </div>}
-                <div className="checkout-summary-items">{items.map((item) => <div key={`${item.productId}-${item.variantSku}`} className="checkout-summary-row"><div className={`checkout-summary-thumb${isRenewalSku(item.variantSku) ? " digital-renewal" : ""}`} aria-hidden>{isRenewalSku(item.variantSku) ? <Icon name="refresh" /> : <><div className="checkout-summary-thumb-card back" /><div className="checkout-summary-thumb-card front"><b>YENOMI ID</b></div></>}</div><div><strong>{item.name}</strong><span>{item.quantity} adet</span></div><b>{formatTryFromKurus(item.unitPriceKurus * item.quantity)}</b></div>)}</div>
+                <div className="checkout-summary-items">{items.map((item) => <div key={`${item.productId}-${item.variantSku}`} className="checkout-summary-row"><div className={`checkout-summary-thumb${isDigitalOnlySku(item.variantSku) ? " digital-renewal" : ""}`} aria-hidden>{isDigitalOnlySku(item.variantSku) ? <Icon name="refresh" /> : <><div className="checkout-summary-thumb-card back" /><div className="checkout-summary-thumb-card front"><b>YENOMI ID</b></div></>}</div><div><strong>{item.name}</strong><span>{item.quantity} adet</span></div><b>{formatTryFromKurus(item.unitPriceKurus * item.quantity)}</b></div>)}</div>
                 <div className="checkout-summary-line"><span>Ürün</span><strong>{formatTryFromKurus(total)}</strong></div>
-                <div className="checkout-summary-line"><span>Kargo</span><strong className="checkout-summary-free">{renewalOnly ? "Uygulanmaz" : "Ücretsiz"}</strong></div>
+                <div className="checkout-summary-line"><span>Kargo</span><strong className="checkout-summary-free">{digitalOnlyCart ? "Uygulanmaz" : "Ücretsiz"}</strong></div>
                 <div className="checkout-summary-line"><span>KDV</span><strong>Dahil</strong></div>
                 <div className="checkout-summary-total"><span>TOPLAM</span><div><strong>{formatTryFromKurus(total)}</strong><small>KDV dahil</small></div></div>
                 <div className="checkout-summary-benefits">
@@ -402,6 +403,7 @@ export default function CheckoutPage() {
                   {hasExtraCard && <span><Icon name="check" /> Mevcut profile bağlı; yeni süre başlatmaz</span>}
                   {hasRenewal && <span><Icon name="check" /> Mevcut kartınla 1 yıl dijital hizmet yenilemesi</span>}
                   {hasRenewal && <span><Icon name="check" /> Kartın zaten sende; yeni kart satın alman gerekmez</span>}
+                  {hasPremiumUpgrade && <span><Icon name="check" /> 100 Network Mail bu döneme eklenir; ikinci kart gönderilmez</span>}
                   {hasReplacement && <span><Icon name="check" /> Kayıp kartın yerine; profilin ve hizmet süren korunur</span>}
                   {hasBusinessCapacity && <span><Icon name="check" /> Mevcut abonelik dönemi sonuna kadar ek kapasite</span>}
                   <span><Icon name="check" /> Fiziksel kart üretim kaydı oluşturulur</span>

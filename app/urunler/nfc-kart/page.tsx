@@ -26,10 +26,11 @@ const steps = [
 
 const faq = [
   [`${COMMERCIAL_COPY.initialPrice}’ye tam olarak ne dahil?`, "1 adet kişiselleştirilmiş NFC + QR kart, aynı karta bağlı dijital kartvizit, 1 yıllık dijital hizmet ve Türkiye içi ücretsiz kargo dahildir."],
+  [`Bireysel Premium ${COMMERCIAL_COPY.premiumPrice} neden farklı?`, "Premium, bireysel paketteki her şeyi içerir; ayrıca toplantı, sunum, kişi yönetimi ve 100 Network Mail kredisi verir. Kredi ödeme sonrası hesabına yazılır."],
   ["Kart kaç günde hazırlanır?", "Profil ve sipariş bilgileriniz tamamlandıktan sonra kartınız 2 iş günü içinde hazırlanıp kargoya teslim edilir. Kargo firmasının teslim süresi bu süreye dahil değildir."],
   ["Kargo dahil mi?", "Evet. Türkiye içi standart kargo ürün fiyatına dahildir. Şimdilik Türkiye dışına sipariş alınmamaktadır."],
   ["İlk yıl dijital hizmet fiyata dahil mi?", "Evet. Satın alma bedeli dijital kartvizit sayfasının 1 yıllık dijital hizmetini kapsar."],
-  ["Süre dolunca ne olur?", `Mevcut fiziksel kartınızı yeniden satın almadan dijital hizmetinizi ${COMMERCIAL_COPY.renewalPrice}/yıl karşılığında yenileyebilirsiniz. Kartınız ve profil bağlantınız değişmez.`],
+  ["Süre dolunca ne olur?", `Bireysel hizmet ${COMMERCIAL_COPY.renewalPrice}/yıl, Bireysel Premium ${COMMERCIAL_COPY.premiumRenewalPrice}/yıl yenilenir. Yeni kart gönderilmez. Premium’da kullanılmayan Network Mail bir sonraki yıla taşınır.`],
   ["Bilgilerimi kaç kez değiştirebilirim?", "Aktif kullanım süreniz boyunca telefon, unvan, şirket, sosyal medya, web sitesi ve diğer profil bilgilerinizi istediğiniz kadar güncelleyebilirsiniz."],
   ["NFC her telefonda çalışır mı?", "NFC destekli çoğu modern telefonda kartı yaklaştırarak profil açılır. NFC kapalıysa veya cihaz NFC desteklemiyorsa kart üzerindeki QR kod kullanılabilir."],
   ["QR kodum değişir mi?", "Hayır. Kart üzerindeki QR kod ve profil bağlantısı sabit kalır. Sayfadaki bilgiler değişse bile kartı yeniden bastırmanız gerekmez."],
@@ -37,7 +38,14 @@ const faq = [
   ["İkinci veya yedek kart ne kadar?", `Aynı dijital profile bağlı 1 fiziksel NFC + QR ek/yedek kart ${COMMERCIAL_COPY.additionalCardPrice}’dir. Türkiye içi kargo dahildir; yeni profil veya yeni yıllık dijital hizmet süresi başlatmaz.`],
 ];
 
-export default function NfcKartPage() {
+export default async function NfcKartPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ paket?: string | string[] }>;
+}) {
+  const params = await searchParams;
+  const rawPackage = Array.isArray(params.paket) ? params.paket[0] : params.paket;
+  const initialPackage = rawPackage === "premium" ? "premium" : "individual";
   return (
     <main id="main-content" className="nfc-product-page">
       <PublicPageTitle
@@ -52,7 +60,7 @@ export default function NfcKartPage() {
             <span className="nfc-kicker">ÜRÜNÜNÜ SEÇ</span>
             <h2>Yenomi ID<br /><em>NFC + QR Kart</em></h2>
             <p className="nfc-product-hero__body">Kartını telefona yaklaştır veya QR kodunu okut; profilin tarayıcıda açılsın. İletişim bilgilerin değiştiğinde kartı yeniden bastırmadan hesabından güncelle.</p>
-            <NfcPurchasePanel product={NFC_PRODUCT} />
+            <NfcPurchasePanel product={NFC_PRODUCT} initialPackage={initialPackage} />
           </div>
           <div className="nfc-product-hero__visual" aria-label="Yenomi ID NFC kart ve dijital profil">
             <Image src="/images/nfc-kart-hero.png" alt="Yenomi ID NFC kart ve dijital profil" width={1200} height={1200} priority />

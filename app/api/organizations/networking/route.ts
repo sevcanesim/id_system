@@ -1,4 +1,4 @@
-import { assertNetworkDailyCap, debitNetworkMail } from "../../../../lib/commerce/packages";
+import { assertNetworkDailyCap, assertVerifiedNetworkMailSender, debitNetworkMail } from "../../../../lib/commerce/packages";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireOrganizationRole } from "../../../../lib/organizations/authorization";
@@ -179,12 +179,23 @@ export async function POST(request: NextRequest) {
     if (!assertNetworkDailyCap(sentToday ?? 0, 1)) {
       return NextResponse.json({ error: "Günlük Network Mail limiti doldu. İstek kredi düşmez." }, { status: 429 });
     }
+    const sender = assertVerifiedNetworkMailSender({
+      email: actor.email,
+      emailConfirmedAt: actor.emailConfirmedAt,
+    });
+    if (!sender.ok) {
+      const message = sender.reason === "SENDER_EMAIL_UNVERIFIED"
+        ? "Network Mail göndermek için e-posta adresini doğrula. Kredi düşülmedi."
+        : "Gönderen e-posta doğrulanamadı. Kredi düşülmedi.";
+      return NextResponse.json({ error: message, reason: sender.reason }, { status: 403 });
+    }
     const { data: org } = await admin.from("organizations").select("name").eq("id", parsed.data.organizationId).maybeSingle();
     const sent = await sendNetworkingFollowUpEmail({
       to: lead.email,
       organizationName: org?.name || "Yenomi",
       leadName: lead.full_name,
       template: parsed.data.template,
+      replyTo: sender.replyTo,
     });
     if (!sent.sent) {
       const message = sent.reason === "RESEND_API_KEY_MISSING"

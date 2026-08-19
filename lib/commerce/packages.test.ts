@@ -1,15 +1,24 @@
 import { describe, expect, it } from "vitest";
+import { COMMERCIAL_PRICING, COMMERCIAL_SKUS } from "../config/commercial";
 import {
   BUSINESS_SEAT_PACKS,
   CAMPAIGN_MAIL_PACKS,
   CAMPAIGN_MAIL_STAGE,
   CORPORATE_PACKAGE_LADDER,
   INDIVIDUAL_PLAN,
+  INDIVIDUAL_PREMIUM_CHECKOUT,
   INDIVIDUAL_PREMIUM_PLAN,
+  INDIVIDUAL_PREMIUM_RENEWAL_PLAN,
+  INDIVIDUAL_PREMIUM_UPGRADE_PLAN,
   NETWORK_MAIL_CREDIT_PACKS,
   NETWORK_MAIL_PER_SEAT_ANNUAL,
+  NETWORK_MAIL_SENDER_POLICY,
+  applyIndividualNetworkMail,
   assertNetworkDailyCap,
+  assertVerifiedNetworkMailSender,
   debitNetworkMail,
+  individualSubscriptionOffers,
+  isIndividualPremiumPackage,
   networkMailGrant,
   perSeatKurus,
   resolveCorporatePlanCode,
@@ -75,6 +84,41 @@ describe("individual plans", () => {
     expect(INDIVIDUAL_PLAN.networkMailCredits).toBe(0);
     expect(INDIVIDUAL_PREMIUM_PLAN.popular).toBe(true);
   });
+
+  it("prices Premium renewal below year-1 and without a second NFC", () => {
+    expect(INDIVIDUAL_PREMIUM_RENEWAL_PLAN.priceKurus).toBe(59_900);
+    expect(INDIVIDUAL_PREMIUM_RENEWAL_PLAN.nfcCards).toBe(0);
+    expect(INDIVIDUAL_PREMIUM_RENEWAL_PLAN.networkMailCredits).toBe(100);
+    expect(INDIVIDUAL_PREMIUM_RENEWAL_PLAN.priceKurus).toBeLessThan(INDIVIDUAL_PREMIUM_PLAN.priceKurus);
+    expect(INDIVIDUAL_PREMIUM_RENEWAL_PLAN.priceKurus).toBeGreaterThan(COMMERCIAL_PRICING.YENOMI_ID_RENEWAL.priceKurus);
+  });
+
+  it("prices the in-term 799 → Premium upgrade as 1.250 − 799", () => {
+    expect(INDIVIDUAL_PREMIUM_UPGRADE_PLAN.priceKurus).toBe(45_100);
+    expect(INDIVIDUAL_PREMIUM_UPGRADE_PLAN.nfcCards).toBe(0);
+    expect(INDIVIDUAL_PREMIUM_UPGRADE_PLAN.networkMailCredits).toBe(100);
+  });
+
+  it("keeps live catalog SKUs aligned with the package ladder", () => {
+    expect(COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.sku).toBe(COMMERCIAL_SKUS.PREMIUM);
+    expect(COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.priceKurus).toBe(INDIVIDUAL_PREMIUM_PLAN.priceKurus);
+    expect(COMMERCIAL_PRICING.YENOMI_ID_PREMIUM_RENEWAL.priceKurus).toBe(INDIVIDUAL_PREMIUM_RENEWAL_PLAN.priceKurus);
+    expect(COMMERCIAL_PRICING.YENOMI_ID_PREMIUM_UPGRADE.priceKurus).toBe(INDIVIDUAL_PREMIUM_UPGRADE_PLAN.priceKurus);
+    expect(INDIVIDUAL_PREMIUM_CHECKOUT.live).toBe(true);
+  });
+
+  it("offers upgrade only to basic accounts and Premium renewal only to Premium", () => {
+    expect(individualSubscriptionOffers({ signedIn: true, hasEntitlement: true, isPremium: false })).toEqual([
+      "BASIC_RENEWAL",
+      "PREMIUM_UPGRADE",
+    ]);
+    expect(individualSubscriptionOffers({ signedIn: true, hasEntitlement: true, isPremium: true })).toEqual([
+      "PREMIUM_RENEWAL",
+    ]);
+    expect(individualSubscriptionOffers({ signedIn: true, hasEntitlement: false, isPremium: false })).toEqual([]);
+    expect(isIndividualPremiumPackage("INDIVIDUAL_PREMIUM")).toBe(true);
+    expect(isIndividualPremiumPackage("INDIVIDUAL")).toBe(false);
+  });
 });
 
 describe("debitNetworkMail", () => {
@@ -113,6 +157,53 @@ describe("rolloverNetworkMail", () => {
       remaining: 0,
       expired: 37,
     });
+  });
+});
+
+describe("applyIndividualNetworkMail", () => {
+  it("grants 100 credits on first Premium purchase or in-term upgrade", () => {
+    expect(applyIndividualNetworkMail({ remaining: 0, limit: 0, mode: "GRANT", grant: 100 })).toEqual({
+      remaining: 100,
+      limit: 100,
+      expired: 0,
+    });
+  });
+
+  it("rolls unused Premium credits into the next year", () => {
+    expect(applyIndividualNetworkMail({ remaining: 37, limit: 100, mode: "ROLLOVER", grant: 100 })).toEqual({
+      remaining: 137,
+      limit: 100,
+      expired: 0,
+    });
+  });
+
+  it("expires unused credits when Premium is not renewed", () => {
+    expect(applyIndividualNetworkMail({ remaining: 37, limit: 100, mode: "EXPIRE", grant: 0 })).toEqual({
+      remaining: 0,
+      limit: 0,
+      expired: 37,
+    });
+  });
+});
+
+describe("Network Mail sender policy", () => {
+  it("uses the platform From address and a verified actor Reply-To", () => {
+    expect(NETWORK_MAIL_SENDER_POLICY.from).toBe("PLATFORM");
+    expect(NETWORK_MAIL_SENDER_POLICY.replyTo).toBe("VERIFIED_ACTOR_EMAIL");
+    expect(NETWORK_MAIL_SENDER_POLICY.customDomainLive).toBe(false);
+    expect(assertVerifiedNetworkMailSender({
+      email: "ada@example.com",
+      emailConfirmedAt: "2026-01-01T00:00:00.000Z",
+    })).toEqual({ ok: true, replyTo: "ada@example.com" });
+  });
+
+  it("blocks unverified senders and custom From domains", () => {
+    expect(assertVerifiedNetworkMailSender({ email: "ada@example.com", emailConfirmedAt: null }).ok).toBe(false);
+    expect(assertVerifiedNetworkMailSender({
+      email: "ada@example.com",
+      emailConfirmedAt: "2026-01-01T00:00:00.000Z",
+      customFromDomain: "mail.acme.com",
+    })).toEqual({ ok: false, reason: "CUSTOM_SENDING_DOMAIN_NOT_LIVE" });
   });
 });
 

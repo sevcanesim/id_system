@@ -15,8 +15,17 @@ function emailHeader(): string {
   return `<div style="text-align:center;margin-bottom:24px"><img src="${emailPublicSiteUrl}/images/yenomilabs-logo-email.png" alt="Yenomi Labs" width="56" height="56" style="border-radius:50%;display:inline-block"/></div>`;
 }
 
-type MailInput={to:string;subject:string;html:string};
-async function sendMail(input:MailInput){const apiKey=process.env.RESEND_API_KEY;const from=process.env.EMAIL_FROM||"Yenomi ID <noreply@yenomilabs.com>";if(!apiKey)return{sent:false,reason:"RESEND_API_KEY_MISSING" as const};const response=await fetch(RESEND_API_URL,{method:"POST",headers:{Authorization:`Bearer ${apiKey}`,"Content-Type":"application/json"},body:JSON.stringify({from,to:[input.to],subject:input.subject,html:input.html})});if(!response.ok)return{sent:false,reason:`RESEND_${response.status}` as const};return{sent:true as const}}
+type MailInput={to:string;subject:string;html:string;replyTo?:string};
+async function sendMail(input:MailInput){
+  const apiKey=process.env.RESEND_API_KEY;
+  const from=process.env.EMAIL_FROM||"Yenomi ID <noreply@yenomilabs.com>";
+  if(!apiKey)return{sent:false,reason:"RESEND_API_KEY_MISSING" as const};
+  const payload:Record<string,unknown>={from,to:[input.to],subject:input.subject,html:input.html};
+  if(input.replyTo)payload.reply_to=input.replyTo;
+  const response=await fetch(RESEND_API_URL,{method:"POST",headers:{Authorization:`Bearer ${apiKey}`,"Content-Type":"application/json"},body:JSON.stringify(payload)});
+  if(!response.ok)return{sent:false,reason:`RESEND_${response.status}` as const};
+  return{sent:true as const};
+}
 export function sendActivationEmail(input:{to:string;activationUrl:string;orderNumber:string;hoursValid?:number}){const hours=input.hoursValid??168;const validityText=hours%24===0?`${hours/24} gün`:`${hours} saat`;return sendMail({to:input.to,subject:`Yenomi ID hesabını etkinleştir — ${input.orderNumber}`,html:`<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto">${emailHeader()}<h1>Yenomi ID hesabını etkinleştir</h1><p>Ödemen alındı. Dijital sayfa hakkını hesabına bağlamak için aşağıdaki bağlantıyı kullan.</p><p><a href="${input.activationUrl}" style="display:inline-block;padding:14px 20px;background:#17121f;color:white;text-decoration:none;border-radius:10px">Hesabımı etkinleştir</a></p><p>Bu bağlantı ${validityText} geçerlidir.</p><p>Sipariş: <strong>${input.orderNumber}</strong></p></div>`})}
 export function sendOrderReadyEmail(input:{to:string;orderNumber:string;createCardUrl:string}){return sendMail({to:input.to,subject:`Siparişin hesabına tanımlandı — ${input.orderNumber}`,html:`<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto">${emailHeader()}<h1>Yenomi ID hizmetin hazır</h1><p>Ödemen alındı ve Yenomi ID hizmetin hesabına otomatik olarak tanımlandı. Aktivasyon kodu girmen gerekmiyor.</p><p><a href="${input.createCardUrl}" style="display:inline-block;padding:14px 20px;background:#17121f;color:white;text-decoration:none;border-radius:10px">Kartvizit bilgilerimi doldur</a></p><p>Sipariş: <strong>${escapeHtml(input.orderNumber)}</strong></p></div>`})}
 export function sendOrganizationInviteEmail(input:{to:string;inviteUrl:string;organizationName:string}){return sendMail({to:input.to,subject:`${input.organizationName} Yenomi Business daveti`,html:`<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto">${emailHeader()}<h1>${escapeHtml(input.organizationName)} ekibine davet edildin</h1><p>Kurumsal dijital kimliğini oluşturmak ve şirket hesabına katılmak için daveti kabul et.</p><p><a href="${input.inviteUrl}" style="display:inline-block;padding:14px 20px;background:#17121f;color:white;text-decoration:none;border-radius:10px">Daveti kabul et</a></p><p>Bağlantı 7 gün geçerlidir ve tek kullanımlıktır.</p></div>`})}
@@ -30,7 +39,7 @@ export function sendCorporateLeadEmail(input:{id:string;fullName:string;email:st
   });
 }
 
-export function sendNetworkingFollowUpEmail(input:{to:string;organizationName:string;leadName:string;template:"EVENT_BEFORE"|"EVENT_MET"|"OFFER"|"AFTER_MEETING"|"PRESENTATION"|"EVENT_THANKS"|"PRODUCT_INFO"|"CUSTOM"}) {
+export function sendNetworkingFollowUpEmail(input:{to:string;organizationName:string;leadName:string;template:"EVENT_BEFORE"|"EVENT_MET"|"OFFER"|"AFTER_MEETING"|"PRESENTATION"|"EVENT_THANKS"|"PRODUCT_INFO"|"CUSTOM";replyTo?:string}) {
   const org = escapeHtml(input.organizationName);
   const name = escapeHtml(input.leadName);
   const copy = {
@@ -47,6 +56,7 @@ export function sendNetworkingFollowUpEmail(input:{to:string;organizationName:st
     to: input.to,
     subject: copy.subject,
     html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto">${emailHeader()}<h1>${org}</h1>${copy.body}<p>Bu ileti, paylaştığınız iletişim bilgisi üzerine gönderildi.</p></div>`,
+    replyTo: input.replyTo,
   });
 }
 

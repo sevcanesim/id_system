@@ -15,12 +15,14 @@ const swatchClass: Record<NonNullable<ProductVariantOption["color"]>, string> = 
 
 export function ProductVariantSelector({
   label = "Kart rengi",
+  name = "product-variant",
   variants,
   value,
   onChange,
   renderPrice,
 }: {
   label?: ReactNode;
+  name?: string;
   variants: readonly ProductVariantOption[];
   value: string;
   onChange: (variantId: string) => void;
@@ -40,7 +42,7 @@ export function ProductVariantSelector({
               <input
                 className="ds-product-option__input"
                 type="radio"
-                name="product-variant"
+                name={name}
                 value={variant.id}
                 checked={selected}
                 onChange={() => onChange(variant.id)}

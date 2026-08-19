@@ -1422,6 +1422,9 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .enterprise-topbar { min-height:68px; display:flex; align-items:center; justify-content:space-between; padding:0 28px; border-bottom:1px solid var(--border); }
 .enterprise-topbar-actions { display:flex; gap:8px; }
 .enterprise-topbar-account { display:flex; align-items:center; gap:9px; }
+.enterprise-topbar-account > div { min-width:0; display:grid; gap:2px; }
+.enterprise-topbar-account strong,
+.enterprise-topbar-account small { display:block; min-width:0; overflow-wrap:anywhere; }
 .enterprise-dashboard-main > * { min-width:0; }
 .business-shell { min-height:100vh; background:radial-gradient(760px 520px at 82% 8%,rgba(109,61,224,.05),transparent 68%),linear-gradient(180deg,#f8f7f4 0%,#f2f0eb 55%,#ece9e2 100%); }
 .business-console { width:min(calc(100% - 56px),1180px); margin:auto; padding:30px 0 90px; }
@@ -3000,6 +3003,7 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .p9-session-row > div > strong,
 .p11-person i > strong {
   line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .p6-auth-features > li > span > small,
@@ -3011,6 +3015,7 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .p9-session-row > div > span,
 .p11-person i > small {
   line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 
@@ -3649,6 +3654,9 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .p11-person:hover { background: var(--gold-dim); }
 .p11-person:hover i > strong { text-decoration: underline; text-underline-offset: 2px; }
 .p11-person:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 2px; }
+.p11-table td:has(> .p11-person) {
+  min-width: 220px;
+}
 .p11-table td.actions { white-space: nowrap; }
 .p11-table td.actions button {
   min-height: 32px;
@@ -7820,7 +7828,7 @@ body:has(.how-it-works-page) {
 }
 .p10-corporate-platform .enterprise-quick-link:hover { background: rgba(212,180,131,.20); }
 .p10-corporate-platform .enterprise-topbar-account { color: var(--cp-text); }
-.p10-corporate-platform .enterprise-topbar-account > div { min-width: 0; }
+.p10-corporate-platform .enterprise-topbar-account > div { min-width: 0; display: grid; gap: 2px; }
 .p10-corporate-platform .enterprise-topbar-account strong { color: var(--cp-text); font-size: 12px; }
 .p10-corporate-platform .enterprise-topbar-account small { color: var(--cp-text-3); }
 .p10-corporate-platform .enterprise-org-icon {

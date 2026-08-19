@@ -5,6 +5,8 @@ import CorporateHeroPreview from "./CorporateHeroPreview";
 import type { CardAnalytics, Member, MemberCardStatus, Org, PhysicalCard, Template } from "../domain/types";
 import type { CorporatePanelTab } from "../domain/navigation";
 import { CORPORATE_PANEL_TAB_META } from "../domain/navigation";
+import { normalizeOrganizationRole } from "../../../../lib/organizations/permissions";
+import { ROLE_LABELS } from "../../../../lib/organizations/role-matrix";
 
 type Props = {
   org: Org | null | undefined;
@@ -95,6 +97,8 @@ export default function OverviewPanel({
     .slice(0, 5);
   const ownMember = members.find((member) => member.user_id === currentUserId);
   const representative = ownMember || members.find((member) => member.role === "OWNER" && member.status === "ACTIVE") || members.find((member) => member.status === "ACTIVE") || members[0];
+  const organizationRole = normalizeOrganizationRole(org?.role);
+  const organizationRoleLabel = organizationRole ? ROLE_LABELS[organizationRole] : "—";
   const representativeCard = memberCardStatuses.find((item) => item.memberId === representative?.id);
   const overviewSeries = analytics?.byDay?.length ? analytics.byDay : [{ date: new Date().toISOString().slice(0, 10), count: 0 }];
   const hasOverviewData = overviewSeries.some((item) => item.count > 0);
@@ -144,15 +148,7 @@ export default function OverviewPanel({
           <div>
             <small>Aktif kurumsal hesap</small>
             <strong>{org?.organizations?.name || "—"}</strong>
-            <span>
-              {org?.role === "OWNER"
-                ? "Şirket Sahibi"
-                : org?.role === "ADMIN"
-                  ? "Yönetici"
-                  : org?.role === "HR"
-                    ? "İnsan Kaynakları"
-                    : org?.role || "—"}
-            </span>
+            <span>{organizationRoleLabel}</span>
           </div>
           <div>
             <small>Paket / lisans</small>

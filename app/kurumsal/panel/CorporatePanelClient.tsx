@@ -1256,7 +1256,8 @@ export default function CompanyPanel() {
     settings: { title: "Ayarlar", description: "Sık değişmeyen kurumsal yönetim alanlarına ulaş.", icon: "pencil" },
   };
   const openTab = (tab: CorporatePanelTab) => {
-    if (tab === "licenses" && !canManageLicenses) {
+    const allowed = !org || corporateSidebarItems(org.role).some((item) => item.key === tab);
+    if (!allowed) {
       const fallback = departmentManager ? "employees" : "overview";
       setActiveTab(fallback);
       setMobileNavOpen(false);
@@ -1270,11 +1271,14 @@ export default function CompanyPanel() {
   const goToLicenses = () => openTab("licenses");
 
   useEffect(() => {
-    if (!org || activeTab !== "licenses" || canManageLicenses) return;
+    if (!org) return;
+    const allowed = corporateSidebarItems(org.role);
+    if (allowed.length === 0) return;
+    if (allowed.some((item) => item.key === currentTab)) return;
     const fallback = departmentManager ? "employees" : "overview";
     setActiveTab(fallback);
     router.replace(tabRoutes[fallback]);
-  }, [activeTab, canManageLicenses, departmentManager, org, router]);
+  }, [currentTab, departmentManager, org, router]);
   const signOut = async () => {
     const supabase = getSupabaseBrowserClient();
     if (supabase) await supabase.auth.signOut();

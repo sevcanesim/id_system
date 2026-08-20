@@ -37,16 +37,31 @@ export default function OrderResultGate() {
     }
     let active = true;
     setState("checking");
-    fetch(`/api/commerce/orders/status?order=${encodeURIComponent(orderId)}`, { cache: "no-store" })
-      .then((response) => (response.ok ? response.json() : { paid: false }))
-      .then((data: { paid?: boolean; activationRequired?: boolean }) => {
+
+    async function verifyPaid() {
+      const statusResponse = await fetch(`/api/commerce/orders/status?order=${encodeURIComponent(orderId!)}`, { cache: "no-store" });
+      const status = await (statusResponse.ok ? statusResponse.json() : { paid: false });
+      return status as { paid?: boolean; activationRequired?: boolean };
+    }
+
+    void (async () => {
+      try {
+        let data = await verifyPaid();
+        if (!data?.paid) {
+          await fetch("/api/payments/iyzico/recover", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ orderId }),
+          });
+          data = await verifyPaid();
+        }
         if (!active) return;
         setState(data?.paid ? "verified" : "invalid");
         setActivationRequired(Boolean(data?.activationRequired));
-      })
-      .catch(() => {
+      } catch {
         if (active) setState("invalid");
-      });
+      }
+    })();
     return () => {
       active = false;
     };

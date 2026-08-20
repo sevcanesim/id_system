@@ -53,6 +53,13 @@ export function isDigitalOnlySku(sku: string | undefined): boolean {
   return isRenewalSku(sku) || isPremiumUpgradeSku(sku);
 }
 
+/** iyzico still requires a billing street; digital carts never collect one. */
+export function digitalServiceBillingAddress(city: string, existingAddress = ""): string {
+  const trimmed = existingAddress.trim();
+  if (trimmed.length >= 8) return trimmed;
+  return `Dijital hizmet faturası — ${city.trim() || "Türkiye"}`;
+}
+
 export const INDIVIDUAL_RENEWAL_MESSAGE = "Kartınız sizin. Yıllık yenilemede yeni kart almanız gerekmez.";
 export const INDIVIDUAL_PREMIUM_RENEWAL_MESSAGE = "Kartınız sizin. Premium yenilemede yeni kart gönderilmez. Kullanılmayan Network Mail krediniz bir sonraki yıla taşınır.";
 export const INDIVIDUAL_PREMIUM_UPGRADE_MESSAGE = "Mevcut kartınız ve süreniz korunur. 100 Network Mail bu dönem için eklenir; ikinci kart gönderilmez.";

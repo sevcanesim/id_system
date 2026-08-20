@@ -58,6 +58,8 @@ export default function AdminPage() {
   const [reconciliationMessage, setReconciliationMessage] = useState("");
   const [resolutionNotes, setResolutionNotes] = useState<Record<string, string>>({});
   const [resolvingIssue, setResolvingIssue] = useState<string | null>(null);
+  const [retrievingOrderId, setRetrievingOrderId] = useState<string | null>(null);
+  const [reconcilingPaid, setReconcilingPaid] = useState(false);
 
   const [accounts, setAccounts] = useState<CorporateAccount[]>([]);
   const [plans, setPlans] = useState<BusinessPlan[]>([]);
@@ -137,6 +139,36 @@ export default function AdminPage() {
       else { setReconciliationMessage("Mutabakat kaydı çözümlendi ve denetim günlüğüne işlendi."); await loadReconciliation(); }
     } catch { setReconciliationMessage("Mutabakat kaydı güncellenirken sunucuya ulaşılamadı."); }
     finally { setResolvingIssue(null); }
+  }
+
+  async function retrieveIyzico(orderId: string) {
+    const token = await getToken(); if (!token) return;
+    setRetrievingOrderId(orderId); setReconciliationMessage("");
+    try {
+      const response = await fetch("/api/admin/commerce/reconciliation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ action: "retrieve_iyzico", orderId }),
+      });
+      const result = await response.json();
+      if (!response.ok) setReconciliationMessage(result.error ?? "iyzico çekimi tamamlanamadı.");
+      else if (result.paid) { setReconciliationMessage("iyzico ödemesi doğrulandı ve sipariş işlendi."); await loadReconciliation(); }
+      else if (result.pending) setReconciliationMessage("iyzico henüz kesin sonuç vermedi. Deneme PENDING bırakıldı.");
+      else { setReconciliationMessage("iyzico ödemeyi onaylamadı."); await loadReconciliation(); }
+    } catch { setReconciliationMessage("iyzico çekimi sırasında sunucuya ulaşılamadı."); }
+    finally { setRetrievingOrderId(null); }
+  }
+
+  async function runPaidReconciliation() {
+    const token = await getToken(); if (!token) return;
+    setReconcilingPaid(true); setReconciliationMessage("");
+    try {
+      const response = await fetch("/api/admin/commerce/reconciliation", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+      const result = await response.json();
+      if (!response.ok) setReconciliationMessage(result.error ?? "Ödenmiş sipariş onarımı çalıştırılamadı.");
+      else { setReconciliationMessage("Kayıtlı PAID siparişler onarıldı."); await loadReconciliation(); }
+    } catch { setReconciliationMessage("Ödenmiş sipariş onarımı için sunucuya ulaşılamadı."); }
+    finally { setReconcilingPaid(false); }
   }
 
   async function provisionOrganization(event: FormEvent) {
@@ -278,8 +310,11 @@ export default function AdminPage() {
           <article><small>Yetim PAID attempt</small><b>{reconciliationSummary.orphanPaidAttempts}</b></article>
         </div>
         <div className="admin-reconciliation-intro">
-          <div><h2>Ödeme → sipariş → entitlement mutabakatı</h2><p>Ödeme başarı durumunu fulfillment sorunlarından ayırır. Bu ekrandaki çözüm işlemi ödeme durumunu değiştirmez ve yeniden tahsilat başlatmaz.</p></div>
-          <button type="button" className="secondary" onClick={() => void loadReconciliation()} disabled={reconciliationLoading}>{reconciliationLoading ? "Kontrol ediliyor…" : "Yeniden Kontrol Et"}</button>
+          <div><h2>Ödeme → sipariş → entitlement mutabakatı</h2><p>Ödeme başarı durumunu fulfillment sorunlarından ayırır. Çözüldü işareti ödeme durumunu değiştirmez. iyzico’dan çek, callback gelmemiş PENDING denemeyi gerçek retrieve ile işler.</p></div>
+          <div>
+            <button type="button" className="secondary" onClick={() => void loadReconciliation()} disabled={reconciliationLoading}>{reconciliationLoading ? "Kontrol ediliyor…" : "Yeniden Kontrol Et"}</button>
+            <button type="button" className="secondary" onClick={() => void runPaidReconciliation()} disabled={reconcilingPaid}>{reconcilingPaid ? "Onarılıyor…" : "Ödenmiş siparişleri onar"}</button>
+          </div>
         </div>
         {reconciliationMessage && <div className="auth-message" role="status">{reconciliationMessage}</div>}
         {reconciliationLoading && reconciliationRows.length === 0 ? <LoadingState label="Ödeme mutabakatı kontrol ediliyor" /> : (
@@ -291,6 +326,7 @@ export default function AdminPage() {
                   <div className="admin-status-controls"><em className="payment-badge payment-failed">İNCELEME GEREKİYOR</em><span>{(row.total_kurus / 100).toLocaleString("tr-TR")} {row.currency}</span></div>
                 </div>
                 <div className="reconciliation-flags" aria-label="Mutabakat uyarıları">{row.flags.map((flag) => <span key={flag}>{flag}</span>)}</div>
+                {row.flags.includes("PENDING_ATTEMPT_STALE") && <div className="admin-order-actions"><button type="button" onClick={() => void retrieveIyzico(row.id)} disabled={retrievingOrderId === row.id}>{retrievingOrderId === row.id ? "iyzico’dan çekiliyor…" : "iyzico’dan çek"}</button></div>}
                 <div className="admin-order-grid">
                   <div><small>Sipariş durumu</small><b>{row.status}</b><span>{row.paid_at ? `Ödeme tarihi: ${new Date(row.paid_at).toLocaleString("tr-TR")}` : "Ödeme tarihi yok"}</span></div>
                   <div><small>Payment attempt</small><b>{row.paymentAttempts[0]?.status ?? "YOK"}</b><span>{row.paymentAttempts[0]?.provider_payment_id ?? row.paymentAttempts[0]?.error_code ?? "Sağlayıcı referansı yok"}</span></div>

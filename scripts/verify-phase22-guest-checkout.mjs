@@ -4,9 +4,12 @@ const api = readFileSync("app/api/commerce/checkout/route.ts", "utf8");
 const page = readFileSync("app/checkout/page.tsx", "utf8");
 const cart = readFileSync("app/sepet/page.tsx", "utf8");
 const callback = readFileSync("app/api/payments/iyzico/callback/route.ts", "utf8");
+const settle = readFileSync("lib/payments/settle-commerce-payment.ts", "utf8");
+const recover = readFileSync("app/api/payments/iyzico/recover/route.ts", "utf8");
 const status = readFileSync("app/api/commerce/orders/status/route.ts", "utf8");
 const success = readFileSync("app/odeme/basarili/OrderResultGate.tsx", "utf8");
 const activationAction = readFileSync("app/odeme/basarili/ActivationAction.tsx", "utf8");
+const paymentFlow = `${callback}\n${settle}`;
 
 const apiContracts = [
   "let authenticatedUserId: string | null = null;",
@@ -42,7 +45,17 @@ const callbackContracts = [
   'payload?.code === "ACCOUNT_REQUIRED"',
 ];
 for (const token of callbackContracts) {
-  if (!callback.includes(token)) throw new Error(`Missing guest activation callback contract: ${token}`);
+  if (!paymentFlow.includes(token)) throw new Error(`Missing guest activation callback contract: ${token}`);
+}
+
+if (!callback.includes("settleCommercePaymentByProviderToken") || !recover.includes("settlePendingCommercePaymentByOrderId")) {
+  throw new Error("Callback and recover must share the commerce settlement path.");
+}
+if (status.includes("retrieveCheckout") || status.includes("settlePendingCommercePaymentByOrderId")) {
+  throw new Error("Order status GET must stay side-effect free.");
+}
+if (!success.includes("/api/payments/iyzico/recover")) {
+  throw new Error("Success page must recover a missed iyzico callback without treating GET status as settlement.");
 }
 
 if (!status.includes("activationRequired")) {
@@ -55,8 +68,8 @@ if (!activationAction.includes("/api/commerce/activation/resend")) {
   throw new Error("Guest success CTA must offer activation resend.");
 }
 const middleware = readFileSync("middleware.ts", "utf8");
-if (!middleware.includes('"/checkout"') || !middleware.includes('"/aktivasyon"') || !middleware.includes('"/api/auth/session"')) {
-  throw new Error("Middleware must match checkout, activation, and auth session cookie routes.");
+if (!middleware.includes('"/checkout"') || !middleware.includes('"/aktivasyon"') || !middleware.includes('"/api/auth/session"') || !middleware.includes('"/api/payments/iyzico/recover"')) {
+  throw new Error("Middleware must match checkout, activation, auth session, and iyzico recover routes.");
 }
 const session = readFileSync("app/api/auth/session/route.ts", "utf8");
 if (!session.includes("httpOnly: true") || !session.includes("auth.getUser")) {

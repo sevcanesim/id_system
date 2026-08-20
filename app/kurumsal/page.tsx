@@ -1,5 +1,6 @@
 import { Icon } from "../icons";
 import AddToCartButton from "../components/AddToCartButton";
+import CorporatePackPicker from "./CorporatePackPicker";
 import {
   CAMPAIGN_MAIL_PACKS,
   CORPORATE_PACKAGE_LADDER,
@@ -55,6 +56,17 @@ export default async function CorporatePage({
 }) {
   const params = await searchParams;
   const selectedPlan = Array.isArray(params.plan) ? params.plan[0] : params.plan;
+  const packOptions = CORPORATE_PACKAGE_LADDER.map((plan) => ({
+    code: plan.code,
+    name: plan.name,
+    seats: plan.seats,
+    priceKurus: plan.priceKurus,
+    perSeatKurus: perSeatKurus(plan.priceKurus, plan.seats),
+    networkMail: networkMailGrant(plan.seats),
+    popular: "popular" in plan && Boolean(plan.popular),
+    checkoutLive: corporateCheckoutLive(plan.seats),
+    sku: corporatePackageSku(plan.code),
+  }));
   const capabilities = [
     { icon: "users" as const, title: "Toplu Yönetim", text: "Çalışan ve kart tek panelde. Yeni kişi dakikalar içinde yayında." },
     { icon: "building" as const, title: "Marka Kontrolü", text: "Logo, renk, şablon. Dağınık kartvizit kalmaz." },
@@ -134,56 +146,64 @@ export default async function CorporatePage({
           <h2 id="business-pricing-title">Kişi sayısı artınca kişi başı düşer.</h2>
           <p>Her pakette NFC kart + 1 yıl üyelik + Türkiye içi ücretsiz kargo birlikte düşünülür. Network Mail kişi başı 100 kredidir; 10 kişi 5 kişiyle aynı fiyat olmaz.</p>
         </div>
-        <div className="corporate-pack-table-wrap">
-          <table className="corporate-pack-table">
-            <caption className="sr-only">Kurumsal paket merdiveni</caption>
-            <thead>
-              <tr>
-                <th scope="col">Paket</th>
-                <th scope="col">Kullanıcı</th>
-                <th scope="col">NFC kart</th>
-                <th scope="col">Network Mail</th>
-                <th scope="col">Kişi başı</th>
-                <th scope="col">Yıllık fiyat</th>
-                <th scope="col"><span className="sr-only">Aksiyon</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              {CORPORATE_PACKAGE_LADDER.map((plan) => (
-                <tr key={plan.code} className={"popular" in plan && plan.popular ? "is-popular" : undefined}>
-                  <th scope="row">
-                    {plan.name}
-                    {"popular" in plan && plan.popular ? <span className="corporate-pack-badge">Öne çıkan</span> : null}
-                  </th>
-                  <td>{plan.seats}</td>
-                  <td>{plan.seats}</td>
-                  <td>{networkMailGrant(plan.seats).toLocaleString("tr-TR")}</td>
-                  <td>{formatTryFromKurus(perSeatKurus(plan.priceKurus, plan.seats))}</td>
-                  <td><strong>{formatTryFromKurus(plan.priceKurus)}</strong></td>
-                  <td>
-                    {corporateCheckoutLive(plan.seats) ? (
-                      <AddToCartButton
-                        productId={CORPORATE_PACKAGE_PRODUCT_SLUG}
-                        variantSku={corporatePackageSku(plan.code)}
-                        kind="BUSINESS_CARD"
-                        name={plan.name}
-                        unitPriceKurus={plan.priceKurus}
-                        label="Sepete Ekle"
-                        appearance="secondary"
-                        className={"popular" in plan && plan.popular ? "corporate-plan-link" : "corporate-plan-text"}
-                        configuration={{ packageCode: plan.code, seatCount: plan.seats }}
-                      />
-                    ) : (
-                      <a href={`/kurumsal?plan=${plan.code}#teklif`} className="corporate-plan-text">
-                        Teklif Al
-                      </a>
-                    )}
-                  </td>
+        <CorporatePackPicker
+          packs={packOptions}
+          productId={CORPORATE_PACKAGE_PRODUCT_SLUG}
+          initialCode={selectedPlan}
+        />
+        <details className="corporate-pack-details">
+          <summary>Tüm paket merdivenini tablo olarak gör</summary>
+          <div className="corporate-pack-table-wrap">
+            <table className="corporate-pack-table">
+              <caption className="sr-only">Kurumsal paket merdiveni</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Paket</th>
+                  <th scope="col">Kullanıcı</th>
+                  <th scope="col">NFC kart</th>
+                  <th scope="col">Network Mail</th>
+                  <th scope="col">Kişi başı</th>
+                  <th scope="col">Yıllık fiyat</th>
+                  <th scope="col"><span className="sr-only">Aksiyon</span></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {CORPORATE_PACKAGE_LADDER.map((plan) => (
+                  <tr key={plan.code} className={"popular" in plan && plan.popular ? "is-popular" : undefined}>
+                    <th scope="row">
+                      {plan.name}
+                      {"popular" in plan && plan.popular ? <span className="corporate-pack-badge">Öne çıkan</span> : null}
+                    </th>
+                    <td>{plan.seats}</td>
+                    <td>{plan.seats}</td>
+                    <td>{networkMailGrant(plan.seats).toLocaleString("tr-TR")}</td>
+                    <td>{formatTryFromKurus(perSeatKurus(plan.priceKurus, plan.seats))}</td>
+                    <td><strong>{formatTryFromKurus(plan.priceKurus)}</strong></td>
+                    <td>
+                      {corporateCheckoutLive(plan.seats) ? (
+                        <AddToCartButton
+                          productId={CORPORATE_PACKAGE_PRODUCT_SLUG}
+                          variantSku={corporatePackageSku(plan.code)}
+                          kind="BUSINESS_CARD"
+                          name={plan.name}
+                          unitPriceKurus={plan.priceKurus}
+                          label="Sepete Ekle"
+                          appearance="secondary"
+                          className={"popular" in plan && plan.popular ? "corporate-plan-link" : "corporate-plan-text"}
+                          configuration={{ packageCode: plan.code, seatCount: plan.seats }}
+                        />
+                      ) : (
+                        <a href={`/kurumsal?plan=${plan.code}#teklif`} className="corporate-plan-text">
+                          Teklif Al
+                        </a>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
         <p className="corporate-pack-note">Tüm paketlerde: 1 yıllık kullanım + NFC kart + ücretsiz kargo. Kullanılmayan Network Mail kredisi paket yenilenirse devreder; yenilenmezse yanar.</p>
         <div className="corporate-pricing-grid corporate-pricing-grid--compact">
           <article className="is-featured">

@@ -210,7 +210,7 @@ export default function NfcOrderPage() {
           productSlug: NFC_PRODUCT.slug,
           variantSku: NFC_PRODUCT.defaultOfferSku,
           quantity: form.quantity,
-          configuration: { cardColor: form.cardColor, printName: form.printName.trim(), printTitle: form.printTitle.trim(), profileId, profileSlug: slug || null },
+          configuration: { cardColor: "BLACK", printName: form.printName.trim(), printTitle: form.printTitle.trim(), profileId, profileSlug: slug || null },
         }],
         customer: {
           name: form.printName.trim() || "Yenomi Müşteri",
@@ -326,10 +326,7 @@ export default function NfcOrderPage() {
         </nav>
 
         {activeStep === 1 && <section className="wizard-pane">
-          <div className="pane-heading"><span>01</span><div><h3>Kartını seç</h3><p>Rengi ve adedi belirle.</p></div></div>
-          <div className="premium-color-grid" role="group" aria-label="Kart rengi seç">
-            {(["BLACK","WHITE","PURPLE"] as const).map((color) => <button type="button" key={color} aria-pressed={form.cardColor===color} className={`${color.toLowerCase()} ${form.cardColor===color?"selected":""}`} onClick={()=>update("cardColor",color)}><i><b>YENOMI ID</b><Icon name="nfc" /></i><strong>{color==="BLACK"?"Siyah":color==="WHITE"?"Beyaz":"Yenomi Mor"}</strong><small>{color==="BLACK"?"Mat ve güçlü":color==="WHITE"?"Sade ve temiz":"Marka rengi"}</small>{form.cardColor===color&&<em><Icon name="check" /></em>}</button>)}
-          </div>
+          <div className="pane-heading"><span>01</span><div><h3>Kartını seç</h3><p>Siyah mat NFC + QR. Adedi belirle.</p></div></div>
           <div className="quantity-premium"><div><strong>Adet</strong><small>Her kart aynı Yenomi ID'ye bağlanır.</small></div><div><button type="button" onClick={()=>update("quantity",Math.max(1,form.quantity-1))}>−</button><b>{form.quantity}</b><button type="button" onClick={()=>update("quantity",Math.min(100,form.quantity+1))}>+</button></div></div>
         </section>}
 

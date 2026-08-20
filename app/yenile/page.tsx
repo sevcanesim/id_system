@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import UserPanelShell from "../components/UserPanelShell";
 import AddToCartButton from "../components/AddToCartButton";
 import { Icon } from "../icons";
@@ -137,6 +138,11 @@ export default function RenewalPage() {
                 </div>
               )}
             </div>
+            {isPremium && (
+              <div className="p9-service-actions">
+                <Link className="ds-button ds-button--primary" href="/leadler">Leadleri ve mailleri aç</Link>
+              </div>
+            )}
           </Card>
           {offers.map((offerId) => {
             const offer = OFFER_COPY[offerId];

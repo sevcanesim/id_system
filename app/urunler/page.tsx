@@ -23,7 +23,7 @@ import { COMMERCIAL_PRICING, COMMERCIAL_SKUS } from "../../lib/config/commercial
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Dijital Kartvizit",
-  description: "799 TL bireysel NFC + QR kart. Premium 1.250 TL. Yedek kart 399 TL. Unvanın değişince baskı yok. Ekip için kurumsal paketler ayrı.",
+  description: "NFC + QR dijital kartvizit. Unvanın değişince kartı yeniden bastırma. Bireysel, Premium ve yedek kart seçenekleri.",
 };
 
 export default async function ProductsPage() {
@@ -43,7 +43,7 @@ export default async function ProductsPage() {
         <PublicPageTitle
           kicker="YENOMI ID · DİJİTAL KARTVİZİT"
           title={<>Kartın sende kalsın.<br /><em>Profilin her an güncel.</em></>}
-          description="799 TL bireysel NFC + QR. Premium 1.250 TL ile toplantı, sunum ve 100 Network Mail. Yedek kart 399 TL. Ekip için 100 kişiye kadar sepete ekle."
+          description="NFC + QR kartın sende kalır. Unvanın değişince baskı yok; canlı profil her tanışmada güncel açılır."
           className="public-page-title--catalog"
         />
         <section className="products-single-hero" aria-labelledby="products-title">

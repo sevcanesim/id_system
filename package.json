@@ -116,6 +116,7 @@
     "verify:phase21:product-variant": "node scripts/verify-phase21-product-variant-ux.mjs",
     "verify:phase22:guest-checkout": "node scripts/verify-phase22-guest-checkout.mjs",
     "verify:http-only-session": "node scripts/verify-http-only-supabase-session.mjs",
+    "verify:network-mail-spend": "node scripts/verify-network-mail-spend.mjs",
     "verify:product-engineering": "node scripts/verify-product-engineering-contract.mjs",
     "verify:runtime-prerequisites": "node scripts/verify-runtime-prerequisites.mjs",
     "verify:runtime-qualification": "node scripts/verify-runtime-qualification.mjs",

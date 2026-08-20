@@ -56,14 +56,16 @@ export default function NetworkingPanel({
   view,
   organizationId,
   token,
-  members,
-  memberCardStatuses,
+  members = [],
+  memberCardStatuses = [],
+  variant = "organization",
 }: {
   view: View;
-  organizationId: string;
+  organizationId?: string;
   token: () => Promise<string | null>;
-  members: Member[];
-  memberCardStatuses: MemberCardStatus[];
+  members?: Member[];
+  memberCardStatuses?: MemberCardStatus[];
+  variant?: "organization" | "individual";
 }) {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -80,12 +82,15 @@ export default function NetworkingPanel({
 
   async function load() {
     const access = await token();
-    if (!access || !organizationId) {
+    if (!access || (variant === "organization" && !organizationId)) {
       setLoaded(true);
       return;
     }
     try {
-      const response = await fetch(`/api/organizations/networking?organizationId=${encodeURIComponent(organizationId)}`, {
+      const path = variant === "individual"
+        ? "/api/networking/inbox"
+        : `/api/organizations/networking?organizationId=${encodeURIComponent(organizationId || "")}`;
+      const response = await fetch(path, {
         headers: { authorization: `Bearer ${access}` },
         cache: "no-store",
       });
@@ -110,7 +115,7 @@ export default function NetworkingPanel({
   useEffect(() => {
     setLoaded(false);
     void load();
-  }, [organizationId, view]);
+  }, [organizationId, view, variant]);
 
   async function post(body: Record<string, unknown>) {
     const access = await token();
@@ -118,10 +123,10 @@ export default function NetworkingPanel({
     setBusy(true);
     setMessage("");
     try {
-      const response = await fetch("/api/organizations/networking", {
+      const response = await fetch(variant === "individual" ? "/api/networking/inbox" : "/api/organizations/networking", {
         method: "POST",
         headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
-        body: JSON.stringify({ organizationId, ...body }),
+        body: JSON.stringify(variant === "individual" ? body : { organizationId, ...body }),
       });
       const payload = await response.json();
       if (!response.ok) setMessage(payload.error || "İşlem tamamlanamadı.");
@@ -155,7 +160,9 @@ export default function NetworkingPanel({
           <h2 id="p11-networking-title">{view === "leads" ? "Leadler" : view === "events" ? "Etkinlikler" : "Görüşmeler"}</h2>
           <p>
             {view === "leads"
-              ? "NFC/QR sonrası kişi kartın sonundaki ‘İletişimde Kalalım’ formundan buraya düşer. Gönderen Yenomi ID’dir; yanıtlar doğrulanmış e-postanıza gelir. ‘Tanıştığımıza memnun oldum’ 1 Network Mail kredisi harcar; Campaign Mail bu bakiyeden düşmez."
+              ? variant === "individual"
+                ? "NFC/QR sonrası kişi kartının sonundaki ‘İletişimde Kalalım’ formundan buraya düşer. Gönderen Yenomi ID’dir; yanıtlar doğrulanmış e-postana gelir. ‘Tanıştığımıza memnun oldum’ 1 Network Mail kredisi harcar."
+                : "NFC/QR sonrası kişi kartın sonundaki ‘İletişimde Kalalım’ formundan buraya düşer. Gönderen Yenomi ID’dir; yanıtlar doğrulanmış e-postanıza gelir. ‘Tanıştığımıza memnun oldum’ 1 Network Mail kredisi harcar; Campaign Mail bu bakiyeden düşmez."
               : view === "events"
                 ? "Etkinlik QR’si kişi URL’sini değiştirmez. /e/{id} aynı dijital kartı açar."
                 : "Yüz yüze talepler lokasyon ve ekip uygunluğuna göre planlanır. GPS kullanılmaz."}
@@ -168,11 +175,18 @@ export default function NetworkingPanel({
         </div>
       </header>
       {message && <p className="p11-networking-message" role="status">{message}</p>}
+      {loaded && view === "leads" && credits < 1 && (
+        <p className="p11-networking-message" role="status">
+          {variant === "individual"
+            ? "Mail göndermek için Bireysel Premium Network Mail kredisi gerekir. Kredi /yenile ekranından kontrol edilir."
+            : "Network Mail bakiyesi yok. Yeni kredi şirket lisansından tanımlanır."}
+        </p>
+      )}
       {!loaded && <LoadingState label={view === "leads" ? "Leadler yükleniyor" : view === "events" ? "Etkinlikler yükleniyor" : "Görüşmeler yükleniyor"} />}
 
       {loaded && view === "leads" && (
         leads.length === 0 ? (
-          <EmptyState compact icon="users" title="Henüz networking lead’i yok" description="QR veya NFC ile açılan kartın sonundaki paylaş / görüşme talebi buraya düşer. /kurumsal satış formu bu listeye yazılmaz." action={{ href: "/kurumsal/panel/etkinlikler", label: "Etkinlik QR’si oluştur" }} />
+          <EmptyState compact icon="users" title="Henüz networking lead’i yok" description={variant === "individual" ? "QR veya NFC ile açılan kartının sonundaki paylaş / görüşme talebi buraya düşer." : "QR veya NFC ile açılan kartın sonundaki paylaş / görüşme talebi buraya düşer. /kurumsal satış formu bu listeye yazılmaz."} action={variant === "individual" ? { href: "/kartim", label: "Kartımı aç" } : { href: "/kurumsal/panel/etkinlikler", label: "Etkinlik QR’si oluştur" }} />
         ) : (
           <div className="p11-networking-list">
             {leads.map((lead) => {
@@ -200,7 +214,7 @@ export default function NetworkingPanel({
                     >
                       {FOLLOW_UP_SCENARIOS.map((scenario) => <option key={scenario.code} value={scenario.code}>{scenario.label}</option>)}
                     </select>
-                    <button type="button" disabled={busy} onClick={() => void post({ action: "send_followup", leadId: lead.id, template: templates[lead.id] || "EVENT_MET" })}>Mail Gönder</button>
+                    <button type="button" disabled={busy || credits < 1} onClick={() => void post({ action: "send_followup", leadId: lead.id, template: templates[lead.id] || "EVENT_MET" })}>Mail Gönder</button>
                   </div>
                 </article>
               );

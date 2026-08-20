@@ -8,8 +8,8 @@ import {
 import { consumeDistributedRateLimit, requestIp } from "./lib/security/rate-limit";
 
 const AUTH_COOKIE = ACCESS_COOKIE;
-const PROTECTED_PAGES = ["/admin", "/kurumsal/panel", "/siparislerim", "/kartim", "/kartlarim", "/olustur", "/yenile", "/ayarlar", "/istatistikler"];
-const PRIVATE_OR_PROFILE_PREFIXES = ["/admin", "/dashboard", "/giris", "/hesabim", "/kartim", "/kartlarim", "/siparisler", "/siparislerim", "/olustur", "/aktivasyon", "/checkout", "/odeme", "/sepet", "/kurumsal/panel", "/kurumsal/davet", "/p", "/e", "/qr", "/api"];
+const PROTECTED_PAGES = ["/admin", "/kurumsal/panel", "/siparislerim", "/kartim", "/kartlarim", "/olustur", "/yenile", "/ayarlar", "/istatistikler", "/leadler"];
+const PRIVATE_OR_PROFILE_PREFIXES = ["/admin", "/dashboard", "/giris", "/hesabim", "/kartim", "/kartlarim", "/siparisler", "/siparislerim", "/olustur", "/aktivasyon", "/checkout", "/odeme", "/sepet", "/leadler", "/kurumsal/panel", "/kurumsal/davet", "/p", "/e", "/qr", "/api"];
 
 type LimitRule = { limit: number; windowMs: number; scope: string };
 
@@ -26,6 +26,7 @@ function ruleFor(pathname: string, method: string): LimitRule | null {
   if (pathname === "/api/organizations/invites" && method !== "GET") return { limit: 10, windowMs: 60_000, scope: "organization-invites" };
   if (pathname === "/api/payments/iyzico/checkout") return { limit: 3, windowMs: 60_000, scope: "legacy-checkout" };
   if (pathname === "/api/payments/iyzico/recover") return { limit: 8, windowMs: 60_000, scope: "iyzico-recover" };
+  if (pathname === "/api/networking/inbox" && method !== "GET") return { limit: 12, windowMs: 60_000, scope: "network-mail-inbox" };
   return null;
 }
 
@@ -78,7 +79,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/admin/:path*", "/kurumsal/panel/:path*", "/siparislerim/:path*", "/kartim/:path*", "/kartlarim/:path*", "/olustur/:path*", "/yenile/:path*", "/ayarlar/:path*", "/istatistikler/:path*",
-    "/giris", "/hesabim", "/hesabim/:path*", "/sepet", "/aktivasyon", "/aktivasyon/:path*", "/checkout", "/checkout/:path*", "/odeme/:path*", "/api/:path*", "/p/:path*", "/e/:path*", "/qr/:path*", "/api/location/reverse", "/api/commerce/checkout", "/api/commerce/activate", "/api/commerce/claim", "/api/commerce/activation/resend", "/api/commerce/entitlements", "/api/organizations/members", "/api/organizations/invites", "/api/payments/iyzico/checkout", "/api/payments/iyzico/recover", "/api/auth/session",
+    "/admin/:path*", "/kurumsal/panel/:path*", "/siparislerim/:path*", "/kartim/:path*", "/kartlarim/:path*", "/olustur/:path*", "/yenile/:path*", "/ayarlar/:path*", "/istatistikler/:path*", "/leadler", "/leadler/:path*",
+    "/giris", "/hesabim", "/hesabim/:path*", "/sepet", "/aktivasyon", "/aktivasyon/:path*", "/checkout", "/checkout/:path*", "/odeme/:path*", "/api/:path*", "/p/:path*", "/e/:path*", "/qr/:path*", "/api/location/reverse", "/api/commerce/checkout", "/api/commerce/activate", "/api/commerce/claim", "/api/commerce/activation/resend", "/api/commerce/entitlements", "/api/organizations/members", "/api/organizations/invites", "/api/payments/iyzico/checkout", "/api/payments/iyzico/recover", "/api/networking/inbox", "/api/auth/session",
   ],
 };

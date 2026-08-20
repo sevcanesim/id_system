@@ -30,6 +30,7 @@ describe("INDIVIDUAL_SIDEBAR_CONFIG", () => {
       ["card", "/kartim", "Dijital Kart", "KİMLİK"],
       ["edit", "/olustur", "Kimlik Stüdyosu", "KİMLİK"],
       ["analytics", "/istatistikler", "İstatistikler", "İÇGÖRÜLER"],
+      ["leads", "/leadler", "Network Mail", "İÇGÖRÜLER"],
       ["orders", "/siparislerim", "Siparişlerim", "HESAP"],
       ["subscription", "/yenile", "Hizmet", undefined],
       ["settings", "/ayarlar", "Ayarlar", undefined],

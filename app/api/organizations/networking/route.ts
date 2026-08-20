@@ -1,10 +1,9 @@
-import { assertNetworkDailyCap, assertVerifiedNetworkMailSender, debitNetworkMail } from "../../../../lib/commerce/packages";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireOrganizationRole } from "../../../../lib/organizations/authorization";
 import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 import { LEAD_STATUSES, scoreLabel } from "../../../../lib/networking/catalog";
-import { sendNetworkingFollowUpEmail } from "../../../../lib/email/resend";
+import { countMailSentToday, NETWORK_FOLLOWUP_TEMPLATES, sendDebitedNetworkFollowUp } from "../../../../lib/networking/follow-up";
 import { createOpaquePublicId } from "../../../../lib/public-card/urls";
 
 export const runtime = "nodejs";
@@ -26,22 +25,11 @@ const createLinkSchema = z.object({
   profileId: z.string().uuid(),
 });
 
-const FOLLOWUP_TEMPLATES = [
-  "EVENT_BEFORE",
-  "EVENT_MET",
-  "OFFER",
-  "AFTER_MEETING",
-  "PRESENTATION",
-  "EVENT_THANKS",
-  "PRODUCT_INFO",
-  "CUSTOM",
-] as const;
-
 const followUpSchema = z.object({
   action: z.literal("send_followup"),
   organizationId: z.string().uuid(),
   leadId: z.string().uuid(),
-  template: z.enum(FOLLOWUP_TEMPLATES).default("EVENT_MET"),
+  template: z.enum(NETWORK_FOLLOWUP_TEMPLATES).default("EVENT_MET"),
 });
 
 const meetingSchema = z.object({
@@ -148,79 +136,25 @@ export async function POST(request: NextRequest) {
     const admin = getSupabaseAdminClient();
     const { data: lead } = await admin.from("networking_leads").select("*").eq("id", parsed.data.leadId).eq("organization_id", parsed.data.organizationId).maybeSingle();
     if (!lead) return NextResponse.json({ error: "Lead bulunamadı." }, { status: 404 });
-    const { data: entitlements } = await admin
-      .from("organization_entitlements")
-      .select("mail_credits_remaining")
-      .eq("organization_id", parsed.data.organizationId)
-      .maybeSingle();
-    const debit = debitNetworkMail({
-      remaining: entitlements?.mail_credits_remaining ?? 0,
-      recipientCount: 1,
-      kind: "NETWORK",
-    });
-    if (!debit.ok) {
-      return NextResponse.json({ error: "Network Mail kredisi kalmadı. İstek kredi düşmez." }, { status: 409 });
-    }
-    const dayStart = new Date();
-    dayStart.setUTCHours(0, 0, 0, 0);
     const { data: orgLeads } = await admin
       .from("networking_leads")
       .select("id")
       .eq("organization_id", parsed.data.organizationId);
     const leadIds = (orgLeads || []).map((row: { id: string }) => row.id);
-    const { count: sentToday } = leadIds.length
-      ? await admin
-          .from("networking_lead_events")
-          .select("id", { count: "exact", head: true })
-          .eq("kind", "MAIL_SENT")
-          .in("lead_id", leadIds)
-          .gte("created_at", dayStart.toISOString())
-      : { count: 0 };
-    if (!assertNetworkDailyCap(sentToday ?? 0, 1)) {
-      return NextResponse.json({ error: "Günlük Network Mail limiti doldu. İstek kredi düşmez." }, { status: 429 });
-    }
-    const sender = assertVerifiedNetworkMailSender({
-      email: actor.email,
-      emailConfirmedAt: actor.emailConfirmedAt,
-    });
-    if (!sender.ok) {
-      const message = sender.reason === "SENDER_EMAIL_UNVERIFIED"
-        ? "Network Mail göndermek için e-posta adresini doğrula. Kredi düşülmedi."
-        : "Gönderen e-posta doğrulanamadı. Kredi düşülmedi.";
-      return NextResponse.json({ error: message, reason: sender.reason }, { status: 403 });
-    }
     const { data: org } = await admin.from("organizations").select("name").eq("id", parsed.data.organizationId).maybeSingle();
-    const sent = await sendNetworkingFollowUpEmail({
-      to: lead.email,
-      organizationName: org?.name || "Yenomi",
-      leadName: lead.full_name,
+    const result = await sendDebitedNetworkFollowUp({
+      admin,
+      ledger: { kind: "organization", organizationId: parsed.data.organizationId },
+      lead: { id: lead.id, email: lead.email, full_name: lead.full_name },
       template: parsed.data.template,
-      replyTo: sender.replyTo,
+      sender: { email: actor.email, emailConfirmedAt: actor.emailConfirmedAt },
+      displayName: org?.name || "Yenomi",
+      sentToday: await countMailSentToday(admin, leadIds),
     });
-    if (!sent.sent) {
-      const message = sent.reason === "RESEND_API_KEY_MISSING"
-        ? "Tanıtım maili gönderilemedi: e-posta servisi yapılandırılmamış. Kredi düşülmedi."
-        : "Tanıtım maili gönderilemedi. Kredi düşülmedi.";
-      return NextResponse.json({ error: message, reason: sent.reason }, { status: 503 });
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error, reason: result.reason }, { status: result.status });
     }
-    const nextCredits = debit.remaining;
-    const { data: credited, error: creditError } = await admin
-      .from("organization_entitlements")
-      .update({ mail_credits_remaining: nextCredits, updated_at: new Date().toISOString() })
-      .eq("organization_id", parsed.data.organizationId)
-      .eq("mail_credits_remaining", debit.remaining + debit.debit)
-      .select("mail_credits_remaining")
-      .maybeSingle();
-    if (creditError || !credited) {
-      return NextResponse.json({ error: "Mail gönderildi; kredi düşümü doğrulanamadı." }, { status: 503 });
-    }
-    await admin.from("networking_leads").update({ status: "MAIL_SENT", updated_at: new Date().toISOString() }).eq("id", lead.id);
-    await admin.from("networking_lead_events").insert({
-      lead_id: lead.id,
-      kind: "MAIL_SENT",
-      payload: { template: parsed.data.template, credited: true, ledger: "NETWORK", debit: debit.debit },
-    });
-    return NextResponse.json({ ok: true, mailCreditsRemaining: credited.mail_credits_remaining });
+    return NextResponse.json({ ok: true, mailCreditsRemaining: result.remaining });
   }
 
   if (action === "update_meeting") {

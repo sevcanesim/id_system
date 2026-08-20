@@ -51,6 +51,12 @@ for (const token of callbackContracts) {
 if (!callback.includes("settleCommercePaymentByProviderToken") || !recover.includes("settlePendingCommercePaymentByOrderId")) {
   throw new Error("Callback and recover must share the commerce settlement path.");
 }
+if (!recover.includes("resolveRecoverOrderId") || !recover.includes("readPendingOrderId")) {
+  throw new Error("Recover must bind to the pending-order cookie when present.");
+}
+if (!success.includes('credentials: "same-origin"')) {
+  throw new Error("Success recover must send the pending-order cookie.");
+}
 if (status.includes("retrieveCheckout") || status.includes("settlePendingCommercePaymentByOrderId")) {
   throw new Error("Order status GET must stay side-effect free.");
 }
@@ -103,6 +109,13 @@ if (!session.includes("export async function GET") || !sessionHelper.includes("y
 const activation = readFileSync("app/aktivasyon/ActivationClient.tsx", "utf8");
 if (!activation.includes("yenomi-activation-token") || !activation.includes('router.replace("/aktivasyon"')) {
   throw new Error("Activation token must be stripped from the URL after capture.");
+}
+const canonical = readFileSync("app/canonical.css", "utf8");
+if (!canonical.includes(".activation-callout") || !canonical.includes(".p5-next-steps") || !canonical.includes(".p18-review-notice")) {
+  throw new Error("Payment result callout and next-step chrome must be styled in canonical.css.");
+}
+if (canonical.includes("#1a0dab") || canonical.includes("#188038")) {
+  throw new Error("Footer SERP chrome must not use Google result colors.");
 }
 
 console.log("Phase 22 guest checkout contract: PASS");

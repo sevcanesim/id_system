@@ -64,6 +64,7 @@ export default function OrderResultGate() {
         if (needsRecover) {
           await fetch("/api/payments/iyzico/recover", {
             method: "POST",
+            credentials: "same-origin",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({ orderId }),
           });
@@ -123,6 +124,7 @@ export default function OrderResultGate() {
     if (!orderId) throw new Error("Sipariş bulunamadı.");
     await fetch("/api/payments/iyzico/recover", {
       method: "POST",
+      credentials: "same-origin",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ orderId }),
     });

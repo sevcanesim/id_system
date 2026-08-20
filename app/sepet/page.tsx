@@ -60,7 +60,7 @@ export default function CartPage() {
         <div className="yi-container">
           <div className="yi-page-head">
             <span>COMMERCE</span>
-            <h1>Siparişin</h1>
+            <h1>Sepetin kilitlenmeye hazır.</h1>
             <p>Fiyat ve stok ödeme adımında sunucuda doğrulanır. Kart numarası Yenomi’de saklanmaz.</p>
           </div>
           {!items.length ? (
@@ -146,7 +146,7 @@ export default function CartPage() {
                     <b>{formatTryFromKurus(total)}</b>
                   </div>
                 </div>
-                <p>Hesap açmadan ödeme yapabilirsin. Satın alma sonrası siparişini bu e-posta ile hesabına bağlarsın. Sipariş uygunluğu checkout tarafında gerçek veri üzerinden doğrulanır.</p>
+                <p>Hesap açmadan ödeme yapabilirsin. Satın alma sonrası siparişini bu e-posta ile hesabına bağlarsın. Fiyat ödeme adımında sunucuda doğrulanır.</p>
                 <Link href="/checkout" className="yi-btn yi-btn--primary">
                   Güvenli Satın Almaya Geç
                 </Link>

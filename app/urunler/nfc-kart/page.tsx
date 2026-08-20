@@ -58,7 +58,7 @@ export default async function NfcKartPage({
         <div className="yi-container nfc-product-hero__grid">
           <div className="nfc-product-hero__copy">
             <span className="nfc-kicker">KARTINI SEÇ</span>
-            <h2>Yenomi ID<br /><em>NFC + QR Kart</em></h2>
+            <h2>Kartı bir kez al.<br /><em>Kimliğin her gün güncel.</em></h2>
             <p className="nfc-product-hero__body">Kartı telefona yaklaştır veya QR’ı okut. Profil tarayıcıda açılır. Bilgin değişince baskı yok; kart kaybolursa panelden kapatırsın.</p>
             <NfcPurchasePanel product={NFC_PRODUCT} initialPackage={initialPackage} />
           </div>
@@ -93,7 +93,7 @@ export default async function NfcKartPage({
       </section>
 
       <section className="nfc-faq">
-        <div className="yi-container"><span className="nfc-kicker">SIK SORULAN SORULAR</span><h2>Satın almadan önce<br /><em>bilmen gerekenler.</em></h2><p className="nfc-faq__intro">Karar vermeden önce fiyat, teslimat, yıllık kullanım, uyumluluk ve kayıp kart sürecini netleştir.</p>
+        <div className="yi-container"><span className="nfc-kicker">SIK SORULAN SORULAR</span><h2>Satın almadan önce<br /><em>bilmen gerekenler.</em></h2><p className="nfc-faq__intro">Fiyat, kargo, yıllık kullanım, NFC uyumu ve kayıp kart. Karar bundan sonra net.</p>
           <div className="nfc-faq__list">{faq.map(([q,a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div>
         </div>
       </section>

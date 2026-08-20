@@ -5,11 +5,11 @@ export default function NotFound() {
     <main id="main-content" className="yi-section yi-section--light yi-empty-product">
       <div className="yi-container">
         <span className="yi-hero__eyebrow">404</span>
-        <h1>Bu sayfa bulunamadı.</h1>
-        <p>Aradığın sayfa taşınmış ya da hiç var olmamış olabilir. Anasayfaya dönüp oradan devam edebilirsin.</p>
+        <h1>Bu sayfa yok. Kartın duruyor.</h1>
+        <p>Bağlantı taşınmış olabilir. Ana sayfaya dön veya NFC kartını doğrudan al.</p>
         <div className="yi-actions">
-          <ButtonLink href="/">Anasayfaya dön</ButtonLink>
-          <ButtonLink href="/urunler" variant="secondary">Ürünleri incele</ButtonLink>
+          <ButtonLink href="/">Ana sayfaya dön</ButtonLink>
+          <ButtonLink href="/urunler/nfc-kart" variant="secondary">NFC Kartı Satın Al</ButtonLink>
         </div>
       </div>
     </main>

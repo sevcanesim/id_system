@@ -99,10 +99,10 @@ export default function OrderResultGate() {
       <section className="order-success p5-order-success" role="alert">
         <span className="section-kicker">DOĞRULANAMADI</span>
         <h1>Bu siparişi doğrulayamadık.</h1>
-        <p>Bağlantı geçersiz olabilir ya da ödeme henüz tamamlanmamış olabilir. Ödemen alındıysa siparişlerim sayfasından durumunu görebilirsin; sorun devam ederse bizimle iletişime geç.</p>
+        <p>Bağlantı geçersiz olabilir veya ödeme henüz kilitlenmemiş olabilir. Çekim olduysa siparişlerimden durumu gör; olmadıysa aynı siparişi yeniden dene.</p>
         <div className="order-success-actions">
           <Link href="/siparislerim">Siparişlerimi Gör</Link>
-          <Link className="secondary" href="/urunler">Ürünlere Dön</Link>
+          <Link className="secondary" href="/urunler/nfc-kart">NFC Kartı Satın Al</Link>
         </div>
       </section>
     );
@@ -115,7 +115,7 @@ export default function OrderResultGate() {
     <section className="order-success p5-order-success">
       <span className="p5-result-icon"><Icon name="check" /></span>
       <span className="section-kicker">SİPARİŞ ALINDI</span>
-      <h1>Ödemen başarıyla alındı.</h1>
+      <h1>Ödeme kilitlendi. Kimliğin sırada.</h1>
       <p>{activationRequired
         ? (corporate
           ? "Siparişin henüz bir hesaba bağlı değil. E-postandaki bağlantı ile hesabını oluştur; şirket panelin orada açılır."

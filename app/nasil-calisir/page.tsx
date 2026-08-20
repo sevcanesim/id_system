@@ -87,7 +87,7 @@ export default function HowItWorksPage() {
             </article>
           ))}
         </div>
-        <p className="how-account-note">Kartın ve profilin hazırsa <Link href="/giris">Hesabına gir</Link></p>
+        <p className="how-account-note">Kartın yoksa <Link href="/urunler/nfc-kart">NFC Kartı Satın Al</Link>. Hazırsa <Link href="/giris">Hesabına gir</Link>.</p>
       </section>
 </main>
   );

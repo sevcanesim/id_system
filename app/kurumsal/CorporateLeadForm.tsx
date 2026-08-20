@@ -57,9 +57,9 @@ export default function CorporateLeadForm({ plan = "GENEL", compact = false }: P
       </FormGrid>
       <div className="corporate-lead-actions">
         <Button type="submit" variant="primary" disabled={status === "loading"} className="corporate-cta">
-          {status === "loading" ? "Gönderiliyor…" : "Teklif Talebi Gönder"} <span aria-hidden>→</span>
+          {status === "loading" ? "Kayda alınıyor…" : "Teklifi kayda al"} <span aria-hidden>→</span>
         </Button>
-        <span className="corporate-lead-note">Ücretsiz keşif · 1 iş günü içinde dönüş</span>
+        <span className="corporate-lead-note">1 iş günü içinde dönüş · kart numarası istenmez</span>
       </div>
       {message && <p className={`corporate-lead-feedback ${status}`} role={status === "error" ? "alert" : "status"}>{message}</p>}
       <p className="corporate-lead-privacy">Bilgilerin yalnızca teklif talebini değerlendirmek ve seninle iletişime geçmek için kullanılır.</p>

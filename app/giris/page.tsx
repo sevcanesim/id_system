@@ -459,7 +459,7 @@ export default function LoginPage() {
 
                     {message && <div className={`p6-auth-message ${messageTone}`} role="status" aria-live="polite">{message}</div>}
                     <button className="p6-auth-submit" disabled={busy}>
-                      {loading ? "İşleniyor…" : mode === "signup" ? "Hesabı aç ve devam et" : "Hesabına gir"}
+                      {loading ? (mode === "signup" ? "Hesap açılıyor…" : "Giriş yapılıyor…") : mode === "signup" ? "Hesabı aç ve panele geç" : "Hesabına gir"}
                       <Icon name="chevronRight" />
                     </button>
                   </form>
@@ -487,7 +487,7 @@ export default function LoginPage() {
               <Icon name="secure" />
               <span>
                 <strong>Güvenli oturum</strong>
-                <small>Oturumun güvenli biçimde korunur. Ödeme bilgileri bu ekranda alınmaz.</small>
+                <small>Oturum şifreli tutulur. Kart numarası bu ekranda istenmez.</small>
               </span>
             </div>
             {!isSupabaseConfigured && <div className="p6-auth-message error">Giriş hizmeti şu anda yapılandırılıyor. Lütfen daha sonra tekrar dene.</div>}

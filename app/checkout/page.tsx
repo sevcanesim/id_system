@@ -382,7 +382,7 @@ export default function CheckoutPage() {
         {!checkoutReady ? (
           <div className="cart-empty"><h2>Ödeme hazırlanıyor…</h2><p>Sepetini ve güvenli ödeme bağlantını hazırlıyoruz.</p></div>
         ) : !items.length ? (
-          <div className="cart-empty"><h2>Sepetin boş.</h2><Link href="/urunler">Ürünleri incele</Link></div>
+          <div className="cart-empty"><h2>Kartın henüz sepette değil.</h2><Link href="/urunler/nfc-kart">NFC Kartı Satın Al</Link></div>
         ) : (
           <form onSubmit={submit} className="checkout-layout checkout-layout-confirm" noValidate>
             <div className="checkout-accordion">
@@ -393,7 +393,7 @@ export default function CheckoutPage() {
                   <em>{buyerComplete ? <Icon name="check" /> : <Icon name="chevronRight" />}</em>
                 </button>
                 {activeStep === "buyer" && <div className="checkout-step-body">
-                  <label>Ad Soyad<input required autoComplete="name" value={form.recipientName} onChange={(e) => update("recipientName", e.target.value)} placeholder="Ad Soyad" /></label>
+                  <label>Ad Soyad<input required autoComplete="name" value={form.recipientName} onChange={(e) => update("recipientName", e.target.value)} placeholder="Kartın ve faturanın sahibi" /></label>
                   <label>Telefon<input required inputMode="tel" autoComplete="tel" value={form.phone} onChange={(e) => update("phone", normalizeTrPhone(e.target.value))} placeholder="+90 5xx xxx xx xx" />{form.phone.replace(/\D/g, "").length >= 10 && <small className="field-ok"><Icon name="check" /> Telefon doğrulandı</small>}</label>
                   <label>E-posta<input required type="email" autoComplete="email" value={form.email} onChange={(e) => !isAuthenticated && update("email", e.target.value)} readOnly={isAuthenticated} />{isAuthenticated ? <small className="field-ok"><Icon name="check" /> Hesabına bağlı e-posta</small> : <small>Hesap açmadan güvenli ödeme yapabilirsin. Sipariş bilgilerin bu e-posta adresine gönderilir.</small>}</label>
                   <label>T.C. kimlik numarası<input required inputMode="numeric" maxLength={11} name="iyzico-identity" autoComplete="off" autoCorrect="off" spellCheck={false} value={form.identityNumber} onChange={(e) => update("identityNumber", e.target.value.replace(/\D/g, ""))} placeholder="11 haneli T.C. kimlik numarası" /><small>iyzico ödeme doğrulaması için kullanılır; saklanmaz.</small></label>

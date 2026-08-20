@@ -294,8 +294,8 @@ export default function NfcOrderPage() {
       <aside className="premium-product-stage">
         <div className="product-stage-copy">
           <span className="section-kicker">YENOMI NFC + QR KARTVİZİT</span>
-          <h1>Tek kart.<br/>Tüm dijital kimliğin.</h1>
-          <p>NFC kartını yaklaştır veya QR kodunu okut. Fiziksel kartın aynı kalsın; bilgilerin istediğin zaman güncellensin.</p>
+          <h1>Kartı kişiselleştir.<br/>Kimliği kilitle.</h1>
+          <p>Rengi seç, QR’ı bağla, teslimatı yaz. Ödeme iyzico’da; kart numarası Yenomi’de saklanmaz.</p>
         </div>
 
         <div className="stacked-card-preview" aria-label="Kart ön ve arka yüz önizlemesi">
@@ -313,7 +313,7 @@ export default function NfcOrderPage() {
 
       <form className="premium-checkout-card" onSubmit={submit}>
         <div className="premium-checkout-head">
-          <div><span className="section-kicker">KİŞİSELLEŞTİR VE SİPARİŞ VER</span><h2>NFC kartını hazırla.</h2><p>Beş kısa adımda tamamla; kartın solda anında güncellensin.</p></div>
+          <div><span className="section-kicker">KİŞİSELLEŞTİR VE SİPARİŞ VER</span><h2>NFC kartını hazırla.</h2><p>Beş adım. Solda kartın güncellenir; sağda sipariş kilitlenir.</p></div>
           <div className="step-counter">{activeStep}/5</div>
         </div>
 
@@ -374,8 +374,8 @@ export default function NfcOrderPage() {
 
         {message&&<div className="auth-message">{message}</div>}
         <div className="wizard-actions">
-          {activeStep>1?<button type="button" className="secondary" onClick={previousStep}>Geri</button>:<Link className="secondary-link" href="/kartim">Vazgeç</Link>}
-          {activeStep<5?<button type="button" className="primary" onClick={nextStep}>Devam Et →</button>:<button className="primary" disabled={submitting||!distanceSalesAccepted||!personalizationAccepted}>{submitting?"Güvenli ödeme açılıyor...":"Ödemeye Geç →"}</button>}
+          {activeStep>1?<button type="button" className="secondary" onClick={previousStep}>Önceki adım</button>:<Link className="secondary-link" href="/kartim">Kartıma dön</Link>}
+          {activeStep<5?<button type="button" className="primary" onClick={nextStep}>{["Kimliği bağla","İletişime geç","Teslimatı yaz","Ödemeyi kilitle"][activeStep-1]} →</button>:<button className="primary" disabled={submitting||!distanceSalesAccepted||!personalizationAccepted}>{submitting?"Güvenli ödeme açılıyor...":"iyzico ile güvenle öde →"}</button>}
         </div>
         <small className="secure-caption">Güvenli ödeme altyapısı iyzico tarafından sağlanır.</small>
       </form>

@@ -18,6 +18,8 @@ import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, i
 import { corporateCheckoutLive, corporatePackageBySku, isDirectCheckoutBlocked } from "../../../../lib/commerce/packages";
 import { parseCompanyBilling } from "../../../../lib/validation/company";
 import { decideOpenPaymentAttempt } from "../../../../lib/payments/reuse-open-attempt";
+import { applyPendingOrderCookie } from "../../../../lib/payments/pending-order-cookie";
+import { stampPhysicalProductionConfig } from "../../../../lib/commerce/production-config";
 
 export const runtime = "nodejs";
 
@@ -96,6 +98,15 @@ async function findExistingAttempt(admin: ReturnType<typeof getSupabaseAdminClie
     .maybeSingle();
 }
 
+function jsonWithPendingOrder(body: object, init?: { status?: number }) {
+  const response = NextResponse.json(body, init);
+  const record = body as { orderId?: unknown; resetOrder?: unknown };
+  const orderId = typeof record.orderId === "string" ? record.orderId : null;
+  if (record.resetOrder) return applyPendingOrderCookie(response, null);
+  if (orderId) return applyPendingOrderCookie(response, orderId);
+  return response;
+}
+
 function duplicateAttemptResponse(attempt: {
   order_id: string;
   status: string;
@@ -103,22 +114,22 @@ function duplicateAttemptResponse(attempt: {
   payment_page_url: string | null;
 }, fingerprint: string) {
   if (attempt.request_fingerprint !== fingerprint) {
-    return NextResponse.json({ ...publicError("IDEMPOTENCY_CONFLICT"), retryable: true, resetOrder: true }, { status: 409 });
+    return jsonWithPendingOrder({ ...publicError("IDEMPOTENCY_CONFLICT"), retryable: true, resetOrder: true }, { status: 409 });
   }
   if (attempt.status === "PAID") {
-    return NextResponse.json({ ...publicError("ORDER_ALREADY_PAID"), orderId: attempt.order_id }, { status: 409 });
+    return jsonWithPendingOrder({ ...publicError("ORDER_ALREADY_PAID"), orderId: attempt.order_id }, { status: 409 });
   }
   if (attempt.status === "PENDING" && attempt.payment_page_url) {
-    return NextResponse.json({ orderId: attempt.order_id, paymentPageUrl: attempt.payment_page_url, reused: true });
+    return jsonWithPendingOrder({ orderId: attempt.order_id, paymentPageUrl: attempt.payment_page_url, reused: true });
   }
   if (attempt.status === "FAILED") {
-    return NextResponse.json({
+    return jsonWithPendingOrder({
       ...publicError("PAYMENT_UNAVAILABLE", { message: "Ödeme tamamlanamadı. Aynı siparişi yeni bir ödeme isteğiyle tekrar deneyebilirsin." }),
       orderId: attempt.order_id,
       retryable: true,
     }, { status: 409 });
   }
-  return NextResponse.json(publicError("PAYMENT_IN_PROGRESS"), { status: 409 });
+  return jsonWithPendingOrder({ ...publicError("PAYMENT_IN_PROGRESS") }, { status: 409 });
 }
 
 export async function POST(request: NextRequest) {
@@ -396,7 +407,7 @@ export async function POST(request: NextRequest) {
         .maybeSingle();
 
       if (previousAttempt?.request_fingerprint && previousAttempt.request_fingerprint !== fingerprint) {
-        return NextResponse.json({ ...publicError("IDEMPOTENCY_CONFLICT"), retryable: true, resetOrder: true }, { status: 409 });
+        return jsonWithPendingOrder({ ...publicError("IDEMPOTENCY_CONFLICT"), retryable: true, resetOrder: true }, { status: 409 });
       }
       order = { id: retryOrder.id, order_number: retryOrder.order_number };
     } else {
@@ -437,7 +448,11 @@ export async function POST(request: NextRequest) {
         product_name: item.product.name,
         unit_price_kurus: item.unitPriceKurus,
         quantity: item.quantity,
-        configuration: { sku: item.variant.sku, billingPeriod: item.variant.billing_period, ...(item.configuration || {}) },
+        configuration: stampPhysicalProductionConfig(
+          item.variant.sku,
+          { sku: item.variant.sku, billingPeriod: item.variant.billing_period, ...(item.configuration || {}) },
+          body.customer.name,
+        ),
       })));
 
       if (itemError) {
@@ -493,10 +508,10 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
     const openDecision = decideOpenPaymentAttempt(openAttempt, fingerprint);
     if (openDecision === "conflict") {
-      return NextResponse.json({ ...publicError("IDEMPOTENCY_CONFLICT"), retryable: true, resetOrder: true }, { status: 409 });
+      return jsonWithPendingOrder({ ...publicError("IDEMPOTENCY_CONFLICT"), retryable: true, resetOrder: true }, { status: 409 });
     }
     if (openDecision === "reuse" && openAttempt?.payment_page_url) {
-      return NextResponse.json({ orderId: order.id, paymentPageUrl: openAttempt.payment_page_url, reused: true });
+      return jsonWithPendingOrder({ orderId: order.id, paymentPageUrl: openAttempt.payment_page_url, reused: true });
     }
     if (openDecision === "abandon" && openAttempt?.id) {
       await admin.from("commerce_payment_attempts").update({
@@ -590,7 +605,7 @@ export async function POST(request: NextRequest) {
       }).eq("id", reservedAttempt.id);
       const payload = publicError("PAYMENT_UNAVAILABLE");
       console.error("iyzico checkout rejected", { reference: payload.reference, errorCode: checkout?.errorCode, orderId: order.id });
-      return NextResponse.json({ ...payload, orderId: order.id, retryable: true }, { status: 502 });
+      return jsonWithPendingOrder({ ...payload, orderId: order.id, retryable: true }, { status: 502 });
     }
 
     await admin.from("commerce_payment_attempts").update({
@@ -599,7 +614,7 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString(),
     }).eq("id", reservedAttempt.id);
 
-    return NextResponse.json({
+    return jsonWithPendingOrder({
       orderId: order.id,
       orderNumber: order.order_number,
       paymentPageUrl: checkout.paymentPageUrl,

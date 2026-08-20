@@ -7,25 +7,29 @@ import { Icon } from "../../icons";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 import { acceptOrganizationInvite, OrganizationInviteResult } from "../../../lib/auth/organization-invite";
 
-type InviteViewState = { status: "checking" } | OrganizationInviteResult;
+type InviteViewState = { status: "checking"; token: string } | (OrganizationInviteResult & { token: string });
 
 export default function InvitePage() {
-  const [state, setState] = useState<InviteViewState>({ status: "checking" });
+  const [state, setState] = useState<InviteViewState>({ status: "checking", token: "" });
 
   useEffect(() => {
     let cancelled = false;
 
     void (async () => {
-      const token = new URLSearchParams(window.location.search).get("token");
+      const token = new URLSearchParams(window.location.search).get("token") || "";
       const supabase = getSupabaseBrowserClient();
-      const result = await acceptOrganizationInvite(supabase, token);
-      if (!cancelled) setState(result);
+      const result = await acceptOrganizationInvite(supabase, token || null);
+      if (!cancelled) setState({ ...result, token });
     })();
 
     return () => {
       cancelled = true;
     };
   }, []);
+
+  const loginHref = state.token
+    ? `/giris?portal=business&next=${encodeURIComponent(`/kurumsal/davet?token=${encodeURIComponent(state.token)}`)}`
+    : "/giris?portal=business";
 
   return (
     <main id="main-content" className="corporate-invite-page" data-ui-context="public">
@@ -41,8 +45,8 @@ export default function InvitePage() {
 
           {state.status === "needs-login" && <>
             <h1>Önce giriş yapmalısın</h1>
-            <p>Daveti kabul etmek için bu e-posta adresiyle giriş yap. Giriş yaptıktan sonra aynı bağlantıyı yeniden aç.</p>
-            <a className="corporate-cta" href="/giris?portal=business">Kurumsal Girişe Git <span aria-hidden="true">→</span></a>
+            <p>Daveti kabul etmek için bu e-posta adresiyle giriş yap. Girişten sonra aynı davet otomatik tamamlanır.</p>
+            <a className="corporate-cta" href={loginHref}>Kurumsal Girişe Git <span aria-hidden="true">→</span></a>
           </>}
 
           {state.status === "error" && <>

@@ -50,4 +50,5 @@ export function clearCheckoutSession(): void {
   window.sessionStorage.removeItem(IDEMPOTENCY_KEY);
   window.sessionStorage.removeItem(PENDING_ORDER_KEY);
   window.sessionStorage.removeItem(RETURN_PATH_KEY);
+  void fetch("/api/commerce/orders/pending", { method: "DELETE", credentials: "same-origin", cache: "no-store" }).catch(() => undefined);
 }

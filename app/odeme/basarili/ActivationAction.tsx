@@ -12,6 +12,7 @@ type Props = {
   activationRequired: boolean;
   corporate?: boolean;
   corporateReady?: boolean;
+  reviewRequired?: boolean;
   orderId?: string | null;
   onSetupRetry?: () => Promise<void>;
 };
@@ -20,10 +21,11 @@ export default function ActivationAction({
   activationRequired,
   corporate = false,
   corporateReady = false,
+  reviewRequired = false,
   orderId = null,
   onSetupRetry,
 }: Props) {
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState<boolean | null>(null);
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [resending, setResending] = useState(false);
@@ -33,16 +35,25 @@ export default function ActivationAction({
     writeCart([]);
     clearPendingCheckoutOrderId();
     rotateCheckoutIdempotencyKey();
-    if (activationRequired || corporate) return;
+    if (activationRequired || corporate) {
+      setReady(null);
+      return;
+    }
     const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
+    if (!supabase) {
+      setReady(false);
+      return;
+    }
     void supabase.auth.getSession().then(async ({ data }) => {
       const token = data.session?.access_token;
-      if (!token) return;
+      if (!token) {
+        setReady(false);
+        return;
+      }
       const response = await fetch("/api/commerce/entitlements", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" });
       setReady(response.ok && Boolean((await response.json()).active));
     });
-  }, [activationRequired, corporate]);
+  }, [activationRequired, corporate, reviewRequired]);
 
   async function resend(event: FormEvent) {
     event.preventDefault();
@@ -70,6 +81,16 @@ export default function ActivationAction({
     setMessage("");
     try {
       await onSetupRetry();
+      if (corporate) return;
+      const supabase = getSupabaseBrowserClient();
+      const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
+      const token = data.session?.access_token;
+      if (!token) {
+        setReady(false);
+        return;
+      }
+      const response = await fetch("/api/commerce/entitlements", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" });
+      setReady(response.ok && Boolean((await response.json()).active));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Kurulum yenilenemedi.");
     } finally {
@@ -124,9 +145,34 @@ export default function ActivationAction({
     );
   }
 
+  if (!corporate && (reviewRequired || ready === false)) {
+    return (
+      <div className="activation-callout">
+        <h2>{reviewRequired ? "Siparişin hesabına bağlanırken kontrol gerekiyor" : "Dijital hakkın henüz hesabına yazılmadı"}</h2>
+        <p>Ödemen alındı; yeni bir çekim yapılmaz. Kartvizit editörü, hakların aktif olunca açılır.</p>
+        {message ? <div className="checkout-message">{message}</div> : null}
+        {orderId ? (
+          <button type="button" onClick={() => void retrySetup()} disabled={retrying}>
+            {retrying ? "Bağlantı deneniyor…" : "Hesaba bağlamayı tekrar dene"}
+          </button>
+        ) : null}
+        <Link href="/siparislerim">Siparişimi takip et →</Link>
+      </div>
+    );
+  }
+
+  if (!corporate && ready !== true) {
+    return (
+      <div className="activation-callout">
+        <h2>Hizmetin hesabına yazılıyor</h2>
+        <p>Ödemen alındı. Kartvizitini, dijital hakkın aktif olduktan sonra hazırlayabilirsin.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="activation-callout">
-      <h2>{corporate ? "Şirket hesabın hazır" : ready ? "Yenomi ID hizmetin hesabına tanımlandı" : "Kartvizitin için her şey hazır"}</h2>
+      <h2>{corporate ? "Şirket hesabın hazır" : "Yenomi ID hizmetin hesabına tanımlandı"}</h2>
       <p>{corporate
         ? "Aktivasyon koduyla uğraşmana gerek yok. Çalışan lisanslarını, kart üretimini ve paneli buradan yönet."
         : "Aktivasyon koduyla uğraşmana gerek yok. Şimdi kartvizit bilgilerini doldur; fiziksel kartın bu profile bağlansın."}</p>

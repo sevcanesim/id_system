@@ -77,10 +77,28 @@ export default function CheckoutPage() {
   }, []);
 
   useEffect(() => {
-    const supabase = getSupabaseBrowserClient();
-    const cart = readCart();
-    setItems(cart);
+    const sync = () => setItems(readCart());
+    sync();
+    window.addEventListener("yenomi-cart-change", sync);
+    return () => window.removeEventListener("yenomi-cart-change", sync);
+  }, []);
 
+  useEffect(() => {
+    void fetch("/api/commerce/orders/pending", { cache: "no-store", credentials: "same-origin" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { orderId?: string; paid?: boolean; awaitingPayment?: boolean } | null) => {
+        if (!data?.orderId) return;
+        if (data.paid) {
+          window.location.replace(`/odeme/basarili?order=${encodeURIComponent(data.orderId)}`);
+          return;
+        }
+        if (data.awaitingPayment) setPendingCheckoutOrderId(data.orderId);
+      })
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
     if (!supabase) {
       setCheckoutReady(true);
       return;
@@ -290,6 +308,7 @@ export default function CheckoutPage() {
 
       const response = await fetch("/api/commerce/checkout", {
         method: "POST",
+        credentials: "same-origin",
         headers,
         body: JSON.stringify({
           items: items.map((item) => ({

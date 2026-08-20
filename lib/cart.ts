@@ -175,6 +175,30 @@ export function writeCart(items: CartItem[]) {
   dispatchCartChange();
 }
 
+export function cartAddConflict(
+  incomingSku: string | undefined,
+  items: CartItem[],
+): "corporate-replaces-individual" | "individual-replaces-corporate" | null {
+  const incomingCorporate = isCorporatePackageSku(incomingSku);
+  const hasCorporate = items.some((item) => isCorporatePackageSku(item.variantSku));
+  const hasIndividual = items.some((item) => !isCorporatePackageSku(item.variantSku));
+  if (incomingCorporate && hasIndividual) return "corporate-replaces-individual";
+  if (!incomingCorporate && hasCorporate) return "individual-replaces-corporate";
+  return null;
+}
+
+export function cartAddConflictMessage(
+  conflict: ReturnType<typeof cartAddConflict>,
+): string {
+  if (conflict === "corporate-replaces-individual") {
+    return "Kurumsal paket bireysel ürünlerle aynı sepette durmaz. Mevcut sepeti kurumsal paketle değiştirmek istiyor musun?";
+  }
+  if (conflict === "individual-replaces-corporate") {
+    return "Bireysel ürün kurumsal paketle aynı sepette durmaz. Kurumsal paketi çıkarıp bu ürünü eklemek istiyor musun?";
+  }
+  return "";
+}
+
 export function addCartItem(input: NewCartItem) {
   const items = readCart();
   if (isCorporatePackageSku(input.variantSku)) {

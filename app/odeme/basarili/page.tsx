@@ -6,8 +6,7 @@ import OrderResultGate from "./OrderResultGate";
 import PaymentSuccessHeader from "./PaymentSuccessHeader";
 
 const PAYMENT_SUCCESS_ACTIONS = [
-  { href: "/siparislerim", label: "Siparişlerim" },
-  { href: "/olustur?source=purchase", label: "Kartvizitimi Hazırla", primary: true as const },
+  { href: "/siparislerim", label: "Siparişlerim", primary: true as const },
 ];
 
 export default function PaymentSuccessPage() {

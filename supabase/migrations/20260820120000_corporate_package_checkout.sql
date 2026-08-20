@@ -34,7 +34,7 @@ set name = excluded.name,
     is_active = true;
 
 insert into public.product_variants(product_id, sku, name, price_kurus, billing_period, metadata, is_active)
-select p.id, v.sku, v.name, v.price_kurus, 'YEARLY', v.metadata, true
+select p.id, v.sku, v.name, v.price_kurus, 'YEARLY', meta.metadata, true
 from public.products p
 cross join (values
   ('YENOMI-CORP-2', 'Kurumsal 2', 240000, 2, 'CORP-2'),
@@ -194,7 +194,7 @@ begin
         v_seats,
         v_seats,
         v_mail,
-        10 * 1024 * 1024 * 1024,
+        10737418240::bigint,
         'ACTIVE',
         v_plan,
         'YEARLY',

@@ -44,7 +44,7 @@ select o.id,
   greatest(1, coalesce(s.seat_limit, 1) / 2),
   1000,
   1000,
-  10 * 1024 * 1024 * 1024
+  10737418240::bigint
 from public.organizations o
 left join lateral (
   select seat_limit from public.organization_subscriptions
@@ -317,7 +317,7 @@ begin
     coalesce(p_physical_card_limit, p_employee_limit),
     coalesce(p_mail_credit_limit, 1000),
     coalesce(p_mail_credit_limit, 1000),
-    coalesce(p_storage_bytes, 10 * 1024 * 1024 * 1024)
+    coalesce(p_storage_bytes, 10737418240::bigint)
   );
 
   insert into public.admin_audit_log (actor_user_id, action, target_table, target_id, before_value, after_value)

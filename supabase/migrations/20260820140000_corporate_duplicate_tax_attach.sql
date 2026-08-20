@@ -138,7 +138,7 @@ begin
         v_seats,
         v_seats,
         v_mail,
-        10 * 1024 * 1024 * 1024,
+        10737418240::bigint,
         'ACTIVE',
         v_plan,
         'YEARLY',

@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -96,6 +97,18 @@ const demoUsers = [
   { key: "trTemplateOwner", email: "demo.kurumsal.template@yenomi.test", name: "Şablon Test Yöneticisi", kind: "CORPORATE_OWNER", loginScope: "CORPORATE" },
   { key: "trLeadOwner", email: "demo.kurumsal.lead@yenomi.test", name: "Lead Test Yöneticisi", kind: "CORPORATE_OWNER", loginScope: "CORPORATE" },
   { key: "multiOrgUser", email: "demo.multi.org@yenomi.test", name: "İki Şirketli Yönetici", kind: "MULTI_ORG_ADMIN", loginScope: "CORPORATE" },
+  { key: "trIndividualPremium", email: "demo.bireysel.premium@yenomi.test", name: "Bireysel Premium Kullanıcı", kind: "INDIVIDUAL_PREMIUM", loginScope: "INDIVIDUAL" },
+  { key: "trIndividualExpired", email: "demo.bireysel.suresi.dolmus@yenomi.test", name: "Süresi Dolmuş Bireysel", kind: "INDIVIDUAL_EXPIRED", loginScope: "INDIVIDUAL" },
+  { key: "trIndividualLost", email: "demo.bireysel.kayip@yenomi.test", name: "Kayıp Kart Bireysel", kind: "INDIVIDUAL_LOST", loginScope: "INDIVIDUAL" },
+  { key: "trIndividualBackup", email: "demo.bireysel.yedek@yenomi.test", name: "Yedek Kart Bireysel", kind: "INDIVIDUAL_BACKUP", loginScope: "INDIVIDUAL" },
+  { key: "trIndividualClaimMismatch", email: "demo.bireysel.claim.mismatch@yenomi.test", name: "Claim Eşleşmeyen Kullanıcı", kind: "INDIVIDUAL_CLAIM_MISMATCH", loginScope: "INDIVIDUAL" },
+  { key: "trIndividualForeign", email: "demo.bireysel.yabanci@yenomi.test", name: "Yabancı Checkout Kullanıcısı", kind: "INDIVIDUAL_FOREIGN", loginScope: "INDIVIDUAL" },
+];
+
+const guestOrders = [
+  { email: "demo.bireysel.aktivasyon.bekler@yenomi.test", kind: "GUEST_ACTIVATION_PENDING", audience: "individual", orderNumber: "YI-DEMO-GUEST-AKTIVASYON", tokenLabel: "guest-activation" },
+  { email: "demo.bireysel.claim.siparis@yenomi.test", kind: "GUEST_CLAIM_MISMATCH_ORDER", audience: "individual", orderNumber: "YI-DEMO-GUEST-CLAIM", tokenLabel: "guest-claim-mismatch" },
+  { email: "demo.kurumsal.misafir.paid@yenomi.test", kind: "GUEST_CORPORATE_PAID", audience: "corporate", orderNumber: "YI-DEMO-GUEST-CORP", tokenLabel: "guest-corporate" },
 ];
 
 const corporateScenarios = [
@@ -111,13 +124,14 @@ const corporateScenarios = [
 if (!apply) {
   console.log("DRY RUN — hiçbir kayıt yazılmadı. Oluşturulacak ana kullanıcılar:");
   for (const user of demoUsers) console.log(`- ${user.email} (${user.kind})`);
+  for (const guest of guestOrders) console.log(`- ${guest.email} (${guest.kind}, Auth user yok)`);
   for (const scenario of corporateScenarios) console.log(`- ${scenario.name}: ${scenario.used}/${scenario.limit} koltuk, ${scenario.limit - scenario.used} boş`);
   console.log("Uygulamak için: DEMO_SEED_PASSWORD='...' npm run seed:demo -- --apply");
   process.exit(0);
 }
 
 async function assertSchema() {
-  for (const table of ["admin_users", "products", "product_variants", "commerce_orders", "commerce_order_items", "entitlements", "card_profiles", "business_plans", "organizations", "organization_members", "organization_subscriptions", "commerce_order_consents", "user_accounts", "physical_cards", "organization_invites", "organization_card_templates", "card_view_events"]) {
+  for (const table of ["admin_users", "products", "product_variants", "commerce_orders", "commerce_order_items", "entitlements", "card_profiles", "business_plans", "organizations", "organization_members", "organization_subscriptions", "commerce_order_consents", "user_accounts", "physical_cards", "organization_invites", "organization_card_templates", "card_view_events", "activation_tokens"]) {
     const { error } = await supabase.from(table).select("*", { head: true, count: "exact" });
     if (error) throw new Error(`Migration eksik (${table}): ${error.message}`);
   }
@@ -171,6 +185,8 @@ if (initialVariantError) throw initialVariantError;
 await supabase.from("product_variants").upsert({ product_id: initialVariant.product_id, sku: "YENOMI-NFC-PREMIUM-ANNUAL", name: "Yenomi ID Bireysel Premium — NFC + 100 Network Mail", price_kurus: 125000, billing_period: "YEARLY", metadata: { fulfillment_kind: "INITIAL_BUNDLE", digital_service_included: true, physical_card_count: 1, service_days: 365, shipping_included: true, country: "TR", preparation_business_days: 2, package_code: "INDIVIDUAL_PREMIUM", network_mail_credits: 100 }, is_active: true }, { onConflict: "sku" }).throwOnError();
 await supabase.from("product_variants").upsert({ product_id: initialVariant.product_id, sku: "YENOMI-PREMIUM-RENEWAL-ANNUAL", name: "Yenomi ID Bireysel Premium — 1 Yıl Yenileme", price_kurus: 59900, billing_period: "YEARLY", metadata: { fulfillment_kind: "DIGITAL_RENEWAL", digital_service_included: true, physical_card_count: 0, service_days: 365, requires_active_or_expired_entitlement: true, shipping_included: false, package_code: "INDIVIDUAL_PREMIUM", network_mail_credits: 100 }, is_active: true }, { onConflict: "sku" }).throwOnError();
 await supabase.from("product_variants").upsert({ product_id: initialVariant.product_id, sku: "YENOMI-PREMIUM-UPGRADE", name: "Yenomi ID Bireysel Premium yükseltme", price_kurus: 45100, billing_period: "ONE_TIME", metadata: { fulfillment_kind: "PREMIUM_UPGRADE", digital_service_included: false, physical_card_count: 0, requires_active_entitlement: true, shipping_included: false, package_code: "INDIVIDUAL_PREMIUM", network_mail_credits: 100 }, is_active: true }, { onConflict: "sku" }).throwOnError();
+await supabase.from("product_variants").upsert({ product_id: initialVariant.product_id, sku: "YENOMI-NFC-EXTRA", name: "Yenomi ID Yedek Kart", price_kurus: 39900, billing_period: "ONE_TIME", metadata: { fulfillment_kind: "EXTRA_CARD", digital_service_included: false, physical_card_count: 1, requires_active_entitlement: true, shipping_included: true, country: "TR" }, is_active: true }, { onConflict: "sku" }).throwOnError();
+await supabase.from("product_variants").upsert({ product_id: initialVariant.product_id, sku: "YENOMI-NFC-REPLACEMENT", name: "Yenomi ID Değişim Kartı", price_kurus: 34900, billing_period: "ONE_TIME", metadata: { fulfillment_kind: "REPLACEMENT_CARD", digital_service_included: false, physical_card_count: 1, requires_lost_card: true, requires_active_entitlement: true, term_basis: "ACTIVE_ENTITLEMENT", shipping_included: true, country: "TR" }, is_active: true }, { onConflict: "sku" }).throwOnError();
 
 await supabase.from("products").upsert({ slug: "yenomi-business", name: "Yenomi ID Kurumsal Paket", kind: "BUSINESS_CARD", description: "Yıllık kurumsal sistem: NFC kart, çalışan profilleri, şirket paneli ve Network Mail.", is_active: true }, { onConflict: "slug" }).throwOnError();
 const { data: corporateProduct, error: corporateProductError } = await supabase.from("products").select("id").eq("slug", "yenomi-business").single();
@@ -215,29 +231,124 @@ if (productError) throw productError;
 const { data: variant, error: variantError } = await supabase.from("product_variants").select("id,sku,price_kurus,billing_period").eq("sku", "YENOMI-NFC-CARD-ANNUAL").single();
 if (variantError) throw variantError;
 
-async function seedIndividual({ user, orderNumber, withProfile, profileSlug, profileName }) {
+async function seedIndividual({
+  user,
+  orderNumber,
+  withProfile,
+  profileSlug,
+  profileName,
+  variantSku = "YENOMI-NFC-CARD-ANNUAL",
+  entitlementStatus = "ACTIVE",
+  startsAt,
+  expiresAt,
+  graceEndsAt,
+  physicalCards = [],
+  claimActivation = true,
+}) {
   const now = new Date();
-  const expires = new Date(now.getTime() + 365 * 86400000);
-  const grace = new Date(now.getTime() + 372 * 86400000);
-  const orderPayload = { order_number: orderNumber, user_id: user.id, guest_email: user.email, status: "PAID", currency: "TRY", subtotal_kurus: variant.price_kurus, shipping_kurus: 0, total_kurus: variant.price_kurus, customer_name: user.user_metadata.full_name, customer_phone: "+905550000000", country_code: "TR", paid_at: now.toISOString(), activation_claimed_at: now.toISOString() };
+  const starts = startsAt ?? now;
+  const expires = expiresAt ?? new Date(now.getTime() + 365 * 86400000);
+  const grace = graceEndsAt ?? new Date(now.getTime() + 372 * 86400000);
+  const { data: chosenVariant, error: chosenVariantError } = await supabase.from("product_variants").select("id,sku,price_kurus,billing_period").eq("sku", variantSku).single();
+  if (chosenVariantError) throw chosenVariantError;
+  const orderPayload = {
+    order_number: orderNumber,
+    user_id: user.id,
+    guest_email: user.email,
+    status: "PAID",
+    currency: "TRY",
+    subtotal_kurus: chosenVariant.price_kurus,
+    shipping_kurus: 0,
+    total_kurus: chosenVariant.price_kurus,
+    customer_name: user.user_metadata.full_name,
+    customer_phone: "+905550000000",
+    country_code: "TR",
+    paid_at: now.toISOString(),
+    activation_claimed_at: claimActivation ? now.toISOString() : null,
+  };
   const { data: order, error: orderError } = await supabase.from("commerce_orders").upsert(orderPayload, { onConflict: "order_number" }).select("id").single();
   if (orderError) throw orderError;
   let { data: item } = await supabase.from("commerce_order_items").select("id").eq("order_id", order.id).limit(1).maybeSingle();
+  const itemPayload = {
+    order_id: order.id,
+    product_id: product.id,
+    variant_id: chosenVariant.id,
+    product_kind: product.kind,
+    product_name: product.name,
+    unit_price_kurus: chosenVariant.price_kurus,
+    quantity: 1,
+    configuration: {
+      sku: chosenVariant.sku,
+      demo: true,
+      ...(chosenVariant.sku === "YENOMI-NFC-PREMIUM-ANNUAL" ? { package_code: "INDIVIDUAL_PREMIUM" } : {}),
+    },
+  };
   if (!item) {
-    const inserted = await supabase.from("commerce_order_items").insert({ order_id: order.id, product_id: product.id, variant_id: variant.id, product_kind: product.kind, product_name: product.name, unit_price_kurus: variant.price_kurus, quantity: 1, configuration: { sku: variant.sku, demo: true } }).select("id").single();
+    const inserted = await supabase.from("commerce_order_items").insert(itemPayload).select("id").single();
     if (inserted.error) throw inserted.error;
     item = inserted.data;
+  } else {
+    await supabase.from("commerce_order_items").update(itemPayload).eq("id", item.id).throwOnError();
   }
-  const { data: entitlement, error: entitlementError } = await supabase.from("entitlements").upsert({ user_id: user.id, order_item_id: item.id, instance_no: 1, kind: "NFC_PHYSICAL_CARD", status: "ACTIVE", starts_at: now.toISOString(), expires_at: expires.toISOString(), grace_ends_at: grace.toISOString() }, { onConflict: "order_item_id,instance_no" }).select("id").single();
+  const { data: entitlement, error: entitlementError } = await supabase.from("entitlements").upsert({
+    user_id: user.id,
+    order_item_id: item.id,
+    instance_no: 1,
+    kind: "NFC_PHYSICAL_CARD",
+    status: entitlementStatus,
+    starts_at: starts.toISOString(),
+    expires_at: expires.toISOString(),
+    grace_ends_at: grace.toISOString(),
+  }, { onConflict: "order_item_id,instance_no" }).select("id").single();
   if (entitlementError) throw entitlementError;
   await supabase.from("commerce_order_consents").upsert({ order_id: order.id, distance_sales_accepted: true, personalization_accepted: true, distance_sales_version: "2026-08-07", personalization_version: "2026-08-07", privacy_version: "2026-08-07", request_id: "DEMO-SEED" }, { onConflict: "order_id" }).throwOnError();
+  let profile = null;
   if (withProfile) {
+    const lost = physicalCards.some((card) => card.status === "LOST");
     const safeSlug = profileSlug || `demo-${user.email.split("@")[0].replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`;
-    const profilePayload = { user_id: user.id, entitlement_id: entitlement.id, slug: safeSlug, name: profileName || user.user_metadata.full_name || "Demo Kullanıcı", role: "Demo Kullanıcı", company: "Yenomi Demo", phone: "+90 555 000 00 01", email: user.email, website: "https://yenomilabs.com", location: "İstanbul, Türkiye", is_published: true, card_status: "ACTIVE" };
+    const profilePayload = {
+      user_id: user.id,
+      entitlement_id: entitlement.id,
+      slug: safeSlug,
+      name: profileName || user.user_metadata.full_name || "Demo Kullanıcı",
+      role: "Demo Kullanıcı",
+      company: "Yenomi Demo",
+      phone: "+90 555 000 00 01",
+      email: user.email,
+      website: "https://yenomilabs.com",
+      location: "İstanbul, Türkiye",
+      is_published: true,
+      card_status: lost ? "LOST" : "ACTIVE",
+    };
     const existingProfile = await supabase.from("card_profiles").select("id").eq("entitlement_id", entitlement.id).maybeSingle();
     if (existingProfile.error) throw existingProfile.error;
-    if (existingProfile.data) await supabase.from("card_profiles").update(profilePayload).eq("id", existingProfile.data.id).throwOnError();
-    else await supabase.from("card_profiles").insert(profilePayload).throwOnError();
+    if (existingProfile.data) {
+      const updated = await supabase.from("card_profiles").update(profilePayload).eq("id", existingProfile.data.id).select("id").single();
+      if (updated.error) throw updated.error;
+      profile = updated.data;
+    } else {
+      const inserted = await supabase.from("card_profiles").insert(profilePayload).select("id").single();
+      if (inserted.error) throw inserted.error;
+      profile = inserted.data;
+    }
+  }
+  if (profile) {
+    for (const card of physicalCards) {
+      const existingCard = await supabase.from("physical_cards").select("id").eq("card_code", card.code).maybeSingle();
+      if (existingCard.error) throw existingCard.error;
+      const cardPayload = {
+        owner_profile_id: profile.id,
+        owner_user_id: user.id,
+        organization_id: null,
+        activated_at: now.toISOString(),
+        status: card.status,
+      };
+      if (!existingCard.data) {
+        await supabase.from("physical_cards").insert({ card_code: card.code, ...cardPayload }).throwOnError();
+      } else {
+        await supabase.from("physical_cards").update(cardPayload).eq("id", existingCard.data.id).throwOnError();
+      }
+    }
   }
 }
 
@@ -245,6 +356,62 @@ await seedIndividual({ user: users.cardPending, orderNumber: "YI-DEMO-PENDING", 
 await seedIndividual({ user: users.cardComplete, orderNumber: "YI-DEMO-COMPLETE", withProfile: true, profileSlug: "demo-karti-hazir", profileName: "Kartı Hazır Kullanıcı" });
 await seedIndividual({ user: users.trIndividualEmpty, orderNumber: "YI-TR-BIREYSEL-BOS", withProfile: false });
 await seedIndividual({ user: users.trIndividualActive, orderNumber: "YI-TR-BIREYSEL-AKTIF", withProfile: true, profileSlug: "demo-bireysel-aktif", profileName: "Bireysel Aktif Kullanıcı" });
+{
+  const now = new Date();
+  await seedIndividual({
+    user: users.trIndividualPremium,
+    orderNumber: "YI-TR-BIREYSEL-PREMIUM",
+    withProfile: true,
+    profileSlug: "demo-bireysel-premium",
+    profileName: "Bireysel Premium Kullanıcı",
+    variantSku: "YENOMI-NFC-PREMIUM-ANNUAL",
+  });
+  await seedIndividual({
+    user: users.trIndividualExpired,
+    orderNumber: "YI-TR-BIREYSEL-EXPIRED",
+    withProfile: true,
+    profileSlug: "demo-bireysel-suresi-dolmus",
+    profileName: "Süresi Dolmuş Bireysel",
+    entitlementStatus: "EXPIRED",
+    startsAt: new Date(now.getTime() - 400 * 86400000),
+    expiresAt: new Date(now.getTime() - 35 * 86400000),
+    graceEndsAt: new Date(now.getTime() - 28 * 86400000),
+  });
+  await seedIndividual({
+    user: users.trIndividualLost,
+    orderNumber: "YI-TR-BIREYSEL-KAYIP",
+    withProfile: true,
+    profileSlug: "demo-bireysel-kayip",
+    profileName: "Kayıp Kart Bireysel",
+    physicalCards: [{ code: "YN-INDLOST00001", status: "LOST" }],
+  });
+  await seedIndividual({
+    user: users.trIndividualBackup,
+    orderNumber: "YI-TR-BIREYSEL-YEDEK",
+    withProfile: true,
+    profileSlug: "demo-bireysel-yedek",
+    profileName: "Yedek Kart Bireysel",
+    physicalCards: [
+      { code: "YN-INDYEDKMAIN1", status: "ACTIVE" },
+      { code: "YN-INDYEDKALT01", status: "ACTIVE" },
+    ],
+  });
+}
+
+async function ensureOrganization({ slug, name, status = "ACTIVE" }) {
+  const existing = await supabase.from("organizations").select("id,name").eq("slug", slug).maybeSingle();
+  if (existing.error) throw existing.error;
+  if (existing.data) {
+    const updated = await supabase.from("organizations").update({ name, status }).eq("id", existing.data.id).select("id,name").single();
+    if (updated.error) throw updated.error;
+    return updated.data;
+  }
+  const allocated = await supabase.rpc("allocate_corporate_id");
+  if (allocated.error) throw allocated.error;
+  const inserted = await supabase.from("organizations").insert({ slug, name, status, corporate_id: allocated.data }).select("id,name").single();
+  if (inserted.error) throw inserted.error;
+  return inserted.data;
+}
 
 async function ensureCorporateDemoProfile(user, organization, slug, title = "Demo Çalışan") {
   const payload = {
@@ -273,8 +440,7 @@ for (const scenario of corporateScenarios) {
   const owner = users[scenario.owner];
   const { data: plan, error: planError } = await supabase.from("business_plans").select("id").eq("code", scenario.plan).single();
   if (planError) throw planError;
-  const { data: organization, error: orgError } = await supabase.from("organizations").upsert({ slug: scenario.slug, name: scenario.name, status: "ACTIVE" }, { onConflict: "slug" }).select("id").single();
-  if (orgError) throw orgError;
+  const organization = await ensureOrganization({ slug: scenario.slug, name: scenario.name });
   await supabase.from("organization_members").upsert({ organization_id: organization.id, user_id: owner.id, email: owner.email, full_name: owner.user_metadata.full_name, title: "Şirket Sahibi", department: "Yönetim", role: "OWNER", status: "ACTIVE" }, { onConflict: "organization_id,email" }).throwOnError();
   await ensureCorporateDemoProfile(owner, organization, `${scenario.slug}-yonetici`, "Şirket Sahibi");
   const existingSubscription = await supabase.from("organization_subscriptions").select("id").eq("organization_id", organization.id).in("status", ["ACTIVE", "GRACE_PERIOD"]).limit(1).maybeSingle();
@@ -448,10 +614,7 @@ for (const scenario of corporateScenarios) {
   }, { onConflict: "code" }).throwOnError();
   const { data: plan, error: planError } = await supabase.from("business_plans").select("id").eq("code", "DEMO-50").single();
   if (planError) throw planError;
-  const { data: qaOrg, error: qaOrgError } = await supabase.from("organizations").upsert({
-    slug: "demo-qa-uctan-uca", name: "Demo Şirket / Uçtan Uca QA", status: "ACTIVE",
-  }, { onConflict: "slug" }).select("id,name").single();
-  if (qaOrgError) throw qaOrgError;
+  const qaOrg = await ensureOrganization({ slug: "demo-qa-uctan-uca", name: "Demo Şirket / Uçtan Uca QA" });
   const existingSub = await supabase.from("organization_subscriptions").select("id").eq("organization_id", qaOrg.id).limit(1).maybeSingle();
   const subPayload = { organization_id: qaOrg.id, plan_id: plan.id, status: "ACTIVE", starts_at: new Date().toISOString(), expires_at: new Date(Date.now()+365*86400000).toISOString(), seat_limit: 50 };
   if (existingSub.data) await supabase.from("organization_subscriptions").update(subPayload).eq("id", existingSub.data.id).throwOnError();
@@ -589,8 +752,7 @@ for (const scenario of corporateScenarios) {
   }
 
   // Second organization for cross-org context/isolation tests.
-  const { data: orgB, error: orgBError } = await supabase.from("organizations").upsert({slug:"demo-qa-ikinci-sirket",name:"Demo QA / İkinci Şirket",status:"ACTIVE"},{onConflict:"slug"}).select("id").single();
-  if(orgBError) throw orgBError;
+  const orgB = await ensureOrganization({ slug: "demo-qa-ikinci-sirket", name: "Demo QA / İkinci Şirket" });
   const subB=await supabase.from("organization_subscriptions").select("id").eq("organization_id",orgB.id).limit(1).maybeSingle();
   const payloadB={organization_id:orgB.id,plan_id:plan.id,status:"ACTIVE",starts_at:new Date().toISOString(),expires_at:new Date(Date.now()+365*86400000).toISOString(),seat_limit:50};
   if(subB.data) await supabase.from("organization_subscriptions").update(payloadB).eq("id",subB.data.id).throwOnError(); else await supabase.from("organization_subscriptions").insert(payloadB).throwOnError();
@@ -616,16 +778,16 @@ for (const scenario of [
 ]) {
   const planCode=scenario.limit===10?"DEMO-10":"DEMO-5";
   const plan=await supabase.from("business_plans").select("id").eq("code",planCode).single(); if(plan.error) throw plan.error;
-  const org=await supabase.from("organizations").upsert({slug:scenario.slug,name:scenario.name,status:"ACTIVE"},{onConflict:"slug"}).select("id").single(); if(org.error) throw org.error;
+  const org = await ensureOrganization({ slug: scenario.slug, name: scenario.name });
   const owner=users[scenario.key];
-  await supabase.from("organization_members").upsert({organization_id:org.data.id,user_id:owner.id,email:owner.email,full_name:owner.user_metadata.full_name,title:"Şirket Sahibi",department:"Yönetim",role:"OWNER",status:"ACTIVE"},{onConflict:"organization_id,email"}).throwOnError();
-  const sub=await supabase.from("organization_subscriptions").select("id").eq("organization_id",org.data.id).limit(1).maybeSingle();
-  const subPayload={organization_id:org.data.id,plan_id:plan.data.id,status:"ACTIVE",starts_at:new Date().toISOString(),expires_at:new Date(Date.now()+365*86400000).toISOString(),seat_limit:scenario.limit};
+  await supabase.from("organization_members").upsert({organization_id:org.id,user_id:owner.id,email:owner.email,full_name:owner.user_metadata.full_name,title:"Şirket Sahibi",department:"Yönetim",role:"OWNER",status:"ACTIVE"},{onConflict:"organization_id,email"}).throwOnError();
+  const sub=await supabase.from("organization_subscriptions").select("id").eq("organization_id",org.id).limit(1).maybeSingle();
+  const subPayload={organization_id:org.id,plan_id:plan.data.id,status:"ACTIVE",starts_at:new Date().toISOString(),expires_at:new Date(Date.now()+365*86400000).toISOString(),seat_limit:scenario.limit};
   if(sub.data) await supabase.from("organization_subscriptions").update(subPayload).eq("id",sub.data.id).throwOnError(); else await supabase.from("organization_subscriptions").insert(subPayload).throwOnError();
-  for(let i=2;i<=scenario.used;i++) await supabase.from("organization_members").upsert({organization_id:org.data.id,email:`koltuk${i}.${scenario.slug}@yenomi.test`,full_name:`Demo Çalışan ${i}`,title:"Çalışan",department:"Operasyon",role:"EMPLOYEE",status:"INVITED"},{onConflict:"organization_id,email"}).throwOnError();
+  for(let i=2;i<=scenario.used;i++) await supabase.from("organization_members").upsert({organization_id:org.id,email:`koltuk${i}.${scenario.slug}@yenomi.test`,full_name:`Demo Çalışan ${i}`,title:"Çalışan",department:"Operasyon",role:"EMPLOYEE",status:"INVITED"},{onConflict:"organization_id,email"}).throwOnError();
   if(scenario.key==="trTemplateOwner") {
-    const current=await supabase.from("organization_card_templates").select("id").eq("organization_id",org.data.id).eq("is_default",true).maybeSingle(); if(current.error) throw current.error;
-    const payload={organization_id:org.data.id,name:"Kurumsal Standart",is_default:true,primary_color:"#6F42C1",fields:{logo:true}};
+    const current=await supabase.from("organization_card_templates").select("id").eq("organization_id",org.id).eq("is_default",true).maybeSingle(); if(current.error) throw current.error;
+    const payload={organization_id:org.id,name:"Kurumsal Standart",is_default:true,primary_color:"#6F42C1",fields:{logo:true}};
     if(current.data) await supabase.from("organization_card_templates").update(payload).eq("id",current.data.id).throwOnError(); else await supabase.from("organization_card_templates").insert(payload).throwOnError();
   }
 }
@@ -669,6 +831,109 @@ for (const scenario of [
   }
 }
 
+function demoActivationToken(label) {
+  const raw = createHash("sha256").update(`demo:${password}:${label}`).digest("hex");
+  const tokenHash = createHash("sha256").update(raw).digest("hex");
+  return { raw, tokenHash };
+}
+
+async function seedGuestPaidOrder({ email, orderNumber, tokenLabel, audience, variantSku }) {
+  const now = new Date();
+  const { data: chosenVariant, error: variantError } = await supabase.from("product_variants").select("id,sku,price_kurus,product_id").eq("sku", variantSku).single();
+  if (variantError) throw variantError;
+  const { data: chosenProduct, error: productError } = await supabase.from("products").select("id,name,kind").eq("id", chosenVariant.product_id).single();
+  if (productError) throw productError;
+  const orderPayload = {
+    order_number: orderNumber,
+    user_id: null,
+    guest_email: email,
+    status: "PAID",
+    currency: "TRY",
+    subtotal_kurus: chosenVariant.price_kurus,
+    shipping_kurus: 0,
+    total_kurus: chosenVariant.price_kurus,
+    customer_name: audience === "corporate" ? "Demo Kurumsal Misafir" : "Demo Misafir",
+    customer_phone: "+905550000000",
+    country_code: "TR",
+    paid_at: now.toISOString(),
+    activation_claimed_at: null,
+  };
+  const { data: order, error: orderError } = await supabase.from("commerce_orders").upsert(orderPayload, { onConflict: "order_number" }).select("id,order_number").single();
+  if (orderError) throw orderError;
+  let { data: item } = await supabase.from("commerce_order_items").select("id").eq("order_id", order.id).limit(1).maybeSingle();
+  const itemPayload = {
+    order_id: order.id,
+    product_id: chosenProduct.id,
+    variant_id: chosenVariant.id,
+    product_kind: chosenProduct.kind,
+    product_name: chosenProduct.name,
+    unit_price_kurus: chosenVariant.price_kurus,
+    quantity: 1,
+    configuration: { sku: chosenVariant.sku, demo: true },
+  };
+  if (!item) {
+    const inserted = await supabase.from("commerce_order_items").insert(itemPayload).select("id").single();
+    if (inserted.error) throw inserted.error;
+    item = inserted.data;
+  } else {
+    await supabase.from("commerce_order_items").update(itemPayload).eq("id", item.id).throwOnError();
+  }
+  if (audience === "individual") {
+    await supabase.from("entitlements").upsert({
+      user_id: null,
+      order_item_id: item.id,
+      instance_no: 1,
+      kind: "NFC_PHYSICAL_CARD",
+      status: "PENDING_ACTIVATION",
+    }, { onConflict: "order_item_id,instance_no" }).throwOnError();
+  }
+  await supabase.from("commerce_order_consents").upsert({
+    order_id: order.id,
+    distance_sales_accepted: true,
+    personalization_accepted: true,
+    distance_sales_version: "2026-08-07",
+    personalization_version: "2026-08-07",
+    privacy_version: "2026-08-07",
+    request_id: "DEMO-SEED",
+  }, { onConflict: "order_id" }).throwOnError();
+  const token = demoActivationToken(tokenLabel);
+  await supabase.from("activation_tokens").delete().eq("order_id", order.id);
+  await supabase.from("activation_tokens").insert({
+    order_id: order.id,
+    token_hash: token.tokenHash,
+    expires_at: new Date(now.getTime() + 7 * 86400000).toISOString(),
+  }).throwOnError();
+  return { order, token };
+}
+
+const guestActivationUrls = [];
+{
+  const individualGuest = guestOrders.filter((row) => row.audience === "individual");
+  for (const guest of individualGuest) {
+    const seeded = await seedGuestPaidOrder({
+      email: guest.email,
+      orderNumber: guest.orderNumber,
+      tokenLabel: guest.tokenLabel,
+      audience: "individual",
+      variantSku: "YENOMI-NFC-CARD-ANNUAL",
+    });
+    guestActivationUrls.push({ email: guest.email, orderNumber: guest.orderNumber, url: `/aktivasyon?token=${encodeURIComponent(seeded.token.raw)}` });
+  }
+  const corporateGuest = guestOrders.find((row) => row.audience === "corporate");
+  if (!corporateGuest) throw new Error("Kurumsal misafir fixture eksik.");
+  const seededCorp = await seedGuestPaidOrder({
+    email: corporateGuest.email,
+    orderNumber: corporateGuest.orderNumber,
+    tokenLabel: corporateGuest.tokenLabel,
+    audience: "corporate",
+    variantSku: "YENOMI-CORP-2",
+  });
+  guestActivationUrls.push({ email: corporateGuest.email, orderNumber: corporateGuest.orderNumber, url: `/aktivasyon?token=${encodeURIComponent(seededCorp.token.raw)}` });
+}
+
 console.log("Demo/QA seed tamamlandı.");
 for (const spec of demoUsers) console.log(`- ${spec.email} — ${spec.kind}`);
+for (const guest of guestOrders) console.log(`- ${guest.email} — ${guest.kind} (Auth user yok)`);
+console.log("Misafir aktivasyon URL’leri yalnız bu çıktıdadır; kaynak koda yazılmaz:");
+for (const row of guestActivationUrls) console.log(`- ${row.email} (${row.orderNumber}): ${row.url}`);
 console.log("Şifre DEMO_SEED_PASSWORD değeridir; çıktı veya kaynak kod içine yazılmadı.");

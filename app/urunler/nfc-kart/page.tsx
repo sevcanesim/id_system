@@ -89,7 +89,7 @@ export default async function NfcKartPage({
         <div className="yi-container nfc-includes__grid">
           <div><span className="nfc-kicker">NE ALIYORSUN?</span><h2>Karttan fazlası.<br /><em>Kimliğin sende kalır.</em></h2></div>
           <ul><li>1 adet kişisel NFC kart</li><li>Değişmeyen kişisel QR kod</li><li>1 yıllık dijital kartvizit sayfası</li><li>Aktif dönemde sınırsız bilgi güncelleme</li><li>Kayıp modu ve yedek kart desteği</li><li>Türkiye içi standart kargo dahil</li></ul>
-          <div className="nfc-includes__cta"><span>Kargo dahil paket fiyatı</span><strong>{formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)}</strong><small>1 kart • 1 yıllık sayfa • Türkiye içi teslimat</small><Link href="#nfc-hero-price-row">Hemen Satın Al</Link></div>
+          <div className="nfc-includes__cta"><span>Kargo dahil paket fiyatı</span><strong>{formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)}</strong><small>1 kart • 1 yıllık sayfa • Türkiye içi teslimat</small><Link href="#nfc-hero-price-row">Sepete Ekle</Link></div>
         </div>
       </section>
 

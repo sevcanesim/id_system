@@ -6,7 +6,7 @@ import { publicError } from "../../../../lib/errors";
 
 const schema = z.object({ token: z.string().min(20), email: z.string().email(), password: z.string().min(8).max(72) });
 
-type ClaimResult = { ok?: boolean; code?: string };
+type ClaimResult = { ok?: boolean; code?: string; corporate?: boolean };
 
 function claimError(code?: string) {
   if (code === "TOKEN_INVALID") return { status: 410, error: "Aktivasyon bağlantısının süresi dolmuş veya daha önce kullanılmış." };
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: mapped.error }, { status: mapped.status });
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, corporate: Boolean((result as ClaimResult | null)?.corporate) });
   } catch (error) {
     if (createdUserId) {
       try { await getSupabaseAdminClient().auth.admin.deleteUser(createdUserId); } catch { /* cleanup best effort */ }

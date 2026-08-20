@@ -66,6 +66,13 @@ function keyFor(owner: string): string {
   return `${CART_PREFIX}${owner || GUEST_OWNER}`;
 }
 
+export function exclusiveCorporateCart(items: CartItem[]): CartItem[] {
+  const corporate = items.filter((item) => isCorporatePackageSku(item.variantSku));
+  if (!corporate.length) return items;
+  const chosen = corporate[corporate.length - 1];
+  return [{ ...chosen, quantity: 1 }];
+}
+
 function readItemsFromKey(key: string): CartItem[] {
   if (typeof window === "undefined") return [];
   try {
@@ -78,8 +85,11 @@ function readItemsFromKey(key: string): CartItem[] {
       if (!raw.cartItemId) migrated = true;
       return [item];
     });
-    if (migrated) window.localStorage.setItem(key, JSON.stringify(items));
-    return items;
+    const exclusive = exclusiveCorporateCart(items);
+    if (migrated || exclusive.length !== items.length || exclusive[0]?.quantity !== items[0]?.quantity) {
+      window.localStorage.setItem(key, JSON.stringify(exclusive));
+    }
+    return exclusive;
   } catch {
     return [];
   }
@@ -87,7 +97,7 @@ function readItemsFromKey(key: string): CartItem[] {
 
 function writeItemsToKey(key: string, items: CartItem[]) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(key, JSON.stringify(items));
+  window.localStorage.setItem(key, JSON.stringify(exclusiveCorporateCart(items)));
 }
 
 function mergeItems(base: CartItem[], incoming: CartItem[]): CartItem[] {
@@ -168,12 +178,11 @@ export function writeCart(items: CartItem[]) {
 export function addCartItem(input: NewCartItem) {
   const items = readCart();
   if (isCorporatePackageSku(input.variantSku)) {
-    const next = items.filter((item) => !isCorporatePackageSku(item.variantSku));
-    next.push({ ...input, quantity: 1, cartItemId: input.cartItemId || createCartItemId() });
-    writeCart(next);
+    writeCart([{ ...input, quantity: 1, cartItemId: input.cartItemId || createCartItemId() }]);
     return;
   }
-  const existing = items.find(
+  const withoutCorporate = items.filter((item) => !isCorporatePackageSku(item.variantSku));
+  const existing = withoutCorporate.find(
     (item) =>
       item.productId === input.productId &&
       item.variantSku === input.variantSku &&
@@ -182,15 +191,18 @@ export function addCartItem(input: NewCartItem) {
 
   if (existing) {
     existing.quantity += input.quantity;
-  } else {
-    items.push({ ...input, cartItemId: input.cartItemId || createCartItemId() });
+    writeCart(withoutCorporate);
+    return;
   }
-  writeCart(items);
+  withoutCorporate.push({ ...input, cartItemId: input.cartItemId || createCartItemId() });
+  writeCart(withoutCorporate);
 }
 
 export function updateCartItemQuantity(items: CartItem[], cartItemId: string, quantity: number): CartItem[] {
   return items.map((item) =>
-    item.cartItemId === cartItemId ? { ...item, quantity: Math.max(1, quantity) } : item,
+    item.cartItemId === cartItemId
+      ? { ...item, quantity: isCorporatePackageSku(item.variantSku) ? 1 : Math.max(1, quantity) }
+      : item,
   );
 }
 

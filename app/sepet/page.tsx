@@ -77,7 +77,9 @@ export default function CartPage() {
                   <Link className="ds-button ds-button--primary" href="/urunler/nfc-kart">NFC Kartı incele</Link>
                   {audience === "corporate" ? (
                     <Link className="ds-button ds-button--secondary" href="/kurumsal/panel/lisans">Lisanslara git</Link>
-                  ) : null}
+                  ) : (
+                    <Link className="ds-button ds-button--secondary" href="/kurumsal">Kurumsal paketleri incele</Link>
+                  )}
                 </div>
               }
             />

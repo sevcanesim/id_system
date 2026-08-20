@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from "crypto";
+import { loadCommerceOrderKind } from "../commerce/order-kind";
 import { COMMERCIAL_PRICING } from "../config/commercial";
 import { sendActivationEmail, sendOrderReadyEmail } from "../email/resend";
 import { isTerminalIyzicoDecline, verifyIyzicoCheckoutResult } from "./callback-verification";
@@ -32,6 +33,25 @@ async function isGuestCommerceOrder(admin: AdminClient, orderId: string) {
   return !data?.user_id;
 }
 
+async function retryCorporatePackageFulfillment(admin: AdminClient, orderId: string) {
+  const { error } = await admin.rpc("fulfill_paid_corporate_package_order", { p_order_id: orderId });
+  if (error) console.error("corporate package fulfill retry failed", { orderId, error });
+}
+
+async function recoverPaidCommerceOrder(admin: AdminClient, orderId: string) {
+  await retryCorporatePackageFulfillment(admin, orderId);
+  const flags = await loadCommerceOrderKind(admin, orderId);
+  if (await isGuestCommerceOrder(admin, orderId)) {
+    return { reviewRequired: flags.reviewRequired, corporate: flags.corporate };
+  }
+  const claim = await autoClaimAuthenticatedOrder(admin, orderId);
+  const afterClaim = await loadCommerceOrderKind(admin, orderId);
+  return {
+    reviewRequired: afterClaim.reviewRequired || claim.reviewRequired,
+    corporate: afterClaim.corporate,
+  };
+}
+
 async function autoClaimAuthenticatedOrder(admin: AdminClient, orderId: string) {
   const { data, error } = await admin.rpc("finalize_authenticated_commerce_order", { p_order_id: orderId });
   const payload = (data as { ok?: boolean; review_required?: boolean; open_issue_count?: number; code?: string } | null) || null;
@@ -55,7 +75,7 @@ async function autoClaimAuthenticatedOrder(admin: AdminClient, orderId: string) 
 
 async function sendGuestActivationIfTokenPersisted(
   admin: AdminClient,
-  input: { orderId: string; guestEmail: string | null; orderNumber: string; rawActivationToken: string },
+  input: { orderId: string; guestEmail: string | null; orderNumber: string; rawActivationToken: string; corporate: boolean },
 ) {
   if (!input.guestEmail) {
     console.error("guest activation email skipped: missing recipient", { orderId: input.orderId });
@@ -77,6 +97,7 @@ async function sendGuestActivationIfTokenPersisted(
     to: input.guestEmail,
     orderNumber: input.orderNumber,
     hoursValid,
+    audience: input.corporate ? "corporate" : "individual",
     activationUrl: `${publicSiteUrl}/aktivasyon?token=${encodeURIComponent(input.rawActivationToken)}`,
   });
   await admin.from("commerce_email_events").insert({
@@ -93,6 +114,7 @@ async function finishPaidOrder(
   processed: { order_id: string; guest_email: string | null; order_number: string; outcome: string },
   rawActivationToken: string,
 ): Promise<CommerceSettleResult> {
+  const flags = await loadCommerceOrderKind(admin, processed.order_id);
   if (await isGuestCommerceOrder(admin, processed.order_id)) {
     if (processed.outcome === "PAID_PROCESSED" || processed.outcome === "PAID_REVIEW_REQUIRED") {
       await sendGuestActivationIfTokenPersisted(admin, {
@@ -100,13 +122,19 @@ async function finishPaidOrder(
         guestEmail: processed.guest_email,
         orderNumber: processed.order_number,
         rawActivationToken,
+        corporate: flags.corporate,
       });
     }
-    return { kind: "paid", orderId: processed.order_id, reviewRequired: processed.outcome === "PAID_REVIEW_REQUIRED" };
+    return {
+      kind: "paid",
+      orderId: processed.order_id,
+      reviewRequired: processed.outcome === "PAID_REVIEW_REQUIRED" || flags.reviewRequired,
+    };
   }
 
   const claim = await autoClaimAuthenticatedOrder(admin, processed.order_id);
-  const reviewRequired = processed.outcome === "PAID_REVIEW_REQUIRED" || claim.reviewRequired;
+  const afterClaim = await loadCommerceOrderKind(admin, processed.order_id);
+  const reviewRequired = processed.outcome === "PAID_REVIEW_REQUIRED" || claim.reviewRequired || afterClaim.reviewRequired;
   if (processed.outcome === "PAID_PROCESSED" && claim.reviewRequired) {
     await admin.from("commerce_email_events").insert({
       order_id: processed.order_id,
@@ -122,7 +150,10 @@ async function finishPaidOrder(
     const mailResult = await sendOrderReadyEmail({
       to: processed.guest_email,
       orderNumber: processed.order_number,
-      createCardUrl: `${publicSiteUrl}/olustur?source=purchase`,
+      audience: afterClaim.corporate ? "corporate" : "individual",
+      createCardUrl: afterClaim.corporate
+        ? `${publicSiteUrl}/kurumsal/panel`
+        : `${publicSiteUrl}/olustur?source=purchase`,
     });
     await admin.from("commerce_email_events").insert({
       order_id: processed.order_id,
@@ -143,11 +174,8 @@ async function settleLoadedAttempt(
   options: { failIfUnpaid: boolean },
 ): Promise<CommerceSettleResult> {
   if (commerceAttempt.status === "PAID") {
-    if (await isGuestCommerceOrder(admin, commerceAttempt.order_id)) {
-      return { kind: "paid", orderId: commerceAttempt.order_id, reviewRequired: false };
-    }
-    const claim = await autoClaimAuthenticatedOrder(admin, commerceAttempt.order_id);
-    return { kind: "paid", orderId: commerceAttempt.order_id, reviewRequired: claim.reviewRequired };
+    const recovered = await recoverPaidCommerceOrder(admin, commerceAttempt.order_id);
+    return { kind: "paid", orderId: commerceAttempt.order_id, reviewRequired: recovered.reviewRequired };
   }
 
   const result = await retrieveCheckout(providerToken);
@@ -223,7 +251,8 @@ export async function settlePendingCommercePaymentByOrderId(orderId: string): Pr
   const { data: order } = await admin.from("commerce_orders").select("id,status").eq("id", orderId).maybeSingle();
   if (!order) return { kind: "not_found" };
   if (PAID_ORDER_STATUSES.has(String(order.status))) {
-    return { kind: "paid", orderId: order.id, reviewRequired: false };
+    const recovered = await recoverPaidCommerceOrder(admin, order.id);
+    return { kind: "paid", orderId: order.id, reviewRequired: recovered.reviewRequired };
   }
 
   const { data: attempt } = await admin

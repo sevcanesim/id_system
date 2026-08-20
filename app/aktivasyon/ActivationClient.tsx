@@ -6,6 +6,7 @@ import AppHeader from "../components/AppHeader";
 import AppFooter from "../components/AppFooter";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { normalizeEmailField } from "../../lib/form-standards";
+import { setCartOwner } from "../../lib/cart";
 
 const ACTIVATION_TOKEN_KEY = "yenomi-activation-token";
 
@@ -55,22 +56,30 @@ export default function ActivationClient() {
     setBusy(true);
     setMessage("");
     try {
+      let corporate = false;
       if (mode === "new") {
         const response = await fetch("/api/commerce/activate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token, email, password }) });
-        const data = await response.json();
+        const data = await response.json() as { error?: string; corporate?: boolean };
         if (!response.ok) throw new Error(data.error || "Hesap oluşturulamadı.");
+        corporate = Boolean(data.corporate);
+        const supabase = getSupabaseBrowserClient();
+        if (supabase) {
+          const signedIn = await supabase.auth.signInWithPassword({ email, password });
+          if (signedIn.data.user?.id) setCartOwner(signedIn.data.user.id, { claimGuest: true });
+        }
       } else {
         const supabase = getSupabaseBrowserClient();
         if (!supabase) throw new Error("Giriş hizmeti yapılandırılamadı.");
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error || !data.session) throw new Error("E-posta veya şifre hatalı.");
         const response = await fetch("/api/commerce/claim", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${data.session.access_token}` }, body: JSON.stringify({ token }) });
-        const payload = await response.json();
+        const payload = await response.json() as { error?: string; corporate?: boolean };
         if (!response.ok) throw new Error(payload.error || "Sipariş hesaba bağlanamadı.");
+        corporate = Boolean(payload.corporate);
       }
       clearHeldToken();
       setPassword("");
-      router.push("/kartlarim?legacy-activated=1");
+      router.push(corporate ? "/kurumsal/panel" : "/kartlarim?legacy-activated=1");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Aktivasyon tamamlanamadı.");
     } finally {
@@ -94,7 +103,7 @@ export default function ActivationClient() {
   }
 
   return <main id="main-content" className="activation-page p5-activation-page p6-activation-page"><AppHeader context="Sipariş Aktivasyonu" /><section className="activation-shell">
-    <span className="section-kicker">HESABI BAĞLA</span><h1>Siparişini hesabına bağla.</h1><p>Misafir satın almalarda dijital hak, e-postandaki bağlantı ile hesaba bağlanır. Girişli satın almalarda hak otomatik tanımlanır.</p>
+    <span className="section-kicker">HESABI BAĞLA</span><h1>Siparişini hesabına bağla.</h1><p>Misafir satın almalarda hak, e-postandaki bağlantı ile hesaba bağlanır. Kurumsal pakette şirket paneli açılır; bireyselde dijital kartvizit hakkın tanımlanır. Girişli satın almalarda hak otomatik tanımlanır.</p>
     {token ? (
       <>
         <div className="activation-tabs"><button className={mode === "new" ? "active" : ""} onClick={() => setMode("new")}>Yeni hesap</button><button className={mode === "existing" ? "active" : ""} onClick={() => setMode("existing")}>Mevcut hesabım</button></div>

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { loadCommerceOrderKind } from "../../../../../lib/commerce/order-kind";
 import { getSupabaseAdminClient } from "../../../../../lib/supabase/server-admin";
 
 export const runtime = "nodejs";
@@ -12,12 +13,13 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 /**
  * Public, unauthenticated order-status check used by the /odeme/basarili and
  * /odeme/basarisiz result pages so they can verify a payment before showing
- * success content. Deliberately returns only a coarse status enum plus a
- * boolean activationRequired flag — never email, amount, items, user id, or
- * any other order detail — so it stays safe to call without auth for a guest
- * checkout flow. The order id itself is already a public, unguessable UUID
- * that the payment callback puts in the redirect URL, so exposing this
- * minimal status by id does not leak anything new.
+ * success content. Deliberately returns only a coarse status enum plus
+ * boolean flags (activationRequired, corporate, reviewRequired) — never
+ * email, amount, items, company name, user id, or any other order detail —
+ * so it stays safe to call without auth for a guest checkout flow. The order
+ * id itself is already a public, unguessable UUID that the payment callback
+ * puts in the redirect URL, so exposing this minimal status by id does not
+ * leak anything new.
  */
 export async function GET(request: NextRequest) {
   const orderId = request.nextUrl.searchParams.get("order") || "";
@@ -42,11 +44,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ found: false, paid: false, status: null }, { status: 404 });
     }
 
+    const paid = PAID_STATUSES.has(String(data.status));
+    const flags = paid ? await loadCommerceOrderKind(admin, orderId) : { corporate: false, reviewRequired: false };
+
     return NextResponse.json({
       found: true,
-      paid: PAID_STATUSES.has(String(data.status)),
+      paid,
       status: data.status,
-      activationRequired: PAID_STATUSES.has(String(data.status)) && !data.user_id && !data.activation_claimed_at,
+      activationRequired: paid && !data.user_id && !data.activation_claimed_at,
+      corporate: flags.corporate,
+      reviewRequired: flags.reviewRequired,
     });
   } catch (error) {
     console.error("commerce order status error", { orderId, error });

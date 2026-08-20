@@ -9,6 +9,14 @@ const source = files.filter((file) => !file.endsWith(".css")).map((file) => fs.r
 const canonicalPath = path.join(app, "canonical.css");
 const css = fs.existsSync(canonicalPath) ? fs.readFileSync(canonicalPath, "utf8") : "";
 
+const OWNED_GLOBAL_CSS = [
+  "app/canonical.css",
+  "app/design-system.css",
+  "app/design-tokens.css",
+  "app/employee-management.css",
+  "app/theme-policy.css",
+];
+
 const failures = [];
 if (source.includes("!important")) failures.push("app/ui contains !important");
 if (source.includes("style={{")) failures.push("app/ui contains inline React styles");
@@ -24,11 +32,17 @@ function walkCss(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const file = path.join(dir, entry.name);
     if (entry.isDirectory()) walkCss(file);
-    else if (/\.(css|scss|sass|less)$/.test(entry.name)) cssFiles.push(path.relative(root, file));
+    else if (/\.(css|scss|sass|less)$/.test(entry.name)) cssFiles.push(path.relative(root, file).replaceAll("\\", "/"));
   }
 }
 walkCss(app);
-if (cssFiles.length !== 1 || cssFiles[0] !== "app/canonical.css") failures.push("app must have exactly one canonical stylesheet");
+cssFiles.sort();
+const ownedSorted = [...OWNED_GLOBAL_CSS].sort();
+const extraCss = cssFiles.filter((file) => !OWNED_GLOBAL_CSS.includes(file));
+const missingCss = OWNED_GLOBAL_CSS.filter((file) => !cssFiles.includes(file));
+if (JSON.stringify(cssFiles) !== JSON.stringify(ownedSorted)) {
+  failures.push("app CSS inventory must match the live owned stylesheet allowlist");
+}
 
 const result = {
   files,
@@ -37,6 +51,8 @@ const result = {
   inlineStyleCount: (source.match(/style=\{\{/g) || []).length,
   migrationCount: migrations.length,
   cssFiles,
+  extraCss,
+  missingCss,
   status: failures.length ? "FAIL" : "PASS",
   failures,
 };

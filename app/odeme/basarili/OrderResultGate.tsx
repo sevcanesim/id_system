@@ -143,7 +143,7 @@ export default function OrderResultGate() {
     <section className="order-success p5-order-success">
       <span className="p5-result-icon"><Icon name="check" /></span>
       <span className="section-kicker">SİPARİŞ ALINDI</span>
-      <h1>Ödeme kilitlendi. Kimliğin sırada.</h1>
+      <h1>Ödemen alındı. Sırada profilin var.</h1>
       <p>{activationRequired
         ? (corporate
           ? "Siparişin henüz bir hesaba bağlı değil. E-postandaki bağlantı ile hesabını oluştur; şirket panelin orada açılır."

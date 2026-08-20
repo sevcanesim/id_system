@@ -52,3 +52,29 @@ export function clearCheckoutSession(): void {
   window.sessionStorage.removeItem(RETURN_PATH_KEY);
   void fetch("/api/commerce/orders/pending", { method: "DELETE", credentials: "same-origin", cache: "no-store" }).catch(() => undefined);
 }
+
+export type PendingCheckoutLookup = {
+  found: boolean;
+  orderId: string | null;
+  paid: boolean;
+  awaitingPayment: boolean;
+};
+
+const EMPTY_PENDING: PendingCheckoutLookup = { found: false, orderId: null, paid: false, awaitingPayment: false };
+
+export async function lookupPendingCheckoutOrder(): Promise<PendingCheckoutLookup> {
+  if (typeof window === "undefined") return EMPTY_PENDING;
+  try {
+    const response = await fetch("/api/commerce/orders/pending", { cache: "no-store", credentials: "same-origin" });
+    if (!response.ok) return EMPTY_PENDING;
+    const data = await response.json() as Partial<PendingCheckoutLookup>;
+    const orderId = typeof data.orderId === "string" && data.orderId ? data.orderId : null;
+    const paid = Boolean(data.paid);
+    const awaitingPayment = Boolean(data.awaitingPayment);
+    if (orderId && (paid || awaitingPayment)) setPendingCheckoutOrderId(orderId);
+    else clearPendingCheckoutOrderId();
+    return { found: Boolean(data.found) && Boolean(orderId), orderId, paid, awaitingPayment };
+  } catch {
+    return EMPTY_PENDING;
+  }
+}

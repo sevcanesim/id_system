@@ -48,7 +48,7 @@ check(
   header.includes('"Yardım Merkezi"'),
   "public navigation matches live Digital ID IA",
 );
-check(header.includes('"/giris"') && header.includes('"NFC Kartı İncele"'), "landing header preserves login + primary product CTA");
+check(header.includes('"/giris"') && header.includes('"NFC Kartı Satın Al"'), "landing header preserves login + primary product CTA");
 check(!header.includes('{menuOpen ? "×" : "☰"}'), "mobile navigation no longer uses menu glyphs");
 check(css.includes("@media (max-width: 760px)") && css.includes("@media (max-width: 430px)"), "mobile responsive rules cover 760px and 430px contexts");
 check(css.includes("min-height:48px") || css.includes("--touch-target"), "primary mobile actions meet touch-target intent");

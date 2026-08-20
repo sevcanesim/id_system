@@ -109,7 +109,7 @@ export default async function ProductsPage() {
                 <h2>{ADDITIONAL_CARD_PLAN.name}</h2>
                 <strong className="products-single-price">{formatTryFromKurus(ADDITIONAL_CARD_PLAN.priceKurus)}</strong>
               </div>
-              <p>Aynı dijital profile bağlı ek NFC + QR kart. Yeni yıl veya yeni profil açmaz.</p>
+              <p>Aynı dijital profile bağlı ek NFC + QR kart. Yeni yıl veya yeni profil açmaz. Aktif hizmet gerekir.</p>
               <ul aria-label="Yedek kart içeriği">
                 {ADDITIONAL_CARD_FEATURES.map((item) => <li key={item}>{item}</li>)}
               </ul>
@@ -121,6 +121,7 @@ export default async function ProductsPage() {
                 unitPriceKurus={COMMERCIAL_PRICING.ADDITIONAL_CARD.priceKurus}
                 label="Sepete Ekle"
               />
+              <ButtonLink href="/urunler/nfc-kart" variant="secondary">İlk kartım yok</ButtonLink>
             </article>
           </div>
         </section>

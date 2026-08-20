@@ -321,7 +321,7 @@ export default function LoginPage() {
             {returnPath === "/checkout" && mode !== "recovery" && (
               <div className="p6-checkout-context" role="status">
                 <span>HESAP İSTEĞE BAĞLI</span>
-                <Link href="/checkout">Hesap açmadan ödeme yapabilirsin — Güvenli Satın Almaya Geç</Link>
+                <Link href="/checkout">Ödemeye dön — hesap gerekmez</Link>
               </div>
             )}
 

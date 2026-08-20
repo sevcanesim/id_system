@@ -65,8 +65,12 @@ if (!webhook.includes("settleCommercePaymentByProviderToken") || !webhook.includ
 if (!api.includes("stampPhysicalProductionConfig") || !api.includes("applyPendingOrderCookie")) {
   throw new Error("Checkout must stamp physical production config and persist a pending-order cookie.");
 }
-if (!page.includes("/api/commerce/orders/pending") || !page.includes("yenomi-cart-change")) {
+const browserCheckout = readFileSync("lib/payments/browser-checkout.ts", "utf8");
+if (!page.includes("lookupPendingCheckoutOrder") || !page.includes("yenomi-cart-change")) {
   throw new Error("Checkout must hydrate the pending-order cookie and listen for cart changes.");
+}
+if (!browserCheckout.includes("/api/commerce/orders/pending") || !browserCheckout.includes('credentials: "same-origin"')) {
+  throw new Error("Pending-order lookup must use the HttpOnly cookie endpoint.");
 }
 
 if (!status.includes("activationRequired")) {

@@ -95,7 +95,7 @@ export default async function CorporatePage({
           <div className="corporate-dashboard-window">
             <div className="corporate-dashboard-topbar">
               <div><span className="corporate-dashboard-dot" />YENOMI ID <small>Kurumsal Panel</small></div>
-              <span className="corporate-dashboard-live">● CANLI</span>
+              <span className="corporate-dashboard-live">Örnek panel</span>
             </div>
             <div className="corporate-dashboard-body">
               <aside className="corporate-dashboard-sidebar" aria-hidden="true">
@@ -131,7 +131,7 @@ export default async function CorporatePage({
         <div>
           <span className="section-kicker">YENOMI BUSINESS</span>
           <h2 id="corporate-single-cta-title">Ekip aynı standartta tanışır. Yönetim tek panelde kalır.</h2>
-          <p>100 kişiye kadar paketi doğrudan sepete ekleyin. 100 kişiyi aşan kapasite ve özel kurulum için teklif alın.</p>
+          <p>100 kişiye kadar paketi doğrudan sepete ekle. 100 kişiyi aşan kapasite ve özel kurulum için teklif al.</p>
         </div>
         <div className="corporate-single-cta-actions">
           <a href="#business-pricing-title" className="corporate-cta">Paketleri İncele <span aria-hidden="true">→</span></a>

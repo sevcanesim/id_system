@@ -148,9 +148,9 @@ export default function CartPage() {
                 </div>
                 <p>Hesap açmadan ödeme yapabilirsin. Satın alma sonrası siparişini bu e-posta ile hesabına bağlarsın. Fiyat ödeme adımında sunucuda doğrulanır.</p>
                 <Link href="/checkout" className="yi-btn yi-btn--primary">
-                  Güvenli Satın Almaya Geç
+                  Ödemeye geç
                 </Link>
-                <Link href="/urunler" className="yi-btn yi-btn--ghost">
+                <Link href="/urunler/nfc-kart" className="yi-btn yi-btn--ghost">
                   Kart seçimine dön
                 </Link>
               </aside>

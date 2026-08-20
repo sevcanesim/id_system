@@ -26,7 +26,9 @@ export default function PaymentSuccessHeader({ fallbackActions }: { fallbackActi
           setActions(data.corporateReady
             ? [{ href: "/kurumsal/panel", label: "Kurumsal Panel", primary: true }]
             : [{ href: "/siparislerim", label: "Siparişlerim", primary: true }]);
+          return;
         }
+        setActions([{ href: "/siparislerim", label: "Siparişlerim", primary: true }]);
       })
       .catch(() => undefined);
     return () => {

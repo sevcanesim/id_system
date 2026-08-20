@@ -13,7 +13,7 @@ import { parseCompanyBilling } from "../../lib/validation/company";
 import { track } from "../../lib/analytics";
 import { safeClientMessage } from "../../lib/errors";
 
-import { clearPendingCheckoutOrderId, getOrCreateCheckoutIdempotencyKey, getPendingCheckoutOrderId, rotateCheckoutIdempotencyKey, setPendingCheckoutOrderId, setCheckoutReturnPath } from "../../lib/payments/browser-checkout";
+import { clearPendingCheckoutOrderId, getOrCreateCheckoutIdempotencyKey, lookupPendingCheckoutOrder, rotateCheckoutIdempotencyKey, setPendingCheckoutOrderId, setCheckoutReturnPath } from "../../lib/payments/browser-checkout";
 type FormState = {
   recipientName: string;
   email: string;
@@ -84,15 +84,11 @@ export default function CheckoutPage() {
   }, []);
 
   useEffect(() => {
-    void fetch("/api/commerce/orders/pending", { cache: "no-store", credentials: "same-origin" })
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data: { orderId?: string; paid?: boolean; awaitingPayment?: boolean } | null) => {
-        if (!data?.orderId) return;
-        if (data.paid) {
+    void lookupPendingCheckoutOrder()
+      .then((data) => {
+        if (data.paid && data.orderId) {
           window.location.replace(`/odeme/basarili?order=${encodeURIComponent(data.orderId)}`);
-          return;
         }
-        if (data.awaitingPayment) setPendingCheckoutOrderId(data.orderId);
       })
       .catch(() => undefined);
   }, []);
@@ -298,6 +294,12 @@ export default function CheckoutPage() {
     setBusy(true);
     track("checkout_started", { itemCount: items.length, authenticated: isAuthenticated });
     try {
+      const pending = await lookupPendingCheckoutOrder();
+      if (pending.paid && pending.orderId) {
+        window.location.replace(`/odeme/basarili?order=${encodeURIComponent(pending.orderId)}`);
+        return;
+      }
+      const retryOrderId = pending.awaitingPayment ? pending.orderId : null;
       const supabase = getSupabaseBrowserClient();
       const { data: sessionData } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
       const headers: Record<string, string> = {
@@ -340,7 +342,7 @@ export default function CheckoutPage() {
             longitude: digitalOnlyCart ? null : form.longitude ?? null,
             countryCode: "TR",
           },
-          retryOrderId: getPendingCheckoutOrderId(),
+          retryOrderId,
           consents: {
             distanceSalesAccepted: form.distanceSalesAccepted,
             personalizationAccepted: form.personalizationAccepted,
@@ -416,7 +418,7 @@ export default function CheckoutPage() {
                   <label>Ad Soyad<input required autoComplete="name" value={form.recipientName} onChange={(e) => update("recipientName", e.target.value)} placeholder="Kartın ve faturanın sahibi" /></label>
                   <label>Telefon<input required inputMode="tel" autoComplete="tel" value={form.phone} onChange={(e) => update("phone", normalizeTrPhone(e.target.value))} placeholder="+90 5xx xxx xx xx" />{form.phone.replace(/\D/g, "").length >= 10 && <small className="field-ok"><Icon name="check" /> Telefon doğrulandı</small>}</label>
                   <label>E-posta<input required type="email" autoComplete="email" value={form.email} onChange={(e) => !isAuthenticated && update("email", e.target.value)} readOnly={isAuthenticated} />{isAuthenticated ? <small className="field-ok"><Icon name="check" /> Hesabına bağlı e-posta</small> : <small>Hesap açmadan güvenli ödeme yapabilirsin. Sipariş bilgilerin bu e-posta adresine gönderilir.</small>}</label>
-                  <label>T.C. kimlik numarası<input required inputMode="numeric" maxLength={11} name="iyzico-identity" autoComplete="off" autoCorrect="off" spellCheck={false} value={form.identityNumber} onChange={(e) => update("identityNumber", e.target.value.replace(/\D/g, ""))} placeholder="11 haneli T.C. kimlik numarası" /><small>iyzico ödeme doğrulaması için kullanılır; saklanmaz.</small></label>
+                  <label>T.C. kimlik numarası<input required inputMode="numeric" maxLength={11} name="iyzico-identity" autoComplete="off" autoCorrect="off" spellCheck={false} value={form.identityNumber} onChange={(e) => update("identityNumber", e.target.value.replace(/\D/g, ""))} placeholder="11 haneli T.C. kimlik numarası" /><small>iyzico ödemesi için zorunlu. Yenomi kaydetmez.</small></label>
                   {hasCorporatePackage ? (
                     <div className="checkout-company-fields">
                       <p className="checkout-company-kicker">ŞİRKET FATURASI</p>
@@ -517,7 +519,7 @@ export default function CheckoutPage() {
                   {!digitalOnlyCart && <span><Icon name="check" /> Fiziksel kart üretim kaydı oluşturulur</span>}
                 </div>
                 <button type="submit" className="checkout-pay-button" disabled={busy || !legalVersions || !buyerComplete || !shippingComplete || !approvalComplete}><Icon name="lock" />{busy ? "Ödeme hazırlanıyor…" : "iyzico ile güvenle öde"}</button>
-                {(!buyerComplete || !shippingComplete || !approvalComplete) && !busy ? <p className="checkout-pay-hint">{digitalOnlyCart ? "Ödemeye geçmek için alıcı, fatura ve onay adımlarını tamamlayın." : "Ödemeye geçmek için alıcı, teslimat ve onay adımlarını tamamlayın."}</p> : null}
+                {(!buyerComplete || !shippingComplete || !approvalComplete) && !busy ? <p className="checkout-pay-hint">{digitalOnlyCart ? "Ödemeye geçmek için alıcı, fatura ve onay adımlarını tamamla." : "Ödemeye geçmek için alıcı, teslimat ve onay adımlarını tamamla."}</p> : null}
                 <div className="checkout-secure-list"><span><Icon name="lock" /> SSL Güvenli</span>{!digitalOnlyCart && <span><Icon name="truck" /> Ücretsiz Kargo</span>}<span><Icon name="refresh" /> Kolay Aktivasyon</span><span><Icon name="shield" /> iyzico Güvencesi</span></div>
               </aside>
             </div>

@@ -7,7 +7,6 @@ import QRCode from "qrcode";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { isSupabaseConfigured } from "../../lib/supabase/config";
 import { formatTryFromKurus, getNfcOrderTotalKurus, NFC_PRODUCT } from "../../lib/config/product";
-import { LEGAL_VERSIONS } from "../../lib/config/legal";
 import { highestReachableNfcOrderStep, normalizeIdentityNumber, validateNfcOrderStep } from "../../lib/validation/nfc-order";
 import OrderLocationMap from "../components/OrderLocationMap";
 import { Icon } from "../icons";
@@ -15,7 +14,7 @@ import { NfcCardFront, NfcCardBack } from "../components/ui/NfcCardArt";
 import { fetchOwnProfile } from "../../lib/repositories/profiles";
 import { track } from "../../lib/analytics";
 import { TURKEY_CITIES, normalizeEmailField, normalizeTrPhone } from "../../lib/form-standards";
-import { clearPendingCheckoutOrderId, getOrCreateCheckoutIdempotencyKey, getPendingCheckoutOrderId, rotateCheckoutIdempotencyKey, setPendingCheckoutOrderId, setCheckoutReturnPath } from "../../lib/payments/browser-checkout";
+import { clearPendingCheckoutOrderId, getOrCreateCheckoutIdempotencyKey, lookupPendingCheckoutOrder, rotateCheckoutIdempotencyKey, setPendingCheckoutOrderId, setCheckoutReturnPath } from "../../lib/payments/browser-checkout";
 // v22: Bu sayfa artık yalnızca ürünü KİŞİSELLEŞTİRİYOR (renk, isim, teslimat).
 // Ödeme ve sipariş oluşturma tek boru hattından geçsin diye
 // /api/commerce/checkout kullanılıyor — eski createOrder() + /api/payments/iyzico/checkout
@@ -63,6 +62,7 @@ export default function NfcOrderPage() {
   const [qrPreview, setQrPreview] = useState("");
   const [activeStep, setActiveStep] = useState(1);
   const [mapExpanded, setMapExpanded] = useState(false);
+  const [legalVersions, setLegalVersions] = useState<{ distanceSales: string; personalization: string; privacy: string } | null>(null);
 
   const publicCardUrl = useMemo(() => {
     const base = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || (typeof window !== "undefined" ? window.location.origin : "https://qr.yenomilabs.com");
@@ -91,6 +91,32 @@ export default function NfcOrderPage() {
     }).catch(() => setLoading(false));
   }, [router]);
 
+
+  useEffect(() => {
+    fetch("/api/public-config")
+      .then(async (response) => {
+        if (!response.ok) throw new Error("config unavailable");
+        return response.json();
+      })
+      .then((data) => setLegalVersions(data.legalVersions))
+      .catch(() => setMessage("Hukuk sürümleri DB’den yüklenemedi; ödeme başlatılamaz."));
+  }, []);
+
+  useEffect(() => {
+    void lookupPendingCheckoutOrder()
+      .then((data) => {
+        if (data.paid && data.orderId) {
+          window.location.replace(`/odeme/basarili?order=${encodeURIComponent(data.orderId)}`);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    const wipeIdentity = () => setForm((current) => (current.identityNumber ? { ...current, identityNumber: "" } : current));
+    window.addEventListener("pagehide", wipeIdentity);
+    return () => window.removeEventListener("pagehide", wipeIdentity);
+  }, []);
 
   useEffect(() => {
     if (!slug) { setQrPreview(""); return; }
@@ -163,6 +189,8 @@ export default function NfcOrderPage() {
     const supabase = getSupabaseBrowserClient();
     if (!supabase || !userId) { setMessage("Sipariş vermek için önce giriş yapmalısın."); return; }
     if (!profileId) { setMessage("Önce dijital kartvizitini oluşturmalısın."); return; }
+    if (!legalVersions) { setMessage("Hukuk sürümleri DB’den yüklenmeden ödeme başlatılamaz."); return; }
+    const consentVersions = legalVersions;
     setSubmitting(true);
     const finalValidationError = validateNfcOrderStep(5, form, Boolean(slug));
     if (finalValidationError) {
@@ -200,10 +228,18 @@ export default function NfcOrderPage() {
     }
     setCheckoutReturnPath("/nfc-siparis");
     track("payment_start", { profileId, quantity: form.quantity });
+    const pending = await lookupPendingCheckoutOrder();
+    if (pending.paid && pending.orderId) {
+      setSubmitting(false);
+      window.location.replace(`/odeme/basarili?order=${encodeURIComponent(pending.orderId)}`);
+      return;
+    }
+    const retryOrderId = pending.awaitingPayment ? pending.orderId : null;
     // Tek çağrı: sipariş oluşturma + ödeme başlatma artık aynı ticaret borusundan
     // (commerce_orders → entitlements → aktivasyon) geçiyor.
     const response = await fetch("/api/commerce/checkout", {
       method: "POST",
+      credentials: "same-origin",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}`, "x-idempotency-key": getOrCreateCheckoutIdempotencyKey() },
       body: JSON.stringify({
         items: [{
@@ -231,13 +267,13 @@ export default function NfcOrderPage() {
           longitude: form.longitude,
           countryCode: "TR",
         },
-        retryOrderId: getPendingCheckoutOrderId(),
+        retryOrderId,
         consents: {
           distanceSalesAccepted,
           personalizationAccepted,
-          distanceSalesVersion: LEGAL_VERSIONS.distanceSales,
-          personalizationVersion: LEGAL_VERSIONS.personalization,
-          privacyVersion: LEGAL_VERSIONS.privacy,
+          distanceSalesVersion: consentVersions.distanceSales,
+          personalizationVersion: consentVersions.personalization,
+          privacyVersion: consentVersions.privacy,
         },
       }),
     });
@@ -251,6 +287,7 @@ export default function NfcOrderPage() {
       return;
     }
     if (result.orderId) setPendingCheckoutOrderId(result.orderId);
+    update("identityNumber", "");
     window.location.assign(result.paymentPageUrl);
   }
 
@@ -361,7 +398,7 @@ export default function NfcOrderPage() {
         {activeStep === 5 && <section className="wizard-pane">
           <div className="pane-heading"><span>05</span><div><h3>Güvenli ödeme</h3><p>Siparişini kontrol et ve iyzico ile tamamla.</p></div></div>
           <div className="identity-toggle" role="group" aria-label="Kimlik türü"><button type="button" aria-pressed={form.identityType==="TR"} className={form.identityType==="TR"?"active":""} onClick={()=>update("identityType","TR")}>Türkiye vatandaşı</button><button type="button" aria-pressed={form.identityType==="FOREIGN"} className={form.identityType==="FOREIGN"?"active":""} onClick={()=>update("identityType","FOREIGN")}>Yabancı kullanıcı</button></div>
-          <label>{form.identityType==="TR"?"T.C. kimlik numarası":"Pasaport numarası"}<input required inputMode={form.identityType==="TR"?"numeric":"text"} autoComplete="off" value={form.identityNumber} onChange={(e)=>update("identityNumber",normalizeIdentityNumber(e.target.value, form.identityType))}/></label>
+          <label>{form.identityType==="TR"?"T.C. kimlik numarası":"Pasaport numarası"}<input required inputMode={form.identityType==="TR"?"numeric":"text"} autoComplete="off" value={form.identityNumber} onChange={(e)=>update("identityNumber",normalizeIdentityNumber(e.target.value, form.identityType))}/><small>iyzico ödemesi için zorunlu. Yenomi kaydetmez.</small></label>
           <div className="payment-privacy-note"><strong>Neden isteniyor?</strong><span>iyzico bu bilgiyi ödeme doğrulaması için zorunlu tutar. Veritabanımıza kaydedilmez.</span></div>
           <div className="stripe-summary"><div><span>NFC Kart</span><b>{formatTryFromKurus(getNfcOrderTotalKurus(form.quantity))}</b></div><div><span>Kargo</span><b>Ücretsiz</b></div><div className="total"><span>Toplam</span><b>{formatTryFromKurus(getNfcOrderTotalKurus(form.quantity))}</b></div></div>
           <label className="consent-check"><input type="checkbox" checked={distanceSalesAccepted} onChange={(e)=>setDistanceSalesAccepted(e.target.checked)} /><span><Link href="/mesafeli-satis-sozlesmesi" target="_blank">Mesafeli Satış Sözleşmesi ve Ön Bilgilendirme Formu</Link>&apos;nu okudum ve kabul ediyorum.</span></label>
@@ -372,7 +409,7 @@ export default function NfcOrderPage() {
         {message&&<div className="auth-message">{message}</div>}
         <div className="wizard-actions">
           {activeStep>1?<button type="button" className="secondary" onClick={previousStep}>Önceki adım</button>:<Link className="secondary-link" href="/kartim">Kartıma dön</Link>}
-          {activeStep<5?<button type="button" className="primary" onClick={nextStep}>{["Kimliği bağla","İletişime geç","Teslimatı yaz","Ödemeyi kilitle"][activeStep-1]} →</button>:<button className="primary" disabled={submitting||!distanceSalesAccepted||!personalizationAccepted}>{submitting?"Güvenli ödeme açılıyor...":"iyzico ile güvenle öde →"}</button>}
+          {activeStep<5?<button type="button" className="primary" onClick={nextStep}>{["Kimliği bağla","İletişime geç","Teslimatı yaz","Ödemeyi kilitle"][activeStep-1]} →</button>:<button className="primary" disabled={submitting||!legalVersions||!distanceSalesAccepted||!personalizationAccepted}>{submitting?"Güvenli ödeme açılıyor...":"iyzico ile güvenle öde →"}</button>}
         </div>
         <small className="secure-caption">Güvenli ödeme altyapısı iyzico tarafından sağlanır.</small>
       </form>

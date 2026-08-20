@@ -27,6 +27,7 @@ const product = read("app/urunler/nfc-kart/page.tsx");
 const cart = read("app/sepet/page.tsx");
 const checkout = read("app/checkout/page.tsx");
 const success = read("app/odeme/basarili/page.tsx");
+const successAction = read("app/odeme/basarili/ActivationAction.tsx");
 const failedPage = read("app/odeme/basarisiz/page.tsx");
 const activation = read("app/aktivasyon/page.tsx");
 const activationClient = read("app/aktivasyon/ActivationClient.tsx");
@@ -43,13 +44,13 @@ check(css.includes("@media(max-width:900px)") && css.includes("@media(max-width:
 check(product.includes('className="nfc-product-page p5-product-page"'), "NFC product migrated to Phase 5 scope");
 check(/fiziksel kart.*güncellenebilir dijital kimlik/i.test(product), "NFC product explains physical + digital package");
 check(product.includes("1 yıllık dijital profil kullanımı") && product.includes("Türkiye içi kargo dahil"), "product inclusion and delivery remain explicit");
-check(product.includes("Hemen Satın Al") && product.includes('destination="/checkout"'), "product exposes direct purchase path");
+check(product.includes("Sepete Ekle") && product.includes("#nfc-hero-price-row"), "product exposes add-to-cart purchase path");
 check(cart.includes('disabled={item.quantity <= 1}'), "cart quantity decrement is disabled at minimum quantity");
 check(/AppFooter[\s\S]*variant="compact"/.test(product) || product.includes("yi-footer-compact"), "product flow uses compact legal footer");
 
 check(cart.includes('className="cart-page p5-cart-page"'), "cart migrated to Phase 5 scope");
 check(cart.includes("KDV dahil") && cart.includes("Ücretsiz"), "cart exposes tax and shipping summary");
-check(cart.includes("Güvenli Satın Almaya Geç"), "cart has one clear checkout conversion action");
+check(cart.includes("Ödemeye geç"), "cart has one clear checkout conversion action");
 check(/AppFooter[\s\S]*variant="compact"/.test(cart) || cart.includes("yi-footer-compact"), "cart uses compact legal footer");
 
 check(checkout.includes('className="checkout-page p5-checkout-page"'), "checkout migrated to Phase 5 scope");
@@ -59,7 +60,8 @@ check(checkout.includes("Mesafeli Satış Sözleşmesini") && checkout.includes(
 check(/AppFooter[\s\S]*variant="compact"/.test(checkout) || checkout.includes("yi-footer-compact"), "checkout uses minimal legal footer");
 check(checkout.includes('fetch("/api/commerce/checkout"') && checkout.includes("x-idempotency-key"), "payment API and idempotency logic retained");
 
-check(success.includes("p5-result-page") && success.includes("Kartvizitimi Hazırla") && success.includes("Siparişlerim"), "payment success exposes next-step actions");
+check(success.includes("p5-result-page") && success.includes("Siparişlerim") && !success.includes("/olustur?source=purchase"), "payment success header stays on orders until entitlements are ready");
+check(successAction.includes("Kartvizitimi Hazırla"), "editor CTA stays entitlement-gated in the success body");
 check(failedPage.includes("PaymentRetryActions"), "payment failure retains retry recovery logic");
 check(activation.includes('p5-activation-page'), "legacy activation bridge retains Phase 5 visual scope");
 check(activation.includes('/api/commerce/activate') || activationClient.includes('/api/commerce/activate'), "legacy activation business APIs retained");

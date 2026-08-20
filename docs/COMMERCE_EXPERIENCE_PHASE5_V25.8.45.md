@@ -53,4 +53,4 @@ Payment success is no longer only a success sentence. It explains the next three
 
 ## Design-system rule
 
-`app/commerce-flow.css` is a canonical, scoped Phase 5 surface. It must not introduce legacy `--yi-*`, `--yp-*`, `--brand-*`, `--store-*`, `--ui-*` or `--y-*` token families. New commerce UI should be implemented here or through canonical reusable components until future component-level migration removes the remaining legacy commerce selectors.
+`app/canonical.css` owns live commerce chrome after the split `commerce-flow.css` surface was retired. Do not recreate `app/commerce-flow.css`. New commerce UI must use existing canonical tokens and components. Do not add a new global stylesheet or `!important`.

@@ -54,6 +54,7 @@ export default function HomePage() {
               <span>NFC + QR</span>
               <span>KAYIP MODU</span>
             </div>
+            <small className="home-mockup__guest">Hesap açmadan ödeyebilirsin. Kart numarası Yenomi’de saklanmaz.</small>
           </div>
 
           <div className="home-mockup__visual" aria-label="Yenomi ID dijital kartvizit önizlemesi">

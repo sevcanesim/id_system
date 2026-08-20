@@ -59,8 +59,8 @@ export default function CartPage() {
       <main id="main-content" className="cart-page p5-cart-page yi-section yi-section--light yi-cart-page yi-footer-compact">
         <div className="yi-container">
           <div className="yi-page-head">
-            <span>COMMERCE</span>
-            <h1>Sepetin kilitlenmeye hazır.</h1>
+            <span>SEPET</span>
+            <h1>Siparişini kontrol et.</h1>
             <p>Fiyat ve stok ödeme adımında sunucuda doğrulanır. Kart numarası Yenomi’de saklanmaz.</p>
           </div>
           {!items.length ? (

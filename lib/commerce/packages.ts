@@ -155,6 +155,19 @@ export const NETWORK_MAIL_PACK_CHECKOUT = {
   reason: "CREDIT_PACK_FULFILLMENT_NOT_LIVE",
 } as const;
 
+const BLOCKED_CHECKOUT_FULFILLMENT_KINDS = new Set([
+  "NETWORK_MAIL_CREDIT_PACK",
+  "CAMPAIGN_MAIL_CREDIT_PACK",
+]);
+
+export function isDirectCheckoutBlocked(metadata: Record<string, unknown> | null | undefined): boolean {
+  const kind = metadata?.fulfillment_kind;
+  if (typeof kind === "string" && BLOCKED_CHECKOUT_FULFILLMENT_KINDS.has(kind)) return true;
+  if (metadata?.live_checkout === false) return true;
+  if (metadata?.stage === "COMING_SOON") return true;
+  return false;
+}
+
 export function networkMailGrant(seatCount: number): number {
   if (!Number.isInteger(seatCount) || seatCount < 1) {
     throw new RangeError("seatCount must be an integer ≥ 1");

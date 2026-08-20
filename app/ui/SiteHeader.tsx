@@ -28,6 +28,8 @@ export default function SiteHeader({
   const [open, setOpen] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [count, setCount] = useState(0);
+  const primaryCta = actions.filter((a) => a.primary).slice(0, 1)[0]
+    ?? (showDefaultCta ? { href: "/urunler/nfc-kart", label: "NFC Kartı İncele", primary: true } : null);
 
   useEffect(() => {
     const sb = getSupabaseBrowserClient();
@@ -44,10 +46,18 @@ export default function SiteHeader({
         <Brand />
         <nav className={`yi-nav${open ? " is-open" : ""}`} aria-label="Ana menü">
           {links.map(([href, label]) => (
-            <Link key={href} href={href} aria-current={pathname === href || pathname.startsWith(`${href}/`) ? "page" : undefined}>
+            <Link key={href} href={href} aria-current={pathname === href || pathname.startsWith(`${href}/`) ? "page" : undefined} onClick={() => setOpen(false)}>
               {label}
             </Link>
           ))}
+          {primaryCta ? (
+            <Link className="yi-nav__funnel yi-nav__funnel--primary" href={primaryCta.href} onClick={() => setOpen(false)}>
+              {primaryCta.label}
+            </Link>
+          ) : null}
+          <Link className="yi-nav__funnel" href={signedIn ? "/hesabim" : "/giris"} onClick={() => setOpen(false)}>
+            {signedIn ? "Hesabım" : "Giriş Yap"}
+          </Link>
         </nav>
         <div className="yi-header__actions">
           <Link className="yi-cart" href="/sepet" aria-label={count ? `Sepet, ${count} ürün` : "Sepet"}>
@@ -55,14 +65,7 @@ export default function SiteHeader({
             <span>Sepet</span>
             {count > 0 && <b>{count}</b>}
           </Link>
-          {(actions.filter((a) => a.primary).slice(0, 1)[0]
-            ? actions.filter((a) => a.primary).slice(0, 1)
-            : showDefaultCta
-              ? [{ href: "/urunler/nfc-kart", label: "NFC Kartı İncele", primary: true }]
-              : []
-          ).map((a) => (
-            <ButtonLink key={a.href} href={a.href} variant="primary">{a.label}</ButtonLink>
-          ))}
+          {primaryCta ? <ButtonLink href={primaryCta.href} variant="primary">{primaryCta.label}</ButtonLink> : null}
           <ButtonLink href={signedIn ? "/hesabim" : "/giris"} variant="secondary">{signedIn ? "Hesabım" : "Giriş Yap"}</ButtonLink>
           <button className="yi-menu" type="button" aria-label={open ? "Menüyü kapat" : "Menüyü aç"} aria-expanded={open} onClick={() => setOpen((v) => !v)}>
             <span /><span /><span />

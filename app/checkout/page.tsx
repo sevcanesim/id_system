@@ -11,6 +11,7 @@ import { Icon } from "../icons";
 import { TURKEY_CITIES, normalizeTrPhone } from "../../lib/form-standards";
 import { parseCompanyBilling } from "../../lib/validation/company";
 import { track } from "../../lib/analytics";
+import { safeClientMessage } from "../../lib/errors";
 
 import { clearPendingCheckoutOrderId, getOrCreateCheckoutIdempotencyKey, getPendingCheckoutOrderId, rotateCheckoutIdempotencyKey, setPendingCheckoutOrderId, setCheckoutReturnPath } from "../../lib/payments/browser-checkout";
 type FormState = {
@@ -335,7 +336,7 @@ export default function CheckoutPage() {
         if (data.orderId) setPendingCheckoutOrderId(data.orderId);
         if (data.retryable) rotateCheckoutIdempotencyKey();
         if (data.resetOrder) clearPendingCheckoutOrderId();
-        throw new Error(data.error || "Ödeme başlatılamadı.");
+        throw new Error(safeClientMessage(data, "Ödeme başlatılamadı."));
       }
       if (!data.paymentPageUrl) throw new Error("Ödeme sayfası oluşturulamadı.");
       if (data.orderId) setPendingCheckoutOrderId(data.orderId);
@@ -354,7 +355,7 @@ export default function CheckoutPage() {
       {/* Public chrome is provided by PublicSiteShell. Do not remount AppHeader/AppFooter. */}
       <section className="checkout-shell checkout-confirm-shell">
         <div className="checkout-heading checkout-heading-compact">
-          <h1>{hasCorporatePackage ? "Kurumsal siparişi kilitle." : digitalOnlyCart ? "Dijital siparişi kilitle." : "Siparişi kilitle."}</h1>
+          <h1>{hasCorporatePackage ? "Kurumsal ödemeyi tamamla." : digitalOnlyCart ? "Dijital ödemeyi tamamla." : "Ödemeyi tamamla."}</h1>
           <p>{hasCorporatePackage ? "Fatura ve teslimatı doğrula. Son adımda iyzico kartını alır; Yenomi saklamaz." : digitalOnlyCart ? "Fatura ili ve ilçesini doğrula. Teslimat adresi yok. Kartın iyzico’da kalır." : "Alıcı ve teslimatı doğrula. Kart numarası iyzico’da işlenir; Yenomi’de saklanmaz."}</p>
           <div className="checkout-account-note" role="status">{isAuthenticated ? <><Icon name="check" /> Hesabın bağlı. Siparişin hesabına otomatik eklenir.</> : <><Icon name="mail" /> Hesap açmadan tamamlayabilirsin. Satın alma sonrası siparişini bu e-posta ile hesabına bağlayabilirsin.</>}</div>
           <div className="checkout-trust-row checkout-trust-row-compact" aria-label="Sipariş avantajları">

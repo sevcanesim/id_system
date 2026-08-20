@@ -121,8 +121,8 @@
   },
   "ownership": {
     "publicConversion": [
-      "app/public-conversion.css",
-      "app/LandingClient.tsx"
+      "app/canonical.css",
+      "app/page.tsx"
     ],
     "commerce": [
       "app/commerce-flow.css",

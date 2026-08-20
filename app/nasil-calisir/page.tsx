@@ -70,7 +70,9 @@ export default function HowItWorksPage() {
                   <div className="how-dashboard-grid"><div className="how-chart"><span/><span/><span/><span/><span/></div><div className="how-mini-list"><i/><i/><i/><i/></div><div className="how-mini-chart"><span/><span/><span/><span/></div><div className="how-mini-list"><i/><i/><i/></div></div>
                 </div>
               )}
-              <Link href={step.number === "04" ? "/kurumsal" : "/urunler/nfc-kart"} className="how-step-arrow" aria-label={`${step.title} detayları`}>→</Link>
+              <Link href={step.number === "04" ? "/kurumsal" : "/urunler/nfc-kart"} className="how-step-cta">
+                {step.number === "04" ? "Kurumsalı incele" : "Kartı seç"}
+              </Link>
             </article>
           ))}
         </div>

@@ -15,7 +15,7 @@ import {
 } from "../../../../lib/payments/idempotency";
 import { getDatabaseLegalVersions } from "../../../../lib/config/database";
 import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, isDigitalOnlySku, isPremiumUpgradeSku } from "../../../../lib/config/commercial";
-import { corporateCheckoutLive, corporatePackageBySku } from "../../../../lib/commerce/packages";
+import { corporateCheckoutLive, corporatePackageBySku, isDirectCheckoutBlocked } from "../../../../lib/commerce/packages";
 import { parseCompanyBilling } from "../../../../lib/validation/company";
 
 export const runtime = "nodejs";
@@ -132,7 +132,9 @@ export async function POST(request: NextRequest) {
     const legalVersions = await getDatabaseLegalVersions();
     const parsed = checkoutSchema(legalVersions).safeParse(await request.json());
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Geçersiz sipariş bilgisi." }, { status: 400 });
+      const payload = publicError("VALIDATION_ERROR");
+      console.error("checkout validation failed", { reference: payload.reference, issueCount: parsed.error.issues.length });
+      return NextResponse.json(payload, { status: 400 });
     }
 
     const body = parsed.data;
@@ -184,6 +186,13 @@ export async function POST(request: NextRequest) {
         configuration: item.configuration,
       };
     });
+
+    for (const item of calculated) {
+      const metadata = (item.variant.metadata as Record<string, unknown> | null) || {};
+      if (isDirectCheckoutBlocked(metadata)) {
+        return NextResponse.json({ error: "Bu ürün henüz doğrudan satın alınamaz." }, { status: 409 });
+      }
+    }
 
     // Capacity add-on lines must target an
     // organization the buyer actually manages, and that organization must
@@ -573,7 +582,10 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const payload = publicError("PAYMENT_UNAVAILABLE");
-    console.error("commerce checkout error", { reference: payload.reference, error });
+    console.error("commerce checkout error", {
+      reference: payload.reference,
+      message: error instanceof Error ? error.message : "UNKNOWN",
+    });
     return NextResponse.json(payload, { status: 500 });
   }
 }

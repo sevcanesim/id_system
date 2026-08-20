@@ -269,8 +269,8 @@ export default function LoginPage() {
         ? "Kurumsal hesabına giriş yap"
         : returnPath === "/checkout"
           ? mode === "signup"
-            ? "Ödemeye devam etmek için hesap oluştur"
-            : "Ödemeye devam etmek için giriş yap"
+            ? "Siparişini hesaba bağlamak istersen hesap oluştur"
+            : "Siparişini hesaba bağlamak istersen giriş yap"
           : mode === "signup"
             ? "Yenomi ID hesabını oluştur"
             : "Hesabına giriş yap";
@@ -282,7 +282,7 @@ export default function LoginPage() {
       : portal === "business"
         ? "Şirket sahibi, yönetici veya İK hesabınla aynı güvenli giriş altyapısını kullan."
         : returnPath === "/checkout"
-          ? "Sepetin korunuyor. Giriş yaptıktan veya hesabını oluşturduktan sonra teslimat ve ödeme adımına otomatik döneceksin."
+          ? "Hesap açmadan ödeme yapabilirsin. Giriş yalnızca siparişi bu e-posta ile hesabına bağlamak içindir."
           : mode === "signup"
             ? "Önce hesabını oluştur. Profil bilgilerini daha sonra, ihtiyaç oldukça tamamlayabilirsin."
             : "Kartlarını, siparişlerini ve dijital kimliğini tek hesaptan yönet.";
@@ -320,7 +320,8 @@ export default function LoginPage() {
           <div className="p6-auth-form-card">
             {returnPath === "/checkout" && mode !== "recovery" && (
               <div className="p6-checkout-context" role="status">
-                <span>ADIM 1 / 3 · HESAP</span>
+                <span>HESAP İSTEĞE BAĞLI</span>
+                <Link href="/checkout">Hesap açmadan ödeme yapabilirsin — Güvenli Satın Almaya Geç</Link>
               </div>
             )}
 
@@ -459,7 +460,7 @@ export default function LoginPage() {
 
                     {message && <div className={`p6-auth-message ${messageTone}`} role="status" aria-live="polite">{message}</div>}
                     <button className="p6-auth-submit" disabled={busy}>
-                      {loading ? (mode === "signup" ? "Hesap açılıyor…" : "Giriş yapılıyor…") : mode === "signup" ? "Hesabı aç ve panele geç" : "Hesabına gir"}
+                      {loading ? (mode === "signup" ? "Hesap açılıyor…" : "Giriş yapılıyor…") : mode === "signup" ? (returnPath === "/checkout" ? "Hesabı aç ve ödemeye dön" : "Hesabı aç ve panele geç") : returnPath === "/checkout" ? "Giriş yap ve ödemeye dön" : "Hesabına gir"}
                       <Icon name="chevronRight" />
                     </button>
                   </form>

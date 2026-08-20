@@ -23,6 +23,7 @@ import {
   isCorporatePackageSku,
   individualSubscriptionOffers,
   isIndividualPremiumPackage,
+  isDirectCheckoutBlocked,
   networkMailGrant,
   perSeatKurus,
   resolveCorporatePlanCode,
@@ -236,6 +237,14 @@ describe("credit packs", () => {
     expect(NETWORK_MAIL_CREDIT_PACKS[0]?.priceKurus).toBe(14_900);
     expect(CAMPAIGN_MAIL_STAGE).toBe("COMING_SOON");
     expect(CAMPAIGN_MAIL_PACKS[0]?.credits).toBe(1000);
+  });
+
+  it("keeps Network Mail and Campaign Mail off live checkout", () => {
+    expect(isDirectCheckoutBlocked({ fulfillment_kind: "NETWORK_MAIL_CREDIT_PACK", live_checkout: false })).toBe(true);
+    expect(isDirectCheckoutBlocked({ fulfillment_kind: "CAMPAIGN_MAIL_CREDIT_PACK", stage: "COMING_SOON" })).toBe(true);
+    expect(isDirectCheckoutBlocked({ live_checkout: false })).toBe(true);
+    expect(isDirectCheckoutBlocked({ fulfillment_kind: "INITIAL_BUNDLE" })).toBe(false);
+    expect(isDirectCheckoutBlocked({ fulfillment_kind: "CORPORATE_PACKAGE" })).toBe(false);
   });
 });
 

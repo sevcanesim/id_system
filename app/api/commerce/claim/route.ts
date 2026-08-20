@@ -43,7 +43,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ok: true, corporate: Boolean((result as ClaimResult | null)?.corporate) });
   } catch (error) {
-    console.error("commerce claim error", error);
+    console.error("commerce claim error", {
+      message: error instanceof Error ? error.message : "UNKNOWN",
+    });
     return NextResponse.json(publicError("ACTIVATION_FAILED"), { status: 500 });
   }
 }

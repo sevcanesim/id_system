@@ -86,7 +86,7 @@ export default function ActivationAction({ activationRequired, corporate = false
         ? "Aktivasyon koduyla uğraşmana gerek yok. Çalışan lisanslarını, kart üretimini ve paneli buradan yönet."
         : "Aktivasyon koduyla uğraşmana gerek yok. Şimdi kartvizit bilgilerini doldur; fiziksel kartın bu profile bağlansın."}</p>
       <Link href={corporate ? "/kurumsal/panel" : "/olustur?source=purchase"}>
-        {corporate ? "Kurumsal Paneli Aç →" : "Kartvizit Bilgilerimi Doldur →"}
+        {corporate ? "Kurumsal Paneli Aç" : "Kartvizitimi Hazırla"}
       </Link>
     </div>
   );

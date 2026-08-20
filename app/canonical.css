@@ -12698,4 +12698,41 @@ article[id] {
   }
 }
 
+/* Nasıl Çalışır uses the viewport gutters, not the 1320 marketing column. */
+html:has(.how-it-works-page) {
+  --how-gutter: max(24px, 4vw);
+}
+.how-it-works-page .how-hero-inner,
+.how-it-works-page .how-steps,
+.how-it-works-page .how-benefits {
+  width: auto;
+  max-width: none;
+  margin-inline: var(--how-gutter);
+}
+body:has(.how-it-works-page) .public-site-chrome .yi-header .yi-container,
+body:has(.how-it-works-page) .yi-footer--new .yi-container {
+  width: auto;
+  max-width: none;
+  margin-inline: var(--how-gutter);
+}
+@media (min-width: 1400px) {
+  .how-it-works-page .how-step-card h3 {
+    font-size: 20px;
+  }
+  .how-it-works-page .how-step-card > p {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .how-step-visual .yi-product-ui {
+    max-width: 400px;
+  }
+  .how-step-visual--02 .how-phone-mockup {
+    width: min(52%, 168px);
+  }
+  .how-step-visual--03 .how-phone-mockup {
+    width: 148px;
+    height: 248px;
+  }
+}
+
 

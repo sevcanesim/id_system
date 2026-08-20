@@ -9,7 +9,7 @@ function check(condition, message) {
 
 const landing = read("app/LandingClient.tsx");
 const corporate = read("app/kurumsal/page.tsx");
-const panel = read("app/kurumsal/panel/CorporatePanelClient.tsx");
+const panel = read("app/kurumsal/panel/CorporatePanelClient.tsx") + read("app/kurumsal/panel/components/OverviewPanel.tsx");
 const product = read("app/urunler/nfc-kart/page.tsx");
 
 // Validate-first: preserve already mature product/value architecture.
@@ -22,9 +22,10 @@ const landingPurchaseMatches = landing.match(/NFC Kartı Satın Al/g) ?? [];
 check(landingPurchaseMatches.length >= 3, "public purchase CTAs use canonical 'NFC Kartı Satın Al' copy");
 check(!landing.includes("Bireysel NFC Kartı İncele"), "legacy individual purchase CTA copy is retired");
 check(corporate.includes("Teklif Al") && corporate.includes('id="teklif"') && !corporate.includes("Kurumsal Görüşme Başlat"), "corporate lead CTA is canonical 'Teklif Al'");
+check(corporate.includes("Sepete Ekle") && corporate.includes("corporateCheckoutLive") && corporate.includes("ENTERPRISE"), "packs at or below 100 seats use add-to-cart; Enterprise stays quote");
 
 // Corporate overview is already a real dashboard; lock the evidence instead of redesigning it.
-for (const label of ["Toplam Çalışan", "Aktif Kart", "Boş Lisans", "Kart görüntülenmeleri", "Lisans Kullanımı"]) {
+for (const label of ["Aktif Çalışan", "Aktif Kart", "boş lisansları", "Kart görüntülenmeleri", "Lisans Kullanımı"]) {
   check(panel.includes(label), `corporate overview retains '${label}' decision metric`);
 }
 

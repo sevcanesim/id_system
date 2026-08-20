@@ -12,6 +12,7 @@ export type CheckoutFingerprintInput = {
   customer?: Record<string, unknown>;
   shipping?: Record<string, unknown>;
   consents?: Record<string, unknown>;
+  company?: Record<string, unknown>;
 };
 
 function stableValue(value: unknown): unknown {
@@ -52,6 +53,7 @@ export function createCheckoutFingerprint(input: CheckoutFingerprintInput): stri
       customer: stableValue(input.customer ?? {}),
       shipping: stableValue(input.shipping ?? {}),
       consents: stableValue(input.consents ?? {}),
+      company: stableValue(input.company ?? {}),
     }))
     .digest("hex");
 }

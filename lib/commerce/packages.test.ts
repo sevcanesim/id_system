@@ -16,7 +16,11 @@ import {
   applyIndividualNetworkMail,
   assertNetworkDailyCap,
   assertVerifiedNetworkMailSender,
+  corporateCheckoutLive,
+  corporatePackageBySku,
+  corporatePackageSku,
   debitNetworkMail,
+  isCorporatePackageSku,
   individualSubscriptionOffers,
   isIndividualPremiumPackage,
   networkMailGrant,
@@ -73,6 +77,18 @@ describe("corporate ladder", () => {
     expect(resolveCorporatePlanCode("GROWTH")).toBe("CORP-25");
     expect(resolveCorporatePlanCode("BUSINESS")).toBe("CORP-50");
     expect(resolveCorporatePlanCode("CORP-10")).toBe("CORP-10");
+  });
+
+  it("sells CORP-2…CORP-100 in checkout and quotes only above 100 seats", () => {
+    expect(corporateCheckoutLive(100)).toBe(true);
+    expect(corporateCheckoutLive(101)).toBe(false);
+    expect(corporatePackageSku("CORP-10")).toBe("YENOMI-CORP-10");
+    expect(isCorporatePackageSku("YENOMI-CORP-100")).toBe(true);
+    expect(isCorporatePackageSku(COMMERCIAL_SKUS.INITIAL)).toBe(false);
+    for (const row of CORPORATE_PACKAGE_LADDER) {
+      expect(corporateCheckoutLive(row.seats)).toBe(true);
+      expect(corporatePackageBySku(corporatePackageSku(row.code))?.priceKurus).toBe(row.priceKurus);
+    }
   });
 });
 

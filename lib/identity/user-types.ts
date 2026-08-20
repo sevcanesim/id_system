@@ -172,6 +172,7 @@ const SKU_TO_PACKAGE: Record<string, string> = {
   [COMMERCIAL_SKUS.PREMIUM]: INDIVIDUAL_PREMIUM_PLAN.code,
   [COMMERCIAL_SKUS.PREMIUM_RENEWAL]: INDIVIDUAL_PREMIUM_PLAN.code,
   [COMMERCIAL_SKUS.PREMIUM_UPGRADE]: INDIVIDUAL_PREMIUM_PLAN.code,
+  ...Object.fromEntries(CORPORATE_PACKAGE_LADDER.map((row) => [`YENOMI-${row.code}`, row.code])),
 };
 
 export function packageCodeFromSku(sku: string | null | undefined): string {

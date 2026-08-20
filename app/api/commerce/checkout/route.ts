@@ -14,7 +14,9 @@ import {
   normalizeIdempotencyKey,
 } from "../../../../lib/payments/idempotency";
 import { getDatabaseLegalVersions } from "../../../../lib/config/database";
-import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isDigitalOnlySku, isPremiumUpgradeSku } from "../../../../lib/config/commercial";
+import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, isDigitalOnlySku, isPremiumUpgradeSku } from "../../../../lib/config/commercial";
+import { corporateCheckoutLive, corporatePackageBySku } from "../../../../lib/commerce/packages";
+import { parseCompanyBilling } from "../../../../lib/validation/company";
 
 export const runtime = "nodejs";
 
@@ -52,6 +54,11 @@ function checkoutSchema(legalVersions: Awaited<ReturnType<typeof getDatabaseLega
     personalizationVersion: z.literal(legalVersions.personalization),
     privacyVersion: z.literal(legalVersions.privacy),
   }).strict(),
+  company: z.object({
+    name: z.string().max(180).optional(),
+    taxNumber: z.string().max(32).optional(),
+    taxOffice: z.string().max(80).optional(),
+  }).optional(),
 }).strict(); }
 
 type ProductVariant = {
@@ -221,13 +228,55 @@ export async function POST(request: NextRequest) {
       item.configuration = { ...(item.configuration || {}), organizationId, seatCount };
     }
 
+    const corporateItems = calculated.filter((item) => {
+      const metadata = (item.variant.metadata as Record<string, unknown> | null) || {};
+      return metadata.fulfillment_kind === "CORPORATE_PACKAGE" || isCorporatePackageSku(item.variant.sku);
+    });
+    if (corporateItems.length) {
+      if (corporateItems.length !== calculated.length) {
+        return NextResponse.json({ error: "Kurumsal paket başka ürünlerle aynı siparişte alınamaz." }, { status: 400 });
+      }
+      if (corporateItems.length > 1 || corporateItems.some((item) => item.quantity !== 1)) {
+        return NextResponse.json({ error: "Aynı siparişte yalnız bir kurumsal paket ve 1 adet seçilebilir." }, { status: 400 });
+      }
+      const pack = corporateItems[0];
+      if (!pack) {
+        return NextResponse.json({ error: "Kurumsal paket seçilmedi." }, { status: 400 });
+      }
+      const metadata = (pack.variant.metadata as Record<string, unknown> | null) || {};
+      const catalog = corporatePackageBySku(pack.variant.sku);
+      const seats = Number(metadata.seat_count ?? catalog?.seats);
+      if (!catalog || !corporateCheckoutLive(seats) || Number(pack.variant.price_kurus) !== catalog.priceKurus) {
+        return NextResponse.json({ error: "Bu kurumsal paket doğrudan satın alınamaz. 100 kişiyi aşan ekipler için teklif alın." }, { status: 409 });
+      }
+      const parsedCompany = parseCompanyBilling(body.company);
+      if (!parsedCompany.ok) {
+        return NextResponse.json({ error: parsedCompany.error }, { status: 400 });
+      }
+      const { data: existingCompany } = await admin
+        .from("organizations")
+        .select("id")
+        .eq("tax_number", parsedCompany.company.taxNumber)
+        .maybeSingle();
+      if (existingCompany) {
+        return NextResponse.json({ error: "Bu vergi numarası başka bir şirkette kayıtlı. Mevcut kurumsal hesabınızla giriş yapın veya teklif alın." }, { status: 409 });
+      }
+      pack.configuration = {
+        packageCode: catalog.code,
+        seatCount: catalog.seats,
+        companyName: parsedCompany.company.name,
+        taxNumber: parsedCompany.company.taxNumber,
+        taxOffice: parsedCompany.company.taxOffice,
+      };
+    }
+
     const hasPhysicalOnlyCard = calculated.some((item) => {
       const kind = ((item.variant.metadata || {}) as Record<string, unknown>).fulfillment_kind;
       return kind === "EXTRA_CARD" || kind === "REPLACEMENT_CARD" || item.variant.sku === COMMERCIAL_SKUS.ADDITIONAL_CARD;
     });
     const includesNewDigitalService = calculated.some((item) => {
       const metadata = (item.variant.metadata || {}) as Record<string, unknown>;
-      return metadata.digital_service_included === true || metadata.fulfillment_kind === "INITIAL_BUNDLE" || item.variant.sku === COMMERCIAL_SKUS.INITIAL || item.variant.sku === COMMERCIAL_SKUS.PREMIUM;
+      return metadata.digital_service_included === true || metadata.fulfillment_kind === "INITIAL_BUNDLE" || metadata.fulfillment_kind === "CORPORATE_PACKAGE" || item.variant.sku === COMMERCIAL_SKUS.INITIAL || item.variant.sku === COMMERCIAL_SKUS.PREMIUM;
     });
     const physicalOnlyCardNeedsActiveEntitlement = hasPhysicalOnlyCard && !includesNewDigitalService;
     const includesRenewal = calculated.some((item) => ((item.variant.metadata || {}) as Record<string, unknown>).fulfillment_kind === "DIGITAL_RENEWAL");
@@ -287,6 +336,11 @@ export async function POST(request: NextRequest) {
       if (!lostCard) return NextResponse.json({ error: "Replacement kart yalnız kayıp moduna alınmış bir kart için satın alınabilir." }, { status: 409 });
     }
 
+    const companyBilling = corporateItems[0]
+      ? parseCompanyBilling(body.company)
+      : null;
+    const company = companyBilling?.ok ? companyBilling.company : null;
+
     const subtotalKurus = calculated.reduce((sum, item) => sum + item.lineTotalKurus, 0);
     const shippingKurus = 0;
     const totalKurus = subtotalKurus + shippingKurus;
@@ -297,6 +351,7 @@ export async function POST(request: NextRequest) {
       customer: { name: body.customer.name, phone: body.customer.phone, identityType: body.customer.identityType },
       shipping,
       consents: body.consents,
+      company: company ?? {},
     });
 
     const { data: existingAttempt } = await findExistingAttempt(admin, idempotencyKey);
@@ -348,6 +403,9 @@ export async function POST(request: NextRequest) {
           customer_phone: body.customer.phone,
           country_code: "TR",
           user_id: authenticatedUserId,
+          company_name: company?.name ?? null,
+          tax_number: company?.taxNumber ?? null,
+          tax_office: company?.taxOffice ?? null,
         })
         .select("id,order_number")
         .single();
@@ -472,10 +530,12 @@ export async function POST(request: NextRequest) {
         zipCode: shipping.postalCode || "00000",
       },
       billingAddress: {
-        contactName: shipping.recipientName,
+        contactName: company ? company.name : shipping.recipientName,
         city: shipping.city,
         country: "Türkiye",
-        address: `${shipping.addressLine}, ${shipping.district}`,
+        address: company
+          ? `${company.name}, VN ${company.taxNumber}, ${company.taxOffice}. ${shipping.addressLine}, ${shipping.district}`
+          : `${shipping.addressLine}, ${shipping.district}`,
         zipCode: shipping.postalCode || "00000",
       },
       basketItems: calculated.map((item) => ({

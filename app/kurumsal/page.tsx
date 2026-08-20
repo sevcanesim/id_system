@@ -1,10 +1,14 @@
 import { Icon } from "../icons";
+import AddToCartButton from "../components/AddToCartButton";
 import {
   CAMPAIGN_MAIL_PACKS,
   CORPORATE_PACKAGE_LADDER,
+  CORPORATE_PACKAGE_PRODUCT_SLUG,
   CORPORATE_SHARED_FEATURES,
   NETWORK_MAIL_CREDIT_PACKS,
   NETWORK_MAIL_POSITIONING,
+  corporateCheckoutLive,
+  corporatePackageSku,
   networkMailGrant,
   perSeatKurus,
 } from "../../lib/commerce/packages";
@@ -67,8 +71,8 @@ export default async function CorporatePage({
           <h1 id="corporate-single-title">Şirket NFC kart almıyor. <em>Çalışanların networking altyapısını satın alıyor.</em></h1>
           <p>Tanışılan kişiyi kaydedin, ilişkiyi yönetin, görüşmeyi fırsata dönüştürün. Kart, panel, Network Mail ve kurumsal analitik tek pakettedir.</p>
           <div className="corporate-hero-actions">
-            <a href="#teklif" className="corporate-cta">Demo İste <span aria-hidden="true">→</span></a>
-            <a href="#business-pricing-title" className="corporate-secondary-cta">Paketleri İncele <span aria-hidden="true">→</span></a>
+            <a href="#business-pricing-title" className="corporate-cta">Paketleri İncele <span aria-hidden="true">→</span></a>
+            <a href="#teklif" className="corporate-secondary-cta">Demo İste <span aria-hidden="true">→</span></a>
           </div>
           <div className="corporate-single-proof" aria-label="Kurumsal ürün sonuçları">
             {outcomes.slice(0, 3).map((item) => <div key={item.label}><strong>{item.value}</strong><span>{item.label}</span></div>)}
@@ -116,10 +120,10 @@ export default async function CorporatePage({
         <div>
           <span className="section-kicker">YENOMI BUSINESS</span>
           <h2 id="corporate-single-cta-title">Ekibiniz için dijital kimlik standardını oluşturun.</h2>
-          <p>Çalışan sayınızı ve kullanım senaryonuzu paylaşın; size uygun kart, lisans ve kurulum kapsamını birlikte çıkaralım.</p>
+          <p>100 kişiye kadar paketi doğrudan sepete ekleyin. 100 kişiyi aşan kapasite ve özel kurulum için teklif alın.</p>
         </div>
         <div className="corporate-single-cta-actions">
-          <a href="#teklif" className="corporate-cta">Teklif Al <span aria-hidden="true">→</span></a>
+          <a href="#business-pricing-title" className="corporate-cta">Paketleri İncele <span aria-hidden="true">→</span></a>
           <a href="/giris?portal=business&next=%2Fkurumsal%2Fpanel" className="corporate-secondary-cta">Kurumsal Giriş <span aria-hidden="true">→</span></a>
         </div>
       </section>
@@ -141,7 +145,7 @@ export default async function CorporatePage({
                 <th scope="col">Network Mail</th>
                 <th scope="col">Kişi başı</th>
                 <th scope="col">Yıllık fiyat</th>
-                <th scope="col"><span className="sr-only">Teklif</span></th>
+                <th scope="col"><span className="sr-only">Aksiyon</span></th>
               </tr>
             </thead>
             <tbody>
@@ -157,12 +161,23 @@ export default async function CorporatePage({
                   <td>{formatTryFromKurus(perSeatKurus(plan.priceKurus, plan.seats))}</td>
                   <td><strong>{formatTryFromKurus(plan.priceKurus)}</strong></td>
                   <td>
-                    <a
-                      href={`/kurumsal?plan=${plan.code}#teklif`}
-                      className={"popular" in plan && plan.popular ? "corporate-plan-link" : "corporate-plan-text"}
-                    >
-                      Teklif Al
-                    </a>
+                    {corporateCheckoutLive(plan.seats) ? (
+                      <AddToCartButton
+                        productId={CORPORATE_PACKAGE_PRODUCT_SLUG}
+                        variantSku={corporatePackageSku(plan.code)}
+                        kind="BUSINESS_CARD"
+                        name={plan.name}
+                        unitPriceKurus={plan.priceKurus}
+                        label="Sepete Ekle"
+                        appearance="secondary"
+                        className={"popular" in plan && plan.popular ? "corporate-plan-link" : "corporate-plan-text"}
+                        configuration={{ packageCode: plan.code, seatCount: plan.seats }}
+                      />
+                    ) : (
+                      <a href={`/kurumsal?plan=${plan.code}#teklif`} className="corporate-plan-text">
+                        Teklif Al
+                      </a>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -177,7 +192,16 @@ export default async function CorporatePage({
             <p>10 NFC kart, 10 dijital profil, 1 şirket paneli, 1.000 Network Mail.</p>
             <strong>{formatTryFromKurus(990_000)} <small>/ yıl</small></strong>
             <ul>{CORPORATE_SHARED_FEATURES.slice(0, 8).map((item) => <li key={item}>{item}</li>)}</ul>
-            <a href="/kurumsal?plan=CORP-10#teklif" className="corporate-cta">Teklif Al <span aria-hidden="true">→</span></a>
+            <AddToCartButton
+              productId={CORPORATE_PACKAGE_PRODUCT_SLUG}
+              variantSku={corporatePackageSku("CORP-10")}
+              kind="BUSINESS_CARD"
+              name="Kurumsal 10"
+              unitPriceKurus={990_000}
+              label="Sepete Ekle"
+              className="corporate-cta"
+              configuration={{ packageCode: "CORP-10", seatCount: 10 }}
+            />
           </article>
           <article className="enterprise">
             <span>ENTERPRISE</span>
@@ -221,8 +245,8 @@ export default async function CorporatePage({
       <section className="corporate-lead-section" id="teklif" aria-labelledby="corporate-lead-title">
         <div className="corporate-lead-copy">
           <span className="section-kicker">KURUMSAL TEKLİF</span>
-          <h2 id="corporate-lead-title">İhtiyacınızı paylaşın, net kapsamı birlikte çıkaralım.</h2>
-          <p>Çalışan sayısı, paket tercihi ve kullanım senaryonuzu gönderin. Talebiniz kayda alınır ve ekibimiz 1 iş günü içinde sizinle iletişime geçer.</p>
+          <h2 id="corporate-lead-title">100 kişiyi aşan ekipler için özel kapsam çıkaralım.</h2>
+          <p>Enterprise ve özel kurulum talepleriniz kayda alınır; ekibimiz 1 iş günü içinde sizinle iletişime geçer. 100 kişiye kadar paketleri doğrudan sepete ekleyebilirsiniz.</p>
           <ul><li>Kurulum ve kart kapsamı birlikte netleştirilir.</li><li>Özel kapasite gerekiyorsa Enterprise planı ayrıca değerlendirilir.</li><li>İsterseniz <a href="mailto:hello@yenomilabs.com?subject=Yenomi%20Business%20Teklif">e-posta ile</a> ulaşabilirsiniz.</li></ul>
         </div>
         <CorporateLeadForm plan={selectedPlan || "GENEL"} />

@@ -1,4 +1,5 @@
-import { COMMERCIAL_SKUS } from "./config/commercial";
+import { COMMERCIAL_SKUS, isCorporatePackageSku } from "./config/commercial";
+import { CORPORATE_PACKAGE_PRODUCT_SLUG, networkMailGrant } from "./commerce/packages";
 
 export type ProductKind = "BUSINESS_CARD" | "HEALTH_CARD" | "NFC_PHYSICAL_CARD";
 
@@ -166,6 +167,12 @@ export function writeCart(items: CartItem[]) {
 
 export function addCartItem(input: NewCartItem) {
   const items = readCart();
+  if (isCorporatePackageSku(input.variantSku)) {
+    const next = items.filter((item) => !isCorporatePackageSku(item.variantSku));
+    next.push({ ...input, quantity: 1, cartItemId: input.cartItemId || createCartItemId() });
+    writeCart(next);
+    return;
+  }
   const existing = items.find(
     (item) =>
       item.productId === input.productId &&
@@ -203,6 +210,17 @@ export function cartItemPresentation(item: CartItem): {
   const seatCount = Number(item.configuration?.seatCount);
   const namedSeats = item.name.match(/Ek\s+(\d+)\s+Kullanıcı/i);
   const seats = Number.isFinite(seatCount) && seatCount > 0 ? seatCount : Number(namedSeats?.[1] || 0);
+  if (isCorporatePackageSku(item.variantSku) || item.productId === CORPORATE_PACKAGE_PRODUCT_SLUG) {
+    const packSeats = Number.isFinite(seatCount) && seatCount > 0 ? seatCount : seats;
+    return {
+      eyebrow: "KURUMSAL PAKET",
+      title: item.name,
+      lines: [
+        `${packSeats} kullanıcı · ${packSeats} NFC kart`,
+        `${networkMailGrant(Math.max(packSeats, 1)).toLocaleString("tr-TR")} Network Mail`,
+      ],
+    };
+  }
   if (item.productId === "yenomi-business-seat-pack" || seats > 0) {
     return {
       eyebrow: "LİSANS PAKETİ",

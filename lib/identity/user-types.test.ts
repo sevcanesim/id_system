@@ -47,6 +47,7 @@ describe("user identity types", () => {
       packageCode: INDIVIDUAL_PREMIUM_PLAN.code,
     });
     expect(packageCodeFromSku(COMMERCIAL_SKUS.PREMIUM_UPGRADE)).toBe("INDIVIDUAL_PREMIUM");
+    expect(packageCodeFromSku("YENOMI-CORP-10")).toBe("CORP-10");
     expect(typesFromPackageCode("STARTER").packageCode).toBe("CORP-10");
     expect(typesFromPackageCode(null).packageCode).toBe(UNASSIGNED_PACKAGE_CODE);
   });

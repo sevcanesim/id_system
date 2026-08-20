@@ -1,9 +1,12 @@
 import {
   BUSINESS_SEAT_PACKS,
   CORPORATE_PACKAGE_LADDER,
+  CORPORATE_PACKAGE_PRODUCT_SLUG,
+  corporatePackageSku,
   INDIVIDUAL_PREMIUM_PLAN,
   INDIVIDUAL_PREMIUM_RENEWAL_PLAN,
   INDIVIDUAL_PREMIUM_UPGRADE_PLAN,
+  isCorporatePackageSku,
 } from "../commerce/packages";
 
 const corp10 = CORPORATE_PACKAGE_LADDER.find((row) => row.code === "CORP-10")!;
@@ -52,6 +55,15 @@ export function isPremiumUpgradeSku(sku: string | undefined): boolean {
 export function isDigitalOnlySku(sku: string | undefined): boolean {
   return isRenewalSku(sku) || isPremiumUpgradeSku(sku);
 }
+
+export { CORPORATE_PACKAGE_PRODUCT_SLUG, corporatePackageSku, isCorporatePackageSku };
+
+export const CORPORATE_PACKAGE_OFFERS = CORPORATE_PACKAGE_LADDER.map((row) => ({
+  code: row.code,
+  sku: corporatePackageSku(row.code),
+  priceKurus: row.priceKurus,
+  seats: row.seats,
+}));
 
 /** iyzico still requires a billing street; digital carts never collect one. */
 export function digitalServiceBillingAddress(city: string, existingAddress = ""): string {

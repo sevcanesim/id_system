@@ -11820,6 +11820,59 @@ article[id] {
   color: #1c1919;
   text-decoration: underline;
 }
+.corporate-pack-table .add-to-cart-button {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+}
+.corporate-pack-table .add-to-cart-button.corporate-plan-text {
+  color: #5c4a28;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.corporate-pack-table .add-to-cart-button.corporate-plan-text:hover {
+  color: #1c1919;
+  text-decoration: underline;
+}
+.corporate-pack-table .add-to-cart-button.corporate-plan-link {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: #A37B2C;
+  border: 1px solid #A37B2C;
+  color: #17120c;
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.corporate-pack-table .add-to-cart-button.corporate-plan-link:hover {
+  background: #8c6824;
+  color: #17120c;
+  text-decoration: none;
+}
+.corporate-pricing-grid .add-to-cart-button.corporate-cta {
+  width: 100%;
+  align-self: stretch;
+  margin-top: auto;
+  min-height: 44px;
+  color: #17120c;
+}
+.checkout-company-fields {
+  display: grid;
+  gap: 12px;
+  margin-top: 4px;
+  padding-top: 4px;
+}
+.checkout-company-kicker {
+  margin: 8px 0 0;
+  color: #8b6835;
+  font: 700 10px var(--font-mono);
+  letter-spacing: .08em;
+}
 
 .how-step-visual {
   margin-bottom: 0;

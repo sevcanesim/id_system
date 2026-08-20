@@ -13,9 +13,11 @@ import MobileBuyBar from "./MobileBuyBar";
 export default function NfcPurchasePanel({
   product,
   initialPackage = "individual",
+  accessRequired = false,
 }: {
   product: CatalogProduct;
   initialPackage?: "individual" | "premium";
+  accessRequired?: boolean;
 }) {
   const variants = product.variants.filter((variant) => variant.active);
   const [selectedVariantId, setSelectedVariantId] = useState(variants[0]?.id ?? "");
@@ -67,10 +69,12 @@ export default function NfcPurchasePanel({
         />
       </div>
 
-      <p className="nfc-account-note" role="note">
-        {packageId === "premium"
-          ? "Premium: NFC kart + 1 yıl + 100 Network Mail. Kredi ödeme sonrası hesabına yazılır. Kart numarası iyzico’da kalır."
-          : "Hesabın varsa sipariş bağlanır. Yoksa hesap açmadan ödeyebilirsin. Kart numarası Yenomi sunucularında tutulmaz."}
+      <p className="nfc-account-note" role={accessRequired ? "status" : "note"}>
+        {accessRequired
+          ? "Yedek veya replacement kart için aktif bir Yenomi ID hizmetin gerekir. Aşağıdan ilk kartını alabilirsin; ödeme sunucuda yeniden doğrulanır."
+          : packageId === "premium"
+            ? "Premium: NFC kart + 1 yıl + 100 Network Mail. Kredi ödeme sonrası hesabına yazılır. Kart numarası iyzico’da kalır."
+            : "Hesabın varsa sipariş bağlanır. Yoksa hesap açmadan ödeyebilirsin. Kart numarası Yenomi sunucularında tutulmaz."}
       </p>
 
       <div className="nfc-price-row" id="nfc-hero-price-row">

@@ -16,7 +16,7 @@ import CardTemplate, { type CardBranding } from "../../CardTemplate";
 import { getSeatBreakdown } from "../../../lib/organizations/lifecycle";
 import { formatTryFromKurus } from "../../../lib/config/product";
 import type { DatabaseSeatPack, DatabaseTemplateOption } from "../../../lib/config/database";
-import { addCartItem, clearLegacyCart, setCartOwner } from "../../../lib/cart";
+import { addCartItem, cartAddConflict, cartAddConflictMessage, clearLegacyCart, readCart, setCartOwner } from "../../../lib/cart";
 import {
   DEPARTMENT_OPTIONS,
   TITLE_OPTIONS,
@@ -1197,6 +1197,8 @@ export default function CompanyPanel() {
 
   function buySeatPack(pack: DatabaseSeatPack) {
     if (!selected || !canManageLicenses) return;
+    const conflict = cartAddConflict(pack.sku, readCart());
+    if (conflict && !window.confirm(cartAddConflictMessage(conflict))) return;
     addCartItem({
       productId: "yenomi-business-seat-pack",
       variantSku: pack.sku,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { exclusiveCorporateCart, updateCartItemQuantity, type CartItem } from "./cart";
+import { cartAddConflict, exclusiveCorporateCart, updateCartItemQuantity, type CartItem } from "./cart";
 import { COMMERCIAL_SKUS } from "./config/commercial";
 import { corporatePackageSku } from "./commerce/packages";
 
@@ -56,5 +56,33 @@ describe("updateCartItemQuantity", () => {
       }),
     ];
     expect(updateCartItemQuantity(items, "corp", 4)[0].quantity).toBe(1);
+  });
+});
+
+describe("cartAddConflict", () => {
+  it("warns when a corporate pack would wipe individual lines", () => {
+    const items = [
+      item({ productId: "nfc-kart", kind: "NFC_PHYSICAL_CARD", name: "NFC", variantSku: COMMERCIAL_SKUS.INITIAL }),
+    ];
+    expect(cartAddConflict(corporatePackageSku("CORP-10"), items)).toBe("corporate-replaces-individual");
+  });
+
+  it("warns when an individual line would wipe a corporate pack", () => {
+    const items = [
+      item({
+        productId: "yenomi-business",
+        kind: "NFC_PHYSICAL_CARD",
+        name: "Kurumsal 10",
+        variantSku: corporatePackageSku("CORP-10"),
+      }),
+    ];
+    expect(cartAddConflict(COMMERCIAL_SKUS.INITIAL, items)).toBe("individual-replaces-corporate");
+  });
+
+  it("is silent when the cart already matches the incoming kind", () => {
+    const items = [
+      item({ productId: "nfc-kart", kind: "NFC_PHYSICAL_CARD", name: "NFC", variantSku: COMMERCIAL_SKUS.INITIAL }),
+    ];
+    expect(cartAddConflict(COMMERCIAL_SKUS.ADDITIONAL_CARD, items)).toBeNull();
   });
 });

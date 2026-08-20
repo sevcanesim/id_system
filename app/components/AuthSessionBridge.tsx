@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { clearLegacyCart, setCartOwner } from "../../lib/cart";
 import { getRememberedLogin, getSupabaseBrowserClient } from "../../lib/supabase/browser";
 
 /**
@@ -44,6 +45,10 @@ export default function AuthSessionBridge() {
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
+        clearLegacyCart();
+        setCartOwner(null, { claimGuest: false });
+      }
       if (event === "INITIAL_SESSION" && !session) return;
       void writeSessionCookie(
         session?.access_token ?? null,

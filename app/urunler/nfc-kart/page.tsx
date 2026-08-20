@@ -41,11 +41,13 @@ const faq = [
 export default async function NfcKartPage({
   searchParams,
 }: {
-  searchParams: Promise<{ paket?: string | string[] }>;
+  searchParams: Promise<{ paket?: string | string[]; reason?: string | string[] }>;
 }) {
   const params = await searchParams;
   const rawPackage = Array.isArray(params.paket) ? params.paket[0] : params.paket;
   const initialPackage = rawPackage === "premium" ? "premium" : "individual";
+  const rawReason = Array.isArray(params.reason) ? params.reason[0] : params.reason;
+  const accessRequired = rawReason === "access-required";
   return (
     <main id="main-content" className="nfc-product-page">
       <PublicPageTitle
@@ -59,7 +61,7 @@ export default async function NfcKartPage({
           <div className="nfc-product-hero__copy">
             <span className="nfc-kicker">KARTINI SEÇ</span>
             <p className="nfc-product-hero__body">Kartı telefona yaklaştır veya QR’ı okut. Profil tarayıcıda açılır. Bilgin değişince baskı yok; kart kaybolursa panelden kapatırsın.</p>
-            <NfcPurchasePanel product={NFC_PRODUCT} initialPackage={initialPackage} />
+            <NfcPurchasePanel product={NFC_PRODUCT} initialPackage={initialPackage} accessRequired={accessRequired} />
           </div>
           <div className="nfc-product-hero__visual" aria-label="Yenomi ID NFC kart örneği, ön ve arka yüz">
             <ProductVisual pair />

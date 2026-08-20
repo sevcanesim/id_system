@@ -9,7 +9,7 @@ import { clearCheckoutSession } from "../../../lib/payments/browser-checkout";
 import FulfillmentReviewNotice from "./FulfillmentReviewNotice";
 import ActivationAction from "./ActivationAction";
 import PaymentSuccessShare from "./PaymentSuccessShare";
-import { CORPORATE_POST_PURCHASE_HREF, INDIVIDUAL_POST_PURCHASE_HREF } from "../../../lib/commerce/post-purchase";
+import { CORPORATE_POST_PURCHASE_HREF } from "../../../lib/commerce/post-purchase";
 
 type VerifyState = "checking" | "verified" | "invalid";
 type OrderStatusPayload = {
@@ -58,7 +58,10 @@ export default function OrderResultGate() {
     void (async () => {
       try {
         let data = await verifyPaid();
-        if (!data?.paid || (data.corporate && !data.corporateReady)) {
+        const needsRecover = !data?.paid
+          || (data.corporate && !data.corporateReady)
+          || (data.reviewRequired && !data.activationRequired);
+        if (needsRecover) {
           await fetch("/api/payments/iyzico/recover", {
             method: "POST",
             headers: { "content-type": "application/json" },
@@ -112,15 +115,11 @@ export default function OrderResultGate() {
     );
   }
 
-  const nextHref = corporate
-    ? (corporateReady ? CORPORATE_POST_PURCHASE_HREF : "/siparislerim")
-    : INDIVIDUAL_POST_PURCHASE_HREF;
-  const nextLabel = corporate
-    ? (corporateReady ? "Kurumsal Paneli Aç" : "Siparişimi Takip Et")
-    : "Kartvizitimi Hazırla";
+  const nextHref = corporateReady ? CORPORATE_POST_PURCHASE_HREF : "/siparislerim";
+  const nextLabel = corporateReady ? "Kurumsal Paneli Aç" : "Siparişimi Takip Et";
   const setupIncomplete = corporate && !corporateReady && !activationRequired;
 
-  async function retryCorporateSetup() {
+  async function retryFulfillment() {
     if (!orderId) throw new Error("Sipariş bulunamadı.");
     await fetch("/api/payments/iyzico/recover", {
       method: "POST",
@@ -132,7 +131,12 @@ export default function OrderResultGate() {
     setCorporate(Boolean(data.corporate));
     setCorporateReady(Boolean(data.corporateReady));
     setReviewRequired(Boolean(data.reviewRequired));
-    if (!data.corporateReady) throw new Error("Kurulum hâlâ tamamlanmadı. Ödeme tekrar alınmaz; destek ile iletişime geçebilirsin.");
+    if (data.corporate && !data.corporateReady) {
+      throw new Error("Kurulum hâlâ tamamlanmadı. Ödeme tekrar alınmaz; destek ile iletişime geçebilirsin.");
+    }
+    if (data.reviewRequired) {
+      throw new Error("Sipariş hâlâ kontrol ediliyor. Ödeme tekrar alınmaz; birkaç dakika sonra yeniden dene.");
+    }
   }
 
   return (
@@ -159,8 +163,9 @@ export default function OrderResultGate() {
         activationRequired={activationRequired}
         corporate={corporate}
         corporateReady={corporateReady}
+        reviewRequired={reviewRequired}
         orderId={orderId}
-        onSetupRetry={retryCorporateSetup}
+        onSetupRetry={retryFulfillment}
       />
       <div className="order-success-actions">
         {activationRequired ? (
@@ -168,11 +173,13 @@ export default function OrderResultGate() {
             <Link href="/aktivasyon">Hesabımı Bağla</Link>
             <Link className="secondary" href="/urunler">Ürünlere Dön</Link>
           </>
-        ) : (
+        ) : corporate ? (
           <>
             <Link href={nextHref}>{nextLabel}</Link>
             {setupIncomplete ? null : <Link className="secondary" href="/siparislerim">Siparişimi Takip Et</Link>}
           </>
+        ) : (
+          <Link href="/siparislerim">Siparişimi Takip Et</Link>
         )}
       </div>
       <PaymentSuccessShare />

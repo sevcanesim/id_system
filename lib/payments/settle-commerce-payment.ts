@@ -4,6 +4,7 @@ import { COMMERCIAL_PRICING } from "../config/commercial";
 import { sendActivationEmail, sendOrderReadyEmail } from "../email/resend";
 import { isTerminalIyzicoDecline, verifyIyzicoCheckoutResult } from "./callback-verification";
 import { publicSiteUrl } from "./config";
+import { CORPORATE_POST_PURCHASE_HREF, INDIVIDUAL_POST_PURCHASE_HREF } from "../commerce/post-purchase";
 import { retrieveCheckout } from "./iyzico";
 import { getSupabaseAdminClient } from "../supabase/server-admin";
 
@@ -152,8 +153,8 @@ async function finishPaidOrder(
       orderNumber: processed.order_number,
       audience: afterClaim.corporate ? "corporate" : "individual",
       createCardUrl: afterClaim.corporate
-        ? `${publicSiteUrl}/kurumsal/panel`
-        : `${publicSiteUrl}/olustur?source=purchase`,
+        ? `${publicSiteUrl}${CORPORATE_POST_PURCHASE_HREF}`
+        : `${publicSiteUrl}${INDIVIDUAL_POST_PURCHASE_HREF}`,
     });
     await admin.from("commerce_email_events").insert({
       order_id: processed.order_id,

@@ -14,7 +14,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
  * Public, unauthenticated order-status check used by the /odeme/basarili and
  * /odeme/basarisiz result pages so they can verify a payment before showing
  * success content. Deliberately returns only a coarse status enum plus
- * boolean flags (activationRequired, corporate, reviewRequired) — never
+ * boolean flags (activationRequired, corporate, corporateReady, reviewRequired) — never
  * email, amount, items, company name, user id, or any other order detail —
  * so it stays safe to call without auth for a guest checkout flow. The order
  * id itself is already a public, unguessable UUID that the payment callback
@@ -45,7 +45,9 @@ export async function GET(request: NextRequest) {
     }
 
     const paid = PAID_STATUSES.has(String(data.status));
-    const flags = paid ? await loadCommerceOrderKind(admin, orderId) : { corporate: false, reviewRequired: false };
+    const flags = paid
+      ? await loadCommerceOrderKind(admin, orderId)
+      : { corporate: false, corporateReady: false, reviewRequired: false };
 
     return NextResponse.json({
       found: true,
@@ -53,6 +55,7 @@ export async function GET(request: NextRequest) {
       status: data.status,
       activationRequired: paid && !data.user_id && !data.activation_claimed_at,
       corporate: flags.corporate,
+      corporateReady: Boolean(flags.corporateReady),
       reviewRequired: flags.reviewRequired,
     });
   } catch (error) {

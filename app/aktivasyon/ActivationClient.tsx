@@ -7,6 +7,7 @@ import AppFooter from "../components/AppFooter";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { normalizeEmailField } from "../../lib/form-standards";
 import { setCartOwner } from "../../lib/cart";
+import { INDIVIDUAL_POST_PURCHASE_HREF } from "../../lib/commerce/post-purchase";
 
 const ACTIVATION_TOKEN_KEY = "yenomi-activation-token";
 
@@ -79,7 +80,7 @@ export default function ActivationClient() {
       }
       clearHeldToken();
       setPassword("");
-      router.push(corporate ? "/kurumsal/panel" : "/kartlarim?legacy-activated=1");
+      router.push(corporate ? "/kurumsal/panel" : INDIVIDUAL_POST_PURCHASE_HREF);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Aktivasyon tamamlanamadı.");
     } finally {

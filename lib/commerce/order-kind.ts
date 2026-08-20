@@ -7,8 +7,20 @@ function skuFromConfiguration(configuration: unknown): string | null {
   return typeof sku === "string" ? sku : null;
 }
 
+function organizationIdFromConfiguration(configuration: unknown): string | null {
+  if (!configuration || typeof configuration !== "object") return null;
+  const organizationId = (configuration as { organizationId?: unknown }).organizationId;
+  return typeof organizationId === "string" && organizationId.length > 0 ? organizationId : null;
+}
+
 export function commerceOrderIsCorporate(items: Array<{ configuration?: unknown | null }>): boolean {
   return items.some((item) => isCorporatePackageSku(skuFromConfiguration(item.configuration)));
+}
+
+export function commerceOrderCorporateReady(items: Array<{ configuration?: unknown | null }>): boolean {
+  const corporate = items.filter((item) => isCorporatePackageSku(skuFromConfiguration(item.configuration)));
+  if (!corporate.length) return false;
+  return corporate.every((item) => Boolean(organizationIdFromConfiguration(item.configuration)));
 }
 
 export async function loadCommerceOrderKind(
@@ -24,8 +36,11 @@ export async function loadCommerceOrderKind(
       .is("resolved_at", null),
   ]);
 
+  const rows = items ?? [];
+  const corporate = commerceOrderIsCorporate(rows);
   return {
-    corporate: commerceOrderIsCorporate(items ?? []),
+    corporate,
+    corporateReady: corporate && commerceOrderCorporateReady(rows),
     reviewRequired: (count ?? 0) > 0,
     openIssueCount: count ?? 0,
   };

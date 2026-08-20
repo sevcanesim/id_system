@@ -88,7 +88,6 @@ const appEntries = productionFiles.filter((file) => {
     ["page.ts", "page.tsx", "layout.ts", "layout.tsx", "route.ts", "route.tsx", "loading.tsx", "error.tsx", "not-found.tsx", "template.tsx", "default.tsx"].includes(base);
 }).map((file) => path.resolve(file));
 for (const relative of [
-  "app/LandingClient.tsx",
   "app/components/ui/atoms.ts",
 ]) {
   const absolute = path.join(root, relative);

@@ -1,17 +1,23 @@
 import fs from "node:fs";
 
-const publicCss = fs.readFileSync("app/public-conversion.css", "utf8");
-const globals = fs.readFileSync("app/globals.css", "utf8");
-const page = fs.readFileSync("app/LandingClient.tsx", "utf8");
+if (fs.existsSync("app/public-conversion.css")) {
+  throw new Error("Retired app/public-conversion.css must stay deleted; public chrome lives in canonical.css.");
+}
+if (fs.existsSync("app/globals.css")) {
+  throw new Error("Retired app/globals.css must stay deleted; public chrome lives in canonical.css.");
+}
+if (fs.existsSync("app/LandingClient.tsx")) {
+  throw new Error("Retired app/LandingClient.tsx must stay deleted; live homepage is app/page.tsx.");
+}
+
+const css = fs.readFileSync("app/canonical.css", "utf8");
+const page = fs.readFileSync("app/page.tsx", "utf8");
 
 const failures = [];
-if (!publicCss.includes("--p4-primary:var(--accent-champagne)")) failures.push("missing route-owned public primary token");
-if (!publicCss.includes("background-image:none")) failures.push("public CTA gradient guard missing");
-if (/(p4-button-primary)[^{]*\{[^}]*linear-gradient/i.test(publicCss)) failures.push("public CTA still declares a gradient");
-if (/\.p4-display[^}]*span/.test(publicCss)) failures.push("hero display span color override still exists");
-if (page.includes('className="p4-display"') && page.includes('<span>Tek bir bağlantıda.')) failures.push("hero title still uses a styled span");
-if (/\.global-header-cta\{background:var\(--primary-hover\)!important/.test(globals)) failures.push("global header CTA still has the final important override");
-if ((publicCss.match(/!important/g) || []).length !== 0) failures.push("public conversion CSS contains !important");
+if (!css.includes(".home-mockup") || !css.includes(".home-premium")) failures.push("live homepage chrome missing from canonical.css");
+if (page.includes('className="p4-display"') && page.includes("<span>Tek bir bağlantıda.")) failures.push("hero title still uses a styled span");
+if (/home-mockup__button--primary[^{]*\{[^}]*linear-gradient/i.test(css)) failures.push("live homepage primary CTA still declares a gradient");
+if (css.includes("!important")) failures.push("canonical CSS contains !important");
 
 if (failures.length) {
   console.error("PUBLIC HOME ACTION ISOLATION FAILED");
@@ -20,8 +26,7 @@ if (failures.length) {
 }
 
 console.log("PUBLIC HOME ACTION ISOLATION PASSED");
-console.log("- Route-owned champagne CTA token present");
-console.log("- Public CTA gradient guard present");
-console.log("- Hero title has no span color override");
-console.log("- Global final header important override removed");
-console.log("- public-conversion.css important count: 0");
+console.log("- Live homepage is app/page.tsx");
+console.log("- Homepage chrome lives in canonical.css");
+console.log("- Retired public-conversion.css / LandingClient stay deleted");
+console.log("- Canonical CSS remains !important-free");

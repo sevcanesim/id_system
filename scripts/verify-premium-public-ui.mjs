@@ -3,7 +3,7 @@ import fs from "node:fs";
 const required = [
   "app/design-tokens.css",
   "app/canonical.css",
-  "app/LandingClient.tsx",
+  "app/page.tsx",
   "app/urunler/page.tsx",
   "app/urunler/nfc-kart/page.tsx",
   "app/kurumsal/page.tsx",
@@ -27,7 +27,7 @@ if (layout.includes("public-conversion.css") || layout.includes("commerce-flow.c
 const tokens = fs.readFileSync("app/design-tokens.css", "utf8");
 const canonical = fs.readFileSync("app/canonical.css", "utf8");
 
-for (const token of [".p4-public-home", "@media (max-width: 760px)", "prefers-reduced-motion"]) {
+for (const token of [".home-mockup", ".home-premium", ".p4-public-home", "@media (max-width: 760px)", "prefers-reduced-motion"]) {
   if (!canonical.includes(token) && !(token === "@media (max-width: 760px)" && canonical.includes("@media(max-width:760px)"))) {
     throw new Error(`Premium UI contract missing: ${token}`);
   }

@@ -3,19 +3,6 @@ import { Icon } from "../icons";
 type VisualVariant = "profile" | "dashboard" | "card";
 type CardFace = "front" | "back";
 
-const QR_SIZE = 13;
-
-function specimenQrCells() {
-  return Array.from({ length: QR_SIZE * QR_SIZE }, (_, index) => {
-    const x = index % QR_SIZE;
-    const y = Math.floor(index / QR_SIZE);
-    const finder = (cx: number, cy: number) => x >= cx && x < cx + 3 && y >= cy && y < cy + 3;
-    const inFinder = finder(0, 0) || finder(QR_SIZE - 3, 0) || finder(0, QR_SIZE - 3);
-    const on = inFinder || ((x * 5 + y * 11) % 4 !== 1);
-    return <i key={index} className={on ? "is-on" : undefined} />;
-  });
-}
-
 export function YenomiProductVisual({
   variant = "profile",
   compact = false,
@@ -49,7 +36,9 @@ export function YenomiProductVisual({
         <div className={foilClass} aria-hidden="true">
           <div className="yi-card-face yi-card-face--back">
             <p className="yi-card-motto">Yaklaştır. Profil açılsın.</p>
-            <div className="yi-card-qr">{specimenQrCells()}</div>
+            <div className="yi-card-qr">
+              <Icon name="qr" />
+            </div>
           </div>
         </div>
       );
@@ -74,14 +63,67 @@ export function YenomiProductVisual({
   return (
     <div className={`yi-product-ui yi-product-ui--profile${compact ? " yi-product-ui--compact" : ""}`} aria-hidden="true">
       <div className="yi-profile-cover">
-        <span>CANLI PROFİL</span><b>LIVE</b>
+        <span>CANLI PROFİL</span>
+        <b>NFC + QR</b>
+        <div className="yi-profile-portrait">
+          <em>AS</em>
+        </div>
       </div>
-      <div className="yi-profile-avatar" />
       <div className="yi-profile-body">
         <strong>Adın Soyadın</strong>
         <span>Ünvanın · Şirketin</span>
-        <div className="yi-profile-actions"><i>☎</i><i>✉</i><i>in</i><i>↗</i></div>
-        <div className="yi-profile-save">Rehbere Kaydet</div>
+        <p className="yi-profile-bio">Kart bir kez basılır. Unvanın değişince profil güncellenir; baskı tekrarlanmaz.</p>
+        <div className="yi-profile-cta-row">
+          <div className="yi-profile-save">Rehbere Kaydet</div>
+          <div className="yi-profile-ghost">Kartı incele</div>
+        </div>
+        <div className="yi-profile-chips">
+          <div>
+            <small>NFC</small>
+            <b>Dokun, aç</b>
+          </div>
+          <div>
+            <small>QR</small>
+            <b>Anında paylaş</b>
+          </div>
+          <div>
+            <small>KAYIP</small>
+            <b>Kartı kapat</b>
+          </div>
+        </div>
+        <div className="yi-profile-actions">
+          <span className="yi-profile-action"><Icon name="whatsapp" /></span>
+          <span className="yi-profile-action"><Icon name="mail" /></span>
+          <span className="yi-profile-action"><Icon name="social" /></span>
+          <span className="yi-profile-action"><Icon name="phone" /></span>
+          <span className="yi-profile-action"><Icon name="save" /></span>
+        </div>
+        <div className="yi-profile-links">
+          <div className="yi-profile-link">
+            <span className="yi-profile-link-icon"><Icon name="whatsapp" /></span>
+            <span className="yi-profile-link-copy">
+              <b>WhatsApp</b>
+              <small>Hızlı mesaj</small>
+            </span>
+            <Icon name="chevronRight" />
+          </div>
+          <div className="yi-profile-link">
+            <span className="yi-profile-link-icon"><Icon name="phone" /></span>
+            <span className="yi-profile-link-copy">
+              <b>Telefon ile ara</b>
+              <small>Tek dokunuş</small>
+            </span>
+            <Icon name="chevronRight" />
+          </div>
+          <div className="yi-profile-link">
+            <span className="yi-profile-link-icon"><Icon name="save" /></span>
+            <span className="yi-profile-link-copy">
+              <b>Rehbere kaydet</b>
+              <small>.vcf dosyası</small>
+            </span>
+            <Icon name="chevronRight" />
+          </div>
+        </div>
       </div>
     </div>
   );

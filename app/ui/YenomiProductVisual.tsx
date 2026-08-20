@@ -3,19 +3,6 @@ import { Icon } from "../icons";
 type VisualVariant = "profile" | "dashboard" | "card";
 type CardFace = "front" | "back";
 
-const QR_SIZE = 13;
-
-function specimenQrCells() {
-  return Array.from({ length: QR_SIZE * QR_SIZE }, (_, index) => {
-    const x = index % QR_SIZE;
-    const y = Math.floor(index / QR_SIZE);
-    const finder = (cx: number, cy: number) => x >= cx && x < cx + 3 && y >= cy && y < cy + 3;
-    const inFinder = finder(0, 0) || finder(QR_SIZE - 3, 0) || finder(0, QR_SIZE - 3);
-    const on = inFinder || ((x * 5 + y * 11) % 4 !== 1);
-    return <i key={index} className={on ? "is-on" : undefined} />;
-  });
-}
-
 export function YenomiProductVisual({
   variant = "profile",
   compact = false,
@@ -49,7 +36,9 @@ export function YenomiProductVisual({
         <div className={foilClass} aria-hidden="true">
           <div className="yi-card-face yi-card-face--back">
             <p className="yi-card-motto">Yaklaştır. Profil açılsın.</p>
-            <div className="yi-card-qr">{specimenQrCells()}</div>
+            <div className="yi-card-qr">
+              <Icon name="qr" />
+            </div>
           </div>
         </div>
       );

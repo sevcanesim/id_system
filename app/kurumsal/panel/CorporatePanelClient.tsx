@@ -7,7 +7,6 @@ import { writeSessionCookie } from "../../components/AuthSessionBridge";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 import { Icon } from "../../icons";
 import { EmptyState, LoadingState } from "../../components/ui/States";
-import type { SidebarNavItem } from "../../components/ui/SidebarNav";
 import PanelSidebar from "../../components/ui/PanelSidebar";
 import { YenomiProductVisual } from "../../ui/YenomiProductVisual";
 import {
@@ -53,6 +52,7 @@ import {
   isCorporatePanelTab,
   type CorporatePanelTab,
   CORPORATE_PANEL_TAB_META,
+  corporatePanelNavItems,
   corporateSidebarItems,
 } from "./domain/navigation";
 import { fetchWithPanelTimeout, waitForInitialPanelLoads } from "./domain/runtime";
@@ -1233,14 +1233,14 @@ export default function CompanyPanel() {
   const tabMeta: Record<CorporatePanelTab, { title: string; description: string; icon: Parameters<typeof Icon>[0]["name"] }> = {
     overview: { title: "Genel Bakış", description: "Şirket sağlığını, lisansları ve kart operasyonlarını tek ekrandan izle.", icon: "building" },
     employees: { title: "Çalışanlar", description: "Ekibini, davetleri ve kart yaşam döngüsünü buradan yönet.", icon: "users" },
-    cards: { title: "Kartlar", description: "Fiziksel ve dijital kart durumlarını tek yerde yönet.", icon: "contact" },
+    cards: { title: "Kartlar", description: "Fiziksel ve dijital kart durumlarını tek yerde yönet.", icon: "id" },
     roles: { title: "Roller & Yetkiler", description: "Kurumsal yetki sınırlarını ve rol dağılımını kontrol et.", icon: "lock" },
     templates: { title: "Marka & Şablon", description: "Kurumsal kart görünümünü ve marka standartlarını merkezi olarak yönet.", icon: "id" },
     content: { title: "İçerik", description: "Merkezi bağlantıları ve kurumsal dosyaları çalışan kartlarına dağıt.", icon: "link" },
     analytics: { title: "İstatistikler", description: "Kart görüntülenmelerini ve içerik etkileşimlerini gerçek verilerle izle.", icon: "analytics" },
     leads: { title: "Leadler", description: "Karttan düşen networking lead’lerini, mail ve görüşme takibini yönet.", icon: "mail" },
     events: { title: "Etkinlikler", description: "Etkinlik QR attribution katmanını kişi kartından ayrı tut.", icon: "clock" },
-    meetings: { title: "Görüşmeler", description: "Online ve yüz yüze görüşme taleplerini kabul et, alternatif öner veya reddet.", icon: "contact" },
+    meetings: { title: "Görüşmeler", description: "Online ve yüz yüze görüşme taleplerini kabul et, alternatif öner veya reddet.", icon: "headset" },
     licenses: { title: "Lisanslar", description: "Toplam, kullanılan ve boş lisansları; ek kullanıcı paketleriyle birlikte yönet.", icon: "box" },
     organization: { title: "Organizasyon", description: "Şirket kimliği, alan politikaları ve ünvan standardını yönet.", icon: "building" },
     settings: { title: "Ayarlar", description: "Sık değişmeyen kurumsal yönetim alanlarına ulaş.", icon: "adjustments" },
@@ -1353,24 +1353,11 @@ export default function CompanyPanel() {
           onClose={() => setMobileNavOpen(false)}
           onBrandClick={() => { const next = departmentManager ? "employees" : "overview"; setActiveTab(next); router.push(tabRoutes[next]); }}
           activeKey={currentTab}
-          onNavigate={(key) => setActiveTab(key as CorporatePanelTab)}
+          onNavigate={(key) => { if (isCorporatePanelTab(key)) setActiveTab(key); }}
           loading={sidebarPermissionsLoading}
           storageKey="yenomi:corporate-sidebar:collapsed"
-          items={sidebarItems.map<SidebarNavItem>((item) => ({
-              key: item.key,
-              label: item.label,
-              href: item.href,
-              icon: item.icon,
-              group: item.group,
-          }))}
+          items={org ? corporatePanelNavItems(org.role, ownCardEditorHref) : []}
         >
-          <div className="enterprise-side-links enterprise-side-primary-links">
-            <span className="enterprise-side-section-title">KİŞİSEL</span>
-            <button type="button" onClick={() => router.push(ownCardEditorHref)}>
-              <Icon name="contact" />
-              <span>Kartım</span>
-            </button>
-          </div>
           <div className="enterprise-side-links enterprise-side-management">
             <button type="button" onClick={signOut}>
               <Icon name="logout" />

@@ -129,9 +129,11 @@ export default function PanelSidebar({
         classNames={{ nav: "enterprise-canonical-nav", entry: "enterprise-nav-entry", group: "enterprise-side-section-title", active: "active" }}
         onNavigate={(key) => { onNavigate?.(key); onClose(); }}
         items={items}
+        railCollapsed={collapsed}
+        groupStorageKey={`${collapseStorageKey}:groups`}
       />
     )}
-    {children}
+    {children ? <div className="enterprise-sidebar-footer">{children}</div> : null}
     {collapsible && <button
       type="button"
       className="enterprise-sidebar-collapse"

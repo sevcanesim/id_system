@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { CORPORATE_SIDEBAR_CONFIG, INDIVIDUAL_SIDEBAR_CONFIG, filterSidebarByRole } from "./sidebar-config";
-import { corporateSidebarItems } from "../../kurumsal/panel/domain/navigation";
+import { CORPORATE_SIDEBAR_CONFIG, INDIVIDUAL_SIDEBAR_CONFIG, filterSidebarByRole, groupSidebarItems } from "./sidebar-config";
+import { corporatePanelNavItems, corporateSidebarItems } from "../../kurumsal/panel/domain/navigation";
 
 describe("filterSidebarByRole", () => {
   it("keeps HR employees, cards, and analytics using the persisted HR role", () => {
@@ -62,5 +62,35 @@ describe("corporateSidebarItems", () => {
     expect(groups.leads).toBe("NETWORKING");
     expect(groups.events).toBe("NETWORKING");
     expect(groups.meetings).toBe("NETWORKING");
+  });
+
+  it("uses distinct icons for Kartlar, Görüşmeler, and Kartım", () => {
+    const owner = Object.fromEntries(corporatePanelNavItems("OWNER").map((item) => [item.key, item.icon]));
+    expect(owner.cards).toBe("id");
+    expect(owner.meetings).toBe("headset");
+    expect(owner.kartim).toBe("contact");
+    expect(new Set([owner.cards, owner.meetings, owner.kartim]).size).toBe(3);
+  });
+});
+
+describe("corporatePanelNavItems", () => {
+  it("appends Kartım under KİŞİSEL without changing management keys", () => {
+    expect(corporatePanelNavItems("DEPARTMENT_MANAGER").map((item) => item.key)).toEqual(["employees", "kartim"]);
+    expect(corporatePanelNavItems("HR").map((item) => [item.key, item.group]).at(-1)).toEqual(["kartim", "KİŞİSEL"]);
+  });
+});
+
+describe("groupSidebarItems", () => {
+  it("collapses consecutive items into named sections and keeps ungrouped items visible", () => {
+    expect(groupSidebarItems([
+      { key: "a", group: "GENEL" },
+      { key: "b", group: "GENEL" },
+      { key: "c", group: "YÖNETİM" },
+      { key: "d" },
+    ]).map((group) => [group.name, group.items.map((item) => item.key)])).toEqual([
+      ["GENEL", ["a", "b"]],
+      ["YÖNETİM", ["c"]],
+      ["", ["d"]],
+    ]);
   });
 });

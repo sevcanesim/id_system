@@ -55,6 +55,17 @@ check(login.includes("writeSessionCookie"), "middleware auth cookie handoff reta
 check(exists("app/api/auth/session/route.ts"), "session cookie is issued by a server route, not document.cookie");
 const sessionRoute = read("app/api/auth/session/route.ts");
 check(sessionRoute.includes("httpOnly: true") && sessionRoute.includes("auth.getUser"), "session cookie is HttpOnly and token-verified");
+check(sessionRoute.includes("export async function GET") && sessionRoute.includes("refreshToken"), "session route restores tokens from HttpOnly cookies via GET");
+const browserClient = read("lib/supabase/browser.ts");
+check(browserClient.includes("memoryAuthStorage") && browserClient.includes("purgeLegacyAuthStorage"), "browser supabase client keeps auth tokens in memory and purges disk copies");
+check(!browserClient.includes("window.localStorage.setItem(key, value)") && !browserClient.includes("window.sessionStorage.setItem(key, value)"), "browser supabase client does not persist auth tokens in Web Storage");
+check(browserClient.includes('fetch("/api/auth/session"') && browserClient.includes("setSession"), "reload restores the in-memory session from the HttpOnly session route");
+const sessionHelper = read("lib/auth/http-only-session.ts");
+check(sessionHelper.includes('REFRESH_COOKIE = "yenomi-refresh-token"') && sessionHelper.includes("httpOnly: true"), "refresh token is stored in a separate HttpOnly cookie");
+check(sessionHelper.includes("grant_type=refresh_token"), "expired access tokens are rotated through GoTrue refresh");
+const authBridge = read("app/components/AuthSessionBridge.tsx");
+check(authBridge.includes("refresh_token") && authBridge.includes("INITIAL_SESSION"), "auth bridge writes refresh cookies and does not clear cookies on an empty initial session");
+check(read("middleware.ts").includes("resolveMiddlewareSession"), "middleware refreshes HttpOnly session cookies when the access token has expired");
 check(accountRouter.includes('from("user_accounts")') && accountRouter.includes('account_type'), "account router resolves the canonical user account type before portal routing");
 check(accountRouter.includes('ACCOUNT_ROUTE_CORPORATE = "/kurumsal/panel"') && accountRouter.includes('ACCOUNT_ROUTE_INDIVIDUAL = "/kartlarim"') && account.includes("resolveAccountDestination"), "account router resolves corporate versus individual destination (lib/auth/account-router.ts)");
 check(activation.includes("p6-activation-page"), "legacy activation included in Phase 6 visual continuity");

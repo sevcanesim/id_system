@@ -11,6 +11,7 @@ const steps = [
   ['verify:phase19:qa', 'Phase 19 QA contract'],
   ['verify:phase21:product-variant', 'Phase 21 product variant'],
   ['verify:phase22:guest-checkout', 'Phase 22 guest checkout'],
+  ['verify:http-only-session', 'HttpOnly Supabase session'],
   ['typecheck', 'TypeScript'],
   ['test:unit', 'Unit tests'],
   ['build', 'Next.js production build'],

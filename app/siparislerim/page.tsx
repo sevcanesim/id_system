@@ -56,13 +56,13 @@ export default function MyOrdersPage() {
   const activeCount = useMemo(() => orders.filter((order) => !["COMPLETED", "CANCELLED", "REFUNDED"].includes(order.status)).length, [orders]);
 
   if (loading) return <UserPanelShell activeKey="orders" title="Siparişlerim" description="Sipariş bilgileriniz yükleniyor."><Card><p className="p9-section-copy">Siparişler yükleniyor…</p></Card></UserPanelShell>;
-  if (!signedIn) return <UserPanelShell activeKey="orders" title="Siparişlerim" description="Siparişlerinizi görüntülemek için hesabınıza giriş yapın."><EmptyState title="Oturum gerekli" description="Siparişleriniz hesabınıza bağlandığında burada görünür." action={<ButtonLink href="/giris?next=%2Fsiparislerim" variant="primary">Giriş Yap</ButtonLink>} /></UserPanelShell>;
+  if (!signedIn) return <UserPanelShell activeKey="orders" title="Siparişlerim" description="Siparişlerinizi görüntülemek için hesabınıza giriş yapın."><EmptyState title="Oturum gerekli" description="Siparişleriniz hesabınıza bağlandığında burada görünür." action={<ButtonLink href="/giris?next=%2Fsiparislerim" variant="primary">Hesabına gir</ButtonLink>} /></UserPanelShell>;
 
-  return <UserPanelShell activeKey="orders" eyebrow="HESAP" title="Siparişlerim" description={orders.length ? `${orders.length} sipariş · ${activeCount} devam eden süreç` : "Ürün, ödeme, hazırlık ve kargo durumunu tek yerden takip edin."} actions={[{href:"/urunler",label:"Yeni Ürün Seç",primary:true}]}>
+  return <UserPanelShell activeKey="orders" eyebrow="HESAP" title="Siparişlerim" description={orders.length ? `${orders.length} sipariş · ${activeCount} devam eden süreç` : "Ürün, ödeme, hazırlık ve kargo durumunu tek yerden takip edin."} actions={[{href:"/urunler/nfc-kart",label:"NFC Kartı Satın Al",primary:true}]}>
     <section className="p9-stack">
       {message && <div className="p9-message" role="status">{message}</div>}
       <div className="p9-order-list">
-        {orders.length === 0 ? <EmptyState title="Henüz siparişiniz yok." description="NFC kartınızı seçerek ilk Yenomi ID siparişinizi oluşturabilirsiniz." action={<ButtonLink href="/urunler/nfc-kart" variant="primary">NFC Kartı İncele</ButtonLink>} /> : orders.map((order) => {
+        {orders.length === 0 ? <EmptyState title="İlk kartın henüz yok." description="NFC + QR kartını al; 1 yıl dijital hizmet ve Türkiye içi kargo dahil." action={<ButtonLink href="/urunler/nfc-kart" variant="primary">NFC Kartı Satın Al</ButtonLink>} /> : orders.map((order) => {
           const info = statusInfo[order.status];
           const address = Array.isArray(order.shipping_addresses) ? order.shipping_addresses[0] : order.shipping_addresses;
           const quantity = order.commerce_order_items.reduce((sum, item) => sum + item.quantity, 0);

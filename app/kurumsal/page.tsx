@@ -56,10 +56,10 @@ export default async function CorporatePage({
   const params = await searchParams;
   const selectedPlan = Array.isArray(params.plan) ? params.plan[0] : params.plan;
   const capabilities = [
-    { icon: "users" as const, title: "Toplu Yönetim", text: "Çalışanlarınızı ve kartlarını tek merkezden yönetin." },
-    { icon: "building" as const, title: "Marka Kontrolü", text: "Şablon, logo, renk ve alan kurallarını merkezden belirleyin." },
-    { icon: "shield" as const, title: "Yetki & Güvenlik", text: "Rol bazlı erişim ve güvenlik kontrollerini tek panelden yönetin." },
-    { icon: "analytics" as const, title: "Ölçülebilir", text: "Görüntülenme ve temas verilerini ekip bazında takip edin." },
+    { icon: "users" as const, title: "Toplu Yönetim", text: "Çalışan ve kart tek panelde. Yeni kişi dakikalar içinde yayında." },
+    { icon: "building" as const, title: "Marka Kontrolü", text: "Logo, renk, şablon. Dağınık kartvizit kalmaz." },
+    { icon: "shield" as const, title: "Yetki & Güvenlik", text: "Rol kilitli erişim. Ayrılan kart panelden kapanır." },
+    { icon: "analytics" as const, title: "Ölçülebilir", text: "Hangi kartın çalıştığını ekip bazında görürsünüz." },
   ];
 
   return (
@@ -119,7 +119,7 @@ export default async function CorporatePage({
       <section className="corporate-single-cta" aria-labelledby="corporate-single-cta-title">
         <div>
           <span className="section-kicker">YENOMI BUSINESS</span>
-          <h2 id="corporate-single-cta-title">Ekibiniz için dijital kimlik standardını oluşturun.</h2>
+          <h2 id="corporate-single-cta-title">Ekip aynı standartta tanışır. Yönetim tek panelde kalır.</h2>
           <p>100 kişiye kadar paketi doğrudan sepete ekleyin. 100 kişiyi aşan kapasite ve özel kurulum için teklif alın.</p>
         </div>
         <div className="corporate-single-cta-actions">
@@ -131,7 +131,7 @@ export default async function CorporatePage({
       <section className="corporate-pricing-section corporate-single-details" aria-labelledby="business-pricing-title">
         <div className="corporate-section-heading">
           <span className="section-kicker">YILLIK KURUMSAL SİSTEM</span>
-          <h2 id="business-pricing-title">Kişi başı fiyat düştükçe paket büyür.</h2>
+          <h2 id="business-pricing-title">Kişi sayısı artınca kişi başı düşer.</h2>
           <p>Her pakette NFC kart + 1 yıl üyelik + Türkiye içi ücretsiz kargo birlikte düşünülür. Network Mail kişi başı 100 kredidir; 10 kişi 5 kişiyle aynı fiyat olmaz.</p>
         </div>
         <div className="corporate-pack-table-wrap">

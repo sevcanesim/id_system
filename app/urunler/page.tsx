@@ -46,8 +46,8 @@ export default async function ProductsPage() {
           <div className="yi-container products-single-hero__inner">
             <div className="products-single-copy">
               <span className="yi-hero__eyebrow">KARTINI SEÇ</span>
-              <h2 id="products-title">Bireysel dijital kartvizit</h2>
-              <p>NFC + QR kartını al, canlı profilini bağla. Unvanın değişince kartı yenileme. Ekip için kurumsal paketleri incele.</p>
+              <h2 id="products-title">Tek kart. Her tanışmada güncel.</h2>
+              <p>NFC + QR kartını al, canlı profilini bağla. Unvanın değişince baskı yok. Ekip aynı standartta tanışacaksa kurumsal paketi seç.</p>
               <div className="products-single-actions">
                 {nfc && <ButtonLink href={`/urunler/${nfc.slug}`} variant="dark">NFC Kartı Satın Al</ButtonLink>}
                 <ButtonLink href="/kurumsal" variant="secondary">Ekip paketini incele</ButtonLink>

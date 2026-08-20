@@ -11,7 +11,7 @@
     "/aktivasyon"
   ],
   "businessLogicChanged": false,
-  "canonicalSurface": "app/commerce-flow.css",
+  "canonicalSurface": "app/canonical.css",
   "principles": [
     "explicit package value",
     "single primary conversion action",

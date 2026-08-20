@@ -118,7 +118,7 @@ Relevant areas include:
 - `app/globals.css`
 - `app/legacy-surfaces.css`
 - `app/dashboard-flow.css`
-- `app/commerce-flow.css`
+- `app/canonical.css` (live commerce + public chrome; `app/commerce-flow.css` is retired and must not be recreated)
 - `app/public-conversion.css`
 - `app/auth-flow.css`
 - `app/public-card.css`

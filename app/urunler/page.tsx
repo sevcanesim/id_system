@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ProductsPage() {
-  let listPriceKurus = INDIVIDUAL_PLAN.priceKurus;
+  let listPriceKurus: number = INDIVIDUAL_PLAN.priceKurus;
   try {
     const products = await getDatabaseCatalog();
     const available = products.filter((p) => String(p.status).toUpperCase() !== "COMING_SOON");

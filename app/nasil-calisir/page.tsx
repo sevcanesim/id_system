@@ -49,7 +49,7 @@ export default function HowItWorksPage() {
               </div>
               <h3>{step.title}</h3>
               <p>{step.text}</p>
-              {step.visual === "tap" ? (
+              {step.visual === "tap" || step.visual === "profile" ? (
                 <div className={`how-step-visual how-step-visual--${step.number}`}>
                   <div className="how-phone-mockup">
                     <span className="how-phone-speaker" />
@@ -57,7 +57,9 @@ export default function HowItWorksPage() {
                       <YenomiProductVisual variant="profile" compact />
                     </div>
                   </div>
-                  <div className="how-qr" aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /><i /><i /></div>
+                  {step.visual === "tap" ? (
+                    <div className="how-qr" aria-hidden="true"><Icon name="qr" /></div>
+                  ) : null}
                 </div>
               ) : step.visual ? (
                 <div className={`how-step-visual how-step-visual--${step.number}`}>

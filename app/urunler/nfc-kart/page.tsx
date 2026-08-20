@@ -8,7 +8,7 @@ import { PublicPageTitle } from "../../components/PublicPageTitle";
 
 export const metadata: Metadata = {
   title: "NFC + QR Kart",
-  description: "Premium fiziksel NFC + QR kart ve güncellenebilir Yenomi ID dijital kartvizit.",
+  description: "Premium NFC + QR kart. Unvanın değişince baskı yok; kaybolursa kapatırsın. 1 yıl dijital hizmet ve Türkiye içi kargo dahil. Kart numarası iyzico’da kalır.",
 };
 
 const benefits = [
@@ -50,16 +50,16 @@ export default async function NfcKartPage({
     <main id="main-content" className="nfc-product-page">
       <PublicPageTitle
         kicker="YENOMI ID · NFC + QR KART"
-        title={<>Fiziksel kart.<br /><em>Canlı dijital kimlik.</em></>}
-        description="Premium NFC + QR kart, güncellenebilir dijital profil ve tek kalıcı bağlantı. Kartın fiziksel; kimliğin her zaman güncel."
+        title={<>Kart bir kez basılır.<br /><em>Kimliğin her gün güncel kalır.</em></>}
+        description="NFC veya QR ile paylaş. Unvanın değişince kartı yenileme. Kaybolursa kayıp modu. Ödeme iyzico güvencesinde; kart numarası Yenomi’de saklanmaz."
         className="public-page-title--product"
       />
       <section className="nfc-product-hero">
         <div className="yi-container nfc-product-hero__grid">
           <div className="nfc-product-hero__copy">
-            <span className="nfc-kicker">ÜRÜNÜNÜ SEÇ</span>
+            <span className="nfc-kicker">KARTINI SEÇ</span>
             <h2>Yenomi ID<br /><em>NFC + QR Kart</em></h2>
-            <p className="nfc-product-hero__body">Kartını telefona yaklaştır veya QR kodunu okut; profilin tarayıcıda açılsın. İletişim bilgilerin değiştiğinde kartı yeniden bastırmadan hesabından güncelle.</p>
+            <p className="nfc-product-hero__body">Kartı telefona yaklaştır veya QR’ı okut. Profil tarayıcıda açılır. Bilgin değişince baskı yok; kart kaybolursa panelden kapatırsın.</p>
             <NfcPurchasePanel product={NFC_PRODUCT} initialPackage={initialPackage} />
           </div>
           <div className="nfc-product-hero__visual" aria-label="Yenomi ID NFC kart ve dijital profil">
@@ -76,8 +76,8 @@ export default async function NfcKartPage({
 
       <section className="nfc-story">
         <div className="yi-container nfc-story__inner">
-          <div><span className="nfc-kicker">SATIN AL, ETKİNLEŞTİR, PAYLAŞ</span><h2>Önce ürününü al.<br /><em>Sonra profilini kur.</em></h2></div>
-          <p>Ürünü sepete ekle, Türkiye içi teslimat adresini gir ve ödemenin ardından hesabını etkinleştir. NFC ve QR aynı kalıcı dijital profile bağlanır.</p>
+          <div><span className="nfc-kicker">SEÇ, BAĞLA, PAYLAŞ</span><h2>Önce kartını al.<br /><em>Sonra profilin açılır.</em></h2></div>
+          <p>Sepete ekle, Türkiye içi adresi yaz, öde. Hesabın varsa sipariş bağlanır; yoksa hesap açmadan tamamlarsın. NFC ve QR aynı kalıcı profile gider.</p>
         </div>
         <div className="yi-container nfc-steps">
           {steps.map(([number,title,text]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></article>)}
@@ -86,7 +86,7 @@ export default async function NfcKartPage({
 
       <section className="nfc-includes">
         <div className="yi-container nfc-includes__grid">
-          <div><span className="nfc-kicker">NE SATIN ALIYORSUN?</span><h2>Karttan fazlası.<br /><em>Abonelikten daha somut.</em></h2></div>
+          <div><span className="nfc-kicker">NE ALIYORSUN?</span><h2>Karttan fazlası.<br /><em>Kimliğin sende kalır.</em></h2></div>
           <ul><li>1 adet kişisel NFC kart</li><li>Değişmeyen kişisel QR kod</li><li>1 yıllık dijital kartvizit sayfası</li><li>Aktif dönemde sınırsız bilgi güncelleme</li><li>Kayıp modu ve yedek kart desteği</li><li>Türkiye içi standart kargo dahil</li></ul>
           <div className="nfc-includes__cta"><span>Kargo dahil paket fiyatı</span><strong>{formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)}</strong><small>1 kart • 1 yıllık sayfa • Türkiye içi teslimat</small><Link href="#nfc-hero-price-row">Hemen Satın Al →</Link></div>
         </div>
@@ -99,7 +99,7 @@ export default async function NfcKartPage({
       </section>
 
       <section className="nfc-final">
-        <div className="yi-container"><span className="nfc-kicker">ŞİMDİ BAŞLA</span><h2>Fiziksel kart.<br /><em>Canlı dijital kimlik.</em></h2><p>İlk paket {formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)} ve 1 yıllık dijital hizmet içerir.</p><Link href="#nfc-hero-price-row">NFC Kartını Sepete Ekle →</Link></div>
+          <div className="yi-container"><span className="nfc-kicker">ŞİMDİ BAŞLA</span><h2>Bir sonraki tanışmada<br /><em>güncel ol.</em></h2><p>İlk paket {formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)}. 1 yıl dijital hizmet ve Türkiye içi kargo dahil.</p><Link href="#nfc-hero-price-row">NFC Kartını Sepete Ekle →</Link></div>
       </section>
     </main>
   );

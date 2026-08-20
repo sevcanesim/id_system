@@ -69,10 +69,10 @@ export default async function CorporatePage({
         <div className="corporate-single-copy">
           <span className="section-kicker">YENOMI BUSINESS</span>
           <h1 id="corporate-single-title">Şirket NFC kart almıyor. <em>Çalışanların networking altyapısını satın alıyor.</em></h1>
-          <p>Tanışılan kişiyi kaydedin, ilişkiyi yönetin, görüşmeyi fırsata dönüştürün. Kart, panel, Network Mail ve kurumsal analitik tek pakettedir.</p>
+          <p>Satış ve saha ekibi aynı standartta tanışır. Unvan değişince baskı yok; kart kaybolursa panelden kapanır. 100 kişiye kadar sepete ekle.</p>
           <div className="corporate-hero-actions">
             <a href="#business-pricing-title" className="corporate-cta">Paketleri İncele <span aria-hidden="true">→</span></a>
-            <a href="#teklif" className="corporate-secondary-cta">Demo İste <span aria-hidden="true">→</span></a>
+            <a href="#teklif" className="corporate-secondary-cta">100+ kişi için teklif <span aria-hidden="true">→</span></a>
           </div>
           <div className="corporate-single-proof" aria-label="Kurumsal ürün sonuçları">
             {outcomes.slice(0, 3).map((item) => <div key={item.label}><strong>{item.value}</strong><span>{item.label}</span></div>)}

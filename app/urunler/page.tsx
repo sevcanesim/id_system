@@ -21,7 +21,7 @@ import { COMMERCIAL_PRICING, COMMERCIAL_SKUS } from "../../lib/config/commercial
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Dijital Kartvizit",
-  description: "Yenomi ID bireysel NFC + QR dijital kartvizit. Kurumsal ekip çözümü ayrı incelenir.",
+  description: "799 TL bireysel NFC + QR kart. Premium 1.250 TL. Unvanın değişince baskı yok. Ekip için kurumsal paketler ayrı.",
 };
 
 export default async function ProductsPage() {
@@ -38,19 +38,19 @@ export default async function ProductsPage() {
       <main id="main-content" className="products-single-main">
         <PublicPageTitle
           kicker="YENOMI ID · DİJİTAL KARTVİZİT"
-          title={<>Bireysel kartvizit.<br /><em>Networking’e giden giriş.</em></>}
-          description="799 TL bireysel NFC + QR kart. Premium 1.250 TL ile toplantı, sunum ve 100 Network Mail. Ekip için kurumsal merdiven ayrı incelenir."
+          title={<>Kartın sende kalsın.<br /><em>Profilin her an güncel.</em></>}
+          description="799 TL bireysel NFC + QR. Premium 1.250 TL ile toplantı, sunum ve 100 Network Mail. Ekip için 100 kişiye kadar sepete ekle."
           className="public-page-title--catalog"
         />
         <section className="products-single-hero" aria-labelledby="products-title">
           <div className="yi-container products-single-hero__inner">
             <div className="products-single-copy">
-              <span className="yi-hero__eyebrow">ÜRÜNÜ İNCELE</span>
+              <span className="yi-hero__eyebrow">KARTINI SEÇ</span>
               <h2 id="products-title">Bireysel dijital kartvizit</h2>
-              <p>NFC + QR kartını seç, canlı profilini bağla. Unvanın değişince kartı yenileme. Ekip yönetimi için kurumsal çözümü incele.</p>
+              <p>NFC + QR kartını al, canlı profilini bağla. Unvanın değişince kartı yenileme. Ekip için kurumsal paketleri incele.</p>
               <div className="products-single-actions">
-                {nfc && <ButtonLink href={`/urunler/${nfc.slug}`} variant="dark">NFC Kartını İncele</ButtonLink>}
-                <ButtonLink href="/kurumsal" variant="secondary">Kurumsal Çözümler</ButtonLink>
+                {nfc && <ButtonLink href={`/urunler/${nfc.slug}`} variant="dark">NFC Kartı Satın Al</ButtonLink>}
+                <ButtonLink href="/kurumsal" variant="secondary">Ekip paketini incele</ButtonLink>
               </div>
             </div>
             <div className="products-single-visual" aria-label="Yenomi ID NFC kart önizlemesi">
@@ -106,10 +106,10 @@ export default async function ProductsPage() {
 
         <section className="products-single-proof" aria-label="Yenomi ID satın alma bilgileri">
           <div className="yi-container products-single-proof__grid">
-            <span>Türkiye içi ücretsiz kargo</span>
+            <span>Türkiye içi kargo dahil</span>
             <span>2 iş günü hazırlık</span>
             <span>1 yıl dijital hizmet dahil</span>
-            <span>Güvenli ödeme</span>
+            <span>Kartın iyzico’da kalır</span>
           </div>
         </section>
 

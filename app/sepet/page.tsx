@@ -60,24 +60,26 @@ export default function CartPage() {
         <div className="yi-container">
           <div className="yi-page-head">
             <span>COMMERCE</span>
-            <h1>Sepet</h1>
-            <p>Seçtiğin ürünleri kontrol et. Ödeme aşamasında fiyat ve uygunluk sunucu tarafından tekrar doğrulanır.</p>
+            <h1>Siparişin</h1>
+            <p>Fiyat ve stok ödeme adımında sunucuda doğrulanır. Kart numarası Yenomi’de saklanmaz.</p>
           </div>
           {!items.length ? (
             <EmptyState
               icon="cart"
-              title="Dijital kartvizitini almaya hazır mısın?"
+              title="Kartını seçmeye hazır mısın?"
               description={
                 audience === "corporate"
-                  ? "Sepetin boş. Bireysel NFC + QR kartını buradan ekleyebilirsin. Şirket koltuk paketleri ise kurumsal paneldeki Lisanslar sayfasından yönetilir."
-                  : "Sepetinde henüz ürün yok. Bireysel NFC + QR dijital kartviziti inceleyerek başlayabilirsin."
+                  ? "Bireysel NFC kartını buradan ekle. Şirket lisans paketleri paneldeki Lisanslar’dan yönetilir."
+                  : "Bireysel NFC + QR kart: 1 yıl dijital hizmet ve Türkiye içi kargo dahil."
               }
               action={
                 <div className="ds-empty-actions">
-                  <Link className="ds-button ds-button--primary" href="/urunler/nfc-kart">NFC Kartı incele</Link>
+                  <Link className="ds-button ds-button--primary" href="/urunler/nfc-kart">NFC Kartı Satın Al</Link>
                   {audience === "corporate" ? (
                     <Link className="ds-button ds-button--secondary" href="/kurumsal/panel/lisans">Lisanslara git</Link>
-                  ) : null}
+                  ) : (
+                    <Link className="ds-button ds-button--secondary" href="/kurumsal">Ekip paketini incele</Link>
+                  )}
                 </div>
               }
             />
@@ -149,7 +151,7 @@ export default function CartPage() {
                   Güvenli Satın Almaya Geç
                 </Link>
                 <Link href="/urunler" className="yi-btn yi-btn--ghost">
-                  Alışverişe devam et
+                  Kart seçimine dön
                 </Link>
               </aside>
             </div>

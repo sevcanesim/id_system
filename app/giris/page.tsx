@@ -296,8 +296,8 @@ export default function LoginPage() {
       <section className="p6-auth-shell">
         <aside className="p6-auth-story" aria-label="Yenomi ID ürün özeti">
           <span className="p6-auth-kicker">YENOMI ID</span>
-          <h1>Fiziksel kartın.<br />Canlı dijital kartvizitin.</h1>
-          <p>Kartını telefona dokundur. Güncel iletişim bilgilerin ve profesyonel kartvizitin saniyeler içinde açılsın.</p>
+          <h1>Kartın sende.<br />Profilin her an güncel.</h1>
+          <p>Yaklaştır, paylaş. Unvanın değişince baskı yok. Kart numarası Yenomi’de saklanmaz.</p>
           <div className="p6-auth-product-flow" aria-label="Karttan dijital profile geçiş">
             <div className="p6-auth-visual-card">
               <YenomiProductVisual variant="card" compact />
@@ -459,7 +459,7 @@ export default function LoginPage() {
 
                     {message && <div className={`p6-auth-message ${messageTone}`} role="status" aria-live="polite">{message}</div>}
                     <button className="p6-auth-submit" disabled={busy}>
-                      {loading ? "İşleniyor…" : mode === "signup" ? "Hesap oluştur" : "Giriş yap"}
+                      {loading ? "İşleniyor…" : mode === "signup" ? "Hesabı aç ve devam et" : "Hesabına gir"}
                       <Icon name="chevronRight" />
                     </button>
                   </form>

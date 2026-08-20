@@ -1,6 +1,9 @@
 import fs from 'node:fs';
 
 const callback = fs.readFileSync('app/api/payments/iyzico/callback/route.ts','utf8');
+const settle = fs.readFileSync('lib/payments/settle-commerce-payment.ts','utf8');
+const recover = fs.readFileSync('app/api/payments/iyzico/recover/route.ts','utf8');
+const paymentFlow = `${callback}\n${settle}`;
 const lifecycle = fs.readFileSync('supabase/migrations/20260814120000_phase18_payment_lifecycle_lock.sql','utf8');
 const reconciliation = fs.readFileSync('supabase/migrations/20260815150000_payment_entitlement_reconciliation.sql','utf8');
 const acceptance = fs.readFileSync('docs/phase0/RUNTIME_ACCEPTANCE.md','utf8');
@@ -14,7 +17,10 @@ const requiredCallback = [
   'AUTHENTICATED_CLAIM_FAILED',
   'paidSuccessRedirect',
 ];
-for (const marker of requiredCallback) if (!callback.includes(marker)) throw new Error(`Callback hardening marker missing: ${marker}`);
+for (const marker of requiredCallback) if (!paymentFlow.includes(marker)) throw new Error(`Callback hardening marker missing: ${marker}`);
+if (!settle.includes('retrieveCheckout') || !recover.includes('settlePendingCommercePaymentByOrderId')) {
+  throw new Error('Missed iyzico callbacks must be recoverable via retrieveCheckout settlement');
+}
 
 const requiredSql = [
   "where id=p_attempt_id for update",
@@ -36,7 +42,7 @@ for (const marker of [
   'on conflict(order_item_id,instance_no) do nothing',
 ]) if (!reconciliation.includes(marker)) throw new Error(`Reconciliation hardening marker missing: ${marker}`);
 
-if (callback.includes('if (!claim.ok) return failure("auto-claim")')) {
+if (paymentFlow.includes('if (!claim.ok) return failure("auto-claim")')) {
   throw new Error('Paid callback must not be presented as payment failure when auto-claim fails');
 }
 

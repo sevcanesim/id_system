@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { readCart, setCartOwner, type CartItem } from "../../lib/cart";
 import { formatTryFromKurus } from "../../lib/config/product";
-import { COMMERCIAL_SKUS, isDigitalOnlySku, isPhysicalBundleSku, isPremiumUpgradeSku, isRenewalSku } from "../../lib/config/commercial";
+import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isDigitalOnlySku, isPhysicalBundleSku, isPremiumUpgradeSku, isRenewalSku } from "../../lib/config/commercial";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { Icon } from "../icons";
 import { TURKEY_CITIES, normalizeTrPhone } from "../../lib/form-standards";
@@ -130,7 +130,9 @@ export default function CheckoutPage() {
   }
 
   const buyerComplete = form.recipientName.trim().length >= 3 && /^\S+@\S+\.\S+$/.test(form.email.trim()) && form.phone.replace(/\D/g, "").length >= 10 && form.identityNumber.length === 11;
-  const shippingComplete = form.addressLine.trim().length >= 10 && !!form.district.trim() && !!form.city.trim();
+  const shippingComplete = digitalOnlyCart
+    ? Boolean(form.city.trim() && form.district.trim())
+    : form.addressLine.trim().length >= 10 && !!form.district.trim() && !!form.city.trim();
   const approvalComplete = form.distanceSalesAccepted && form.personalizationAccepted;
 
   function buyerError() {
@@ -142,6 +144,10 @@ export default function CheckoutPage() {
   }
 
   function shippingError() {
+    if (digitalOnlyCart) {
+      if (!form.city.trim() || !form.district.trim()) return "Fatura için şehir ve ilçe alanlarını tamamla.";
+      return "";
+    }
     if (form.addressLine.trim().length < 10) return "Teslimat adresini daha ayrıntılı yaz.";
     if (!form.city.trim() || !form.district.trim()) return "Şehir ve ilçe alanlarını tamamla.";
     return "";
@@ -166,8 +172,12 @@ export default function CheckoutPage() {
     if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) return "Geçerli bir e-posta adresi gir.";
     if (form.phone.replace(/\D/g, "").length < 10) return "Telefon numaranı kontrol et.";
     if (form.identityNumber.length !== 11) return "T.C. kimlik numarası 11 haneli olmalı.";
-    if (form.addressLine.trim().length < 10) return "Teslimat adresini daha ayrıntılı yaz.";
-    if (!form.district.trim() || !form.city.trim()) return "İlçe ve şehir alanlarını tamamla.";
+    if (digitalOnlyCart) {
+      if (!form.district.trim() || !form.city.trim()) return "Fatura için ilçe ve şehir alanlarını tamamla.";
+    } else {
+      if (form.addressLine.trim().length < 10) return "Teslimat adresini daha ayrıntılı yaz.";
+      if (!form.district.trim() || !form.city.trim()) return "İlçe ve şehir alanlarını tamamla.";
+    }
     if (!form.distanceSalesAccepted) return "Mesafeli satış ve ön bilgilendirme metinlerini onaylamalısın.";
     if (!form.personalizationAccepted) return "Kişiselleştirilmiş ürün koşullarını onaylamalısın.";
     return "";
@@ -267,13 +277,13 @@ export default function CheckoutPage() {
           shipping: {
             recipientName: form.recipientName.trim(),
             phone: form.phone,
-            addressLine: form.addressLine.trim(),
+            addressLine: digitalOnlyCart ? digitalServiceBillingAddress(form.city, form.addressLine) : form.addressLine.trim(),
             district: form.district.trim(),
             city: form.city.trim(),
             postalCode: form.postalCode || null,
-            deliveryNote: form.deliveryNote || null,
-            latitude: form.latitude ?? null,
-            longitude: form.longitude ?? null,
+            deliveryNote: digitalOnlyCart ? null : form.deliveryNote || null,
+            latitude: digitalOnlyCart ? null : form.latitude ?? null,
+            longitude: digitalOnlyCart ? null : form.longitude ?? null,
             countryCode: "TR",
           },
           retryOrderId: getPendingCheckoutOrderId(),
@@ -310,8 +320,8 @@ export default function CheckoutPage() {
       {/* Public chrome is provided by PublicSiteShell. Do not remount AppHeader/AppFooter. */}
       <section className="checkout-shell checkout-confirm-shell">
         <div className="checkout-heading checkout-heading-compact">
-          <h1>Siparişini tamamla.</h1>
-          <p>Alıcı ve teslimat bilgilerini doğrula. Son adımda iyzico güvenli ödeme sayfasına geçeceksin.</p>
+          <h1>{digitalOnlyCart ? "Dijital siparişini tamamla." : "Siparişini tamamla."}</h1>
+          <p>{digitalOnlyCart ? "Fatura ili ve ilçesini doğrula. Teslimat adresi gerekmez; son adımda iyzico güvenli ödeme sayfasına geçeceksin." : "Alıcı ve teslimat bilgilerini doğrula. Son adımda iyzico güvenli ödeme sayfasına geçeceksin."}</p>
           <div className="checkout-account-note" role="status">{isAuthenticated ? <><Icon name="check" /> Hesabın bağlı. Siparişin hesabına otomatik eklenir.</> : <><Icon name="mail" /> Hesap açmadan tamamlayabilirsin. Satın alma sonrası siparişini bu e-posta ile hesabına bağlayabilirsin.</>}</div>
           <div className="checkout-trust-row checkout-trust-row-compact" aria-label="Sipariş avantajları">
             {!digitalOnlyCart && <span><Icon name="truck" />Ücretsiz kargo</span>}
@@ -362,11 +372,21 @@ export default function CheckoutPage() {
                   <em>{shippingComplete ? <Icon name="check" /> : <Icon name="chevronRight" />}</em>
                 </button>
                 {activeStep === "shipping" && <div className="checkout-step-body">
-                  <div className="checkout-address-tools"><span>Adres bilgileri</span><button type="button" onClick={useLocation} disabled={locationBusy}><Icon name="map" />{locationBusy ? "Konum aranıyor…" : "Konumu Algıla"}</button></div>
-                  <label>Açık adres<textarea required autoComplete="street-address" value={form.addressLine} onChange={(e) => update("addressLine", e.target.value)} rows={3} placeholder="Mahalle, cadde/sokak, bina no, kat ve daire" /></label>
-                  <label>Şehir<select required value={form.city} onChange={(e) => { update("city", e.target.value); update("district", ""); }}><option value="">Şehir seç</option>{TURKEY_CITIES.map((city) => <option key={city} value={city}>{city}</option>)}</select></label>
-                  <label>İlçe<input required autoComplete="address-level2" value={form.district} onChange={(e) => update("district", e.target.value)} placeholder="İlçeni yaz" /></label>
-                  {!deliveryNoteOpen ? <button type="button" className="checkout-note-toggle" onClick={() => setDeliveryNoteOpen(true)}><Icon name="plus" /> Teslimat Notu Ekle</button> : <label>Teslimat notu <small>(isteğe bağlı)</small><input autoFocus value={form.deliveryNote} onChange={(e) => update("deliveryNote", e.target.value)} placeholder="Kapı kodu, teslim saati vb." /></label>}
+                  {digitalOnlyCart ? (
+                    <>
+                      <small>Yenileme ve yükseltme dijital hizmettir; kargo adresi istenmez. Fatura doğrulaması için il ve ilçe yeterlidir.</small>
+                      <label>Şehir<select required value={form.city} onChange={(e) => { update("city", e.target.value); update("district", ""); }}><option value="">Şehir seç</option>{TURKEY_CITIES.map((city) => <option key={city} value={city}>{city}</option>)}</select></label>
+                      <label>İlçe<input required autoComplete="address-level2" value={form.district} onChange={(e) => update("district", e.target.value)} placeholder="İlçeni yaz" /></label>
+                    </>
+                  ) : (
+                    <>
+                      <div className="checkout-address-tools"><span>Adres bilgileri</span><button type="button" onClick={useLocation} disabled={locationBusy}><Icon name="map" />{locationBusy ? "Konum aranıyor…" : "Konumu Algıla"}</button></div>
+                      <label>Açık adres<textarea required autoComplete="street-address" value={form.addressLine} onChange={(e) => update("addressLine", e.target.value)} rows={3} placeholder="Mahalle, cadde/sokak, bina no, kat ve daire" /></label>
+                      <label>Şehir<select required value={form.city} onChange={(e) => { update("city", e.target.value); update("district", ""); }}><option value="">Şehir seç</option>{TURKEY_CITIES.map((city) => <option key={city} value={city}>{city}</option>)}</select></label>
+                      <label>İlçe<input required autoComplete="address-level2" value={form.district} onChange={(e) => update("district", e.target.value)} placeholder="İlçeni yaz" /></label>
+                      {!deliveryNoteOpen ? <button type="button" className="checkout-note-toggle" onClick={() => setDeliveryNoteOpen(true)}><Icon name="plus" /> Teslimat Notu Ekle</button> : <label>Teslimat notu <small>(isteğe bağlı)</small><input autoFocus value={form.deliveryNote} onChange={(e) => update("deliveryNote", e.target.value)} placeholder="Kapı kodu, teslim saati vb." /></label>}
+                    </>
+                  )}
                   <button type="button" className="checkout-next" onClick={advanceShipping}>Onaylara Devam Et <Icon name="chevronRight" /></button>
                 </div>}
               </section>
@@ -410,7 +430,7 @@ export default function CheckoutPage() {
                 <div className="checkout-summary-line"><span>KDV</span><strong>Dahil</strong></div>
                 <div className="checkout-summary-total"><span>TOPLAM</span><div><strong>{formatTryFromKurus(total)}</strong><small>KDV dahil</small></div></div>
                 <div className="checkout-summary-benefits">
-                  <span><Icon name="check" /> Türkiye içi kargo dahil</span>
+                  {!digitalOnlyCart && <span><Icon name="check" /> Türkiye içi kargo dahil</span>}
                   {hasInitialBundle && <span><Icon name="check" /> 1 yıllık dijital kullanım</span>}
                   {hasExtraCard && <span><Icon name="check" /> Mevcut profile bağlı; yeni süre başlatmaz</span>}
                   {hasRenewal && <span><Icon name="check" /> Mevcut kartınla 1 yıl dijital hizmet yenilemesi</span>}
@@ -418,11 +438,11 @@ export default function CheckoutPage() {
                   {hasPremiumUpgrade && <span><Icon name="check" /> 100 Network Mail bu döneme eklenir; ikinci kart gönderilmez</span>}
                   {hasReplacement && <span><Icon name="check" /> Kayıp kartın yerine; profilin ve hizmet süren korunur</span>}
                   {hasBusinessCapacity && <span><Icon name="check" /> Mevcut abonelik dönemi sonuna kadar ek kapasite</span>}
-                  <span><Icon name="check" /> Fiziksel kart üretim kaydı oluşturulur</span>
+                  {!digitalOnlyCart && <span><Icon name="check" /> Fiziksel kart üretim kaydı oluşturulur</span>}
                 </div>
                 <button type="submit" className="checkout-pay-button" disabled={busy || !legalVersions || !buyerComplete || !shippingComplete || !approvalComplete}><Icon name="lock" />{busy ? "Ödeme hazırlanıyor…" : "Güvenli Ödeme"}</button>
-                {(!buyerComplete || !shippingComplete || !approvalComplete) && !busy ? <p className="checkout-pay-hint">Ödemeye geçmek için alıcı, teslimat ve onay adımlarını tamamlayın.</p> : null}
-                <div className="checkout-secure-list"><span><Icon name="lock" /> SSL Güvenli</span><span><Icon name="truck" /> Ücretsiz Kargo</span><span><Icon name="refresh" /> Kolay Aktivasyon</span><span><Icon name="shield" /> iyzico Güvencesi</span></div>
+                {(!buyerComplete || !shippingComplete || !approvalComplete) && !busy ? <p className="checkout-pay-hint">{digitalOnlyCart ? "Ödemeye geçmek için alıcı, fatura ve onay adımlarını tamamlayın." : "Ödemeye geçmek için alıcı, teslimat ve onay adımlarını tamamlayın."}</p> : null}
+                <div className="checkout-secure-list"><span><Icon name="lock" /> SSL Güvenli</span>{!digitalOnlyCart && <span><Icon name="truck" /> Ücretsiz Kargo</span>}<span><Icon name="refresh" /> Kolay Aktivasyon</span><span><Icon name="shield" /> iyzico Güvencesi</span></div>
               </aside>
             </div>
           </form>

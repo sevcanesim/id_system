@@ -32,7 +32,9 @@ check(cart.includes("legacyInitialOffer") && cart.includes("COMMERCIAL_SKUS.INIT
 check(checkoutApi.includes("variantSku: z.string().min(2).max(100),") && !checkoutApi.includes("variantSku: z.string().min(2).max(100).optional()"), "checkout API requires an explicit offer SKU");
 check(checkoutApi.includes("row.is_active && row.sku === item.variantSku") && !checkoutApi.includes("!item.variantSku ||"), "checkout never selects the first arbitrary active variant");
 check(checkoutApi.includes("Number(variant.price_kurus)"), "checkout price remains server-authoritative from DB variant");
+check(checkoutApi.includes("isDigitalOnlySku") && checkoutApi.includes("digitalServiceBillingAddress"), "digital-only checkout billing address is server-authoritative");
 check(checkoutPage.includes("COMMERCIAL_SKUS") && checkoutPage.includes("isPhysicalBundleSku") && checkoutPage.includes("isDigitalOnlySku"), "checkout UI uses canonical SKU helpers instead of duplicated literals");
+check(checkoutPage.includes("digitalServiceBillingAddress") && checkoutPage.includes("Fatura ili ve ilçesini doğrula"), "digital-only checkout does not demand a physical street address");
 check(architectureAudit.includes("Legacy candidates — do not delete yet") && architectureAudit.includes("/nfc-siparis"), "legacy /nfc-siparis remains retained until usage/backward-compatibility evidence exists");
 check(cart.includes('const LEGACY_KEY = "yenomi-cart-v1"') && cart.includes("They are only claimed once we know the authenticated user id"), "legacy cart compatibility remains privacy-scoped and intentional");
 

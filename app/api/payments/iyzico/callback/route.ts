@@ -1,10 +1,7 @@
-import { createHash, randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { COMMERCIAL_PRICING } from "../../../../../lib/config/commercial";
-import { sendActivationEmail, sendOrderReadyEmail } from "../../../../../lib/email/resend";
-import { verifyIyzicoCheckoutResult } from "../../../../../lib/payments/callback-verification";
 import { publicSiteUrl } from "../../../../../lib/payments/config";
 import { retrieveCheckout } from "../../../../../lib/payments/iyzico";
+import { settleCommercePaymentByProviderToken } from "../../../../../lib/payments/settle-commerce-payment";
 import { getSupabaseAdminClient } from "../../../../../lib/supabase/server-admin";
 import { iyzicoMoneyToKurus } from "../../../../../lib/validation/payment";
 
@@ -15,67 +12,6 @@ function failure(reason: string) {
     `${publicSiteUrl}/odeme/basarisiz?reason=${encodeURIComponent(reason)}`,
     303,
   );
-}
-
-async function isGuestCommerceOrder(admin: ReturnType<typeof getSupabaseAdminClient>, orderId: string) {
-  const { data } = await admin.from("commerce_orders").select("user_id").eq("id", orderId).maybeSingle();
-  return !data?.user_id;
-}
-
-async function autoClaimAuthenticatedOrder(admin: ReturnType<typeof getSupabaseAdminClient>, orderId: string) {
-  const { data, error } = await admin.rpc("finalize_authenticated_commerce_order", { p_order_id: orderId });
-  const payload = (data as { ok?: boolean; review_required?: boolean; open_issue_count?: number; code?: string } | null) || null;
-  // Guest checkout is first-class: ACCOUNT_REQUIRED means "claim by email", not a fulfillment defect.
-  if (payload?.code === "ACCOUNT_REQUIRED") {
-    return { ok: true, reviewRequired: false, openIssueCount: 0 };
-  }
-  const ok = !error && Boolean(payload?.ok);
-  if (!ok) {
-    console.error("authenticated order auto claim failed", { orderId, error, result: data });
-    const { error: issueError } = await admin.rpc("record_commerce_fulfillment_issue", {
-      p_order_id: orderId,
-      p_order_item_id: null,
-      p_issue_code: "AUTHENTICATED_CLAIM_FAILED",
-      p_details: { code: payload?.code || null, databaseError: error?.message || null },
-    });
-    if (issueError) console.error("claim failure reconciliation issue could not be recorded", { orderId, issueError });
-  }
-  return { ok, reviewRequired: !ok || Boolean(payload?.review_required), openIssueCount: Number(payload?.open_issue_count || 0) };
-}
-
-async function sendGuestActivationIfTokenPersisted(
-  admin: ReturnType<typeof getSupabaseAdminClient>,
-  input: { orderId: string; guestEmail: string | null; orderNumber: string; rawActivationToken: string },
-) {
-  if (!input.guestEmail) {
-    console.error("guest activation email skipped: missing recipient", { orderId: input.orderId });
-    return;
-  }
-  const tokenHash = createHash("sha256").update(input.rawActivationToken).digest("hex");
-  const { data: storedToken } = await admin
-    .from("activation_tokens")
-    .select("id")
-    .eq("order_id", input.orderId)
-    .eq("token_hash", tokenHash)
-    .is("used_at", null)
-    .is("invalidated_at", null)
-    .maybeSingle();
-  if (!storedToken) return;
-
-  const hoursValid = COMMERCIAL_PRICING.SERVICE.activationLinkDays * 24;
-  const mailResult = await sendActivationEmail({
-    to: input.guestEmail,
-    orderNumber: input.orderNumber,
-    hoursValid,
-    activationUrl: `${publicSiteUrl}/aktivasyon?token=${encodeURIComponent(input.rawActivationToken)}`,
-  });
-  await admin.from("commerce_email_events").insert({
-    order_id: input.orderId,
-    event_type: "ACTIVATION",
-    recipient: input.guestEmail,
-    status: mailResult.sent ? "SENT" : "SKIPPED",
-    provider_message: mailResult.sent ? null : mailResult.reason,
-  });
 }
 
 function paidSuccessRedirect(orderId: string, reviewRequired = false) {
@@ -91,134 +27,18 @@ export async function POST(request: NextRequest) {
   if (!token) return failure("token");
 
   try {
-    const admin = getSupabaseAdminClient();
-    const { data: commerceAttempt } = await admin
-      .from("commerce_payment_attempts")
-      .select("id,order_id,status,amount_kurus,currency,conversation_id,provider_payment_id")
-      .eq("provider_token", token)
-      .maybeSingle();
-
-    if (commerceAttempt) {
-      if (commerceAttempt.status === "PAID") {
-        if (await isGuestCommerceOrder(admin, commerceAttempt.order_id)) {
-          return paidSuccessRedirect(commerceAttempt.order_id);
-        }
-        const claim = await autoClaimAuthenticatedOrder(admin, commerceAttempt.order_id);
-        return paidSuccessRedirect(commerceAttempt.order_id, claim.reviewRequired);
+    const commerce = await settleCommercePaymentByProviderToken(token, { failIfUnpaid: true });
+    if (commerce.kind !== "not_found") {
+      if (commerce.kind === "error") return failure(commerce.reason);
+      if (commerce.kind === "pending") return failure("callback");
+      if (commerce.kind === "failed") {
+        return NextResponse.redirect(`${publicSiteUrl}/odeme/basarisiz?order=${commerce.orderId}`, 303);
       }
-
-      const result = await retrieveCheckout(token);
-      const paid = verifyIyzicoCheckoutResult(
-        {
-          orderId: commerceAttempt.order_id,
-          amountKurus: commerceAttempt.amount_kurus,
-          currency: commerceAttempt.currency,
-          conversationId: commerceAttempt.conversation_id,
-        },
-        result,
-      );
-
-      const rawActivationToken = randomBytes(32).toString("hex");
-      const activationTokenHash = createHash("sha256")
-        .update(rawActivationToken)
-        .digest("hex");
-      const activationExpiresAt = new Date();
-      activationExpiresAt.setDate(activationExpiresAt.getDate() + 7);
-
-      const { data: processedRows, error: processError } = await admin.rpc(
-        "process_commerce_payment_callback",
-        {
-          p_attempt_id: commerceAttempt.id,
-          p_paid: paid,
-          p_provider_payment_id: result?.paymentId ?? commerceAttempt.provider_payment_id ?? null,
-          p_error_code: paid ? null : String(result?.errorCode || "PAYMENT_VERIFICATION_FAILED"),
-          p_error_message: paid ? null : String(result?.errorMessage || "Ödeme doğrulanamadı."),
-          p_raw_result: result,
-          p_activation_token_hash: activationTokenHash,
-          p_activation_expires_at: activationExpiresAt.toISOString(),
-        },
-      );
-
-      if (processError) {
-        console.error("atomic payment callback failed", {
-          attemptId: commerceAttempt.id,
-          orderId: commerceAttempt.order_id,
-          error: processError,
-        });
-        return failure("callback");
-      }
-
-      const processed = Array.isArray(processedRows) ? processedRows[0] : processedRows;
-      if (!processed || processed.outcome === "ATTEMPT_NOT_FOUND") return failure("attempt");
-
-      if (processed.outcome === "FAILED") {
-        return NextResponse.redirect(
-          `${publicSiteUrl}/odeme/basarisiz?order=${processed.order_id}`,
-          303,
-        );
-      }
-
-      if (processed.outcome === "ALREADY_PAID" || processed.outcome === "PAID_REVIEW_REQUIRED") {
-        const guestOrder = await isGuestCommerceOrder(admin, processed.order_id);
-        if (guestOrder) {
-          // First-time PAID_REVIEW_REQUIRED still stored this token. Callback replays did not.
-          if (processed.outcome === "PAID_REVIEW_REQUIRED") {
-            await sendGuestActivationIfTokenPersisted(admin, {
-              orderId: processed.order_id,
-              guestEmail: processed.guest_email,
-              orderNumber: processed.order_number,
-              rawActivationToken,
-            });
-          }
-          return paidSuccessRedirect(processed.order_id, processed.outcome === "PAID_REVIEW_REQUIRED");
-        }
-        const claim = await autoClaimAuthenticatedOrder(admin, processed.order_id);
-        const reviewRequired = processed.outcome === "PAID_REVIEW_REQUIRED" || claim.reviewRequired;
-        return paidSuccessRedirect(processed.order_id, reviewRequired);
-      }
-
-      if (processed.outcome !== "PAID_PROCESSED") return failure("callback");
-
-      if (await isGuestCommerceOrder(admin, processed.order_id)) {
-        await sendGuestActivationIfTokenPersisted(admin, {
-          orderId: processed.order_id,
-          guestEmail: processed.guest_email,
-          orderNumber: processed.order_number,
-          rawActivationToken,
-        });
-        return paidSuccessRedirect(processed.order_id);
-      }
-
-      const claim = await autoClaimAuthenticatedOrder(admin, processed.order_id);
-      if (claim.reviewRequired) {
-        await admin.from("commerce_email_events").insert({
-          order_id: processed.order_id,
-          event_type: "ORDER_REVIEW_REQUIRED",
-          recipient: processed.guest_email,
-          status: "SKIPPED",
-          provider_message: `Fulfillment review required (${claim.openIssueCount})`,
-        });
-        return paidSuccessRedirect(processed.order_id, true);
-      }
-
-      const mailResult = await sendOrderReadyEmail({
-        to: processed.guest_email,
-        orderNumber: processed.order_number,
-        createCardUrl: `${publicSiteUrl}/olustur?source=purchase`,
-      });
-
-      await admin.from("commerce_email_events").insert({
-        order_id: processed.order_id,
-        event_type: "ORDER_READY",
-        recipient: processed.guest_email,
-        status: mailResult.sent ? "SENT" : "SKIPPED",
-        provider_message: mailResult.sent ? null : mailResult.reason,
-      });
-
-      return paidSuccessRedirect(processed.order_id);
+      return paidSuccessRedirect(commerce.orderId, commerce.reviewRequired);
     }
 
     // Geriye dönük uyumluluk: v22 öncesi tamamlanmamış nfc_orders ödemeleri.
+    const admin = getSupabaseAdminClient();
     const { data: attempt } = await admin
       .from("payment_attempts")
       .select("id,order_id,status,amount_kurus,currency,conversation_id,provider_payment_id")

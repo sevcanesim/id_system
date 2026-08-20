@@ -14,7 +14,7 @@ import {
   normalizeIdempotencyKey,
 } from "../../../../lib/payments/idempotency";
 import { getDatabaseLegalVersions } from "../../../../lib/config/database";
-import { COMMERCIAL_SKUS, isPremiumUpgradeSku } from "../../../../lib/config/commercial";
+import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isDigitalOnlySku, isPremiumUpgradeSku } from "../../../../lib/config/commercial";
 
 export const runtime = "nodejs";
 
@@ -35,7 +35,7 @@ function checkoutSchema(legalVersions: Awaited<ReturnType<typeof getDatabaseLega
   shipping: z.object({
     recipientName: z.string().trim().min(2).max(120),
     phone: z.string().trim().min(10).max(30),
-    addressLine: z.string().trim().min(8).max(500),
+    addressLine: z.string().trim().max(500).optional().default(""),
     district: z.string().trim().min(2).max(80),
     city: z.string().trim().min(2).max(80),
     postalCode: z.string().trim().max(12).nullable().optional(),
@@ -238,6 +238,19 @@ export async function POST(request: NextRequest) {
     const includesReplacement = calculated.some((item) => ((item.variant.metadata || {}) as Record<string, unknown>).fulfillment_kind === "REPLACEMENT_CARD");
     const includesPremiumRenewal = calculated.some((item) => item.variant.sku === COMMERCIAL_SKUS.PREMIUM_RENEWAL);
     const includesBasicRenewal = calculated.some((item) => item.variant.sku === COMMERCIAL_SKUS.RENEWAL);
+    const digitalOnlyCart = calculated.length > 0 && calculated.every((item) => isDigitalOnlySku(item.variant.sku));
+    const shipping = {
+      ...body.shipping,
+      addressLine: digitalOnlyCart
+        ? digitalServiceBillingAddress(body.shipping.city, body.shipping.addressLine)
+        : body.shipping.addressLine.trim(),
+      latitude: digitalOnlyCart ? null : body.shipping.latitude ?? null,
+      longitude: digitalOnlyCart ? null : body.shipping.longitude ?? null,
+      deliveryNote: digitalOnlyCart ? null : body.shipping.deliveryNote || null,
+    };
+    if (!digitalOnlyCart && shipping.addressLine.length < 8) {
+      return NextResponse.json({ error: "Teslimat adresini daha ayrıntılı yaz." }, { status: 400 });
+    }
 
     if (includesPremiumRenewal && includesBasicRenewal) {
       return NextResponse.json({ error: "Aynı siparişte temel ve Premium yenileme birlikte alınamaz." }, { status: 400 });
@@ -282,7 +295,7 @@ export async function POST(request: NextRequest) {
       email: normalizedEmail,
       totalKurus,
       customer: { name: body.customer.name, phone: body.customer.phone, identityType: body.customer.identityType },
-      shipping: body.shipping,
+      shipping,
       consents: body.consents,
     });
 
@@ -364,21 +377,21 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(publicError("ORDER_CREATE_FAILED"), { status: 500 });
       }
 
-      const mapUrl = body.shipping.latitude != null && body.shipping.longitude != null
-        ? `https://www.google.com/maps?q=${body.shipping.latitude},${body.shipping.longitude}`
+      const mapUrl = shipping.latitude != null && shipping.longitude != null
+        ? `https://www.google.com/maps?q=${shipping.latitude},${shipping.longitude}`
         : null;
       const { error: addressError } = await admin.from("shipping_addresses").insert({
         order_id: order.id,
-        recipient_name: body.shipping.recipientName,
-        phone: body.shipping.phone,
-        address_line: body.shipping.addressLine,
-        district: body.shipping.district,
-        city: body.shipping.city,
-        postal_code: body.shipping.postalCode || null,
-        latitude: body.shipping.latitude ?? null,
-        longitude: body.shipping.longitude ?? null,
+        recipient_name: shipping.recipientName,
+        phone: shipping.phone,
+        address_line: shipping.addressLine,
+        district: shipping.district,
+        city: shipping.city,
+        postal_code: shipping.postalCode || null,
+        latitude: shipping.latitude,
+        longitude: shipping.longitude,
         map_url: mapUrl,
-        delivery_note: body.shipping.deliveryNote || null,
+        delivery_note: shipping.deliveryNote,
         country_code: "TR",
       });
       if (addressError) {
@@ -445,31 +458,31 @@ export async function POST(request: NextRequest) {
         gsmNumber: body.customer.phone,
         email: body.customer.email,
         identityNumber,
-        registrationAddress: body.shipping.addressLine,
+        registrationAddress: shipping.addressLine,
         ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1",
-        city: body.shipping.city,
+        city: shipping.city,
         country: "Türkiye",
-        zipCode: body.shipping.postalCode || "00000",
+        zipCode: shipping.postalCode || "00000",
       },
       shippingAddress: {
-        contactName: body.shipping.recipientName,
-        city: body.shipping.city,
+        contactName: shipping.recipientName,
+        city: shipping.city,
         country: "Türkiye",
-        address: `${body.shipping.addressLine}, ${body.shipping.district}`,
-        zipCode: body.shipping.postalCode || "00000",
+        address: `${shipping.addressLine}, ${shipping.district}`,
+        zipCode: shipping.postalCode || "00000",
       },
       billingAddress: {
-        contactName: body.shipping.recipientName,
-        city: body.shipping.city,
+        contactName: shipping.recipientName,
+        city: shipping.city,
         country: "Türkiye",
-        address: `${body.shipping.addressLine}, ${body.shipping.district}`,
-        zipCode: body.shipping.postalCode || "00000",
+        address: `${shipping.addressLine}, ${shipping.district}`,
+        zipCode: shipping.postalCode || "00000",
       },
       basketItems: calculated.map((item) => ({
         id: item.variant.sku,
         name: item.product.name,
         category1: "Yenomi ID",
-        itemType: "PHYSICAL",
+        itemType: isDigitalOnlySku(item.variant.sku) ? "VIRTUAL" : "PHYSICAL",
         price: (item.lineTotalKurus / 100).toFixed(2),
       })),
     });

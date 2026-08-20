@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { settlePendingCommercePaymentByOrderId } from "../../../../../lib/payments/settle-commerce-payment";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../lib/supabase/server-admin";
 
 export const runtime = "nodejs";
@@ -8,6 +9,11 @@ const resolveSchema = z.object({
   issueId: z.string().uuid(),
   resolutionNote: z.string().trim().min(8, "Çözüm notu en az 8 karakter olmalı.").max(1000),
 });
+
+const postSchema = z.object({
+  action: z.enum(["reconcile_paid", "retrieve_iyzico"]).optional().default("reconcile_paid"),
+  orderId: z.string().uuid().optional(),
+}).strict();
 
 async function requireAdmin(request: NextRequest) {
   const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
@@ -33,7 +39,7 @@ export async function GET(request: NextRequest) {
         .limit(500),
       context.admin
         .from("commerce_payment_attempts")
-        .select("id,order_id,status,provider_payment_id,error_code,error_message,updated_at")
+        .select("id,order_id,status,provider_payment_id,error_code,error_message,updated_at,provider_token")
         .order("updated_at", { ascending: false })
         .limit(1000),
       context.admin
@@ -67,15 +73,20 @@ export async function GET(request: NextRequest) {
       const paidAttempts = orderAttempts.filter((attempt) => attempt.status === "PAID");
       const openIssues = orderIssues.filter((issue) => !issue.resolved_at);
       const flags: string[] = [];
+      const pendingWithToken = orderAttempts.find((attempt) => attempt.status === "PENDING" && Boolean(attempt.provider_token));
 
       if (order.status === "PAID" && paidAttempts.length === 0) flags.push("PAID_ORDER_WITHOUT_PAID_ATTEMPT");
       if (order.status !== "PAID" && paidAttempts.length > 0) flags.push("PAID_ATTEMPT_ORDER_NOT_PAID");
       if (openIssues.length > 0) flags.push("FULFILLMENT_REVIEW_REQUIRED");
       if (order.status === "PAID" && order.user_id && !order.activation_claimed_at) flags.push("AUTHENTICATED_ORDER_NOT_CLAIMED");
+      if (order.status === "AWAITING_PAYMENT" && pendingWithToken) {
+        const staleMs = Date.now() - new Date(pendingWithToken.updated_at).getTime();
+        if (Number.isFinite(staleMs) && staleMs >= 2 * 60 * 1000) flags.push("PENDING_ATTEMPT_STALE");
+      }
 
       return {
         ...order,
-        paymentAttempts: orderAttempts,
+        paymentAttempts: orderAttempts.map(({ provider_token: _token, ...attempt }) => attempt),
         fulfillmentIssues: orderIssues,
         openIssueCount: openIssues.length,
         flags,
@@ -108,6 +119,28 @@ export async function POST(request: NextRequest) {
   try {
     const context = await requireAdmin(request);
     if (!context) return NextResponse.json({ error: "Yönetici yetkisi gerekli." }, { status: 403 });
+
+    const contentType = request.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const parsed = postSchema.safeParse(await request.json().catch(() => ({})));
+      if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Geçersiz mutabakat isteği." }, { status: 400 });
+      if (parsed.data.action === "retrieve_iyzico") {
+        if (!parsed.data.orderId) return NextResponse.json({ error: "iyzico çekimi için sipariş kimliği gerekli." }, { status: 400 });
+        const result = await settlePendingCommercePaymentByOrderId(parsed.data.orderId);
+        await context.admin.from("admin_audit_log").insert({
+          actor_user_id: context.user.id,
+          action: "COMMERCE_IYZICO_RETRIEVE",
+          target_table: "commerce_orders",
+          target_id: parsed.data.orderId,
+          after_value: result,
+        });
+        if (result.kind === "not_found") return NextResponse.json({ error: "Sipariş bulunamadı." }, { status: 404 });
+        if (result.kind === "error") return NextResponse.json({ error: "Çekilebilecek bekleyen iyzico denemesi yok.", result }, { status: 409 });
+        if (result.kind === "pending") return NextResponse.json({ ok: true, paid: false, pending: true, result });
+        if (result.kind === "failed") return NextResponse.json({ ok: true, paid: false, pending: false, result });
+        return NextResponse.json({ ok: true, paid: true, pending: false, reviewRequired: result.reviewRequired, result });
+      }
+    }
 
     const { data, error } = await context.admin.rpc("reconcile_paid_commerce_orders", { p_limit: 250 });
     if (error) {

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
+import { ProductVisual } from "../../ui/ProductVisual";
 import { COMMERCIAL_COPY } from "../../../lib/config/commercial";
 import { NFC_PRODUCT, formatTryFromKurus } from "../../../lib/config/product";
 import NfcPurchasePanel from "./NfcPurchasePanel";
@@ -61,8 +61,8 @@ export default async function NfcKartPage({
             <p className="nfc-product-hero__body">Kartı telefona yaklaştır veya QR’ı okut. Profil tarayıcıda açılır. Bilgin değişince baskı yok; kart kaybolursa panelden kapatırsın.</p>
             <NfcPurchasePanel product={NFC_PRODUCT} initialPackage={initialPackage} />
           </div>
-          <div className="nfc-product-hero__visual" aria-label="Yenomi ID NFC kart ve dijital profil">
-            <Image src="/images/nfc-kart-hero.png" alt="Yenomi ID NFC kart ve dijital profil" width={1200} height={1200} priority />
+          <div className="nfc-product-hero__visual" aria-label="Yenomi ID NFC kart örneği, ön ve arka yüz">
+            <ProductVisual pair />
           </div>
         </div>
       </section>

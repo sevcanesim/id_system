@@ -54,7 +54,7 @@ export default async function ProductsPage() {
               </div>
             </div>
             <div className="products-single-visual" aria-label="Yenomi ID NFC kart önizlemesi">
-              <ProductVisual light />
+              <ProductVisual pair />
             </div>
           </div>
         </section>

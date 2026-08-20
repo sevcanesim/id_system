@@ -11968,3 +11968,157 @@ article[id] {
   color: #4d4741;
 }
 
+/* NFC specimen: matte black + gold foil, no YI monogram. */
+.yi-product-ui--card-foil {
+  display: grid;
+  place-items: stretch;
+  padding: clamp(16px, 7%, 26px) clamp(14px, 6%, 22px);
+  color: #d7c09a;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(215, 192, 154, .14), transparent 52%),
+    linear-gradient(180deg, #171717 0%, #0c0c0c 48%, #070707 100%);
+  box-shadow: 0 28px 48px rgba(8, 6, 4, .32), inset 0 1px 0 rgba(215, 192, 154, .2);
+}
+.yi-product-ui--card-foil:after {
+  background: linear-gradient(118deg, transparent 38%, rgba(215, 192, 154, .12) 50%, transparent 62%);
+}
+.yi-card-face {
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  align-items: center;
+  justify-items: center;
+  text-align: center;
+  gap: 10px;
+}
+.yi-card-identity {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+.yi-card-identity strong {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(12px, 2.2vw, 17px);
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.yi-card-role {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #cbb48a;
+  font: 600 8px/1 var(--font-mono);
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+.yi-card-role::before,
+.yi-card-role::after {
+  content: "";
+  width: 22px;
+  height: 1px;
+  background: currentColor;
+  opacity: .4;
+}
+.yi-card-identity b {
+  font: 700 clamp(10px, 1.6vw, 12px)/1.1 var(--font-display);
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+.yi-card-nfc-mark {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  color: #d7c09a;
+}
+.yi-card-nfc-mark .yi-icon {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+}
+.yi-card-nfc-mark small {
+  font: 700 7px/1 var(--font-mono);
+  letter-spacing: .28em;
+}
+.yi-card-face--back {
+  grid-template-rows: auto 1fr;
+  gap: 8px;
+}
+.yi-card-motto {
+  margin: 0;
+  max-width: 24ch;
+  font-family: var(--font-display);
+  font-size: clamp(10px, 1.5vw, 13px);
+  font-style: italic;
+  letter-spacing: .01em;
+  line-height: 1.35;
+}
+.yi-card-qr {
+  width: min(48%, 124px);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(13, minmax(0, 1fr));
+  gap: 1px;
+  padding: 6px;
+  border: 1px solid rgba(215, 192, 154, .32);
+}
+.yi-card-qr i {
+  min-width: 0;
+  min-height: 0;
+  background: transparent;
+}
+.yi-card-qr i.is-on {
+  background: #d7c09a;
+}
+.yi-product-ui--compact.yi-product-ui--card-foil {
+  padding: 14px 12px 12px;
+}
+.yi-product-ui--compact .yi-card-identity strong {
+  font-size: 11px;
+  letter-spacing: .12em;
+}
+.yi-product-ui--compact .yi-card-nfc-mark .yi-icon {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+}
+
+.yi-product-visual--pair {
+  min-height: 0;
+  aspect-ratio: 1.45 / 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 4%;
+  padding: 8% 6%;
+  background:
+    radial-gradient(70% 55% at 50% 42%, rgba(215, 192, 154, .1), transparent 72%),
+    linear-gradient(160deg, #1c1814, #0b0a09);
+}
+.yi-product-visual--pair .yi-orbit {
+  opacity: .28;
+}
+.yi-product-visual--pair .yi-product-ui--card-front {
+  transform: rotate(-7deg);
+}
+.yi-product-visual--pair .yi-product-ui--card-back {
+  transform: rotate(7deg);
+}
+
+.products-single-visual .yi-product-visual--pair,
+.nfc-product-hero__visual .yi-product-visual--pair {
+  width: min(100%, 640px);
+  max-height: none;
+  aspect-ratio: 1.4 / 1;
+  border-radius: 28px;
+  filter: drop-shadow(0 30px 55px rgba(28, 20, 34, .16));
+}
+
+.yi-product-ui--compact .yi-card-qr {
+  width: min(52%, 86px);
+  padding: 4px;
+}
+
+

@@ -12,6 +12,7 @@
     "clean": "rm -rf .next *.tsbuildinfo",
     "verify": "npm run lint && npm run test && npm run build",
     "check:supabase-env": "node scripts/check-supabase-env.mjs",
+    "test": "vitest run",
     "lint": "tsc --noEmit",
     "verify:db": "node scripts/verify-fresh-db.mjs",
     "admin:promote": "node scripts/promote-admin.mjs",

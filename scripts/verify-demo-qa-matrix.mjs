@@ -77,6 +77,7 @@ const requiredNeedles = [
   ["guest corporate paid order", 'email: "demo.kurumsal.misafir.paid@yenomi.test"'],
   ["guest orders stay unclaimed", "user_id: null"],
   ["activation token derived at apply", "demo:${password}:"],
+  ["demo orgs allocate corporate_id", "allocate_corporate_id"],
 ];
 
 for (const [label, needle] of requiredNeedles) {

@@ -69,6 +69,27 @@ export const CORPORATE_PACKAGE_LADDER = [
 
 export type CorporatePackageCode = (typeof CORPORATE_PACKAGE_LADDER)[number]["code"];
 
+/** Live self-serve checkout covers the published ladder, including CORP-100. Quote starts above 100 seats. */
+export const CORPORATE_CHECKOUT_MAX_SEATS = 100;
+export const CORPORATE_PACKAGE_PRODUCT_SLUG = "yenomi-business";
+
+export function corporatePackageSku(code: string): string {
+  return `YENOMI-${resolveCorporatePlanCode(code)}`;
+}
+
+export function corporatePackageBySku(sku: string | null | undefined) {
+  if (!sku?.startsWith("YENOMI-")) return null;
+  return corporatePackageByCode(sku.slice("YENOMI-".length));
+}
+
+export function isCorporatePackageSku(sku: string | null | undefined): boolean {
+  return corporatePackageBySku(sku) != null;
+}
+
+export function corporateCheckoutLive(seats: number): boolean {
+  return Number.isInteger(seats) && seats >= 1 && seats <= CORPORATE_CHECKOUT_MAX_SEATS;
+}
+
 export const LEGACY_CORPORATE_PLAN_ALIASES = {
   STARTER: "CORP-10",
   GROWTH: "CORP-25",

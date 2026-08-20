@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { cartItemPresentation, readCart, removeCartItem, setCartOwner, updateCartItemQuantity, writeCart, type CartItem } from "../../lib/cart";
-import { COMMERCIAL_PRICING } from "../../lib/config/commercial";
+import { COMMERCIAL_PRICING, isCorporatePackageSku } from "../../lib/config/commercial";
 import { formatTryFromKurus } from "../../lib/config/product";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { EmptyState } from "../components/ui/States";
@@ -111,7 +111,7 @@ export default function CartPage() {
                             −
                           </button>
                           <span aria-live="polite">{item.quantity}</span>
-                          <button type="button" aria-label="Adedi artır" onClick={() => update(item.cartItemId, item.quantity + 1)}>
+                          <button type="button" aria-label="Adedi artır" disabled={isCorporatePackageSku(item.variantSku)} onClick={() => update(item.cartItemId, item.quantity + 1)}>
                             +
                           </button>
                         </div>

@@ -172,6 +172,44 @@ await supabase.from("product_variants").upsert({ product_id: initialVariant.prod
 await supabase.from("product_variants").upsert({ product_id: initialVariant.product_id, sku: "YENOMI-PREMIUM-RENEWAL-ANNUAL", name: "Yenomi ID Bireysel Premium — 1 Yıl Yenileme", price_kurus: 59900, billing_period: "YEARLY", metadata: { fulfillment_kind: "DIGITAL_RENEWAL", digital_service_included: true, physical_card_count: 0, service_days: 365, requires_active_or_expired_entitlement: true, shipping_included: false, package_code: "INDIVIDUAL_PREMIUM", network_mail_credits: 100 }, is_active: true }, { onConflict: "sku" }).throwOnError();
 await supabase.from("product_variants").upsert({ product_id: initialVariant.product_id, sku: "YENOMI-PREMIUM-UPGRADE", name: "Yenomi ID Bireysel Premium yükseltme", price_kurus: 45100, billing_period: "ONE_TIME", metadata: { fulfillment_kind: "PREMIUM_UPGRADE", digital_service_included: false, physical_card_count: 0, requires_active_entitlement: true, shipping_included: false, package_code: "INDIVIDUAL_PREMIUM", network_mail_credits: 100 }, is_active: true }, { onConflict: "sku" }).throwOnError();
 
+await supabase.from("products").upsert({ slug: "yenomi-business", name: "Yenomi ID Kurumsal Paket", kind: "BUSINESS_CARD", description: "Yıllık kurumsal sistem: NFC kart, çalışan profilleri, şirket paneli ve Network Mail.", is_active: true }, { onConflict: "slug" }).throwOnError();
+const { data: corporateProduct, error: corporateProductError } = await supabase.from("products").select("id").eq("slug", "yenomi-business").single();
+if (corporateProductError) throw corporateProductError;
+const corporateLadder = [
+  { sku: "YENOMI-CORP-2", name: "Kurumsal 2", price: 240000, seats: 2, code: "CORP-2" },
+  { sku: "YENOMI-CORP-3", name: "Kurumsal 3", price: 350000, seats: 3, code: "CORP-3" },
+  { sku: "YENOMI-CORP-4", name: "Kurumsal 4", price: 450000, seats: 4, code: "CORP-4" },
+  { sku: "YENOMI-CORP-5", name: "Kurumsal 5", price: 550000, seats: 5, code: "CORP-5" },
+  { sku: "YENOMI-CORP-10", name: "Kurumsal 10", price: 990000, seats: 10, code: "CORP-10" },
+  { sku: "YENOMI-CORP-20", name: "Kurumsal 20", price: 1890000, seats: 20, code: "CORP-20" },
+  { sku: "YENOMI-CORP-25", name: "Kurumsal 25", price: 2290000, seats: 25, code: "CORP-25" },
+  { sku: "YENOMI-CORP-50", name: "Kurumsal 50", price: 3990000, seats: 50, code: "CORP-50" },
+  { sku: "YENOMI-CORP-75", name: "Kurumsal 75", price: 5690000, seats: 75, code: "CORP-75" },
+  { sku: "YENOMI-CORP-100", name: "Kurumsal 100", price: 6990000, seats: 100, code: "CORP-100" },
+];
+for (const pack of corporateLadder) {
+  await supabase.from("product_variants").upsert({
+    product_id: corporateProduct.id,
+    sku: pack.sku,
+    name: pack.name,
+    price_kurus: pack.price,
+    billing_period: "YEARLY",
+    metadata: {
+      fulfillment_kind: "CORPORATE_PACKAGE",
+      digital_service_included: true,
+      physical_card_count: pack.seats,
+      seat_count: pack.seats,
+      service_days: 365,
+      shipping_included: true,
+      country: "TR",
+      preparation_business_days: 2,
+      package_code: pack.code,
+      network_mail_credits: pack.seats * 100,
+    },
+    is_active: true,
+  }, { onConflict: "sku" }).throwOnError();
+}
+
 const { data: product, error: productError } = await supabase.from("products").select("id,slug,name,kind").eq("slug", "nfc-business-card").single();
 if (productError) throw productError;
 const { data: variant, error: variantError } = await supabase.from("product_variants").select("id,sku,price_kurus,billing_period").eq("sku", "YENOMI-NFC-CARD-ANNUAL").single();

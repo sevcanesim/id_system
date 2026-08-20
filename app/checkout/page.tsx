@@ -5,10 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { readCart, setCartOwner, type CartItem } from "../../lib/cart";
 import { formatTryFromKurus } from "../../lib/config/product";
-import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isDigitalOnlySku, isPhysicalBundleSku, isPremiumUpgradeSku, isRenewalSku } from "../../lib/config/commercial";
+import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, isDigitalOnlySku, isPhysicalBundleSku, isPremiumUpgradeSku, isRenewalSku } from "../../lib/config/commercial";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { Icon } from "../icons";
 import { TURKEY_CITIES, normalizeTrPhone } from "../../lib/form-standards";
+import { parseCompanyBilling } from "../../lib/validation/company";
 import { track } from "../../lib/analytics";
 
 import { clearPendingCheckoutOrderId, getOrCreateCheckoutIdempotencyKey, getPendingCheckoutOrderId, rotateCheckoutIdempotencyKey, setPendingCheckoutOrderId, setCheckoutReturnPath } from "../../lib/payments/browser-checkout";
@@ -24,6 +25,9 @@ type FormState = {
   latitude?: number;
   longitude?: number;
   identityNumber: string;
+  companyName: string;
+  companyTaxNumber: string;
+  companyTaxOffice: string;
   distanceSalesAccepted: boolean;
   personalizationAccepted: boolean;
 };
@@ -38,6 +42,9 @@ const initial: FormState = {
   postalCode: "",
   deliveryNote: "",
   identityNumber: "",
+  companyName: "",
+  companyTaxNumber: "",
+  companyTaxOffice: "",
   distanceSalesAccepted: false,
   personalizationAccepted: false,
 };
@@ -122,14 +129,20 @@ export default function CheckoutPage() {
   const hasRenewal = items.some((item) => isRenewalSku(item.variantSku));
   const hasPremiumUpgrade = items.some((item) => isPremiumUpgradeSku(item.variantSku));
   const hasReplacement = items.some((item) => item.variantSku === COMMERCIAL_SKUS.REPLACEMENT_CARD);
-  const hasBusinessCapacity = items.some((item) => typeof item.configuration?.organizationId === "string");
+  const hasBusinessCapacity = items.some((item) => typeof item.configuration?.organizationId === "string" && !isCorporatePackageSku(item.variantSku));
+  const hasCorporatePackage = items.some((item) => isCorporatePackageSku(item.variantSku));
   const digitalOnlyCart = items.length > 0 && items.every((item) => isDigitalOnlySku(item.variantSku));
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
-  const buyerComplete = form.recipientName.trim().length >= 3 && /^\S+@\S+\.\S+$/.test(form.email.trim()) && form.phone.replace(/\D/g, "").length >= 10 && form.identityNumber.length === 11;
+  const companyComplete = !hasCorporatePackage || parseCompanyBilling({
+    name: form.companyName,
+    taxNumber: form.companyTaxNumber,
+    taxOffice: form.companyTaxOffice,
+  }).ok;
+  const buyerComplete = form.recipientName.trim().length >= 3 && /^\S+@\S+\.\S+$/.test(form.email.trim()) && form.phone.replace(/\D/g, "").length >= 10 && form.identityNumber.length === 11 && companyComplete;
   const shippingComplete = digitalOnlyCart
     ? Boolean(form.city.trim() && form.district.trim())
     : form.addressLine.trim().length >= 10 && !!form.district.trim() && !!form.city.trim();
@@ -140,6 +153,14 @@ export default function CheckoutPage() {
     if (form.phone.replace(/\D/g, "").length < 10) return "Telefon numaranı kontrol et.";
     if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) return "Geçerli bir e-posta adresi gir.";
     if (form.identityNumber.length !== 11) return "T.C. kimlik numarası 11 haneli olmalı.";
+    if (hasCorporatePackage) {
+      const parsed = parseCompanyBilling({
+        name: form.companyName,
+        taxNumber: form.companyTaxNumber,
+        taxOffice: form.companyTaxOffice,
+      });
+      if (!parsed.ok) return parsed.error;
+    }
     return "";
   }
 
@@ -172,6 +193,14 @@ export default function CheckoutPage() {
     if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) return "Geçerli bir e-posta adresi gir.";
     if (form.phone.replace(/\D/g, "").length < 10) return "Telefon numaranı kontrol et.";
     if (form.identityNumber.length !== 11) return "T.C. kimlik numarası 11 haneli olmalı.";
+    if (hasCorporatePackage) {
+      const parsed = parseCompanyBilling({
+        name: form.companyName,
+        taxNumber: form.companyTaxNumber,
+        taxOffice: form.companyTaxOffice,
+      });
+      if (!parsed.ok) return parsed.error;
+    }
     if (digitalOnlyCart) {
       if (!form.district.trim() || !form.city.trim()) return "Fatura için ilçe ve şehir alanlarını tamamla.";
     } else {
@@ -274,6 +303,11 @@ export default function CheckoutPage() {
             phone: form.phone,
             identityNumber: form.identityNumber,
           },
+          company: hasCorporatePackage ? {
+            name: form.companyName.trim(),
+            taxNumber: form.companyTaxNumber,
+            taxOffice: form.companyTaxOffice.trim(),
+          } : undefined,
           shipping: {
             recipientName: form.recipientName.trim(),
             phone: form.phone,
@@ -320,8 +354,8 @@ export default function CheckoutPage() {
       {/* Public chrome is provided by PublicSiteShell. Do not remount AppHeader/AppFooter. */}
       <section className="checkout-shell checkout-confirm-shell">
         <div className="checkout-heading checkout-heading-compact">
-          <h1>{digitalOnlyCart ? "Dijital siparişini tamamla." : "Siparişini tamamla."}</h1>
-          <p>{digitalOnlyCart ? "Fatura ili ve ilçesini doğrula. Teslimat adresi gerekmez; son adımda iyzico güvenli ödeme sayfasına geçeceksin." : "Alıcı ve teslimat bilgilerini doğrula. Son adımda iyzico güvenli ödeme sayfasına geçeceksin."}</p>
+          <h1>{hasCorporatePackage ? "Kurumsal siparişini tamamla." : digitalOnlyCart ? "Dijital siparişini tamamla." : "Siparişini tamamla."}</h1>
+          <p>{hasCorporatePackage ? "Şirket fatura bilgileri ve teslimat adresini doğrula. Son adımda iyzico güvenli ödeme sayfasına geçeceksin." : digitalOnlyCart ? "Fatura ili ve ilçesini doğrula. Teslimat adresi gerekmez; son adımda iyzico güvenli ödeme sayfasına geçeceksin." : "Alıcı ve teslimat bilgilerini doğrula. Son adımda iyzico güvenli ödeme sayfasına geçeceksin."}</p>
           <div className="checkout-account-note" role="status">{isAuthenticated ? <><Icon name="check" /> Hesabın bağlı. Siparişin hesabına otomatik eklenir.</> : <><Icon name="mail" /> Hesap açmadan tamamlayabilirsin. Satın alma sonrası siparişini bu e-posta ile hesabına bağlayabilirsin.</>}</div>
           <div className="checkout-trust-row checkout-trust-row-compact" aria-label="Sipariş avantajları">
             {!digitalOnlyCart && <span><Icon name="truck" />Ücretsiz kargo</span>}
@@ -330,7 +364,9 @@ export default function CheckoutPage() {
             {hasExtraCard && <span><Icon name="shield" />Mevcut Yenomi ID hizmetine bağlı</span>}
             {hasRenewal && <span><Icon name="shield" />Yalnız dijital hizmet yenilemesi</span>}
             {hasReplacement && <span><Icon name="shield" />Mevcut profilin korunur</span>}
-            {hasBusinessCapacity && <span><Icon name="shield" />Mevcut abonelik dönemi sonuna kadar</span>}
+            {hasCorporatePackage && <span><Icon name="building" />Kurumsal fatura: unvan, vergi no, vergi dairesi</span>}
+            {hasCorporatePackage && <span><Icon name="clock" />NFC kartlar 2 iş gününde hazırlanır</span>}
+            {hasCorporatePackage && <span><Icon name="shield" />1 yıllık kurumsal sistem</span>}
           </div>
           <div className="checkout-progress" aria-label="Sipariş ilerlemesi">
             <div className="done"><i><Icon name="check" /></i><span>Ürün</span></div>
@@ -353,7 +389,7 @@ export default function CheckoutPage() {
               <section className={`checkout-step ${activeStep === "buyer" ? "open" : ""} ${buyerComplete ? "complete" : ""}`}>
                 <button type="button" className="checkout-step-trigger" onClick={() => setActiveStep("buyer")}>
                   <span className="checkout-step-icon"><Icon name="contact" /></span>
-                  <span><strong>Alıcı Bilgileri</strong>{buyerComplete && activeStep !== "buyer" ? <small>{form.recipientName} · {form.phone}</small> : <small>Sipariş ve fatura bilgileri</small>}</span>
+                  <span><strong>Alıcı Bilgileri</strong>{buyerComplete && activeStep !== "buyer" ? <small>{hasCorporatePackage ? `${form.companyName} · ${form.recipientName}` : `${form.recipientName} · ${form.phone}`}</small> : <small>{hasCorporatePackage ? "Sipariş, fatura ve şirket bilgileri" : "Sipariş ve fatura bilgileri"}</small>}</span>
                   <em>{buyerComplete ? <Icon name="check" /> : <Icon name="chevronRight" />}</em>
                 </button>
                 {activeStep === "buyer" && <div className="checkout-step-body">
@@ -361,7 +397,16 @@ export default function CheckoutPage() {
                   <label>Telefon<input required inputMode="tel" autoComplete="tel" value={form.phone} onChange={(e) => update("phone", normalizeTrPhone(e.target.value))} placeholder="+90 5xx xxx xx xx" />{form.phone.replace(/\D/g, "").length >= 10 && <small className="field-ok"><Icon name="check" /> Telefon doğrulandı</small>}</label>
                   <label>E-posta<input required type="email" autoComplete="email" value={form.email} onChange={(e) => !isAuthenticated && update("email", e.target.value)} readOnly={isAuthenticated} />{isAuthenticated ? <small className="field-ok"><Icon name="check" /> Hesabına bağlı e-posta</small> : <small>Hesap açmadan güvenli ödeme yapabilirsin. Sipariş bilgilerin bu e-posta adresine gönderilir.</small>}</label>
                   <label>T.C. kimlik numarası<input required inputMode="numeric" maxLength={11} name="iyzico-identity" autoComplete="off" autoCorrect="off" spellCheck={false} value={form.identityNumber} onChange={(e) => update("identityNumber", e.target.value.replace(/\D/g, ""))} placeholder="11 haneli T.C. kimlik numarası" /><small>iyzico ödeme doğrulaması için kullanılır; saklanmaz.</small></label>
+                  {hasCorporatePackage ? (
+                    <div className="checkout-company-fields">
+                      <p className="checkout-company-kicker">ŞİRKET FATURASI</p>
+                      <label>Şirket unvanı<input required autoComplete="organization" value={form.companyName} onChange={(e) => update("companyName", e.target.value)} placeholder="Resmi şirket unvanı" /></label>
+                      <label>Vergi kimlik no<input required inputMode="numeric" maxLength={11} autoComplete="off" value={form.companyTaxNumber} onChange={(e) => update("companyTaxNumber", e.target.value.replace(/\D/g, ""))} placeholder="10 haneli VKN veya 11 haneli TCKN" /><small>Kurumsal faturada görünür. Şahış şirketleri TCKN kullanabilir.</small></label>
+                      <label>Vergi dairesi<input required autoComplete="off" value={form.companyTaxOffice} onChange={(e) => update("companyTaxOffice", e.target.value)} placeholder="Örn. Kadıköy" /></label>
+                    </div>
+                  ) : null}
                   <button type="button" className="checkout-next" onClick={advanceBuyer}>{digitalOnlyCart ? "Fatura Bilgilerine Devam Et" : "Teslimata Devam Et"} <Icon name="chevronRight" /></button>
+                  {message && activeStep === "buyer" ? <div className="checkout-message" role="alert">{message}</div> : null}
                 </div>}
               </section>
 
@@ -409,7 +454,16 @@ export default function CheckoutPage() {
             <div className="checkout-summary-col">
               <aside className="checkout-summary checkout-summary-confirm">
                 <div className="checkout-summary-head"><small>SİPARİŞ ÖZETİ</small><Link href="/sepet"><Icon name="pencil" />Düzenle</Link></div>
-                {items.some((item) => typeof item.configuration?.organizationId === "string") && <div className="checkout-assignment-card">
+                {hasCorporatePackage && <div className="checkout-assignment-card">
+                  <small>KURUMSAL FATURA</small>
+                  <div className="checkout-assignment-target">
+                    <div><span>Şirket</span><strong>{form.companyName || "Unvan bekleniyor"}</strong></div>
+                    <div><span>Vergi no</span><strong>{form.companyTaxNumber || "—"}</strong></div>
+                    <div><span>Vergi dairesi</span><strong>{form.companyTaxOffice || "—"}</strong></div>
+                    <p>Ödeme sonrası şirket paneli bu bilgilerle açılır. NFC kartlar üretim kaydına alınır; çalışan eşleştirmesi panelden yapılır.</p>
+                  </div>
+                </div>}
+                {hasBusinessCapacity && <div className="checkout-assignment-card">
                   <small>KURUMSAL TANIMLAMA</small>
                   {Array.from(new Set(items.map((item) => item.configuration?.organizationId).filter((id): id is string => typeof id === "string"))).map((organizationId) => {
                     const target = organizationTargets[organizationId];
@@ -438,6 +492,8 @@ export default function CheckoutPage() {
                   {hasPremiumUpgrade && <span><Icon name="check" /> 100 Network Mail bu döneme eklenir; ikinci kart gönderilmez</span>}
                   {hasReplacement && <span><Icon name="check" /> Kayıp kartın yerine; profilin ve hizmet süren korunur</span>}
                   {hasBusinessCapacity && <span><Icon name="check" /> Mevcut abonelik dönemi sonuna kadar ek kapasite</span>}
+                  {hasCorporatePackage && <span><Icon name="check" /> 1 yıllık kurumsal panel + NFC kartlar</span>}
+                  {hasCorporatePackage && <span><Icon name="check" /> Fatura: unvan, vergi no, vergi dairesi</span>}
                   {!digitalOnlyCart && <span><Icon name="check" /> Fiziksel kart üretim kaydı oluşturulur</span>}
                 </div>
                 <button type="submit" className="checkout-pay-button" disabled={busy || !legalVersions || !buyerComplete || !shippingComplete || !approvalComplete}><Icon name="lock" />{busy ? "Ödeme hazırlanıyor…" : "Güvenli Ödeme"}</button>

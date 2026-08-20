@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../lib/supabase/server-admin";
 import { sendActivationEmail, sendShippingEmail } from "../../../../../lib/email/resend";
 import { canTransitionCommerceOrder, COMMERCE_ORDER_STATUSES, type CommerceOrderStatus } from "../../../../../lib/commerce/order-status";
+import { loadCommerceOrderKind } from "../../../../../lib/commerce/order-kind";
 import { publicError } from "../../../../../lib/errors";
 import { publicSiteUrl } from "../../../../../lib/payments/config";
 import { getDatabaseLifecycleSettings } from "../../../../../lib/config/database";
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
     if (!context) return NextResponse.json({ error: "Yönetici yetkisi gerekli." }, { status: 403 });
     const { data, error } = await context.admin
       .from("commerce_orders")
-      .select("id,order_number,customer_name,customer_phone,guest_email,status,total_kurus,currency,paid_at,created_at,updated_at,tracking_company,tracking_number,shipped_at,delivered_at,activation_claimed_at,commerce_order_items(id,product_name,product_kind,quantity,unit_price_kurus,configuration),shipping_addresses(recipient_name,phone,address_line,district,city,postal_code,delivery_note)")
+      .select("id,order_number,customer_name,customer_phone,guest_email,status,total_kurus,currency,paid_at,created_at,updated_at,tracking_company,tracking_number,shipped_at,delivered_at,activation_claimed_at,company_name,tax_number,tax_office,commerce_order_items(id,product_name,product_kind,quantity,unit_price_kurus,configuration),shipping_addresses(recipient_name,phone,address_line,district,city,postal_code,delivery_note)")
       .order("created_at", { ascending: false });
     if (error) return NextResponse.json(publicError("ORDER_LOAD_FAILED"), { status: 500 });
     return NextResponse.json({ orders: data ?? [] });
@@ -75,11 +76,13 @@ export async function PATCH(request: NextRequest) {
         expires_at: expires.toISOString(),
       });
       if (tokenError) return NextResponse.json({ error: "Aktivasyon bağlantısı oluşturulamadı." }, { status: 500 });
+      const kind = await loadCommerceOrderKind(context.admin, parsed.data.orderId);
       const mail = await sendActivationEmail({
         to: currentOrder.guest_email,
         activationUrl: `${publicSiteUrl}/aktivasyon?token=${encodeURIComponent(rawToken)}`,
         orderNumber: currentOrder.order_number,
         hoursValid: activationResendHours,
+        audience: kind.corporate ? "corporate" : "individual",
       });
       await context.admin.from("commerce_email_events").insert({
         order_id: parsed.data.orderId,

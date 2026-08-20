@@ -61,6 +61,12 @@ if (!success.includes("/api/payments/iyzico/recover")) {
 if (!status.includes("activationRequired")) {
   throw new Error("Order status API must expose activationRequired without leaking PII.");
 }
+if (status.includes("company_name") || status.includes("tax_number") || status.includes("guest_email")) {
+  throw new Error("Order status API must not leak billing or identity fields.");
+}
+if (!status.includes("corporate") || !status.includes("reviewRequired")) {
+  throw new Error("Order status API must expose corporate and reviewRequired flags.");
+}
 if (!success.includes("activationRequired") || !success.includes("Siparişin henüz bir hesaba bağlı değil")) {
   throw new Error("Success page must not claim account binding for guest orders.");
 }

@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendActivationEmail } from "../../../../../lib/email/resend";
+import { loadCommerceOrderKind } from "../../../../../lib/commerce/order-kind";
 import { publicSiteUrl } from "../../../../../lib/payments/config";
 import { getSupabaseAdminClient } from "../../../../../lib/supabase/server-admin";
 import { getDatabaseLifecycleSettings } from "../../../../../lib/config/database";
@@ -24,7 +25,13 @@ export async function POST(request: NextRequest) {
     const expires = new Date(); expires.setHours(expires.getHours() + activationResendHours);
     await admin.from("activation_tokens").insert({ order_id: order.id, token_hash: createHash("sha256").update(rawToken).digest("hex"), expires_at: expires.toISOString() });
     const activationUrl = `${publicSiteUrl}/aktivasyon?token=${encodeURIComponent(rawToken)}`;
-    await sendActivationEmail({ to: order.guest_email, activationUrl, orderNumber: order.order_number, hoursValid: activationResendHours });
+    await sendActivationEmail({
+      to: order.guest_email,
+      activationUrl,
+      orderNumber: order.order_number,
+      hoursValid: activationResendHours,
+      audience: (await loadCommerceOrderKind(admin, order.id)).corporate ? "corporate" : "individual",
+    });
     return NextResponse.json({ ok: true, message: "Uygun bir sipariş bulunursa yeni bağlantı gönderildi." });
   } catch (error) {
     console.error("activation resend error", error);

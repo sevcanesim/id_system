@@ -7,7 +7,7 @@ import { normalizeEmailField } from "../../../lib/form-standards";
 import { clearPendingCheckoutOrderId, rotateCheckoutIdempotencyKey } from "../../../lib/payments/browser-checkout";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 
-export default function ActivationAction({ activationRequired }: { activationRequired: boolean }) {
+export default function ActivationAction({ activationRequired, corporate = false }: { activationRequired: boolean; corporate?: boolean }) {
   const [ready, setReady] = useState(false);
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -17,7 +17,7 @@ export default function ActivationAction({ activationRequired }: { activationReq
     writeCart([]);
     clearPendingCheckoutOrderId();
     rotateCheckoutIdempotencyKey();
-    if (activationRequired) return;
+    if (activationRequired || corporate) return;
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
     void supabase.auth.getSession().then(async ({ data }) => {
@@ -26,7 +26,7 @@ export default function ActivationAction({ activationRequired }: { activationReq
       const response = await fetch("/api/commerce/entitlements", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" });
       setReady(response.ok && Boolean((await response.json()).active));
     });
-  }, [activationRequired]);
+  }, [activationRequired, corporate]);
 
   async function resend(event: FormEvent) {
     event.preventDefault();
@@ -51,8 +51,10 @@ export default function ActivationAction({ activationRequired }: { activationReq
   if (activationRequired) {
     return (
       <div className="activation-callout">
-        <h2>Hesabını e-postadaki bağlantı ile aç</h2>
-        <p>Aktivasyon bağlantısı sipariş e-postana gönderildi. Bağlantı 7 gün geçerlidir. Mail gelmediyse aynı adresi yazarak yeniden gönderebilirsin.</p>
+        <h2>{corporate ? "Şirket panelini e-postadaki bağlantı ile aç" : "Hesabını e-postadaki bağlantı ile aç"}</h2>
+        <p>{corporate
+          ? "Aktivasyon bağlantısı sipariş e-postana gönderildi. Bağlantı 7 gün geçerlidir. Hesabını bağladığında şirket panelin açılır."
+          : "Aktivasyon bağlantısı sipariş e-postana gönderildi. Bağlantı 7 gün geçerlidir. Mail gelmediyse aynı adresi yazarak yeniden gönderebilirsin."}</p>
         <form onSubmit={resend}>
           <label>Sipariş e-postası
             <input
@@ -79,9 +81,13 @@ export default function ActivationAction({ activationRequired }: { activationReq
 
   return (
     <div className="activation-callout">
-      <h2>{ready ? "Yenomi ID hizmetin hesabına tanımlandı" : "Kartvizitin için her şey hazır"}</h2>
-      <p>Aktivasyon koduyla uğraşmana gerek yok. Şimdi kartvizit bilgilerini doldur; fiziksel kartın bu profile bağlansın.</p>
-      <Link href="/olustur?source=purchase">Kartvizit Bilgilerimi Doldur →</Link>
+      <h2>{corporate ? "Şirket hesabın hazır" : ready ? "Yenomi ID hizmetin hesabına tanımlandı" : "Kartvizitin için her şey hazır"}</h2>
+      <p>{corporate
+        ? "Aktivasyon koduyla uğraşmana gerek yok. Çalışan lisanslarını, kart üretimini ve paneli buradan yönet."
+        : "Aktivasyon koduyla uğraşmana gerek yok. Şimdi kartvizit bilgilerini doldur; fiziksel kartın bu profile bağlansın."}</p>
+      <Link href={corporate ? "/kurumsal/panel" : "/olustur?source=purchase"}>
+        {corporate ? "Kurumsal Paneli Aç →" : "Kartvizit Bilgilerimi Doldur →"}
+      </Link>
     </div>
   );
 }

@@ -11,6 +11,12 @@ import ActivationAction from "./ActivationAction";
 import PaymentSuccessShare from "./PaymentSuccessShare";
 
 type VerifyState = "checking" | "verified" | "invalid";
+type OrderStatusPayload = {
+  paid?: boolean;
+  activationRequired?: boolean;
+  corporate?: boolean;
+  reviewRequired?: boolean;
+};
 
 /**
  * Gates the payment-success content behind an order verification check.
@@ -28,6 +34,8 @@ export default function OrderResultGate() {
   const orderId = searchParams.get("order");
   const [state, setState] = useState<VerifyState>(orderId ? "checking" : "invalid");
   const [activationRequired, setActivationRequired] = useState(false);
+  const [corporate, setCorporate] = useState(false);
+  const [reviewRequired, setReviewRequired] = useState(searchParams.get("review") === "1");
   const tracked = useRef(false);
 
   useEffect(() => {
@@ -41,7 +49,7 @@ export default function OrderResultGate() {
     async function verifyPaid() {
       const statusResponse = await fetch(`/api/commerce/orders/status?order=${encodeURIComponent(orderId!)}`, { cache: "no-store" });
       const status = await (statusResponse.ok ? statusResponse.json() : { paid: false });
-      return status as { paid?: boolean; activationRequired?: boolean };
+      return status as OrderStatusPayload;
     }
 
     void (async () => {
@@ -58,6 +66,8 @@ export default function OrderResultGate() {
         if (!active) return;
         setState(data?.paid ? "verified" : "invalid");
         setActivationRequired(Boolean(data?.activationRequired));
+        setCorporate(Boolean(data?.corporate));
+        setReviewRequired(Boolean(data?.reviewRequired) || searchParams.get("review") === "1");
       } catch {
         if (active) setState("invalid");
       }
@@ -65,7 +75,7 @@ export default function OrderResultGate() {
     return () => {
       active = false;
     };
-  }, [orderId]);
+  }, [orderId, searchParams]);
 
   useEffect(() => {
     if (state !== "verified" || tracked.current) return;
@@ -98,21 +108,28 @@ export default function OrderResultGate() {
     );
   }
 
+  const nextHref = corporate ? "/kurumsal/panel" : "/olustur?source=purchase";
+  const nextLabel = corporate ? "Kurumsal Paneli Aç" : "Kartvizitimi Hazırla";
+
   return (
     <section className="order-success p5-order-success">
       <span className="p5-result-icon"><Icon name="check" /></span>
       <span className="section-kicker">SİPARİŞ ALINDI</span>
       <h1>Ödemen başarıyla alındı.</h1>
       <p>{activationRequired
-        ? "Siparişin henüz bir hesaba bağlı değil. E-postandaki bağlantı ile hesabını oluştur; dijital kullanım hakkın orada açılır."
-        : "Siparişin hesabına bağlandı. Kartın hazırlanırken dijital kartvizitini tamamlayabilir ve profilini kullanıma hazır hale getirebilirsin."}</p>
-      <FulfillmentReviewNotice />
+        ? (corporate
+          ? "Siparişin henüz bir hesaba bağlı değil. E-postandaki bağlantı ile hesabını oluştur; şirket panelin orada açılır."
+          : "Siparişin henüz bir hesaba bağlı değil. E-postandaki bağlantı ile hesabını oluştur; dijital kullanım hakkın orada açılır.")
+        : (corporate
+          ? "Siparişin hesabına bağlandı. Şirket panelinden lisansları, çalışanları ve kart üretimini yönetebilirsin."
+          : "Siparişin hesabına bağlandı. Kartın hazırlanırken dijital kartvizitini tamamlayabilir ve profilini kullanıma hazır hale getirebilirsin.")}</p>
+      <FulfillmentReviewNotice reviewRequired={reviewRequired} />
       <div className="p5-next-steps" aria-label="Sipariş sonrası adımlar">
         <div className="done"><b>1</b><span><strong>Ödeme tamamlandı</strong><small>{activationRequired ? "Ödemen alındı; sipariş e-postana kaydedildi." : "Siparişin hesabına kaydedildi."}</small></span></div>
-        <div><b>2</b><span><strong>{activationRequired ? "Hesabını bağla" : "Profilini hazırla"}</strong><small>{activationRequired ? "Maildeki bağlantı ile hesap oluştur veya giriş yap." : "İletişim bilgilerini ve bağlantılarını ekle."}</small></span></div>
-        <div><b>3</b><span><strong>Kart hazırlanır</strong><small>Fiziksel kart üretim ve kargo sürecine alınır.</small></span></div>
+        <div><b>2</b><span><strong>{activationRequired ? "Hesabını bağla" : (corporate ? "Paneli aç" : "Profilini hazırla")}</strong><small>{activationRequired ? "Maildeki bağlantı ile hesap oluştur veya giriş yap." : (corporate ? "Çalışan lisanslarını ve kart üretimini yönet." : "İletişim bilgilerini ve bağlantılarını ekle.")}</small></span></div>
+        <div><b>3</b><span><strong>{corporate ? "Kartlar hazırlanır" : "Kart hazırlanır"}</strong><small>Fiziksel kart üretim ve kargo sürecine alınır.</small></span></div>
       </div>
-      <ActivationAction activationRequired={activationRequired} />
+      <ActivationAction activationRequired={activationRequired} corporate={corporate} />
       <div className="order-success-actions">
         {activationRequired ? (
           <>
@@ -121,7 +138,7 @@ export default function OrderResultGate() {
           </>
         ) : (
           <>
-            <Link href="/olustur?source=purchase">Kartvizitimi Hazırla</Link>
+            <Link href={nextHref}>{nextLabel}</Link>
             <Link className="secondary" href="/siparislerim">Siparişimi Takip Et</Link>
           </>
         )}

@@ -8,15 +8,11 @@ export function Brand({ compact = false }: { compact?: boolean }) {
         <Image
           src="/images/yenomilabs-mark-transparent.png"
           alt=""
-          width={compact ? 40 : 48}
-          height={compact ? 40 : 48}
-          sizes={compact ? "40px" : "(max-width: 760px) 40px, 48px"}
+          width={compact ? 44 : 56}
+          height={compact ? 44 : 56}
+          sizes={compact ? "44px" : "(max-width: 620px) 52px, 56px"}
           priority
         />
-      </span>
-      <span>
-        <strong>Yenomi ID</strong>
-        {!compact ? <small>YENOMI LABS ÜRÜNÜ</small> : null}
       </span>
     </Link>
   );

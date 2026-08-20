@@ -29,6 +29,7 @@ export default function PaymentRetryActions() {
     try {
       const response = await fetch("/api/payments/iyzico/recover", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ orderId }),
       });

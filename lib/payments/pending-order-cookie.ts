@@ -36,3 +36,10 @@ export function applyPendingOrderCookie(response: NextResponse, orderId: string 
   });
   return response;
 }
+
+export function resolveRecoverOrderId(cookieOrderId: string | null, bodyOrderId: string | null): { orderId: string | null; mismatch: boolean } {
+  const cookie = cookieOrderId && UUID_RE.test(cookieOrderId) ? cookieOrderId : null;
+  const body = bodyOrderId && UUID_RE.test(bodyOrderId) ? bodyOrderId : null;
+  if (cookie && body && cookie !== body) return { orderId: null, mismatch: true };
+  return { orderId: cookie || body, mismatch: false };
+}

@@ -1,21 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readPendingOrderId, resolveRecoverOrderId } from "../../../../../lib/payments/pending-order-cookie";
 import { settlePendingCommercePaymentByOrderId } from "../../../../../lib/payments/settle-commerce-payment";
 
 export const runtime = "nodejs";
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 /**
  * Public recover for a charged iyzico checkout whose callback POST never
- * arrived. Looks up the unguessable order UUID, retrieves the checkout token
- * from commerce_payment_attempts, then runs the same settlement path as the
- * callback. GET order-status remains side-effect free.
+ * arrived. The HttpOnly pending-order cookie is the session source of truth
+ * when present; a body order UUID remains valid for email/deep-link recover
+ * without that cookie. GET order-status remains side-effect free.
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const orderId = String((body as { orderId?: unknown }).orderId || "");
-    if (!UUID_RE.test(orderId)) {
+    const bodyOrderId = String((body as { orderId?: unknown }).orderId || "");
+    const resolved = resolveRecoverOrderId(readPendingOrderId(request), bodyOrderId || null);
+    if (resolved.mismatch) {
+      return NextResponse.json({ found: false, paid: false }, { status: 409 });
+    }
+    const orderId = resolved.orderId;
+    if (!orderId) {
       return NextResponse.json({ found: false, paid: false }, { status: 400 });
     }
 

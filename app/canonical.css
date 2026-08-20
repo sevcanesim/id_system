@@ -1050,6 +1050,104 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .activation-shell label { display:grid; gap:6px; color:var(--ink-2); font-size:12px; font-weight:700; }
 .activation-shell input { min-height:44px; padding:0 12px; border:1px solid var(--border); border-radius:9px; background:#fff; color:var(--ink); }
 
+.p5-result-icon {
+  width:52px;
+  height:52px;
+  margin:0 auto 8px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:var(--gold-dim);
+  color:var(--gold-hi);
+}
+.p5-result-icon .yi-icon { width:22px; height:22px; }
+.p18-review-notice {
+  display:grid;
+  gap:6px;
+  margin:18px auto 0;
+  max-width:520px;
+  padding:14px 16px;
+  border:1px solid var(--border-gold);
+  border-radius:14px;
+  background:var(--gold-dim);
+  text-align:left;
+}
+.p18-review-notice strong { color:var(--ink); font-size:14px; }
+.p18-review-notice span { color:var(--ink-2); font-size:13px; line-height:1.5; }
+.p5-next-steps {
+  display:grid;
+  gap:10px;
+  margin:22px auto 0;
+  max-width:520px;
+  text-align:left;
+}
+.p5-next-steps > div {
+  display:grid;
+  grid-template-columns:28px minmax(0,1fr);
+  gap:12px;
+  align-items:start;
+  padding:12px 14px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:var(--glass);
+}
+.p5-next-steps > div.done { border-color:var(--border-gold); }
+.p5-next-steps b {
+  width:28px;
+  height:28px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:var(--gold);
+  color:#17120c;
+  font:700 12px var(--font-mono);
+}
+.p5-next-steps strong { display:block; color:var(--ink); font-size:14px; }
+.p5-next-steps small { display:block; margin-top:3px; color:var(--ink-3); font-size:12px; line-height:1.45; }
+.activation-callout {
+  display:grid;
+  gap:10px;
+  margin:22px auto 0;
+  max-width:520px;
+  padding:18px 18px 16px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:var(--surface-2);
+  text-align:left;
+}
+.activation-callout h2 { margin:0; font-size:20px; line-height:1.25; }
+.activation-callout p { margin:0; color:var(--ink-2); font-size:14px; line-height:1.55; }
+.activation-callout form { display:grid; gap:10px; margin-top:6px; }
+.activation-callout label { display:grid; gap:6px; color:var(--ink-2); font-size:12px; font-weight:700; }
+.activation-callout input {
+  width:100%;
+  min-height:44px;
+  padding:0 12px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:#fff;
+  color:var(--ink);
+}
+.activation-callout button {
+  min-height:44px;
+  padding:0 14px;
+  border:1px solid var(--border-gold);
+  border-radius:10px;
+  background:var(--gold);
+  color:#17120c;
+  font-size:14px;
+  font-weight:800;
+  cursor:pointer;
+}
+.activation-callout button:disabled {
+  background:#ece8e0;
+  color:#5c564e;
+  border-color:var(--border);
+  cursor:not-allowed;
+}
+.activation-callout a { color:var(--gold-hi); font-size:14px; font-weight:700; }
+.activation-callout a:hover { text-decoration:underline; }
+
 /* broad grid normalization for existing application surfaces */
 .p5-order-success,.p5-result-page,.p7-home-status,.p8-shell,.p9-stack,.p10-shell,.p11-shell,.p14-shell { width:min(calc(100% - 48px),var(--content)); margin-inline:auto; }
 .p9-stack,.p8-shell,.p10-shell,.p11-shell,.p14-shell { display:grid; gap:16px; padding:35px 0 90px; }
@@ -1309,6 +1407,7 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
   .cart-item-qty,.cart-item-price,.cart-item-remove { grid-column:2; }
   .cart-item-thumb { width:70px; }
   .checkout-progress { grid-template-columns:1fr 1fr; }
+  .result-empty,.order-success,.activation-shell { width:min(calc(100% - 32px),720px); margin:40px auto; padding:28px 18px; }
   .premium-checkout-head { align-items:flex-start; }
   .premium-color-grid { grid-template-columns:1fr; }
   .stacked-card-preview { min-height:300px; transform:scale(.78); }
@@ -10460,7 +10559,7 @@ article[id] {
 .yi-footer__serp-title {
   display: block;
   margin: 2px 0 2px;
-  color: #1a0dab;
+  color: var(--ink);
   font-size: 18px;
   font-weight: 600;
   letter-spacing: -.02em;
@@ -10473,14 +10572,14 @@ article[id] {
 .yi-footer__serp-url {
   display: block;
   margin: 0 0 6px;
-  color: #188038;
+  color: var(--ink-3);
   font: 400 13px/1.4 var(--font-ui);
   letter-spacing: 0;
   text-decoration: none;
   text-transform: none;
 }
 .yi-footer__serp-url:hover {
-  color: #146c2e;
+  color: var(--gold-hi);
 }
 .yi-footer__layer p {
   display: -webkit-box;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { NextRequest, NextResponse } from "next/server";
-import { applyPendingOrderCookie, PENDING_ORDER_COOKIE, readPendingOrderId } from "./pending-order-cookie";
+import { applyPendingOrderCookie, PENDING_ORDER_COOKIE, readPendingOrderId, resolveRecoverOrderId } from "./pending-order-cookie";
 
 const VALID = "550e8400-e29b-41d4-a716-446655440000";
 
@@ -22,5 +22,15 @@ describe("pending order cookie", () => {
     expect(setResponse.cookies.get(PENDING_ORDER_COOKIE)?.value).toBe(VALID);
     const cleared = applyPendingOrderCookie(NextResponse.json({ ok: true }), null);
     expect(cleared.cookies.get(PENDING_ORDER_COOKIE)?.value).toBe("");
+  });
+
+  it("uses the cookie when it matches the body, and body when the cookie is absent", () => {
+    expect(resolveRecoverOrderId(VALID, VALID)).toEqual({ orderId: VALID, mismatch: false });
+    expect(resolveRecoverOrderId(null, VALID)).toEqual({ orderId: VALID, mismatch: false });
+    expect(resolveRecoverOrderId(VALID, null)).toEqual({ orderId: VALID, mismatch: false });
+  });
+
+  it("rejects a cookie/body mismatch instead of settling the other order", () => {
+    expect(resolveRecoverOrderId(VALID, "11111111-1111-4111-8111-111111111111")).toEqual({ orderId: null, mismatch: true });
   });
 });

@@ -15,7 +15,15 @@ const links = [
   ["/destek", "Yardım Merkezi"],
 ] as const;
 
-export default function SiteHeader({ theme = "light", actions = [] }: { theme?: "dark" | "light"; actions?: Array<{ href: string; label: string; primary?: boolean }> }) {
+export default function SiteHeader({
+  theme = "light",
+  actions = [],
+  showDefaultCta = true,
+}: {
+  theme?: "dark" | "light";
+  actions?: Array<{ href: string; label: string; primary?: boolean }>;
+  showDefaultCta?: boolean;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
@@ -49,7 +57,9 @@ export default function SiteHeader({ theme = "light", actions = [] }: { theme?: 
           </Link>
           {(actions.filter((a) => a.primary).slice(0, 1)[0]
             ? actions.filter((a) => a.primary).slice(0, 1)
-            : [{ href: "/urunler/nfc-kart", label: "NFC Kartı İncele", primary: true }]
+            : showDefaultCta
+              ? [{ href: "/urunler/nfc-kart", label: "NFC Kartı İncele", primary: true }]
+              : []
           ).map((a) => (
             <ButtonLink key={a.href} href={a.href} variant="primary">{a.label}</ButtonLink>
           ))}

@@ -588,24 +588,24 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 
 /* auth — public light surface; form is the primary action, story explains the product. */
 .p6-auth-page { min-height:100vh; background:var(--surface-base, #F9F8F6); color:var(--ink); }
-.p6-auth-shell { width:min(calc(100% - 48px),1180px); min-height:calc(100vh - 76px); margin:auto; display:grid; grid-template-columns:minmax(0,1.05fr) minmax(320px,.9fr); align-items:center; gap:56px; padding:48px 0 72px; }
-.p6-auth-story { min-width:0; max-width:650px; }
+.p6-auth-shell { width:min(calc(100% - 48px),1080px); min-height:calc(100vh - 76px); margin:auto; display:grid; grid-template-columns:minmax(0,.78fr) minmax(380px,1fr); align-items:center; gap:36px; padding:28px 0 56px; }
+.p6-auth-story { min-width:0; max-width:460px; }
 .p6-auth-kicker { color:var(--gold-hi); font-size:11px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; }
-.p6-auth-story h1 { margin:12px 0 16px; font-size:clamp(36px,4.8vw,62px); line-height:1.05; letter-spacing:-.03em; }
-.p6-auth-story > p { max-width:520px; margin:0; font-size:16px; line-height:1.6; color:var(--ink-2); }
-.p6-auth-product-flow { position:relative; min-height:240px; margin-top:32px; display:flex; align-items:center; gap:8px; }
-.p6-auth-visual-card { width:236px; flex:0 0 auto; transform:rotate(-7deg); }
+.p6-auth-story h1 { margin:10px 0 12px; font-size:clamp(28px,3.2vw,40px); line-height:1.12; letter-spacing:-.03em; }
+.p6-auth-story > p { max-width:420px; margin:0; font-size:15px; line-height:1.55; color:var(--ink-2); }
+.p6-auth-product-flow { position:relative; min-height:0; margin-top:20px; display:flex; align-items:center; gap:8px; }
+.p6-auth-visual-card { width:176px; flex:0 0 auto; transform:rotate(-6deg); }
 .p6-auth-visual-card .yi-product-ui--card { width:100%; }
-.p6-auth-mini-phone { width:168px; margin-left:-8px; padding:0; border-radius:0; background:transparent; box-shadow:none; transform:rotate(6deg); color:inherit; text-align:left; }
-.p6-auth-mini-phone .yi-product-ui--profile { min-height:220px; border-width:6px; border-radius:26px; }
+.p6-auth-mini-phone { width:136px; margin-left:-4px; padding:0; border-radius:0; background:transparent; box-shadow:none; transform:rotate(5deg); color:inherit; text-align:left; }
+.p6-auth-mini-phone .yi-product-ui--profile { min-height:176px; border-width:5px; border-radius:22px; }
 .p6-auth-page .p6-auth-mini-phone > small { display:block; margin-top:8px; color:#5c564e; font-size:11px; line-height:1.4; }
-.p6-auth-flow-arrow { color:var(--gold); font-size:22px; }
-.p6-auth-features { list-style:none; margin:28px 0 0; padding:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-.p6-auth-features > li { display:grid; grid-template-columns:18px minmax(0,1fr); gap:10px; align-items:start; padding:14px; border:1px solid var(--border); border-radius:14px; background:#fff; color:var(--ink-2); font-size:12px; }
+.p6-auth-flow-arrow { color:var(--gold); font-size:18px; }
+.p6-auth-features { list-style:none; margin:18px 0 0; padding:0; display:grid; grid-template-columns:1fr; gap:8px; }
+.p6-auth-features > li { display:grid; grid-template-columns:18px minmax(0,1fr); gap:10px; align-items:start; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:#fff; color:var(--ink-2); font-size:12px; }
 .p6-auth-features .yi-icon { width:16px; height:16px; margin-top:2px; color:var(--gold-hi); }
 .p6-auth-form-side { min-width:0; display:flex; justify-content:flex-end; }
 .p6-auth-form-card {
-  width:min(100%,440px); padding:28px 28px 24px; border:1px solid var(--border); border-radius:20px;
+  width:min(100%,480px); padding:28px 28px 24px; border:1px solid var(--border); border-radius:20px;
   background:#fff; box-shadow:var(--shadow-soft);
 }
 .p6-checkout-context { margin:0 0 14px; }
@@ -1296,7 +1296,7 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
   .reference-contact { display:grid; padding:24px; }
   .p6-auth-shell { width:min(calc(100% - 32px),var(--content)); padding:28px 0 56px; gap:28px; }
   .p6-auth-story h1 { font-size:34px; }
-  .p6-auth-product-flow { min-height:180px; transform:scale(.86); transform-origin:center left; }
+  .p6-auth-product-flow { min-height:0; transform:none; }
   .p6-auth-features { grid-template-columns:1fr; }
   .p6-auth-form-card { padding:22px; }
   .p6-auth-socials { grid-template-columns:1fr; }
@@ -10073,17 +10073,17 @@ body:has(.p8-corporate-editor) {
 }
 .public-site-chrome .yi-brand {
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 .public-site-chrome .yi-brand__mark,
 .public-site-chrome .yi-brand__mark span {
-  width: 54px;
-  height: 54px;
-  padding: 6px;
+  width: 40px;
+  height: 40px;
+  padding: 5px;
   overflow: hidden;
   border-radius: 50%;
   background: #0B0810;
-  border: 1px solid rgba(212,180,131,.5);
+  border: 1px solid rgba(212,180,131,.34);
 }
 .public-site-chrome .yi-brand img {
   background: transparent;
@@ -10104,21 +10104,22 @@ body:has(.p8-corporate-editor) {
   gap: 8px;
   padding: 0 12px;
   border-radius: 12px;
-  background: #A37B2C;
-  color: #fff;
+  background: transparent;
+  color: inherit;
+  border: 1px solid rgba(26, 25, 24, .16);
   opacity: 1;
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 650;
 }
 .public-site-chrome .yi-cart:hover {
-  background: #896420;
+  background: rgba(26, 25, 24, .04);
   opacity: 1;
 }
 .public-site-chrome .yi-cart .yi-icon {
   width: 18px;
   height: 18px;
   min-width: 18px;
-  color: #fff;
+  color: #1A1918;
 }
 .public-site-chrome .yi-cart b {
   position: static;
@@ -10210,8 +10211,8 @@ article[id] {
 
 @media (max-width: 620px) {
   .public-site-chrome .yi-brand__mark {
-    width: 52px;
-    height: 52px;
+    width: 36px;
+    height: 36px;
   }
   .public-site-chrome .yi-cart span {
     position: absolute;
@@ -10335,19 +10336,19 @@ article[id] {
 }
 .p6-auth-page .p6-auth-shell,
 .p6-auth-shell {
-  min-height: 0;
-  align-items: start;
-  gap: 24px;
-  padding: 16px 0 28px;
+  min-height: calc(100vh - 76px);
+  align-items: center;
+  gap: 36px;
+  padding: 28px 0 56px;
 }
 .p6-auth-page .p6-auth-product-flow,
 .p6-auth-product-flow {
   min-height: 0;
-  margin-top: 12px;
+  margin-top: 20px;
 }
 .p6-auth-page .p6-auth-features,
 .p6-auth-features {
-  margin-top: 12px;
+  margin-top: 18px;
 }
 .nfc-product-page .nfc-product-hero,
 .nfc-product-hero {

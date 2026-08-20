@@ -49,7 +49,7 @@ export default function PublicSiteShell({ children }: { children: React.ReactNod
     <>
       <div className="public-site-chrome">
         {!quiet && <AnnouncementBar />}
-        <AppHeader landing actions={quiet ? [] : publicHeaderActions(pathname)} />
+        <AppHeader landing actions={quiet ? [] : publicHeaderActions(pathname)} showDefaultCta={!quiet} />
       </div>
       {children}
       <AppFooter variant={quiet ? "compact" : "default"} />

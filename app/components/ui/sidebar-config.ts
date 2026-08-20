@@ -41,6 +41,7 @@ export const INDIVIDUAL_SIDEBAR_CONFIG = [
   { key: "card", href: "/kartim", label: "Dijital Kart", icon: "id", group: "KİMLİK" },
   { key: "edit", href: "/olustur", label: "Kimlik Stüdyosu", icon: "pencil", group: "KİMLİK" },
   { key: "analytics", href: "/istatistikler", label: "İstatistikler", icon: "analytics", group: "İÇGÖRÜLER" },
+  { key: "leads", href: "/leadler", label: "Network Mail", icon: "mail", group: "İÇGÖRÜLER" },
   { key: "orders", href: "/siparislerim", label: "Siparişlerim", icon: "box", group: "HESAP" },
   { key: "subscription", href: "/yenile", label: "Hizmet", icon: "refresh" },
   { key: "settings", href: "/ayarlar", label: "Ayarlar", icon: "users" },

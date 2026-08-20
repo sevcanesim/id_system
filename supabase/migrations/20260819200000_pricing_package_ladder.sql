@@ -176,7 +176,7 @@ begin
     coalesce(p_physical_card_limit, p_employee_limit),
     v_mail_limit,
     v_mail_limit,
-    coalesce(p_storage_bytes, 10 * 1024 * 1024 * 1024)
+    coalesce(p_storage_bytes, 10737418240::bigint)
   );
 
   insert into public.admin_audit_log (actor_user_id, action, target_table, target_id, before_value, after_value)

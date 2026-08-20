@@ -398,6 +398,21 @@ await seedIndividual({ user: users.trIndividualActive, orderNumber: "YI-TR-BIREY
   });
 }
 
+async function ensureOrganization({ slug, name, status = "ACTIVE" }) {
+  const existing = await supabase.from("organizations").select("id,name").eq("slug", slug).maybeSingle();
+  if (existing.error) throw existing.error;
+  if (existing.data) {
+    const updated = await supabase.from("organizations").update({ name, status }).eq("id", existing.data.id).select("id,name").single();
+    if (updated.error) throw updated.error;
+    return updated.data;
+  }
+  const allocated = await supabase.rpc("allocate_corporate_id");
+  if (allocated.error) throw allocated.error;
+  const inserted = await supabase.from("organizations").insert({ slug, name, status, corporate_id: allocated.data }).select("id,name").single();
+  if (inserted.error) throw inserted.error;
+  return inserted.data;
+}
+
 async function ensureCorporateDemoProfile(user, organization, slug, title = "Demo Çalışan") {
   const payload = {
     user_id: user.id,
@@ -425,8 +440,7 @@ for (const scenario of corporateScenarios) {
   const owner = users[scenario.owner];
   const { data: plan, error: planError } = await supabase.from("business_plans").select("id").eq("code", scenario.plan).single();
   if (planError) throw planError;
-  const { data: organization, error: orgError } = await supabase.from("organizations").upsert({ slug: scenario.slug, name: scenario.name, status: "ACTIVE" }, { onConflict: "slug" }).select("id").single();
-  if (orgError) throw orgError;
+  const organization = await ensureOrganization({ slug: scenario.slug, name: scenario.name });
   await supabase.from("organization_members").upsert({ organization_id: organization.id, user_id: owner.id, email: owner.email, full_name: owner.user_metadata.full_name, title: "Şirket Sahibi", department: "Yönetim", role: "OWNER", status: "ACTIVE" }, { onConflict: "organization_id,email" }).throwOnError();
   await ensureCorporateDemoProfile(owner, organization, `${scenario.slug}-yonetici`, "Şirket Sahibi");
   const existingSubscription = await supabase.from("organization_subscriptions").select("id").eq("organization_id", organization.id).in("status", ["ACTIVE", "GRACE_PERIOD"]).limit(1).maybeSingle();
@@ -600,10 +614,7 @@ for (const scenario of corporateScenarios) {
   }, { onConflict: "code" }).throwOnError();
   const { data: plan, error: planError } = await supabase.from("business_plans").select("id").eq("code", "DEMO-50").single();
   if (planError) throw planError;
-  const { data: qaOrg, error: qaOrgError } = await supabase.from("organizations").upsert({
-    slug: "demo-qa-uctan-uca", name: "Demo Şirket / Uçtan Uca QA", status: "ACTIVE",
-  }, { onConflict: "slug" }).select("id,name").single();
-  if (qaOrgError) throw qaOrgError;
+  const qaOrg = await ensureOrganization({ slug: "demo-qa-uctan-uca", name: "Demo Şirket / Uçtan Uca QA" });
   const existingSub = await supabase.from("organization_subscriptions").select("id").eq("organization_id", qaOrg.id).limit(1).maybeSingle();
   const subPayload = { organization_id: qaOrg.id, plan_id: plan.id, status: "ACTIVE", starts_at: new Date().toISOString(), expires_at: new Date(Date.now()+365*86400000).toISOString(), seat_limit: 50 };
   if (existingSub.data) await supabase.from("organization_subscriptions").update(subPayload).eq("id", existingSub.data.id).throwOnError();
@@ -741,8 +752,7 @@ for (const scenario of corporateScenarios) {
   }
 
   // Second organization for cross-org context/isolation tests.
-  const { data: orgB, error: orgBError } = await supabase.from("organizations").upsert({slug:"demo-qa-ikinci-sirket",name:"Demo QA / İkinci Şirket",status:"ACTIVE"},{onConflict:"slug"}).select("id").single();
-  if(orgBError) throw orgBError;
+  const orgB = await ensureOrganization({ slug: "demo-qa-ikinci-sirket", name: "Demo QA / İkinci Şirket" });
   const subB=await supabase.from("organization_subscriptions").select("id").eq("organization_id",orgB.id).limit(1).maybeSingle();
   const payloadB={organization_id:orgB.id,plan_id:plan.id,status:"ACTIVE",starts_at:new Date().toISOString(),expires_at:new Date(Date.now()+365*86400000).toISOString(),seat_limit:50};
   if(subB.data) await supabase.from("organization_subscriptions").update(payloadB).eq("id",subB.data.id).throwOnError(); else await supabase.from("organization_subscriptions").insert(payloadB).throwOnError();
@@ -768,16 +778,16 @@ for (const scenario of [
 ]) {
   const planCode=scenario.limit===10?"DEMO-10":"DEMO-5";
   const plan=await supabase.from("business_plans").select("id").eq("code",planCode).single(); if(plan.error) throw plan.error;
-  const org=await supabase.from("organizations").upsert({slug:scenario.slug,name:scenario.name,status:"ACTIVE"},{onConflict:"slug"}).select("id").single(); if(org.error) throw org.error;
+  const org = await ensureOrganization({ slug: scenario.slug, name: scenario.name });
   const owner=users[scenario.key];
-  await supabase.from("organization_members").upsert({organization_id:org.data.id,user_id:owner.id,email:owner.email,full_name:owner.user_metadata.full_name,title:"Şirket Sahibi",department:"Yönetim",role:"OWNER",status:"ACTIVE"},{onConflict:"organization_id,email"}).throwOnError();
-  const sub=await supabase.from("organization_subscriptions").select("id").eq("organization_id",org.data.id).limit(1).maybeSingle();
-  const subPayload={organization_id:org.data.id,plan_id:plan.data.id,status:"ACTIVE",starts_at:new Date().toISOString(),expires_at:new Date(Date.now()+365*86400000).toISOString(),seat_limit:scenario.limit};
+  await supabase.from("organization_members").upsert({organization_id:org.id,user_id:owner.id,email:owner.email,full_name:owner.user_metadata.full_name,title:"Şirket Sahibi",department:"Yönetim",role:"OWNER",status:"ACTIVE"},{onConflict:"organization_id,email"}).throwOnError();
+  const sub=await supabase.from("organization_subscriptions").select("id").eq("organization_id",org.id).limit(1).maybeSingle();
+  const subPayload={organization_id:org.id,plan_id:plan.data.id,status:"ACTIVE",starts_at:new Date().toISOString(),expires_at:new Date(Date.now()+365*86400000).toISOString(),seat_limit:scenario.limit};
   if(sub.data) await supabase.from("organization_subscriptions").update(subPayload).eq("id",sub.data.id).throwOnError(); else await supabase.from("organization_subscriptions").insert(subPayload).throwOnError();
-  for(let i=2;i<=scenario.used;i++) await supabase.from("organization_members").upsert({organization_id:org.data.id,email:`koltuk${i}.${scenario.slug}@yenomi.test`,full_name:`Demo Çalışan ${i}`,title:"Çalışan",department:"Operasyon",role:"EMPLOYEE",status:"INVITED"},{onConflict:"organization_id,email"}).throwOnError();
+  for(let i=2;i<=scenario.used;i++) await supabase.from("organization_members").upsert({organization_id:org.id,email:`koltuk${i}.${scenario.slug}@yenomi.test`,full_name:`Demo Çalışan ${i}`,title:"Çalışan",department:"Operasyon",role:"EMPLOYEE",status:"INVITED"},{onConflict:"organization_id,email"}).throwOnError();
   if(scenario.key==="trTemplateOwner") {
-    const current=await supabase.from("organization_card_templates").select("id").eq("organization_id",org.data.id).eq("is_default",true).maybeSingle(); if(current.error) throw current.error;
-    const payload={organization_id:org.data.id,name:"Kurumsal Standart",is_default:true,primary_color:"#6F42C1",fields:{logo:true}};
+    const current=await supabase.from("organization_card_templates").select("id").eq("organization_id",org.id).eq("is_default",true).maybeSingle(); if(current.error) throw current.error;
+    const payload={organization_id:org.id,name:"Kurumsal Standart",is_default:true,primary_color:"#6F42C1",fields:{logo:true}};
     if(current.data) await supabase.from("organization_card_templates").update(payload).eq("id",current.data.id).throwOnError(); else await supabase.from("organization_card_templates").insert(payload).throwOnError();
   }
 }

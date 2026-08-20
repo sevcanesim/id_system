@@ -923,7 +923,8 @@ Never log:
 # 22. DEMO QA CONTRACT
 
 The repository's demo-user matrix is a QA asset and must be treated as a
-source of truth.
+source of truth. The canonical registry is
+`tests/fixtures/demo-user-matrix.ts`.
 
 Do not invent random demo users for every task.
 

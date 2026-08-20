@@ -10,6 +10,8 @@ const required = [
   "docs/product-engineering/16_AGENT_WORKING_CONTRACT.md",
   "PROJECT_DECISIONS.md",
   "tests/README.md",
+  "tests/fixtures/demo-user-matrix.ts",
+  "DEMO_TEST_USERS.md",
 ];
 
 const missing = required.filter((file) => !fs.existsSync(path.join(root, file)));

@@ -58,7 +58,7 @@ Güncel durum: v25.8.4 kurumsal kart formundaki alan yetki matrisini tamamladı 
 ## Sıradaki P1 (güncellendi)
 - Overview sekmesi hâlâ `page.tsx` içinde — componentization'ın son parçası.
 - Departman/role bazlı şablon ataması (v25.8.7'den devrolan ürün kararı).
-- DEMO_TEST_USERS.md, seed script'teki hesapların bir kısmını hâlâ elle senkron tutuyor; otomatik üretime taşınmalı.
+- Demo kullanıcı listesi `tests/fixtures/demo-user-matrix.ts` kaynaklıdır; `DEMO_TEST_USERS.md` `npm run docs:demo-users` ile üretilir.
 
 ## Tamamlandı (v25.8.7)
 - **Çok perspektifli denetimde bulunan P0 giderildi: kurumsal panelde şablon ekleme.** `organization_card_templates` şeması/API'si çoklu şablonu zaten destekliyordu, panel yalnız `templates[0]`'ı gösterip her kayıtta yeni bir varsayılan satır biriktiriyordu. Artık: mevcut varsayılan şablon PATCH ile yerinde güncelleniyor (öksüz satır birikimi durdu), "Diğer kayıtlı şablonlar" galerisi + Varsayılan Yap / Sil aksiyonları + "Yeni şablon ekle" formu eklendi. Yeni RPC'ler: `update_organization_template`, `activate_organization_template`, `delete_organization_template`. Detay: `V25.8.7_CORPORATE_TEMPLATE_LIBRARY.md`. 18 yeni test.
@@ -66,7 +66,6 @@ Güncel durum: v25.8.4 kurumsal kart formundaki alan yetki matrisini tamamladı 
 
 ## Sıradaki P1 (güncellendi)
 - Departman/role bazlı şablon ataması (örn. Satış ↔ Professional, Yönetim ↔ Executive) — v25.8.7 yalnız "birden fazla şablon sakla/geçiş yap"ı açtı, org genelinde hâlâ tek şablon aktif. Ayrı ürün kararı gerektiriyor.
-- DEMO_TEST_USERS.md, seed script'teki ~40 hesabın yalnızca 18'ini listeliyor; script çıktısından otomatik üretilmeli ya da elle tamamlanmalı.
 
 ## Tamamlandı (v25.8.6)
 - **`removeCorporateLink` sessiz hata bug'ı düzeltildi.** Kaydet/yükle/yayınla handler'larının hepsinde başarısız istekte `setMessage(hata)` vardı, yalnızca **silme** işleminde yoktu — silme sunucuda başarısız olursa (yetki reddi, DB hatası, ne olursa olsun) arayüz hiçbir geri bildirim vermeden eskisi gibi kalıyordu. Bu, E2E `test:mutations` koşusunda "PDF sil → 'Yapılandırılmadı' görünsün" adımının 10 saniye timeout'a düşüp sessizce takılmasının en olası nedeniydi. Artık başarısızlıkta gerçek sunucu hatası panelde görünüyor. 1 yeni test.
@@ -124,7 +123,7 @@ Güncel durum: v25.8.4 kurumsal kart formundaki alan yetki matrisini tamamladı 
 
 ## 25.8.81 — QA devam noktası
 
-- Canonical demo kullanıcı matrisi `tests/fixtures/demo-user-matrix.ts` içine taşındı.
+- Canonical demo kullanıcı matrisi `tests/fixtures/demo-user-matrix.ts` içine taşındı; seed bu kaydı import eder, `DEMO_TEST_USERS.md` ondan üretilir.
 - Bundan sonraki UI değişikliklerinde ilgili demo state'i seçilerek empty/loading/error/success ve permission yüzeyleri doğrulanmalı.
 - Öncelikli sonraki ürün işi: checkout'un mevcut account-first kararını gerçek UI contract'ı ile netleştirmek ve payment/entitlement callback zincirini sandbox E2E'ye bağlamak.
 - CSS consolidation ayrı migration olarak devam etmeli; yeni global stylesheet veya override katmanı eklenmemeli.

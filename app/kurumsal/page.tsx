@@ -5,7 +5,6 @@ import {
   CAMPAIGN_MAIL_PACKS,
   CORPORATE_PACKAGE_LADDER,
   CORPORATE_PACKAGE_PRODUCT_SLUG,
-  CORPORATE_SHARED_FEATURES,
   NETWORK_MAIL_CREDIT_PACKS,
   NETWORK_MAIL_POSITIONING,
   corporateCheckoutLive,
@@ -152,10 +151,10 @@ export default async function CorporatePage({
           initialCode={selectedPlan}
         />
         <details className="corporate-pack-details">
-          <summary>Tüm paket merdivenini tablo olarak gör</summary>
+          <summary>Tüm fiyat listesini tablo olarak gör</summary>
           <div className="corporate-pack-table-wrap">
             <table className="corporate-pack-table">
-              <caption className="sr-only">Kurumsal paket merdiveni</caption>
+              <caption className="sr-only">Kurumsal fiyat listesi</caption>
               <thead>
                 <tr>
                   <th scope="col">Paket</th>
@@ -206,23 +205,6 @@ export default async function CorporatePage({
         </details>
         <p className="corporate-pack-note">Tüm paketlerde: 1 yıllık kullanım + NFC kart + ücretsiz kargo. Kullanılmayan Network Mail kredisi paket yenilenirse devreder; yenilenmezse yanar.</p>
         <div className="corporate-pricing-grid corporate-pricing-grid--compact">
-          <article className="is-featured">
-            <span>CORP-10</span>
-            <h3>Kurumsal 10</h3>
-            <p>10 NFC kart, 10 dijital profil, 1 şirket paneli, 1.000 Network Mail.</p>
-            <strong>{formatTryFromKurus(990_000)} <small>/ yıl</small></strong>
-            <ul>{CORPORATE_SHARED_FEATURES.slice(0, 8).map((item) => <li key={item}>{item}</li>)}</ul>
-            <AddToCartButton
-              productId={CORPORATE_PACKAGE_PRODUCT_SLUG}
-              variantSku={corporatePackageSku("CORP-10")}
-              kind="BUSINESS_CARD"
-              name="Kurumsal 10"
-              unitPriceKurus={990_000}
-              label="Sepete Ekle"
-              className="corporate-cta"
-              configuration={{ packageCode: "CORP-10", seatCount: 10 }}
-            />
-          </article>
           <article className="enterprise">
             <span>ENTERPRISE</span>
             <h3>Enterprise</h3>

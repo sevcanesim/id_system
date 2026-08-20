@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import AddToCartButton from "../components/AddToCartButton";
 import { formatTryFromKurus } from "../../lib/config/product";
+import { CORPORATE_SHARED_FEATURES } from "../../lib/commerce/packages";
 
 export type CorporatePackOption = {
   code: string;
@@ -80,6 +81,12 @@ export default function CorporatePackPicker({
         <span>{pack.seats} NFC kart</span>
         <span>{pack.networkMail.toLocaleString("tr-TR")} Network Mail</span>
       </div>
+
+      <ul className="corporate-pack-picker__features" aria-label="Pakete dahil">
+        {CORPORATE_SHARED_FEATURES.slice(0, 8).map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
 
       <div className="corporate-pack-picker__actions">
         {pack.checkoutLive ? (

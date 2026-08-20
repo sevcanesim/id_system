@@ -12658,6 +12658,24 @@ article[id] {
   font-size: 12px;
   font-weight: 650;
 }
+.corporate-pack-picker__features {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.corporate-pack-picker__features li {
+  color: #5f5952;
+  font-size: 14px;
+}
+.corporate-pack-picker__features li::before {
+  content: "✓";
+  margin-right: 7px;
+  color: #8d6b36;
+  font-weight: 700;
+}
 .corporate-pack-picker__actions {
   display: flex;
   flex-wrap: wrap;
@@ -12695,6 +12713,9 @@ article[id] {
   .corporate-pack-picker__ticks {
     overflow-x: auto;
     grid-template-columns: repeat(10, minmax(36px, 1fr));
+  }
+  .corporate-pack-picker__features {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -420,7 +420,7 @@ export const ADDITIONAL_CARD_FEATURES = [
 export const CORPORATE_SHARED_FEATURES = [
   "Şirket profili",
   "Çalışan dijital kartvizitleri",
-  "NFC kartlar (koltuk sayısı kadar)",
+  "NFC kartlar (kişi sayısı kadar)",
   "QR kartlar",
   "Şirket yönetim paneli",
   "Kullanıcı yönetimi",

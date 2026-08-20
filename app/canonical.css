@@ -12400,9 +12400,159 @@ article[id] {
   flex-basis: 46%;
   min-height: 58px;
 }
-.how-step-visual--02 .yi-profile-actions,
-.how-step-visual--03 .yi-profile-actions {
+
+@media (min-width: 1101px) {
+  .how-it-works-page .how-step-card h3 {
+    font-size: 18px;
+    line-height: 1.12;
+  }
+  .how-it-works-page .how-step-card > p {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .how-it-works-page .how-step-cta {
+    min-height: 38px;
+    font-size: 12px;
+  }
+}
+
+.how-step-visual--02,
+.how-step-visual--03 {
+  place-items: end center;
+}
+.how-step-visual--02 .how-phone-mockup {
+  width: min(58%, 142px);
+  height: min(96%, 236px);
+  aspect-ratio: 9 / 16.8;
+  transform: rotate(-6deg) translateY(18px);
+}
+.how-step-visual--02 .how-phone-screen .yi-product-ui--profile,
+.how-step-visual--03 .how-phone-screen .yi-product-ui--profile {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  min-height: 0;
+  border-width: 0;
+  border-radius: 16px;
+}
+
+.how-qr {
+  display: grid;
+  place-items: center;
+  grid-template-columns: none;
+  gap: 0;
+  padding: 7px;
+  color: #1A1918;
+}
+.how-qr .yi-icon {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+}
+
+.how-step-visual .yi-profile-cover {
+  flex-basis: 30%;
+  min-height: 52px;
+  padding: 7px 7px 22px;
+  font-size: 6px;
+}
+.how-step-visual .yi-profile-portrait em {
+  width: min(42%, 44px);
+  font-size: 11px;
+}
+.how-step-visual .yi-profile-body {
+  margin: -14px 5px 5px;
+  padding: 8px 7px 7px;
+  gap: 3px;
+  border-radius: 12px;
+}
+.how-step-visual .yi-profile-body strong {
+  font-size: 9px;
+}
+.how-step-visual .yi-profile-body > span {
+  font-size: 7px;
+}
+.how-step-visual .yi-profile-cta-row {
+  grid-template-columns: 1.15fr .85fr;
+  gap: 4px;
+}
+.how-step-visual .yi-profile-save,
+.how-step-visual .yi-profile-ghost {
+  min-height: 20px;
+  font-size: 6.5px;
+}
+.how-step-visual .yi-profile-chips,
+.how-step-visual .yi-profile-ghost,
+.how-step-visual .yi-profile-actions,
+.how-step-visual .yi-profile-links {
+  display: grid;
+}
+.how-step-visual .yi-profile-chips {
+  gap: 3px;
+}
+.how-step-visual .yi-profile-chips > div {
+  padding: 4px 3px;
+  border-radius: 7px;
+}
+.how-step-visual .yi-profile-chips small {
+  font-size: 5px;
+}
+.how-step-visual .yi-profile-chips b {
+  margin-top: 1px;
+  font-size: 6.5px;
+}
+.how-step-visual .yi-profile-action .yi-icon {
+  width: 9px;
+  height: 9px;
+  min-width: 9px;
+}
+.how-step-visual .yi-profile-link {
+  grid-template-columns: 18px minmax(0, 1fr) 10px;
+  gap: 5px;
+  padding: 4px 5px;
+  border-radius: 8px;
+}
+.how-step-visual .yi-profile-link-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+}
+.how-step-visual .yi-profile-link-icon .yi-icon,
+.how-step-visual .yi-profile-link > .yi-icon {
+  width: 9px;
+  height: 9px;
+  min-width: 9px;
+}
+.how-step-visual .yi-profile-link-copy b {
+  font-size: 7px;
+}
+.how-step-visual .yi-profile-link-copy small {
+  font-size: 6px;
+}
+
+.how-step-visual--03 .yi-profile-chips,
+.how-step-visual--03 .yi-profile-links,
+.how-step-visual--03 .yi-profile-ghost {
   display: none;
+}
+.how-step-visual--03 .yi-profile-cta-row {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 900px) and (min-height: 760px) {
+  .how-step-visual--02 .how-phone-mockup {
+    width: min(48%, 136px);
+    height: 88%;
+    max-height: 236px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 899px) and (min-height: 800px) {
+  .how-step-visual--02 .how-phone-mockup,
+  .how-step-visual--03 .how-phone-mockup {
+    width: 78px;
+    height: 148px;
+  }
 }
 
 

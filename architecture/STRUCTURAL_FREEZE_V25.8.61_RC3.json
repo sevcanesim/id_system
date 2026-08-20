@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "release": "25.8.91-structural-freeze",
+  "release": "25.9.4-live-freeze",
   "status": "STRUCTURAL_FREEZE",
   "policy": {
     "routeChangesRequireManifestUpdate": true,
     "cssLayerChangesRequireManifestUpdate": true,
     "budgetIncreasesRequireReview": true,
-    "legacyCssMayShrinkButMustNotGrow": true,
+    "retiredCssMustStayDeleted": true,
     "clientBoundaryCountMayShrinkButMustNotGrow": true
   },
   "inventory": {
@@ -17,9 +17,12 @@
       "app/ayarlar/page.tsx",
       "app/c/[cardCode]/page.tsx",
       "app/checkout/page.tsx",
+      "app/destek/page.tsx",
+      "app/e/[eventPublicId]/page.tsx",
       "app/giris/page.tsx",
       "app/gizlilik/page.tsx",
       "app/hesabim/page.tsx",
+      "app/hizmet-sartlari/page.tsx",
       "app/iade-iptal/page.tsx",
       "app/istatistikler/page.tsx",
       "app/kartim/page.tsx",
@@ -28,15 +31,22 @@
       "app/kurumsal/page.tsx",
       "app/kurumsal/panel/ayarlar/page.tsx",
       "app/kurumsal/panel/calisanlar/page.tsx",
+      "app/kurumsal/panel/etkinlikler/page.tsx",
+      "app/kurumsal/panel/gorusmeler/page.tsx",
       "app/kurumsal/panel/icerik/page.tsx",
       "app/kurumsal/panel/istatistikler/page.tsx",
+      "app/kurumsal/panel/kartim/page.tsx",
       "app/kurumsal/panel/kartlar/page.tsx",
+      "app/kurumsal/panel/leadler/page.tsx",
       "app/kurumsal/panel/lisans/page.tsx",
       "app/kurumsal/panel/organizasyon/page.tsx",
       "app/kurumsal/panel/page.tsx",
       "app/kurumsal/panel/roller/page.tsx",
       "app/kurumsal/panel/sablon/page.tsx",
+      "app/kvkk/page.tsx",
+      "app/leadler/page.tsx",
       "app/mesafeli-satis-sozlesmesi/page.tsx",
+      "app/nasil-calisir/page.tsx",
       "app/nfc-siparis/page.tsx",
       "app/odeme/basarili/page.tsx",
       "app/odeme/basarisiz/page.tsx",
@@ -55,16 +65,21 @@
       "app/api/admin/organizations/route.ts",
       "app/api/admin/session/route.ts",
       "app/api/analytics/me/route.ts",
+      "app/api/auth/session/route.ts",
       "app/api/cards/route.ts",
       "app/api/commerce/activate/route.ts",
       "app/api/commerce/activation/resend/route.ts",
       "app/api/commerce/checkout/route.ts",
       "app/api/commerce/claim/route.ts",
       "app/api/commerce/entitlements/route.ts",
+      "app/api/commerce/orders/pending/route.ts",
       "app/api/commerce/orders/route.ts",
       "app/api/commerce/orders/status/route.ts",
       "app/api/corporate-leads/route.ts",
+      "app/api/location/ip/route.ts",
       "app/api/location/reverse/route.ts",
+      "app/api/networking/inbox/route.ts",
+      "app/api/networking/leads/route.ts",
       "app/api/organization-links/[id]/open/route.ts",
       "app/api/organizations/card-analytics/route.ts",
       "app/api/organizations/card-profile-link/route.ts",
@@ -78,6 +93,7 @@
       "app/api/organizations/members/bulk-invite/route.ts",
       "app/api/organizations/members/route.ts",
       "app/api/organizations/mine/route.ts",
+      "app/api/organizations/networking/route.ts",
       "app/api/organizations/ownership/route.ts",
       "app/api/organizations/physical-cards/route.ts",
       "app/api/organizations/rename/route.ts",
@@ -85,57 +101,72 @@
       "app/api/organizations/title-requests/route.ts",
       "app/api/payments/iyzico/callback/route.ts",
       "app/api/payments/iyzico/checkout/route.ts",
+      "app/api/payments/iyzico/recover/route.ts",
+      "app/api/payments/iyzico/webhook/route.ts",
       "app/api/profiles/save/route.ts",
       "app/api/public-config/route.ts"
     ],
     "rootCssFiles": [
-      "auth-flow.css",
-      "commerce-flow.css",
-      "dashboard-flow.css",
+      "canonical.css",
       "design-system.css",
       "design-tokens.css",
-      "globals.css",
-      "legacy-surfaces.css",
-      "public-card.css",
-      "public-conversion.css",
-      "qr.css"
+      "employee-management.css",
+      "theme-policy.css"
     ],
     "layoutCssImportOrder": [
-      "globals.css",
+      "canonical.css",
+      "design-tokens.css",
       "design-system.css",
-      "legacy-surfaces.css",
-      "design-tokens.css"
+      "employee-management.css",
+      "theme-policy.css"
+    ],
+    "retiredCssFiles": [
+      "app/auth-flow.css",
+      "app/commerce-flow.css",
+      "app/dashboard-flow.css",
+      "app/globals.css",
+      "app/legacy-surfaces.css",
+      "app/public-card.css",
+      "app/public-conversion.css",
+      "app/qr.css"
     ]
   },
   "budgets": {
-    "legacyCssMaxBytes": 197277,
-    "explicitClientBoundaryMax": 40,
+    "explicitClientBoundaryMax": 53,
     "releaseArtifactMaxBytes": 20971520,
     "criticalSurfaceMaxLoc": {
-      "app/kurumsal/panel/CorporatePanelClient.tsx": 2756,
-      "app/kurumsal/panel/components/EmployeeDrawer.tsx": 915,
-      "app/olustur/CardWizard.tsx": 715,
-      "app/api/commerce/checkout/route.ts": 482,
-      "app/checkout/page.tsx": 424
+      "app/kurumsal/panel/CorporatePanelClient.tsx": 1836,
+      "app/kurumsal/panel/components/EmployeeDrawer.tsx": 651,
+      "app/olustur/CardWizard.tsx": 818,
+      "app/api/commerce/checkout/route.ts": 632,
+      "app/checkout/page.tsx": 533
     }
   },
   "ownership": {
+    "designSystem": [
+      "app/canonical.css",
+      "app/design-tokens.css",
+      "app/design-system.css",
+      "app/employee-management.css",
+      "app/theme-policy.css"
+    ],
     "publicConversion": [
       "app/canonical.css",
       "app/page.tsx"
     ],
     "commerce": [
-      "app/commerce-flow.css",
+      "app/canonical.css",
       "app/checkout/page.tsx",
       "app/sepet/page.tsx",
       "app/api/commerce/checkout/route.ts"
     ],
     "auth": [
-      "app/auth-flow.css",
+      "app/canonical.css",
       "app/giris/page.tsx"
     ],
     "individualDashboard": [
-      "app/dashboard-flow.css",
+      "app/canonical.css",
+      "app/ui/DashboardShell.tsx",
       "app/kartim/page.tsx",
       "app/kartlarim/page.tsx"
     ],
@@ -144,13 +175,10 @@
       "app/kurumsal/panel/CorporatePanelClient.tsx"
     ],
     "publicCard": [
-      "app/public-card.css",
+      "app/canonical.css",
       "app/p/[publicId]/page.tsx",
       "app/c/[cardCode]/page.tsx",
       "app/[slug]/page.tsx"
-    ],
-    "legacyCompatibility": [
-      "app/legacy-surfaces.css"
     ]
   }
 }

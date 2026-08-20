@@ -156,7 +156,14 @@ export default async function CorporatePage({
                   <td>{networkMailGrant(plan.seats).toLocaleString("tr-TR")}</td>
                   <td>{formatTryFromKurus(perSeatKurus(plan.priceKurus, plan.seats))}</td>
                   <td><strong>{formatTryFromKurus(plan.priceKurus)}</strong></td>
-                  <td><a href={`/kurumsal?plan=${plan.code}#teklif`} className="corporate-plan-link">Teklif Al</a></td>
+                  <td>
+                    <a
+                      href={`/kurumsal?plan=${plan.code}#teklif`}
+                      className={"popular" in plan && plan.popular ? "corporate-plan-link" : "corporate-plan-text"}
+                    >
+                      Teklif Al
+                    </a>
+                  </td>
                 </tr>
               ))}
             </tbody>

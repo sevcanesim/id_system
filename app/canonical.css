@@ -11615,3 +11615,136 @@ article[id] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ================================================================
+   PUBLIC SURFACE CRO
+   Duplicate buy CTA, clipped help FAQs, weak table headers,
+   carousel-looking step arrows, and header CTAs that sell the
+   wrong action on corporate/help/product pages.
+   ================================================================ */
+.nfc-mobile-buybar {
+  display: none;
+}
+@media (max-width: 680px) {
+  .nfc-mobile-buybar {
+    position: fixed;
+    z-index: 40;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    display: none;
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 10px 10px 10px 14px;
+    border: 1px solid rgba(26, 25, 24, .12);
+    border-radius: 16px;
+    background: rgba(255, 252, 247, .96);
+    box-shadow: 0 18px 40px rgba(36, 28, 18, .16);
+  }
+  .nfc-mobile-buybar--visible {
+    display: grid;
+  }
+  .nfc-mobile-buybar small {
+    display: block;
+    color: #6e665d;
+    font-size: 11px;
+  }
+  .nfc-mobile-buybar strong {
+    font-size: 18px;
+    letter-spacing: -.03em;
+  }
+  .nfc-mobile-buybar .ds-button {
+    min-height: 44px;
+    width: 100%;
+  }
+}
+
+@media (min-width: 681px) {
+  .nfc-price-row {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.nfc-faq__list {
+  max-width: none;
+}
+
+@media (min-width: 761px) {
+  html:has(.support-page),
+  body:has(.support-page) {
+    overflow: auto;
+  }
+  .support-page {
+    height: auto;
+    min-height: 0;
+    display: block;
+    overflow: visible;
+  }
+  .support-page .support-topics,
+  .support-page .support-faq {
+    height: auto;
+    overflow: visible;
+  }
+  .support-page .support-topic-grid {
+    height: auto;
+  }
+  .support-page .support-topic-card {
+    height: auto;
+  }
+}
+
+.corporate-pack-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f7f3eb;
+  color: #3f3426;
+  font-size: 11px;
+  letter-spacing: .06em;
+  border-bottom: 1px solid rgba(36, 29, 23, .16);
+}
+.corporate-plan-text {
+  color: #5c4a28;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.corporate-plan-text:hover {
+  color: #1c1919;
+  text-decoration: underline;
+}
+
+.how-step-visual {
+  margin-bottom: 0;
+}
+.how-step-cta {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  margin-top: 14px;
+  padding: 0 14px;
+  border: 1px solid rgba(163, 123, 44, .45);
+  border-radius: 10px;
+  background: #A37B2C;
+  color: #17120c;
+  font-size: 13px;
+  font-weight: 750;
+  text-decoration: none;
+  align-self: flex-start;
+}
+.how-step-cta:hover {
+  background: #8c6824;
+  color: #17120c;
+}
+
+.corporate-mail-packs {
+  align-items: stretch;
+}
+

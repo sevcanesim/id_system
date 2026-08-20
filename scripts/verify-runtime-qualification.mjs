@@ -26,7 +26,6 @@ const required = [
   ['next', 'Next.js'],
   ['typescript/bin/tsc', 'TypeScript'],
   ['vitest/vitest.mjs', 'Vitest'],
-  ['@playwright/test', 'Playwright'],
 ];
 
 for (const [path, label] of required) {

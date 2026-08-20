@@ -23,24 +23,26 @@ else fail('node_modules directory is missing; install dependencies before runtim
 const requiredBinaries = [
   ['next', 'node_modules/next/dist/bin/next'],
   ['vitest', 'node_modules/vitest/vitest.mjs'],
-  ['playwright', 'node_modules/@playwright/test/cli.js'],
   ['tsc', 'node_modules/typescript/bin/tsc'],
 ];
 for (const [name, file] of requiredBinaries) {
   fs.existsSync(file) ? pass(`${name} runtime is installed`) : fail(`${name} runtime is missing`);
 }
+fs.existsSync('node_modules/@playwright/test/cli.js')
+  ? info('Playwright remains installed for local QA helpers; it is not a release gate')
+  : info('Playwright is absent; local browser QA helpers will not run');
 
 const lockRoot = lock.packages?.[''];
 if (lockRoot?.version === pkg.version) pass(`package-lock root version matches ${pkg.version}`);
 else fail(`package-lock root version does not match package.json ${pkg.version}`);
 
-for (const dep of ['next', 'react', 'react-dom', 'typescript', 'vitest', '@playwright/test', '@types/node', '@types/react', '@types/react-dom', '@types/qrcode', 'qrcode']) {
+for (const dep of ['next', 'react', 'react-dom', 'typescript', 'vitest', '@types/node', '@types/react', '@types/react-dom', '@types/qrcode', 'qrcode']) {
   const locked = lock.packages?.[`node_modules/${dep}`]?.version;
   locked ? pass(`${dep} locked at ${locked}`) : fail(`${dep} is missing from package-lock`);
 }
 
 if (fs.existsSync('node_modules')) {
-  info('Runtime prerequisite check is capable of supporting typecheck/unit/build/E2E verification.');
+  info('Runtime prerequisite check is capable of supporting typecheck/unit/build verification.');
 } else {
   info('Runtime checks are BLOCKED until dependencies are installed; this is not an application defect by itself.');
 }

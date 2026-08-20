@@ -4,11 +4,11 @@
 Phase 7 migrates the individual dashboard shell and high-frequency account surfaces onto the canonical Phase 2 design system without rewriting authentication, Supabase repositories, commerce APIs, QR/NFC logic, analytics APIs or card mutations.
 
 ## Architecture
-- `AppShell` is now the canonical individual dashboard shell.
+- `DashboardShell` is the live individual dashboard shell.
 - `UserPanelShell` remains only as a compatibility adapter so existing routes can migrate without a risky all-at-once rewrite.
-- Navigation is one sidebar with three groups: Genel, Kart, Hesap.
-- Page headings and actions use canonical `PageHeader` / `ButtonLink` primitives.
-- New dashboard visual ownership lives in `dashboard-flow.css` and uses canonical semantic tokens only.
+- Navigation is one sidebar with three groups: Kimlik, İçgörüler, Hesap.
+- Page headings and actions use the live dashboard header in `DashboardShell`.
+- Dashboard visual ownership lives in `app/canonical.css`. Do not recreate `dashboard-flow.css`.
 
 ## Product changes
 - Dashboard home prioritizes card state, profile completion, entitlement availability and quick actions.

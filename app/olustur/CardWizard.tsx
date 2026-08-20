@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useDeferredValue, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import CardTemplate from "../CardTemplate";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
@@ -15,11 +15,9 @@ import { fetchOwnProfile, fetchOwnProfileById, fetchOwnProfileByOrganizationId, 
 import { track } from "../../lib/analytics";
 import PanelSidebar from "../components/ui/PanelSidebar";
 import { PageLoadingView } from "../components/ui/States";
-import type { SidebarNavItem } from "../components/ui/SidebarNav";
 import {
-  CORPORATE_PANEL_TAB_META,
-  CORPORATE_PANEL_TAB_ORDER,
   CORPORATE_PANEL_TAB_ROUTE,
+  corporatePanelNavItems,
 } from "../kurumsal/panel/domain/navigation";
 
 import {
@@ -46,6 +44,9 @@ const CARD_SECTIONS = [
   { id: "p8-appearance", label: "Profil Görünümü" },
 ] as const;
 
+const HR_AUDIT_NOTICE = "Değişiklikler İK ve Sistem Yöneticisine bildirildi";
+const HR_AUDIT_NOTICE_KEY = "yenomi:card-editor:hr-audit";
+
 export default function CardWizard() {
   const [data, setData] = useState<CardData>(INITIAL_CARD_DATA);
   const [userId, setUserId] = useState<string | null>(null);
@@ -64,6 +65,8 @@ export default function CardWizard() {
   const [imageMessage, setImageMessage] = useState("");
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationMessage, setLocationMessage] = useState("");
+  const [auditNotice, setAuditNotice] = useState("");
+  const deferredData = useDeferredValue(data);
   const [originalImageUrl, setOriginalImageUrl] = useState("");
   const [accessState, setAccessState] = useState<"checking" | "allowed" | "denied">("checking");
   const [orgLock, setOrgLock] = useState<OrgLock | null>(null);
@@ -92,6 +95,17 @@ export default function CardWizard() {
     applyHash();
     window.addEventListener("hashchange", applyHash);
     return () => window.removeEventListener("hashchange", applyHash);
+  }, []);
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(HR_AUDIT_NOTICE_KEY) === "1") {
+        sessionStorage.removeItem(HR_AUDIT_NOTICE_KEY);
+        setAuditNotice(HR_AUDIT_NOTICE);
+      }
+    } catch {
+      // Bildirim tercihi okunamazsa akış yine de devam eder.
+    }
   }, []);
 
   useEffect(() => {
@@ -318,35 +332,59 @@ export default function CardWizard() {
   }
 
 
+  async function applyLocationPayload(payload: { city?: string; district?: string; addressLine?: string }) {
+    const location = [payload.district, payload.city].filter(Boolean).join(", ") || payload.addressLine || "";
+    if (!location) return false;
+    update("location", location);
+    setLocationMessage(`${location} bulundu. İstersen alanı düzenleyebilirsin.`);
+    return true;
+  }
+
+  async function fallbackIpLocation() {
+    try {
+      const response = await fetch("/api/location/ip");
+      if (!response.ok) return false;
+      const payload = await response.json() as { city?: string; district?: string; addressLine?: string };
+      return applyLocationPayload(payload);
+    } catch {
+      return false;
+    }
+  }
+
   async function detectCity() {
+    setLocationLoading(true);
+    setLocationMessage("");
+
+    const finish = () => setLocationLoading(false);
+
+    async function applyGps(latitude: number, longitude: number) {
+      try {
+        const response = await fetch(`/api/location/reverse?lat=${latitude}&lng=${longitude}`);
+        const payload = await response.json() as { city?: string; district?: string; addressLine?: string };
+        if (response.ok && await applyLocationPayload(payload)) return;
+      } catch {
+        // GPS çözümlemesi başarısızsa IP yedeğine geçilir; kullanıcı bloklanmaz.
+      }
+      await fallbackIpLocation();
+    }
+
     if (!("geolocation" in navigator)) {
-      setLocationMessage("Tarayıcın konum özelliğini desteklemiyor. Şehri elle yazabilirsin.");
+      await fallbackIpLocation();
+      finish();
       return;
     }
 
-    setLocationLoading(true);
-    setLocationMessage("Konum alınıyor...");
-    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
-      try {
-        const response = await fetch(`/api/location/reverse?lat=${coords.latitude}&lng=${coords.longitude}`);
-        const payload = await response.json() as { city?: string; district?: string; addressLine?: string; error?: string };
-        if (!response.ok) throw new Error(payload.error || "Şehir bilgisi alınamadı.");
-        const location = [payload.district, payload.city].filter(Boolean).join(", ") || payload.addressLine || "";
-        if (!location) throw new Error("Şehir bilgisi bulunamadı. Konumu elle yazabilirsin.");
-        update("location", location);
-        setLocationMessage(`${location} bulundu. İstersen alanı düzenleyebilirsin.`);
-      } catch (error) {
-        setLocationMessage(error instanceof Error ? error.message : "Şehir bilgisi alınamadı.");
-      } finally {
-        setLocationLoading(false);
-      }
-    }, (error) => {
-      const message = error.code === error.PERMISSION_DENIED
-        ? "Konum izni verilmedi. Şehri elle yazabilirsin."
-        : "Konum alınamadı. Şehri elle yazabilirsin.";
-      setLocationMessage(message);
-      setLocationLoading(false);
-    }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        await applyGps(coords.latitude, coords.longitude);
+        finish();
+      },
+      async () => {
+        await fallbackIpLocation();
+        finish();
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },
+    );
   }
 
   async function imageChange(event: ChangeEvent<HTMLInputElement>) {
@@ -545,6 +583,10 @@ export default function CardWizard() {
         setSaving(false);
         return;
       }
+      if (isBusinessCard && orgLock) {
+        try { sessionStorage.setItem(HR_AUDIT_NOTICE_KEY, "1"); } catch { /* bildirim kalıcılığı isteğe bağlı */ }
+        setAuditNotice(HR_AUDIT_NOTICE);
+      }
       if (isBusinessCard && businessOrganizationId) {
         const currentId = profileId || undefined;
         router.replace(currentId
@@ -553,6 +595,7 @@ export default function CardWizard() {
       } else {
         router.push("/kartim");
       }
+      setSaving(false);
     } catch (error) {
       if (uploaded?.uploaded && uploaded.path) {
         const supabase = getSupabaseBrowserClient();
@@ -574,26 +617,11 @@ export default function CardWizard() {
 
   const cancelHref = isBusinessCard ? "/kurumsal/panel" : (profileId ? "/kartlarim" : "/");
   const publishDisabled = saving || slugStatus === "checking" || slugStatus === "unavailable" || slugStatus === "invalid";
-  const preview = <div className="p8-preview-stage"><CardTemplate data={data} preview branding={orgBranding} /></div>;
+  const preview = <div className="p8-preview-stage"><CardTemplate data={deferredData} preview branding={orgBranding} /></div>;
 
-  // Kurumsal kart editörü, /kurumsal/panel ile birebir aynı PanelSidebar
-  // bileşenini ve aynı sekme kaynağını (CORPORATE_PANEL_TAB_META) kullanır —
-  // bireysel ve kurumsal panelin ayrı sidebar'ları olmaması gerektiği gibi.
-  const departmentManager = orgLock?.membershipRole === "DEPARTMENT_MANAGER";
   const canManageLicenses = orgLock?.membershipRole === "OWNER" || orgLock?.membershipRole === "ADMIN";
-  const corporateNavItems: SidebarNavItem[] = (
-    departmentManager ? (["employees"] as const) : CORPORATE_PANEL_TAB_ORDER.filter((key) => {
-      if (key === "licenses" || key === "leads" || key === "events" || key === "meetings") return canManageLicenses;
-      return true;
-    })
-  ).map((key) => ({
-    key,
-    href: CORPORATE_PANEL_TAB_ROUTE[key],
-    label: CORPORATE_PANEL_TAB_META[key].label,
-    icon: CORPORATE_PANEL_TAB_META[key].icon,
-    group: CORPORATE_PANEL_TAB_META[key].group,
-  }));
   const ownCardHref = `/kurumsal/panel/kartim?business=1&organizationId=${encodeURIComponent(businessOrganizationId || "")}${profileId ? `&id=${encodeURIComponent(profileId)}` : "&new=1"}`;
+  const corporateNavItems = corporatePanelNavItems(orgLock?.membershipRole, ownCardHref);
   const signOut = async () => {
     const supabase = getSupabaseBrowserClient();
     if (supabase) await supabase.auth.signOut();
@@ -620,7 +648,7 @@ export default function CardWizard() {
         <section id="p8-basic" className="p8-section-card">
           <div className="p8-section-heading"><span>01</span><div><h2>Temel Bilgiler</h2><p>Tanışma anında ilk görülecek kimlik bilgilerini düzenleyin.</p></div></div>
           <div className="p8-field-grid">
-            <Field label="Ad Soyad" required help={orgLock?.lockName === "locked" ? "Şirket tarafından yönetiliyor" : orgLock ? "Kendi bilgin · değişiklik İK kaydına düşer" : "Kartınızda görünen adınız."}>
+            <Field label="Ad Soyad" required help={orgLock?.lockName === "locked" ? "Şirket tarafından yönetiliyor" : "Kartınızda görünen adınız."}>
               <Input value={data.name} onChange={(e) => update("name", e.target.value)} placeholder="Ad Soyad" autoComplete="name" required disabled={orgLock?.lockName === "locked"}/>
             </Field>
           </div>
@@ -632,7 +660,7 @@ export default function CardWizard() {
             <Field label="Telefon" help={orgLock?.lockPhone === "locked" ? "Şirket tarafından yönetiliyor" : undefined}>
               <Input type="tel" inputMode="tel" autoComplete="tel" value={data.phone} onChange={(e) => update("phone", normalizeTrPhone(e.target.value))} placeholder="+90 5xx xxx xx xx" disabled={orgLock?.lockPhone === "locked"}/>
             </Field>
-            <Field label="E-posta" help={orgLock?.lockEmail === "locked" ? "Şirket tarafından yönetiliyor" : orgLock ? "Kendi bilgin · değişiklik İK kaydına düşer" : undefined}>
+            <Field label="E-posta" help={orgLock?.lockEmail === "locked" ? "Şirket tarafından yönetiliyor" : undefined}>
               <Input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} value={data.email} onChange={(e) => update("email", e.target.value)} onBlur={() => update("email", normalizeEmailField(data.email))} placeholder="ad@firma.com" disabled={orgLock?.lockEmail === "locked"}/>
             </Field>
             <Field label="WhatsApp" help="Telefon numaranızdan farklıysa doldurun.">
@@ -703,6 +731,7 @@ export default function CardWizard() {
           </Field>
         </section>
 
+        {auditNotice && <div className="p8-message p8-message--info" role="status">{auditNotice}</div>}
         {message && <div className="p8-message p8-message--error" role="alert">{message}</div>}
 
         <div className="p8-mobile-actions" aria-label="Profil düzenleme işlemleri">
@@ -742,12 +771,10 @@ export default function CardWizard() {
       brandHref="/kurumsal/panel"
       open={mobileNavOpen}
       onClose={() => setMobileNavOpen(false)}
+      activeKey="kartim"
+      storageKey="yenomi:corporate-sidebar:collapsed"
       items={corporateNavItems}
     >
-      <div className="enterprise-side-links enterprise-side-primary-links">
-        <span className="enterprise-side-section-title">KİŞİSEL</span>
-        <Link href={ownCardHref} className="active" onClick={() => setMobileNavOpen(false)}><Icon name="contact" /><span>Kartım</span></Link>
-      </div>
       <div className="enterprise-side-links enterprise-side-management">
         <button type="button" onClick={() => void signOut()}>
           <Icon name="logout" />

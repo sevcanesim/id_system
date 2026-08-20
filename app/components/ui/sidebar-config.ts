@@ -22,7 +22,7 @@ const CORPORATE_ADMIN_OR_HR: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR", "
 export const CORPORATE_SIDEBAR_CONFIG = [
   { key: "overview", href: "/kurumsal/panel", label: "Genel Bakış", icon: "building", group: "GENEL" },
   { key: "employees", href: "/kurumsal/panel/calisanlar", label: "Çalışanlar", icon: "users", group: "EKİP & KARTLAR", roles: CORPORATE_MANAGEMENT },
-  { key: "cards", href: "/kurumsal/panel/kartlar", label: "Kartlar", icon: "contact", group: "EKİP & KARTLAR", roles: CORPORATE_MANAGEMENT },
+  { key: "cards", href: "/kurumsal/panel/kartlar", label: "Kartlar", icon: "id", group: "EKİP & KARTLAR", roles: CORPORATE_MANAGEMENT },
   { key: "templates", href: "/kurumsal/panel/sablon", label: "Marka & Şablon", icon: "id", group: "MARKA & İÇERİK", roles: CORPORATE_ADMIN },
   { key: "content", href: "/kurumsal/panel/icerik", label: "İçerik", icon: "link", group: "MARKA & İÇERİK", roles: CORPORATE_ADMIN },
   { key: "analytics", href: "/kurumsal/panel/istatistikler", label: "İstatistikler", icon: "analytics", group: "YÖNETİM", roles: CORPORATE_ADMIN_OR_HR },
@@ -32,7 +32,7 @@ export const CORPORATE_SIDEBAR_CONFIG = [
   { key: "settings", href: "/kurumsal/panel/ayarlar", label: "Ayarlar", icon: "adjustments", group: "YÖNETİM", roles: CORPORATE_ADMIN },
   { key: "leads", href: "/kurumsal/panel/leadler", label: "Leadler", icon: "mail", group: "NETWORKING", roles: CORPORATE_ADMIN },
   { key: "events", href: "/kurumsal/panel/etkinlikler", label: "Etkinlikler", icon: "clock", group: "NETWORKING", roles: CORPORATE_ADMIN },
-  { key: "meetings", href: "/kurumsal/panel/gorusmeler", label: "Görüşmeler", icon: "contact", group: "NETWORKING", roles: CORPORATE_ADMIN },
+  { key: "meetings", href: "/kurumsal/panel/gorusmeler", label: "Görüşmeler", icon: "headset", group: "NETWORKING", roles: CORPORATE_ADMIN },
 ] satisfies readonly SidebarConfigItem[];
 
 /** Shared personal-workspace nav. Live DashboardShell and the AppShell PanelSidebar artifact both consume this. */
@@ -65,4 +65,21 @@ export function filterSidebarByRole<T extends SidebarConfigItem>(items: readonly
   const normalized = normalizeSidebarRole(role);
   if (!normalized) return [];
   return items.filter((item) => sidebarRoleAllowed(item.roles, role));
+}
+
+export type SidebarItemGroup<T extends { group?: string }> = {
+  name: string;
+  items: T[];
+};
+
+/** Consecutive items that share a group label become one collapsible section. */
+export function groupSidebarItems<T extends { group?: string }>(items: readonly T[]): SidebarItemGroup<T>[] {
+  const groups: SidebarItemGroup<T>[] = [];
+  for (const item of items) {
+    const name = item.group ?? "";
+    const last = groups[groups.length - 1];
+    if (last && last.name === name) last.items.push(item);
+    else groups.push({ name, items: [item] });
+  }
+  return groups;
 }

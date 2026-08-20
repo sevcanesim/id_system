@@ -8049,7 +8049,7 @@ body:has(.how-it-works-page) {
 .p10-corporate-platform textarea {
   font-family: inherit;
 }
-.p10-corporate-platform button:not(.enterprise-nav-entry):not(.enterprise-sidebar-mobile-close):not(.enterprise-mobile-menu-button):not(.enterprise-mobile-account-button):not(.ds-button):not(.ds-tab):not(.ds-overlay) {
+.p10-corporate-platform button:not(.enterprise-nav-entry):not(.enterprise-sidebar-mobile-close):not(.enterprise-mobile-menu-button):not(.enterprise-mobile-account-button):not(.ds-button):not(.ds-tab):not(.ds-overlay):not(.enterprise-nav-group-toggle):not(.enterprise-sidebar-collapse) {
   border-radius: 9px;
 }
 .p10-corporate-platform .v25-dashboard-rail > .v25-panel { box-shadow: 0 18px 42px rgba(0,0,0,.14); }
@@ -9227,6 +9227,7 @@ body:has(.p10-corporate-platform) {
   }
   .enterprise-sidebar.is-collapsed .enterprise-yenomi-copy,
   .enterprise-sidebar.is-collapsed .enterprise-side-section-title,
+  .enterprise-sidebar.is-collapsed .enterprise-nav-group-toggle,
   .enterprise-sidebar.is-collapsed .enterprise-nav-entry a > span,
   .enterprise-sidebar.is-collapsed .enterprise-side-links a > span,
   .enterprise-sidebar.is-collapsed .enterprise-side-links button > span,
@@ -9350,6 +9351,7 @@ body:has(.p10-corporate-platform) {
   .enterprise-sidebar.is-collapsed { width: min(84vw, 320px); max-width: 320px; }
   .enterprise-sidebar.is-collapsed .enterprise-yenomi-copy,
   .enterprise-sidebar.is-collapsed .enterprise-side-section-title,
+  .enterprise-sidebar.is-collapsed .enterprise-nav-group-toggle,
   .enterprise-sidebar.is-collapsed .enterprise-nav-entry a > span,
   .enterprise-sidebar.is-collapsed .enterprise-side-plan,
   .enterprise-sidebar.is-collapsed .enterprise-side-user > div,
@@ -9375,7 +9377,8 @@ body:has(.p10-corporate-platform) {
 @media (prefers-reduced-motion: reduce) {
   .enterprise-sidebar-collapse,
   .enterprise-sidebar,
-  .enterprise-nav-entry { transition: none; }
+  .enterprise-nav-entry,
+  .enterprise-nav-group-toggle .yi-icon { transition: none; }
 }
 
 @media (min-width: 1101px) {
@@ -10900,6 +10903,106 @@ article[id] {
 }
 .p8-corporate-editor .enterprise-side-plan {
   margin-bottom: 8px;
+}
+
+.enterprise-nav-group {
+  display: grid;
+  gap: 3px;
+}
+.enterprise-nav-group-items {
+  display: grid;
+  gap: 3px;
+}
+.enterprise-nav-group-items[hidden] {
+  display: none;
+}
+.enterprise-nav-group-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 14px 10px 7px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: none;
+}
+.enterprise-nav-group-toggle .yi-icon {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  color: #C0BBB2;
+  transition: transform 160ms ease;
+}
+.enterprise-nav-group-toggle[aria-expanded="true"] .yi-icon {
+  transform: rotate(180deg);
+}
+.p10-corporate-platform .enterprise-nav-entry,
+.p8-corporate-editor .enterprise-nav-entry {
+  display: block;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+.p10-corporate-platform .enterprise-nav-entry:hover,
+.p8-corporate-editor .enterprise-nav-entry:hover {
+  background: transparent;
+  transform: none;
+}
+.enterprise-sidebar-footer {
+  flex: 0 0 auto;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding-top: 12px;
+  border-top: 1px solid #E6E2D8;
+}
+.enterprise-sidebar-footer .enterprise-side-links,
+.enterprise-sidebar-footer .enterprise-side-links.enterprise-side-management {
+  margin-top: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-top: 0;
+}
+.enterprise-side-links a,
+.enterprise-side-links button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 38px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #68645D;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+.enterprise-side-links a:hover,
+.enterprise-side-links button:hover {
+  background: #F9F8F6;
+  color: #1A1918;
+}
+.p8-corporate-editor .enterprise-sidebar,
+.p10-corporate-platform .enterprise-sidebar {
+  overflow: hidden;
 }
 
 .v25-status-summary dl > div,

@@ -14,7 +14,7 @@ const checks=[
  ['corporate analytics implementation remains present',client.includes('loadCardAnalytics')],
  ['corporate seat packs implementation remains present',client.includes('seatPacks.map')],
  ['corporate bulk invite implementation remains present',client.includes('handleBulkInviteFile')&&employees.includes('CSV ile Davet')],
- ['employee editor exposes HR audit helper copy',wizard.includes('Kendi bilgin · değişiklik İK kaydına düşer')],
+ ['employee editor defers HR audit notice to save',wizard.includes('Değişiklikler İK ve Sistem Yöneticisine bildirildi')&&!wizard.includes('Kendi bilgin · değişiklik İK kaydına düşer')],
  ['employee editor exposes rejected title request state',wizard.includes('titleRequest?.status === "REJECTED"')],
 ];
 for(const [m,ok] of checks) ok?pass(m):fail(m);

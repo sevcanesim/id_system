@@ -73,7 +73,7 @@ export const CORPORATE_PANEL_TAB_ORDER: readonly CorporatePanelTab[] = [
 export const CORPORATE_PANEL_TAB_META: Record<CorporatePanelTab, { label: string; icon: IconName; group?: string; loadingLabel: string }> = {
   overview: { label: "Genel Bakış", icon: "building", group: "GENEL", loadingLabel: "Genel Bakış yükleniyor" },
   employees: { label: "Çalışanlar", icon: "users", group: "EKİP & KARTLAR", loadingLabel: "Çalışanlar yükleniyor" },
-  cards: { label: "Kartlar", icon: "contact", group: "EKİP & KARTLAR", loadingLabel: "Kartlar yükleniyor" },
+  cards: { label: "Kartlar", icon: "id", group: "EKİP & KARTLAR", loadingLabel: "Kartlar yükleniyor" },
   templates: { label: "Marka & Şablon", icon: "id", group: "MARKA & İÇERİK", loadingLabel: "Kurumsal şablonlar yükleniyor" },
   content: { label: "İçerik", icon: "link", group: "MARKA & İÇERİK", loadingLabel: "İçerik yükleniyor" },
   analytics: { label: "İstatistikler", icon: "analytics", group: "YÖNETİM", loadingLabel: "İstatistikler yükleniyor" },
@@ -83,7 +83,7 @@ export const CORPORATE_PANEL_TAB_META: Record<CorporatePanelTab, { label: string
   settings: { label: "Ayarlar", icon: "adjustments", group: "YÖNETİM", loadingLabel: "Şirket ayarları yükleniyor" },
   leads: { label: "Leadler", icon: "mail", group: "NETWORKING", loadingLabel: "Leadler yükleniyor" },
   events: { label: "Etkinlikler", icon: "clock", group: "NETWORKING", loadingLabel: "Etkinlikler yükleniyor" },
-  meetings: { label: "Görüşmeler", icon: "contact", group: "NETWORKING", loadingLabel: "Görüşmeler yükleniyor" },
+  meetings: { label: "Görüşmeler", icon: "headset", group: "NETWORKING", loadingLabel: "Görüşmeler yükleniyor" },
 };
 
 /** Sidebar görünürlüğü ile sunucu yetkilendirmesinin aynı rol dilini kullanması için tek kaynak. */
@@ -112,4 +112,32 @@ export function corporateSidebarItems(role?: string) {
       icon: item.icon,
       group: item.group,
     }));
+}
+
+/** Personal destination shared by the management shell and Kartım editor. */
+export const CORPORATE_OWN_CARD_NAV_ITEM = {
+  key: "kartim",
+  href: "/kurumsal/panel/kartim",
+  label: "Kartım",
+  icon: "contact" as IconName,
+  group: "KİŞİSEL",
+};
+
+export type CorporateNavItem = {
+  key: string;
+  href: string;
+  label: string;
+  icon: IconName;
+  group?: string;
+};
+
+/** Management tabs plus Kartım — single nav source for both corporate sidebars. */
+export function corporatePanelNavItems(role?: string, ownCardHref?: string): CorporateNavItem[] {
+  return [
+    ...corporateSidebarItems(role),
+    {
+      ...CORPORATE_OWN_CARD_NAV_ITEM,
+      href: ownCardHref || CORPORATE_OWN_CARD_NAV_ITEM.href,
+    },
+  ];
 }

@@ -70,7 +70,7 @@ export default function HomePage() {
 
         <section className="home-premium__paths" aria-labelledby="paths-title">
           <div className="home-premium__paths-head">
-            <span className="home-mockup__kicker">YENOMI ID</span>
+            <span className="home-mockup__kicker">BİREYSEL · KURUMSAL</span>
             <h2 id="paths-title">Aynı sistem.<br /><em>İki ölçek.</em></h2>
           </div>
           <div className="home-premium__path-grid">

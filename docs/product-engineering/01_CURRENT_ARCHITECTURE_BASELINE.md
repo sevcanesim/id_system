@@ -170,7 +170,7 @@ The repository also contains fulfillment/reconciliation concepts. Do not collaps
 
 ## 8. Demo QA source of truth
 
-`tests/fixtures/demo-user-matrix.ts` is the canonical semantic registry for demo scenarios.
+`tests/fixtures/demo-user-matrix.ts` is the canonical semantic registry for demo scenarios. `scripts/seed-demo-scenarios.mjs` imports the same registry; `DEMO_TEST_USERS.md` is generated from it (`npm run docs:demo-users`).
 
 It currently covers, among others:
 

@@ -2,6 +2,11 @@ import { createClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import {
+  DEMO_CORPORATE_CAPACITY_SCENARIOS as corporateScenarios,
+  DEMO_GUEST_ORDERS as guestOrders,
+  DEMO_LOGIN_USERS as demoUsers,
+} from "../tests/fixtures/demo-user-matrix.mjs";
 
 function readEnv(filePath) {
   if (!fs.existsSync(filePath)) return {};
@@ -57,69 +62,6 @@ if (apply) {
 }
 
 const supabase = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
-const demoUsers = [
-  { key: "superAdmin", email: "demo.superadmin@yenomi.test", name: "Demo Super Admin", kind: "SUPER_ADMIN", loginScope: "BOTH" },
-  { key: "cardPending", email: "demo.card.pending@yenomi.test", name: "Kart Bilgisi Bekleyen", kind: "INDIVIDUAL_PENDING", loginScope: "INDIVIDUAL" },
-  { key: "cardComplete", email: "demo.card.complete@yenomi.test", name: "Kartı Hazır Kullanıcı", kind: "INDIVIDUAL_COMPLETE", loginScope: "INDIVIDUAL" },
-  { key: "corp5Full", email: "demo.corp5.full@yenomi.test", name: "Demo 5 Tam Dolu", kind: "CORPORATE_OWNER", loginScope: "CORPORATE" },
-  { key: "corp5Three", email: "demo.corp5.three@yenomi.test", name: "Demo 5 İki Boş", kind: "CORPORATE_OWNER", loginScope: "CORPORATE" },
-  { key: "corp10Full", email: "demo.corp10.full@yenomi.test", name: "Demo 10 Tam Dolu", kind: "CORPORATE_OWNER", loginScope: "CORPORATE" },
-  { key: "corp2FullA", email: "demo.corp2.full-a@yenomi.test", name: "Demo 2 Tam Dolu A", kind: "CORPORATE_OWNER", loginScope: "CORPORATE" },
-  { key: "corp2One", email: "demo.corp2.one@yenomi.test", name: "Demo 2 Bir Boş", kind: "CORPORATE_OWNER", loginScope: "CORPORATE" },
-  { key: "corp2Upgrade", email: "demo.corp2.full-upgrade@yenomi.test", name: "Demo 2 Paket Yükseltme", kind: "CORPORATE_OWNER", loginScope: "CORPORATE" },
-  { key: "lifecycleOwner", email: "demo.lifecycle.owner@yenomi.test", name: "Demo Yaşam Döngüsü Yöneticisi", kind: "CORPORATE_OWNER", loginScope: "CORPORATE" },
-  { key: "lifecycleNoCard", email: "demo.lifecycle.nocard@yenomi.test", name: "Aktif Hesap Kart Yok", kind: "CORPORATE_EMPLOYEE", loginScope: "CORPORATE" },
-  { key: "lifecycleDigital", email: "demo.lifecycle.digital@yenomi.test", name: "Dijital Kart Hazır", kind: "CORPORATE_EMPLOYEE", loginScope: "CORPORATE" },
-  { key: "lifecycleAssigned", email: "demo.lifecycle.assigned@yenomi.test", name: "Kart Atanmış Kullanıcı", kind: "CORPORATE_EMPLOYEE", loginScope: "CORPORATE" },
-  { key: "lifecycleLost", email: "demo.lifecycle.lost@yenomi.test", name: "Kayıp Kart Kullanıcısı", kind: "CORPORATE_EMPLOYEE", loginScope: "CORPORATE" },
-  { key: "lifecycleDisabled", email: "demo.lifecycle.disabled@yenomi.test", name: "Devre Dışı Kart Kullanıcısı", kind: "CORPORATE_EMPLOYEE", loginScope: "CORPORATE" },
-  { key: "lifecycleSuspended", email: "demo.lifecycle.suspended@yenomi.test", name: "Pasif Çalışan", kind: "CORPORATE_EMPLOYEE", loginScope: "CORPORATE" },
-  { key: "lifecycleLeft", email: "demo.lifecycle.left@yenomi.test", name: "Ayrılmış Çalışan", kind: "CORPORATE_EMPLOYEE", loginScope: "CORPORATE" },
-
-  // v24.5 — Türkçe QA alias hesapları. Bunlar doküman etiketi değil, gerçek Auth fixture'larıdır.
-  { key: "trIndividualEmpty", email: "demo.bireysel.bos@yenomi.test", name: "Bireysel Profil Bekleyen", kind: "INDIVIDUAL_PENDING", loginScope: "INDIVIDUAL" },
-  { key: "trIndividualActive", email: "demo.bireysel.aktif@yenomi.test", name: "Bireysel Aktif Kullanıcı", kind: "INDIVIDUAL_COMPLETE", loginScope: "INDIVIDUAL" },
-  { key: "trOwner", email: "demo.kurumsal.yonetici@yenomi.test", name: "Kurumsal Yönetici", kind: "CORPORATE_OWNER", loginScope: "CORPORATE" },
-  { key: "trAdmin", email: "demo.kurumsal.admin@yenomi.test", name: "Kurumsal Admin", kind: "CORPORATE_ADMIN", loginScope: "CORPORATE" },
-  { key: "trHr", email: "demo.ik.yonetici@yenomi.test", name: "İnsan Kaynakları Yöneticisi", kind: "CORPORATE_HR", loginScope: "CORPORATE" },
-  { key: "trDepartmentManager", email: "demo.departman.yonetici@yenomi.test", name: "Departman Yöneticisi", kind: "DEPARTMENT_MANAGER", loginScope: "CORPORATE" },
-  { key: "trRegistered", email: "demo.calisan.kayit@yenomi.test", name: "Hesabını Oluşturmuş Çalışan", kind: "CORPORATE_EMPLOYEE", loginScope: "CORPORATE" },
-  { key: "trNoCard", email: "demo.calisan.kartyok@yenomi.test", name: "Dijital Kartı Oluşturulmamış", kind: "CORPORATE_EMPLOYEE", loginScope: "CORPORATE" },
-  { key: "trDigital", email: "demo.calisan.dijital@yenomi.test", name: "Dijital Kart Hazır", kind: "CORPORATE_EMPLOYEE", loginScope: "CORPORATE" },
-  { key: "trAssigned", email: "demo.calisan.atanmis@yenomi.test", name: "Fiziksel Kart Atanmış", kind: "CORPORATE_EMPLOYEE", loginScope: "CORPORATE" },
-  { key: "trLost", email: "demo.calisan.kayip@yenomi.test", name: "Kayıp Kart", kind: "CORPORATE_EMPLOYEE", loginScope: "CORPORATE" },
-  { key: "trBackup", email: "demo.calisan.yedek@yenomi.test", name: "Yedek Kartlı Kullanıcı", kind: "CORPORATE_EMPLOYEE", loginScope: "CORPORATE" },
-  { key: "trSuspended", email: "demo.calisan.pasif@yenomi.test", name: "Pasif Çalışan", kind: "CORPORATE_EMPLOYEE", loginScope: "CORPORATE" },
-  { key: "trLeft", email: "demo.calisan.ayrildi@yenomi.test", name: "İşten Ayrılan Çalışan", kind: "CORPORATE_EMPLOYEE", loginScope: "CORPORATE" },
-  { key: "trFullOwner", email: "demo.kurumsal.dolu@yenomi.test", name: "Tam Kapasite Şirket Yöneticisi", kind: "CORPORATE_OWNER", loginScope: "CORPORATE" },
-  { key: "trEmptyOwner", email: "demo.kurumsal.bos@yenomi.test", name: "Yeni Kurumsal Müşteri", kind: "CORPORATE_OWNER", loginScope: "CORPORATE" },
-  { key: "trPartialOwner", email: "demo.kurumsal.eksik@yenomi.test", name: "Kısmen Dolu Şirket Yöneticisi", kind: "CORPORATE_OWNER", loginScope: "CORPORATE" },
-  { key: "trTemplateOwner", email: "demo.kurumsal.template@yenomi.test", name: "Şablon Test Yöneticisi", kind: "CORPORATE_OWNER", loginScope: "CORPORATE" },
-  { key: "trLeadOwner", email: "demo.kurumsal.lead@yenomi.test", name: "Lead Test Yöneticisi", kind: "CORPORATE_OWNER", loginScope: "CORPORATE" },
-  { key: "multiOrgUser", email: "demo.multi.org@yenomi.test", name: "İki Şirketli Yönetici", kind: "MULTI_ORG_ADMIN", loginScope: "CORPORATE" },
-  { key: "trIndividualPremium", email: "demo.bireysel.premium@yenomi.test", name: "Bireysel Premium Kullanıcı", kind: "INDIVIDUAL_PREMIUM", loginScope: "INDIVIDUAL" },
-  { key: "trIndividualExpired", email: "demo.bireysel.suresi.dolmus@yenomi.test", name: "Süresi Dolmuş Bireysel", kind: "INDIVIDUAL_EXPIRED", loginScope: "INDIVIDUAL" },
-  { key: "trIndividualLost", email: "demo.bireysel.kayip@yenomi.test", name: "Kayıp Kart Bireysel", kind: "INDIVIDUAL_LOST", loginScope: "INDIVIDUAL" },
-  { key: "trIndividualBackup", email: "demo.bireysel.yedek@yenomi.test", name: "Yedek Kart Bireysel", kind: "INDIVIDUAL_BACKUP", loginScope: "INDIVIDUAL" },
-  { key: "trIndividualClaimMismatch", email: "demo.bireysel.claim.mismatch@yenomi.test", name: "Claim Eşleşmeyen Kullanıcı", kind: "INDIVIDUAL_CLAIM_MISMATCH", loginScope: "INDIVIDUAL" },
-  { key: "trIndividualForeign", email: "demo.bireysel.yabanci@yenomi.test", name: "Yabancı Checkout Kullanıcısı", kind: "INDIVIDUAL_FOREIGN", loginScope: "INDIVIDUAL" },
-];
-
-const guestOrders = [
-  { email: "demo.bireysel.aktivasyon.bekler@yenomi.test", kind: "GUEST_ACTIVATION_PENDING", audience: "individual", orderNumber: "YI-DEMO-GUEST-AKTIVASYON", tokenLabel: "guest-activation" },
-  { email: "demo.bireysel.claim.siparis@yenomi.test", kind: "GUEST_CLAIM_MISMATCH_ORDER", audience: "individual", orderNumber: "YI-DEMO-GUEST-CLAIM", tokenLabel: "guest-claim-mismatch" },
-  { email: "demo.kurumsal.misafir.paid@yenomi.test", kind: "GUEST_CORPORATE_PAID", audience: "corporate", orderNumber: "YI-DEMO-GUEST-CORP", tokenLabel: "guest-corporate" },
-];
-
-const corporateScenarios = [
-  { owner: "corp5Full", slug: "demo-sirket-5-tam", name: "Demo Şirket 5 / Tam Dolu", plan: "DEMO-5", limit: 5, used: 5 },
-  { owner: "corp5Three", slug: "demo-sirket-5-iki-bos", name: "Demo Şirket 5 / 2 Boş", plan: "DEMO-5", limit: 5, used: 3 },
-  { owner: "corp10Full", slug: "demo-sirket-10-tam", name: "Demo Şirket 10 / Tam Dolu", plan: "DEMO-10", limit: 10, used: 10 },
-  { owner: "corp2FullA", slug: "demo-sirket-2-tam-a", name: "Demo Şirket 2 / Tam Dolu A", plan: "DEMO-2", limit: 2, used: 2 },
-  { owner: "corp2One", slug: "demo-sirket-2-bir-bos", name: "Demo Şirket 2 / 1 Boş", plan: "DEMO-2", limit: 2, used: 1 },
-  { owner: "corp2Upgrade", slug: "demo-sirket-2-upgrade", name: "Demo Şirket 2 / Paket Satın Al", plan: "DEMO-2", limit: 2, used: 2, upgrade: true },
-  { owner: "lifecycleOwner", slug: "demo-yasam-dongusu", name: "Demo Şirket / Kart Yaşam Döngüsü", plan: "DEMO-10", limit: 10, used: 1 },
-];
 
 if (!apply) {
   console.log("DRY RUN — hiçbir kayıt yazılmadı. Oluşturulacak ana kullanıcılar:");

@@ -48,7 +48,12 @@ function walk(directory, out = []) {
   }
   return out;
 }
-const productionFiles = codeRoots.flatMap((dir) => walk(path.join(root, dir)));
+const productionFiles = codeRoots
+  .flatMap((dir) => walk(path.join(root, dir)))
+  .filter((file) => !/\.(?:test|spec)\.(?:ts|tsx)$/.test(file));
+const testFiles = codeRoots
+  .flatMap((dir) => walk(path.join(root, dir)))
+  .filter((file) => /\.(?:test|spec)\.(?:ts|tsx)$/.test(file));
 const productionText = productionFiles.map((file) => fs.readFileSync(file, "utf8")).join("\n");
 for (const symbol of removedSymbols) {
   ok(!new RegExp(`\\b${symbol}\\b`).test(productionText), `unused symbol removed: ${symbol}`);
@@ -82,12 +87,27 @@ const appEntries = productionFiles.filter((file) => {
   return relative === "app/robots.ts" || relative === "app/sitemap.ts" ||
     ["page.ts", "page.tsx", "layout.ts", "layout.tsx", "route.ts", "route.tsx", "loading.tsx", "error.tsx", "not-found.tsx", "template.tsx", "default.tsx"].includes(base);
 }).map((file) => path.resolve(file));
+for (const relative of [
+  "app/LandingClient.tsx",
+  "app/components/ui/atoms.ts",
+]) {
+  const absolute = path.join(root, relative);
+  if (fs.existsSync(absolute)) appEntries.push(path.resolve(absolute));
+}
 const middleware = path.join(root, "middleware.ts");
 if (fs.existsSync(middleware)) {
   const text = fs.readFileSync(middleware, "utf8");
   importPattern.lastIndex = 0;
   for (let match; (match = importPattern.exec(text));) {
     const resolved = resolveRelative(middleware, match[1] ?? match[2]);
+    if (resolved) appEntries.push(path.resolve(resolved));
+  }
+}
+for (const testFile of testFiles) {
+  const text = fs.readFileSync(testFile, "utf8");
+  importPattern.lastIndex = 0;
+  for (let match; (match = importPattern.exec(text));) {
+    const resolved = resolveRelative(testFile, match[1] ?? match[2]);
     if (resolved) appEntries.push(path.resolve(resolved));
   }
 }

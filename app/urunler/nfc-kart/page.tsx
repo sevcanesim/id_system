@@ -19,7 +19,7 @@ const benefits = [
 ];
 
 const steps = [
-  ["01", "Kartını seç", "Siyah, beyaz veya Yenomi moru."],
+  ["01", "Kartını seç", "Siyah mat NFC + QR kart."],
   ["02", "Teslimat ve ödemeyi tamamla", "Kargo dahil fiyatla Türkiye içi sipariş ver."],
   ["03", "Profilini etkinleştir", "Bilgilerini ekle; NFC ve QR aynı sayfaya bağlansın."],
 ];

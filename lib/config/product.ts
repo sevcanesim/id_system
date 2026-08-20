@@ -58,8 +58,8 @@ export const PRODUCT_CATALOG = [
     active: true,
     variants: [
       { id: "black", name: "Siyah", color: "BLACK", priceDeltaKurus: 0, active: true },
-      { id: "white", name: "Beyaz", color: "WHITE", priceDeltaKurus: 0, active: true },
-      { id: "purple", name: "Yenomi Mor", color: "PURPLE", priceDeltaKurus: 0, active: true },
+      { id: "white", name: "Beyaz", color: "WHITE", priceDeltaKurus: 0, active: false },
+      { id: "purple", name: "Yenomi Mor", color: "PURPLE", priceDeltaKurus: 0, active: false },
     ],
   },
   {

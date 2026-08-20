@@ -10487,7 +10487,7 @@ article[id] {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  max-width: 42ch;
+  max-width: none;
   color: #4d5156;
   font-size: 13px;
   line-height: 1.45;

@@ -1407,6 +1407,7 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
   .cart-item-qty,.cart-item-price,.cart-item-remove { grid-column:2; }
   .cart-item-thumb { width:70px; }
   .checkout-progress { grid-template-columns:1fr 1fr; }
+  .result-empty,.order-success,.activation-shell { width:min(calc(100% - 32px),720px); margin:40px auto; padding:28px 18px; }
   .premium-checkout-head { align-items:flex-start; }
   .premium-color-grid { grid-template-columns:1fr; }
   .stacked-card-preview { min-height:300px; transform:scale(.78); }

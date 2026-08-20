@@ -8,8 +8,6 @@ import { Icon, type IconName } from "../icons";
 const COPIES = 3;
 
 const ITEMS: Array<{ icon: IconName; label: string }> = [
-  { icon: "id", label: "YENOMI ID" },
-  { icon: "link", label: "www.yenomilabs.com" },
   { icon: "lock", label: "SSL şifreli hesap ve ödeme" },
   { icon: "shield", label: "Kartın iyzico’da kalır" },
   { icon: "truck", label: "Türkiye içi kargo dahil" },
@@ -17,7 +15,7 @@ const ITEMS: Array<{ icon: IconName; label: string }> = [
 
 export default function AnnouncementBar() {
   return (
-    <div className="yi-brand-marquee" role="note" aria-label="Yenomi ID, yenomilabs.com, SSL şifreleme, iyzico ödemesi ve Türkiye içi kargo">
+    <div className="yi-brand-marquee" role="note" aria-label="SSL şifreleme, iyzico ödemesi ve Türkiye içi kargo">
       <div className="yi-brand-marquee__track">
         {Array.from({ length: COPIES }, (_, index) => (
           <span className="yi-brand-marquee__unit" key={index}>

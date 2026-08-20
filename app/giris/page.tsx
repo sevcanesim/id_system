@@ -490,7 +490,7 @@ export default function LoginPage() {
                 <small>Oturum şifreli tutulur. Kart numarası bu ekranda istenmez.</small>
               </span>
             </div>
-            {!isSupabaseConfigured && <div className="p6-auth-message error">Giriş hizmeti şu anda yapılandırılıyor. Lütfen daha sonra tekrar dene.</div>}
+            {!isSupabaseConfigured && <div className="p6-auth-message error">Supabase bağlantısı kurulamadı: {supabaseConfigIssue}</div>}
           </div>
         </section>
       </section>

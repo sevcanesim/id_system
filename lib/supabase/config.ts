@@ -23,7 +23,7 @@ export const hasSupabaseUrl = isRealValue(supabaseUrl);
 export const hasSupabaseKey = isRealValue(supabaseAnonKey);
 export const isSupabaseConfigured = hasSupabaseUrl && hasSupabaseKey;
 export const supabaseConfigIssue = !hasSupabaseUrl
-  ? "NEXT_PUBLIC_SUPABASE_URL eksik veya örnek değer olarak kalmış."
+  ? "NEXT_PUBLIC_SUPABASE_URL boş veya örnek (PROJE-ID) olarak kalmış. Gerçek https://<proje>.supabase.co değerini .env.local dosyasına yazıp geliştirme sunucusunu yeniden başlat."
   : !hasSupabaseKey
-    ? "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (veya eski adla NEXT_PUBLIC_SUPABASE_ANON_KEY) eksik veya örnek değer olarak kalmış."
+    ? "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (veya eski adla NEXT_PUBLIC_SUPABASE_ANON_KEY) boş veya örnek. Gerçek anahtarı .env.local dosyasına yazıp geliştirme sunucusunu yeniden başlat."
     : "";

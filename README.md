@@ -23,11 +23,11 @@ cp .env.example .env.local
 npm run dev
 ```
 
-`.env.local`:
+`.env.local` içine gerçek proje değerlerini yaz. README örneğindeki `PROJE-ID` metnini bırakırsan giriş açılmaz.
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://PROJE-ID.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=PUBLISHABLE-ANON-KEY
+NEXT_PUBLIC_SUPABASE_URL=https://abcdxyz.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=eyJ...
 ```
 
 Supabase SQL Editor içinde çalıştırılacak dosya:

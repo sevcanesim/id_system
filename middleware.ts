@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  ACCESS_COOKIE,
+  applySessionCookies,
+  clearSessionCookies,
+  resolveMiddlewareSession,
+} from "./lib/auth/http-only-session";
 import { consumeDistributedRateLimit, requestIp } from "./lib/security/rate-limit";
 
-const AUTH_COOKIE = "yenomi-access-token";
+const AUTH_COOKIE = ACCESS_COOKIE;
 const PROTECTED_PAGES = ["/admin", "/kurumsal/panel", "/siparislerim", "/kartim", "/kartlarim", "/olustur", "/yenile", "/ayarlar", "/istatistikler"];
 const PRIVATE_OR_PROFILE_PREFIXES = ["/admin", "/dashboard", "/giris", "/hesabim", "/kartim", "/kartlarim", "/siparisler", "/siparislerim", "/olustur", "/aktivasyon", "/checkout", "/odeme", "/sepet", "/kurumsal/panel", "/kurumsal/davet", "/p", "/e", "/qr", "/api"];
 
@@ -23,22 +29,6 @@ function ruleFor(pathname: string, method: string): LimitRule | null {
   return null;
 }
 
-async function hasValidSession(request: NextRequest): Promise<boolean> {
-  const token = request.cookies.get(AUTH_COOKIE)?.value;
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!token || !url || !key) return false;
-  try {
-    const response = await fetch(`${url}/auth/v1/user`, {
-      headers: { apikey: key, Authorization: `Bearer ${decodeURIComponent(token)}` },
-      cache: "no-store",
-    });
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
-
 function isProtectedPage(pathname: string) {
   return PROTECTED_PAGES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 }
@@ -46,12 +36,13 @@ function isProtectedPage(pathname: string) {
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const requestId = request.headers.get("x-request-id") || crypto.randomUUID();
+  const session = isProtectedPage(pathname) ? await resolveMiddlewareSession(request) : null;
 
-  if (isProtectedPage(pathname) && !(await hasValidSession(request))) {
+  if (session && !session.allow) {
     const loginUrl = new URL("/giris", request.url);
     loginUrl.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
     const redirect = NextResponse.redirect(loginUrl);
-    redirect.cookies.set(AUTH_COOKIE, "", { path: "/", maxAge: 0, sameSite: "lax" });
+    clearSessionCookies(redirect);
     redirect.headers.set("X-Request-Id", requestId);
     return redirect;
   }
@@ -81,6 +72,7 @@ export async function middleware(request: NextRequest) {
     response.headers.set("Referrer-Policy", "no-referrer");
     response.headers.set("Cache-Control", "private, no-store, no-cache, max-age=0, must-revalidate");
   }
+  if (session?.allow && session.rotated) applySessionCookies(response, session.rotated);
   return response;
 }
 

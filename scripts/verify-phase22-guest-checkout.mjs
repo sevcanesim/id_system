@@ -72,8 +72,12 @@ if (!middleware.includes('"/checkout"') || !middleware.includes('"/aktivasyon"')
   throw new Error("Middleware must match checkout, activation, auth session, and iyzico recover routes.");
 }
 const session = readFileSync("app/api/auth/session/route.ts", "utf8");
+const sessionHelper = readFileSync("lib/auth/http-only-session.ts", "utf8");
 if (!session.includes("httpOnly: true") || !session.includes("auth.getUser")) {
   throw new Error("Access token cookie must be HttpOnly and verified before set.");
+}
+if (!session.includes("export async function GET") || !sessionHelper.includes("yenomi-refresh-token") || !sessionHelper.includes("grant_type=refresh_token")) {
+  throw new Error("Session route must restore and rotate refresh tokens via HttpOnly cookies.");
 }
 const activation = readFileSync("app/aktivasyon/ActivationClient.tsx", "utf8");
 if (!activation.includes("yenomi-activation-token") || !activation.includes('router.replace("/aktivasyon"')) {

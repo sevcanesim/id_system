@@ -12555,4 +12555,16 @@ article[id] {
   }
 }
 
+.products-plan-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.products-plan-card .products-single-price {
+  white-space: normal;
+}
+@media (max-width: 980px) {
+  .products-plan-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 

@@ -11,6 +11,8 @@ import { ButtonLink } from "../ui/Button";
 import AddToCartButton from "../components/AddToCartButton";
 import { PublicPageTitle } from "../components/PublicPageTitle";
 import {
+  ADDITIONAL_CARD_FEATURES,
+  ADDITIONAL_CARD_PLAN,
   INDIVIDUAL_FEATURES,
   INDIVIDUAL_PLAN,
   INDIVIDUAL_PREMIUM_FEATURES,
@@ -21,17 +23,19 @@ import { COMMERCIAL_PRICING, COMMERCIAL_SKUS } from "../../lib/config/commercial
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Dijital Kartvizit",
-  description: "799 TL bireysel NFC + QR kart. Premium 1.250 TL. Unvanın değişince baskı yok. Ekip için kurumsal paketler ayrı.",
+  description: "799 TL bireysel NFC + QR kart. Premium 1.250 TL. Yedek kart 399 TL. Unvanın değişince baskı yok. Ekip için kurumsal paketler ayrı.",
 };
 
 export default async function ProductsPage() {
-  let products: Awaited<ReturnType<typeof getDatabaseCatalog>> = [];
-  let catalogError = false;
-  try { products = await getDatabaseCatalog(); } catch { catalogError = true; }
-
-  const available = products.filter((p) => String(p.status).toUpperCase() !== "COMING_SOON");
-  const nfc = available.find((p) => p.slug === "nfc-kart") ?? available[0];
-  const listPriceKurus = listingPriceKurus(nfc?.variants);
+  let listPriceKurus = INDIVIDUAL_PLAN.priceKurus;
+  try {
+    const products = await getDatabaseCatalog();
+    const available = products.filter((p) => String(p.status).toUpperCase() !== "COMING_SOON");
+    const nfc = available.find((p) => p.slug === "nfc-kart") ?? available[0];
+    listPriceKurus = listingPriceKurus(nfc?.variants);
+  } catch {
+    listPriceKurus = INDIVIDUAL_PLAN.priceKurus;
+  }
 
   return (
     <div className="products-single-page yi-site">
@@ -39,7 +43,7 @@ export default async function ProductsPage() {
         <PublicPageTitle
           kicker="YENOMI ID · DİJİTAL KARTVİZİT"
           title={<>Kartın sende kalsın.<br /><em>Profilin her an güncel.</em></>}
-          description="799 TL bireysel NFC + QR. Premium 1.250 TL ile toplantı, sunum ve 100 Network Mail. Ekip için 100 kişiye kadar sepete ekle."
+          description="799 TL bireysel NFC + QR. Premium 1.250 TL ile toplantı, sunum ve 100 Network Mail. Yedek kart 399 TL. Ekip için 100 kişiye kadar sepete ekle."
           className="public-page-title--catalog"
         />
         <section className="products-single-hero" aria-labelledby="products-title">
@@ -49,7 +53,7 @@ export default async function ProductsPage() {
               <h2 id="products-title">Tek kart. Her tanışmada güncel.</h2>
               <p>NFC + QR kartını al, canlı profilini bağla. Unvanın değişince baskı yok. Ekip aynı standartta tanışacaksa kurumsal paketi seç.</p>
               <div className="products-single-actions">
-                {nfc && <ButtonLink href={`/urunler/${nfc.slug}`} variant="dark">NFC Kartı Satın Al</ButtonLink>}
+                <ButtonLink href="/urunler/nfc-kart" variant="dark">NFC Kartı Satın Al</ButtonLink>
                 <ButtonLink href="/kurumsal" variant="secondary">Ekip paketini incele</ButtonLink>
               </div>
             </div>
@@ -65,22 +69,20 @@ export default async function ProductsPage() {
               <div className="products-plan-card__head">
                 <span className="products-single-kicker">BİREYSEL</span>
                 <h2 id="offer-title">{INDIVIDUAL_PLAN.name}</h2>
-                {!catalogError && <strong className="products-single-price">{formatTryFromKurus(listPriceKurus)}</strong>}
+                <strong className="products-single-price">{formatTryFromKurus(listPriceKurus)}</strong>
               </div>
               <p>NFC kart + 1 yıllık dijital kartvizit + Türkiye içi ücretsiz kargo.</p>
               <ul aria-label="Bireysel paket içeriği">
                 {INDIVIDUAL_FEATURES.map((item) => <li key={item}>{item}</li>)}
               </ul>
-              {nfc && !catalogError && (
-                <AddToCartButton
-                  productId={NFC_PRODUCT.slug}
-                  variantSku={COMMERCIAL_SKUS.INITIAL}
-                  kind="NFC_PHYSICAL_CARD"
-                  name="Yenomi ID NFC Kart"
-                  unitPriceKurus={listPriceKurus}
-                  label="Sepete Ekle"
-                />
-              )}
+              <AddToCartButton
+                productId={NFC_PRODUCT.slug}
+                variantSku={COMMERCIAL_SKUS.INITIAL}
+                kind="NFC_PHYSICAL_CARD"
+                name="Yenomi ID NFC Kart"
+                unitPriceKurus={listPriceKurus}
+                label="Sepete Ekle"
+              />
             </article>
             <article className="products-plan-card is-popular">
               <div className="products-plan-card__head">
@@ -101,6 +103,25 @@ export default async function ProductsPage() {
                 label="Sepete Ekle"
               />
             </article>
+            <article className="products-plan-card">
+              <div className="products-plan-card__head">
+                <span className="products-single-kicker">YEDEK KART</span>
+                <h2>{ADDITIONAL_CARD_PLAN.name}</h2>
+                <strong className="products-single-price">{formatTryFromKurus(ADDITIONAL_CARD_PLAN.priceKurus)}</strong>
+              </div>
+              <p>Aynı dijital profile bağlı ek NFC + QR kart. Yeni yıl veya yeni profil açmaz.</p>
+              <ul aria-label="Yedek kart içeriği">
+                {ADDITIONAL_CARD_FEATURES.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+              <AddToCartButton
+                productId={NFC_PRODUCT.slug}
+                variantSku={COMMERCIAL_SKUS.ADDITIONAL_CARD}
+                kind="NFC_PHYSICAL_CARD"
+                name="Yenomi ID Yedek Kart"
+                unitPriceKurus={COMMERCIAL_PRICING.ADDITIONAL_CARD.priceKurus}
+                label="Sepete Ekle"
+              />
+            </article>
           </div>
         </section>
 
@@ -112,9 +133,6 @@ export default async function ProductsPage() {
             <span>Kartın iyzico’da kalır</span>
           </div>
         </section>
-
-        {catalogError && <p className="products-single-error" role="status">Ürün fiyatı şu anda görüntülenemiyor. Lütfen kısa süre sonra tekrar deneyin.</p>}
-        {!catalogError && !nfc && <p className="products-single-error" role="status">Şu anda listelenecek aktif bir kart paketi yok.</p>}
       </main>
     </div>
   );

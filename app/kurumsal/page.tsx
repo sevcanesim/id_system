@@ -152,10 +152,10 @@ export default async function CorporatePage({
           initialCode={selectedPlan}
         />
         <details className="corporate-pack-details">
-          <summary>Tüm paket merdivenini tablo olarak gör</summary>
+          <summary>Tüm fiyat listesini tablo olarak gör</summary>
           <div className="corporate-pack-table-wrap">
             <table className="corporate-pack-table">
-              <caption className="sr-only">Kurumsal paket merdiveni</caption>
+              <caption className="sr-only">Kurumsal fiyat listesi</caption>
               <thead>
                 <tr>
                   <th scope="col">Paket</th>

@@ -22,6 +22,15 @@ export const INDIVIDUAL_PLAN = {
   popular: false,
 } as const;
 
+/** Extra physical NFC + QR on an existing profile. No new year, no new identity. */
+export const ADDITIONAL_CARD_PLAN = {
+  code: "ADDITIONAL_CARD",
+  name: "Yedek Kart",
+  priceKurus: 39_900,
+  nfcCards: 1,
+  networkMailCredits: 0,
+} as const;
+
 export const INDIVIDUAL_PREMIUM_PLAN = {
   code: "INDIVIDUAL_PREMIUM",
   name: "Bireysel Premium",
@@ -398,6 +407,14 @@ export const INDIVIDUAL_PREMIUM_FEATURES = [
   "1 NFC kart",
   "1 yıllık kullanım",
   "Ücretsiz kargo",
+] as const;
+
+export const ADDITIONAL_CARD_FEATURES = [
+  "1 NFC + QR kart",
+  "Mevcut profile bağlanır",
+  "Yeni yıllık hizmet başlatmaz",
+  "Yeni dijital kimlik açmaz",
+  "Türkiye içi kargo dahil",
 ] as const;
 
 export const CORPORATE_SHARED_FEATURES = [

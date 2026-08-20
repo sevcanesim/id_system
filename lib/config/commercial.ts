@@ -3,6 +3,8 @@ import {
   CORPORATE_PACKAGE_LADDER,
   CORPORATE_PACKAGE_PRODUCT_SLUG,
   corporatePackageSku,
+  ADDITIONAL_CARD_PLAN,
+  INDIVIDUAL_PLAN,
   INDIVIDUAL_PREMIUM_PLAN,
   INDIVIDUAL_PREMIUM_RENEWAL_PLAN,
   INDIVIDUAL_PREMIUM_UPGRADE_PLAN,
@@ -90,6 +92,12 @@ export const COMMERCIAL_COPY = {
   replacementCardPrice: formatCommercialTry(COMMERCIAL_PRICING.REPLACEMENT_CARD.priceKurus),
 } as const;
 
+if (COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus !== INDIVIDUAL_PLAN.priceKurus) {
+  throw new Error("Individual listing price drifted from the package ladder.");
+}
+if (COMMERCIAL_PRICING.ADDITIONAL_CARD.priceKurus !== ADDITIONAL_CARD_PLAN.priceKurus) {
+  throw new Error("Spare-card listing price drifted from the package ladder.");
+}
 if (COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.priceKurus !== INDIVIDUAL_PREMIUM_PLAN.priceKurus) {
   throw new Error("Premium listing price drifted from the package ladder.");
 }

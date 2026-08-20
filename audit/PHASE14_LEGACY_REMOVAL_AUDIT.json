@@ -6,12 +6,16 @@
     "dead individual-* editor block",
     "public-route qr.css imports"
   ],
-  "remainingLegacyOwners": [
-    "globals.css",
-    "legacy-surfaces.css",
-    "qr.css"
+  "canonicalSurface": "app/canonical.css",
+  "liveOwnedCss": [
+    "app/canonical.css",
+    "app/design-tokens.css",
+    "app/design-system.css",
+    "app/employee-management.css",
+    "app/theme-policy.css"
   ],
-  "cssFiles": 16,
-  "importantCount": 2924,
-  "legacyTokenRefs": 873
+  "remainingLegacyOwners": [],
+  "cssFiles": 5,
+  "importantCount": 1,
+  "legacyTokenRefs": 0
 }

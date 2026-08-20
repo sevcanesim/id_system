@@ -5,15 +5,24 @@ Phase 14 removes compatibility code only after active source usage is migrated.
 ## Removed
 - `app/panel-system.css` and its root import.
 - The obsolete `--yp-*` compatibility token family.
-- Dead `individual-*` editor CSS from `globals.css` after source usage reached zero.
+- Dead `individual-*` editor CSS after source usage reached zero.
 - Legacy `dashboard-*` and `yp-*` class usage from the individual Kartım route.
 - Visible “HESAP KONTROLÜ” loading UI in CardWizard.
-- `qr.css` imports from public identity routes now fully owned by Phase 12.
+- `qr.css` imports from public identity routes.
 
 ## Migrated ownership
-- Kartım visual ownership -> `dashboard-flow.css` (`p14-*`).
-- Corporate CardWizard navigation/loading -> `profile-editor.css`.
-- Public profile watermark -> `public-card.css`.
+- Kartım visual ownership -> `app/canonical.css` (`p14-*`). Do not recreate `dashboard-flow.css`.
+- Corporate CardWizard navigation/loading -> `app/canonical.css`. Do not recreate `profile-editor.css`.
+- Public profile watermark remains on the public card surface. Do not recreate `public-card.css`.
 
-## Intentionally retained
-`legacy-surfaces.css`, `globals.css`, and `qr.css` still contain active legacy selectors used by admin, NFC order artwork, corporate preview templates, global header/footer and other routes. They must not be deleted wholesale until literal/runtime ownership reaches zero and visual regression confirms removal.
+## Live owned CSS
+`app/design-tokens.css` and `app/design-system.css` remain live owned global layers, imported from `app/layout.tsx`. They must not be deleted. `verify:ui-system` is authoritative for the owned CSS set:
+
+- `app/canonical.css`
+- `app/design-tokens.css`
+- `app/design-system.css`
+- `app/employee-management.css`
+- `app/theme-policy.css`
+
+## Do not recreate
+Retired split stylesheets stay deleted: `globals.css`, `legacy-surfaces.css`, `qr.css`, `dashboard-flow.css`, `panel-system.css`, `profile-editor.css`, `public-card.css`, `corporate-platform.css`.

@@ -11,6 +11,7 @@ import UserPanelShell from "../components/UserPanelShell";
 import { Badge, Button, Drawer, Field, Input, Select, Textarea } from "../components/ui";
 import { Icon } from "../icons";
 import { TITLE_OPTIONS, normalizeEmailField, normalizeTrPhone } from "../../lib/form-standards";
+import { unusedEntitlementId } from "../../lib/commerce/entitlement-bind";
 import { fetchOwnProfile, fetchOwnProfileById, fetchOwnProfileByOrganizationId, fetchOwnProfiles } from "../../lib/repositories/profiles";
 import { track } from "../../lib/analytics";
 import PanelSidebar from "../components/ui/PanelSidebar";
@@ -193,18 +194,6 @@ export default function CardWizard() {
           return;
         }
       }
-      if (isNewCard && !isBusinessCard) {
-        const { data: existingProfiles } = await fetchOwnProfiles(supabase, user.id);
-        const usedEntitlementIds = new Set(existingProfiles.map((p) => p.entitlement_id).filter(Boolean));
-        const spareEntitlement = (entitlementPayload.entitlements ?? []).find((e) => !usedEntitlementIds.has(e.id));
-        if (!spareEntitlement) {
-          setAccessState("denied");
-          router.replace("/urunler?reason=no-spare-card");
-          return;
-        }
-        setNewCardEntitlementId(spareEntitlement.id);
-      }
-      setAccessState("allowed");
       // `?new=1` -> boş formla yeni bir kart oluştur (mevcut kartları etkilemez).
       // `?id=...` -> o belirli kartı düzenle.
       // Kurumsal Kartım ekranında `id` henüz URL'ye eklenmemiş olsa bile
@@ -223,6 +212,17 @@ export default function CardWizard() {
       } else if (!isNewCard) {
         profile = (await fetchOwnProfile(supabase, user.id)).data;
       }
+      if (!isBusinessCard && (isNewCard || !profile)) {
+        const { data: existingProfiles } = await fetchOwnProfiles(supabase, user.id);
+        const spareEntitlementId = unusedEntitlementId(entitlementPayload.entitlements ?? [], existingProfiles);
+        if (!spareEntitlementId) {
+          setAccessState("denied");
+          router.replace(isNewCard ? "/urunler?reason=no-spare-card" : (entitlementPayload.next || "/urunler?reason=access-required"));
+          return;
+        }
+        setNewCardEntitlementId(spareEntitlementId);
+      }
+      setAccessState("allowed");
       track("creation_start", { hasExistingProfile: Boolean(profile), isNewCard });
       if (profile) {
         setProfileId(profile.id);
@@ -501,13 +501,16 @@ export default function CardWizard() {
         const { data: sessionData } = await supabase.auth.getSession();
         const accessToken = sessionData.session?.access_token;
         if (!accessToken) throw new Error("Oturum bulunamadı. Lütfen tekrar giriş yap.");
+        if (!profileId && !isBusinessCard && !newCardEntitlementId) {
+          throw new Error("Bu kart için kullanılabilir bir Yenomi ID hakkın yok.");
+        }
 
         // profileId varsa o kart güncellenir; yoksa yeni bir kart profili
         // oluşturulur (kullanıcının varsa olan diğer kartlarına dokunulmaz).
         // Yazma işlemi artık `save_own_card_profile` sunucu RPC'sinden
         // geçiyor: kurumsal alan kilitleri (Şirket adı, Ünvan, E-posta,
         // Telefon, Ad Soyad) ve ünvan kataloğu istemciden bağımsız olarak
-        // sunucuda zorlanıyor.
+        // sunucuda zorlanıyor. Bireysel INSERT kullanılmamış entitlement ister.
         const saveResponse = await fetch("/api/profiles/save", {
           method: "POST",
           headers: { "content-type": "application/json", authorization: `Bearer ${accessToken}` },
@@ -539,11 +542,14 @@ export default function CardWizard() {
 
         if (!saveError && saved && !profileId) setProfileId(saved.id);
         if (!saveError && saved && isBusinessCard && businessOrganizationId) {
-          await fetch("/api/organizations/card-profile-link", {
+          const linkResponse = await fetch("/api/organizations/card-profile-link", {
             method: "POST",
             headers: { "content-type": "application/json", authorization: `Bearer ${accessToken}` },
             body: JSON.stringify({ organizationId: businessOrganizationId, profileId: saved.id }),
           });
+          if (!linkResponse.ok) {
+            throw new Error("Kartvizit kaydedildi; fiziksel kart henüz bağlanamadı. Sayfayı yenileyip tekrar dene.");
+          }
         }
         if (saveError) {
           // Eş zamanlı iki kullanıcı aynı bağlantıyı seçip aynı anda yayınlarsa,
@@ -559,6 +565,12 @@ export default function CardWizard() {
           if (savePayload.code === "TITLE_NOT_IN_CATALOG") {
             setMessage("Bu ünvan şirketin pozisyon listesinde yok. Listeden bir ünvan seç ya da 'Listede yok, talep et' ile İK'dan iste.");
             throw new Error(saveError);
+          }
+          if (savePayload.code === "ENTITLEMENT_REQUIRED" || savePayload.code === "ENTITLEMENT_INVALID" || savePayload.code === "ENTITLEMENT_IN_USE") {
+            throw new Error("Bu kart için kullanılabilir bir Yenomi ID hakkın yok.");
+          }
+          if (savePayload.code === "DIGITAL_CARD_LIMIT_REACHED") {
+            throw new Error("Şirketin dijital kart kotası doldu.");
           }
           throw new Error(saveError);
         }

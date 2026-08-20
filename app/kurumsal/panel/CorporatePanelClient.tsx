@@ -1466,7 +1466,7 @@ export default function CompanyPanel() {
               <EmptyState
                 icon="building"
                 title={message || "Hesabına bağlı aktif şirket bulunmuyor."}
-                description="Kurumsal bir hesaba davet edildiysen, davet e-postasındaki bağlantıyı kullanarak katılabilirsin."
+                description="Ödemen alındıysa şirket kurulumu henüz bitmemiş olabilir. Siparişlerimden durumu gör veya başarı sayfasından kurulumu tekrar dene. Davetle katıldıysan e-postadaki bağlantıyı kullan."
               />
             ) : (
               <>

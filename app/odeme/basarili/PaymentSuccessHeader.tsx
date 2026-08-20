@@ -16,14 +16,16 @@ export default function PaymentSuccessHeader({ fallbackActions }: { fallbackActi
     let active = true;
     fetch(`/api/commerce/orders/status?order=${encodeURIComponent(orderId)}`, { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
-      .then((data: { activationRequired?: boolean; corporate?: boolean } | null) => {
+      .then((data: { activationRequired?: boolean; corporate?: boolean; corporateReady?: boolean } | null) => {
         if (!active || !data) return;
         if (data.activationRequired) {
           setActions([{ href: "/aktivasyon", label: "Hesabımı Bağla", primary: true }]);
           return;
         }
         if (data.corporate) {
-          setActions([{ href: "/kurumsal/panel", label: "Kurumsal Panel", primary: true }]);
+          setActions(data.corporateReady
+            ? [{ href: "/kurumsal/panel", label: "Kurumsal Panel", primary: true }]
+            : [{ href: "/siparislerim", label: "Siparişlerim", primary: true }]);
         }
       })
       .catch(() => undefined);

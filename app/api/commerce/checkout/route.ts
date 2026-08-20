@@ -17,6 +17,7 @@ import { getDatabaseLegalVersions } from "../../../../lib/config/database";
 import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, isDigitalOnlySku, isPremiumUpgradeSku } from "../../../../lib/config/commercial";
 import { corporateCheckoutLive, corporatePackageBySku, isDirectCheckoutBlocked } from "../../../../lib/commerce/packages";
 import { parseCompanyBilling } from "../../../../lib/validation/company";
+import { decideOpenPaymentAttempt } from "../../../../lib/payments/reuse-open-attempt";
 
 export const runtime = "nodejs";
 
@@ -480,6 +481,30 @@ export async function POST(request: NextRequest) {
         await admin.from("commerce_orders").delete().eq("id", order.id);
         return NextResponse.json(publicError("ORDER_CREATE_FAILED"), { status: 500 });
       }
+    }
+
+    const { data: openAttempt } = await admin
+      .from("commerce_payment_attempts")
+      .select("id,order_id,status,request_fingerprint,payment_page_url")
+      .eq("order_id", order.id)
+      .eq("status", "PENDING")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const openDecision = decideOpenPaymentAttempt(openAttempt, fingerprint);
+    if (openDecision === "conflict") {
+      return NextResponse.json({ ...publicError("IDEMPOTENCY_CONFLICT"), retryable: true, resetOrder: true }, { status: 409 });
+    }
+    if (openDecision === "reuse" && openAttempt?.payment_page_url) {
+      return NextResponse.json({ orderId: order.id, paymentPageUrl: openAttempt.payment_page_url, reused: true });
+    }
+    if (openDecision === "abandon" && openAttempt?.id) {
+      await admin.from("commerce_payment_attempts").update({
+        status: "FAILED",
+        idempotency_key: null,
+        error_message: "Checkout init incomplete",
+        updated_at: new Date().toISOString(),
+      }).eq("id", openAttempt.id);
     }
 
     const conversationId = randomUUID();

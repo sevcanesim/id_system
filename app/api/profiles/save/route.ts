@@ -72,6 +72,12 @@ export async function POST(request: NextRequest) {
     if (code === "ORG_CONTEXT_REQUIRED") return NextResponse.json({ error: "Bu kurumsal kart yalnız şirket çalışma alanından düzenlenebilir.", code }, { status: 409 });
     if (code === "FORBIDDEN") return NextResponse.json({ error: "Bu şirkette aktif üyeliğin yok.", code }, { status: 403 });
     if (code === "NOT_FOUND") return NextResponse.json({ error: "Kart profili bulunamadı.", code }, { status: 404 });
+    if (code === "ENTITLEMENT_REQUIRED" || code === "ENTITLEMENT_INVALID" || code === "ENTITLEMENT_IN_USE") {
+      return NextResponse.json({ error: "Bu kart için kullanılabilir bir Yenomi ID hakkın yok.", code }, { status: 403 });
+    }
+    if (code === "DIGITAL_CARD_LIMIT_REACHED") {
+      return NextResponse.json({ error: "Şirketin dijital kart kotası doldu.", code }, { status: 409 });
+    }
     return NextResponse.json({ error: "Kartvizit kaydedilemedi.", code }, { status: 500 });
   }
   return NextResponse.json({ profile: result.profile });

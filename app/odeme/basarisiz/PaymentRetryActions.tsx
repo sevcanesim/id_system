@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   getCheckoutReturnPath,
-  rotateCheckoutIdempotencyKey,
   setPendingCheckoutOrderId,
 } from "../../../lib/payments/browser-checkout";
 
@@ -20,7 +19,6 @@ export default function PaymentRetryActions() {
     const nextOrderId = searchParams.get("order");
     if (nextOrderId) setPendingCheckoutOrderId(nextOrderId);
     setOrderId(nextOrderId);
-    rotateCheckoutIdempotencyKey();
     setReturnPath(getCheckoutReturnPath());
   }, [searchParams]);
 

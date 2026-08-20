@@ -3,15 +3,31 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { writeCart } from "../../../lib/cart";
+import { CORPORATE_POST_PURCHASE_HREF, INDIVIDUAL_POST_PURCHASE_HREF } from "../../../lib/commerce/post-purchase";
 import { normalizeEmailField } from "../../../lib/form-standards";
 import { clearPendingCheckoutOrderId, rotateCheckoutIdempotencyKey } from "../../../lib/payments/browser-checkout";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 
-export default function ActivationAction({ activationRequired, corporate = false }: { activationRequired: boolean; corporate?: boolean }) {
+type Props = {
+  activationRequired: boolean;
+  corporate?: boolean;
+  corporateReady?: boolean;
+  orderId?: string | null;
+  onSetupRetry?: () => Promise<void>;
+};
+
+export default function ActivationAction({
+  activationRequired,
+  corporate = false,
+  corporateReady = false,
+  orderId = null,
+  onSetupRetry,
+}: Props) {
   const [ready, setReady] = useState(false);
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [resending, setResending] = useState(false);
+  const [retrying, setRetrying] = useState(false);
 
   useEffect(() => {
     writeCart([]);
@@ -48,6 +64,19 @@ export default function ActivationAction({ activationRequired, corporate = false
     }
   }
 
+  async function retrySetup() {
+    if (!orderId || !onSetupRetry) return;
+    setRetrying(true);
+    setMessage("");
+    try {
+      await onSetupRetry();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Kurulum yenilenemedi.");
+    } finally {
+      setRetrying(false);
+    }
+  }
+
   if (activationRequired) {
     return (
       <div className="activation-callout">
@@ -79,13 +108,29 @@ export default function ActivationAction({ activationRequired, corporate = false
     );
   }
 
+  if (corporate && !corporateReady) {
+    return (
+      <div className="activation-callout">
+        <h2>Şirket kurulumu henüz tamamlanmadı</h2>
+        <p>Ödemen alındı. Şirket paneli ancak kurulum bitince açılır. Yeni bir çekim yapılmaz.</p>
+        {message ? <div className="checkout-message">{message}</div> : null}
+        {orderId ? (
+          <button type="button" onClick={() => void retrySetup()} disabled={retrying}>
+            {retrying ? "Kurulum deneniyor…" : "Kurulumu tekrar dene"}
+          </button>
+        ) : null}
+        <Link href="/siparislerim">Siparişimi takip et →</Link>
+      </div>
+    );
+  }
+
   return (
     <div className="activation-callout">
       <h2>{corporate ? "Şirket hesabın hazır" : ready ? "Yenomi ID hizmetin hesabına tanımlandı" : "Kartvizitin için her şey hazır"}</h2>
       <p>{corporate
         ? "Aktivasyon koduyla uğraşmana gerek yok. Çalışan lisanslarını, kart üretimini ve paneli buradan yönet."
         : "Aktivasyon koduyla uğraşmana gerek yok. Şimdi kartvizit bilgilerini doldur; fiziksel kartın bu profile bağlansın."}</p>
-      <Link href={corporate ? "/kurumsal/panel" : "/olustur?source=purchase"}>
+      <Link href={corporate ? CORPORATE_POST_PURCHASE_HREF : INDIVIDUAL_POST_PURCHASE_HREF}>
         {corporate ? "Kurumsal Paneli Aç" : "Kartvizitimi Hazırla"}
       </Link>
     </div>

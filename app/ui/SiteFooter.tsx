@@ -9,7 +9,7 @@ function FooterContent() {
       <div className="yi-footer__identity">
         <div className="yi-footer__brand">
           <Brand compact />
-          <p>Dijital kartvizit: bireysel kullanım ve kurumsal ekip yönetimi.</p>
+          <p>NFC kart. Canlı profil. Şirket paneli. Kart numarası Yenomi’de saklanmaz.</p>
         </div>
 
         <div className="yi-footer__layers" aria-label="Ürün katmanları">

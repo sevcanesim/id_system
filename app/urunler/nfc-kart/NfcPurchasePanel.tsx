@@ -69,8 +69,8 @@ export default function NfcPurchasePanel({
 
       <p className="nfc-account-note" role="note">
         {packageId === "premium"
-          ? "Premium, NFC kart + 1 yıl + 100 Network Mail verir. Ödeme sonrası kredi hesabına yazılır."
-          : "Ödeme sırasında bilgilerini girersin. Hesabın varsa siparişin hesabına bağlanır; hesabın yoksa satın alma işlemini hesap açmadan tamamlayabilirsin."}
+          ? "Premium: NFC kart + 1 yıl + 100 Network Mail. Kredi ödeme sonrası hesabına yazılır. Kart numarası iyzico’da kalır."
+          : "Hesabın varsa sipariş bağlanır. Yoksa hesap açmadan ödeyebilirsin. Kart numarası Yenomi sunucularında tutulmaz."}
       </p>
 
       <div className="nfc-price-row" id="nfc-hero-price-row">
@@ -92,10 +92,10 @@ export default function NfcPurchasePanel({
       </div>
 
       <div className="nfc-trust-row" aria-label="Güven ve güvenlik">
-        <span><Icon name="lock" /> SSL güvenli ödeme</span>
-        <span><Icon name="shield" /> iyzico güvencesi</span>
-        <span><Icon name="truck" /> Türkiye içi ücretsiz kargo</span>
-        <span><Icon name="refresh" /> Kolay iade</span>
+        <span><Icon name="lock" /> SSL şifreli ödeme</span>
+        <span><Icon name="shield" /> Kartın iyzico’da kalır</span>
+        <span><Icon name="truck" /> Türkiye içi kargo dahil</span>
+        <span><Icon name="refresh" /> 14 gün cayma hakkı</span>
       </div>
 
       <MobileBuyBar

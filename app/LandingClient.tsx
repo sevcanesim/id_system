@@ -59,8 +59,8 @@ export default function LandingClient() {
         <div className="p4-shell p4-hero-grid">
           <div className="p4-hero-copy">
             <p className="p4-kicker p4-premium-badge">Premium dijital kimlik · Bireysel + Kurumsal</p>
-            <h1 className="p4-display" id="home-hero-title">Dijital kimliğin.<br/>Tek bir bağlantıda.</h1>
-            <p className="p4-lead">Profesyonel dijital kimliğini tek bağlantıda oluştur. Bilgilerini dilediğin an güncelle; NFC veya QR ile gerçek dünyada paylaş.</p>
+            <h1 className="p4-display" id="home-hero-title">Kart bir kez basılır.<br/>Kimliğin her gün güncel kalır.</h1>
+            <p className="p4-lead">Fiziksel NFC + QR kartın canlı profile bağlanır. Unvanın değişince baskı yok; kaybolursa kapatırsın. Kendin için al, ekibin için yönet.</p>
             <div className="p4-actions">
               <Link href="/urunler/nfc-kart" className="p4-button p4-button-primary" onClick={() => track("nfc_product_view", { location: "phase4_home_hero" })}>NFC Kartı Satın Al <span aria-hidden>→</span></Link>
               <Link href="#nasil-calisir" className="p4-button secondary" onClick={() => track("hero_cta_click", { location: "phase4_home_hero_how" })}>Nasıl Çalışır?</Link>
@@ -170,25 +170,25 @@ export default function LandingClient() {
             <div className="p4-path individual">
               <span className="p4-path-icon"><Icon name="contact" /></span>
               <span className="p4-path-label">Bireysel</span>
-              <h3>Tek kart, tek profil.</h3>
+              <h3>Tek kart. Her tanışmada güncel.</h3>
               <ul className="p4-path-list">
-                <li><Icon name="check" /><span>Tek kart, tek profil</span></li>
-                <li><Icon name="check" /><span>Kişisel bilgilerini yönet</span></li>
-                <li><Icon name="check" /><span>Her tanışmada profesyonel görün</span></li>
+                <li><Icon name="check" /><span>NFC + QR, tek canlı profil</span></li>
+                <li><Icon name="check" /><span>Unvan değişince baskı yok</span></li>
+                <li><Icon name="check" /><span>Kaybolursa kayıp modu</span></li>
               </ul>
               <Link href="/urunler/nfc-kart" className="p4-button secondary">NFC Kartı Satın Al <span aria-hidden>→</span></Link>
             </div>
             <div className="p4-path corporate">
               <span className="p4-path-icon"><Icon name="building" /></span>
               <span className="p4-path-label">Kurumsal</span>
-              <h3>Ekibinle birlikte ölçeklen.</h3>
+              <h3>Ekip aynı standartta tanışır.</h3>
               <ul className="p4-path-list">
-                <li><Icon name="check" /><span>Çalışan kartları</span></li>
-                <li><Icon name="check" /><span>Merkezi yönetim</span></li>
-                <li><Icon name="check" /><span>Kurumsal profil standardı</span></li>
-                <li><Icon name="check" /><span>Toplu sipariş avantajı</span></li>
+                <li><Icon name="check" /><span>Çalışan kartları tek panelde</span></li>
+                <li><Icon name="check" /><span>Yetki ve marka kontrolü</span></li>
+                <li><Icon name="check" /><span>Kaybolan kartı anında kapat</span></li>
+                <li><Icon name="check" /><span>100 kişiye kadar sepete ekle</span></li>
               </ul>
-              <Link href="/kurumsal" className="p4-button p4-button-primary">Kurumsal Çözümü İncele <span aria-hidden>→</span></Link>
+              <Link href="/kurumsal" className="p4-button p4-button-primary">Paketleri incele <span aria-hidden>→</span></Link>
             </div>
           </div>
         </div>
@@ -201,8 +201,8 @@ export default function LandingClient() {
       <section className="p4-final" aria-labelledby="final-cta-title">
         <div className="p4-shell">
           <p className="p4-kicker p4-kicker-center">Yenomi ID</p>
-          <h2 id="final-cta-title">Bir sonraki tanışmada sistemin hazır olsun.</h2>
-          <p>NFC + QR kartını seç. Ödeme sonrasında hesabını etkinleştir ve dijital kartvizitini kullanmaya başla.</p>
+            <h2 id="final-cta-title">Bir sonraki tanışmada sistemin hazır olsun.</h2>
+            <p>NFC + QR kartını seç. Hesap açmadan ödeyebilirsin; sipariş e-postanla hesabına bağlanır.</p>
           <div className="p4-actions"><Link href="/urunler/nfc-kart" className="p4-button p4-button-primary">NFC Kartı Satın Al <span aria-hidden>→</span></Link><Link href="/kurumsal" className="p4-button secondary">Kurumsal Çözüm</Link></div>
           <p className="p4-final-note">İlk paket {COMMERCIAL_COPY.initialPrice} ve 1 yıllık dijital hizmet içerir. Sonraki yıllarda fiziksel kartını kullanmaya devam eder, dijital hizmeti {COMMERCIAL_COPY.renewalPrice}/yıl karşılığında yenilersin.</p>
         </div>

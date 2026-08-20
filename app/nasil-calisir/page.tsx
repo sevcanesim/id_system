@@ -5,21 +5,21 @@ import { YenomiProductVisual } from "../ui/YenomiProductVisual";
 
 export const metadata: Metadata = {
   title: "Nasıl Çalışır — Yenomi ID",
-  description: "Bireysel veya kurumsal dijital kartvizit: NFC + QR kartını alın, canlı profili yayınlayın, paylaşın ve görüntülenmeyi izleyin.",
+  description: "Kartı yaklaştır, güncel profil açılsın. Uygulama yok. Unvanın değişince baskı yok; kaybolursa kapatırsın.",
 };
 
 const steps = [
-  { number: "01", title: "Kartınızı Alın", text: "Bireysel NFC + QR kartınızı seçin. Kart elinize ulaştığında dijital kartvizitinizle eşleşmeye hazırdır.", visual: "card" as const },
-  { number: "02", title: "Profilinizi Özelleştirin", text: "İletişim bilgilerinizi ve profesyonel kartvizitinizi tek canlı profilde düzenleyin.", visual: "profile" as const },
-  { number: "03", title: "Temas Edin", text: "Kartı telefona yaklaştırın veya QR’ı okutun. Kartvizitiniz tarayıcıda açılır; uygulama gerekmez.", visual: "tap" as const },
-  { number: "04", title: "Yönetin", text: "Profili güncel tutun, görüntülenmeleri izleyin. Ekipler için kartları ve markayı kurumsal panelden yönetin.", premium: true },
+  { number: "01", title: "Kartını seç", text: "Bireysel NFC + QR kartını al. Kart eline geldiğinde aynı kalıcı profile bağlanır.", visual: "card" as const },
+  { number: "02", title: "Profilini yayınla", text: "İletişim ve unvanın tek canlı sayfada durur. Değişince baskı yok.", visual: "profile" as const },
+  { number: "03", title: "Yaklaştır veya okut", text: "NFC veya QR. Karşı taraf uygulama indirmez; profil tarayıcıda açılır.", visual: "tap" as const },
+  { number: "04", title: "Kaybolursa kapat", text: "Kayıp modu fiziksel kartı durdurur. Ekipler kartı ve markayı panelden yönetir.", premium: true },
 ];
 
 const benefits: Array<[string, string, IconName]> = [
-  ["Güvenli & Şifreli", "Verileriniz güçlü güvenlik katmanlarıyla korunur.", "shield"],
-  ["Anında Güncellenir", "Bilginiz her zaman güncel, her yerde etkili.", "refresh"],
-  ["Global & Sınırsız", "Dünyanın her yerinden erişilebilir dijital profil.", "link"],
-  ["Kontrol Sizde", "Paylaşım izinlerinizi ve profilinizi siz belirlersiniz.", "lock"],
+  ["Kartın iyzico’da kalır", "Ödeme kartı numarası Yenomi sunucularında tutulmaz.", "shield"],
+  ["Anında güncellenir", "Unvan veya telefon değişince kartı yeniden basmazsın.", "refresh"],
+  ["Uygulama gerekmez", "Profil her yerde tarayıcıda açılır.", "link"],
+  ["Kontrol sende", "Kayıp modu, yayın ve yetki sende kalır.", "lock"],
 ];
 
 export default function HowItWorksPage() {
@@ -32,8 +32,8 @@ export default function HowItWorksPage() {
         <div className="how-planet" aria-hidden="true"><span /></div>
         <div className="how-hero-inner">
           <span className="section-kicker">YENOMI ID</span>
-          <h1 id="how-title">YENOMI ID: <em>Nasıl Çalışır?</em></h1>
-          <p>Kartını al, dijital kartvizitini kur, NFC veya QR ile paylaş. Bireysel kullanım veya kurumsal ekip yönetimi.</p>
+          <h1 id="how-title">Kartı yaklaştır.<br /><em>Güncel profil açılsın.</em></h1>
+          <p>Uygulama yok. Unvanın değişince baskı yok. Kaybolursa kapatırsın. Kendin için al, ekibin için yönet.</p>
         </div>
       </section>
 
@@ -71,7 +71,7 @@ export default function HowItWorksPage() {
                 </div>
               )}
               <Link href={step.number === "04" ? "/kurumsal" : "/urunler/nfc-kart"} className="how-step-cta">
-                {step.number === "04" ? "Kurumsalı incele" : "Kartı seç"}
+                {step.number === "04" ? "Ekip paketini incele" : "NFC Kartı Satın Al"}
               </Link>
             </article>
           ))}
@@ -87,7 +87,7 @@ export default function HowItWorksPage() {
             </article>
           ))}
         </div>
-        <p className="how-account-note">Kartın ve profilin hazırsa <Link href="/giris">Giriş Yap</Link></p>
+        <p className="how-account-note">Kartın ve profilin hazırsa <Link href="/giris">Hesabına gir</Link></p>
       </section>
 </main>
   );

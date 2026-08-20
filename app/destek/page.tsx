@@ -4,7 +4,7 @@ import { Icon, type IconName } from "../icons";
 
 export const metadata: Metadata = {
   title: "Yardım Merkezi — Yenomi ID",
-  description: "Yenomi ID kart, profil, hesap, sipariş ve kurumsal panel desteği.",
+  description: "Kayıp kart, kargo, iyzico ödemesi, hesap ve kurumsal panel. Net cevaplar.",
 };
 
 type TopicId = "kart" | "profil" | "guvenlik" | "siparis" | "kurumsal" | "teknik";
@@ -66,12 +66,12 @@ export default async function SupportPage({
         <div className="support-planet" aria-hidden="true"><span /></div>
         <div className="support-hero-inner">
           <span className="section-kicker">YARDIM MERKEZİ</span>
-          <h1 id="support-title">Yardım <em>Merkeziniz.</em></h1>
-          <p>Doğru bilgiye hızlıca ulaşın. Kartınızdan hesabınıza, siparişinizden kurumsal yönetiminize kadar her şey tek yerde.</p>
+          <h1 id="support-title">Kart, hesap, sipariş.<br /><em>Net cevaplar.</em></h1>
+          <p>Kayıp modu, kargo, iyzico ve panel. Kart numarası Yenomi’de saklanmaz.</p>
           <form className="support-search" role="search" action="/destek" method="get">
             <span className="support-search__icon" aria-hidden="true"><Icon name="search" /></span>
-            <input name="q" type="search" defaultValue={query} placeholder="Nasıl yardımcı olabiliriz?" aria-label="Yardım merkezinde ara" />
-            <button type="submit">Ara</button>
+            <input name="q" type="search" defaultValue={query} placeholder="Kayıp kart, kargo, ödeme…" aria-label="Yardım merkezinde ara" />
+            <button type="submit">Bul</button>
           </form>
         </div>
       </section>
@@ -130,7 +130,7 @@ export default async function SupportPage({
         <div><span className="section-kicker">DOĞRUDAN DESTEK</span><h2>Aradığınız cevap burada yoksa bize ulaşın.</h2></div>
         <p>Mesajınızı gönderin; ekibimiz hesabınızın bağlamını inceleyerek yardımcı olsun. Hesabınız varsa panele de dönebilirsiniz.</p>
         <div className="support-contact-actions">
-          <a className="support-contact-cta" href="mailto:hello@yenomilabs.com">Destek Ekibine Yazın <span aria-hidden="true">→</span></a>
+          <a className="support-contact-cta" href="mailto:hello@yenomilabs.com">Destek ekibine yaz <span aria-hidden="true">→</span></a>
           <Link href="/giris">Hesabıma Git</Link>
         </div>
       </section>

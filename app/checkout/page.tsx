@@ -354,8 +354,8 @@ export default function CheckoutPage() {
       {/* Public chrome is provided by PublicSiteShell. Do not remount AppHeader/AppFooter. */}
       <section className="checkout-shell checkout-confirm-shell">
         <div className="checkout-heading checkout-heading-compact">
-          <h1>{hasCorporatePackage ? "Kurumsal siparişini tamamla." : digitalOnlyCart ? "Dijital siparişini tamamla." : "Siparişini tamamla."}</h1>
-          <p>{hasCorporatePackage ? "Şirket fatura bilgileri ve teslimat adresini doğrula. Son adımda iyzico güvenli ödeme sayfasına geçeceksin." : digitalOnlyCart ? "Fatura ili ve ilçesini doğrula. Teslimat adresi gerekmez; son adımda iyzico güvenli ödeme sayfasına geçeceksin." : "Alıcı ve teslimat bilgilerini doğrula. Son adımda iyzico güvenli ödeme sayfasına geçeceksin."}</p>
+          <h1>{hasCorporatePackage ? "Kurumsal siparişi kilitle." : digitalOnlyCart ? "Dijital siparişi kilitle." : "Siparişi kilitle."}</h1>
+          <p>{hasCorporatePackage ? "Fatura ve teslimatı doğrula. Son adımda iyzico kartını alır; Yenomi saklamaz." : digitalOnlyCart ? "Fatura ili ve ilçesini doğrula. Teslimat adresi yok. Kartın iyzico’da kalır." : "Alıcı ve teslimatı doğrula. Kart numarası iyzico’da işlenir; Yenomi’de saklanmaz."}</p>
           <div className="checkout-account-note" role="status">{isAuthenticated ? <><Icon name="check" /> Hesabın bağlı. Siparişin hesabına otomatik eklenir.</> : <><Icon name="mail" /> Hesap açmadan tamamlayabilirsin. Satın alma sonrası siparişini bu e-posta ile hesabına bağlayabilirsin.</>}</div>
           <div className="checkout-trust-row checkout-trust-row-compact" aria-label="Sipariş avantajları">
             {!digitalOnlyCart && <span><Icon name="truck" />Ücretsiz kargo</span>}
@@ -405,7 +405,7 @@ export default function CheckoutPage() {
                       <label>Vergi dairesi<input required autoComplete="off" value={form.companyTaxOffice} onChange={(e) => update("companyTaxOffice", e.target.value)} placeholder="Örn. Kadıköy" /></label>
                     </div>
                   ) : null}
-                  <button type="button" className="checkout-next" onClick={advanceBuyer}>{digitalOnlyCart ? "Fatura Bilgilerine Devam Et" : "Teslimata Devam Et"} <Icon name="chevronRight" /></button>
+                  <button type="button" className="checkout-next" onClick={advanceBuyer}>{digitalOnlyCart ? "Fatura adresine geç" : "Teslimatı doğrula"} <Icon name="chevronRight" /></button>
                   {message && activeStep === "buyer" ? <div className="checkout-message" role="alert">{message}</div> : null}
                 </div>}
               </section>
@@ -432,7 +432,7 @@ export default function CheckoutPage() {
                       {!deliveryNoteOpen ? <button type="button" className="checkout-note-toggle" onClick={() => setDeliveryNoteOpen(true)}><Icon name="plus" /> Teslimat Notu Ekle</button> : <label>Teslimat notu <small>(isteğe bağlı)</small><input autoFocus value={form.deliveryNote} onChange={(e) => update("deliveryNote", e.target.value)} placeholder="Kapı kodu, teslim saati vb." /></label>}
                     </>
                   )}
-                  <button type="button" className="checkout-next" onClick={advanceShipping}>Onaylara Devam Et <Icon name="chevronRight" /></button>
+                  <button type="button" className="checkout-next" onClick={advanceShipping}>Ödemeye geç <Icon name="chevronRight" /></button>
                 </div>}
               </section>
 
@@ -496,7 +496,7 @@ export default function CheckoutPage() {
                   {hasCorporatePackage && <span><Icon name="check" /> Fatura: unvan, vergi no, vergi dairesi</span>}
                   {!digitalOnlyCart && <span><Icon name="check" /> Fiziksel kart üretim kaydı oluşturulur</span>}
                 </div>
-                <button type="submit" className="checkout-pay-button" disabled={busy || !legalVersions || !buyerComplete || !shippingComplete || !approvalComplete}><Icon name="lock" />{busy ? "Ödeme hazırlanıyor…" : "Güvenli Ödeme"}</button>
+                <button type="submit" className="checkout-pay-button" disabled={busy || !legalVersions || !buyerComplete || !shippingComplete || !approvalComplete}><Icon name="lock" />{busy ? "Ödeme hazırlanıyor…" : "iyzico ile güvenle öde"}</button>
                 {(!buyerComplete || !shippingComplete || !approvalComplete) && !busy ? <p className="checkout-pay-hint">{digitalOnlyCart ? "Ödemeye geçmek için alıcı, fatura ve onay adımlarını tamamlayın." : "Ödemeye geçmek için alıcı, teslimat ve onay adımlarını tamamlayın."}</p> : null}
                 <div className="checkout-secure-list"><span><Icon name="lock" /> SSL Güvenli</span>{!digitalOnlyCart && <span><Icon name="truck" /> Ücretsiz Kargo</span>}<span><Icon name="refresh" /> Kolay Aktivasyon</span><span><Icon name="shield" /> iyzico Güvencesi</span></div>
               </aside>

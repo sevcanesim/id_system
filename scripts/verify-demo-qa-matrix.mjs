@@ -14,7 +14,7 @@ const seed = fs.readFileSync(path.join(root, "scripts/seed-demo-scenarios.mjs"),
 const typedRegistry = fs.readFileSync(path.join(root, "tests/fixtures/demo-user-matrix.ts"), "utf8");
 const docs = fs.readFileSync(path.join(root, "DEMO_TEST_USERS.md"), "utf8");
 const baseline = fs.readFileSync(path.join(root, "docs/product-engineering/01_CURRENT_ARCHITECTURE_BASELINE.md"), "utf8");
-const qaHelper = fs.readFileSync(path.join(root, "scripts/_qa-demo-matrix.local.mjs"), "utf8");
+const localQaHelperPath = path.join(root, "scripts/_qa-demo-matrix.local.mjs");
 
 let failed = 0;
 const pass = (label) => console.log(`PASS  ${label}`);
@@ -107,14 +107,19 @@ const appLeak = walk(appDir).filter((file) => fs.readFileSync(file, "utf8").incl
 if (appLeak.length) fail(`app/ must not import the demo matrix: ${appLeak.map((file) => path.relative(root, file)).join(", ")}`);
 else pass("app/ does not import the demo matrix");
 
-const qaEmails = [...qaHelper.matchAll(/email:\s*"(demo\.[^"]+@yenomi\.test)"/g)].map((match) => match[1]);
 const knownNoAuth = new Set([
   ...DEMO_GUEST_ORDERS.map((guest) => guest.email),
   ...DEMO_INVITE_FIXTURES.map((invite) => invite.email),
 ]);
-for (const email of new Set(qaEmails)) {
-  if (loginEmails.has(email) || knownNoAuth.has(email)) pass(`local QA helper email ${email}`);
-  else fail(`local QA helper invented ${email}`);
+if (fs.existsSync(localQaHelperPath)) {
+  const qaHelper = fs.readFileSync(localQaHelperPath, "utf8");
+  const qaEmails = [...qaHelper.matchAll(/email:\s*"(demo\.[^"]+@yenomi\.test)"/g)].map((match) => match[1]);
+  for (const email of new Set(qaEmails)) {
+    if (loginEmails.has(email) || knownNoAuth.has(email)) pass(`local QA helper email ${email}`);
+    else fail(`local QA helper invented ${email}`);
+  }
+} else {
+  pass("gitignored local QA helper is absent (expected in CI)");
 }
 
 const requiredNeedles = [

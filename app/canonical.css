@@ -168,7 +168,7 @@ a { color: inherit; text-decoration: none; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .55; }
 h1,h2,h3,h4,h5,h6,p,ul,ol { margin-top: 0; }
-h1,h2,h3,h4 { color: var(--ink); font-family: var(--font-display); font-weight:700; line-height:1.1; letter-spacing:-.035em; }
+h1,h2,h3,h4 { color: var(--ink); font-family: var(--font-display); font-weight:700; line-height:1.1; letter-spacing:-.02em; word-spacing:.08em; }
 h1 { font-size: var(--type-h1); }
 h2 { font-size: var(--type-h2); }
 h3 { font-size: var(--type-h3); }
@@ -7749,7 +7749,7 @@ body:has(.how-it-works-page) {
 .ds-product-option-group__options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.ds-product-option{position:relative;min-height:62px;display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #ddd6cc;border-radius:12px;background:rgba(255,255,255,.65);cursor:pointer;transition:border-color 160ms ease,background 160ms ease,transform 160ms ease}.ds-product-option:hover{transform:translateY(-1px);border-color:#c6a25e}.ds-product-option--selected{border-color:#a9812f;background:#fffaf0;box-shadow:0 0 0 1px rgba(169,129,47,.15)}.ds-product-option__input{position:absolute;opacity:0;pointer-events:none}.ds-product-option__swatch{width:18px;height:18px;flex:0 0 18px;border-radius:50%;border:1px solid rgba(0,0,0,.16)}.ds-product-option__swatch--black{background:#17131c}.ds-product-option__swatch--white{background:#fff}.ds-product-option__swatch--purple{background:linear-gradient(135deg,#27133f,#8954c8)}.ds-product-option__copy{display:grid;gap:2px}.ds-product-option__copy strong{font-size:12px}.ds-product-option__copy small{color:#8a8188;font-size:10px}.ds-product-option__check{margin-left:auto;color:#a9812f;font-size:12px;opacity:0}.ds-product-option--selected .ds-product-option__check{opacity:1}
 .nfc-account-note{margin:12px 0;color:#7b7379;font-size:11px;line-height:1.5}.nfc-price-row{display:flex;align-items:end;justify-content:space-between;gap:20px;padding:18px 0;border-top:1px solid #dcd5ca;border-bottom:1px solid #dcd5ca}.nfc-price-tag{display:grid;gap:2px}.nfc-price-tag strong{font-size:38px;line-height:1;letter-spacing:-.045em}.nfc-price-tag small{color:#817980;font-size:11px}.nfc-price-actions .ds-button{min-height:48px;padding:0 24px;border-radius:11px}.nfc-trust-row{display:flex;flex-wrap:wrap;gap:14px 20px;margin-top:14px;color:#736b72;font-size:10px;font-weight:700}.nfc-trust-row span{display:inline-flex;align-items:center;gap:5px}.nfc-trust-row .yi-icon{width:12px;height:12px;color:#a9812f}
 .nfc-benefits{background:#fff;border-top:1px solid #ded8ce;border-bottom:1px solid #ded8ce}.nfc-benefits__grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}.nfc-benefits article{min-height:170px;padding:28px 24px;border-right:1px solid #e3ddd4}.nfc-benefits article:last-child{border-right:0}.nfc-benefits article>span,.nfc-steps article>span{color:#a9812f;font:800 11px/1 var(--font-mono)}.nfc-benefits h2{margin:42px 0 8px;font-size:20px;letter-spacing:-.025em}.nfc-benefits p,.nfc-steps p{margin:0;color:#756e74;font-size:13px;line-height:1.6}
-.nfc-story{padding:110px 0;background:#f5f2ea}.nfc-story__inner{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:end}.nfc-story h2,.nfc-includes h2,.nfc-faq h2,.nfc-final h2{margin:16px 0 0;font-size:clamp(44px,5.5vw,74px);line-height:.9;letter-spacing:-.06em}.nfc-story__inner>p{max-width:570px;margin:0;color:#756e74;font-size:16px;line-height:1.75}.nfc-steps{display:grid;grid-template-columns:repeat(3,1fr);margin-top:64px;border-top:1px solid #d9d2c7}.nfc-steps article{min-height:180px;padding:22px 24px;border-right:1px solid #d9d2c7}.nfc-steps article:last-child{border-right:0}.nfc-steps h3{margin:36px 0 8px;font-size:19px}
+.nfc-story{padding:110px 0;background:#f5f2ea}.nfc-story__inner{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:end}.nfc-story h2,.nfc-includes h2,.nfc-faq h2,.nfc-final h2{margin:16px 0 0;font-size:clamp(44px,5.5vw,74px);line-height:1.05;letter-spacing:-.02em;word-spacing:.1em}.nfc-story__inner>p{max-width:570px;margin:0;color:#756e74;font-size:16px;line-height:1.75}.nfc-steps{display:grid;grid-template-columns:repeat(3,1fr);margin-top:64px;border-top:1px solid #d9d2c7}.nfc-steps article{min-height:180px;padding:22px 24px;border-right:1px solid #d9d2c7}.nfc-steps article:last-child{border-right:0}.nfc-steps h3{margin:36px 0 8px;font-size:19px}
 .nfc-includes{padding:110px 0;background:#17131c;color:#f6f2ea}.nfc-includes__grid{display:grid;grid-template-columns:1fr .9fr .65fr;gap:60px;align-items:start}.nfc-includes .nfc-kicker{color:#d2ad68}.nfc-includes ul{margin:0;padding:0;list-style:none;display:grid;gap:0}.nfc-includes li{padding:15px 0;border-top:1px solid rgba(255,255,255,.1);color:#c9c0b8;font-size:14px}.nfc-includes__cta{padding:22px;border:1px solid rgba(210,173,104,.3);border-radius:16px;background:rgba(255,255,255,.035);display:grid;gap:7px}.nfc-includes__cta span,.nfc-includes__cta small{color:#a9a099;font-size:11px}.nfc-includes__cta strong{font-size:34px;letter-spacing:-.04em}.nfc-includes__cta a{display:inline-flex;justify-content:center;align-items:center;min-height:44px;margin-top:10px;border-radius:10px;background:#d1aa65;color:#17131c;text-decoration:none;font-size:12px;font-weight:800}
 .nfc-faq{padding:110px 0;background:#f7f5ef}.nfc-faq__intro{max-width:610px;color:#756e74;line-height:1.7}.nfc-faq__list{max-width:900px;margin-top:48px;border-top:1px solid #d9d2c7}.nfc-faq__list details{border-bottom:1px solid #d9d2c7}.nfc-faq__list summary{display:flex;justify-content:space-between;gap:20px;padding:21px 0;cursor:pointer;list-style:none;font-size:15px;font-weight:800}.nfc-faq__list summary::-webkit-details-marker{display:none}.nfc-faq__list summary::after{content:"+";color:#a9812f}.nfc-faq__list details[open] summary::after{content:"−"}.nfc-faq__list p{max-width:760px;margin:-3px 0 22px;color:#756e74;font-size:14px;line-height:1.7}
 .nfc-final{padding:120px 0;text-align:center;background:radial-gradient(600px 300px at 50% 15%,rgba(169,129,47,.13),transparent 70%),#f0ede5}.nfc-final p{color:#756e74}.nfc-final a{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;margin-top:20px;border-radius:11px;background:#17131c;color:#f8f4ec;text-decoration:none;font-size:13px;font-weight:800}
@@ -11498,8 +11498,15 @@ article[id] {
 .home-mockup__copy h1,
 .home-premium__paths-head h2,
 .how-hero h1,
-.corporate-single-copy h1 {
+.corporate-single-copy h1,
+.nfc-final h2,
+.nfc-story h2,
+.nfc-faq h2,
+.public-page-title h1,
+.p4-display {
   line-height: 1.08;
+  letter-spacing: -0.02em;
+  word-spacing: 0.1em;
 }
 
 .home-premium__path-grid article {
@@ -12754,6 +12761,34 @@ body:has(.how-it-works-page) .yi-footer--new .yi-container {
     width: 148px;
     height: 248px;
   }
+}
+
+/* Turkish display copy: negative tracking also shrinks the space glyph, so
+   words like "Bir sonraki" look glued. Keep modest tracking and restore word gap. */
+.p4-display,
+.public-page-title h1,
+.home-mockup__copy h1,
+.home-premium h1,
+.home-premium h2,
+.how-hero h1,
+.corporate-single-copy h1,
+.products-single-copy h2,
+.nfc-product-hero h2,
+.nfc-story h2,
+.nfc-includes h2,
+.nfc-faq h2,
+.nfc-final h2,
+.legal-page--premium .legal-shell h1,
+.p6-auth-story h1,
+.yi-hero h1,
+.home-final h2,
+.home-compact__hero-copy h1,
+.home-compact__close h2,
+.product-one-page__copy h1,
+.product-one-page__statement h2,
+.product-one-page__final h2 {
+  letter-spacing: -0.02em;
+  word-spacing: 0.1em;
 }
 
 

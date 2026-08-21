@@ -134,7 +134,6 @@ export default async function CorporatePage({
           <p>100 kişiye kadar paketi doğrudan sepete ekle. 100 kişiyi aşan kapasite ve özel kurulum için teklif al.</p>
         </div>
         <div className="corporate-single-cta-actions">
-          <a href="#business-pricing-title" className="corporate-cta">Paketleri İncele <span aria-hidden="true">→</span></a>
           <a href="/giris?portal=business&next=%2Fkurumsal%2Fpanel" className="corporate-secondary-cta">Kurumsal Giriş <span aria-hidden="true">→</span></a>
         </div>
       </section>
@@ -228,7 +227,7 @@ export default async function CorporatePage({
                 <li key={pack.sku}><b>{pack.credits.toLocaleString("tr-TR")} kredi</b> {formatTryFromKurus(pack.priceKurus)}</li>
               ))}
             </ul>
-            <a href="/kurumsal?plan=NETWORK-MAIL#teklif" className="corporate-cta">Kredi paketi teklifi <span aria-hidden="true">→</span></a>
+            <a href="/kurumsal?plan=NETWORK-MAIL#teklif" className="corporate-cta">Teklif Al <span aria-hidden="true">→</span></a>
           </article>
           <article>
             <span>CAMPAIGN MAIL</span>

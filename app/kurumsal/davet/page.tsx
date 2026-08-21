@@ -33,7 +33,7 @@ export default function InvitePage() {
 
   return (
     <main id="main-content" className="corporate-invite-page" data-ui-context="public">
-      <AppHeader context="Kurumsal Davet" />
+      <AppHeader landing context="Kurumsal Davet" showDefaultCta={false} />
       <section className="corporate-invite-shell">
         <div className="corporate-invite-card" role="status" aria-live="polite">
           <span className="corporate-invite-kicker">KURUMSAL DAVET</span>

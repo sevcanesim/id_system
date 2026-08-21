@@ -54,5 +54,17 @@ check(paymentRetry.includes("Aynı Sipariş İçin Tekrar Dene") && paymentRetry
 check(paymentSuccess.includes("Siparişlerim") && read("app/odeme/basarili/PaymentSuccessHeader.tsx").includes("showDefaultCta={false}"), "paid-result chrome stays on orders and does not re-sell the card");
 check(activation.includes("showDefaultCta={false}") && activation.includes('landing'), "activation header does not show a purchase CTA");
 
+const shell = read("app/components/PublicSiteShell.tsx");
+const invite = read("app/kurumsal/davet/page.tsx");
+const orders = read("app/siparislerim/page.tsx");
+const renewal = read("app/yenile/page.tsx");
+const cards = read("app/kartlarim/page.tsx");
+check(shell.includes('#business-pricing-title') && shell.includes("Paketleri İncele"), "corporate header points at packs; quote stays on the page");
+check(corporate.includes('id="teklif"') && (corporate.match(/Teklif Al/g) ?? []).length >= 3, "corporate quote path remains canonical Teklif Al");
+check(invite.includes("showDefaultCta={false}") && invite.includes("landing"), "corporate invite header does not resell the card");
+check(orders.includes("NFC Kartı Satın Al") && !orders.includes("actions={[{href:\"/urunler/nfc-kart\""), "orders empty state keeps the purchase CTA without a duplicate page-head action");
+check(renewal.includes("Hesabına gir") && renewal.includes("NFC Kartı Satın Al"), "renewal empty states have a single next action");
+check(cards.includes("NFC Kartı Satın Al") && cards.includes("/urunler/nfc-kart"), "empty individual workspace uses the canonical purchase CTA");
+
 if (failed) process.exit(1);
 console.log("\nFAZ 4 product/UX verification passed.");

@@ -31,7 +31,7 @@ function isQuietPublicChrome(pathname: string) {
 }
 
 function publicHeaderActions(pathname: string) {
-  if (pathname === "/kurumsal") return [{ href: "/kurumsal#teklif", label: "Teklif Al", primary: true }];
+  if (pathname === "/kurumsal") return [{ href: "#business-pricing-title", label: "Paketleri İncele", primary: true }];
   if (pathname.startsWith("/destek")) return [{ href: "mailto:hello@yenomilabs.com", label: "Destek Yazın", primary: true }];
   if (pathname.startsWith("/urunler/nfc-kart")) return [{ href: "#nfc-hero-price-row", label: "Sepete Ekle", primary: true }];
   return [];

@@ -76,9 +76,9 @@ export default function CartPage() {
                 <div className="ds-empty-actions">
                   <Link className="ds-button ds-button--primary" href="/urunler/nfc-kart">NFC Kartı Satın Al</Link>
                   {audience === "corporate" ? (
-                    <Link className="ds-button ds-button--secondary" href="/kurumsal/panel/lisans">Lisanslara git</Link>
+                    <Link className="home-mockup__link-secondary" href="/kurumsal/panel/lisans">Lisanslara git</Link>
                   ) : (
-                    <Link className="ds-button ds-button--secondary" href="/kurumsal">Ekip paketini incele</Link>
+                    <Link className="home-mockup__link-secondary" href="/kurumsal">Ekip paketini incele</Link>
                   )}
                 </div>
               }

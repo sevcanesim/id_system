@@ -66,7 +66,7 @@ export default async function SupportPage({
         <div className="support-planet" aria-hidden="true"><span /></div>
         <div className="support-hero-inner">
           <span className="section-kicker">YARDIM MERKEZİ</span>
-          <h1 id="support-title">Kart, hesap, sipariş.<br /><em>Net cevaplar.</em></h1>
+          <h1 id="support-title">Kart, hesap, sipariş.<br />Net cevaplar.</h1>
           <p>Kayıp modu, kargo, iyzico ve panel. Kart numarası Yenomi’de saklanmaz.</p>
           <form className="support-search" role="search" action="/destek" method="get">
             <span className="support-search__icon" aria-hidden="true"><Icon name="search" /></span>

@@ -14001,3 +14001,88 @@ body:has(.legal-page) .yi-footer__trust .yi-icon {
     grid-template-columns: 1fr;
   }
 }
+
+/* Live public UI: root causes visible from yenomi-id.vercel.app.
+   1) Mobile menu used position:fixed + top:100%, so 100% was the viewport
+      and the drawer opened below the fold.
+   2) Header kept desktop nav until 900px while Turkish labels + gold CTA
+      already collide around 1100px.
+   3) Catalog CRO capped the pair visual at 280px and clipped the cards.
+   4) Ticker used 3 copies with a -50% loop, so the strip jumped. */
+.public-site-chrome {
+  position: sticky;
+}
+.yi-brand-marquee__track {
+  animation-name: yi-brand-marquee;
+}
+@keyframes yi-brand-marquee {
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .yi-brand-marquee__track {
+    animation: none;
+    width: 100%;
+    justify-content: center;
+    transform: none;
+  }
+  .yi-brand-marquee__unit:not(:first-child) {
+    display: none;
+  }
+}
+
+.products-single-visual {
+  width: min(720px, 100%);
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+}
+.products-single-visual .yi-product-visual,
+.products-single-visual .yi-product-visual--pair {
+  height: auto;
+  max-height: none;
+}
+
+@media (max-width: 1180px) {
+  .public-site-chrome .yi-menu {
+    display: block;
+  }
+  .public-site-chrome .yi-header__actions .yi-btn {
+    display: none;
+  }
+  .public-site-chrome .yi-nav {
+    position: absolute;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    inset: auto 16px;
+    top: calc(100% + 8px);
+    z-index: 20;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: var(--shadow);
+  }
+  .public-site-chrome .yi-nav.is-open {
+    display: flex;
+  }
+}
+
+@media (max-width: 760px) {
+  .home-mockup__orbit {
+    display: none;
+  }
+  .home-mockup__visual {
+    overflow: visible;
+    contain: none;
+    min-height: 360px;
+  }
+  .home-mockup__phone {
+    min-width: 0;
+    width: min(42%, 150px);
+  }
+  .home-mockup__card {
+    width: min(78%, 280px);
+  }
+}
+

@@ -107,7 +107,9 @@ check(
   css.includes("body:has(.home-premium) .public-site-chrome .yi-header__actions .yi-btn--primary")
     && css.includes("body:has(.nfc-product-page)")
     && css.includes("body:has(.corporate-sales-page)")
-    && css.includes("body:has(.how-it-works-page) .public-site-chrome .yi-nav.is-open .yi-nav__funnel--primary"),
+    && css.includes("body:has(.how-it-works-page) .public-site-chrome .yi-nav.is-open .yi-nav__funnel--primary")
+    && css.includes("body:has(.products-single-page)")
+    && css.includes("body:has(.legal-page) .public-site-chrome .yi-header__actions .yi-btn--primary"),
   "first-viewport sticky header gold is ghosted where the page already owns a fill"
 );
 check(invite.includes('className="home-mockup__link-secondary" href="/kurumsal/panel"') && invite.includes("Kurumsal Girişe Git") && invite.includes("Kurumsal Kartımı Oluştur"), "invite error recovery is text; login and accepted create stay gold");
@@ -117,6 +119,13 @@ check(publicCard.includes("Ana sayfaya dön") && publicCard.includes("home-mocku
 check(physicalCard.includes("Ana sayfaya dön") && physicalCard.includes("home-mockup__link-secondary") && !physicalCard.includes("NFC Kartı Satın Al"), "unavailable physical-card scan recovers home as text, not a purchase gold");
 const corporateSalesTail = css.slice(css.lastIndexOf(".corporate-sales-page {"));
 check(corporateSalesTail.includes("163,123,44") && !corporateSalesTail.includes("109,61,224"), "corporate sales canvas wash is gold, not leftover purple");
+const bireyselBlock = catalog.slice(0, catalog.indexOf("is-popular"));
+const premiumBlock = catalog.slice(catalog.indexOf("is-popular"), catalog.indexOf("YEDEK KART"));
+check(!bireyselBlock.includes('appearance="secondary"') && bireyselBlock.includes("Sepete Ekle"), "catalog Bireysel Sepete Ekle stays the filled primary");
+check(premiumBlock.includes('appearance="secondary"') && premiumBlock.includes("Sepete Ekle"), "catalog Premium is the upsell outline; Bireysel keeps the fill");
+check(help.includes("support-empty") && help.includes("NFC Kartı Satın Al") && help.includes("home-mockup__link-secondary") && !help.includes('yi-btn--primary'), "help zero-result recovers as text, not a second gold");
+const kickerTail = css.slice(css.lastIndexOf(".section-kicker,"));
+check(kickerTail.includes("#8b6835") && kickerTail.includes("font-weight: 650"), "section kickers stay readable gold, not display-weight fill");
 
 if (failed) process.exit(1);
 console.log("\nFAZ 4 product/UX verification passed.");

@@ -13686,7 +13686,9 @@ body:has(.yi-empty-product) .public-site-chrome .yi-nav__funnel--primary {
 body:has(.home-premium) .public-site-chrome .yi-header__actions .yi-btn--primary,
 body:has(.nfc-product-page) .public-site-chrome .yi-header__actions .yi-btn--primary,
 body:has(.corporate-sales-page) .public-site-chrome .yi-header__actions .yi-btn--primary,
-body:has(.how-it-works-page) .public-site-chrome .yi-header__actions .yi-btn--primary {
+body:has(.how-it-works-page) .public-site-chrome .yi-header__actions .yi-btn--primary,
+body:has(.products-single-page) .public-site-chrome .yi-header__actions .yi-btn--primary,
+body:has(.legal-page) .public-site-chrome .yi-header__actions .yi-btn--primary {
   min-height: 44px;
   padding: 0 12px;
   border-color: transparent;
@@ -13698,13 +13700,17 @@ body:has(.how-it-works-page) .public-site-chrome .yi-header__actions .yi-btn--pr
 body:has(.home-premium) .public-site-chrome .yi-header__actions .yi-btn--primary:hover,
 body:has(.nfc-product-page) .public-site-chrome .yi-header__actions .yi-btn--primary:hover,
 body:has(.corporate-sales-page) .public-site-chrome .yi-header__actions .yi-btn--primary:hover,
-body:has(.how-it-works-page) .public-site-chrome .yi-header__actions .yi-btn--primary:hover {
+body:has(.how-it-works-page) .public-site-chrome .yi-header__actions .yi-btn--primary:hover,
+body:has(.products-single-page) .public-site-chrome .yi-header__actions .yi-btn--primary:hover,
+body:has(.legal-page) .public-site-chrome .yi-header__actions .yi-btn--primary:hover {
   background: rgba(26, 25, 24, .04);
 }
 body:has(.home-premium) .public-site-chrome .yi-nav.is-open .yi-nav__funnel--primary,
 body:has(.nfc-product-page) .public-site-chrome .yi-nav.is-open .yi-nav__funnel--primary,
 body:has(.corporate-sales-page) .public-site-chrome .yi-nav.is-open .yi-nav__funnel--primary,
-body:has(.how-it-works-page) .public-site-chrome .yi-nav.is-open .yi-nav__funnel--primary {
+body:has(.how-it-works-page) .public-site-chrome .yi-nav.is-open .yi-nav__funnel--primary,
+body:has(.products-single-page) .public-site-chrome .yi-nav.is-open .yi-nav__funnel--primary,
+body:has(.legal-page) .public-site-chrome .yi-nav.is-open .yi-nav__funnel--primary {
   background: transparent;
   border-color: #E6E2D8;
   box-shadow: none;
@@ -13758,4 +13764,49 @@ body:has(.how-it-works-page) .public-site-chrome .yi-nav.is-open .yi-nav__funnel
 .how-step-card h3,
 .how-benefits h3 {
   color: #1A1918;
+}
+
+/* Catalog / legal / help CRO: one gold on plans, trust pages stay paper. */
+.section-kicker,
+.p4-kicker,
+.products-public-v2-kicker,
+.legal-kicker,
+.p6-auth-kicker {
+  color: #8b6835;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: .12em;
+}
+
+.legal-page .public-page-title__back,
+.legal-page .legal-link {
+  color: #3f3a35;
+  font-weight: 650;
+}
+.legal-page .public-page-title__back:hover,
+.legal-page .legal-link:hover {
+  color: #8b6835;
+}
+
+body:has(.legal-page) .yi-footer__layer {
+  border-left-color: rgba(24, 19, 13, .12);
+}
+body:has(.legal-page) .yi-footer__layer span,
+body:has(.legal-page) .yi-footer__trust .yi-icon {
+  color: #756d63;
+}
+
+.support-empty {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+}
+.support-empty p {
+  margin: 0;
+  color: #746d63;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.support-empty .home-mockup__link-secondary {
+  font-size: 14px;
 }

@@ -99,6 +99,7 @@ export default async function ProductsPage() {
                   name="Yenomi ID Bireysel Premium — NFC + 100 Network Mail"
                   unitPriceKurus={COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.priceKurus}
                   label="Sepete Ekle"
+                  appearance="secondary"
                 />
               </div>
             </article>

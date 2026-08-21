@@ -404,7 +404,7 @@ export default function CheckoutPage() {
         {!checkoutReady ? (
           <div className="cart-empty"><h2>Ödeme hazırlanıyor…</h2><p>Sepetini ve güvenli ödeme bağlantını hazırlıyoruz.</p></div>
         ) : !items.length ? (
-          <div className="cart-empty"><h2>Kartın henüz sepette değil.</h2><Link href="/urunler/nfc-kart">NFC Kartı Satın Al</Link></div>
+          <div className="cart-empty"><h2>Kartın henüz sepette değil.</h2><Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart">NFC Kartı Satın Al</Link></div>
         ) : (
           <form onSubmit={submit} className="checkout-layout checkout-layout-confirm" noValidate>
             <div className="checkout-accordion">

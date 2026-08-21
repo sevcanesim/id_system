@@ -98,9 +98,11 @@ export default async function SupportPage({
             </div>
           </div>
           {visibleFaqs.length === 0 ? (
-            <p className="support-empty" role="status">
-              “{query}” için kayıtlı bir yardım maddesi yok. Aşağıdan destek ekibine yazabilirsiniz.
-            </p>
+            <div className="support-empty" role="status">
+              <p>“{query}” için kayıtlı bir yardım maddesi yok.</p>
+              <a className="home-mockup__link-secondary" href="mailto:hello@yenomilabs.com">Destek ekibine yaz</a>
+              <Link className="home-mockup__link-secondary" href="/urunler/nfc-kart">NFC Kartı Satın Al</Link>
+            </div>
           ) : (
             <div className="support-faq-list">
               {topics.map((topic) => {

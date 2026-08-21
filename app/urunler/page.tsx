@@ -13,9 +13,9 @@ import { Icon } from "../icons";
 import {
   ADDITIONAL_CARD_FEATURES,
   ADDITIONAL_CARD_PLAN,
-  INDIVIDUAL_FEATURES,
+  INDIVIDUAL_CATALOG_POINTS,
   INDIVIDUAL_PLAN,
-  INDIVIDUAL_PREMIUM_FEATURES,
+  INDIVIDUAL_PREMIUM_CATALOG_POINTS,
   INDIVIDUAL_PREMIUM_PLAN,
 } from "../../lib/commerce/packages";
 import { COMMERCIAL_PRICING, COMMERCIAL_SKUS } from "../../lib/config/commercial";
@@ -64,7 +64,7 @@ export default async function ProductsPage() {
               </div>
               <p>NFC kart + 1 yıllık dijital kartvizit + Türkiye içi ücretsiz kargo.</p>
               <ul aria-label="Bireysel paket içeriği">
-                {INDIVIDUAL_FEATURES.map((item) => (
+                {INDIVIDUAL_CATALOG_POINTS.map((item) => (
                   <li key={item}><Icon name="check" /><span>{item}</span></li>
                 ))}
               </ul>
@@ -87,7 +87,7 @@ export default async function ProductsPage() {
               </div>
               <p>Bireysel paketteki her şey, artı toplantı, sunum, kişi yönetimi ve 100 Network Mail. Kredi ödeme sonrası yazılır.</p>
               <ul aria-label="Premium paket içeriği">
-                {INDIVIDUAL_PREMIUM_FEATURES.map((item) => (
+                {INDIVIDUAL_PREMIUM_CATALOG_POINTS.map((item) => (
                   <li key={item}><Icon name="check" /><span>{item}</span></li>
                 ))}
               </ul>

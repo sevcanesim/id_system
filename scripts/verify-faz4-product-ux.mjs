@@ -22,6 +22,7 @@ const landingPurchaseMatches = home.match(/NFC Kartı Satın Al/g) ?? [];
 check(landingPurchaseMatches.length >= 3, "public purchase CTAs use canonical 'NFC Kartı Satın Al' copy");
 check(!home.includes("Bireysel NFC Kartı İncele"), "legacy individual purchase CTA copy is retired");
 check(corporate.includes("Teklif Al") && corporate.includes('id="teklif"') && !corporate.includes("Kurumsal Görüşme Başlat"), "corporate lead CTA is canonical 'Teklif Al'");
+check(!corporate.includes("482") && !corporate.includes("219") && !corporate.includes(">87<"), "corporate marketing specimen does not invent analytics totals");
 check(corporate.includes("Sepete Ekle") && corporate.includes("corporateCheckoutLive") && corporate.includes("ENTERPRISE"), "packs at or below 100 seats use add-to-cart; Enterprise stays quote");
 
 // Corporate overview is already a real dashboard; lock the evidence instead of redesigning it.

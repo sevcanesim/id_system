@@ -9,38 +9,34 @@ const sandboxReady = Boolean(process.env.IYZICO_API_KEY && process.env.IYZICO_SE
  * base URL and iyzico sandbox are actually available in this environment.
  */
 test.describe("critical journeys", () => {
-  test.beforeEach((_args, testInfo) => {
-    if (!baseURL) {
-      testInfo.skip(true, "E2E_BASE_URL is unset; journeys are not run.");
-    }
-  });
+  test.skip(!baseURL, "E2E_BASE_URL is unset; journeys are not run.");
 
-  test("E2E-01 guest physical purchase through iyzico sandbox", (_args, testInfo) => {
-    testInfo.skip(true, sandboxReady
+  test("E2E-01 guest physical purchase through iyzico sandbox", async () => {
+    test.skip(true, sandboxReady
       ? "Guest checkout sandbox journey is not automated in this pass."
       : "iyzico sandbox credentials are unset; payment journeys are not run.");
   });
 
-  test("E2E-02 delayed callback recover", (_args, testInfo) => {
-    testInfo.skip(true, sandboxReady
+  test("E2E-02 delayed callback recover", async () => {
+    test.skip(true, sandboxReady
       ? "Recover-after-closed-tab journey is not automated in this pass."
       : "iyzico sandbox credentials are unset; payment journeys are not run.");
   });
 
-  test("E2E-03 duplicate callback is idempotent", (_args, testInfo) => {
-    testInfo.skip(true, sandboxReady
+  test("E2E-03 duplicate callback is idempotent", async () => {
+    test.skip(true, sandboxReady
       ? "Callback replay journey is not automated in this pass."
       : "iyzico sandbox credentials are unset; payment journeys are not run.");
   });
 
-  test("E2E-04 guest claim binds the matching email", (_args, testInfo) => {
-    testInfo.skip(true, sandboxReady
+  test("E2E-04 guest claim binds the matching email", async () => {
+    test.skip(true, sandboxReady
       ? "Guest activation claim journey is not automated in this pass."
       : "iyzico sandbox credentials are unset; payment journeys are not run.");
   });
 
-  test("E2E-05 authenticated purchase auto-claims", (_args, testInfo) => {
-    testInfo.skip(true, sandboxReady
+  test("E2E-05 authenticated purchase auto-claims", async () => {
+    test.skip(true, sandboxReady
       ? "Authenticated auto-claim journey is not automated in this pass."
       : "iyzico sandbox credentials are unset; payment journeys are not run.");
   });
@@ -52,7 +48,7 @@ test.describe("critical journeys", () => {
     await expect(page.getByRole("button", { name: "Sepete Ekle" }).last()).toBeDisabled();
   });
 
-  test("E2E-07 spare card with an active entitlement", (_args, testInfo) => {
-    testInfo.skip(true, "Signed-in entitlement fixture is not available in this environment.");
+  test("E2E-07 spare card with an active entitlement", async () => {
+    test.skip(true, "Signed-in entitlement fixture is not available in this environment.");
   });
 });

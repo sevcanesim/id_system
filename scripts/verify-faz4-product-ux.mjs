@@ -66,5 +66,16 @@ check(orders.includes("NFC Kartı Satın Al") && !orders.includes("actions={[{hr
 check(renewal.includes("Hesabına gir") && renewal.includes("NFC Kartı Satın Al"), "renewal empty states have a single next action");
 check(cards.includes("NFC Kartı Satın Al") && cards.includes("/urunler/nfc-kart"), "empty individual workspace uses the canonical purchase CTA");
 
+const help = read("app/destek/page.tsx");
+const picker = read("app/kurumsal/CorporatePackPicker.tsx");
+const leadForm = read("app/kurumsal/CorporateLeadForm.tsx");
+const css = read("app/canonical.css");
+check(!shell.includes("Destek Yazın") && shell.includes("/destek"), "help chrome stays quiet; search owns the in-page action");
+check(!help.includes("support-planet") && !help.includes("support-orbit"), "help hero does not carry decorative planet chrome");
+check(picker.includes("home-mockup__link-secondary") && picker.includes("100+ kişi için teklif"), "corporate pack picker keeps quote as a text link");
+check(leadForm.includes(">Teklif Al<") || leadForm.includes('"Teklif Al"'), "corporate lead submit uses canonical Teklif Al");
+check(css.includes("scroll-margin-top: 124px") && css.includes("business-pricing-title"), "corporate pricing heading clears sticky chrome");
+check(read("app/ui/SiteHeader.tsx").includes("onAuthSurface"), "login header does not repeat Giriş Yap on /giris");
+
 if (failed) process.exit(1);
 console.log("\nFAZ 4 product/UX verification passed.");

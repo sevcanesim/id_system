@@ -79,7 +79,7 @@ export default async function CorporatePage({
       <section className="corporate-single-hero" aria-labelledby="corporate-single-title">
         <div className="corporate-single-copy">
           <span className="section-kicker">YENOMI BUSINESS</span>
-          <h1 id="corporate-single-title">Şirket NFC kart almıyor. <em>Çalışanların networking altyapısını satın alıyor.</em></h1>
+          <h1 id="corporate-single-title">Şirket NFC kart almıyor.<br />Çalışanların networking altyapısını satın alıyor.</h1>
           <p>Satış ve saha ekibi aynı standartta tanışır. Unvan değişince baskı yok; kart kaybolursa panelden kapanır. 100 kişiye kadar sepete ekle.</p>
           <div className="corporate-hero-actions">
             <a href="#business-pricing-title" className="corporate-cta">Paketleri İncele <span aria-hidden="true">→</span></a>
@@ -104,13 +104,13 @@ export default async function CorporatePage({
               <div className="corporate-dashboard-content">
                 <div className="corporate-dashboard-heading"><div><small>BU AY</small><strong>Networking özeti</strong></div><span>•••</span></div>
                 <div className="corporate-dashboard-kpis">
-                  <div><small>Bağlantı</small><strong>482</strong><span>kişiyle tanışıldı</span></div>
-                  <div><small>Follow-up</small><strong>219</strong><span>Network Mail</span></div>
-                  <div><small>Yeni lead</small><strong>87</strong><span>64 toplantı</span></div>
+                  <div><small>Bağlantı</small><strong>Tanışma</strong><span>karttan gelen kişi</span></div>
+                  <div><small>Follow-up</small><strong>Network Mail</strong><span>takip mesajı</span></div>
+                  <div><small>Lead</small><strong>Toplantı</strong><span>sonraki adım</span></div>
                 </div>
                 <div className="corporate-dashboard-grid">
                   <div className="corporate-dashboard-chart"><small>KART ETKİLEŞİMLERİ</small><div className="corporate-bars"><i /><i /><i /><i /><i /><i /><i /></div></div>
-                  <div className="corporate-dashboard-team"><small>EKİP DURUMU</small><div><b />Aktif <strong>231</strong></div><div><b />Beklemede <strong>12</strong></div><div><b />Pasif <strong>5</strong></div></div>
+                  <div className="corporate-dashboard-team"><small>EKİP DURUMU</small><div><b />Aktif</div><div><b />Beklemede</div><div><b />Pasif</div></div>
                 </div>
                 <div className="corporate-dashboard-footer"><span>Şablonlar</span><span>Entegrasyonlar</span><span>Güvenlik</span><span>Analitik</span></div>
               </div>

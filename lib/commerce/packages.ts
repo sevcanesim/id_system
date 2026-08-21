@@ -394,6 +394,15 @@ export const INDIVIDUAL_FEATURES = [
   "Ücretsiz kargo",
 ] as const;
 
+/** Short decision list for public catalog cards. Full inventory stays on the PDP. */
+export const INDIVIDUAL_CATALOG_POINTS = [
+  "1 NFC + QR kart",
+  "Canlı dijital kartvizit",
+  "Unvan değişince baskı yok",
+  "1 yıllık kullanım",
+  "Türkiye içi kargo dahil",
+] as const;
+
 export const INDIVIDUAL_PREMIUM_FEATURES = [
   "Bireysel paketteki her şey",
   "Toplantı oluşturma",
@@ -407,6 +416,14 @@ export const INDIVIDUAL_PREMIUM_FEATURES = [
   "1 NFC kart",
   "1 yıllık kullanım",
   "Ücretsiz kargo",
+] as const;
+
+export const INDIVIDUAL_PREMIUM_CATALOG_POINTS = [
+  "Bireysel paketteki her şey",
+  "100 Network Mail / yıl",
+  "Toplantı ve sunum",
+  "Gelişmiş istatistik",
+  "Kişi ve follow-up yönetimi",
 ] as const;
 
 export const ADDITIONAL_CARD_FEATURES = [

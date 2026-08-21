@@ -69,5 +69,14 @@ export default async function PhysicalCardRoute({ params }: { params: Promise<{ 
 }
 
 function CardState({ title }: { title: string }) {
-  return <main id="main-content" className="profile-state-page p12-profile-state"><section><span>YENOMI ID</span><h1>{title}</h1><p>Kart sahibinin iletişim bilgileri güvenlik nedeniyle gösterilmemektedir.</p></section></main>;
+  return (
+    <main id="main-content" className="profile-state-page p12-profile-state">
+      <section>
+        <span>YENOMI ID</span>
+        <h1>{title}</h1>
+        <p>Kart sahibinin iletişim bilgileri güvenlik nedeniyle gösterilmemektedir.</p>
+        <a className="home-mockup__link-secondary" href="/">Ana sayfaya dön</a>
+      </section>
+    </main>
+  );
 }

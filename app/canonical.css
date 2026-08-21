@@ -13682,6 +13682,69 @@ body:has(.yi-empty-product) .public-site-chrome .yi-nav__funnel--primary {
   color: #17120c;
 }
 
+/* Invite / first-viewport CRO: sticky header yields the fill; recovery stays text. */
+body:has(.home-premium) .public-site-chrome .yi-header__actions .yi-btn--primary,
+body:has(.nfc-product-page) .public-site-chrome .yi-header__actions .yi-btn--primary,
+body:has(.corporate-sales-page) .public-site-chrome .yi-header__actions .yi-btn--primary,
+body:has(.how-it-works-page) .public-site-chrome .yi-header__actions .yi-btn--primary {
+  min-height: 44px;
+  padding: 0 12px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: #1A1918;
+  font-weight: 650;
+}
+body:has(.home-premium) .public-site-chrome .yi-header__actions .yi-btn--primary:hover,
+body:has(.nfc-product-page) .public-site-chrome .yi-header__actions .yi-btn--primary:hover,
+body:has(.corporate-sales-page) .public-site-chrome .yi-header__actions .yi-btn--primary:hover,
+body:has(.how-it-works-page) .public-site-chrome .yi-header__actions .yi-btn--primary:hover {
+  background: rgba(26, 25, 24, .04);
+}
+body:has(.home-premium) .public-site-chrome .yi-nav.is-open .yi-nav__funnel--primary,
+body:has(.nfc-product-page) .public-site-chrome .yi-nav.is-open .yi-nav__funnel--primary,
+body:has(.corporate-sales-page) .public-site-chrome .yi-nav.is-open .yi-nav__funnel--primary,
+body:has(.how-it-works-page) .public-site-chrome .yi-nav.is-open .yi-nav__funnel--primary {
+  background: transparent;
+  border-color: #E6E2D8;
+  box-shadow: none;
+  color: #1A1918;
+  font-weight: 650;
+}
+
+.corporate-sales-page {
+  background:
+    radial-gradient(760px 520px at 82% 10%, rgba(163,123,44,.08), transparent 68%),
+    linear-gradient(180deg, #f8f7f4 0%, #f1efeb 52%, #ebe8e2 100%);
+}
+.corporate-sales-page .corporate-resource-visual::before {
+  background:
+    radial-gradient(circle at 52% 42%, rgba(163,123,44,.22), transparent 34%),
+    linear-gradient(145deg, #18131f, #09080d 76%);
+}
+
+.corporate-invite-card .corporate-secondary-cta:hover,
+.corporate-invite-card .home-mockup__link-secondary:hover {
+  color: #8b6835;
+}
+.corporate-invite-card .home-mockup__link-secondary {
+  min-height: auto;
+  font-size: 14px;
+}
+
+.p12-profile-state span {
+  color: #8b6835;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: .12em;
+}
+.p12-profile-state h1 {
+  color: #1A1918;
+}
+.p12-profile-state .home-mockup__link-secondary {
+  margin-top: 18px;
+}
+
 .how-hero {
   overflow: visible;
 }

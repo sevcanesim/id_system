@@ -7,9 +7,9 @@ import type { Metadata } from "next";
 import { getDatabaseCatalog } from "../../lib/config/database";
 import { formatTryFromKurus, listingPriceKurus, NFC_PRODUCT } from "../../lib/config/product";
 import { ProductVisual } from "../ui/ProductVisual";
-import { ButtonLink } from "../ui/Button";
 import AddToCartButton from "../components/AddToCartButton";
 import { PublicPageTitle } from "../components/PublicPageTitle";
+import { Icon } from "../icons";
 import {
   ADDITIONAL_CARD_FEATURES,
   ADDITIONAL_CARD_PLAN,
@@ -42,22 +42,13 @@ export default async function ProductsPage() {
       <main id="main-content" className="products-single-main">
         <PublicPageTitle
           kicker="YENOMI ID · DİJİTAL KARTVİZİT"
-          title={<>Kartın sende kalsın.<br /><em>Profilin her an güncel.</em></>}
+          title={<>Kartın sende kalsın.<br />Profilin her an güncel.</>}
           description="NFC + QR kartın sende kalır. Unvanın değişince baskı yok; canlı profil her tanışmada güncel açılır."
           className="public-page-title--catalog"
         />
-        <section className="products-single-hero" aria-labelledby="products-title">
+        <section className="products-single-hero" aria-label="Yenomi ID NFC kart önizlemesi">
           <div className="yi-container products-single-hero__inner">
-            <div className="products-single-copy">
-              <span className="yi-hero__eyebrow">KARTINI SEÇ</span>
-              <h2 id="products-title">Tek kart. Her tanışmada güncel.</h2>
-              <p>NFC + QR kartını al, canlı profilini bağla. Unvanın değişince baskı yok. Ekip aynı standartta tanışacaksa kurumsal paketi seç.</p>
-              <div className="products-single-actions">
-                <ButtonLink href="/urunler/nfc-kart" variant="dark">NFC Kartı Satın Al</ButtonLink>
-                <ButtonLink href="/kurumsal" variant="secondary">Ekip paketini incele</ButtonLink>
-              </div>
-            </div>
-            <div className="products-single-visual" aria-label="Yenomi ID NFC kart önizlemesi">
+            <div className="products-single-visual">
               <ProductVisual pair />
             </div>
           </div>
@@ -73,16 +64,20 @@ export default async function ProductsPage() {
               </div>
               <p>NFC kart + 1 yıllık dijital kartvizit + Türkiye içi ücretsiz kargo.</p>
               <ul aria-label="Bireysel paket içeriği">
-                {INDIVIDUAL_FEATURES.map((item) => <li key={item}>{item}</li>)}
+                {INDIVIDUAL_FEATURES.map((item) => (
+                  <li key={item}><Icon name="check" /><span>{item}</span></li>
+                ))}
               </ul>
-              <AddToCartButton
-                productId={NFC_PRODUCT.slug}
-                variantSku={COMMERCIAL_SKUS.INITIAL}
-                kind="NFC_PHYSICAL_CARD"
-                name="Yenomi ID NFC Kart"
-                unitPriceKurus={listPriceKurus}
-                label="Sepete Ekle"
-              />
+              <div className="products-plan-card__cta">
+                <AddToCartButton
+                  productId={NFC_PRODUCT.slug}
+                  variantSku={COMMERCIAL_SKUS.INITIAL}
+                  kind="NFC_PHYSICAL_CARD"
+                  name="Yenomi ID NFC Kart"
+                  unitPriceKurus={listPriceKurus}
+                  label="Sepete Ekle"
+                />
+              </div>
             </article>
             <article className="products-plan-card is-popular">
               <div className="products-plan-card__head">
@@ -92,16 +87,20 @@ export default async function ProductsPage() {
               </div>
               <p>Bireysel paketteki her şey, artı toplantı, sunum, kişi yönetimi ve 100 Network Mail. Kredi ödeme sonrası yazılır.</p>
               <ul aria-label="Premium paket içeriği">
-                {INDIVIDUAL_PREMIUM_FEATURES.map((item) => <li key={item}>{item}</li>)}
+                {INDIVIDUAL_PREMIUM_FEATURES.map((item) => (
+                  <li key={item}><Icon name="check" /><span>{item}</span></li>
+                ))}
               </ul>
-              <AddToCartButton
-                productId={NFC_PRODUCT.slug}
-                variantSku={COMMERCIAL_SKUS.PREMIUM}
-                kind="NFC_PHYSICAL_CARD"
-                name="Yenomi ID Bireysel Premium — NFC + 100 Network Mail"
-                unitPriceKurus={COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.priceKurus}
-                label="Sepete Ekle"
-              />
+              <div className="products-plan-card__cta">
+                <AddToCartButton
+                  productId={NFC_PRODUCT.slug}
+                  variantSku={COMMERCIAL_SKUS.PREMIUM}
+                  kind="NFC_PHYSICAL_CARD"
+                  name="Yenomi ID Bireysel Premium — NFC + 100 Network Mail"
+                  unitPriceKurus={COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.priceKurus}
+                  label="Sepete Ekle"
+                />
+              </div>
             </article>
             <article className="products-plan-card">
               <div className="products-plan-card__head">
@@ -111,16 +110,20 @@ export default async function ProductsPage() {
               </div>
               <p>Aynı dijital profile bağlı ek NFC + QR kart. Yeni yıl veya yeni profil açmaz. Aktif hizmet gerekir.</p>
               <ul aria-label="Yedek kart içeriği">
-                {ADDITIONAL_CARD_FEATURES.map((item) => <li key={item}>{item}</li>)}
+                {ADDITIONAL_CARD_FEATURES.map((item) => (
+                  <li key={item}><Icon name="check" /><span>{item}</span></li>
+                ))}
               </ul>
-              <AddToCartButton
-                productId={NFC_PRODUCT.slug}
-                variantSku={COMMERCIAL_SKUS.ADDITIONAL_CARD}
-                kind="NFC_PHYSICAL_CARD"
-                name="Yenomi ID Yedek Kart"
-                unitPriceKurus={COMMERCIAL_PRICING.ADDITIONAL_CARD.priceKurus}
-                label="Sepete Ekle"
-              />
+              <div className="products-plan-card__cta">
+                <AddToCartButton
+                  productId={NFC_PRODUCT.slug}
+                  variantSku={COMMERCIAL_SKUS.ADDITIONAL_CARD}
+                  kind="NFC_PHYSICAL_CARD"
+                  name="Yenomi ID Yedek Kart"
+                  unitPriceKurus={COMMERCIAL_PRICING.ADDITIONAL_CARD.priceKurus}
+                  label="Sepete Ekle"
+                />
+              </div>
             </article>
           </div>
         </section>

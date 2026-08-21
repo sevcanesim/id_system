@@ -44,6 +44,7 @@ export default function PublicSiteShell({ children }: { children: React.ReactNod
   if (!isPublic) return <>{children}</>;
 
   const quiet = isQuietPublicChrome(pathname);
+  const commerceSurface = pathname === "/urunler" || pathname.startsWith("/urunler/");
 
   return (
     <>
@@ -52,7 +53,7 @@ export default function PublicSiteShell({ children }: { children: React.ReactNod
         <AppHeader landing actions={quiet ? [] : publicHeaderActions(pathname)} showDefaultCta={!quiet} />
       </div>
       {children}
-      <AppFooter variant={quiet ? "compact" : "default"} />
+      <AppFooter variant={quiet || commerceSurface ? "compact" : "default"} />
     </>
   );
 }

@@ -12,7 +12,7 @@ const steps = [
   { number: "01", title: "Kartını seç", text: "Bireysel NFC + QR kartını al. Kart eline geldiğinde aynı kalıcı profile bağlanır.", visual: "card" as const },
   { number: "02", title: "Profilini yayınla", text: "İletişim ve unvanın tek canlı sayfada durur. Değişince baskı yok.", visual: "profile" as const },
   { number: "03", title: "Yaklaştır veya okut", text: "NFC veya QR. Karşı taraf uygulama indirmez; profil tarayıcıda açılır.", visual: "tap" as const },
-  { number: "04", title: "Kaybolursa kapat", text: "Kayıp modu fiziksel kartı durdurur. Ekipler kartı ve markayı panelden yönetir.", premium: true },
+  { number: "04", title: "Kaybolursa kapat", text: "Kayıp modu fiziksel kartı durdurur. Dijital kimliğin sende kalır.", premium: true },
 ];
 
 const benefits: Array<[string, string, IconName]> = [
@@ -32,7 +32,7 @@ export default function HowItWorksPage() {
         <div className="how-planet" aria-hidden="true"><span /></div>
         <div className="how-hero-inner">
           <span className="section-kicker">YENOMI ID</span>
-          <h1 id="how-title">Kartı yaklaştır.<br /><em>Güncel profil açılsın.</em></h1>
+          <h1 id="how-title">Kartı yaklaştır.<br />Güncel profil açılsın.</h1>
           <p>Uygulama yok. Unvanın değişince baskı yok. Kaybolursa kapatırsın. Kendin için al, ekibin için yönet.</p>
         </div>
       </section>
@@ -68,13 +68,10 @@ export default function HowItWorksPage() {
               ) : (
                 <div className="how-dashboard" aria-label="Yönetim paneli önizlemesi">
                   <div className="how-dashboard-bar"><span>Yenomi ID</span><i/><i/><i/></div>
-                  <div className="how-dashboard-kpis"><b>12.8K<small>Görüntülenme</small></b><b>4.2K<small>Bağlantı</small></b><b>1.6K<small>Profil</small></b></div>
+                  <div className="how-dashboard-kpis"><b>Görüntülenme</b><b>Bağlantı</b><b>Profil</b></div>
                   <div className="how-dashboard-grid"><div className="how-chart"><span/><span/><span/><span/><span/></div><div className="how-mini-list"><i/><i/><i/><i/></div><div className="how-mini-chart"><span/><span/><span/><span/></div><div className="how-mini-list"><i/><i/><i/></div></div>
                 </div>
               )}
-              <Link href={step.number === "04" ? "/kurumsal" : "/urunler/nfc-kart"} className="how-step-cta">
-                {step.number === "04" ? "Ekip paketini incele" : "NFC Kartı Satın Al"}
-              </Link>
             </article>
           ))}
         </div>
@@ -89,7 +86,11 @@ export default function HowItWorksPage() {
             </article>
           ))}
         </div>
-        <p className="how-account-note">Kartın yoksa <Link href="/urunler/nfc-kart">NFC Kartı Satın Al</Link>. Hazırsa <Link href="/giris">Hesabına gir</Link>.</p>
+        <p className="how-account-note">Karşı taraf uygulama indirmez. Profil tarayıcıda açılır.</p>
+        <div className="how-account-actions">
+          <Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart">NFC Kartı Satın Al</Link>
+          <Link className="home-mockup__link-secondary" href="/giris">Hesabına gir</Link>
+        </div>
       </section>
 </main>
   );

@@ -32,7 +32,7 @@ export default function HomePage() {
             <span className="home-mockup__kicker">YENOMI ID · NFC KARTVİZİT</span>
             <h1 id="home-title">
               Kart bir kez basılır.<br />
-              <em>Kimliğin her gün güncel kalır.</em>
+              Kimliğin her gün güncel kalır.
             </h1>
             <p>
               Fiziksel NFC + QR kartın, canlı dijital kartvizitine bağlanır. Kağıt gibi eskimez.
@@ -71,7 +71,7 @@ export default function HomePage() {
         <section className="home-premium__paths" aria-labelledby="paths-title">
           <div className="home-premium__paths-head">
             <span className="home-mockup__kicker">BİREYSEL · KURUMSAL</span>
-            <h2 id="paths-title">Aynı sistem.<br /><em>İki ölçek.</em></h2>
+            <h2 id="paths-title">Aynı sistem.<br />İki ölçek.</h2>
           </div>
           <div className="home-premium__path-grid">
             <article>
@@ -93,7 +93,7 @@ export default function HomePage() {
           <div className="home-premium__proof-head">
             <div>
               <span className="home-mockup__kicker">FİZİKSEL KART · CANLI PROFİL</span>
-              <h2 id="proof-title">Kartın fiziksel.<br /><em>Kartvizitin dijital.</em></h2>
+              <h2 id="proof-title">Kartın fiziksel.<br />Kartvizitin dijital.</h2>
             </div>
             <p>
               NFC veya QR aynı kalıcı profile açılır. Kart numarası iyzico’da işlenir; Yenomi’de saklanmaz.
@@ -117,7 +117,7 @@ export default function HomePage() {
           <div className="home-premium__journey-head">
             <div>
               <span className="home-mockup__kicker">NET BİR BAŞLANGIÇ</span>
-              <h2 id="journey-title">Seç, bağla,<br /><em>paylaş.</em></h2>
+              <h2 id="journey-title">Seç, bağla,<br />paylaş.</h2>
             </div>
             <p>Hesap açmadan ödeyebilirsin. Sipariş, yazdığın e-posta ile hesabına bağlanır.</p>
           </div>
@@ -137,7 +137,7 @@ export default function HomePage() {
 
         <section className="home-premium__final" aria-labelledby="final-title">
           <span className="home-mockup__kicker">DİJİTAL KARTVİZİT</span>
-          <h2 id="final-title">Bir sonraki tanışmada<br /><em>sistemin hazır olsun.</em></h2>
+          <h2 id="final-title">Bir sonraki tanışmada<br />sistemin hazır olsun.</h2>
           <p>Bireysel kart veya kurumsal panel — ikisi de aynı Yenomi ID altyapısı.</p>
           <div className="home-mockup__actions">
             <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">

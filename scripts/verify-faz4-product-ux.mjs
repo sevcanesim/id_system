@@ -126,6 +126,12 @@ check(premiumBlock.includes('appearance="secondary"') && premiumBlock.includes("
 check(help.includes("support-empty") && help.includes("NFC Kartı Satın Al") && help.includes("home-mockup__link-secondary") && !help.includes('yi-btn--primary'), "help zero-result recovers as text, not a second gold");
 const kickerTail = css.slice(css.lastIndexOf(".section-kicker,"));
 check(kickerTail.includes("#8b6835") && kickerTail.includes("font-weight: 650"), "section kickers stay readable gold, not display-weight fill");
+const analytics = read("app/istatistikler/page.tsx");
+check(analytics.includes("İstatistikler yüklenemedi.") && analytics.includes("Hesabına gir") && analytics.includes("/giris?next=%2Fistatistikler"), "analytics load-fail recovers to login instead of a dead end");
+check(css.includes(".p9-bars") && css.includes(".p9-settings-grid") && css.includes(".p9-order__progress"), "account orders, settings and analytics keep their layout classes");
+const activationTabTail = css.slice(css.lastIndexOf(".activation-tabs button.active"));
+check(activationTabTail.includes("background: #fff") && !activationTabTail.slice(0, 180).includes("#A37B2C"), "activation mode tabs are not a second gold; submit stays the fill");
+check(css.includes(".yi-app--individual .ds-button--primary") && css.includes(".yi-app .ds-empty"), "individual workspace primaries are solid gold on paper empty states");
 
 if (failed) process.exit(1);
 console.log("\nFAZ 4 product/UX verification passed.");

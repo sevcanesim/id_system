@@ -17,6 +17,15 @@ function isPublicSiteSurface(pathname: string) {
     /^\/aktivasyon(?:\/|$)/,
     /^\/odeme(?:\/|$)/,
     /^\/kurumsal\/davet(?:\/|$)/,
+    /^\/kartim(?:\/|$)/,
+    /^\/kartlarim(?:\/|$)/,
+    /^\/olustur(?:\/|$)/,
+    /^\/istatistikler(?:\/|$)/,
+    /^\/leadler(?:\/|$)/,
+    /^\/siparislerim(?:\/|$)/,
+    /^\/yenile(?:\/|$)/,
+    /^\/ayarlar(?:\/|$)/,
+    /^\/hesabim(?:\/|$)/,
   ];
   return !excluded.some((pattern) => pattern.test(pathname));
 }

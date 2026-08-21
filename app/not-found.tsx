@@ -9,7 +9,7 @@ export default function NotFound() {
         <p>Bağlantı taşınmış olabilir. Ana sayfaya dön veya NFC kartını doğrudan al.</p>
         <div className="yi-actions">
           <ButtonLink href="/">Ana sayfaya dön</ButtonLink>
-          <ButtonLink href="/urunler/nfc-kart" variant="secondary">NFC Kartı Satın Al</ButtonLink>
+          <ButtonLink href="/urunler/nfc-kart" variant="ghost">NFC Kartı Satın Al</ButtonLink>
         </div>
       </div>
     </main>

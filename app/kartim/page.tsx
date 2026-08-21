@@ -196,7 +196,7 @@ export default function MyCardPage() {
 
   if (!data) return <UserPanelShell activeKey="card" title="Kartım" description="Kart durumunuz kontrol ediliyor."><Card><p className="p14-state-copy">Kart durumu kontrol ediliyor…</p></Card></UserPanelShell>;
 
-  return <UserPanelShell activeKey="card" eyebrow="KARTIM" title="Kartım" description="Canlı profilini, kalıcı bağlantını, QR kodunu ve fiziksel kartını tek yerden yönet." actions={[{ href: editHref, label: "Profili Düzenle", primary: true }]}>
+  return <UserPanelShell activeKey="card" eyebrow="KARTIM" title="Kartım" description="Canlı profilini, kalıcı bağlantını, QR kodunu ve fiziksel kartını tek yerden yönet.">
     <section className="p14-card-shell">
       <div className="p14-card-main">
         <div className="p14-status-group p7-card-status-row">
@@ -235,12 +235,12 @@ export default function MyCardPage() {
             <Link href={editHref} className="p14-management-row"><Icon name="users" /><span>Bilgileri Düzenle</span><Icon name="chevronRight" className="p14-row-chevron" /></Link>
             <div className="p14-p14-management-row-wrap">
               <Icon name="cart" className="p14-p14-management-row-icon" />
-              <AddToCartButton productId={NFC_PRODUCT.slug} variantSku={COMMERCIAL_PRICING.ADDITIONAL_CARD.sku} kind="NFC_PHYSICAL_CARD" name="Yenomi ID Ek / Yedek NFC Kart" unitPriceKurus={EXTRA_NFC_CARD_PRICE_KURUS} label="Yedek / Ek Kart Sipariş Et" className="p14-management-row highlight" />
+              <AddToCartButton productId={NFC_PRODUCT.slug} variantSku={COMMERCIAL_PRICING.ADDITIONAL_CARD.sku} kind="NFC_PHYSICAL_CARD" name="Yenomi ID Ek / Yedek NFC Kart" unitPriceKurus={EXTRA_NFC_CARD_PRICE_KURUS} label="Yedek / Ek Kart Sipariş Et" appearance="secondary" className="p14-management-row highlight" />
             </div>
             <Link href="/yenile" className="p14-management-row"><Icon name="refresh" /><span>Dijital Hizmeti Yenile · {formatTryFromKurus(COMMERCIAL_PRICING.YENOMI_ID_RENEWAL.priceKurus)}/yıl</span><Icon name="chevronRight" className="p14-row-chevron" /></Link>
             {cardStatus === "LOST" && <div className="p14-p14-management-row-wrap">
               <Icon name="shield" className="p14-p14-management-row-icon" />
-              <AddToCartButton productId={NFC_PRODUCT.slug} variantSku={COMMERCIAL_PRICING.REPLACEMENT_CARD.sku} kind="NFC_PHYSICAL_CARD" name="Yenomi ID Kayıp / Replacement NFC Kart" unitPriceKurus={REPLACEMENT_NFC_CARD_PRICE_KURUS} label={`Replacement Kart Sipariş Et · ${formatTryFromKurus(REPLACEMENT_NFC_CARD_PRICE_KURUS)}`} className="p14-management-row highlight" />
+              <AddToCartButton productId={NFC_PRODUCT.slug} variantSku={COMMERCIAL_PRICING.REPLACEMENT_CARD.sku} kind="NFC_PHYSICAL_CARD" name="Yenomi ID Kayıp / Replacement NFC Kart" unitPriceKurus={REPLACEMENT_NFC_CARD_PRICE_KURUS} label={`Replacement Kart Sipariş Et · ${formatTryFromKurus(REPLACEMENT_NFC_CARD_PRICE_KURUS)}`} appearance="secondary" className="p14-management-row highlight" />
             </div>}
             <Link href="/siparislerim" className="p14-management-row"><Icon name="id" /><span>Siparişlerim</span><Icon name="chevronRight" className="p14-row-chevron" /></Link>
             <button type="button" className="p14-management-row danger" onClick={toggleLostMode} disabled={updatingStatus || !savedSlug || !physicalCard}>

@@ -103,7 +103,7 @@ export default function ActivationClient() {
     }
   }
 
-  return <main id="main-content" className="activation-page p5-activation-page p6-activation-page"><AppHeader context="Sipariş Aktivasyonu" /><section className="activation-shell">
+  return <main id="main-content" className="activation-page p5-activation-page p6-activation-page"><AppHeader landing context="Sipariş Aktivasyonu" showDefaultCta={false} /><section className="activation-shell">
     <span className="section-kicker">HESABI BAĞLA</span><h1>Siparişini hesabına bağla.</h1><p>E-postandaki bağlantı hakkı kilitler. Kurumsal pakette şirket paneli açılır; bireyselde dijital kartvizitin. Girişli alışverişte hak zaten tanımlıdır.</p>
     {token ? (
       <>

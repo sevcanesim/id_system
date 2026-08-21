@@ -53,12 +53,12 @@ export default function PaymentRetryActions() {
   return (
     <>
       <div className="order-success-actions">
+        <Link href={returnPath}>Aynı Sipariş İçin Tekrar Dene</Link>
         {orderId ? (
-          <Link href={`/odeme/basarili?order=${encodeURIComponent(orderId)}`} onClick={(event) => { event.preventDefault(); void recoverPayment(); }}>
+          <Link className="secondary" href={`/odeme/basarili?order=${encodeURIComponent(orderId)}`} onClick={(event) => { event.preventDefault(); void recoverPayment(); }}>
             {recovering ? "Ödeme doğrulanıyor…" : "Ödemeyi doğrula"}
           </Link>
         ) : null}
-        <Link href={returnPath}>Aynı Sipariş İçin Tekrar Dene</Link>
         <Link className="secondary" href="/siparislerim">Siparişlerimi Gör</Link>
       </div>
       {recoverMessage ? <p role="status">{recoverMessage}</p> : null}

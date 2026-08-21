@@ -45,5 +45,14 @@ check(addToCart.includes("physicalAddonCartGate") && addToCart.includes("Giriş 
 check(addToCart.includes("isPhysicalAddonSku") && addToCart.includes("disabled={blocked}"), "spare and replacement cards render a disabled purchase control when gated");
 check(read("lib/commerce/physical-addon-access.ts").includes("Giriş gerekli"), "spare-card guest copy states that login is required");
 
+const paymentFailed = read("app/odeme/basarisiz/page.tsx");
+const paymentRetry = read("app/odeme/basarisiz/PaymentRetryActions.tsx");
+const paymentSuccess = read("app/odeme/basarili/page.tsx");
+const activation = read("app/aktivasyon/ActivationClient.tsx");
+check(paymentFailed.includes("showDefaultCta={false}") && !paymentFailed.includes("Ödemeyi yeniden dene"), "failed-payment header stays quiet; retry lives in the result body");
+check(paymentRetry.includes("Aynı Sipariş İçin Tekrar Dene") && paymentRetry.includes('className="secondary"'), "failed-payment retry is the single filled primary");
+check(paymentSuccess.includes("Siparişlerim") && read("app/odeme/basarili/PaymentSuccessHeader.tsx").includes("showDefaultCta={false}"), "paid-result chrome stays on orders and does not re-sell the card");
+check(activation.includes("showDefaultCta={false}") && activation.includes('landing'), "activation header does not show a purchase CTA");
+
 if (failed) process.exit(1);
 console.log("\nFAZ 4 product/UX verification passed.");

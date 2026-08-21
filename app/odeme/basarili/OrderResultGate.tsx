@@ -9,7 +9,6 @@ import { clearCheckoutSession } from "../../../lib/payments/browser-checkout";
 import FulfillmentReviewNotice from "./FulfillmentReviewNotice";
 import ActivationAction from "./ActivationAction";
 import PaymentSuccessShare from "./PaymentSuccessShare";
-import { CORPORATE_POST_PURCHASE_HREF } from "../../../lib/commerce/post-purchase";
 
 type VerifyState = "checking" | "verified" | "invalid";
 type OrderStatusPayload = {
@@ -116,8 +115,6 @@ export default function OrderResultGate() {
     );
   }
 
-  const nextHref = corporateReady ? CORPORATE_POST_PURCHASE_HREF : "/siparislerim";
-  const nextLabel = corporateReady ? "Kurumsal Paneli Aç" : "Siparişimi Takip Et";
   const setupIncomplete = corporate && !corporateReady && !activationRequired;
 
   async function retryFulfillment() {
@@ -176,12 +173,9 @@ export default function OrderResultGate() {
             <Link className="secondary" href="/urunler">Ürünlere Dön</Link>
           </>
         ) : corporate ? (
-          <>
-            <Link href={nextHref}>{nextLabel}</Link>
-            {setupIncomplete ? null : <Link className="secondary" href="/siparislerim">Siparişimi Takip Et</Link>}
-          </>
+          setupIncomplete ? null : <Link className="secondary" href="/siparislerim">Siparişimi Takip Et</Link>
         ) : (
-          <Link href="/siparislerim">Siparişimi Takip Et</Link>
+          <Link className="secondary" href="/siparislerim">Siparişimi Takip Et</Link>
         )}
       </div>
       <PaymentSuccessShare />

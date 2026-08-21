@@ -4,6 +4,7 @@ import {
   ACCESS_COOKIE,
   applySessionCookies,
   clearSessionCookies,
+  isTrustedSessionRestoreRequest,
   readSessionCookie,
   REFRESH_COOKIE,
   REMEMBER_COOKIE,
@@ -33,6 +34,9 @@ function clearSession(response: NextResponse) {
 
 export async function GET(request: NextRequest) {
   try {
+    if (!isTrustedSessionRestoreRequest(request.headers)) {
+      return noStore(NextResponse.json({ error: "Oturum bulunamadı." }, { status: 401 }));
+    }
     const resolved = await resolveRestorableSession(request);
     if (!resolved.ok) {
       const response = NextResponse.json({ error: "Oturum bulunamadı." }, { status: 401 });

@@ -14,6 +14,18 @@ export const INITIAL_CARD_DATA: CardData = {
   linkedin: "", instagram: "", location: "", image: "", bio: "",
 };
 
+const STRUCTURAL_DRAFT_KEYS = ["name", "role", "company", "website", "linkedin", "instagram", "location", "bio"] as const;
+
+export function sanitizeCardDraft(value: unknown): CardData {
+  const incoming = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const next: CardData = { ...INITIAL_CARD_DATA };
+  for (const key of STRUCTURAL_DRAFT_KEYS) {
+    const candidate = incoming[key];
+    if (typeof candidate === "string") next[key] = candidate;
+  }
+  return next;
+}
+
 const IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export function isSupportedImageMimeType(value: string) {

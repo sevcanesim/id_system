@@ -8,10 +8,7 @@ export default function PublicProfileProtection({ profileId, generatedAt }: Prop
   useEffect(() => {
     const preventContext = (event: MouseEvent) => event.preventDefault();
     const preventDrag = (event: DragEvent) => event.preventDefault();
-    const preventCopy = (event: ClipboardEvent) => {
-      event.preventDefault();
-      window.alert("Bu profilin içeriği kopyalamaya karşı korunmaktadır.");
-    };
+    const preventCopy = (event: ClipboardEvent) => event.preventDefault();
     const preventShortcut = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
       if ((event.ctrlKey || event.metaKey) && ["c", "s", "p", "u"].includes(key)) {

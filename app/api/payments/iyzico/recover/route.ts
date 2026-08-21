@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       reviewRequired: result.reviewRequired,
     });
   } catch (error) {
-    console.error("iyzico recover error", error);
+    console.error("iyzico recover error", error instanceof Error ? error.message : "UNKNOWN");
     return NextResponse.json({ found: false, paid: false }, { status: 500 });
   }
 }

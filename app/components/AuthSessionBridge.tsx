@@ -19,7 +19,7 @@ export async function writeSessionCookie(
   if (typeof window === "undefined") return;
   await fetch("/api/auth/session", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", "x-yenomi-session": "1" },
     credentials: "same-origin",
     body: JSON.stringify({
       accessToken: token,
@@ -30,10 +30,28 @@ export async function writeSessionCookie(
   });
 }
 
+function isSensitivePath(pathname: string) {
+  return pathname.startsWith("/checkout") || pathname.startsWith("/odeme") || pathname.startsWith("/aktivasyon") || pathname.startsWith("/nfc-siparis");
+}
+
 export default function AuthSessionBridge() {
   useEffect(() => {
+    const syncObscure = () => {
+      const hide = isSensitivePath(window.location.pathname) && document.visibilityState !== "visible";
+      document.documentElement.toggleAttribute("data-sensitive-obscured", hide);
+    };
+    syncObscure();
+    document.addEventListener("visibilitychange", syncObscure);
+    window.addEventListener("pageshow", syncObscure);
+
     const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
+    if (!supabase) {
+      return () => {
+        document.removeEventListener("visibilitychange", syncObscure);
+        window.removeEventListener("pageshow", syncObscure);
+        document.documentElement.removeAttribute("data-sensitive-obscured");
+      };
+    }
 
     void supabase.auth.getSession().then(({ data }) => {
       if (!data.session) return;
@@ -57,7 +75,12 @@ export default function AuthSessionBridge() {
       );
     });
 
-    return () => listener.subscription.unsubscribe();
+    return () => {
+      listener.subscription.unsubscribe();
+      document.removeEventListener("visibilitychange", syncObscure);
+      window.removeEventListener("pageshow", syncObscure);
+      document.documentElement.removeAttribute("data-sensitive-obscured");
+    };
   }, []);
 
   return null;

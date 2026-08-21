@@ -6,6 +6,7 @@ import { isTerminalIyzicoDecline, verifyIyzicoCheckoutResult } from "./callback-
 import { publicSiteUrl } from "./config";
 import { CORPORATE_POST_PURCHASE_HREF, INDIVIDUAL_POST_PURCHASE_HREF } from "../commerce/post-purchase";
 import { retrieveCheckout } from "./iyzico";
+import { sanitizeProviderPayload } from "./sanitize-provider-payload";
 import { getSupabaseAdminClient } from "../supabase/server-admin";
 
 const PAID_ORDER_STATUSES = new Set(["PAID", "PREPARING", "SHIPPED", "COMPLETED"]);
@@ -62,7 +63,7 @@ async function autoClaimAuthenticatedOrder(admin: AdminClient, orderId: string) 
   }
   const ok = !error && Boolean(payload?.ok);
   if (!ok) {
-    console.error("authenticated order auto claim failed", { orderId, error, result: data });
+    console.error("authenticated order auto claim failed", { orderId, message: error?.message || null, code: payload?.code || null });
     const { error: issueError } = await admin.rpc("record_commerce_fulfillment_issue", {
       p_order_id: orderId,
       p_order_item_id: null,
@@ -205,7 +206,7 @@ async function settleLoadedAttempt(
     p_provider_payment_id: result?.paymentId ?? commerceAttempt.provider_payment_id ?? null,
     p_error_code: paid ? null : String(result?.errorCode || "PAYMENT_VERIFICATION_FAILED"),
     p_error_message: paid ? null : String(result?.errorMessage || "Ödeme doğrulanamadı."),
-    p_raw_result: result,
+    p_raw_result: sanitizeProviderPayload(result),
     p_activation_token_hash: activationTokenHash,
     p_activation_expires_at: activationExpiresAt.toISOString(),
   });
@@ -214,7 +215,7 @@ async function settleLoadedAttempt(
     console.error("atomic payment callback failed", {
       attemptId: commerceAttempt.id,
       orderId: commerceAttempt.order_id,
-      error: processError,
+      message: processError.message,
     });
     return { kind: "error", reason: "callback" };
   }

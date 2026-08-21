@@ -31,10 +31,9 @@ export async function POST(request: NextRequest) {
       paid: result.kind === "paid",
       pending: result.kind === "pending",
       failed: result.kind === "failed",
-      orderId: result.orderId,
     });
   } catch (error) {
-    console.error("iyzico webhook error", error);
+    console.error("iyzico webhook error", error instanceof Error ? error.message : "UNKNOWN");
     return NextResponse.json({ ok: false, error: "webhook" }, { status: 500 });
   }
 }

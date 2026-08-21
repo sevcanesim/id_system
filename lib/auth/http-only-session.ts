@@ -50,17 +50,37 @@ export function readSessionCookie(request: NextRequest, name: string): string | 
   }
 }
 
-export function jwtExpiresAt(token: string): number | null {
+const JWT_SUBJECT_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
   try {
     const part = token.split(".")[1];
     if (!part) return null;
     const padded = part.replace(/-/g, "+").replace(/_/g, "/");
     const withPad = padded + "=".repeat((4 - (padded.length % 4)) % 4);
-    const json = JSON.parse(atob(withPad));
-    return typeof json.exp === "number" ? json.exp : null;
+    const json = JSON.parse(atob(withPad)) as unknown;
+    return json && typeof json === "object" && !Array.isArray(json) ? json as Record<string, unknown> : null;
   } catch {
     return null;
   }
+}
+
+export function jwtExpiresAt(token: string): number | null {
+  const payload = decodeJwtPayload(token);
+  return payload && typeof payload.exp === "number" ? payload.exp : null;
+}
+
+export function jwtSubject(token: string): string | null {
+  const payload = decodeJwtPayload(token);
+  const sub = payload && typeof payload.sub === "string" ? payload.sub : "";
+  return JWT_SUBJECT_RE.test(sub) ? sub : null;
+}
+
+export async function resolveRequestUserId(request: NextRequest): Promise<string | null> {
+  const accessToken = readSessionCookie(request, ACCESS_COOKIE);
+  if (!accessToken) return null;
+  if (!(await accessTokenIsValid(accessToken))) return null;
+  return jwtSubject(accessToken);
 }
 
 export function applySessionCookies(response: CookieResponse, tokens: HttpOnlySessionTokens) {

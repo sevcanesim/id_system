@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { IYZICO_WEBHOOK_SECRET_HEADER, webhookSecretHeaderMatches } from "../../../../../lib/payments/iyzico-webhook-secret";
 import { settleCommercePaymentByProviderToken } from "../../../../../lib/payments/settle-commerce-payment";
 
 export const runtime = "nodejs";
@@ -21,6 +22,9 @@ async function readToken(request: NextRequest): Promise<string> {
  */
 export async function POST(request: NextRequest) {
   try {
+    if (!webhookSecretHeaderMatches(request.headers.get(IYZICO_WEBHOOK_SECRET_HEADER), process.env.IYZICO_WEBHOOK_SECRET)) {
+      return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+    }
     const token = await readToken(request);
     if (!token) return NextResponse.json({ ok: false, error: "token" }, { status: 400 });
     const result = await settleCommercePaymentByProviderToken(token, { failIfUnpaid: false });

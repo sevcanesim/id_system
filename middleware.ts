@@ -16,7 +16,6 @@ const FAIL_CLOSED_SCOPES = new Set([
   "checkout",
   "legacy-checkout",
   "auth-session-cookie",
-  "login-page",
   "iyzico-recover",
   "activation",
   "claim",
@@ -94,7 +93,7 @@ export async function middleware(request: NextRequest) {
       key: `${rule.scope}:${ip}:${userHint}`,
       limit: rule.limit,
       windowMs: rule.windowMs,
-      failClosed: FAIL_CLOSED_SCOPES.has(rule.scope),
+      failClosed: pathname.startsWith("/api/") && FAIL_CLOSED_SCOPES.has(rule.scope),
     });
     if (!result.allowed) {
       const retryAfter = Math.max(1, Math.ceil((result.resetAt - Date.now()) / 1000));

@@ -38,6 +38,8 @@ mustNotInclude(recover, "resolveRecoverOrderId(readPendingOrderId", "Recover mus
 mustInclude(rateLimit, "failClosed", "Distributed limiter must support fail-closed mode.");
 mustInclude(rateLimit, "unavailable: true", "Fail-closed limiter must surface unavailability.");
 mustInclude(middleware, "FAIL_CLOSED_SCOPES", "Checkout/auth scopes must fail closed without Redis in production.");
+mustInclude(middleware, 'pathname.startsWith("/api/") && FAIL_CLOSED_SCOPES.has(rule.scope)', "HTML pages must not 503 when Redis is unavailable; fail-closed is API-only.");
+mustNotInclude(middleware, '"login-page",', "The login document must not fail closed or visitors see a blank 503.");
 mustInclude(middleware, 'status = result.unavailable ? 503 : 429', "Limiter outage must return 503, not a silent in-memory pass.");
 mustInclude(middleware, "PAYLOAD_TOO_LARGE", "API JSON bodies must be capped in middleware.");
 mustInclude(middleware, "100 * 1024", "JSON body cap must stay around 100kb.");

@@ -103,7 +103,7 @@ export default function CorporatePackPicker({
         ) : (
           <a href={`/kurumsal?plan=${pack.code}#teklif`} className="corporate-cta">Teklif Al</a>
         )}
-        <a href="#teklif" className="corporate-secondary-cta">100+ kişi için teklif</a>
+        <a href="#teklif" className="home-mockup__link-secondary">100+ kişi için teklif</a>
       </div>
     </div>
   );

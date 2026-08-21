@@ -30,6 +30,8 @@ export default function SiteHeader({
   const [count, setCount] = useState(0);
   const primaryCta = actions.filter((a) => a.primary).slice(0, 1)[0]
     ?? (showDefaultCta ? { href: "/urunler/nfc-kart", label: "NFC Kartı Satın Al", primary: true } : null);
+  const onAuthSurface = pathname === "/giris" || pathname.startsWith("/giris/");
+  const showAccountLink = signedIn || !onAuthSurface;
 
   useEffect(() => {
     const sb = getSupabaseBrowserClient();
@@ -55,9 +57,11 @@ export default function SiteHeader({
               {primaryCta.label}
             </Link>
           ) : null}
-          <Link className="yi-nav__funnel" href={signedIn ? "/hesabim" : "/giris"} onClick={() => setOpen(false)}>
-            {signedIn ? "Hesabım" : "Giriş Yap"}
-          </Link>
+          {showAccountLink ? (
+            <Link className="yi-nav__funnel" href={signedIn ? "/hesabim" : "/giris"} onClick={() => setOpen(false)}>
+              {signedIn ? "Hesabım" : "Giriş Yap"}
+            </Link>
+          ) : null}
         </nav>
         <div className="yi-header__actions">
           <Link className="yi-cart" href="/sepet" aria-label={count ? `Sepet, ${count} ürün` : "Sepet"}>
@@ -66,7 +70,7 @@ export default function SiteHeader({
             {count > 0 && <b>{count}</b>}
           </Link>
           {primaryCta ? <ButtonLink href={primaryCta.href} variant="primary">{primaryCta.label}</ButtonLink> : null}
-          <ButtonLink href={signedIn ? "/hesabim" : "/giris"} variant="ghost">{signedIn ? "Hesabım" : "Giriş Yap"}</ButtonLink>
+          {showAccountLink ? <ButtonLink href={signedIn ? "/hesabim" : "/giris"} variant="ghost">{signedIn ? "Hesabım" : "Giriş Yap"}</ButtonLink> : null}
           <button className="yi-menu" type="button" aria-label={open ? "Menüyü kapat" : "Menüyü aç"} aria-expanded={open} onClick={() => setOpen((v) => !v)}>
             <span /><span /><span />
           </button>

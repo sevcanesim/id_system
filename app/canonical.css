@@ -13263,5 +13263,112 @@ body:has(.how-it-works-page) {
   border-color: #A37B2C;
 }
 
+/* Funnel friction CRO: one gold, readable type, sticky headings. */
+#business-pricing-title,
+.corporate-pack-picker,
+.corporate-lead-section {
+  scroll-margin-top: 124px;
+}
+
+.p6-auth-input input:-webkit-autofill,
+.p6-auth-input input:-webkit-autofill:hover,
+.p6-auth-input input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #1A1918;
+  box-shadow: inset 0 0 0 1000px #F9F8F6;
+  caret-color: #1A1918;
+}
+.p6-auth-google svg {
+  display: block;
+}
+
+.cart-page .ds-empty-actions .home-mockup__link-secondary {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+html:has(.support-page),
+body:has(.support-page),
+.support-page {
+  overflow: visible;
+  height: auto;
+}
+.support-page .support-hero {
+  height: auto;
+  min-height: 0;
+}
+.support-page .support-topics,
+.support-page .support-faq {
+  height: auto;
+  overflow: visible;
+}
+.support-topic-card {
+  min-height: 124px;
+}
+.support-topic-card:hover {
+  transform: none;
+}
+.support-topic-card p,
+.support-faq details p,
+.support-faq summary,
+.support-contact > p,
+.support-empty {
+  font-size: 13px;
+}
+.support-faq-group > h3 {
+  color: #8b6835;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: .12em;
+}
+.support-contact-cta {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #3f3a35;
+  font-size: 14px;
+  font-weight: 650;
+}
+.support-contact-actions a {
+  color: #3f3a35;
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+}
+.support-contact-actions a:hover {
+  color: #8b6835;
+}
+
+.corporate-mail-packs article,
+.corporate-pricing-grid article {
+  padding: 26px 24px 24px;
+}
+.corporate-pack-picker__actions .home-mockup__link-secondary {
+  min-height: auto;
+}
+
+@media (min-width: 761px) {
+  html:has(.support-page),
+  body:has(.support-page) {
+    overflow: visible;
+  }
+  .support-page {
+    height: auto;
+    min-height: 0;
+    display: block;
+    overflow: visible;
+  }
+  .support-page .support-hero,
+  .support-page .support-topics,
+  .support-page .support-faq {
+    height: auto;
+    overflow: visible;
+  }
+}
+
 
 

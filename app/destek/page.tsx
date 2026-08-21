@@ -61,9 +61,6 @@ export default async function SupportPage({
     <main id="main-content" className="support-page">
 
       <section className="support-hero" aria-labelledby="support-title">
-        <div className="support-orbit support-orbit--one" aria-hidden="true" />
-        <div className="support-orbit support-orbit--two" aria-hidden="true" />
-        <div className="support-planet" aria-hidden="true"><span /></div>
         <div className="support-hero-inner">
           <span className="section-kicker">YARDIM MERKEZİ</span>
           <h1 id="support-title">Kart, hesap, sipariş.<br />Net cevaplar.</h1>
@@ -130,7 +127,7 @@ export default async function SupportPage({
         <div><span className="section-kicker">DOĞRUDAN DESTEK</span><h2>Cevap burada yoksa doğrudan yazın.</h2></div>
         <p>Sipariş veya kart kodunuzla yazın. Hesabınız varsa panele dönün; kart numarası bu ekranda da istenmez.</p>
         <div className="support-contact-actions">
-          <a className="support-contact-cta" href="mailto:hello@yenomilabs.com">Destek ekibine yaz <span aria-hidden="true">→</span></a>
+          <a href="mailto:hello@yenomilabs.com">Destek ekibine yaz <span aria-hidden="true">→</span></a>
           <Link href="/giris">Hesabıma dön</Link>
         </div>
       </section>

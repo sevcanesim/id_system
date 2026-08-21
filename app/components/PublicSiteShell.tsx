@@ -27,12 +27,12 @@ function isQuietPublicChrome(pathname: string) {
     /^\/sepet(?:\/|$)/,
     /^\/checkout(?:\/|$)/,
     /^\/nfc-siparis(?:\/|$)/,
+    /^\/destek(?:\/|$)/,
   ].some((pattern) => pattern.test(pathname));
 }
 
 function publicHeaderActions(pathname: string) {
   if (pathname === "/kurumsal") return [{ href: "#business-pricing-title", label: "Paketleri İncele", primary: true }];
-  if (pathname.startsWith("/destek")) return [{ href: "mailto:hello@yenomilabs.com", label: "Destek Yazın", primary: true }];
   if (pathname.startsWith("/urunler/nfc-kart")) return [{ href: "#nfc-hero-price-row", label: "Sepete Ekle", primary: true }];
   return [];
 }
@@ -44,7 +44,7 @@ export default function PublicSiteShell({ children }: { children: React.ReactNod
   if (!isPublic) return <>{children}</>;
 
   const quiet = isQuietPublicChrome(pathname);
-  const commerceSurface = pathname === "/urunler" || pathname.startsWith("/urunler/");
+  const compactFooter = quiet || pathname === "/urunler" || pathname.startsWith("/urunler/") || pathname === "/kurumsal";
 
   return (
     <>
@@ -53,7 +53,7 @@ export default function PublicSiteShell({ children }: { children: React.ReactNod
         <AppHeader landing actions={quiet ? [] : publicHeaderActions(pathname)} showDefaultCta={!quiet} />
       </div>
       {children}
-      <AppFooter variant={quiet || commerceSurface ? "compact" : "default"} />
+      <AppFooter variant={compactFooter ? "compact" : "default"} />
     </>
   );
 }

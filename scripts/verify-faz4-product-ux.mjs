@@ -99,6 +99,10 @@ check(css.includes(".checkout-next") && css.includes("background: #fff") && css.
 check(css.includes(".legal-page--premium") && !css.slice(css.lastIndexOf(".legal-page--premium")).includes("79,39,121"), "legal pages drop the leftover purple wash");
 check(catalog.includes('appearance="secondary"') && catalog.includes("YEDEK KART"), "catalog spare-card CTA is secondary to the live plans");
 check(renewal.includes("ds-button--secondary") && renewal.includes("Leadleri ve mailleri aç"), "renewal mail shortcut is not a competing gold");
+check(!how.includes("how-planet") && !how.includes("how-orbit"), "how-it-works hero does not carry decorative planet chrome");
+check(picker.includes("100+ kişi için teklif") && picker.includes("home-mockup__link-secondary") && picker.includes('className="corporate-cta">Teklif Al'), "pack picker keeps live add-to-cart gold and quote as the 100+ primary");
+check(corporate.includes("corporate-mail-packs") && (corporate.match(/home-mockup__link-secondary/g) ?? []).length >= 3, "enterprise and mail-pack quote paths are text jumps to the lead form");
+check(css.includes(".p12-save-contact") && css.includes(".p12-networking:has(.p12-networking-form)") && css.includes(".p12-brand-mark"), "public card keeps one gold: save, or submit when the form is open");
 
 if (failed) process.exit(1);
 console.log("\nFAZ 4 product/UX verification passed.");

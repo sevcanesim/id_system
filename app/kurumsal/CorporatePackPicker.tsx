@@ -90,20 +90,22 @@ export default function CorporatePackPicker({
 
       <div className="corporate-pack-picker__actions">
         {pack.checkoutLive ? (
-          <AddToCartButton
-            productId={productId}
-            variantSku={pack.sku}
-            kind="BUSINESS_CARD"
-            name={pack.name}
-            unitPriceKurus={pack.priceKurus}
-            label="Sepete Ekle"
-            className="corporate-cta"
-            configuration={{ packageCode: pack.code, seatCount: pack.seats }}
-          />
+          <>
+            <AddToCartButton
+              productId={productId}
+              variantSku={pack.sku}
+              kind="BUSINESS_CARD"
+              name={pack.name}
+              unitPriceKurus={pack.priceKurus}
+              label="Sepete Ekle"
+              className="corporate-cta"
+              configuration={{ packageCode: pack.code, seatCount: pack.seats }}
+            />
+            <a href="#teklif" className="home-mockup__link-secondary">100+ kişi için teklif</a>
+          </>
         ) : (
           <a href={`/kurumsal?plan=${pack.code}#teklif`} className="corporate-cta">Teklif Al</a>
         )}
-        <a href="#teklif" className="home-mockup__link-secondary">100+ kişi için teklif</a>
       </div>
     </div>
   );

@@ -27,9 +27,6 @@ export default function HowItWorksPage() {
     <main id="main-content" className="how-it-works-page">
 
       <section className="how-hero" aria-labelledby="how-title">
-        <div className="how-orbit how-orbit--one" aria-hidden="true" />
-        <div className="how-orbit how-orbit--two" aria-hidden="true" />
-        <div className="how-planet" aria-hidden="true"><span /></div>
         <div className="how-hero-inner">
           <span className="section-kicker">YENOMI ID</span>
           <h1 id="how-title">Kartı yaklaştır.<br />Güncel profil açılsın.</h1>

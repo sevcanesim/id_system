@@ -51,6 +51,7 @@ async function upstashCommand(redis: { url: string; token: string }, command: un
     headers: { Authorization: `Bearer ${redis.token}`, "Content-Type": "application/json" },
     body: JSON.stringify(command),
     cache: "no-store",
+    signal: AbortSignal.timeout(800),
   });
   if (!response.ok) throw new Error(`UPSTASH_HTTP_${response.status}`);
   const payload = (await response.json()) as { result?: unknown; error?: string };
@@ -64,8 +65,8 @@ function denyUnavailable(limit: number, windowMs: number, now: number): RateLimi
 
 /**
  * Distributed fixed-window limiter for production. INCR + TTL repair execute atomically in Redis.
- * Checkout/auth scopes must fail closed when Redis is missing in production or when Redis errors.
- * Other scopes may still degrade to the local limiter.
+ * Checkout, recover, activation and claim must fail closed when Redis is missing
+ * in production or when Redis errors. Other scopes degrade to the local limiter.
  */
 export async function consumeDistributedRateLimit({
   key,

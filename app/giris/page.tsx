@@ -73,7 +73,12 @@ export default function LoginPage() {
         return;
       }
       if (await isAdminSession(data.session.access_token)) {
-        await writeSessionCookie(data.session.access_token, data.session.expires_at, data.session.refresh_token);
+        const sessionStored = await writeSessionCookie(data.session.access_token, data.session.expires_at, data.session.refresh_token);
+        if (!sessionStored) {
+          await supabase.auth.signOut();
+          showMessage("Oturum kaydedilemedi. Lütfen yeniden dene.", "error");
+          return;
+        }
         router.replace("/admin");
         return;
       }
@@ -188,9 +193,15 @@ export default function LoginPage() {
     const emailRedirectTo = `${window.location.origin}/giris?portal=${portal}&next=${encodeURIComponent(returnPath)}`;
     let result;
     try {
-      result = mode === "signup"
-        ? await supabase.auth.signUp({ email: normalizedEmail, password, options: { emailRedirectTo } })
-        : await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
+      const authCall = mode === "signup"
+        ? supabase.auth.signUp({ email: normalizedEmail, password, options: { emailRedirectTo } })
+        : supabase.auth.signInWithPassword({ email: normalizedEmail, password });
+      result = await Promise.race([
+        authCall,
+        new Promise<never>((_, reject) => {
+          window.setTimeout(() => reject(new Error("AUTH_TIMEOUT")), 12_000);
+        }),
+      ]);
     } catch {
       setLoading(false);
       return showMessage("Giriş hizmetine ulaşılamadı. Bağlantını kontrol edip yeniden dene.", "error");
@@ -219,9 +230,6 @@ export default function LoginPage() {
       return showMessage("Hesabın oluşturuldu. E-posta doğrulama bağlantısını kontrol et.", "success");
     }
     if (result.data.session?.user) {
-      // Hide credentials immediately after authentication succeeds. Portal and
-      // admin authorization can still continue, but the old form/password must
-      // not remain visible or be submitted a second time during that work.
       setPassword("");
       setTransitioning(true);
       const allowed = await validatePortal(supabase, result.data.session.user.id, portal);
@@ -234,7 +242,19 @@ export default function LoginPage() {
         return showMessage(allowed.message, "error");
       }
       setCartOwner(result.data.session.user.id, { claimGuest: true });
-      await writeSessionCookie(result.data.session.access_token, result.data.session.expires_at, result.data.session.refresh_token);
+      const sessionStored = await writeSessionCookie(
+        result.data.session.access_token,
+        result.data.session.expires_at,
+        result.data.session.refresh_token,
+      );
+      if (!sessionStored) {
+        setTransitioning(false);
+        setLoading(false);
+        await supabase.auth.signOut();
+        clearLegacyCart();
+        setCartOwner(null, { claimGuest: false });
+        return showMessage("Oturum kaydedilemedi. Lütfen yeniden dene.", "error");
+      }
       if (await isAdminSession(result.data.session.access_token)) {
         setLoading(false);
         router.replace("/admin");

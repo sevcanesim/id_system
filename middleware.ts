@@ -8,7 +8,7 @@ import {
 import { consumeDistributedRateLimit, requestIp } from "./lib/security/rate-limit";
 
 const AUTH_COOKIE = ACCESS_COOKIE;
-const PROTECTED_PAGES = ["/admin", "/kurumsal/panel", "/siparislerim", "/kartim", "/kartlarim", "/olustur", "/yenile", "/ayarlar", "/istatistikler", "/leadler"];
+const PROTECTED_PAGES = ["/admin", "/kurumsal/panel", "/hesabim", "/siparislerim", "/kartim", "/kartlarim", "/olustur", "/yenile", "/ayarlar", "/istatistikler", "/leadler"];
 const PRIVATE_OR_PROFILE_PREFIXES = ["/admin", "/dashboard", "/giris", "/hesabim", "/kartim", "/kartlarim", "/siparisler", "/siparislerim", "/olustur", "/aktivasyon", "/checkout", "/odeme", "/sepet", "/leadler", "/kurumsal/panel", "/kurumsal/davet", "/p", "/e", "/qr", "/api"];
 
 type LimitRule = { limit: number; windowMs: number; scope: string };

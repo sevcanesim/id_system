@@ -19,11 +19,13 @@ requireText(browser, "memoryAuthStorage", "Browser client must persist supabase 
 requireText(browser, "purgeLegacyAuthStorage", "Browser client must remove leftover sb- auth tokens from Web Storage.");
 requireText(browser, "setSession", "Browser client must restore the in-memory session from HttpOnly cookies.");
 requireText(browser, 'fetch("/api/auth/session"', "Browser client must GET /api/auth/session on load.");
+requireText(browser, "x-yenomi-session", "Browser restore fetch must send the session restore header.");
 forbidText(browser, "window.localStorage.setItem(key, value)", "Browser client must not write supabase auth keys to localStorage.");
 forbidText(browser, "window.sessionStorage.setItem(key, value)", "Browser client must not write supabase auth keys to sessionStorage.");
 requireText(browser, "yenomi-remember-session", "Remember-me may still store a non-secret email preference.");
 
 requireText(session, "export async function GET", "Session route must restore cookies via GET.");
+requireText(session, "isTrustedSessionRestoreRequest", "Session GET must refuse document navigations that would dump tokens.");
 requireText(session, "auth.getUser", "Access cookie must still be verified with auth.getUser before POST set.");
 requireText(session, "httpOnly: true", "Session cookies must remain HttpOnly.");
 requireText(helper, 'REFRESH_COOKIE = "yenomi-refresh-token"', "Refresh token must use a dedicated HttpOnly cookie.");

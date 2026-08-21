@@ -369,7 +369,7 @@ export async function POST(request: NextRequest) {
       items: body.items,
       email: normalizedEmail,
       totalKurus,
-      customer: { name: body.customer.name, phone: body.customer.phone, identityType: body.customer.identityType },
+      customer: { name: body.customer.name, phone: body.customer.phone, identityType: body.customer.identityType, identityNumber },
       shipping,
       consents: body.consents,
       company: company ?? {},

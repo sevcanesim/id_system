@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { publicSiteUrl } from "../../../../../lib/payments/config";
 import { retrieveCheckout } from "../../../../../lib/payments/iyzico";
 import { settleCommercePaymentByProviderToken } from "../../../../../lib/payments/settle-commerce-payment";
+import { sanitizeProviderPayload } from "../../../../../lib/payments/sanitize-provider-payload";
 import { getSupabaseAdminClient } from "../../../../../lib/supabase/server-admin";
 import { iyzicoMoneyToKurus } from "../../../../../lib/validation/payment";
 
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
       provider_payment_id: result?.paymentId ?? attempt.provider_payment_id ?? null,
       error_code: paid ? null : String(result?.errorCode || "PAYMENT_VERIFICATION_FAILED"),
       error_message: paid ? null : String(result?.errorMessage || "Ödeme doğrulanamadı."),
-      raw_result: result,
+      raw_result: sanitizeProviderPayload(result),
       updated_at: new Date().toISOString(),
     }).eq("id", attempt.id).neq("status", "PAID");
 
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
       303,
     );
   } catch (error) {
-    console.error("iyzico callback error", error);
+    console.error("iyzico callback error", error instanceof Error ? error.message : "UNKNOWN");
     return failure("callback");
   }
 }

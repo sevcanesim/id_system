@@ -3,7 +3,17 @@ import type { NextRequest, NextResponse } from "next/server";
 export const ACCESS_COOKIE = "yenomi-access-token";
 export const REFRESH_COOKIE = "yenomi-refresh-token";
 export const REMEMBER_COOKIE = "yenomi-session-remember";
+export const SESSION_RESTORE_HEADER = "x-yenomi-session";
 export const REMEMBER_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+
+export function isTrustedSessionRestoreRequest(headers: Headers): boolean {
+  if (headers.get(SESSION_RESTORE_HEADER) !== "1") return false;
+  const dest = (headers.get("sec-fetch-dest") || "").toLowerCase();
+  const mode = (headers.get("sec-fetch-mode") || "").toLowerCase();
+  if (dest === "document" || dest === "iframe" || dest === "embed" || dest === "object") return false;
+  if (mode === "navigate") return false;
+  return true;
+}
 
 export type HttpOnlySessionTokens = {
   accessToken: string;

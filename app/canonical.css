@@ -12890,4 +12890,11 @@ body:has(.how-it-works-page) .yi-footer--new .yi-container {
   word-spacing: 0.1em;
 }
 
+html[data-sensitive-obscured] body {
+  filter: blur(28px);
+  pointer-events: none;
+  user-select: none;
+}
+
+
 

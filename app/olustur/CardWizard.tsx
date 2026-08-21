@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import CardTemplate from "../CardTemplate";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { isSupabaseConfigured } from "../../lib/supabase/config";
-
 import UserPanelShell from "../components/UserPanelShell";
 import { Badge, Button, Drawer, Field, Input, Select, Textarea } from "../components/ui";
 import { Icon } from "../icons";
@@ -26,6 +25,7 @@ import {
   ensureRealImage,
   isSupportedImageMimeType,
   INITIAL_CARD_DATA,
+  sanitizeCardDraft,
   normalizeProfileSlug,
   storagePathFromPublicUrl,
   validateProfileSlug,
@@ -116,7 +116,7 @@ export default function CardWizard() {
     if (!isBusinessCard) {
       const local = localStorage.getItem("yenomi-card-draft");
       if (local) {
-        try { setData({ ...INITIAL_CARD_DATA, ...JSON.parse(local) }); } catch { /* bozuk taslağı yok say */ }
+        try { setData(sanitizeCardDraft(JSON.parse(local))); } catch { /* bozuk taslağı yok say */ }
       }
     }
     const supabase = getSupabaseBrowserClient();
@@ -478,7 +478,7 @@ export default function CardWizard() {
 
     setSaving(true);
     setMessage("");
-    if (!isBusinessCard) localStorage.setItem("yenomi-card-draft", JSON.stringify(data));
+    if (!isBusinessCard) localStorage.setItem("yenomi-card-draft", JSON.stringify(sanitizeCardDraft(data)));
 
     let uploaded: UploadedImage | null = null;
     try {
@@ -587,7 +587,7 @@ export default function CardWizard() {
           });
           if (localeError) setMessage("Kart kaydedildi; İngilizce içerik katmanı ayrıca kaydedilemedi.");
         }
-        if (!isBusinessCard) localStorage.setItem("yenomi-card-draft", JSON.stringify({ ...data, image: uploaded.url }));
+        if (!isBusinessCard) localStorage.setItem("yenomi-card-draft", JSON.stringify(sanitizeCardDraft({ ...data, image: uploaded.url })));
         localStorage.setItem("yenomi-card-slug", slug);
         setProfileSlug(slug);
       } else if (isSupabaseConfigured) {

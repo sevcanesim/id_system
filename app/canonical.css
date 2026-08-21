@@ -13370,5 +13370,165 @@ body:has(.support-page),
   }
 }
 
+/* Account / NFC-order CRO: one filled primary, warm paper, no public chrome leak. */
+body:has(.yi-app) .public-site-chrome,
+body:has(.yi-app) .yi-footer--new {
+  display: none;
+}
+
+body:has(.yi-empty-product) .public-site-chrome .p4-announcement,
+body:has(.yi-empty-product) .public-site-chrome .yi-header__actions .yi-btn--primary,
+body:has(.yi-empty-product) .public-site-chrome .yi-nav__funnel--primary {
+  display: none;
+}
+.yi-empty-product h1 {
+  color: #1A1918;
+}
+.yi-empty-product .yi-hero__eyebrow {
+  color: #8b6835;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: .12em;
+}
+.yi-empty-product .yi-btn--primary {
+  background: #A37B2C;
+  color: #17120c;
+  border-color: #A37B2C;
+}
+.yi-empty-product .yi-btn--ghost {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #3f3a35;
+  font-size: 14px;
+  font-weight: 650;
+}
+.yi-empty-product .yi-btn--ghost:hover {
+  color: #8b6835;
+}
+
+.yi-empty-app > span,
+.yi-app-card > span,
+.yi-app--individual .yi-page-head > span,
+.p14-panel > small,
+.p14-link-head small,
+.p14-preview-label {
+  color: #8b6835;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: .12em;
+}
+.yi-app--individual .yi-page-head h1,
+.p14-panel h2 {
+  color: #1A1918;
+}
+
+.p14-management-row {
+  background: #fff;
+  border-color: #E6E2D8;
+}
+.p14-management-row.highlight,
+.p14-p14-management-row-wrap .p14-management-row.highlight {
+  background: rgba(163,123,44,.08);
+  border-color: rgba(163,123,44,.28);
+}
+.p14-management-row.ds-button,
+.p14-management-row.ds-button--primary,
+.p14-management-row.add-to-cart-button {
+  justify-content: flex-start;
+  min-height: 48px;
+  border-radius: 16px;
+  background: rgba(163,123,44,.08);
+  border-color: rgba(163,123,44,.28);
+  color: #1A1918;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.premium-checkout-card {
+  background: #fff;
+  border-color: #E6E2D8;
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+.premium-order-shell .product-stage-copy h1,
+.premium-checkout-head h2,
+.wizard-pane h3 {
+  color: #1A1918;
+}
+.premium-order-shell .section-kicker {
+  color: #8b6835;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: .12em;
+}
+.premium-checkout-card .checkout-progress {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.premium-order-shell .product-trust-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.wizard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 26px 26px;
+}
+.wizard-actions .primary {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: #A37B2C;
+  color: #17120c;
+  font-size: 14px;
+  font-weight: 800;
+}
+.wizard-actions .secondary,
+.wizard-actions .secondary-link {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #3f3a35;
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+}
+.wizard-actions .secondary:hover,
+.wizard-actions .secondary-link:hover {
+  color: #8b6835;
+}
+.premium-order-shell .quantity-premium,
+.premium-order-shell .smart-location-row,
+.premium-order-shell .identity-toggle,
+.premium-order-shell .payment-privacy-note,
+.premium-order-shell .identity-heads-up,
+.premium-order-shell .identity-preview-card,
+.premium-order-shell .product-trust-grid > * {
+  background: #F9F8F6;
+}
+
+.p4-public-home,
+.public-reference-page {
+  background: radial-gradient(760px 520px at 82% 8%, rgba(163,123,44,.08), transparent 68%), linear-gradient(180deg, #f8f7f4 0%, #f2f0eb 55%, #ece9e2 100%);
+}
+.corporate-art-glow,
+.products-public-v2-hero-art::before,
+.reference-hero-art::before {
+  background: radial-gradient(circle, rgba(163,123,44,.18), transparent 68%);
+}
+
+@media (max-width: 900px) {
+  .premium-checkout-card .checkout-progress,
+  .premium-order-shell .product-trust-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 
 

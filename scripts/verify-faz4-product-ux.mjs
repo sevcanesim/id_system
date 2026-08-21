@@ -77,5 +77,16 @@ check(leadForm.includes(">Teklif Al<") || leadForm.includes('"Teklif Al"'), "cor
 check(css.includes("scroll-margin-top: 124px") && css.includes("business-pricing-title"), "corporate pricing heading clears sticky chrome");
 check(read("app/ui/SiteHeader.tsx").includes("onAuthSurface"), "login header does not repeat Giriş Yap on /giris");
 
+const kartim = read("app/kartim/page.tsx");
+const notFound = read("app/not-found.tsx");
+const nfcOrder = read("app/nfc-siparis/page.tsx");
+check(shell.includes("/kartim") && shell.includes("/kartlarim") && shell.includes("/olustur"), "individual workspace is excluded from public marketing chrome");
+check(!kartim.includes('label: "Profili Düzenle"') && kartim.includes("Kartviziti Aç") && kartim.includes("Bilgileri Düzenle"), "Kartım keeps one gold open action; edit stays a row");
+check(kartim.includes('appearance="secondary"') && kartim.includes("p14-management-row highlight"), "Kartım spare/replacement rows stay secondary management actions");
+check(!cards.includes('label:"Profili Düzenle"') && cards.includes("Kimliğime devam et") && cards.includes("NFC Kartı Satın Al"), "dashboard home keeps one gold in the body, purchase only in empty state");
+check(notFound.includes('variant="ghost"') && notFound.includes("Ana sayfaya dön") && notFound.includes("NFC Kartı Satın Al"), "404 keeps home as the filled primary and purchase as text");
+check(nfcOrder.includes("wizard-actions") && nfcOrder.includes('className="primary"') && css.includes(".wizard-actions .primary"), "legacy NFC order wizard keeps one gold continue action");
+check(css.includes(".premium-checkout-card {\n  background: #fff") && css.includes("body:has(.yi-app) .public-site-chrome"), "legacy NFC order card sits on warm paper; account chrome does not resell");
+
 if (failed) process.exit(1);
 console.log("\nFAZ 4 product/UX verification passed.");

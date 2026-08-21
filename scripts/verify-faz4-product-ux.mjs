@@ -88,5 +88,17 @@ check(notFound.includes('variant="ghost"') && notFound.includes("Ana sayfaya dö
 check(nfcOrder.includes("wizard-actions") && nfcOrder.includes('className="primary"') && css.includes(".wizard-actions .primary"), "legacy NFC order wizard keeps one gold continue action");
 check(css.includes(".premium-checkout-card {\n  background: #fff") && css.includes("body:has(.yi-app) .public-site-chrome"), "legacy NFC order card sits on warm paper; account chrome does not resell");
 
+const editor = read("app/olustur/CardWizard.tsx");
+const shellCompat = read("app/components/UserPanelShell.tsx");
+const dashboard = read("app/ui/DashboardShell.tsx");
+const nfcPdp = read("app/urunler/nfc-kart/page.tsx");
+check(shellCompat.includes("actions={actions}") && dashboard.includes("onClick={a.onClick}"), "profile editor page-head keeps Kaydet ve Yayınla as a real button");
+check(editor.includes("Kaydet ve Yayınla") && editor.includes("p8-mobile-actions") && css.includes("body:has(.p8-mobile-actions)"), "mobile editor keeps sticky save without a second desktop gold");
+check(nfcPdp.includes("home-mockup__link-secondary") && nfcPdp.includes("#nfc-hero-price-row") && read("app/urunler/nfc-kart/NfcPurchasePanel.tsx").includes("Sepete Ekle"), "NFC PDP mid/end Sepete Ekle stays a text jump; hero owns the fill");
+check(css.includes(".checkout-next") && css.includes("background: #fff") && css.includes(".checkout-pay-button"), "checkout step advance is not a second gold; pay stays the fill");
+check(css.includes(".legal-page--premium") && !css.slice(css.lastIndexOf(".legal-page--premium")).includes("79,39,121"), "legal pages drop the leftover purple wash");
+check(catalog.includes('appearance="secondary"') && catalog.includes("YEDEK KART"), "catalog spare-card CTA is secondary to the live plans");
+check(renewal.includes("ds-button--secondary") && renewal.includes("Leadleri ve mailleri aç"), "renewal mail shortcut is not a competing gold");
+
 if (failed) process.exit(1);
 console.log("\nFAZ 4 product/UX verification passed.");

@@ -122,6 +122,7 @@ export default async function ProductsPage() {
                   name="Yenomi ID Yedek Kart"
                   unitPriceKurus={COMMERCIAL_PRICING.ADDITIONAL_CARD.priceKurus}
                   label="Sepete Ekle"
+                  appearance="secondary"
                 />
               </div>
             </article>

@@ -140,7 +140,7 @@ export default function RenewalPage() {
             </div>
             {isPremium && (
               <div className="p9-service-actions">
-                <Link className="ds-button ds-button--primary" href="/leadler">Leadleri ve mailleri aç</Link>
+                <Link className="ds-button ds-button--secondary" href="/leadler">Leadleri ve mailleri aç</Link>
               </div>
             )}
           </Card>

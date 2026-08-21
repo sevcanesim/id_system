@@ -89,7 +89,7 @@ export default async function NfcKartPage({
         <div className="yi-container nfc-includes__grid">
           <div><span className="nfc-kicker">NE ALIYORSUN?</span><h2>Karttan fazlası.<br />Kimliğin sende kalır.</h2></div>
           <ul><li>1 adet kişisel NFC kart</li><li>Değişmeyen kişisel QR kod</li><li>1 yıllık dijital kartvizit sayfası</li><li>Aktif dönemde sınırsız bilgi güncelleme</li><li>Kayıp modu ve yedek kart desteği</li><li>Türkiye içi standart kargo dahil</li></ul>
-          <div className="nfc-includes__cta"><span>Kargo dahil paket fiyatı</span><strong>{formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)}</strong><small>1 kart • 1 yıllık sayfa • Türkiye içi teslimat</small><Link className="yi-btn yi-btn--primary" href="#nfc-hero-price-row">Sepete Ekle</Link></div>
+          <div className="nfc-includes__cta"><span>Kargo dahil paket fiyatı</span><strong>{formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)}</strong><small>1 kart • 1 yıllık sayfa • Türkiye içi teslimat</small><Link className="home-mockup__link-secondary" href="#nfc-hero-price-row">Sepete Ekle</Link></div>
         </div>
       </section>
 
@@ -100,7 +100,7 @@ export default async function NfcKartPage({
       </section>
 
       <section className="nfc-final">
-          <div className="yi-container"><span className="nfc-kicker">ŞİMDİ BAŞLA</span><h2>Bir sonraki tanışmada<br />güncel ol.</h2><p>İlk paket {formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)}. 1 yıl dijital hizmet ve Türkiye içi kargo dahil.</p><Link className="yi-btn yi-btn--primary" href="#nfc-hero-price-row">Sepete Ekle</Link></div>
+          <div className="yi-container"><span className="nfc-kicker">ŞİMDİ BAŞLA</span><h2>Bir sonraki tanışmada<br />güncel ol.</h2><p>İlk paket {formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)}. 1 yıl dijital hizmet ve Türkiye içi kargo dahil.</p><Link className="home-mockup__link-secondary" href="#nfc-hero-price-row">Sepete Ekle</Link></div>
       </section>
     </main>
   );

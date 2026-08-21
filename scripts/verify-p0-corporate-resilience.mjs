@@ -19,10 +19,32 @@ const routes = {
   organization: 'app/kurumsal/panel/organizasyon/page.tsx',
 };
 
+const layout = read('app/kurumsal/panel/layout.tsx');
+const gate = read('app/kurumsal/panel/CorporatePanelGate.tsx');
+if (layout.includes('<CorporatePanelGate>') && gate.includes('<CorporatePanelClient />')) {
+  pass('corporate layout keeps a persistent management shell');
+} else {
+  fail('corporate layout persistent management shell is missing');
+}
+if (gate.includes('pathname === "/kurumsal/panel/kartim"') && gate.includes('return children')) {
+  pass('Kartım stays outside the management shell');
+} else {
+  fail('Kartım is not excluded from the persistent management shell');
+}
+
 for (const [key, file] of Object.entries(routes)) {
   const source = read(file);
-  if (source.includes(`<CorporatePanelClient key="${key}" />`)) pass(`route ${key} has an explicit remount key`);
-  else fail(`route ${key} is missing explicit remount key`);
+  if (source.includes('return null') && /Route marker: the persistent corporate panel/.test(source)) {
+    pass(`route ${key} defers to the persistent panel shell`);
+  } else {
+    fail(`route ${key} is not a persistent-shell marker`);
+  }
+}
+const kartim = read('app/kurumsal/panel/kartim/page.tsx');
+if (kartim.includes('<CardWizard') && !kartim.includes('<CorporatePanelClient')) {
+  pass('Kartım mounts the card editor instead of the management console');
+} else {
+  fail('Kartım does not mount the card editor');
 }
 
 for (const file of ['app/kurumsal/panel/loading.tsx', 'app/kurumsal/panel/error.tsx']) {
@@ -31,7 +53,7 @@ for (const file of ['app/kurumsal/panel/loading.tsx', 'app/kurumsal/panel/error.
 }
 
 const client = read('app/kurumsal/panel/CorporatePanelClient.tsx');
-if (client.includes('setLoadingError(detail)') && client.includes('Çalışanlar yüklenemedi.')) pass('employee API failures use the persistent data-error channel');
+if (client.includes('setDataError("employees"') && client.includes('Çalışanlar yüklenemedi.')) pass('employee API failures use the persistent data-error channel');
 else fail('employee API failure does not use the persistent data-error channel');
 if (client.includes('className="enterprise-data-error"') && client.includes('Yeniden Dene')) pass('corporate data error banner has a retry action');
 else fail('corporate data error banner/retry action is missing');
@@ -87,7 +109,7 @@ if (
   cart.includes('KDV dahil') &&
   cart.includes('Ücretsiz') &&
   cart.includes('disabled={item.quantity <= 1}') &&
-  cart.includes('Satın alma sırasında giriş yapar veya hesap oluşturursun')
+  cart.includes('Hesap açmadan ödeme yapabilirsin')
 ) {
   pass('cart shows structured totals, readable pack names, and 44px quantity controls');
 } else {
@@ -282,4 +304,4 @@ if (
 }
 
 const migrations = fs.readdirSync(path.join(root, 'supabase/migrations')).filter((name) => name.endsWith('.sql'));
-if (migrations.length === 55) pass('55 database migrations preserved'); else fail(`migration count changed: ${migrations.length}`);
+if (migrations.length >= 66) pass(`database migration baseline retained (${migrations.length})`); else fail(`migration baseline shrank below the live reviewed count: ${migrations.length}`);

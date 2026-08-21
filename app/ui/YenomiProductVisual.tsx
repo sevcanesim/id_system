@@ -22,8 +22,8 @@ export function YenomiProductVisual({
           <div><small>Profil</small><b>1.6K</b></div>
         </div>
         <div className="yi-ui-dashboard-grid">
-          <div className="yi-ui-chart">{[35,58,43,76,52].map((h,i)=><i style={{height:`${h}%`}} key={i}/>)}</div>
-          <div className="yi-ui-list">{[1,2,3,4].map(i=><i key={i}/>)}</div>
+          <div className="yi-ui-chart"><i/><i/><i/><i/><i/></div>
+          <div className="yi-ui-list"><i/><i/><i/><i/></div>
         </div>
       </div>
     );

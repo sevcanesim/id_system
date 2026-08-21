@@ -58,7 +58,7 @@ export default function MyOrdersPage() {
   if (loading) return <UserPanelShell activeKey="orders" title="Siparişlerim" description="Sipariş bilgileriniz yükleniyor."><Card><p className="p9-section-copy">Siparişler yükleniyor…</p></Card></UserPanelShell>;
   if (!signedIn) return <UserPanelShell activeKey="orders" title="Siparişlerim" description="Siparişlerinizi görüntülemek için hesabınıza giriş yapın."><EmptyState title="Oturum gerekli" description="Siparişleriniz hesabınıza bağlandığında burada görünür." action={<ButtonLink href="/giris?next=%2Fsiparislerim" variant="primary">Hesabına gir</ButtonLink>} /></UserPanelShell>;
 
-  return <UserPanelShell activeKey="orders" eyebrow="HESAP" title="Siparişlerim" description={orders.length ? `${orders.length} sipariş · ${activeCount} devam eden süreç` : "Ürün, ödeme, hazırlık ve kargo durumunu tek yerden takip edin."} actions={[{href:"/urunler/nfc-kart",label:"NFC Kartı Satın Al",primary:true}]}>
+  return <UserPanelShell activeKey="orders" eyebrow="HESAP" title="Siparişlerim" description={orders.length ? `${orders.length} sipariş · ${activeCount} devam eden süreç` : "Ürün, ödeme, hazırlık ve kargo durumunu tek yerden takip edin."}>
     <section className="p9-stack">
       {message && <div className="p9-message" role="status">{message}</div>}
       <div className="p9-order-list">

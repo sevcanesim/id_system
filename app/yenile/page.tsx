@@ -5,7 +5,7 @@ import Link from "next/link";
 import UserPanelShell from "../components/UserPanelShell";
 import AddToCartButton from "../components/AddToCartButton";
 import { Icon } from "../icons";
-import { Badge, Card, EmptyState } from "../components/ui";
+import { Badge, ButtonLink, Card, EmptyState } from "../components/ui";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import {
   COMMERCIAL_PRICING,
@@ -115,7 +115,7 @@ export default function RenewalPage() {
       {service.loading ? (
         <Card><p className="p9-section-copy">Hizmet bilgisi yükleniyor…</p></Card>
       ) : !service.signedIn ? (
-        <EmptyState title="Oturum gerekli" description="Abonelik durumunu görmek için hesabınıza giriş yapın." />
+        <EmptyState title="Oturum gerekli" description="Abonelik durumunu görmek için hesabınıza giriş yapın." action={<ButtonLink href="/giris?next=%2Fyenile" variant="primary">Hesabına gir</ButtonLink>} />
       ) : (
         <div className="p9-stack">
           {service.error && <div className="p9-message" role="status">{service.error}</div>}
@@ -175,7 +175,7 @@ export default function RenewalPage() {
             );
           })}
           {!current && (
-            <EmptyState title="Satın alınacak hizmet yok" description="Yenileme veya yükseltme için önce bireysel kart paketini alın." />
+            <EmptyState title="Satın alınacak hizmet yok" description="Yenileme veya yükseltme için önce bireysel kart paketini alın." action={<ButtonLink href="/urunler/nfc-kart" variant="primary">NFC Kartı Satın Al</ButtonLink>} />
           )}
         </div>
       )}

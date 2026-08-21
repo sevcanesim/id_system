@@ -61,6 +61,23 @@ describe("consumeDistributedRateLimit fail-closed", () => {
     expect(result.unavailable).toBe(true);
   });
 
+  it("aborts a hanging Redis call instead of blocking the limiter", async () => {
+    vi.stubEnv("UPSTASH_REDIS_REST_URL", "https://example.upstash.io");
+    vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "token");
+    const fetchMock = vi.fn(async (_url: unknown, init?: { signal?: AbortSignal }) => {
+      expect(init?.signal).toBeInstanceOf(AbortSignal);
+      throw new Error("UPSTASH_DOWN");
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    await consumeDistributedRateLimit({
+      key: "checkout:hang",
+      limit: 12,
+      windowMs: 60_000,
+      failClosed: true,
+    });
+    expect(fetchMock).toHaveBeenCalled();
+  });
+
   it("degrades to memory on Redis errors when failClosed is off", async () => {
     vi.stubEnv("UPSTASH_REDIS_REST_URL", "https://example.upstash.io");
     vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "token");

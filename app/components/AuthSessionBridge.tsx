@@ -15,19 +15,25 @@ export async function writeSessionCookie(
   token: string | null,
   expiresAt?: number | null,
   refreshToken?: string | null,
-) {
-  if (typeof window === "undefined") return;
-  await fetch("/api/auth/session", {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-yenomi-session": "1" },
-    credentials: "same-origin",
-    body: JSON.stringify({
-      accessToken: token,
-      expiresAt: expiresAt ?? null,
-      refreshToken: refreshToken ?? null,
-      remember: getRememberedLogin().remember,
-    }),
-  });
+): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  try {
+    const response = await fetch("/api/auth/session", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-yenomi-session": "1" },
+      credentials: "same-origin",
+      signal: AbortSignal.timeout(8000),
+      body: JSON.stringify({
+        accessToken: token,
+        expiresAt: expiresAt ?? null,
+        refreshToken: refreshToken ?? null,
+        remember: getRememberedLogin().remember,
+      }),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
 }
 
 function isSensitivePath(pathname: string) {

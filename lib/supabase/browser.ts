@@ -87,6 +87,7 @@ async function restoreBrowserSession(target: SupabaseClient) {
       credentials: "same-origin",
       cache: "no-store",
       headers: { "x-yenomi-session": "1" },
+      signal: AbortSignal.timeout(8000),
     });
     if (response.ok) {
       const payload = (await response.json()) as { accessToken?: unknown; refreshToken?: unknown };

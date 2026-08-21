@@ -12,10 +12,11 @@ const PROTECTED_PAGES = ["/admin", "/kurumsal/panel", "/hesabim", "/siparislerim
 const PRIVATE_OR_PROFILE_PREFIXES = ["/admin", "/dashboard", "/giris", "/hesabim", "/kartim", "/kartlarim", "/siparisler", "/siparislerim", "/olustur", "/aktivasyon", "/checkout", "/odeme", "/sepet", "/leadler", "/kurumsal/panel", "/kurumsal/davet", "/p", "/e", "/qr", "/api"];
 const JSON_BODY_MAX_BYTES = 100 * 1024;
 const UPLOAD_PATH = "/api/organizations/links/upload";
+// Payment/activation APIs fail closed without Redis. /api/auth/session stays
+// rate-limited but fail-open: a limiter outage must not 503 the login cookie.
 const FAIL_CLOSED_SCOPES = new Set([
   "checkout",
   "legacy-checkout",
-  "auth-session-cookie",
   "iyzico-recover",
   "activation",
   "claim",

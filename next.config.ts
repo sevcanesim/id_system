@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
     return [{
       source: "/(.*)",
       headers: [
-        { key: "Content-Security-Policy", value: `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src ${connectSrc}; frame-src 'self' https://*.iyzipay.com https://*.iyzico.com; form-action 'self' https://*.iyzipay.com https://*.iyzico.com; base-uri 'self'; object-src 'none'; frame-ancestors 'none'` },
+        { key: "Content-Security-Policy", value: `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src ${connectSrc}; frame-src 'self' https://*.iyzipay.com https://*.iyzico.com; form-action 'self' https://*.iyzipay.com https://*.iyzico.com; base-uri 'self'; object-src 'none'; frame-ancestors 'none'` },
         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
         { key: "X-Content-Type-Options", value: "nosniff" },
         { key: "X-Frame-Options", value: "DENY" },

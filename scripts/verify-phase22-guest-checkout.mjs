@@ -51,8 +51,8 @@ for (const token of callbackContracts) {
 if (!callback.includes("settleCommercePaymentByProviderToken") || !recover.includes("settlePendingCommercePaymentByOrderId")) {
   throw new Error("Callback and recover must share the commerce settlement path.");
 }
-if (!recover.includes("resolveRecoverOrderId") || !recover.includes("readPendingOrderId")) {
-  throw new Error("Recover must bind to the pending-order cookie when present.");
+if (!recover.includes("resolveRecoverIntent") || !recover.includes("readPendingOrderId") || !recover.includes("resolveRequestUserId") || !recover.includes("ownerMayRecover")) {
+  throw new Error("Recover must bind to the pending-order cookie when present and otherwise require the authenticated owner.");
 }
 if (!success.includes('credentials: "same-origin"')) {
   throw new Error("Success recover must send the pending-order cookie.");
@@ -107,8 +107,8 @@ if (!session.includes("export async function GET") || !sessionHelper.includes("y
   throw new Error("Session route must restore and rotate refresh tokens via HttpOnly cookies.");
 }
 const activation = readFileSync("app/aktivasyon/ActivationClient.tsx", "utf8");
-if (!activation.includes("yenomi-activation-token") || !activation.includes('router.replace("/aktivasyon"')) {
-  throw new Error("Activation token must be stripped from the URL after capture.");
+if (!activation.includes("yenomi-activation-token") || !activation.includes('router.replace("/aktivasyon"') || !activation.includes("pagehide")) {
+  throw new Error("Activation token must be stripped from the URL after capture and cleared on pagehide.");
 }
 const canonical = readFileSync("app/canonical.css", "utf8");
 if (!canonical.includes(".activation-callout") || !canonical.includes(".p5-next-steps") || !canonical.includes(".p18-review-notice")) {

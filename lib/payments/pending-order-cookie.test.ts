@@ -24,7 +24,7 @@ describe("pending order cookie", () => {
     expect(cleared.cookies.get(PENDING_ORDER_COOKIE)?.value).toBe("");
   });
 
-  it("uses the cookie when it matches the body, and body when the cookie is absent", () => {
+  it("uses the cookie when it matches the body, and still returns a body UUID when the cookie is absent", () => {
     expect(resolveRecoverOrderId(VALID, VALID)).toEqual({ orderId: VALID, mismatch: false });
     expect(resolveRecoverOrderId(null, VALID)).toEqual({ orderId: VALID, mismatch: false });
     expect(resolveRecoverOrderId(VALID, null)).toEqual({ orderId: VALID, mismatch: false });

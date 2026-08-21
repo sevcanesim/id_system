@@ -11,7 +11,7 @@ const resolveSchema = z.object({
 });
 
 const postSchema = z.object({
-  action: z.enum(["reconcile_paid", "retrieve_iyzico"]).optional().default("reconcile_paid"),
+  action: z.enum(["reconcile_paid", "retrieve_iyzico", "expire_stale_awaiting"]).optional().default("reconcile_paid"),
   orderId: z.string().uuid().optional(),
 }).strict();
 
@@ -139,6 +139,21 @@ export async function POST(request: NextRequest) {
         if (result.kind === "pending") return NextResponse.json({ ok: true, paid: false, pending: true, result });
         if (result.kind === "failed") return NextResponse.json({ ok: true, paid: false, pending: false, result });
         return NextResponse.json({ ok: true, paid: true, pending: false, reviewRequired: result.reviewRequired, result });
+      }
+      if (parsed.data.action === "expire_stale_awaiting") {
+        const { data, error } = await context.admin.rpc("expire_stale_awaiting_payment_orders", { p_limit: 250 });
+        if (error) {
+          console.error("stale awaiting-payment expire failed", error);
+          return NextResponse.json({ error: "Eski bekleyen ödemeler iptal edilemedi." }, { status: 500 });
+        }
+        await context.admin.from("admin_audit_log").insert({
+          actor_user_id: context.user.id,
+          action: "COMMERCE_EXPIRE_STALE_AWAITING",
+          target_table: "commerce_orders",
+          target_id: "awaiting-payment",
+          after_value: data ?? {},
+        });
+        return NextResponse.json({ ok: true, result: data });
       }
     }
 

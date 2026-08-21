@@ -1,17 +1,8 @@
 /**
- * Minimal satış hunisi olay izleme yardımcı fonksiyonu.
- *
- * Denetim raporu referansı: P1 — "Satış hunisi ölçülmüyor. En az şu
- * eventler gerekir: hero CTA, oluşturma başlangıcı, profil yayınlama,
- * NFC ürün görüntüleme, sipariş başlangıcı, ödeme başlangıcı, ödeme
- * başarısı."
- *
- * Bu modül henüz bir analytics sağlayıcısına (GA4, PostHog, Plausible vb.)
- * bağlı DEĞİLDİR — hangi sağlayıcının kullanılacağı iş kararına bağlıdır.
- * Şimdilik `window.dataLayer` üzerine (GA4/GTM uyumlu) push eder ve
- * geliştirme ortamında konsola yazar; bir sağlayıcı seçildiğinde yalnızca
- * bu dosyanın `track` fonksiyonu güncellenmesi yeterlidir — çağıran kod
- * değişmez.
+ * Funnel event stub. This is not GA4, GTM, PostHog, or any live analytics
+ * product. `window.dataLayer.push` is a local array so callers have a stable
+ * `track()` API; nothing is sent to a vendor until a provider is chosen and
+ * this function is wired for real. Do not invent totals or dashboards from it.
  */
 
 export type FunnelEvent =

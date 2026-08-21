@@ -44,6 +44,15 @@ export default function ActivationClient() {
     router.replace("/aktivasyon", { scroll: false });
   }, [router, urlToken]);
 
+  useEffect(() => {
+    function onPageHide(event: PageTransitionEvent) {
+      if (event.persisted) return;
+      clearHeldToken();
+    }
+    window.addEventListener("pagehide", onPageHide);
+    return () => window.removeEventListener("pagehide", onPageHide);
+  }, []);
+
   useEffect(() => () => {
     setPassword("");
   }, []);

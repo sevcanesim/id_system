@@ -10,6 +10,17 @@ import { consumeDistributedRateLimit, requestIp } from "./lib/security/rate-limi
 const AUTH_COOKIE = ACCESS_COOKIE;
 const PROTECTED_PAGES = ["/admin", "/kurumsal/panel", "/hesabim", "/siparislerim", "/kartim", "/kartlarim", "/olustur", "/yenile", "/ayarlar", "/istatistikler", "/leadler"];
 const PRIVATE_OR_PROFILE_PREFIXES = ["/admin", "/dashboard", "/giris", "/hesabim", "/kartim", "/kartlarim", "/siparisler", "/siparislerim", "/olustur", "/aktivasyon", "/checkout", "/odeme", "/sepet", "/leadler", "/kurumsal/panel", "/kurumsal/davet", "/p", "/e", "/qr", "/api"];
+const JSON_BODY_MAX_BYTES = 100 * 1024;
+const UPLOAD_PATH = "/api/organizations/links/upload";
+const FAIL_CLOSED_SCOPES = new Set([
+  "checkout",
+  "legacy-checkout",
+  "auth-session-cookie",
+  "login-page",
+  "iyzico-recover",
+  "activation",
+  "claim",
+]);
 
 type LimitRule = { limit: number; windowMs: number; scope: string };
 
@@ -36,9 +47,34 @@ function isProtectedPage(pathname: string) {
   return PROTECTED_PAGES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 }
 
+function payloadTooLarge(pathname: string, method: string, headers: Headers): boolean {
+  if (!["POST", "PUT", "PATCH"].includes(method)) return false;
+  if (!pathname.startsWith("/api/") || pathname === UPLOAD_PATH) return false;
+  const raw = headers.get("content-length");
+  if (!raw) return false;
+  const length = Number(raw);
+  return Number.isFinite(length) && length > JSON_BODY_MAX_BYTES;
+}
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const requestId = request.headers.get("x-request-id") || crypto.randomUUID();
+
+  if (pathname === "/nfc-siparis" || pathname.startsWith("/nfc-siparis/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/checkout";
+    const redirect = NextResponse.redirect(url, 308);
+    redirect.headers.set("X-Request-Id", requestId);
+    return redirect;
+  }
+
+  if (payloadTooLarge(pathname, request.method, request.headers)) {
+    return NextResponse.json(
+      { error: "İstek gövdesi çok büyük.", code: "PAYLOAD_TOO_LARGE", reference: requestId },
+      { status: 413, headers: { "X-Request-Id": requestId } },
+    );
+  }
+
   const session = isProtectedPage(pathname) ? await resolveMiddlewareSession(request) : null;
 
   if (session && !session.allow) {
@@ -54,12 +90,22 @@ export async function middleware(request: NextRequest) {
   if (rule) {
     const ip = requestIp(request.headers);
     const userHint = request.cookies.get(AUTH_COOKIE)?.value?.slice(-16) || "anonymous";
-    const result = await consumeDistributedRateLimit({ key: `${rule.scope}:${ip}:${userHint}`, limit: rule.limit, windowMs: rule.windowMs });
+    const result = await consumeDistributedRateLimit({
+      key: `${rule.scope}:${ip}:${userHint}`,
+      limit: rule.limit,
+      windowMs: rule.windowMs,
+      failClosed: FAIL_CLOSED_SCOPES.has(rule.scope),
+    });
     if (!result.allowed) {
       const retryAfter = Math.max(1, Math.ceil((result.resetAt - Date.now()) / 1000));
+      const status = result.unavailable ? 503 : 429;
+      const code = result.unavailable ? "RATE_LIMIT_UNAVAILABLE" : "RATE_LIMITED";
+      const error = result.unavailable
+        ? "Güvenlik limiti şu anda doğrulanamıyor. Lütfen kısa süre sonra tekrar deneyin."
+        : "Çok fazla istek gönderildi. Lütfen kısa süre sonra tekrar deneyin.";
       const headers = { "Retry-After": String(retryAfter), "X-RateLimit-Limit": String(result.limit), "X-RateLimit-Remaining": String(result.remaining), "X-Request-Id": requestId };
-      if (pathname.startsWith("/api/")) return NextResponse.json({ error: "Çok fazla istek gönderildi. Lütfen kısa süre sonra tekrar deneyin.", code: "RATE_LIMITED", reference: requestId }, { status: 429, headers });
-      return new NextResponse("Çok fazla istek gönderildi. Lütfen kısa süre sonra tekrar deneyin.", { status: 429, headers: { ...headers, "Content-Type": "text/plain; charset=utf-8" } });
+      if (pathname.startsWith("/api/")) return NextResponse.json({ error, code, reference: requestId }, { status, headers });
+      return new NextResponse(error, { status, headers: { ...headers, "Content-Type": "text/plain; charset=utf-8" } });
     }
   }
 
@@ -82,6 +128,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/admin/:path*", "/kurumsal/panel/:path*", "/siparislerim/:path*", "/kartim/:path*", "/kartlarim/:path*", "/olustur/:path*", "/yenile/:path*", "/ayarlar/:path*", "/istatistikler/:path*", "/leadler", "/leadler/:path*",
-    "/giris", "/hesabim", "/hesabim/:path*", "/sepet", "/aktivasyon", "/aktivasyon/:path*", "/checkout", "/checkout/:path*", "/odeme/:path*", "/api/:path*", "/p/:path*", "/e/:path*", "/qr/:path*", "/api/location/reverse", "/api/commerce/checkout", "/api/commerce/activate", "/api/commerce/claim", "/api/commerce/activation/resend", "/api/commerce/entitlements", "/api/organizations/members", "/api/organizations/invites", "/api/payments/iyzico/checkout", "/api/payments/iyzico/recover", "/api/payments/iyzico/webhook", "/api/commerce/orders/pending", "/api/networking/inbox", "/api/auth/session",
+    "/giris", "/hesabim", "/hesabim/:path*", "/sepet", "/aktivasyon", "/aktivasyon/:path*", "/checkout", "/checkout/:path*", "/nfc-siparis", "/nfc-siparis/:path*", "/odeme/:path*", "/api/:path*", "/p/:path*", "/e/:path*", "/qr/:path*", "/api/location/reverse", "/api/commerce/checkout", "/api/commerce/activate", "/api/commerce/claim", "/api/commerce/activation/resend", "/api/commerce/entitlements", "/api/organizations/members", "/api/organizations/invites", "/api/payments/iyzico/checkout", "/api/payments/iyzico/recover", "/api/payments/iyzico/webhook", "/api/commerce/orders/pending", "/api/networking/inbox", "/api/auth/session",
   ],
 };

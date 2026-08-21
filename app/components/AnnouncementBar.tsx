@@ -5,7 +5,7 @@
 import { Fragment } from "react";
 import { Icon, type IconName } from "../icons";
 
-const COPIES = 3;
+const COPIES = 2;
 
 const ITEMS: Array<{ icon: IconName; label: string }> = [
   { icon: "lock", label: "SSL şifreli hesap ve ödeme" },

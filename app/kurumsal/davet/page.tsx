@@ -53,7 +53,7 @@ export default function InvitePage() {
             <span className="corporate-invite-icon corporate-invite-icon-error" aria-hidden="true"><Icon name="alert" /></span>
             <h1>Davet kabul edilemedi</h1>
             <p>{state.message}</p>
-            <a className="corporate-cta" href="/kurumsal/panel">Kurumsal Panele Git <span aria-hidden="true">→</span></a>
+            <a className="home-mockup__link-secondary" href="/kurumsal/panel">Kurumsal Panele Git <span aria-hidden="true">→</span></a>
           </>}
 
           {state.status === "accepted" && <>

@@ -49,9 +49,30 @@ export default async function PublicProfilePage({ params }: PageProps) {
   if (!looksLikePublicId(token) && profile.slug && token !== profile.slug) {
     permanentRedirect(cardSharePath(profile.slug));
   }
-  if (profile.card_status === "LOST") return <main className="profile-state-page p12-profile-state"><section><span>YENOMI ID</span><h1>Bu kart kayıp olarak bildirildi.</h1><p>Kart sahibinin kişisel bilgileri güvenlik nedeniyle gösterilmiyor.</p></section></main>;
-  if (!isCardProfileServiceActive(profile)) return <main className="profile-state-page p12-profile-state"><section><span>YENOMI ID</span><h1>Bu profil şu anda aktif değil.</h1><p>Dijital profil şu anda kullanılamıyor. Daha sonra tekrar deneyebilirsiniz.</p></section></main>;
-  if (profile.card_status === "SUSPENDED" || profile.card_status === "REFUNDED") return <main className="profile-state-page p12-profile-state"><section><span>YENOMI ID</span><h1>Bu profil şu anda aktif değil.</h1><p>Profil yeniden etkinleştirildiğinde aynı bağlantı tekrar açılacaktır.</p></section></main>;
+  if (profile.card_status === "LOST") {
+    return (
+      <PublicCardUnavailable
+        title="Bu kart kayıp olarak bildirildi."
+        detail="Kart sahibinin kişisel bilgileri güvenlik nedeniyle gösterilmiyor."
+      />
+    );
+  }
+  if (!isCardProfileServiceActive(profile)) {
+    return (
+      <PublicCardUnavailable
+        title="Bu profil şu anda aktif değil."
+        detail="Dijital profil şu anda kullanılamıyor. Daha sonra tekrar deneyebilirsiniz."
+      />
+    );
+  }
+  if (profile.card_status === "SUSPENDED" || profile.card_status === "REFUNDED") {
+    return (
+      <PublicCardUnavailable
+        title="Bu profil şu anda aktif değil."
+        detail="Profil yeniden etkinleştirildiğinde aynı bağlantı tekrar açılacaktır."
+      />
+    );
+  }
   await logCardView(profile.id);
   const branding = await fetchCardBranding(profile.user_id);
   const links = await fetchOrganizationLinks(profile.user_id, profile.id);
@@ -71,6 +92,19 @@ export default async function PublicProfilePage({ params }: PageProps) {
         source="QR"
         locales={locales}
       />
+    </main>
+  );
+}
+
+function PublicCardUnavailable({ title, detail }: { title: string; detail: string }) {
+  return (
+    <main id="main-content" className="profile-state-page p12-profile-state">
+      <section>
+        <span>YENOMI ID</span>
+        <h1>{title}</h1>
+        <p>{detail}</p>
+        <a className="home-mockup__link-secondary" href="/">Ana sayfaya dön</a>
+      </section>
     </main>
   );
 }

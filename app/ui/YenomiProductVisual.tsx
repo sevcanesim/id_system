@@ -17,9 +17,9 @@ export function YenomiProductVisual({
       <div className={`yi-product-ui yi-product-ui--dashboard${compact ? " yi-product-ui--compact" : ""}`} aria-hidden="true">
         <div className="yi-ui-top"><strong>Yenomi ID</strong><span>Business</span><i/><i/><i/></div>
         <div className="yi-ui-metrics">
-          <div><small>Görüntülenme</small><b>12.8K</b></div>
-          <div><small>Bağlantı</small><b>4.2K</b></div>
-          <div><small>Profil</small><b>1.6K</b></div>
+          <div><small>Görüntülenme</small><b>—</b></div>
+          <div><small>Bağlantı</small><b>—</b></div>
+          <div><small>Profil</small><b>—</b></div>
         </div>
         <div className="yi-ui-dashboard-grid">
           <div className="yi-ui-chart"><i/><i/><i/><i/><i/></div>

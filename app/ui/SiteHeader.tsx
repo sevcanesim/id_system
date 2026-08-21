@@ -62,11 +62,11 @@ export default function SiteHeader({
         <div className="yi-header__actions">
           <Link className="yi-cart" href="/sepet" aria-label={count ? `Sepet, ${count} ürün` : "Sepet"}>
             <Icon name="cart" />
-            <span>Sepet</span>
+            <span className="yi-cart__label">Sepet</span>
             {count > 0 && <b>{count}</b>}
           </Link>
           {primaryCta ? <ButtonLink href={primaryCta.href} variant="primary">{primaryCta.label}</ButtonLink> : null}
-          <ButtonLink href={signedIn ? "/hesabim" : "/giris"} variant="secondary">{signedIn ? "Hesabım" : "Giriş Yap"}</ButtonLink>
+          <ButtonLink href={signedIn ? "/hesabim" : "/giris"} variant="ghost">{signedIn ? "Hesabım" : "Giriş Yap"}</ButtonLink>
           <button className="yi-menu" type="button" aria-label={open ? "Menüyü kapat" : "Menüyü aç"} aria-expanded={open} onClick={() => setOpen((v) => !v)}>
             <span /><span /><span />
           </button>

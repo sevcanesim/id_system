@@ -35,5 +35,13 @@ for (const legacy of ["Koltuk Kullanımı", "koltuk boş", "koltuk serbest bıra
 check(panel.includes("Toplam, kullanılan ve boş lisansları"), "license management description uses one customer-facing terminology");
 check(panel.includes("Yeni çalışan için ek lisans gerekli"), "capacity warning uses license terminology");
 
+const catalog = read("app/urunler/page.tsx");
+const addToCart = read("app/components/AddToCartButton.tsx");
+check(catalog.includes("YEDEK KART") && catalog.includes("Aktif hizmet gerekir"), "catalog still offers the spare-card product as an add-on");
+check(!catalog.includes("İlk kartım yok"), "catalog no longer uses the spare-card dead-end CTA");
+check(addToCart.includes("physicalAddonCartGate") && addToCart.includes("Giriş gerekli") === false, "spare-card cart control is gated in domain copy, not inline slogans");
+check(addToCart.includes("isPhysicalAddonSku") && addToCart.includes("disabled={blocked}"), "spare and replacement cards render a disabled purchase control when gated");
+check(read("lib/commerce/physical-addon-access.ts").includes("Giriş gerekli"), "spare-card guest copy states that login is required");
+
 if (failed) process.exit(1);
 console.log("\nFAZ 4 product/UX verification passed.");

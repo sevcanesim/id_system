@@ -121,7 +121,6 @@ export default async function ProductsPage() {
                 unitPriceKurus={COMMERCIAL_PRICING.ADDITIONAL_CARD.priceKurus}
                 label="Sepete Ekle"
               />
-              <ButtonLink href="/urunler/nfc-kart" variant="secondary">İlk kartım yok</ButtonLink>
             </article>
           </div>
         </section>

@@ -25,6 +25,9 @@ if (!production.includes('npm run verify:phase20:production')) fail('Production 
 for (const key of ['verify:p0:static', 'verify:ui-system', 'verify:release-artifact', 'verify:release']) {
   if (!scripts[key]) fail(`package.json script eksik: ${key}`);
 }
+if (!String(scripts['verify:release'] || '').includes('verify:critical-journeys')) {
+  fail('verify:release must print critical-journey coverage so skeleton E2E cannot look like a pass.');
+}
 if (scripts['verify:visual-contract']) fail('Legacy verify:visual-contract scripti hâlâ package.json içinde.');
 
 console.log('P0 release gate contract BAŞARILI: source/build gate aktif, legacy test gate kaldırıldı.');

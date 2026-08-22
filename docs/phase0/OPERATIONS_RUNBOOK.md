@@ -67,3 +67,15 @@ Başarısız ve engellenen şifre girişleri Vercel loglarında `auth.login` JSO
 ### CSP
 `script-src 'unsafe-inline'` kaldırıldı. Middleware her belgede `x-nonce` + `script-src 'nonce-…' 'strict-dynamic'` basar. `style-src 'unsafe-inline'` hâlâ duruyor (daha düşük öncelik). `next.config.ts` artık ikinci bir CSP basmaz; tarayıcı birden fazla CSP'yi AND uygular ve statik `unsafe-inline` nonce politikasını delerdi.
 
+## Kritik akış test kapsamı
+`e2e/critical-journeys.spec.ts` dosya adı ödeme zincirinin E2E korunduğu anlamına gelmez. `npm run verify:release` içinde `verify:critical-journeys` **6/7 iskelet skip** uyarısını CI loguna basar. Skip bir PASS değildir.
+
+| ID | Durum |
+| --- | --- |
+| E2E-06 yedek kart misafir kapısı | Otomatik (yalnız `E2E_BASE_URL` varken) |
+| E2E-01…05, E2E-07 ödeme/claim/entitlement | `test.skip(true)` — otomatize edilmedi |
+| Duplicate callback / auto-claim | Unit: `lib/payments/settle-commerce-payment.test.ts` |
+| Tutar/currency/basket eşleşmesi | Unit: `lib/payments/callback-verification.test.ts` |
+
+Sandbox E2E-03 ve E2E-05 hâlâ iyzico CI secret + canlı base URL ister. Bu repodan o secret'lar yoksa yolculukları yeşil iskelet olarak bırakmak, sahte E2E yazmaktan doğru.
+

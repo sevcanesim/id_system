@@ -5,8 +5,14 @@ const sandboxReady = Boolean(process.env.IYZICO_API_KEY && process.env.IYZICO_SE
 
 /**
  * Critical journeys E2E-01…07 from the hardening audit.
- * A skipped test is not a pass. Payment journeys stay skipped unless a live
- * base URL and iyzico sandbox are actually available in this environment.
+ *
+ * COVERAGE: 1/7 automated (E2E-06). 6/7 are skeleton skips.
+ * A skipped test is not a pass. `npm run verify:release` prints this banner
+ * so CI cannot treat the file name as payment-chain coverage.
+ *
+ * Payment → entitlement → activation → claim is not an E2E yet.
+ * Duplicate-callback and auto-claim behavior is covered at unit level in
+ * lib/payments/settle-commerce-payment.test.ts until sandbox secrets exist.
  */
 test.describe("critical journeys", () => {
   test.skip(!baseURL, "E2E_BASE_URL is unset; journeys are not run.");

@@ -48,6 +48,17 @@ describe("memberConsumesSeat", () => {
       released: 1,
     });
   });
+
+  it("QA-SEAT-01: a suspended member still occupies the last seat so a new invite has no capacity", () => {
+    const seatLimit = 2;
+    const breakdown = getSeatBreakdown([
+      { role: "OWNER", status: "ACTIVE" },
+      { role: "EMPLOYEE", status: "SUSPENDED" },
+    ]);
+    expect(breakdown.used).toBe(seatLimit);
+    expect(breakdown.suspended).toBe(1);
+    expect(seatLimit - breakdown.used).toBe(0);
+  });
 });
 
 describe("physical inventory vs member assignment", () => {

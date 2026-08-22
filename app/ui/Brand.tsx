@@ -8,9 +8,9 @@ export function Brand({ compact = false }: { compact?: boolean }) {
         <Image
           src="/images/yenomilabs-mark-transparent.png"
           alt=""
-          width={compact ? 44 : 56}
-          height={compact ? 44 : 56}
-          sizes={compact ? "44px" : "(max-width: 620px) 52px, 56px"}
+          width={compact ? 52 : 72}
+          height={compact ? 52 : 72}
+          sizes={compact ? "52px" : "(max-width: 620px) 64px, 72px"}
           priority
         />
       </span>

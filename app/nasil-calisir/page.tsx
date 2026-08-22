@@ -8,8 +8,13 @@ export const metadata: Metadata = {
   description: "Kartı yaklaştır, güncel profil açılsın. Uygulama yok. Unvanın değişince baskı yok; kaybolursa kapatırsın.",
 };
 
-const steps = [
-  { number: "01", title: "Kartını seç", text: "Bireysel NFC + QR kartını al. Kart eline geldiğinde aynı kalıcı profile bağlanır.", visual: "card" as const },
+const finishes = [
+  { id: "matte", finish: "matte" as const, label: "Mat siyah", prev: "white", next: "metal" },
+  { id: "metal", finish: "metal" as const, label: "Fırçalanmış metal", prev: "matte", next: "white" },
+  { id: "white", finish: "white" as const, label: "Minimal beyaz", prev: "metal", next: "matte" },
+];
+
+const laterSteps = [
   { number: "02", title: "Profilini yayınla", text: "İletişim ve unvanın tek canlı sayfada durur. Değişince baskı yok.", visual: "profile" as const },
   { number: "03", title: "Yaklaştır veya okut", text: "NFC veya QR. Karşı taraf uygulama indirmez; profil tarayıcıda açılır.", visual: "tap" as const },
   { number: "04", title: "Kaybolursa kapat", text: "Kayıp modu fiziksel kartı durdurur. Dijital kimliğin sende kalır.", premium: true },
@@ -37,8 +42,66 @@ export default function HowItWorksPage() {
       <section className="how-steps" aria-labelledby="how-steps-title">
         <h2 id="how-steps-title" className="sr-only">Yenomi ID dört adımda nasıl çalışır?</h2>
         <div className="how-flow-line" aria-hidden="true" />
+
+        <article className="how-step-feature">
+          <span className="how-step-number">Adım 1</span>
+          <h3>Tarzını ve Kartını Seç</h3>
+          <p>Size en uygun tasarımı belirleyin; akıllı NFC ve QR özellikli kartınız adresinize gelsin.</p>
+
+          <div className="how-card-gallery">
+            {finishes.map((option, index) => (
+              <input
+                key={option.id}
+                className="sr-only"
+                type="radio"
+                name="how-card-finish"
+                id={`how-card-${option.id}`}
+                defaultChecked={index === 1}
+              />
+            ))}
+            <div className="how-card-gallery__stage" aria-label="Kart malzemesi">
+              {finishes.map((option) => (
+                <label
+                  key={option.id}
+                  htmlFor={`how-card-${option.id}`}
+                  className={`how-card-gallery__item how-card-gallery__item--${option.id}`}
+                >
+                  <YenomiProductVisual variant="card" finish={option.finish} compact />
+                  <span>{option.label}</span>
+                </label>
+              ))}
+            </div>
+            <div className="how-card-gallery__nav">
+              {finishes.map((option) => (
+                <span key={option.id} className={`how-card-gallery__arrows how-card-gallery__arrows--${option.id}`}>
+                  <label htmlFor={`how-card-${option.prev}`} className="how-card-gallery__arrow">
+                    <span className="sr-only">Önceki kart</span>
+                    <Icon name="chevronLeft" />
+                  </label>
+                  <label htmlFor={`how-card-${option.next}`} className="how-card-gallery__arrow">
+                    <span className="sr-only">Sonraki kart</span>
+                    <Icon name="chevronRight" />
+                  </label>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="how-step-feature__notes">
+            {benefits.slice(0, 2).map(([title, text, icon]) => (
+              <article key={title}>
+                <span className="how-benefit-icon"><Icon name={icon} /></span>
+                <div>
+                  <h4>{title}</h4>
+                  <p>{text}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </article>
+
         <div className="how-step-grid">
-          {steps.map((step) => (
+          {laterSteps.map((step) => (
             <article key={step.number} className={`how-step-card${step.premium ? " how-step-card--premium" : ""}`}>
               <div className="how-step-top">
                 <span className="how-step-number">Adım {Number(step.number)}</span>
@@ -52,10 +115,6 @@ export default function HowItWorksPage() {
                   {step.visual === "tap" ? (
                     <div className="how-qr" aria-hidden="true"><Icon name="qr" /></div>
                   ) : null}
-                </div>
-              ) : step.visual ? (
-                <div className={`how-step-visual how-step-visual--${step.number}`}>
-                  <YenomiProductVisual variant={step.visual} compact />
                 </div>
               ) : (
                 <div className="how-dashboard" aria-label="Yönetim paneli önizlemesi">

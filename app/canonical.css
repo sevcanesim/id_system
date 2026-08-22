@@ -15804,4 +15804,246 @@ body:has(.p6-auth-page) .public-site-chrome:has(.yi-nav.is-open)::before {
     0 24px 48px rgba(125, 96, 49, .10);
 }
 
+.yi-product-ui--card-matte {
+  color: #d7c09a;
+}
+.yi-product-ui--card-metal {
+  color: #1A1918;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.18) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #e8e6e1 0%, #c9c7c1 46%, #b7b4ad 100%);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, .04),
+    0 12px 24px rgba(24, 19, 13, .10),
+    0 28px 48px rgba(24, 19, 13, .12),
+    inset 0 1px 0 rgba(255, 255, 255, .55);
+}
+.yi-product-ui--card-metal:after {
+  background: linear-gradient(118deg, transparent 38%, rgba(255, 255, 255, .28) 50%, transparent 62%);
+}
+.yi-product-ui--card-metal .yi-card-identity b,
+.yi-product-ui--card-metal .yi-card-nfc-mark {
+  color: #3f3a35;
+}
+.yi-product-ui--card-white {
+  color: #1A1918;
+  background: linear-gradient(180deg, #ffffff 0%, #f6f3ec 100%);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, .03),
+    0 12px 24px rgba(24, 19, 13, .08),
+    0 28px 48px rgba(24, 19, 13, .10),
+    inset 0 0 0 1px rgba(24, 19, 13, .10);
+}
+.yi-product-ui--card-white:after {
+  background: linear-gradient(118deg, transparent 38%, rgba(163, 123, 44, .12) 50%, transparent 62%);
+}
+.yi-product-ui--card-white .yi-card-identity b,
+.yi-product-ui--card-white .yi-card-nfc-mark {
+  color: #8b6835;
+}
+
+.how-it-works-page .how-flow-line {
+  display: none;
+}
+.how-step-feature {
+  display: flex;
+  flex-direction: column;
+  padding: 36px 40px 32px;
+  border: 1px solid rgba(30, 25, 19, .10);
+  border-radius: 28px;
+  background: #fff;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, .02),
+    0 8px 16px rgba(0, 0, 0, .04),
+    0 24px 48px rgba(0, 0, 0, .06);
+}
+.how-step-feature > .how-step-number {
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12px;
+}
+.how-step-feature h3 {
+  margin: 18px 0 14px;
+  max-width: 18ch;
+  font-size: clamp(28px, 3.4vw, 40px);
+  letter-spacing: -.04em;
+}
+.how-step-feature > p {
+  max-width: 48ch;
+  margin: 0 0 28px;
+  color: #4d4741;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.how-card-gallery {
+  position: relative;
+  min-height: 280px;
+  margin: 0 -8px 28px;
+}
+.how-card-gallery__stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-height: 240px;
+  padding: 28px 48px;
+}
+.how-card-gallery__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: min(220px, 30%);
+  margin: 0;
+  cursor: pointer;
+  opacity: .62;
+  transform: scale(.92);
+  transition: transform 240ms ease, opacity 240ms ease;
+}
+.how-card-gallery__item span {
+  color: #6B655D;
+  font: 650 12px/1.2 var(--font-ui);
+}
+.how-card-gallery__item .yi-product-ui--card {
+  width: 100%;
+}
+#how-card-matte:checked ~ .how-card-gallery__stage .how-card-gallery__item--matte,
+#how-card-metal:checked ~ .how-card-gallery__stage .how-card-gallery__item--metal,
+#how-card-white:checked ~ .how-card-gallery__stage .how-card-gallery__item--white {
+  z-index: 2;
+  opacity: 1;
+  transform: scale(1.08);
+  filter: drop-shadow(0 18px 36px rgba(24, 19, 13, .16));
+}
+#how-card-matte:checked ~ .how-card-gallery__stage .how-card-gallery__item--matte { order: 2; }
+#how-card-matte:checked ~ .how-card-gallery__stage .how-card-gallery__item--white { order: 1; }
+#how-card-matte:checked ~ .how-card-gallery__stage .how-card-gallery__item--metal { order: 3; }
+#how-card-metal:checked ~ .how-card-gallery__stage .how-card-gallery__item--metal { order: 2; }
+#how-card-metal:checked ~ .how-card-gallery__stage .how-card-gallery__item--matte { order: 1; }
+#how-card-metal:checked ~ .how-card-gallery__stage .how-card-gallery__item--white { order: 3; }
+#how-card-white:checked ~ .how-card-gallery__stage .how-card-gallery__item--white { order: 2; }
+#how-card-white:checked ~ .how-card-gallery__stage .how-card-gallery__item--metal { order: 1; }
+#how-card-white:checked ~ .how-card-gallery__stage .how-card-gallery__item--matte { order: 3; }
+.how-card-gallery__nav {
+  pointer-events: none;
+}
+.how-card-gallery__arrows {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+#how-card-matte:checked ~ .how-card-gallery__nav .how-card-gallery__arrows--matte,
+#how-card-metal:checked ~ .how-card-gallery__nav .how-card-gallery__arrows--metal,
+#how-card-white:checked ~ .how-card-gallery__nav .how-card-gallery__arrows--white {
+  display: flex;
+}
+.how-card-gallery__arrow {
+  pointer-events: auto;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #6B655D;
+  cursor: pointer;
+}
+.how-card-gallery__arrow:hover {
+  color: #1A1918;
+}
+.how-step-feature__notes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.how-step-feature__notes article {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-height: 88px;
+  padding: 18px 16px;
+  border: 1px solid rgba(30, 25, 19, .08);
+  border-radius: 16px;
+  background: #fbfaf7;
+}
+.how-step-feature__notes h4 {
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+.how-step-feature__notes p {
+  margin: 0;
+  color: #4d4741;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (min-width: 768px) {
+  html:has(.how-it-works-page),
+  body:has(.how-it-works-page) {
+    overflow: auto;
+  }
+  .how-it-works-page {
+    height: auto;
+    min-height: 100svh;
+    display: block;
+    overflow: visible;
+  }
+}
+
+@media (min-width: 900px) {
+  html:has(.how-it-works-page),
+  body:has(.how-it-works-page) {
+    overflow: auto;
+  }
+  .how-it-works-page {
+    height: auto;
+    min-height: 100svh;
+    display: block;
+    overflow: visible;
+  }
+  .how-it-works-page .how-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    height: auto;
+  }
+  .how-it-works-page .how-step-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    height: auto;
+  }
+  .how-it-works-page .how-step-card {
+    height: auto;
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 760px) {
+  .how-step-feature {
+    padding: 24px 18px 20px;
+  }
+  .how-card-gallery__stage {
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 18px 40px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+  .how-card-gallery__item {
+    flex: 0 0 148px;
+    width: 148px;
+  }
+  .how-step-feature__notes {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .how-card-gallery__item {
+    transition: none;
+  }
+}
+
+
 

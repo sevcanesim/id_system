@@ -40,7 +40,7 @@ check(!login.includes('from "qrcode"') && !login.includes("QRCode."), "login no 
 check(!login.includes("style={{"), "login has no inline style objects");
 check(login.includes('role="tablist"') && login.includes("Bireysel") && login.includes("Kurumsal / Ekip"), "one auth foundation exposes individual and corporate contexts");
 check(login.includes('portalTabHref("business"') && login.includes("/giris?"), "corporate portal tab remains a real /giris destination");
-check(login.includes('role="alert"') && login.includes("authAlert"), "auth errors render on the card as an alert, not only inside a form that can unmount");
+check(login.includes('messageTone === "error" ? "alert"') && login.includes("authAlert"), "auth errors render on the card as an alert, not only inside a form that can unmount");
 check(login.includes("persistActivePortal") && login.includes("noValidate"), "portal persistence cannot abort auth boot; login owns its validation messages");
 check(login.includes('setReturnPath(safeNext(params.get("next")))'), "explicit next destination is sanitized and preserved");
 check(login.includes('useState("/kartlarim")') && login.includes('nextPortal === "business" ? "/kurumsal/panel" : "/kartlarim"'), "auth routes directly to selected portal workspace without visible account-check surface");

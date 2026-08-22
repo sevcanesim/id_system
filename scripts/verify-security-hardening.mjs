@@ -72,6 +72,16 @@ mustInclude(loginApi, "productionTestLoginBlocked", "Login must refuse productio
 mustInclude(loginApi, "applySessionCookies", "Login must write HttpOnly cookies on the server.");
 mustInclude(loginApi, "logAuthLoginEvent", "Failed login attempts must be visible in logs.");
 mustInclude(loginApi, "auth-login-email", "Login must also limit by email, not only by IP.");
+mustInclude(loginApi, "limitAuthLoginIp", "Login must also limit by IP to slow credential stuffing.");
+mustInclude(read("lib/security/route-rate-limits.ts"), "auth-login-ip", "Login IP limiter stays fail-open via the shared helper.");
+const activationResend = read("app/api/commerce/activation/resend/route.ts");
+mustInclude(activationResend, "limitActivationResendIp", "Activation resend must cap requests per IP.");
+mustInclude(activationResend, "limitActivationResendOrder", "Activation resend must cool down per order.");
+mustInclude(read("lib/security/route-rate-limits.ts"), "checkout-api:", "Checkout initialize limiter uses a dedicated IP key.");
+mustInclude(read("vercel.json"), '"/api/cron/commerce-ops"', "Commerce ops cron must be declared in vercel.json.");
+mustInclude(read("app/api/cron/commerce-ops/route.ts"), "authorizeCommerceCron", "Cron route must require CRON_SECRET in production.");
+mustInclude(read("lib/email/resend.ts"), "sendAbandonedCheckoutEmail", "Abandoned checkout recovery mail must exist.");
+mustInclude(read("supabase/migrations/20260822180000_commerce_ops_observability.sql"), "ABANDONED_CHECKOUT", "Email event vocabulary must include abandoned checkout.");
 mustNotInclude(loginApi, "failClosed: true", "Password login must degrade to memory when Redis is down, not 503.");
 mustInclude(loginPage, "passwordLogin", "The login page must send passwords through /api/auth/login.");
 mustNotInclude(loginPage, "signInWithPassword", "Browser GoTrue sign-in would bypass the Next.js limiter.");
@@ -118,6 +128,7 @@ mustInclude(grantHardening, "revoke execute on routines from anon, authenticated
 mustInclude(grantHardening, "revoke all on table public.commerce_payment_attempts from anon, authenticated, public", "Payment attempt rows hold provider tokens; Data API must not DML them.");
 mustInclude(grantHardening, "revoke all on table public.activation_tokens from anon, authenticated, public", "Activation secrets must stay service-role.");
 const checkoutRoute = read("app/api/commerce/checkout/route.ts");
+mustInclude(checkoutRoute, "rejectCheckoutInitializeFlood", "Checkout must throttle iyzico initialize calls per IP.");
 mustNotInclude(checkoutRoute, "reference: payload.reference, error: orderError", "Checkout must not log raw Supabase error objects.");
 mustNotInclude(checkoutRoute, "reference: payload.reference, error: reserveError", "Checkout must not log raw payment-attempt error objects.");
 

@@ -20,6 +20,8 @@ import { parseCompanyBilling } from "../../../../lib/validation/company";
 import { decideOpenPaymentAttempt } from "../../../../lib/payments/reuse-open-attempt";
 import { applyPendingOrderCookie } from "../../../../lib/payments/pending-order-cookie";
 import { stampPhysicalProductionConfig } from "../../../../lib/commerce/production-config";
+import { findExistingCheckoutAttempt } from "../../../../lib/payments/checkout-idempotency-lookup";
+import { rejectCheckoutInitializeFlood } from "../../../../lib/security/route-rate-limits";
 
 export const runtime = "nodejs";
 
@@ -90,14 +92,6 @@ function splitName(value: string) {
   return { name: parts[0] || "Müşteri", surname: parts.slice(1).join(" ") || "Yenomi" };
 }
 
-async function findExistingAttempt(admin: ReturnType<typeof getSupabaseAdminClient>, idempotencyKey: string) {
-  return admin
-    .from("commerce_payment_attempts")
-    .select("id,order_id,status,request_fingerprint,payment_page_url")
-    .eq("idempotency_key", idempotencyKey)
-    .maybeSingle();
-}
-
 function jsonWithPendingOrder(body: object, init?: { status?: number }) {
   const response = NextResponse.json(body, init);
   const record = body as { orderId?: unknown; resetOrder?: unknown };
@@ -134,6 +128,8 @@ function duplicateAttemptResponse(attempt: {
 
 export async function POST(request: NextRequest) {
   try {
+    const flooded = await rejectCheckoutInitializeFlood(request);
+    if (flooded) return flooded;
     if (!isIyzicoConfigured) return NextResponse.json(publicError("PAYMENT_UNAVAILABLE"), { status: 503 });
 
     const idempotencyKey = normalizeIdempotencyKey(request.headers.get("x-idempotency-key"));
@@ -375,7 +371,7 @@ export async function POST(request: NextRequest) {
       company: company ?? {},
     });
 
-    const { data: existingAttempt } = await findExistingAttempt(admin, idempotencyKey);
+    const { data: existingAttempt } = await findExistingCheckoutAttempt(admin, idempotencyKey);
     if (existingAttempt) return duplicateAttemptResponse(existingAttempt, fingerprint);
 
     let order: { id: string; order_number: string } | null = null;
@@ -539,7 +535,7 @@ export async function POST(request: NextRequest) {
 
     if (reserveError || !reservedAttempt) {
       if (createdNewOrder) await admin.from("commerce_orders").delete().eq("id", order.id);
-      const { data: racedAttempt } = await findExistingAttempt(admin, idempotencyKey);
+      const { data: racedAttempt } = await findExistingCheckoutAttempt(admin, idempotencyKey);
       if (racedAttempt) return duplicateAttemptResponse(racedAttempt, fingerprint);
       const payload = publicError("PAYMENT_IN_PROGRESS");
       console.error("payment attempt reservation failed", { reference: payload.reference, code: reserveError?.code });

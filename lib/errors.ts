@@ -11,6 +11,7 @@ export type PublicErrorCode =
   | "PAYMENT_IN_PROGRESS"
   | "IDEMPOTENCY_CONFLICT"
   | "ORDER_ALREADY_PAID"
+  | "RATE_LIMITED"
   | "UNKNOWN_ERROR";
 
 const DEFAULT_MESSAGES: Record<PublicErrorCode, string> = {
@@ -26,6 +27,7 @@ const DEFAULT_MESSAGES: Record<PublicErrorCode, string> = {
   PAYMENT_IN_PROGRESS: "Ödeme isteğin işleniyor. Lütfen birkaç saniye bekleyip yeniden dene.",
   IDEMPOTENCY_CONFLICT: "Bu ödeme isteği farklı sipariş bilgileriyle daha önce kullanılmış. Lütfen sayfayı yenileyip yeniden dene.",
   ORDER_ALREADY_PAID: "Bu siparişin ödemesi zaten tamamlanmış.",
+  RATE_LIMITED: "Çok fazla istek gönderildi. Lütfen kısa süre sonra tekrar deneyin.",
   UNKNOWN_ERROR: "Beklenmeyen bir sorun oluştu. Lütfen yeniden dene.",
 };
 

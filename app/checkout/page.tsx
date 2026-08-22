@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { readCart, setCartOwner, type CartItem } from "../../lib/cart";
+import { readCart, type CartItem } from "../../lib/cart";
 import { formatTryFromKurus } from "../../lib/config/product";
 import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, isDigitalOnlySku, isPhysicalBundleSku, isPremiumUpgradeSku, isRenewalSku } from "../../lib/config/commercial";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
@@ -14,6 +14,7 @@ import { track } from "../../lib/analytics";
 import { safeClientMessage } from "../../lib/errors";
 
 import { clearPendingCheckoutOrderId, getOrCreateCheckoutIdempotencyKey, lookupPendingCheckoutOrder, rotateCheckoutIdempotencyKey, setPendingCheckoutOrderId, setCheckoutReturnPath } from "../../lib/payments/browser-checkout";
+import { bootstrapAuthenticatedCheckout } from "../../lib/commerce/checkout-session-bootstrap";
 type FormState = {
   recipientName: string;
   email: string;
@@ -100,33 +101,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    void supabase.auth.getSession().then(({ data }) => {
-      const session = data.session;
-      if (!session) {
-        setCheckoutReady(true);
-        return;
-      }
-
-      setIsAuthenticated(true);
-      setCartOwner(session.user.id, { claimGuest: true });
-      const mergedCart = readCart();
-      setItems(mergedCart);
-      setForm((current) => ({ ...current, email: session.user.email ?? current.email }));
-      const organizationIds = Array.from(new Set(mergedCart.map((item) => item.configuration?.organizationId).filter((id): id is string => typeof id === "string")));
-      if (organizationIds.length && session.access_token) {
-        void fetch("/api/organizations/mine?management=true", { headers: { authorization: `Bearer ${session.access_token}` } })
-          .then((response) => response.ok ? response.json() : null)
-          .then((payload) => {
-            const next: Record<string, { name: string; role: string }> = {};
-            for (const row of payload?.organizations || []) {
-              if (organizationIds.includes(row.organization_id)) next[row.organization_id] = { name: row.organizations?.name || "Kurumsal hesap", role: row.role || "" };
-            }
-            setOrganizationTargets(next);
-          })
-          .catch(() => undefined);
-      }
-      setCheckoutReady(true);
-    });
+    void supabase.auth.getSession().then(({ data }) => bootstrapAuthenticatedCheckout(data.session, { setForm, setItems, setIsAuthenticated, setOrganizationTargets, setCheckoutReady }));
   }, []);
 
   useEffect(() => {

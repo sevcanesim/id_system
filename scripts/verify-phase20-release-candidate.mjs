@@ -76,10 +76,44 @@ if (fs.existsSync(e2ePath)) {
   testsReadme.includes("intentionally removed") ? pass("test suite reset is documented") : fail("test suite reset is documented");
 }
 
-const stagingWorkflow = fs.readFileSync(".github/workflows/staging-integration.yml", "utf8");
-stagingWorkflow.includes("npm run verify:phase20:staging") ? pass("staging workflow runs canonical Phase 20 staging gate") : fail("staging workflow runs canonical Phase 20 staging gate");
-for (const key of ["STAGING_SITE_URL", "STAGING_IYZICO_API_KEY", "STAGING_IYZICO_SECRET_KEY", "PRODUCTION_SUPABASE_URL"]) {
-  stagingWorkflow.includes(key) ? pass(`staging runtime contract wired: ${key}`) : fail(`staging runtime contract wired: ${key}`);
+const preDeployWorkflow = fs.readFileSync(".github/workflows/staging-integration.yml", "utf8");
+
+preDeployWorkflow.includes("npm run verify:release")
+  ? pass("pre-deploy workflow runs release quality gate")
+  : fail("pre-deploy workflow runs release quality gate");
+
+preDeployWorkflow.includes("npm run verify:migration-drift")
+  ? pass("pre-deploy workflow runs migration drift gate")
+  : fail("pre-deploy workflow runs migration drift gate");
+
+preDeployWorkflow.includes("npm run verify:db")
+  ? pass("pre-deploy workflow runs database schema gate")
+  : fail("pre-deploy workflow runs database schema gate");
+
+preDeployWorkflow.includes("npm run verify:catalog")
+  ? pass("pre-deploy workflow runs product catalog gate")
+  : fail("pre-deploy workflow runs product catalog gate");
+
+for (const key of [
+  "PRODUCTION_SUPABASE_URL",
+  "PRODUCTION_SUPABASE_PROJECT_REF",
+  "SUPABASE_ACCESS_TOKEN",
+]) {
+  preDeployWorkflow.includes(key)
+    ? pass(`pre-deploy runtime contract wired: ${key}`)
+    : fail(`pre-deploy runtime contract wired: ${key}`);
+}
+
+for (const forbidden of [
+  "STAGING_SUPABASE_URL",
+  "STAGING_SUPABASE_PROJECT_REF",
+  "ALLOW_STAGING_MUTATIONS",
+  "seed:e2e",
+  "verify:phase20:staging",
+]) {
+  preDeployWorkflow.includes(forbidden)
+    ? fail(`pre-deploy workflow must not contain staging mutation contract: ${forbidden}`)
+    : pass(`pre-deploy workflow excludes staging mutation contract: ${forbidden}`);
 }
 
 for (const artifact of ["node_modules", ".next", "tsconfig.tsbuildinfo"]) {

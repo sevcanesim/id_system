@@ -65,6 +65,7 @@
       "app/api/admin/organizations/route.ts",
       "app/api/admin/session/route.ts",
       "app/api/analytics/me/route.ts",
+      "app/api/auth/login/route.ts",
       "app/api/auth/session/route.ts",
       "app/api/cards/route.ts",
       "app/api/commerce/activate/route.ts",
@@ -162,7 +163,9 @@
     ],
     "auth": [
       "app/canonical.css",
-      "app/giris/page.tsx"
+      "app/giris/page.tsx",
+      "app/api/auth/login/route.ts",
+      "app/api/auth/session/route.ts"
     ],
     "individualDashboard": [
       "app/canonical.css",

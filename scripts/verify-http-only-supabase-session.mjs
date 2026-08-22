@@ -17,6 +17,8 @@ function forbidText(source, token, message) {
 
 requireText(browser, "memoryAuthStorage", "Browser client must persist supabase auth in memory only.");
 requireText(browser, "purgeLegacyAuthStorage", "Browser client must remove leftover sb- auth tokens from Web Storage.");
+requireText(browser, "hydrateBrowserSessionFromCookies", "Password login must rehydrate memory storage from HttpOnly cookies.");
+requireText(browser, "storage: memoryAuthStorage()", "supabase-js persistSession must use the in-memory Map, not localStorage.");
 requireText(browser, "setSession", "Browser client must restore the in-memory session from HttpOnly cookies.");
 requireText(browser, 'fetch("/api/auth/session"', "Browser client must GET /api/auth/session on load.");
 requireText(browser, "x-yenomi-session", "Browser restore fetch must send the session restore header.");
@@ -41,6 +43,11 @@ requireText(middleware, "resolveMiddlewareSession", "Middleware must accept a ro
 requireText(middleware, "applySessionCookies", "Middleware must write rotated HttpOnly cookies onto the response.");
 requireText(middleware, "clearSessionCookies", "Failed protected-page auth must clear access and refresh cookies.");
 
+requireText(login, "passwordLogin", "Password login must go through /api/auth/login so the limiter sees the attempt.");
 requireText(login, "data.session.refresh_token", "Password login must hand the refresh token to the session cookie route.");
+
+const loginApi = readFileSync("app/api/auth/login/route.ts", "utf8");
+requireText(loginApi, "applySessionCookies", "Password login must set HttpOnly cookies on the server.");
+requireText(loginApi, "productionTestLoginBlocked", "Password login must refuse production demo identities.");
 
 console.log("HttpOnly supabase session contract: PASS");

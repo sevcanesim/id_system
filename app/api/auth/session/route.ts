@@ -11,6 +11,11 @@ import {
   resolveRestorableSession,
   accessTokenIsValid,
 } from "../../../../lib/auth/http-only-session";
+import {
+  PRODUCTION_TEST_LOGIN_MESSAGE,
+  productionTestLoginBlocked,
+} from "../../../../lib/auth/production-test-gate";
+import { readAccountType } from "../../../../lib/auth/session-identity";
 import { getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 
 export const runtime = "nodejs";
@@ -46,6 +51,16 @@ export async function GET(request: NextRequest) {
       return noStore(response);
     }
 
+    const auth = getSupabaseAuthClient();
+    const { data: restoredUser } = await auth.auth.getUser(resolved.tokens.accessToken);
+    if (!restoredUser.user) {
+      return clearSession(NextResponse.json({ error: "Oturum bulunamadı." }, { status: 401 }));
+    }
+    const accountType = await readAccountType(resolved.tokens.accessToken, restoredUser.user.id);
+    if (productionTestLoginBlocked({ email: restoredUser.user.email, accountType })) {
+      return clearSession(NextResponse.json({ error: PRODUCTION_TEST_LOGIN_MESSAGE }, { status: 403 }));
+    }
+
     const response = NextResponse.json({
       accessToken: resolved.tokens.accessToken,
       refreshToken: resolved.tokens.refreshToken,
@@ -74,6 +89,11 @@ export async function POST(request: NextRequest) {
     const { data, error } = await auth.auth.getUser(parsed.data.accessToken);
     if (error || !data.user) {
       return clearSession(NextResponse.json({ error: "Oturum doğrulanamadı." }, { status: 401 }));
+    }
+
+    const accountType = await readAccountType(parsed.data.accessToken, data.user.id);
+    if (productionTestLoginBlocked({ email: data.user.email, accountType })) {
+      return clearSession(NextResponse.json({ error: PRODUCTION_TEST_LOGIN_MESSAGE }, { status: 403 }));
     }
 
     const remember = parsed.data.remember ?? readSessionCookie(request, REMEMBER_COOKIE) === "1";

@@ -48,9 +48,37 @@ mustInclude(middleware, "100 * 1024", "JSON body cap must stay around 100kb.");
 mustInclude(middleware, "/api/organizations/links/upload", "PDF upload must remain excluded from the JSON cap.");
 mustInclude(middleware, 'NextResponse.redirect(url, 308)', "/nfc-siparis must 308 to /checkout.");
 mustInclude(middleware, '"/nfc-siparis"', "Middleware matcher must include /nfc-siparis.");
+mustInclude(middleware, 'scope: "auth-login"', "Password login must be rate-limited on /api/auth/login.");
+mustInclude(middleware, '"auth-login"', "Password login must fail closed without Redis.");
+mustInclude(middleware, "x-nonce", "Middleware must pass a CSP nonce to Next.js.");
+mustInclude(middleware, "createRequestNonce", "CSP nonce must be generated per request.");
+mustInclude(middleware, "buildContentSecurityPolicy", "Document CSP must be issued in middleware, not as a static next.config header.");
 
 mustNotInclude(nextConfig, "'unsafe-eval'", "CSP must not allow unsafe-eval.");
-mustInclude(nextConfig, "script-src 'self' 'unsafe-inline'", "CSP may keep unsafe-inline until a nonce migration.");
+mustNotInclude(nextConfig, "Content-Security-Policy", "A static next.config CSP would AND with the nonce policy and re-open unsafe-inline.");
+mustNotInclude(nextConfig, "'unsafe-inline'", "script-src unsafe-inline must not return via next.config.");
+
+const csp = read("lib/security/content-security-policy.ts");
+mustInclude(csp, "'nonce-${nonce}'", "CSP must mint a per-request script nonce.");
+mustInclude(csp, "'strict-dynamic'", "Nonce CSP must allow Next.js to load its own chunks.");
+mustNotInclude(csp, "script-src 'self' 'unsafe-inline'", "script-src must not allow arbitrary inline scripts.");
+
+const loginApi = read("app/api/auth/login/route.ts");
+const loginPage = read("app/giris/page.tsx");
+const testGate = read("lib/auth/production-test-gate.ts");
+const sessionRoute = read("app/api/auth/session/route.ts");
+mustInclude(loginApi, "signInWithPassword", "Password verification must happen on the Next.js login route.");
+mustInclude(loginApi, "productionTestLoginBlocked", "Login must refuse production TEST / @yenomi.test identities.");
+mustInclude(loginApi, "applySessionCookies", "Login must write HttpOnly cookies on the server.");
+mustInclude(loginApi, "logAuthLoginEvent", "Failed login attempts must be visible in logs.");
+mustInclude(loginApi, "auth-login-email", "Login must also limit by email, not only by IP.");
+mustInclude(loginPage, "passwordLogin", "The login page must send passwords through /api/auth/login.");
+mustNotInclude(loginPage, "signInWithPassword", "Browser GoTrue sign-in would bypass the Next.js limiter.");
+mustInclude(activation, "passwordLogin", "Activation sign-in must use the rate-limited login route.");
+mustNotInclude(activation, "signInWithPassword", "Activation must not call GoTrue from the browser.");
+mustInclude(testGate, 'VERCEL_ENV === "production"', "Demo accounts must be blocked on Vercel production.");
+mustInclude(testGate, "ALLOW_TEST_LOGINS", "Isolated staging must be able to keep fixture logins.");
+mustInclude(sessionRoute, "productionTestLoginBlocked", "Session cookie restore must not hand tokens to production demo accounts.");
 
 mustInclude(activation, "pagehide", "Activation token must clear from sessionStorage on pagehide.");
 mustInclude(activation, "event.persisted", "Activation pagehide must keep the token for bfcache restore.");

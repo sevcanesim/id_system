@@ -6,6 +6,12 @@ let restorePromise: Promise<void> | null = null;
 const REMEMBER_SESSION_KEY = "yenomi-remember-session";
 const REMEMBERED_EMAIL_KEY = "yenomi-remembered-email";
 
+/**
+ * In-memory Map used as supabase-js `auth.storage`. persistSession stays true
+ * so the SDK refreshes the heap session, but nothing is written to
+ * localStorage/sessionStorage. Legacy `sb-*-auth-token` keys are purged on
+ * restore. Remember-me may store only a non-secret email preference.
+ */
 function memoryAuthStorage() {
   const map = new Map<string, string>();
   return {
@@ -140,6 +146,15 @@ export function getRememberedLogin() {
     return { remember, email: "" };
   }
   return { remember, email: storedEmail };
+}
+
+export async function hydrateBrowserSessionFromCookies(): Promise<boolean> {
+  const target = getSupabaseBrowserClient();
+  if (!target) return false;
+  if (restorePromise) await restorePromise;
+  await restoreBrowserSession(target);
+  const { data } = await target.auth.getSession();
+  return Boolean(data.session?.access_token && data.session.refresh_token);
 }
 
 export function getSupabaseBrowserClient(): SupabaseClient | null {

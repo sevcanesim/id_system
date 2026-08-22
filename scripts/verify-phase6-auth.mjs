@@ -51,7 +51,7 @@ check(login.includes("/kurumsal#teklif") && login.includes("Kurumsal teklif form
 check(!/className="p6-auth-submit"[\s\S]{0,500}<Icon name="external"/.test(login), "auth submit actions do not use external-link semantics");
 check(login.includes("validatePortal") && portalGuard.includes('from("user_accounts")'), "existing account portal authorization retained (validatePortal extracted to lib/auth/portal-guard.ts)");
 check(login.includes("setCartOwner(result.data.session.user.id"), "cart ownership claim retained after authentication");
-check(login.includes("writeSessionCookie"), "middleware auth cookie handoff retained");
+check(login.includes("passwordLogin") && login.includes("writeSessionCookie"), "password login goes through the rate-limited Next.js route and still persists HttpOnly cookies");
 check(exists("app/api/auth/session/route.ts"), "session cookie is issued by a server route, not document.cookie");
 const sessionRoute = read("app/api/auth/session/route.ts");
 check(sessionRoute.includes("httpOnly: true") && sessionRoute.includes("auth.getUser"), "session cookie is HttpOnly and token-verified");

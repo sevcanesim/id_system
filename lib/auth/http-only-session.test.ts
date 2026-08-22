@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isTrustedSessionRestoreRequest, jwtExpiresAt, jwtSubject, SESSION_RESTORE_HEADER } from "./http-only-session";
+import { isTrustedSessionRestoreRequest, jwtEmail, jwtExpiresAt, jwtSubject, SESSION_RESTORE_HEADER } from "./http-only-session";
 
 function unsignedJwt(payload: Record<string, unknown>) {
   const json = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -48,5 +48,10 @@ describe("jwt payload helpers", () => {
   it("rejects a non-UUID subject", () => {
     expect(jwtSubject(unsignedJwt({ sub: "not-a-user" }))).toBeNull();
     expect(jwtSubject("not-a-jwt")).toBeNull();
+  });
+
+  it("reads an email claim when present", () => {
+    expect(jwtEmail(unsignedJwt({ email: "demo.superadmin@yenomi.test" }))).toBe("demo.superadmin@yenomi.test");
+    expect(jwtEmail(unsignedJwt({ sub: "550e8400-e29b-41d4-a716-446655440000" }))).toBeNull();
   });
 });

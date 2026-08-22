@@ -3,6 +3,14 @@ import { Icon } from "../icons";
 type VisualVariant = "profile" | "dashboard" | "card";
 type CardFace = "front" | "back";
 
+/** Product specimen — field labels are not names. */
+const SPECIMEN = {
+  name: "Selin Kaya",
+  initials: "SK",
+  role: "Ürün Yöneticisi",
+  company: "Yenomi Labs",
+};
+
 export function YenomiProductVisual({
   variant = "profile",
   compact = false,
@@ -47,9 +55,9 @@ export function YenomiProductVisual({
       <div className={foilClass} aria-hidden="true">
         <div className="yi-card-face">
           <div className="yi-card-identity">
-            <strong>Adın Soyadın</strong>
-            <span className="yi-card-role">Ünvanın</span>
-            <b>Şirketin</b>
+            <strong>{SPECIMEN.name}</strong>
+            <span className="yi-card-role">{SPECIMEN.role}</span>
+            <b>{SPECIMEN.company}</b>
           </div>
           <div className="yi-card-nfc-mark">
             <Icon name="nfc" />
@@ -66,12 +74,12 @@ export function YenomiProductVisual({
         <span>CANLI PROFİL</span>
         <b>NFC + QR</b>
         <div className="yi-profile-portrait">
-          <em>AS</em>
+          <em>{SPECIMEN.initials}</em>
         </div>
       </div>
       <div className="yi-profile-body">
-        <strong>Adın Soyadın</strong>
-        <span>Ünvanın · Şirketin</span>
+        <strong>{SPECIMEN.name}</strong>
+        <span>{SPECIMEN.role} · {SPECIMEN.company}</span>
         <p className="yi-profile-bio">Kart bir kez basılır. Unvanın değişince profil güncellenir; baskı tekrarlanmaz.</p>
         <div className="yi-profile-cta-row">
           <div className="yi-profile-save">Rehbere Kaydet</div>

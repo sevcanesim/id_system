@@ -100,6 +100,9 @@ check(css.includes(".legal-page--premium") && !css.slice(css.lastIndexOf(".legal
 check(catalog.includes('appearance="secondary"') && catalog.includes("YEDEK KART"), "catalog spare-card CTA is secondary to the live plans");
 check(renewal.includes("ds-button--secondary") && renewal.includes("Leadleri ve mailleri aç"), "renewal mail shortcut is not a competing gold");
 check(!how.includes("how-planet") && !how.includes("how-orbit"), "how-it-works hero does not carry decorative planet chrome");
+const productVisual = read("app/ui/YenomiProductVisual.tsx");
+check(!productVisual.includes("Adın Soyadın") && productVisual.includes("Selin Kaya") && productVisual.includes("Yenomi Labs"), "product specimen uses a sample identity, not field labels");
+check(!how.includes("how-phone-mockup"), "how-it-works does not nest a second phone chrome around the CSS profile");
 check(picker.includes("100+ kişi için teklif") && picker.includes("home-mockup__link-secondary") && picker.includes('className="corporate-cta">Teklif Al'), "pack picker keeps live add-to-cart gold and quote as the 100+ primary");
 check(corporate.includes("corporate-mail-packs") && (corporate.match(/home-mockup__link-secondary/g) ?? []).length >= 3, "enterprise and mail-pack quote paths are text jumps to the lead form");
 check(css.includes(".p12-save-contact") && css.includes(".p12-networking:has(.p12-networking-form)") && css.includes(".p12-brand-mark"), "public card keeps one gold: save, or submit when the form is open");

@@ -1,5 +1,12 @@
 # Yenomi ID — Sonraki İşler (v25.9.5)
 
+## Uygulandı — paketleme / ödeme doğrulama / toplu davet (mimari rapor)
+
+- Paylaşım yalnız `npm run package:safe` (`release:package` alias). `verify:pre-share` zip içinde `.env*` olduğunu fail eder. Manuel `zip -r` kök nedeni kilitlendi; canlı secret rotasyonu hâlâ ops görevi.
+- Legacy iyzico `nfc_orders` callback artık `verifyIyzicoCheckoutResult` kullanıyor — commerce settle ile aynı doğrulama.
+- CSV toplu davette `emailSent: false` satırları sonuç ekranında ayrılıyor ve mevcut davet yeniden gönder akışına bağlanıyor.
+- `SUSPENDED` koltuk tüketimi bilinçli ticari politika olarak belgelendi; panelde pasif çalışan uyarısı var.
+
 ## Uygulandı — P0 Route Stability v29
 - Kurumsal panel shell'i `app/kurumsal/panel/layout.tsx` seviyesine taşındı; sidebar/header artık alt route değişimlerinde unmount olmuyor.
 - Kurumsal alt route `page.tsx` dosyaları ikinci `CorporatePanelClient` instance'ı oluşturmuyor.
@@ -110,7 +117,7 @@ Güncel durum: v25.8.4 kurumsal kart formundaki alan yetki matrisini tamamladı 
 - Mevcut şirketlerde pozisyon kataloğu ve kurumsal bağlantılar içerik girilene kadar boş kalabilir; ilk kurulum kontrol listesine en az bir ürün kataloğu ve temel pozisyonlar eklenmeli.
 
 ## Sıradaki P1
-- Önceki ZIP içindeki Supabase, iyzico, Maps, DB ve demo kimlik bilgilerini rotate et.
+- **Ops:** Daha önce paylaşılmış zip arşivlerindeki Supabase service-role, iyzico secret, Maps key ve Vercel OIDC değerlerini rotate et. Paketleme kök nedeni (`zip -r` `.gitignore` görmez) `npm run package:safe` + `npm run verify:pre-share` ile kilitlendi; rotasyon hâlâ canlı ortam görevi — bu agent secret rotate edemez.
 - Lead/CRM modülünün ürün kapsamına alınıp alınmayacağına karar ver; mevcut fixture yalnız "modül bekliyor" organizasyonudur. Birleşik park notu (networking + TR|EN kart + Super Admin tenant + public URL): `docs/product-engineering/17_PARKED_CORPORATE_NETWORKING_LEAD_MODULE.md`. Uygulama kapısı: **`notu uygula`**.
 - `app/kurumsal/panel/page.tsx` bileşenleştirmesi: Employees + EmployeeDrawer v25.8.8'de tamamlandı (bkz. yukarı); yalnız Overview kaldı.
 
@@ -119,7 +126,7 @@ Güncel durum: v25.8.4 kurumsal kart formundaki alan yetki matrisini tamamladı 
 2. Mevcut doğrulama DB'sinde `npm run verify:integration`
 3. İzole staging DB üzerinde `npm run verify:staging`
 4. Production deploy öncesi `npm run verify:production-env`
-5. Paylaşım öncesi `npm run release:package`
+5. Paylaşım öncesi `npm run package:safe` (alias: `release:package`). Manuel `zip -r` kullanma. Arşivi `npm run verify:pre-share -- path/to.zip` ile doğrula.
 
 ## 25.8.81 — QA devam noktası
 

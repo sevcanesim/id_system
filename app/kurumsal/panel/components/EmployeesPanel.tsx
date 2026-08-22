@@ -102,7 +102,7 @@ type Props = {
   bulkInviteResults: {
     created: number;
     failed: number;
-    results: Array<{ email: string; status: "created" | "error"; error?: string; emailSent?: boolean }>;
+    results: Array<{ email: string; status: "created" | "error"; error?: string; emailSent?: boolean; memberId?: string }>;
   } | null;
   onBulkInviteFile: (file: File) => void | Promise<void>;
   onSubmitBulkInvite: () => void | Promise<void>;
@@ -114,6 +114,10 @@ type Props = {
 
 function isBulkSelectable(member: EmployeeListMember, currentUserId: string) {
   return member.user_id !== currentUserId && member.role !== "OWNER";
+}
+
+function isBulkInviteMailFailed(row: { status: "created" | "error"; emailSent?: boolean }) {
+  return row.status === "created" && row.emailSent === false;
 }
 
 function compareText(a: string | null | undefined, b: string | null | undefined) {
@@ -138,7 +142,10 @@ export default function EmployeesPanel(props: Props) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkDepartment, setBulkDepartment] = useState("");
+  const [pendingInviteEmail, setPendingInviteEmail] = useState<string | null>(null);
   const seatLimit = subscription?.seat_limit ?? "—";
+  const bulkMailFailed = bulkInviteResults?.results.filter(isBulkInviteMailFailed) ?? [];
+  const suspendedSeats = Math.max(0, usedSeats - activeMembers - invitedMembers);
   const bulkDepartmentChoices = useMemo(() => {
     const fromMembers = departmentOptions.filter((department) => department !== "Belirtilmemiş");
     return Array.from(new Set([...DEPARTMENT_OPTIONS, ...fromMembers])).sort((a, b) => compareText(a, b));
@@ -165,6 +172,16 @@ export default function EmployeesPanel(props: Props) {
   useEffect(() => {
     setSelectedIds((current) => new Set([...current].filter((id) => filteredMembers.some((member) => member.id === id))));
   }, [filteredMembers]);
+  useEffect(() => {
+    if (!pendingInviteEmail) return;
+    const member = filteredMembers.find((item) =>
+      item.status === "INVITED"
+      && item.email.trim().toLocaleLowerCase("tr") === pendingInviteEmail.trim().toLocaleLowerCase("tr"),
+    );
+    if (!member) return;
+    openMemberDrawer(member, "invite");
+    setPendingInviteEmail(null);
+  }, [pendingInviteEmail, filteredMembers, openMemberDrawer]);
 
   const selectedMembers = useMemo(
     () => filteredMembers.filter((member) => selectedIds.has(member.id)),
@@ -227,6 +244,21 @@ export default function EmployeesPanel(props: Props) {
     else openMemberDrawer(member, member.status === "INVITED" ? "invite" : "profile");
   }
 
+  function openFailedBulkInvite(email: string, memberId?: string) {
+    const member = filteredMembers.find((item) => {
+      if (item.status !== "INVITED") return false;
+      if (memberId && item.id === memberId) return true;
+      return item.email.trim().toLocaleLowerCase("tr") === email.trim().toLocaleLowerCase("tr");
+    });
+    if (member) {
+      openMemberDrawer(member, "invite");
+      return;
+    }
+    setSearch(email);
+    setStatusFilter("INVITED");
+    setPendingInviteEmail(email);
+  }
+
   function sortBy(next: SortKey) {
     if (sortKey === next) setSortDirection((value) => value === "asc" ? "desc" : "asc");
     else { setSortKey(next); setSortDirection("asc"); }
@@ -261,6 +293,11 @@ export default function EmployeesPanel(props: Props) {
           <small>{org?.organizations?.name || "Şirket"}</small>
           <strong>{usedSeats} / {seatLimit}</strong>
           <span>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} lisans boş`}</span>
+          {suspendedSeats > 0 && (
+            <small className="p11-seat-policy">
+              {suspendedSeats} pasif çalışan lisans tüketmeye devam eder. Lisansı boşaltmak için çalışanı şirketten ayırın.
+            </small>
+          )}
         </div>
       </header>
 
@@ -299,7 +336,24 @@ export default function EmployeesPanel(props: Props) {
               <label><Icon name="box" /> CSV seç<input type="file" accept=".csv,text/csv" onChange={(event) => { const file = event.target.files?.[0]; if (file) void onBulkInviteFile(file); event.target.value = ""; }} /></label>
             </div>
             {bulkInvitePreview && <div className="p11-bulk-preview"><p><strong>{bulkInvitePreview.fileName}</strong> · {bulkInvitePreview.rows.length} geçerli · {bulkInvitePreview.errors.length} hatalı</p>{bulkInvitePreview.errors.length > 0 && <ul>{bulkInvitePreview.errors.slice(0, 8).map((item) => <li key={item.line}>Satır {item.line}: {item.error}</li>)}</ul>}{bulkInvitePreview.rows.length > 0 && <><div className="p11-bulk-invite-table" role="region" aria-label="Toplu davet önizlemesi" tabIndex={0}><table><thead><tr><th>Ad Soyad</th><th>E-posta</th><th>Departman</th><th>Ünvan</th><th>Rol</th></tr></thead><tbody>{bulkInvitePreview.rows.slice(0, 12).map((row) => <tr key={`${row.line}-${row.email}`}><td>{row.fullName || "—"}</td><td>{row.email}</td><td>{row.department || "—"}</td><td>{row.title || "—"}</td><td>{row.role}</td></tr>)}</tbody></table></div>{bulkInvitePreview.rows.length > 12 && <p className="p11-bulk-more">İlk 12 kayıt gösteriliyor. Toplam {bulkInvitePreview.rows.length} geçerli kayıt.</p>}<button type="button" disabled={bulkInviteBusy} onClick={() => void onSubmitBulkInvite()}>{bulkInviteBusy ? "Gönderiliyor…" : `${bulkInvitePreview.rows.length} çalışanı davet et`}</button></>}</div>}
-            {bulkInviteResults && <p className="p11-bulk-result"><strong>{bulkInviteResults.created}</strong> davet oluşturuldu · <strong>{bulkInviteResults.failed}</strong> başarısız</p>}
+            {bulkInviteResults && (
+              <div className="p11-bulk-result">
+                <p>
+                  <strong>{bulkInviteResults.created}</strong> davet oluşturuldu · <strong>{bulkInviteResults.failed}</strong> başarısız
+                  {bulkMailFailed.length > 0 ? ` · ${bulkMailFailed.length} e-posta gönderilemedi` : ""}
+                </p>
+                {bulkMailFailed.length > 0 && (
+                  <ul className="p11-bulk-mail-failed">
+                    {bulkMailFailed.map((row) => (
+                      <li key={row.email}>
+                        <span>{row.email} — davet kaydı oluştu ama e-posta gitmedi. Lisans rezerve.</span>
+                        <button type="button" className="p11-secondary" onClick={() => openFailedBulkInvite(row.email, row.memberId)}>Yeniden gönder</button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
         )}
 

@@ -107,6 +107,9 @@ export function memberStatusLabel(status: string) {
 }
 
 export function memberConsumesSeat(status: string) {
+  // Commercial policy, not a bug: SUSPENDED keeps consuming the seat because
+  // reactivation must not require buying a new license. Only LEFT releases the
+  // seat. There is no automatic LEFT-after-N-days drop.
   return status !== "LEFT";
 }
 

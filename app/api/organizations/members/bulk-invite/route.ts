@@ -33,6 +33,7 @@ type RowResult = {
   status: "created" | "error";
   error?: string;
   emailSent?: boolean;
+  memberId?: string;
 };
 
 async function context(request: NextRequest) {
@@ -115,7 +116,7 @@ export async function POST(request: NextRequest) {
       inviteUrl: `${base}/kurumsal/davet?token=${raw}`,
       organizationName: org?.name || "Şirket",
     });
-    results.push({ email: row.email, status: "created", emailSent: mail.sent });
+    results.push({ email: row.email, status: "created", emailSent: mail.sent, memberId: member.id });
   }
 
   const created = results.filter((item) => item.status === "created").length;

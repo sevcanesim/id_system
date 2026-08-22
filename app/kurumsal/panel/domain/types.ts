@@ -191,6 +191,7 @@ export type BulkInviteResults = {
     status: "created" | "error";
     error?: string;
     emailSent?: boolean;
+    memberId?: string;
   }>;
 };
 

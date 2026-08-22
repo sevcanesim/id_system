@@ -3,8 +3,8 @@ import { publicSiteUrl } from "../../../../../lib/payments/config";
 import { retrieveCheckout } from "../../../../../lib/payments/iyzico";
 import { settleCommercePaymentByProviderToken } from "../../../../../lib/payments/settle-commerce-payment";
 import { sanitizeProviderPayload } from "../../../../../lib/payments/sanitize-provider-payload";
+import { verifyIyzicoCheckoutResult } from "../../../../../lib/payments/callback-verification";
 import { getSupabaseAdminClient } from "../../../../../lib/supabase/server-admin";
-import { iyzicoMoneyToKurus } from "../../../../../lib/validation/payment";
 
 export const runtime = "nodejs";
 
@@ -52,13 +52,15 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await retrieveCheckout(token);
-    const resultAmount = iyzicoMoneyToKurus(result?.paidPrice ?? result?.price);
-    const paid = result?.status === "success"
-      && result?.paymentStatus === "SUCCESS"
-      && resultAmount === attempt.amount_kurus
-      && String(result?.currency || "") === attempt.currency
-      && String(result?.basketId || "") === attempt.order_id
-      && String(result?.conversationId || "") === attempt.conversation_id;
+    const paid = verifyIyzicoCheckoutResult(
+      {
+        orderId: attempt.order_id,
+        amountKurus: attempt.amount_kurus,
+        currency: attempt.currency,
+        conversationId: attempt.conversation_id,
+      },
+      result,
+    );
 
     await admin.from("payment_attempts").update({
       status: paid ? "PAID" : "FAILED",

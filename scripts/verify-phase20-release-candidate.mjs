@@ -30,6 +30,7 @@ const required = [
   "scripts/verify-production-env.mjs",
   "scripts/verify-iyzico-sandbox-env.mjs",
   "scripts/create-release-package.mjs",
+  "scripts/verify-share-archive.mjs",
   "supabase/migrations/20260815100000_phase19_corporate_profile_isolation.sql",
   "lib/organizations/lifecycle.test.ts",
   "lib/payments/reuse-open-attempt.test.ts",
@@ -42,7 +43,7 @@ const lock = JSON.parse(fs.readFileSync("package-lock.json", "utf8"));
 versionAtLeast(pkg.version, "25.8.61") ? pass("package version retains Phase 20 RC or later") : fail("package version retains Phase 20 RC or later");
 lock.version === pkg.version && lock.packages?.[""]?.version === pkg.version ? pass("lockfile version matches package") : fail("lockfile version matches package");
 
-for (const script of ["verify:phase20:rc", "verify:phase20:runtime", "verify:phase20:staging", "verify:phase20:production", "verify:phase20:sandbox", "release:rc"]) {
+for (const script of ["verify:phase20:rc", "verify:phase20:runtime", "verify:phase20:staging", "verify:phase20:production", "verify:phase20:sandbox", "release:rc", "package:safe", "verify:pre-share"]) {
   pkg.scripts?.[script] ? pass(`release script registered: ${script}`) : fail(`release script registered: ${script}`);
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { currentLifecycleCards, getPhysicalCardState, physicalInventoryCounts, countMembersWithoutPhysicalAssignment } from "./lifecycle";
+import { currentLifecycleCards, getPhysicalCardState, getSeatBreakdown, memberConsumesSeat, physicalInventoryCounts, countMembersWithoutPhysicalAssignment } from "./lifecycle";
 
 describe("getPhysicalCardState", () => {
   it("treats a current assigned card as assigned even when an older card was replaced", () => {
@@ -21,6 +21,32 @@ describe("getPhysicalCardState", () => {
 
   it("returns UNASSIGNED when there are no cards", () => {
     expect(getPhysicalCardState([])).toBe("UNASSIGNED");
+  });
+});
+
+describe("memberConsumesSeat", () => {
+  it("treats SUSPENDED as a consuming seat so reactivation does not buy a new license", () => {
+    expect(memberConsumesSeat("ACTIVE")).toBe(true);
+    expect(memberConsumesSeat("INVITED")).toBe(true);
+    expect(memberConsumesSeat("SUSPENDED")).toBe(true);
+    expect(memberConsumesSeat("LEFT")).toBe(false);
+  });
+
+  it("counts suspended members in used seats and exposes them in the breakdown", () => {
+    expect(getSeatBreakdown([
+      { role: "OWNER", status: "ACTIVE" },
+      { role: "EMPLOYEE", status: "ACTIVE" },
+      { role: "EMPLOYEE", status: "INVITED" },
+      { role: "EMPLOYEE", status: "SUSPENDED" },
+      { role: "EMPLOYEE", status: "LEFT" },
+    ])).toEqual({
+      used: 4,
+      owners: 1,
+      active: 1,
+      invited: 1,
+      suspended: 1,
+      released: 1,
+    });
   });
 });
 

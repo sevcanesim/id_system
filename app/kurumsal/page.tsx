@@ -2,7 +2,6 @@ import { Icon } from "../icons";
 import AddToCartButton from "../components/AddToCartButton";
 import CorporatePackPicker from "./CorporatePackPicker";
 import {
-  CAMPAIGN_MAIL_PACKS,
   CORPORATE_PACKAGE_LADDER,
   CORPORATE_PACKAGE_PRODUCT_SLUG,
   NETWORK_MAIL_CREDIT_PACKS,
@@ -229,17 +228,6 @@ export default async function CorporatePage({
               ))}
             </ul>
             <a href="/kurumsal?plan=NETWORK-MAIL#teklif" className="home-mockup__link-secondary">Teklif Al <span aria-hidden="true">→</span></a>
-          </article>
-          <article>
-            <span>CAMPAIGN MAIL</span>
-            <h3>Toplu kampanya — ikinci aşama</h3>
-            <p>Pazarlama gönderimi Network Mail kredisinden düşmez. Bu katalog henüz checkout’ta satılmaz.</p>
-            <ul>
-              {CAMPAIGN_MAIL_PACKS.map((pack) => (
-                <li key={pack.sku}><b>{pack.credits.toLocaleString("tr-TR")} Campaign Mail</b> {formatTryFromKurus(pack.priceKurus)}</li>
-              ))}
-            </ul>
-            <a href="/kurumsal?plan=CAMPAIGN-MAIL#teklif" className="home-mockup__link-secondary">Teklif Al <span aria-hidden="true">→</span></a>
           </article>
         </div>
       </section>

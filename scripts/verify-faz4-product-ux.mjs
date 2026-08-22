@@ -109,6 +109,16 @@ check(corporate.includes("corporate-mail-packs") && (corporate.match(/home-mocku
 check(corporate.includes("corporate-addon-grid") && corporate.includes("is-num") && corporate.includes("is-action"), "corporate add-on cards share one grid and the price table aligns numeric cells");
 check(picker.includes("corporate-pack-picker__badge") && picker.includes("öne çıkan paket"), "pack slider marks the featured pack without overlapping neighbors");
 check(css.includes(".corporate-pack-picker__tick {\n  min-width: 44px;\n  min-height: 44px;") && css.includes(".corporate-sales-page .corporate-capability-bar p {\n  color: #3f3a35;\n  font-size: 13px;"), "corporate slider ticks meet 44px and helper copy stays AA on cream");
+check(
+  css.includes(".corporate-sales-page .corporate-hero-actions .corporate-cta")
+    && css.includes("min-height: 48px")
+    && css.includes(".corporate-lead-form {\n  padding: 28px 24px;")
+    && css.includes("position: sticky;\n    left: 0;")
+    && css.includes("overscroll-behavior-x: contain"),
+  "corporate filled CTAs are 48px, quote form is an inner card, and the price table sticks the first column"
+);
+check(read("app/design-tokens.css").includes("--warm-muted: #5c564e;"), "global muted token stays AA on the cream canvas");
+check(css.includes(".corporate-pack-picker__kicker,\n.corporate-sales-page .corporate-pack-table thead th") && css.includes("font-size: 12px;"), "corporate real UI type stays at or above 12px");
 check(css.includes(".p12-save-contact") && css.includes(".p12-networking:has(.p12-networking-form)") && css.includes(".p12-brand-mark"), "public card keeps one gold: save, or submit when the form is open");
 check(
   css.includes("body:has(.home-premium) .public-site-chrome .yi-header__actions .yi-btn--primary")

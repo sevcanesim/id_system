@@ -76,6 +76,7 @@ check(picker.includes("home-mockup__link-secondary") && picker.includes("100+ ki
 check(leadForm.includes(">Teklif Al<") || leadForm.includes('"Teklif Al"'), "corporate lead submit uses canonical Teklif Al");
 check(css.includes("scroll-margin-top: 124px") && css.includes("business-pricing-title"), "corporate pricing heading clears sticky chrome");
 check(read("app/ui/SiteHeader.tsx").includes("onAuthSurface"), "login header does not repeat Giriş Yap on /giris");
+check(read("app/giris/page.tsx").includes('href={portalTabHref("business"') && css.includes(".p6-auth-portal-tabs a") && css.includes(".p6-auth-message.error"), "login corporate tab stays a real link and auth errors stay painted on the card");
 
 const kartim = read("app/kartim/page.tsx");
 const notFound = read("app/not-found.tsx");

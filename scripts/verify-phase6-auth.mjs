@@ -39,6 +39,9 @@ check(login.includes('className="p6-auth-page"'), "login migrated to Phase 6 aut
 check(!login.includes('from "qrcode"') && !login.includes("QRCode."), "login no longer ships runtime QR generation");
 check(!login.includes("style={{"), "login has no inline style objects");
 check(login.includes('role="tablist"') && login.includes("Bireysel") && login.includes("Kurumsal / Ekip"), "one auth foundation exposes individual and corporate contexts");
+check(login.includes('portalTabHref("business"') && login.includes("/giris?"), "corporate portal tab remains a real /giris destination");
+check(login.includes('messageTone === "error" ? "alert"') && login.includes("authAlert"), "auth errors render on the card as an alert, not only inside a form that can unmount");
+check(login.includes("persistActivePortal") && login.includes("noValidate"), "portal persistence cannot abort auth boot; login owns its validation messages");
 check(login.includes('setReturnPath(safeNext(params.get("next")))'), "explicit next destination is sanitized and preserved");
 check(login.includes('useState("/kartlarim")') && login.includes('nextPortal === "business" ? "/kurumsal/panel" : "/kartlarim"'), "auth routes directly to selected portal workspace without visible account-check surface");
 check(login.includes("options: { emailRedirectTo }"), "signup verification preserves auth return destination");
@@ -78,6 +81,7 @@ const legacyToken = /var\(--(?:yi|yp|store|ui|y)-/;
 check(!legacyToken.test(css), "Phase 6 auth CSS introduces no legacy token family");
 check(css.includes(".p6-auth-page") && css.includes(".p6-auth-form-card"), "auth visual layer is present in canonical CSS");
 check(css.includes(".p6-auth-portal-tabs") && css.includes(":focus-visible"), "auth interaction and focus treatment remain canonical");
+check(css.includes(".p6-auth-portal-tabs a") && css.includes("body:has(.p6-auth-page) .public-site-chrome") && css.includes("pointer-events: auto"), "login tabs stay above public chrome overflow and keep a 44px hit target");
 check(css.includes("@media (max-width: 980px)") && css.includes("@media (max-width: 760px)"), "Phase 6 covers tablet and mobile auth layouts");
 check(css.includes("prefers-reduced-motion"), "Phase 6 supports reduced motion");
 check(css.includes(":focus-visible"), "Phase 6 includes explicit keyboard focus treatment");

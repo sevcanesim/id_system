@@ -15190,4 +15190,65 @@ h1, h2, h3, h4 {
   }
 }
 
+/* Login: portal tabs stay clickable above chrome/mockup overflow; errors stay on the card. */
+.p6-auth-form-card {
+  position: relative;
+  z-index: 2;
+}
+.p6-auth-visual-card,
+.p6-auth-mini-phone {
+  pointer-events: none;
+}
+body:has(.p6-auth-page) .public-site-chrome {
+  pointer-events: none;
+}
+body:has(.p6-auth-page) .public-site-chrome .yi-header {
+  pointer-events: auto;
+}
+body:has(.p6-auth-page) .public-site-chrome:has(.yi-nav.is-open)::before {
+  pointer-events: auto;
+}
+.p6-auth-portal-tabs {
+  position: relative;
+  z-index: 3;
+}
+.p6-auth-portal-tabs a,
+.p6-auth-portal-tabs button {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  pointer-events: auto;
+  cursor: pointer;
+  color: #3f3a35;
+  text-decoration: none;
+  font-weight: 650;
+}
+.p6-auth-portal-tabs a.active,
+.p6-auth-portal-tabs button.active {
+  background: #fff;
+  color: #1A1918;
+  font-weight: 700;
+}
+.p6-auth-portal-tabs a:hover,
+.p6-auth-portal-tabs button:hover {
+  color: #1A1918;
+}
+.p6-auth-portal-tabs a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.p6-auth-message {
+  position: relative;
+  z-index: 2;
+  margin: 0 0 16px;
+}
+.p6-auth-message.error {
+  border: 1px solid #c98989;
+  background: #fdf4f4;
+  color: #7a2424;
+}
+
 

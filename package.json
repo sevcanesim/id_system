@@ -29,6 +29,8 @@
     "verify:staging-isolation": "node scripts/verify-staging-isolation.mjs",
     "verify:staging": "npm run verify:staging-isolation && npm run verify:db && npm run verify:catalog && npm run seed:e2e",
     "release:package": "node scripts/create-release-package.mjs",
+    "package:safe": "npm run release:package",
+    "verify:pre-share": "node scripts/verify-share-archive.mjs --self-test",
     "db:push": "npx supabase db push",
     "repair:analytics": "npx supabase db push --include-all && npm run verify:db",
     "verify:catalog": "node scripts/verify-catalog-prices.mjs",

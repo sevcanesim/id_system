@@ -13,17 +13,23 @@ const stagingDirectory = path.join(stagingRoot, releaseName);
 
 const excludedDirectories = new Set([
   ".git", ".next", "node_modules", "coverage", "playwright-report", "release", "test-results",
+  ".vercel",
 ]);
 const excludedFiles = new Set([
   ".DS_Store", ".env", ".env.local", "tsconfig.tsbuildinfo",
 ]);
+
+function isSecretEnvFile(name) {
+  if (name === ".env.example") return false;
+  return name === ".env" || name.startsWith(".env.") || name.startsWith(".env");
+}
 
 function copyDirectory(source, destination) {
   fs.mkdirSync(destination, { recursive: true });
   for (const entry of fs.readdirSync(source, { withFileTypes: true })) {
     if (entry.name.startsWith("._")) continue;
     if (entry.isDirectory() && excludedDirectories.has(entry.name)) continue;
-    if (entry.isFile() && (excludedFiles.has(entry.name) || /^\.env\..+\.local$/.test(entry.name))) continue;
+    if (entry.isFile() && (excludedFiles.has(entry.name) || isSecretEnvFile(entry.name))) continue;
 
     const sourcePath = path.join(source, entry.name);
     const destinationPath = path.join(destination, entry.name);
@@ -75,6 +81,16 @@ try {
     console.error(zip.stderr || "Release archive could not be created.");
     process.exit(zip.status ?? 1);
   }
+
+  const shareCheck = spawnSync(process.execPath, [
+    path.join(root, "scripts/verify-share-archive.mjs"),
+    archivePath,
+  ], {
+    cwd: root,
+    encoding: "utf8",
+    stdio: "inherit",
+  });
+  if (shareCheck.status !== 0) process.exit(shareCheck.status ?? 1);
 
   console.log(`Safe source package created: ${archivePath}`);
 } finally {

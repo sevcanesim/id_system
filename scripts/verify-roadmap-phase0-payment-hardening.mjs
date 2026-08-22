@@ -21,6 +21,12 @@ for (const marker of requiredCallback) if (!paymentFlow.includes(marker)) throw 
 if (!settle.includes('retrieveCheckout') || !recover.includes('settlePendingCommercePaymentByOrderId')) {
   throw new Error('Missed iyzico callbacks must be recoverable via retrieveCheckout settlement');
 }
+if (!callback.includes('verifyIyzicoCheckoutResult')) {
+  throw new Error('Legacy nfc_orders callback must reuse verifyIyzicoCheckoutResult');
+}
+if (callback.includes('resultAmount === attempt.amount_kurus')) {
+  throw new Error('Do not keep a second inline iyzico amount check in the callback route');
+}
 
 const requiredSql = [
   "where id=p_attempt_id for update",

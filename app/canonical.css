@@ -14217,3 +14217,27 @@ body:has(.legal-page) .yi-footer__trust .yi-icon {
   }
 }
 
+.p11-bulk-result p { margin: 0; }
+.p11-bulk-mail-failed {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.p11-bulk-mail-failed li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-gold);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.p11-org-capacity .p11-seat-policy {
+  display: block;
+  max-width: 28ch;
+}
+

@@ -13,7 +13,7 @@ const size = fs.statSync(archive).size;
 if (size > maxBytes) fail(`Archive ${Math.ceil(size / 1024 / 1024)} MB; budget ${Math.ceil(maxBytes / 1024 / 1024)} MB.`);
 
 const listing = execFileSync('unzip', ['-Z1', archive], { encoding: 'utf8' }).split(/\r?\n/).filter(Boolean);
-const forbidden = [/(^|\/)node_modules\//, /(^|\/)\.next\//, /(^|\/)playwright-report\//, /(^|\/)test-results\//, /(^|\/)coverage\//, /(^|\/)\.env(?:\.local|\..+\.local)?$/];
+const forbidden = [/(^|\/)node_modules\//, /(^|\/)\.next\//, /(^|\/)playwright-report\//, /(^|\/)test-results\//, /(^|\/)coverage\//, /(^|\/)\.vercel(\/|$)/, /(^|\/)\.env(?!\.example(?:$|\/))(?:$|\.)/];
 const leaked = listing.filter((name) => forbidden.some((re) => re.test(name)));
 if (leaked.length) fail(`Yasak release girdileri bulundu: ${leaked.slice(0, 10).join(', ')}`);
 const manifestEntry = listing.find((name) => /\/RELEASE_MANIFEST\.json$/.test(name));

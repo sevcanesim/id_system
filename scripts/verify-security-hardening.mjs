@@ -96,6 +96,8 @@ mustInclude(playwrightConfig, 'testDir: "e2e"', "Playwright must own the e2e dir
 mustInclude(e2e, "E2E-01", "Critical journeys must name E2E-01.");
 mustInclude(e2e, "E2E_BASE_URL is unset; journeys are not run.", "Missing E2E env must skip, not pass.");
 mustInclude(e2e, "E2E-06", "Guest spare-card gate must be listed.");
+mustInclude(e2e, "COVERAGE: 1/7 automated", "Critical journeys file must not hide that most cases are skeleton skips.");
+mustInclude(e2e, "test.skip(true", "Unwired payment journeys must stay explicit skips, not empty passes.");
 
 mustInclude(sweeper, "expire_stale_awaiting_payment_orders", "Sweeper RPC must exist.");
 mustInclude(sweeper, "interval '7 days'", "Sweeper must target 7-day stale AWAITING_PAYMENT rows.");

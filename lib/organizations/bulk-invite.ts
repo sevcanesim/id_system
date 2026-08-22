@@ -1,5 +1,6 @@
 import { parseCsv } from "../csv";
 import { normalizeEmailField } from "../form-standards";
+import { isDepartmentScoped, isOrganizationRole, type OrganizationRole } from "./permissions";
 
 export type BulkInviteRole = "ADMIN" | "HR" | "DEPARTMENT_MANAGER" | "EMPLOYEE";
 
@@ -157,3 +158,29 @@ export const BULK_INVITE_CSV_TEMPLATE =
   "E-posta,Ad,Soyad,Ünvan,Departman,Rol\nmehmet.yilmaz@firma.com,Mehmet,Yılmaz,Satış Uzmanı,Satış,Çalışan\nayse.kaya@firma.com,Ayşe,Kaya,İnsan Kaynakları Uzmanı,İnsan Kaynakları,İK\n";
 
 export const BULK_INVITE_MAX_ROWS = 200;
+
+/** Department managers cannot invite outside their own department; CSV department is ignored. */
+export function resolveBulkInviteDepartment(input: {
+  actorRole: OrganizationRole | string;
+  actorDepartment?: string | null;
+  csvDepartment?: string | null;
+}): string {
+  if (isOrganizationRole(input.actorRole) && isDepartmentScoped(input.actorRole)) {
+    return (input.actorDepartment || "").trim();
+  }
+  return (input.csvDepartment || "").trim();
+}
+
+export function isBulkInviteMailFailed(row: { status: "created" | "error"; emailSent?: boolean }) {
+  return row.status === "created" && row.emailSent === false;
+}
+
+export function summarizeBulkInviteResults(
+  results: Array<{ status: "created" | "error"; emailSent?: boolean }>,
+) {
+  return {
+    created: results.filter((row) => row.status === "created").length,
+    failed: results.filter((row) => row.status === "error").length,
+    mailFailed: results.filter(isBulkInviteMailFailed).length,
+  };
+}

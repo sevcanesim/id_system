@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type Dispatch, type FormEvent, type SetSt
 import { Icon } from "../../../icons";
 import { EmptyState } from "../../../components/ui/States";
 import { DEPARTMENT_OPTIONS, TITLE_OPTIONS, normalizeEmailField } from "../../../../lib/form-standards";
-import { BULK_INVITE_CSV_TEMPLATE } from "../../../../lib/organizations/bulk-invite";
+import { BULK_INVITE_CSV_TEMPLATE, isBulkInviteMailFailed } from "../../../../lib/organizations/bulk-invite";
 import type { MemberActionTarget, MemberCardStatus } from "../domain/types";
 import {
   digitalProfileLabel,
@@ -114,10 +114,6 @@ type Props = {
 
 function isBulkSelectable(member: EmployeeListMember, currentUserId: string) {
   return member.user_id !== currentUserId && member.role !== "OWNER";
-}
-
-function isBulkInviteMailFailed(row: { status: "created" | "error"; emailSent?: boolean }) {
-  return row.status === "created" && row.emailSent === false;
 }
 
 function compareText(a: string | null | undefined, b: string | null | undefined) {

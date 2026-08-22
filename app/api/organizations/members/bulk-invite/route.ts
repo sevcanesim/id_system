@@ -3,7 +3,7 @@ import { z } from "zod";
 import { sendOrganizationInviteEmail } from "../../../../../lib/email/resend";
 import { canInviteRole, isDepartmentScoped, isOrganizationRole } from "../../../../../lib/organizations/permissions";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../lib/supabase/server-admin";
-import { BULK_INVITE_MAX_ROWS } from "../../../../../lib/organizations/bulk-invite";
+import { BULK_INVITE_MAX_ROWS, resolveBulkInviteDepartment, summarizeBulkInviteResults } from "../../../../../lib/organizations/bulk-invite";
 import { createHash, randomBytes } from "crypto";
 
 // CSV toplu çalışan davet ucu. CSV'nin kendisi ayrıştırılmaz (o iş
@@ -72,7 +72,11 @@ export async function POST(request: NextRequest) {
       results.push({ email: row.email, status: "error", error: "Bu rol için davet oluşturma yetkin yok." });
       continue;
     }
-    const invitationDepartment = isDepartmentScoped(actor.role) ? actor.department || "" : row.department || "";
+    const invitationDepartment = resolveBulkInviteDepartment({
+      actorRole: actor.role,
+      actorDepartment: actor.department,
+      csvDepartment: row.department,
+    });
     const raw = randomBytes(32).toString("hex");
     const hash = createHash("sha256").update(raw).digest("hex");
     const { data: reservation, error } = await ctx.admin.rpc("reserve_organization_invitation", {
@@ -119,7 +123,6 @@ export async function POST(request: NextRequest) {
     results.push({ email: row.email, status: "created", emailSent: mail.sent, memberId: member.id });
   }
 
-  const created = results.filter((item) => item.status === "created").length;
-  const failed = results.filter((item) => item.status === "error").length;
+  const { created, failed } = summarizeBulkInviteResults(results);
   return NextResponse.json({ results, created, failed }, { status: created > 0 ? 201 : 200 });
 }

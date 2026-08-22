@@ -2,6 +2,7 @@ import { Icon } from "../icons";
 
 type VisualVariant = "profile" | "dashboard" | "card";
 type CardFace = "front" | "back";
+type CardFinish = "matte" | "metal" | "white";
 
 /** Product specimen — field labels are not names. */
 const SPECIMEN = {
@@ -15,10 +16,12 @@ export function YenomiProductVisual({
   variant = "profile",
   compact = false,
   face = "front",
+  finish = "matte",
 }: {
   variant?: VisualVariant;
   compact?: boolean;
   face?: CardFace;
+  finish?: CardFinish;
 }) {
   if (variant === "dashboard") {
     return (
@@ -38,7 +41,8 @@ export function YenomiProductVisual({
   }
 
   if (variant === "card") {
-    const foilClass = `yi-product-ui yi-product-ui--card yi-product-ui--card-foil yi-product-ui--card-${face}${compact ? " yi-product-ui--compact" : ""}`;
+    const finishClass = finish === "metal" ? "yi-product-ui--card-metal" : finish === "white" ? "yi-product-ui--card-white" : "yi-product-ui--card-matte";
+    const foilClass = `yi-product-ui yi-product-ui--card yi-product-ui--card-foil ${finishClass} yi-product-ui--card-${face}${compact ? " yi-product-ui--compact" : ""}`;
     if (face === "back") {
       return (
         <div className={foilClass} aria-hidden="true">

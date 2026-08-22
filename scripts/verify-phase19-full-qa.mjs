@@ -30,6 +30,7 @@ const checks = [
   ["offboarding organization scope", migration.includes("user_id=v_member.user_id and organization_id=p_organization_id")],
   ["member preview organization scope", memberProfile.includes('.eq("organization_id", organizationId)')],
   ["seat reservation stays sequential at the invite API", bulkInvite.includes("reserve_organization_invitation") && /SIRAYLA|sequential/i.test(bulkInvite)],
+  ["invite seat count keeps suspended licenses locked", fs.readFileSync("supabase/migrations/20260822200000_seat_limit_counts_suspended.sql", "utf8").includes("status <> 'LEFT'")],
   ["invite expiry and revoke remain domain states", lifecycle.includes('if (invitation.revokedAt) return "REVOKED"') && lifecycle.includes("EXPIRED")],
   ["replacement terminal regression contract", lifecycleTest.includes("replacedByCardId") && lifecycleTest.includes("REPLACED")],
   ["open payment attempt reuse stays explicit", paymentAttempt.includes("reuses a live PENDING session")],

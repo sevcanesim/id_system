@@ -107,6 +107,17 @@ mustInclude(sweeper, "grant execute on function public.expire_stale_awaiting_pay
 mustInclude(reconciliation, "expire_stale_awaiting", "Admin reconciliation POST must expose the sweeper action.");
 mustInclude(reconciliation, "COMMERCE_EXPIRE_STALE_AWAITING", "Sweeper runs must write an admin audit row.");
 
+const grantDefaults = read("supabase/migrations/20260819160000_grant_data_api_roles.sql");
+const grantHardening = read("supabase/migrations/20260822120000_revoke_default_data_api_privileges.sql");
+mustInclude(grantDefaults, "alter default privileges in schema public grant select, insert, update, delete on tables to anon, authenticated", "Historical Data API grant migration must remain as applied history.");
+mustInclude(grantHardening, "revoke select, insert, update, delete on tables from anon, authenticated", "Future public tables must not auto-grant to anon/authenticated.");
+mustInclude(grantHardening, "revoke execute on routines from anon, authenticated", "Future public routines must not auto-execute for Data API roles.");
+mustInclude(grantHardening, "revoke all on table public.commerce_payment_attempts from anon, authenticated, public", "Payment attempt rows hold provider tokens; Data API must not DML them.");
+mustInclude(grantHardening, "revoke all on table public.activation_tokens from anon, authenticated, public", "Activation secrets must stay service-role.");
+const checkoutRoute = read("app/api/commerce/checkout/route.ts");
+mustNotInclude(checkoutRoute, "reference: payload.reference, error: orderError", "Checkout must not log raw Supabase error objects.");
+mustNotInclude(checkoutRoute, "reference: payload.reference, error: reserveError", "Checkout must not log raw payment-attempt error objects.");
+
 if (!nfcOrder.includes("export default function")) {
   throw new Error("Legacy /nfc-siparis page file must remain until Faz 2 retirement evidence exists.");
 }

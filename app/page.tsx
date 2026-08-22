@@ -54,7 +54,7 @@ export default function HomePage() {
               <span>NFC + QR</span>
               <span>KAYIP MODU</span>
             </div>
-            <small className="home-mockup__guest">Hesap açmadan ödeyebilirsin. Kart numarası Yenomi’de saklanmaz.</small>
+            <small className="home-mockup__guest">Hesap açmadan ödeyebilirsin. Siparişin e-posta adresinle otomatik eşleşir. Kart numarası Yenomi’de saklanmaz.</small>
           </div>
 
           <div className="home-mockup__visual" aria-label="Yenomi ID dijital kartvizit önizlemesi">
@@ -84,7 +84,7 @@ export default function HomePage() {
               <span>KURUMSAL</span>
               <h3>Ekip aynı standartta tanışır.</h3>
               <p>Çalışan kartları, yetkiler ve analitik tek panelde. 100 kişiye kadar sepete ekle.</p>
-              <Link className="home-mockup__button home-premium__path-secondary" href="/kurumsal">Paketleri incele <span aria-hidden>→</span></Link>
+              <Link className="home-mockup__button home-premium__path-secondary" href="/kurumsal">Ekip paketlerini keşfet <span aria-hidden>→</span></Link>
             </article>
           </div>
         </section>
@@ -119,7 +119,7 @@ export default function HomePage() {
               <span className="home-mockup__kicker">NET BİR BAŞLANGIÇ</span>
               <h2 id="journey-title">Seç, bağla,<br />paylaş.</h2>
             </div>
-            <p>Hesap açmadan ödeyebilirsin. Sipariş, yazdığın e-posta ile hesabına bağlanır.</p>
+            <p>Hesap açmadan ödeyebilirsin. Siparişin e-posta adresinle otomatik eşleşir.</p>
           </div>
           <ol className="home-premium__journey-steps">
             {journey.map(([number, title, text]) => (

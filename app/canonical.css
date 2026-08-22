@@ -15767,4 +15767,41 @@ body:has(.p6-auth-page) .public-site-chrome:has(.yi-nav.is-open)::before {
   }
 }
 
+.home-premium__path-grid span,
+.home-premium__principles article > span,
+.nfc-benefits article > span,
+.nfc-steps article > span {
+  color: #8b6835;
+  font-size: 12px;
+  line-height: 1.2;
+}
+.home-premium__principles p {
+  margin: 12px 0 0;
+}
+.nfc-benefits h2 {
+  margin: 42px 0 14px;
+}
+.nfc-steps h3 {
+  margin: 36px 0 14px;
+}
+.nfc-account-note,
+.nfc-price-tag small,
+.products-plan-badge {
+  font-size: 12px;
+}
+.products-plan-card,
+.home-premium__path-grid article,
+.corporate-addon-grid article {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, .02),
+    0 8px 16px rgba(0, 0, 0, .04),
+    0 24px 48px rgba(0, 0, 0, .06);
+}
+.products-plan-card.is-popular {
+  box-shadow:
+    0 2px 4px rgba(125, 96, 49, .04),
+    0 8px 16px rgba(125, 96, 49, .06),
+    0 24px 48px rgba(125, 96, 49, .10);
+}
+
 

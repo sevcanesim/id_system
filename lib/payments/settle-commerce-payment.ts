@@ -37,7 +37,7 @@ async function isGuestCommerceOrder(admin: AdminClient, orderId: string) {
 
 async function retryCorporatePackageFulfillment(admin: AdminClient, orderId: string) {
   const { error } = await admin.rpc("fulfill_paid_corporate_package_order", { p_order_id: orderId });
-  if (error) console.error("corporate package fulfill retry failed", { orderId, error });
+  if (error) console.error("corporate package fulfill retry failed", { orderId, message: error.message });
 }
 
 async function recoverPaidCommerceOrder(admin: AdminClient, orderId: string) {
@@ -70,7 +70,7 @@ async function autoClaimAuthenticatedOrder(admin: AdminClient, orderId: string) 
       p_issue_code: "AUTHENTICATED_CLAIM_FAILED",
       p_details: { code: payload?.code || null, databaseError: error?.message || null },
     });
-    if (issueError) console.error("claim failure reconciliation issue could not be recorded", { orderId, issueError });
+    if (issueError) console.error("claim failure reconciliation issue could not be recorded", { orderId, message: issueError.message });
   }
   return { ok, reviewRequired: !ok || Boolean(payload?.review_required), openIssueCount: Number(payload?.open_issue_count || 0) };
 }
@@ -217,6 +217,20 @@ async function settleLoadedAttempt(
       orderId: commerceAttempt.order_id,
       message: processError.message,
     });
+    if (paid) {
+      const { error: issueError } = await admin.rpc("record_commerce_fulfillment_issue", {
+        p_order_id: commerceAttempt.order_id,
+        p_order_item_id: null,
+        p_issue_code: "PAYMENT_CALLBACK_COMMIT_FAILED",
+        p_details: { attemptId: commerceAttempt.id, databaseError: processError.message },
+      });
+      if (issueError) {
+        console.error("callback commit issue could not be recorded", {
+          orderId: commerceAttempt.order_id,
+          message: issueError.message,
+        });
+      }
+    }
     return { kind: "error", reason: "callback" };
   }
 

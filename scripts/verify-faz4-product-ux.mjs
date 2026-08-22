@@ -112,12 +112,21 @@ check(css.includes(".corporate-pack-picker__tick {\n  min-width: 44px;\n  min-he
 check(
   css.includes(".corporate-sales-page .corporate-hero-actions .corporate-cta")
     && css.includes("min-height: 48px")
-    && css.includes(".corporate-lead-form {\n  padding: 28px 24px;")
+    && css.includes(".corporate-lead-form {\n  padding: 24px;")
+    && css.includes("background: #FAF8F3")
     && css.includes("position: sticky;\n    left: 0;")
-    && css.includes("overscroll-behavior-x: contain"),
+    && css.includes("overscroll-behavior-x: contain")
+    && css.includes("overscroll-behavior-inline: contain"),
   "corporate filled CTAs are 48px, quote form is an inner card, and the price table sticks the first column"
 );
-check(read("app/design-tokens.css").includes("--warm-muted: #5c564e;"), "global muted token stays AA on the cream canvas");
+check(read("app/design-tokens.css").includes("--warm-muted: #6B655D;"), "global muted token stays AA on the cream canvas");
+check(
+  corporate.includes("corporate-hero-line")
+    && corporate.includes("corporate-hero-line--accent")
+    && !corporate.includes("\\u00a0")
+    && !corporate.includes("<br"),
+  "corporate hero uses semantic visual lines instead of br/nbsp"
+);
 check(css.includes(".corporate-pack-picker__kicker,\n.corporate-sales-page .corporate-pack-table thead th") && css.includes("font-size: 12px;"), "corporate real UI type stays at or above 12px");
 check(css.includes(".p12-save-contact") && css.includes(".p12-networking:has(.p12-networking-form)") && css.includes(".p12-brand-mark"), "public card keeps one gold: save, or submit when the form is open");
 check(

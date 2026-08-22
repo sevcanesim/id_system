@@ -34,7 +34,7 @@ const config = {
         text: {
           primary: "var(--warm-text-primary, #1A1918)",
           secondary: "var(--warm-text-secondary, #68645D)",
-          muted: "var(--warm-muted, #5c564e)",
+          muted: "var(--warm-muted, #6B655D)",
           inverse: "#FFFFFF",
         },
         success: "var(--warm-success, #059669)",

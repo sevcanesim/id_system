@@ -14632,4 +14632,83 @@ body:has(.legal-page) .yi-footer__trust .yi-icon {
   }
 }
 
+/* Headings: Inter files are 400/500/600/700. Word-spacing is a font metric. */
+h1, h2, h3, h4 {
+  word-spacing: normal;
+}
+.nfc-story h2,
+.nfc-includes h2,
+.nfc-faq h2,
+.nfc-final h2,
+.legal-page--premium .legal-shell h1,
+.p6-auth-story h1,
+.yi-hero h1,
+.home-final h2,
+.home-compact__hero-copy h1,
+.home-compact__close h2,
+.product-one-page__copy h1,
+.product-one-page__statement h2,
+.product-one-page__final h2 {
+  word-spacing: normal;
+}
+.home-mockup__copy h1 {
+  font-weight: 700;
+}
+
+/* Hero mockup uses the stage box as the coordinate system, not the viewport. */
+.home-mockup__visual {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 0.92;
+  min-height: 0;
+  height: auto;
+  overflow: hidden;
+  contain: layout;
+}
+.home-mockup__phone {
+  width: 28%;
+  min-width: 0;
+  max-width: 292px;
+  right: 42%;
+  top: 8%;
+  aspect-ratio: 9 / 19;
+}
+.home-mockup__card {
+  width: 62%;
+  max-width: 610px;
+  right: 2%;
+  bottom: 8%;
+  aspect-ratio: 1.586 / 1;
+}
+.home-mockup__phone .yi-product-ui--profile {
+  min-height: 0;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+@media (max-width: 1050px) {
+  .home-mockup__visual {
+    width: min(100%, 680px);
+    margin-inline: auto;
+    min-height: 0;
+    aspect-ratio: 1 / 0.92;
+  }
+}
+
+@media (max-width: 760px) {
+  .home-mockup__visual {
+    overflow: hidden;
+    contain: layout;
+    min-height: 0;
+    aspect-ratio: 1 / 1.05;
+  }
+  .home-mockup__phone {
+    width: 36%;
+    min-width: 0;
+  }
+  .home-mockup__card {
+    width: 72%;
+  }
+}
+
 

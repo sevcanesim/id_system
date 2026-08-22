@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, MouseEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getRememberedLogin, getSupabaseBrowserClient, setRememberedLogin } from "../../lib/supabase/browser";
 import { isSupabaseConfigured, supabaseConfigIssue } from "../../lib/supabase/config";
@@ -20,6 +20,24 @@ type AuthMode = "login" | "signup" | "forgot" | "recovery";
 
 function safeNext(value: string | null) {
   return value && value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/giris") ? value : "/kartlarim";
+}
+
+function persistActivePortal(nextPortal: LoginPortal) {
+  try {
+    window.sessionStorage.setItem("yenomi-active-portal", nextPortal);
+  } catch {
+    // Private / locked storage must not abort portal switching or auth boot.
+  }
+}
+
+function portalTabHref(nextPortal: LoginPortal, nextPath: string) {
+  const params = new URLSearchParams({ portal: nextPortal });
+  const defaultWorkspace = nextPath === "/kartlarim" || nextPath === "/kurumsal/panel" || nextPath === "/hesabim";
+  const next = defaultWorkspace
+    ? (nextPortal === "business" ? "/kurumsal/panel" : "/kartlarim")
+    : nextPath;
+  if (next && next !== "/kartlarim") params.set("next", next);
+  return `/giris?${params.toString()}`;
 }
 
 export default function LoginPage() {
@@ -54,7 +72,7 @@ export default function LoginPage() {
     setPortal(selectedPortal);
     setReturnPath(safeNext(params.get("next")));
     if (requestedMode === "recovery") setMode("recovery");
-    window.sessionStorage.setItem("yenomi-active-portal", selectedPortal);
+    persistActivePortal(selectedPortal);
 
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
@@ -118,7 +136,7 @@ export default function LoginPage() {
     showMessage("");
     if (!isSupabaseConfigured) return showMessage(`Supabase bağlantısı kurulamadı: ${supabaseConfigIssue}`, "error");
     const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
+    if (!supabase) return showMessage("Giriş hizmeti şu anda kullanılamıyor.", "error");
     setRememberedLogin(rememberMe, email ? normalizeEmail(email) : undefined);
     setLoading(true);
     const redirectTo = `${window.location.origin}/giris?portal=${portal}&next=${encodeURIComponent(returnPath)}`;
@@ -133,7 +151,7 @@ export default function LoginPage() {
     showMessage("");
     if (!isSupabaseConfigured) return showMessage(`Supabase bağlantısı kurulamadı: ${supabaseConfigIssue}`, "error");
     const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
+    if (!supabase) return showMessage("Giriş hizmeti şu anda kullanılamıyor.", "error");
     setRememberedLogin(rememberMe, email ? normalizeEmail(email) : undefined);
     setLoading(true);
     const redirectTo = `${window.location.origin}/giris?portal=${portal}&next=${encodeURIComponent(returnPath)}`;
@@ -150,7 +168,7 @@ export default function LoginPage() {
     if (emailError) return showMessage(emailError, "error");
     if (!isSupabaseConfigured) return showMessage(`Supabase bağlantısı kurulamadı: ${supabaseConfigIssue}`, "error");
     const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
+    if (!supabase) return showMessage("Giriş hizmeti şu anda kullanılamıyor.", "error");
     setLoading(true);
     const redirectTo = `${window.location.origin}/giris?mode=recovery&portal=${portal}&next=${encodeURIComponent(returnPath)}`;
     const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo });
@@ -182,15 +200,16 @@ export default function LoginPage() {
     const normalizedEmail = normalizeEmail(email);
     const emailError = validateEmail(normalizedEmail);
     if (emailError) return showMessage(emailError, "error");
+    if (!password.trim()) return showMessage("Şifreni gir.", "error");
     if (mode === "signup") {
       const passwordError = validateSignupPassword(password);
       if (passwordError) return showMessage(passwordError, "error");
     }
     if (!isSupabaseConfigured) return showMessage(`Supabase bağlantısı kurulamadı: ${supabaseConfigIssue}`, "error");
     const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
+    if (!supabase) return showMessage("Giriş hizmeti şu anda kullanılamıyor.", "error");
     setRememberedLogin(rememberMe, normalizedEmail);
-    window.sessionStorage.setItem("yenomi-active-portal", portal);
+    persistActivePortal(portal);
     setLoading(true);
     setEmail(normalizedEmail);
 
@@ -312,11 +331,16 @@ export default function LoginPage() {
     setPortal(nextPortal);
     setMode("login");
     setSignupCompleted(false);
-    setMessage("");
-    window.sessionStorage.setItem("yenomi-active-portal", nextPortal);
+    persistActivePortal(nextPortal);
     if (returnPath === "/hesabim" || returnPath === "/kartlarim" || returnPath === "/kurumsal/panel") {
       setReturnPath(nextPortal === "business" ? "/kurumsal/panel" : "/kartlarim");
     }
+  }
+
+  function onPortalTabClick(event: MouseEvent<HTMLAnchorElement>, nextPortal: LoginPortal) {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+    event.preventDefault();
+    choosePortal(nextPortal);
   }
 
   const title = mode === "recovery"
@@ -346,7 +370,16 @@ export default function LoginPage() {
             : "Kartlarını, siparişlerini ve dijital kimliğini tek hesaptan yönet.";
 
   const busy = loading || transitioning;
-  const showWorkspace = (transitioning || activeSessionEmail) && mode !== "recovery";
+  const showWorkspace = (transitioning || activeSessionEmail) && mode !== "recovery" && messageTone !== "error";
+  const authAlert = message ? (
+    <div
+      className={`p6-auth-message ${messageTone}`}
+      role={messageTone === "error" ? "alert" : "status"}
+      aria-live={messageTone === "error" ? "assertive" : "polite"}
+    >
+      {message}
+    </div>
+  ) : null;
 
   return (
     <main id="main-content" className="p6-auth-page" data-ui-context="public">
@@ -385,10 +418,11 @@ export default function LoginPage() {
 
             {mode !== "recovery" && mode !== "forgot" && (
               <div className="p6-auth-portal-tabs" role="tablist" aria-label="Hesap bağlamı">
-                <button type="button" role="tab" aria-selected={portal === "individual"} className={portal === "individual" ? "active" : ""} onClick={() => choosePortal("individual")}>Bireysel</button>
-                <button type="button" role="tab" aria-selected={portal === "business"} className={portal === "business" ? "active" : ""} onClick={() => choosePortal("business")}>Kurumsal / Ekip</button>
+                <a href={portalTabHref("individual", returnPath)} role="tab" aria-selected={portal === "individual"} className={portal === "individual" ? "active" : ""} onClick={(event) => onPortalTabClick(event, "individual")}>Bireysel</a>
+                <a href={portalTabHref("business", returnPath)} role="tab" aria-selected={portal === "business"} className={portal === "business" ? "active" : ""} onClick={(event) => onPortalTabClick(event, "business")}>Kurumsal / Ekip</a>
               </div>
             )}
+            {authAlert}
 
             {showWorkspace ? (
               <div className="p6-auth-state" role="status" aria-live="polite">
@@ -404,7 +438,6 @@ export default function LoginPage() {
                 <span className="p6-auth-state-icon"><Icon name="mail" /></span>
                 <h2>E-postanı doğrula</h2>
                 <p><strong>{email}</strong> adresine gönderdiğimiz bağlantıya tıkla. Ardından bu ekrandan giriş yapabilirsin.</p>
-                {message && <div className={`p6-auth-message ${messageTone}`}>{message}</div>}
                 <button className="p6-auth-submit" type="button" onClick={() => { setSignupCompleted(false); setMode("login"); setPassword(""); setMessage(""); }}>
                   Giriş ekranına dön <Icon name="chevronRight" />
                 </button>
@@ -441,7 +474,7 @@ export default function LoginPage() {
                 {mode === "login" && <div className="p6-auth-divider"><span>veya e-posta ile</span></div>}
 
                 {mode === "forgot" ? (
-                  <form className="p6-auth-form" onSubmit={(event) => { event.preventDefault(); void sendPasswordReset(); }}>
+                  <form className="p6-auth-form" noValidate onSubmit={(event) => { event.preventDefault(); void sendPasswordReset(); }}>
                     <label>
                       <span>E-posta adresi</span>
                       <div className="p6-auth-input">
@@ -449,7 +482,6 @@ export default function LoginPage() {
                         <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} onBlur={() => setEmail(normalizeEmail(email))} required maxLength={254} autoComplete="email" placeholder="ornek@mail.com" />
                       </div>
                     </label>
-                    {message && <div className={`p6-auth-message ${messageTone}`} role="status">{message}</div>}
                     <button className="p6-auth-submit" disabled={busy}>
                       {loading ? "Gönderiliyor…" : "Yenileme bağlantısı gönder"}
                       <Icon name="chevronRight" />
@@ -457,7 +489,7 @@ export default function LoginPage() {
                     <button className="p6-auth-text-action" type="button" onClick={() => { setMode("login"); setMessage(""); }}>Giriş ekranına dön</button>
                   </form>
                 ) : mode === "recovery" ? (
-                  <form className="p6-auth-form" onSubmit={updateRecoveredPassword}>
+                  <form className="p6-auth-form" noValidate onSubmit={updateRecoveredPassword}>
                     <label>
                       <span>Yeni şifre</span>
                       <div className="p6-auth-input">
@@ -476,14 +508,13 @@ export default function LoginPage() {
                         </span>
                       ))}
                     </div>
-                    {message && <div className={`p6-auth-message ${messageTone}`} role="status">{message}</div>}
                     <button className="p6-auth-submit" disabled={busy}>
                       {loading ? "Güncelleniyor…" : "Şifremi güncelle"}
                       <Icon name="check" />
                     </button>
                   </form>
                 ) : (
-                  <form onSubmit={submit} className="p6-auth-form">
+                  <form onSubmit={submit} className="p6-auth-form" noValidate>
                     <label>
                       <span>E-posta adresi</span>
                       <div className="p6-auth-input">
@@ -523,7 +554,6 @@ export default function LoginPage() {
                       </div>
                     )}
 
-                    {message && <div className={`p6-auth-message ${messageTone}`} role="status" aria-live="polite">{message}</div>}
                     <button className="p6-auth-submit" disabled={busy}>
                       {loading ? (mode === "signup" ? "Hesap açılıyor…" : "Giriş yapılıyor…") : mode === "signup" ? (returnPath === "/checkout" ? "Hesabı aç ve ödemeye dön" : "Hesabı aç ve panele geç") : returnPath === "/checkout" ? "Giriş yap ve ödemeye dön" : "Hesabına gir"}
                       <Icon name="chevronRight" />

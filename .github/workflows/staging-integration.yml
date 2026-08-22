@@ -40,6 +40,9 @@ jobs:
       - name: Verify source quality
         run: npm run verify:release
 
+      - name: Link Supabase project for migration checks
+        run: npx supabase link --project-ref "${PRODUCTION_SUPABASE_PROJECT_REF}"
+
       - name: Verify local/remote migration drift
         run: npm run verify:migration-drift
 

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import AppHeader from "../components/AppHeader";
 import AppFooter from "../components/AppFooter";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
+import { passwordLogin } from "../../lib/auth/password-login";
 import { normalizeEmailField } from "../../lib/form-standards";
 import { setCartOwner } from "../../lib/cart";
 import { INDIVIDUAL_POST_PURCHASE_HREF } from "../../lib/commerce/post-purchase";
@@ -72,17 +73,19 @@ export default function ActivationClient() {
         const data = await response.json() as { error?: string; corporate?: boolean };
         if (!response.ok) throw new Error(data.error || "Hesap oluşturulamadı.");
         corporate = Boolean(data.corporate);
-        const supabase = getSupabaseBrowserClient();
-        if (supabase) {
-          const signedIn = await supabase.auth.signInWithPassword({ email, password });
-          if (signedIn.data.user?.id) setCartOwner(signedIn.data.user.id, { claimGuest: true });
+        const signedIn = await passwordLogin({ email, password });
+        if (signedIn.ok) {
+          const supabase = getSupabaseBrowserClient();
+          const session = supabase ? (await supabase.auth.getSession()).data.session : null;
+          if (session?.user?.id) setCartOwner(session.user.id, { claimGuest: true });
         }
       } else {
+        const signedIn = await passwordLogin({ email, password });
+        if (!signedIn.ok) throw new Error(signedIn.message);
         const supabase = getSupabaseBrowserClient();
-        if (!supabase) throw new Error("Giriş hizmeti yapılandırılamadı.");
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error || !data.session) throw new Error("E-posta veya şifre hatalı.");
-        const response = await fetch("/api/commerce/claim", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${data.session.access_token}` }, body: JSON.stringify({ token }) });
+        const session = supabase ? (await supabase.auth.getSession()).data.session : null;
+        if (!session) throw new Error("E-posta veya şifre hatalı.");
+        const response = await fetch("/api/commerce/claim", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${session.access_token}` }, body: JSON.stringify({ token }) });
         const payload = await response.json() as { error?: string; corporate?: boolean };
         if (!response.ok) throw new Error(payload.error || "Sipariş hesaba bağlanamadı.");
         corporate = Boolean(payload.corporate);

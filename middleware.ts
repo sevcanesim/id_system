@@ -5,6 +5,7 @@ import {
   clearSessionCookies,
   resolveMiddlewareSession,
 } from "./lib/auth/http-only-session";
+import { buildContentSecurityPolicy, createRequestNonce } from "./lib/security/content-security-policy";
 import { consumeDistributedRateLimit, requestIp } from "./lib/security/rate-limit";
 
 const AUTH_COOKIE = ACCESS_COOKIE;
@@ -14,17 +15,20 @@ const JSON_BODY_MAX_BYTES = 100 * 1024;
 const UPLOAD_PATH = "/api/organizations/links/upload";
 // Payment/activation APIs fail closed without Redis. /api/auth/session stays
 // rate-limited but fail-open: a limiter outage must not 503 the login cookie.
+// /api/auth/login is fail-closed so password brute-force cannot bypass Redis.
 const FAIL_CLOSED_SCOPES = new Set([
   "checkout",
   "legacy-checkout",
   "iyzico-recover",
   "activation",
   "claim",
+  "auth-login",
 ]);
 
 type LimitRule = { limit: number; windowMs: number; scope: string };
 
 function ruleFor(pathname: string, method: string): LimitRule | null {
+  if (pathname === "/api/auth/login" && method !== "GET") return { limit: 10, windowMs: 60_000, scope: "auth-login" };
   if (pathname === "/api/auth/session") return { limit: 30, windowMs: 60_000, scope: "auth-session-cookie" };
   if (pathname === "/giris") return { limit: 30, windowMs: 60_000, scope: "login-page" };
   if (pathname === "/api/location/reverse") return { limit: 40, windowMs: 60_000, scope: "location" };
@@ -56,22 +60,35 @@ function payloadTooLarge(pathname: string, method: string, headers: Headers): bo
   return Number.isFinite(length) && length > JSON_BODY_MAX_BYTES;
 }
 
+function cspValue(nonce: string) {
+  return buildContentSecurityPolicy(nonce, { allowUnsafeEval: process.env.NODE_ENV !== "production" });
+}
+
+function withCsp(response: NextResponse, requestId: string, nonce = createRequestNonce()) {
+  response.headers.set("X-Request-Id", requestId);
+  response.headers.set("Content-Security-Policy", cspValue(nonce));
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const requestId = request.headers.get("x-request-id") || crypto.randomUUID();
+  const nonce = createRequestNonce();
 
   if (pathname === "/nfc-siparis" || pathname.startsWith("/nfc-siparis/")) {
     const url = request.nextUrl.clone();
     url.pathname = "/checkout";
-    const redirect = NextResponse.redirect(url, 308);
-    redirect.headers.set("X-Request-Id", requestId);
-    return redirect;
+    return withCsp(NextResponse.redirect(url, 308), requestId, nonce);
   }
 
   if (payloadTooLarge(pathname, request.method, request.headers)) {
-    return NextResponse.json(
-      { error: "İstek gövdesi çok büyük.", code: "PAYLOAD_TOO_LARGE", reference: requestId },
-      { status: 413, headers: { "X-Request-Id": requestId } },
+    return withCsp(
+      NextResponse.json(
+        { error: "İstek gövdesi çok büyük.", code: "PAYLOAD_TOO_LARGE", reference: requestId },
+        { status: 413 },
+      ),
+      requestId,
+      nonce,
     );
   }
 
@@ -82,8 +99,7 @@ export async function middleware(request: NextRequest) {
     loginUrl.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
     const redirect = NextResponse.redirect(loginUrl);
     clearSessionCookies(redirect);
-    redirect.headers.set("X-Request-Id", requestId);
-    return redirect;
+    return withCsp(redirect, requestId, nonce);
   }
 
   const rule = ruleFor(pathname, request.method);
@@ -104,15 +120,19 @@ export async function middleware(request: NextRequest) {
         ? "Güvenlik limiti şu anda doğrulanamıyor. Lütfen kısa süre sonra tekrar deneyin."
         : "Çok fazla istek gönderildi. Lütfen kısa süre sonra tekrar deneyin.";
       const headers = { "Retry-After": String(retryAfter), "X-RateLimit-Limit": String(result.limit), "X-RateLimit-Remaining": String(result.remaining), "X-Request-Id": requestId };
-      if (pathname.startsWith("/api/")) return NextResponse.json({ error, code, reference: requestId }, { status, headers });
-      return new NextResponse(error, { status, headers: { ...headers, "Content-Type": "text/plain; charset=utf-8" } });
+      if (pathname.startsWith("/api/")) {
+        return withCsp(NextResponse.json({ error, code, reference: requestId }, { status, headers }), requestId, nonce);
+      }
+      return withCsp(new NextResponse(error, { status, headers: { ...headers, "Content-Type": "text/plain; charset=utf-8" } }), requestId, nonce);
     }
   }
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-request-id", requestId);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", cspValue(nonce));
   const response = NextResponse.next({ request: { headers: requestHeaders } });
-  response.headers.set("X-Request-Id", requestId);
+  withCsp(response, requestId, nonce);
   if (PRIVATE_OR_PROFILE_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
     response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive, nosnippet");
     response.headers.set("Cache-Control", pathname.startsWith("/api/") ? "private, no-store" : "private, no-store, max-age=0");
@@ -127,7 +147,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/admin/:path*", "/kurumsal/panel/:path*", "/siparislerim/:path*", "/kartim/:path*", "/kartlarim/:path*", "/olustur/:path*", "/yenile/:path*", "/ayarlar/:path*", "/istatistikler/:path*", "/leadler", "/leadler/:path*",
-    "/giris", "/hesabim", "/hesabim/:path*", "/sepet", "/aktivasyon", "/aktivasyon/:path*", "/checkout", "/checkout/:path*", "/nfc-siparis", "/nfc-siparis/:path*", "/odeme/:path*", "/api/:path*", "/p/:path*", "/e/:path*", "/qr/:path*", "/api/location/reverse", "/api/commerce/checkout", "/api/commerce/activate", "/api/commerce/claim", "/api/commerce/activation/resend", "/api/commerce/entitlements", "/api/organizations/members", "/api/organizations/invites", "/api/payments/iyzico/checkout", "/api/payments/iyzico/recover", "/api/payments/iyzico/webhook", "/api/commerce/orders/pending", "/api/networking/inbox", "/api/auth/session",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

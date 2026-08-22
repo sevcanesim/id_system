@@ -41,3 +41,29 @@ Yönetim panelindeki **Ödeme Mutabakatı** sekmesi ödeme ve fulfillment duruml
 - `AUTHENTICATED_ORDER_NOT_CLAIMED`: Hesaba bağlı, ödenmiş siparişin activation claim işlemi tamamlanmamıştır.
 
 Bir fulfillment issue yalnızca gerçek neden düzeltildikten sonra çözülmüş olarak işaretlenir. Çözüm notu zorunludur ve işlem `admin_audit_log` içine yazılır. Bir ödeme mutabakat kaydını kapatmak, ödeme durumunu değiştirmez ve ikinci kez tahsilat başlatmaz.
+
+## Kimlik doğrulama ve demo hesap yüzeyi
+
+### Production demo/test giriş kapısı
+`yenomi-id.vercel.app` (`VERCEL_ENV=production`) üzerinde `account_type='TEST'` ve `@yenomi.test` kimlikleri giriş, oturum cookie yazımı ve session restore sırasında reddedilir. Bu hesaplar routing overlay'dir; erişim kontrolü değildir.
+
+- Preview/staging fixture kullanımı: `ALLOW_TEST_LOGINS=true` (yalnız izole deployment).
+- Kapıyı production dışında zorlamak: `YENOMI_BLOCK_TEST_LOGINS=true`.
+- Bu kapı canlı Auth kullanıcılarını silmez ve şifre rotate etmez. Production Auth'ta `@yenomi.test` hesabı kalmamalıdır; `npm run` içindeki `verify:production-no-demo-users` taraması (env-gated) bunu doğrular. Taramayı çalıştırıp kullanıcıları disable/delete etmek ops görevidir.
+
+### Giriş brute-force katmanları
+Tarayıcı `signInWithPassword` çağrısı `*.supabase.co`'ya giderse Next.js middleware bu denemeyi görmez. Şifreli giriş bu yüzden `POST /api/auth/login` üzerinden yürür.
+
+| Katman | Ne korur | Davranış |
+| --- | --- | --- |
+| Next.js middleware `auth-login` | `POST /api/auth/login` per IP | 10 istek / 60 sn, Redis yoksa **fail-closed** (503) |
+| Login route `auth-login-email` | Aynı uç, e-posta başına | 10 istek / 60 sn, Redis yoksa **fail-closed** |
+| `/giris` sayfa limiti | HTML yükleme | 30 istek / 60 sn, **fail-open** (boş 503 yok) |
+| `/api/auth/session` | Cookie yaz/oku | 30 istek / 60 sn, **fail-open** (giriş cookie'si 503 olmasın) |
+| Supabase Auth (GoTrue) | Direkt `*.supabase.co` denemeleri (OAuth, eski istemciler) | Dashboard → Authentication → Rate Limits. **Bu repodan canlı değerler okunamaz**; sign-in / token / OTP limitlerini orada kontrol edip bu tabloya not düş. |
+
+Başarısız ve engellenen şifre girişleri Vercel loglarında `auth.login` JSON satırı olarak görünür (`ok`, `reason`, `email_domain`, `ip`). Şifre loglanmaz. `reason=invalid_credentials` / `test_account_blocked` / `rate_limited_email` bir stuffing denemesini fark etmek için yeterlidir.
+
+### CSP
+`script-src 'unsafe-inline'` kaldırıldı. Middleware her belgede `x-nonce` + `script-src 'nonce-…' 'strict-dynamic'` basar. `style-src 'unsafe-inline'` hâlâ duruyor (daha düşük öncelik). `next.config.ts` artık ikinci bir CSP basmaz; tarayıcı birden fazla CSP'yi AND uygular ve statik `unsafe-inline` nonce politikasını delerdi.
+

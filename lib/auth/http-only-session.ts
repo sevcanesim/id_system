@@ -1,4 +1,5 @@
 import type { NextRequest, NextResponse } from "next/server";
+import { productionTestLoginBlocked } from "./production-test-gate";
 
 export const ACCESS_COOKIE = "yenomi-access-token";
 export const REFRESH_COOKIE = "yenomi-refresh-token";
@@ -74,6 +75,12 @@ export function jwtSubject(token: string): string | null {
   const payload = decodeJwtPayload(token);
   const sub = payload && typeof payload.sub === "string" ? payload.sub : "";
   return JWT_SUBJECT_RE.test(sub) ? sub : null;
+}
+
+export function jwtEmail(token: string): string | null {
+  const payload = decodeJwtPayload(token);
+  const email = payload && typeof payload.email === "string" ? payload.email.trim() : "";
+  return email || null;
 }
 
 export async function resolveRequestUserId(request: NextRequest): Promise<string | null> {
@@ -179,6 +186,10 @@ export async function refreshGoTrueSession(refreshToken: string): Promise<Omit<H
   }
 }
 
+function isProductionTestSessionToken(accessToken: string): boolean {
+  return productionTestLoginBlocked({ email: jwtEmail(accessToken) });
+}
+
 export async function resolveMiddlewareSession(request: NextRequest): Promise<
   | { allow: true; rotated?: HttpOnlySessionTokens }
   | { allow: false }
@@ -188,12 +199,14 @@ export async function resolveMiddlewareSession(request: NextRequest): Promise<
   const refreshToken = readSessionCookie(request, REFRESH_COOKIE);
 
   if (accessToken && (await accessTokenIsValid(accessToken))) {
+    if (isProductionTestSessionToken(accessToken)) return { allow: false };
     return { allow: true };
   }
 
   if (!refreshToken) return { allow: false };
   const rotated = await refreshGoTrueSession(refreshToken);
   if (!rotated) return { allow: false };
+  if (isProductionTestSessionToken(rotated.accessToken)) return { allow: false };
   return { allow: true, rotated: { ...rotated, remember } };
 }
 

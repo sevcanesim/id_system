@@ -11,6 +11,7 @@ import { YenomiProductVisual } from "../ui/YenomiProductVisual";
 import { authErrorMessage } from "../../lib/errors";
 import { normalizeEmail, SIGNUP_PASSWORD_RULES, validateEmail, validateSignupPassword } from "../../lib/auth/credentials";
 import { LoginPortal } from "../../lib/auth/account-type";
+import { passwordLogin } from "../../lib/auth/password-login";
 import { isAdminSession, validatePortal } from "../../lib/auth/portal-guard";
 import { resolveLoginDestination } from "../../lib/auth/account-router";
 import { clearLegacyCart, setCartOwner } from "../../lib/cart";
@@ -193,25 +194,36 @@ export default function LoginPage() {
     const emailRedirectTo = `${window.location.origin}/giris?portal=${portal}&next=${encodeURIComponent(returnPath)}`;
     let result;
     try {
-      const authCall = mode === "signup"
-        ? supabase.auth.signUp({ email: normalizedEmail, password, options: { emailRedirectTo } })
-        : supabase.auth.signInWithPassword({ email: normalizedEmail, password });
-      result = await Promise.race([
-        authCall,
-        new Promise<never>((_, reject) => {
-          window.setTimeout(() => reject(new Error("AUTH_TIMEOUT")), 12_000);
-        }),
-      ]);
+      if (mode === "signup") {
+        const authCall = supabase.auth.signUp({ email: normalizedEmail, password, options: { emailRedirectTo } });
+        result = await Promise.race([
+          authCall,
+          new Promise<never>((_, reject) => {
+            window.setTimeout(() => reject(new Error("AUTH_TIMEOUT")), 12_000);
+          }),
+        ]);
+      } else {
+        const signedIn = await passwordLogin({ email: normalizedEmail, password, remember: rememberMe });
+        if (!signedIn.ok) {
+          setLoading(false);
+          return showMessage(signedIn.message, "error");
+        }
+        const { data, error } = await supabase.auth.getSession();
+        result = { data, error: error ?? (data.session ? null : { message: "Oturum kaydedilemedi. Lütfen yeniden dene." }) };
+      }
     } catch {
       setLoading(false);
       return showMessage("Giriş hizmetine ulaşılamadı. Bağlantını kontrol edip yeniden dene.", "error");
     }
 
     const authErrorCode = result.error && typeof result.error === "object" ? (result.error as { code?: string }).code : undefined;
+    const signupIdentities = result.data && "user" in result.data
+      ? (result.data.user as { identities?: unknown[] } | null)?.identities
+      : undefined;
     const duplicateSignup = mode === "signup" && (
       authErrorCode === "user_already_exists" ||
       authErrorCode === "email_exists" ||
-      Array.isArray(result.data.user?.identities) && result.data.user.identities.length === 0
+      Array.isArray(signupIdentities) && signupIdentities.length === 0
     );
     if (duplicateSignup) {
       setLoading(false);

@@ -25,8 +25,9 @@ const secretPatterns = [
   { label: "private key", pattern: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/g },
   { label: "GitHub token", pattern: /\bgh[oprsu]_[A-Za-z0-9]{20,}\b/g },
 ];
+const assignedOidc = /VERCEL_OIDC_TOKEN\s*=\s*[^\s#]+/;
 
-const forbiddenNames = [/^\.env$/, /^\.env\.local$/, /^\.env\..+\.local$/];
+const forbiddenNames = [/^\.env$/, /^\.env\./];
 const findings = [];
 
 function walk(directory) {
@@ -41,14 +42,22 @@ function walk(directory) {
     }
     if (!entry.isFile()) continue;
 
-    if (!allowLocalEnv && forbiddenNames.some((pattern) => pattern.test(entry.name))) {
+    if (entry.name === ".env.example") {
+      /* keep scanning example files for assigned secret values */
+    } else if (!allowLocalEnv && forbiddenNames.some((pattern) => pattern.test(entry.name))) {
       findings.push(`${relativePath}: forbidden environment file`);
       continue;
+    } else if (allowLocalEnv && forbiddenNames.some((pattern) => pattern.test(entry.name))) {
+      continue;
     }
-    if (allowLocalEnv && forbiddenNames.some((pattern) => pattern.test(entry.name))) continue;
-    if (excludedFiles.has(entry.name) || !textExtensions.has(path.extname(entry.name))) continue;
+    if (excludedFiles.has(entry.name) && entry.name !== ".env.example") continue;
+    if (!textExtensions.has(path.extname(entry.name)) && !entry.name.startsWith(".env")) continue;
 
     const content = fs.readFileSync(fullPath, "utf8");
+    if (entry.name.startsWith(".env") && assignedOidc.test(content)) {
+      findings.push(`${relativePath}: assigned Vercel OIDC token`);
+    }
+    if (entry.name === ".env.example") continue;
     for (const { label, pattern } of secretPatterns) {
       pattern.lastIndex = 0;
       if (pattern.test(content)) findings.push(`${relativePath}: ${label}`);

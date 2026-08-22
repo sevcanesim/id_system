@@ -75,7 +75,7 @@ check(accountRouter.includes('ACCOUNT_ROUTE_CORPORATE = "/kurumsal/panel"') && a
 check(activation.includes("p6-activation-page"), "legacy activation included in Phase 6 visual continuity");
 check(fs.existsSync(path.join(root, "app/api/commerce/activate/route.ts")) && fs.existsSync(path.join(root, "app/api/commerce/claim/route.ts")) && fs.existsSync(path.join(root, "app/api/commerce/activation/resend/route.ts")), "activation business APIs retained");
 check(checkout.includes('setCheckoutReturnPath("/checkout")'), "checkout preserves its return path for guest/authenticated payment flow");
-check(checkout.includes('email: session.user.email ?? current.email'), "checkout reuses authenticated email instead of asking auth identity twice");
+check(checkout.includes("bootstrapAuthenticatedCheckout") && read("lib/commerce/checkout-prefill.ts").includes("email: user.email"), "checkout reuses authenticated email instead of asking auth identity twice");
 
 const legacyToken = /var\(--(?:yi|yp|store|ui|y)-/;
 check(!legacyToken.test(css), "Phase 6 auth CSS introduces no legacy token family");

@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/commerce-ops",
+      "schedule": "0 */2 * * *"
+    }
+  ]
+}

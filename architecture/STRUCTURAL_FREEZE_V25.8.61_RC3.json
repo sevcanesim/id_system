@@ -77,6 +77,7 @@
       "app/api/commerce/orders/route.ts",
       "app/api/commerce/orders/status/route.ts",
       "app/api/corporate-leads/route.ts",
+      "app/api/cron/commerce-ops/route.ts",
       "app/api/location/ip/route.ts",
       "app/api/location/reverse/route.ts",
       "app/api/networking/inbox/route.ts",

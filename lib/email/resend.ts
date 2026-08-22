@@ -30,6 +30,59 @@ export function sendActivationEmail(input:{to:string;activationUrl:string;orderN
 export function sendOrderReadyEmail(input:{to:string;orderNumber:string;createCardUrl:string;audience?:"individual"|"corporate"}){const corporate=input.audience==="corporate";const body=corporate?"Ödemen alındı ve şirket hesabın tanımlandı. Aktivasyon kodu girmen gerekmiyor. Çalışan lisanslarını ve kart üretimini panelden yönetebilirsin.":"Ödemen alındı ve Yenomi ID hizmetin hesabına otomatik olarak tanımlandı. Aktivasyon kodu girmen gerekmiyor.";const cta=corporate?"Kurumsal paneli aç":"Kartvizit bilgilerimi doldur";return sendMail({to:input.to,subject:`Siparişin hesabına tanımlandı — ${input.orderNumber}`,html:`<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto">${emailHeader()}<h1>Yenomi ID hizmetin hazır</h1><p>${body}</p><p><a href="${input.createCardUrl}" style="display:inline-block;padding:14px 20px;background:#17121f;color:white;text-decoration:none;border-radius:10px">${cta}</a></p><p>Sipariş: <strong>${escapeHtml(input.orderNumber)}</strong></p></div>`})}
 export function sendOrganizationInviteEmail(input:{to:string;inviteUrl:string;organizationName:string}){return sendMail({to:input.to,subject:`${input.organizationName} Yenomi Business daveti`,html:`<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto">${emailHeader()}<h1>${escapeHtml(input.organizationName)} ekibine davet edildin</h1><p>Kurumsal dijital kimliğini oluşturmak ve şirket hesabına katılmak için daveti kabul et.</p><p><a href="${input.inviteUrl}" style="display:inline-block;padding:14px 20px;background:#17121f;color:white;text-decoration:none;border-radius:10px">Daveti kabul et</a></p><p>Bağlantı 7 gün geçerlidir ve tek kullanımlıktır.</p></div>`})}
 export function sendShippingEmail(input:{to:string;orderNumber:string;company?:string|null;tracking?:string|null}){return sendMail({to:input.to,subject:`Siparişin kargoya verildi — ${input.orderNumber}`,html:`<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto">${emailHeader()}<h1>Siparişin kargoya verildi</h1><p><strong>${escapeHtml(input.orderNumber)}</strong> numaralı siparişin hazırlandı ve kargoya teslim edildi.</p><p>Kargo: <strong>${escapeHtml(input.company||"Bilgi bekleniyor")}</strong><br/>Takip no: <strong>${escapeHtml(input.tracking||"Bilgi bekleniyor")}</strong></p></div>`})}
+export function sendAbandonedCheckoutEmail(input:{to:string;orderNumber:string;checkoutUrl:string;wave:"first"|"day"}) {
+  const later = input.wave === "day";
+  const intro = later
+    ? "Ödemen hâlâ tamamlanmadı. Siparişin birkaç gün içinde otomatik iptal edilecek."
+    : "Ödeme sayfasını açık bırakmış olabilirsin. Siparişin seni bekliyor.";
+  return sendMail({
+    to: input.to,
+    subject: later
+      ? `Ödemen tamamlanmadı — ${input.orderNumber}`
+      : `Siparişin bekliyor — ${input.orderNumber}`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto">${emailHeader()}<h1>Ödemen tamamlanmadı</h1><p>${intro}</p><p><a href="${input.checkoutUrl}" style="display:inline-block;padding:14px 20px;background:#17121f;color:white;text-decoration:none;border-radius:10px">Ödemeye devam et</a></p><p>Sipariş: <strong>${escapeHtml(input.orderNumber)}</strong></p></div>`,
+  });
+}
+
+async function notifyOpsChannel(text: string) {
+  const webhook = process.env.SLACK_WEBHOOK_URL?.trim();
+  if (!webhook) return { sent: false as const, reason: "SLACK_WEBHOOK_UNSET" };
+  try {
+    const response = await fetch(webhook, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    if (!response.ok) return { sent: false as const, reason: `SLACK_${response.status}` };
+    return { sent: true as const };
+  } catch {
+    return { sent: false as const, reason: "SLACK_UNAVAILABLE" };
+  }
+}
+
+export async function sendOpsFulfillmentAlertEmail(input:{
+  kind: "new" | "escalation";
+  openCount: number;
+  issues: Array<{ orderNumber: string; issueCode: string; createdAt: string }>;
+}) {
+  const to = process.env.OPS_ALERT_TO || process.env.CORPORATE_LEAD_TO || "hello@yenomilabs.com";
+  const title = input.kind === "escalation"
+    ? "24 saatten uzun açık fulfillment kaydı"
+    : "Yeni commerce fulfillment kaydı";
+  const rows = input.issues.map((issue) => `${escapeHtml(issue.orderNumber)} — ${escapeHtml(issue.issueCode)}`).join("<br/>");
+  const slackLines = input.issues.map((issue) => `• ${issue.orderNumber} (${issue.issueCode})`).join("\n");
+  const [mail, slack] = await Promise.all([
+    sendMail({
+      to,
+      subject: `Yenomi ID ops — ${title} (${input.openCount} açık)`,
+      html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto">${emailHeader()}<h1>${title}</h1><p>Açık kayıt: <strong>${input.openCount}</strong></p><p>${rows || "Kayıt yok."}</p><p>Kaynak: commerce_fulfillment_issues</p></div>`,
+    }),
+    notifyOpsChannel(`${title}\nAçık kayıt: ${input.openCount}\n${slackLines}`),
+  ]);
+  if (mail.sent || slack.sent) return { sent: true as const };
+  return { sent: false as const, reason: mail.reason || slack.reason };
+}
+
 export function sendCorporateLeadEmail(input:{id:string;fullName:string;email:string;company:string;employeeCount:string;message:string;plan:string}) {
   const safe = (value:string) => escapeHtml(value);
   return sendMail({

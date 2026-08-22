@@ -9,6 +9,7 @@ import {
 import { readAccountType } from "../../../../lib/auth/session-identity";
 import { applySessionCookies } from "../../../../lib/auth/http-only-session";
 import { consumeDistributedRateLimit, requestIp } from "../../../../lib/security/rate-limit";
+import { limitAuthLoginIp } from "../../../../lib/security/route-rate-limits";
 import { getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 
 export const runtime = "nodejs";
@@ -44,12 +45,22 @@ export async function POST(request: NextRequest) {
       return noStore(NextResponse.json({ error: PRODUCTION_TEST_LOGIN_MESSAGE, code: "TEST_ACCOUNT_BLOCKED" }, { status: 403 }));
     }
 
-    const emailLimit = await consumeDistributedRateLimit({
-      key: `auth-login-email:${email}`,
-      limit: 10,
-      windowMs: 60_000,
-      failClosed: false,
-    });
+    const [emailLimit, ipLimit] = await Promise.all([
+      consumeDistributedRateLimit({
+        key: `auth-login-email:${email}`,
+        limit: 10,
+        windowMs: 60_000,
+        failClosed: false,
+      }),
+      limitAuthLoginIp(ip),
+    ]);
+    if (!ipLimit.allowed) {
+      logAuthLoginEvent({ ok: false, reason: "rate_limited_ip", ip, email });
+      return noStore(NextResponse.json({
+        error: "Çok fazla giriş denemesi yapıldı. Lütfen kısa süre sonra tekrar deneyin.",
+        code: "RATE_LIMITED",
+      }, { status: 429 }));
+    }
     if (!emailLimit.allowed) {
       logAuthLoginEvent({ ok: false, reason: "rate_limited_email", ip, email });
       return noStore(NextResponse.json({

@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const supabase = getSupabaseUserClient(context.token);
     const { data, error } = await supabase
       .from("commerce_orders")
-      .select("id,order_number,status,total_kurus,currency,paid_at,created_at,updated_at,tracking_company,tracking_number,shipped_at,delivered_at,commerce_order_items(id,product_name,product_kind,quantity,unit_price_kurus,configuration),shipping_addresses(city,district)")
+      .select("id,order_number,status,total_kurus,currency,paid_at,created_at,updated_at,tracking_company,tracking_number,shipped_at,delivered_at,customer_name,customer_phone,commerce_order_items(id,product_name,product_kind,quantity,unit_price_kurus,configuration),shipping_addresses(recipient_name,phone,address_line,district,city,postal_code)")
       .eq("user_id", context.user.id)
       .order("created_at", { ascending: false });
     if (error) {

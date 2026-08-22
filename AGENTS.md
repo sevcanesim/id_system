@@ -15,6 +15,9 @@ Core rules:
 - No new global CSS.
 - No new `!important`.
 - No duplicate components.
+- Public mockups: CSS/SVG specimens only; no AI raster.
+- Side-by-side cards stretch to equal height.
+- Canvas stays warm-light (`#F9F8F6`); foil/phone chrome may be dark.
 - Keep business rules out of UI components.
 - Server/database authorization is authoritative.
 - No fake production functionality.

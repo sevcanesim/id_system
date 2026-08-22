@@ -105,6 +105,9 @@ check(!productVisual.includes("Adın Soyadın") && productVisual.includes("Selin
 check(!how.includes("how-phone-mockup"), "how-it-works does not nest a second phone chrome around the CSS profile");
 check(picker.includes("100+ kişi için teklif") && picker.includes("home-mockup__link-secondary") && picker.includes('className="corporate-cta">Teklif Al'), "pack picker keeps live add-to-cart gold and quote as the 100+ primary");
 check(corporate.includes("corporate-mail-packs") && (corporate.match(/home-mockup__link-secondary/g) ?? []).length >= 3, "enterprise and mail-pack quote paths are text jumps to the lead form");
+check(corporate.includes("corporate-addon-grid") && corporate.includes("is-num") && corporate.includes("is-action"), "corporate add-on cards share one grid and the price table aligns numeric cells");
+check(picker.includes("corporate-pack-picker__badge") && picker.includes("öne çıkan paket"), "pack slider marks the featured pack without overlapping neighbors");
+check(css.includes(".corporate-pack-picker__tick {\n  min-width: 44px;\n  min-height: 44px;") && css.includes(".corporate-sales-page .corporate-capability-bar p {\n  color: #3f3a35;\n  font-size: 13px;"), "corporate slider ticks meet 44px and helper copy stays AA on cream");
 check(css.includes(".p12-save-contact") && css.includes(".p12-networking:has(.p12-networking-form)") && css.includes(".p12-brand-mark"), "public card keeps one gold: save, or submit when the form is open");
 check(
   css.includes("body:has(.home-premium) .public-site-chrome .yi-header__actions .yi-btn--primary")

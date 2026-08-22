@@ -41,7 +41,7 @@ export default function CorporatePackPicker({
       <div className="corporate-pack-picker__head">
         <div>
           <span className="corporate-pack-picker__kicker">{pack.code}</span>
-          <h3>{pack.name}</h3>
+          <h3>{pack.name}{pack.popular ? <span className="corporate-pack-picker__badge">Öne çıkan</span> : null}</h3>
         </div>
         <div className="corporate-pack-picker__price">
           <strong>{formatTryFromKurus(pack.priceKurus)} <small>/ yıl</small></strong>
@@ -58,6 +58,7 @@ export default function CorporatePackPicker({
               role="listitem"
               className={`corporate-pack-picker__tick${tickIndex === index ? " is-active" : ""}${item.popular ? " is-popular" : ""}`}
               onClick={() => setIndex(tickIndex)}
+              aria-label={`${item.seats} kullanıcı${item.popular ? ", öne çıkan paket" : ""}`}
               aria-pressed={tickIndex === index}
             >
               {item.seats}

@@ -12,30 +12,6 @@ alter default privileges in schema public
 alter default privileges in schema public
   revoke execute on routines from anon, authenticated;
 
-do $$
-declare
-  owner_role text;
-begin
-  foreach owner_role in array array['postgres', 'supabase_admin']
-  loop
-    if exists (select 1 from pg_roles where rolname = owner_role) then
-      execute format(
-        'alter default privileges for role %I in schema public revoke select, insert, update, delete on tables from anon, authenticated',
-        owner_role
-      );
-      execute format(
-        'alter default privileges for role %I in schema public revoke usage, select on sequences from anon, authenticated',
-        owner_role
-      );
-      execute format(
-        'alter default privileges for role %I in schema public revoke execute on routines from anon, authenticated',
-        owner_role
-      );
-    end if;
-  end loop;
-end
-$$;
-
 -- Backend-only tables: provider tokens, activation secrets, mail, audit, leads.
 -- Admin UI goes through service_role API routes, not PostgREST.
 revoke all on table public.commerce_payment_attempts from anon, authenticated, public;

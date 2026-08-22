@@ -14241,3 +14241,54 @@ body:has(.legal-page) .yi-footer__trust .yi-icon {
   max-width: 28ch;
 }
 
+/* Logged-out public surfaces: header cluster, ticker leak, mixed CTAs. */
+.yi-brand-marquee {
+  max-width: 100%;
+  overflow: hidden;
+}
+.corporate-sales-page,
+.legal-page,
+.how-it-works-page,
+.support-page,
+.products-single-page,
+.nfc-product-page,
+.home-premium {
+  overflow-x: clip;
+}
+
+.public-site-chrome .yi-header__inner {
+  justify-content: space-between;
+}
+.public-site-chrome .yi-header__actions {
+  margin-left: auto;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+}
+
+.home-mockup__actions .home-mockup__button,
+.home-mockup__actions .home-mockup__link-secondary,
+.corporate-hero-actions .corporate-cta,
+.corporate-hero-actions .corporate-secondary-cta {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (max-width: 1180px) {
+  .public-site-chrome .yi-nav.is-open .yi-nav__funnel--primary {
+    background: var(--gold);
+    border-color: transparent;
+    color: #17120c;
+    font-weight: 750;
+  }
+}
+
+@media (max-width: 980px) {
+  .p6-auth-product-flow {
+    display: none;
+  }
+  .p6-auth-story > p {
+    max-width: 42ch;
+  }
+}
+

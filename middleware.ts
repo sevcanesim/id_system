@@ -13,16 +13,15 @@ const PROTECTED_PAGES = ["/admin", "/kurumsal/panel", "/hesabim", "/siparislerim
 const PRIVATE_OR_PROFILE_PREFIXES = ["/admin", "/dashboard", "/giris", "/hesabim", "/kartim", "/kartlarim", "/siparisler", "/siparislerim", "/olustur", "/aktivasyon", "/checkout", "/odeme", "/sepet", "/leadler", "/kurumsal/panel", "/kurumsal/davet", "/p", "/e", "/qr", "/api"];
 const JSON_BODY_MAX_BYTES = 100 * 1024;
 const UPLOAD_PATH = "/api/organizations/links/upload";
-// Payment/activation APIs fail closed without Redis. /api/auth/session stays
-// rate-limited but fail-open: a limiter outage must not 503 the login cookie.
-// /api/auth/login is fail-closed so password brute-force cannot bypass Redis.
+// Payment/activation APIs fail closed without Redis. /giris, /api/auth/session
+// and /api/auth/login stay rate-limited but fail-open: a limiter outage must
+// not 503 the only password path into an account (Edge often cannot reach Redis).
 const FAIL_CLOSED_SCOPES = new Set([
   "checkout",
   "legacy-checkout",
   "iyzico-recover",
   "activation",
   "claim",
-  "auth-login",
 ]);
 
 type LimitRule = { limit: number; windowMs: number; scope: string };

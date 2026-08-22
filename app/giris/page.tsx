@@ -80,7 +80,7 @@ export default function LoginPage() {
           showMessage("Oturum kaydedilemedi. Lütfen yeniden dene.", "error");
           return;
         }
-        router.replace("/admin");
+        window.location.replace("/admin");
         return;
       }
       setCartOwner(data.session.user.id, { claimGuest: true });
@@ -107,7 +107,10 @@ export default function LoginPage() {
     if (!activeSessionEmail || mode === "recovery") return;
     const supabase = getSupabaseBrowserClient();
     void resolveLoginDestination(supabase, portal, returnPath).then((destination) => {
-      router.replace(destination);
+      const next = destination.startsWith("/giris")
+        ? (portal === "business" ? "/kartim" : "/kartlarim")
+        : destination;
+      window.location.replace(next);
     });
   }, [activeSessionEmail, mode, portal, returnPath, router]);
 
@@ -254,11 +257,15 @@ export default function LoginPage() {
         return showMessage(allowed.message, "error");
       }
       setCartOwner(result.data.session.user.id, { claimGuest: true });
-      const sessionStored = await writeSessionCookie(
-        result.data.session.access_token,
-        result.data.session.expires_at,
-        result.data.session.refresh_token,
-      );
+      // Password login already set HttpOnly cookies. A second POST /api/auth/session
+      // can 403/clear them and leave the form stuck after a 200 sign-in.
+      const sessionStored = mode === "signup"
+        ? await writeSessionCookie(
+            result.data.session.access_token,
+            result.data.session.expires_at,
+            result.data.session.refresh_token,
+          )
+        : true;
       if (!sessionStored) {
         setTransitioning(false);
         setLoading(false);
@@ -267,14 +274,33 @@ export default function LoginPage() {
         setCartOwner(null, { claimGuest: false });
         return showMessage("Oturum kaydedilemedi. Lütfen yeniden dene.", "error");
       }
-      if (await isAdminSession(result.data.session.access_token)) {
+      let admin = false;
+      try {
+        admin = await isAdminSession(result.data.session.access_token);
+      } catch {
+        admin = false;
+      }
+      if (admin) {
         setLoading(false);
-        router.replace("/admin");
+        window.location.replace("/admin");
         return;
       }
       setLoading(false);
       setActiveSessionEmail(result.data.session.user.email ?? normalizedEmail);
-      const destination = await resolveLoginDestination(supabase, portal, returnPath);
+      let destination = returnPath;
+      try {
+        destination = await Promise.race([
+          resolveLoginDestination(supabase, portal, returnPath),
+          new Promise<string>((resolve) => {
+            window.setTimeout(() => resolve(returnPath), 4000);
+          }),
+        ]);
+      } catch {
+        destination = returnPath;
+      }
+      if (destination.startsWith("/giris")) {
+        destination = portal === "business" ? "/kartim" : "/kartlarim";
+      }
       window.location.replace(destination);
       return;
     }

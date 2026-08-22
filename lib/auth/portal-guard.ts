@@ -96,11 +96,17 @@ export async function validateCardWorkspace(
  * kontrolünde, ve başarılı giriş/kayıt sonrasında) birebir tekrarlanıyordu.
  */
 export async function isAdminSession(accessToken: string): Promise<boolean> {
-  const response = await fetch("/api/admin/session", {
-    headers: { authorization: `Bearer ${accessToken}` },
-    cache: "no-store",
-  });
-  if (!response.ok) return false;
-  const payload = (await response.json()) as { admin?: boolean };
-  return Boolean(payload.admin);
+  try {
+    const response = await fetch("/api/admin/session", {
+      headers: { authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!response.ok) return false;
+    const payload = (await response.json()) as { admin?: boolean };
+    return Boolean(payload.admin);
+  } catch {
+    // A hung admin check must not pin the user on /giris after a 200 login.
+    return false;
+  }
 }

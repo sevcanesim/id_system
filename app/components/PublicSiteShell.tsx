@@ -37,6 +37,11 @@ function isQuietPublicChrome(pathname: string) {
     /^\/checkout(?:\/|$)/,
     /^\/nfc-siparis(?:\/|$)/,
     /^\/destek(?:\/|$)/,
+    /^\/gizlilik(?:\/|$)/,
+    /^\/kvkk(?:\/|$)/,
+    /^\/iade-iptal(?:\/|$)/,
+    /^\/mesafeli-satis-sozlesmesi(?:\/|$)/,
+    /^\/hizmet-sartlari(?:\/|$)/,
   ].some((pattern) => pattern.test(pathname));
 }
 

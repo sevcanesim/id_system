@@ -353,7 +353,7 @@ export default function CheckoutPage() {
         <div className="checkout-heading checkout-heading-compact">
           <h1>{hasCorporatePackage ? "Kurumsal ödemeyi tamamla." : digitalOnlyCart ? "Dijital ödemeyi tamamla." : "Ödemeyi tamamla."}</h1>
           <p>{hasCorporatePackage ? "Fatura ve teslimatı doğrula. Son adımda iyzico kartını alır; Yenomi saklamaz." : digitalOnlyCart ? "Fatura ili ve ilçesini doğrula. Teslimat adresi yok. Kartın iyzico’da kalır." : "Alıcı ve teslimatı doğrula. Kart numarası iyzico’da işlenir; Yenomi’de saklanmaz."}</p>
-          <div className="checkout-account-note" role="status">{isAuthenticated ? <><Icon name="check" /> Hesabın bağlı. Siparişin hesabına otomatik eklenir.</> : <><Icon name="mail" /> Hesap açmadan tamamlayabilirsin. Satın alma sonrası siparişini bu e-posta ile hesabına bağlayabilirsin.</>}</div>
+          <div className="checkout-account-note" role="status">{isAuthenticated ? <><Icon name="check" /> Hesabın bağlı. Siparişin hesabına otomatik eklenir.</> : <><Icon name="mail" /> Hesap açmadan hızlıca sipariş verebilirsin. Siparişin e-posta adresinle otomatik eşleşir.</>}</div>
           <div className="checkout-trust-row checkout-trust-row-compact" aria-label="Sipariş avantajları">
             {!digitalOnlyCart && <span><Icon name="truck" />Ücretsiz kargo</span>}
             {hasInitialBundle && <span><Icon name="clock" />Ana kart 2 iş gününde hazırlanır</span>}
@@ -392,7 +392,7 @@ export default function CheckoutPage() {
                 {activeStep === "buyer" && <div className="checkout-step-body">
                   <label>Ad Soyad<input required autoComplete="name" value={form.recipientName} onChange={(e) => update("recipientName", e.target.value)} placeholder="Kartın ve faturanın sahibi" /></label>
                   <label>Telefon<input required inputMode="tel" autoComplete="tel" value={form.phone} onChange={(e) => update("phone", normalizeTrPhone(e.target.value))} placeholder="+90 5xx xxx xx xx" />{form.phone.replace(/\D/g, "").length >= 10 && <small className="field-ok"><Icon name="check" /> Telefon doğrulandı</small>}</label>
-                  <label>E-posta<input required type="email" autoComplete="email" value={form.email} onChange={(e) => !isAuthenticated && update("email", e.target.value)} readOnly={isAuthenticated} />{isAuthenticated ? <small className="field-ok"><Icon name="check" /> Hesabına bağlı e-posta</small> : <small>Hesap açmadan güvenli ödeme yapabilirsin. Sipariş bilgilerin bu e-posta adresine gönderilir.</small>}</label>
+                  <label>E-posta<input required type="email" autoComplete="email" value={form.email} onChange={(e) => !isAuthenticated && update("email", e.target.value)} readOnly={isAuthenticated} />{isAuthenticated ? <small className="field-ok"><Icon name="check" /> Hesabına bağlı e-posta</small> : <small>Hesap açmadan ödeyebilirsin. Siparişin bu e-posta ile hesabına bağlanır.</small>}</label>
                   <label>T.C. kimlik numarası<input required inputMode="numeric" maxLength={11} name="iyzico-identity" autoComplete="off" autoCorrect="off" spellCheck={false} value={form.identityNumber} onChange={(e) => update("identityNumber", e.target.value.replace(/\D/g, ""))} placeholder="11 haneli T.C. kimlik numarası" /><small>iyzico ödemesi için zorunlu. Yenomi kaydetmez.</small></label>
                   {hasCorporatePackage ? (
                     <div className="checkout-company-fields">

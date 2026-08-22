@@ -236,6 +236,27 @@ describe("settleCommercePaymentByProviderToken", () => {
     expect(admin.rpc).toHaveBeenCalledWith("finalize_authenticated_commerce_order", { p_order_id: "order-1" });
   });
 
+  it("records a fulfillment issue when iyzico is paid but the callback RPC fails", async () => {
+    mockFrom({ commerce_payment_attempts: ATTEMPT });
+    retrieveCheckout.mockResolvedValue(PAID_RESULT);
+    admin.rpc.mockImplementation(async (name: string) => {
+      if (name === "process_commerce_payment_callback") {
+        return { data: null, error: { message: "connection reset" } };
+      }
+      return { data: null, error: null };
+    });
+    await expect(settleCommercePaymentByProviderToken("token-1")).resolves.toEqual({
+      kind: "error",
+      reason: "callback",
+    });
+    expect(admin.rpc).toHaveBeenCalledWith("record_commerce_fulfillment_issue", {
+      p_order_id: "order-1",
+      p_order_item_id: null,
+      p_issue_code: "PAYMENT_CALLBACK_COMMIT_FAILED",
+      p_details: { attemptId: "attempt-1", databaseError: "connection reset" },
+    });
+  });
+
   it("does not send a second ready mail when the callback is ALREADY_PAID", async () => {
     mockFrom({
       commerce_payment_attempts: ATTEMPT,

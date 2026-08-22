@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     if (createdUserId) {
       try { await getSupabaseAdminClient().auth.admin.deleteUser(createdUserId); } catch { /* cleanup best effort */ }
     }
-    console.error("commerce activation error", error);
+    console.error("commerce activation error", error instanceof Error ? error.message : "unknown");
     return NextResponse.json(publicError("ACTIVATION_FAILED"), { status: 500 });
   }
 }

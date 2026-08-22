@@ -99,6 +99,7 @@ export default function NfcPurchasePanel({
         <span><Icon name="lock" /> SSL şifreli ödeme</span>
         <span><Icon name="shield" /> Kartın iyzico’da kalır</span>
         <span><Icon name="truck" /> Türkiye içi kargo dahil</span>
+        <span><Icon name="clock" /> 2 iş gününde hazırlık</span>
         <span><Icon name="refresh" /> 14 gün cayma hakkı</span>
       </div>
 

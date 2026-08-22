@@ -11,11 +11,12 @@ const ITEMS: Array<{ icon: IconName; label: string }> = [
   { icon: "lock", label: "SSL şifreli hesap ve ödeme" },
   { icon: "shield", label: "Kartın iyzico’da kalır" },
   { icon: "truck", label: "Türkiye içi kargo dahil" },
+  { icon: "clock", label: "2 iş gününde hazırlık" },
 ];
 
 export default function AnnouncementBar() {
   return (
-    <div className="yi-brand-marquee" role="note" aria-label="SSL şifreleme, iyzico ödemesi ve Türkiye içi kargo">
+    <div className="yi-brand-marquee" role="note" aria-label="SSL şifreleme, iyzico ödemesi, Türkiye içi kargo ve 2 iş günü hazırlık">
       <div className="yi-brand-marquee__track">
         {Array.from({ length: COPIES }, (_, index) => (
           <span className="yi-brand-marquee__unit" key={index}>

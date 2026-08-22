@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1", "localhost"],
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
+  compiler: {
+    removeConsole: {
+      exclude: ["error", "info"],
+    },
+  },
   outputFileTracingRoot: process.cwd(),
   async headers() {
     return [{

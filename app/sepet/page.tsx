@@ -146,7 +146,7 @@ export default function CartPage() {
                     <b>{formatTryFromKurus(total)}</b>
                   </div>
                 </div>
-                <p>Hesap açmadan ödeme yapabilirsin. Satın alma sonrası siparişini bu e-posta ile hesabına bağlarsın. Fiyat ödeme adımında sunucuda doğrulanır.</p>
+                <p>Hesap açmadan hızlıca sipariş verebilirsin. Siparişin e-posta adresinle otomatik eşleşir. Fiyat ödeme adımında sunucuda doğrulanır.</p>
                 <Link href="/checkout" className="yi-btn yi-btn--primary">
                   Ödemeye geç
                 </Link>

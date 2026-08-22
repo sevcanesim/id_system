@@ -79,7 +79,10 @@ export default async function CorporatePage({
       <section className="corporate-single-hero" aria-labelledby="corporate-single-title">
         <div className="corporate-single-copy">
           <span className="section-kicker">YENOMI BUSINESS</span>
-          <h1 id="corporate-single-title">Şirket NFC kart{"\u00a0"}almıyor.<br />Çalışanların networking altyapısını satın{"\u00a0"}alıyor.</h1>
+          <h1 id="corporate-single-title">
+            <span className="corporate-hero-line">Şirket NFC kart almıyor.</span>
+            <span className="corporate-hero-line corporate-hero-line--accent">Çalışanların networking altyapısını satın alıyor.</span>
+          </h1>
           <p>Satış ve saha ekibi aynı standartta tanışır. Unvan değişince baskı yok; kart kaybolursa panelden kapanır. 100 kişiye kadar sepete ekle.</p>
           <div className="corporate-hero-actions">
             <a href="#business-pricing-title" className="corporate-cta">Paketleri İncele <span aria-hidden="true">→</span></a>

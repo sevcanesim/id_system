@@ -64,6 +64,9 @@ Tarayıcı `signInWithPassword` çağrısı `*.supabase.co`'ya giderse Next.js m
 
 Başarısız ve engellenen şifre girişleri Vercel loglarında `auth.login` JSON satırı olarak görünür (`ok`, `reason`, `email_domain`, `ip`). Şifre loglanmaz. `reason=invalid_credentials` / `test_account_blocked` / `rate_limited_email` bir stuffing denemesini fark etmek için yeterlidir.
 
+### Data API grant modeli
+`20260819160000` PostgREST için mevcut tablolara `anon`/`authenticated` DML verdi. `20260822120000` **default privileges** bu rollerden geri alınır: yeni tablo/RPC otomatik açılmaz. `commerce_payment_attempts`, `payment_attempts`, `activation_tokens`, `commerce_email_events`, `admin_audit_log`, `corporate_leads` Data API’den revoke; erişim service_role API üzerinden. Ürün tabloları (`card_profiles`, `products`, `user_accounts`) PostgREST + RLS ile durur.
+
 ### CSP
 `script-src 'unsafe-inline'` kaldırıldı. Middleware her belgede `x-nonce` + `script-src 'nonce-…' 'strict-dynamic'` basar. `style-src 'unsafe-inline'` hâlâ duruyor (daha düşük öncelik). `next.config.ts` artık ikinci bir CSP basmaz; tarayıcı birden fazla CSP'yi AND uygular ve statik `unsafe-inline` nonce politikasını delerdi.
 

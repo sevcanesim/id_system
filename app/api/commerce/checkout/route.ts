@@ -433,7 +433,7 @@ export async function POST(request: NextRequest) {
 
       if (orderError || !createdOrder) {
         const payload = publicError("ORDER_CREATE_FAILED");
-        console.error("commerce order create error", { reference: payload.reference, error: orderError });
+        console.error("commerce order create error", { reference: payload.reference, code: orderError?.code });
         return NextResponse.json(payload, { status: 500 });
       }
 
@@ -542,7 +542,7 @@ export async function POST(request: NextRequest) {
       const { data: racedAttempt } = await findExistingAttempt(admin, idempotencyKey);
       if (racedAttempt) return duplicateAttemptResponse(racedAttempt, fingerprint);
       const payload = publicError("PAYMENT_IN_PROGRESS");
-      console.error("payment attempt reservation failed", { reference: payload.reference, error: reserveError });
+      console.error("payment attempt reservation failed", { reference: payload.reference, code: reserveError?.code });
       return NextResponse.json(payload, { status: 409 });
     }
 

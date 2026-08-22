@@ -94,6 +94,9 @@ mustNotInclude(analytics, "gtag(", "Do not invent a GA4 wiring.");
 
 mustInclude(vitestConfig, '"**/*.test.ts"', "Vitest must not pick up Playwright spec files.");
 mustInclude(playwrightConfig, 'testDir: "e2e"', "Playwright must own the e2e directory.");
+mustInclude(playwrightConfig, 'name: "webkit"', "Safari/WebKit must be a Playwright project, not Chromium-only.");
+mustInclude(playwrightConfig, "Desktop Safari", "Desktop WebKit device must stay declared.");
+mustInclude(playwrightConfig, "iPhone 13", "Mobile WebKit device must stay declared.");
 mustInclude(e2e, "E2E-01", "Critical journeys must name E2E-01.");
 mustInclude(e2e, "E2E_BASE_URL is unset; journeys are not run.", "Missing E2E env must skip, not pass.");
 mustInclude(e2e, "E2E-06", "Guest spare-card gate must be listed.");

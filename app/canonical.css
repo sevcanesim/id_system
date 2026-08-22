@@ -14292,3 +14292,344 @@ body:has(.legal-page) .yi-footer__trust .yi-icon {
   }
 }
 
+/* Public mockups + plan/step grids: one device chrome, readable specimen type,
+   equal-height cards, warm layered depth — not a dark-luxury restyle. */
+.yi-product-visual--pair {
+  background:
+    radial-gradient(70% 60% at 50% 38%, rgba(163, 123, 44, .14), transparent 68%),
+    linear-gradient(165deg, #f7f3ea 0%, #efe8dc 100%);
+  border: 1px solid rgba(36, 29, 23, .08);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .72) inset,
+    0 18px 40px rgba(58, 48, 38, .08),
+    0 40px 72px rgba(58, 48, 38, .06);
+}
+.products-single-visual .yi-product-visual--pair,
+.nfc-product-hero__visual .yi-product-visual--pair {
+  filter: none;
+}
+
+.yi-card-identity strong,
+.yi-card-identity b,
+.yi-profile-body strong {
+  font-family: var(--font-display);
+}
+.yi-card-role,
+.yi-card-nfc-mark small,
+.yi-card-motto {
+  font-family: var(--font-ui);
+}
+.yi-card-role {
+  font-size: 11px;
+  letter-spacing: .14em;
+}
+.yi-card-nfc-mark small {
+  font-size: 9px;
+}
+.yi-card-qr {
+  min-width: 56px;
+  padding: 6px;
+}
+
+.yi-product-ui--compact .yi-card-identity strong {
+  font-size: 13px;
+  letter-spacing: .1em;
+}
+.yi-product-ui--compact .yi-card-role {
+  font-size: 10px;
+}
+.yi-product-ui--compact .yi-card-identity b {
+  font-size: 11px;
+}
+.yi-product-ui--compact.yi-product-ui--profile {
+  border-width: 6px;
+  border-color: #2a2520;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .35) inset,
+    0 16px 32px rgba(42, 34, 26, .16);
+}
+.yi-product-ui--compact .yi-profile-cover {
+  font-size: 9px;
+}
+.yi-product-ui--compact .yi-profile-body strong {
+  font-size: 13px;
+}
+.yi-product-ui--compact .yi-profile-body > span {
+  font-size: 11px;
+}
+.yi-product-ui--compact .yi-profile-save {
+  min-height: 30px;
+  font-size: 11px;
+}
+.yi-product-ui--compact .yi-profile-bio,
+.yi-product-ui--compact .yi-profile-chips,
+.yi-product-ui--compact .yi-profile-links,
+.yi-product-ui--compact .yi-profile-ghost,
+.yi-product-ui--compact .yi-profile-cta-row,
+.yi-product-ui--compact .yi-profile-actions {
+  display: none;
+}
+
+.home-mockup__phone {
+  padding: 7px;
+  background:
+    linear-gradient(180deg, #3a342e, #1c1916);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .18) inset,
+    0 22px 48px rgba(42, 34, 26, .22);
+}
+.home-mockup__phone .yi-product-ui--profile {
+  border-width: 0;
+  border-radius: 28px;
+  box-shadow: none;
+}
+
+.products-plan-grid {
+  align-items: stretch;
+  gap: 18px;
+}
+.products-plan-card {
+  height: 100%;
+  min-height: 100%;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .8) inset,
+    0 14px 32px rgba(58, 48, 38, .07);
+}
+.products-plan-card.is-popular {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .85) inset,
+    0 16px 40px rgba(125, 96, 49, .12);
+}
+.products-plan-card__head {
+  min-height: 108px;
+}
+.products-plan-card h2 {
+  margin-top: 8px;
+}
+.products-plan-card p {
+  min-height: 3.2em;
+}
+
+.how-step-grid {
+  align-items: stretch;
+  gap: 18px;
+}
+.how-it-works-page .how-step-card {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  min-height: 0;
+  padding: 22px 22px 0;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .82) inset,
+    0 16px 36px rgba(54, 43, 30, .08);
+}
+.how-it-works-page .how-step-card h3 {
+  margin: 12px 0 8px;
+  font-size: 20px;
+  line-height: 1.15;
+}
+.how-it-works-page .how-step-card > p {
+  min-height: 0;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.how-it-works-page .how-step-visual {
+  display: grid;
+  place-items: end center;
+  flex: 1 1 auto;
+  width: calc(100% + 44px);
+  min-height: 228px;
+  height: auto;
+  margin: 16px -22px 0;
+}
+.how-it-works-page .how-step-visual .yi-product-ui--compact.yi-product-ui--profile,
+.how-it-works-page .how-step-visual .yi-product-ui--compact.yi-product-ui--card-foil,
+.how-it-works-page .how-step-visual--02 .yi-product-ui--profile,
+.how-it-works-page .how-step-visual--03 .yi-product-ui--profile {
+  width: min(78%, 176px);
+  max-height: 92%;
+  justify-self: center;
+  margin-left: 0;
+}
+.how-it-works-page .how-step-visual--02 .yi-product-ui--profile {
+  transform: rotate(-5deg) translateY(12px);
+}
+.how-it-works-page .how-step-visual--03 .yi-product-ui--profile {
+  transform: rotate(-4deg) translateY(10px);
+}
+.how-it-works-page .how-step-visual .yi-profile-cover {
+  font-size: 9px;
+}
+.how-it-works-page .how-step-visual .yi-profile-portrait em {
+  width: min(46%, 56px);
+  font-size: 14px;
+}
+.how-it-works-page .how-step-visual .yi-profile-body strong {
+  font-size: 13px;
+}
+.how-it-works-page .how-step-visual .yi-profile-body > span {
+  font-size: 11px;
+}
+.how-it-works-page .how-step-visual .yi-profile-bio,
+.how-it-works-page .how-step-visual .yi-profile-chips,
+.how-it-works-page .how-step-visual .yi-profile-links,
+.how-it-works-page .how-step-visual .yi-profile-ghost,
+.how-it-works-page .how-step-visual .yi-profile-cta-row,
+.how-it-works-page .how-step-visual .yi-profile-actions {
+  display: none;
+}
+.how-it-works-page .how-qr {
+  width: 64px;
+  height: 64px;
+  padding: 8px;
+}
+
+.public-page-title h1 {
+  margin-bottom: 16px;
+}
+.public-page-title p {
+  margin-top: 0;
+  line-height: 1.6;
+}
+.how-hero h1,
+.how-it-works-page .how-hero h1 {
+  margin-bottom: 16px;
+}
+.how-hero p,
+.how-it-works-page .how-hero p {
+  margin-top: 0;
+  line-height: 1.6;
+}
+
+@media (min-width: 761px) {
+  .how-it-works-page {
+    display: block;
+    height: auto;
+    min-height: 0;
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+  .how-it-works-page .how-hero {
+    flex: none;
+    height: auto;
+    min-height: 0;
+  }
+  .how-it-works-page .how-steps {
+    display: block;
+    height: auto;
+    min-height: 0;
+  }
+  .how-it-works-page .how-step-grid {
+    height: auto;
+    gap: 18px;
+  }
+  .how-it-works-page .how-step-card {
+    height: auto;
+    min-height: 0;
+    padding: 22px 22px 0;
+  }
+  .how-it-works-page .how-step-visual {
+    min-height: 228px;
+    height: auto;
+    margin: 16px -22px 0;
+  }
+}
+
+@media (min-width: 900px) and (min-height: 760px) {
+  html:has(.how-it-works-page),
+  body:has(.how-it-works-page) {
+    overflow: auto;
+  }
+  .how-it-works-page {
+    display: block;
+    height: auto;
+    min-height: 0;
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+  .how-it-works-page .how-hero {
+    height: auto;
+    min-height: 0;
+  }
+  .how-it-works-page .how-hero h1 {
+    margin: 10px 0 16px;
+    font-size: clamp(38px, 5vw, 62px);
+  }
+  .how-it-works-page .how-hero p {
+    font-size: 18px;
+  }
+  .how-it-works-page .how-step-card h3 {
+    font-size: 20px;
+  }
+  .how-it-works-page .how-step-card > p {
+    font-size: 14px;
+    line-height: 1.55;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 899px) and (min-height: 800px) {
+  html:has(.how-it-works-page),
+  body:has(.how-it-works-page) {
+    overflow: auto;
+  }
+  .how-it-works-page {
+    display: block;
+    height: auto;
+    min-height: 0;
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+  .how-it-works-page .how-step-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    height: auto;
+    gap: 16px;
+  }
+  .how-it-works-page .how-step-card {
+    height: auto;
+    padding: 20px 18px 0;
+  }
+  .how-it-works-page .how-step-card h3 {
+    font-size: 20px;
+    margin: 12px 0 8px;
+  }
+  .how-it-works-page .how-step-card > p {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .how-it-works-page .how-step-visual {
+    width: calc(100% + 36px);
+    margin: 16px -18px 0;
+  }
+}
+
+@media (max-width: 1100px) {
+  .how-step-grid,
+  .how-it-works-page .how-step-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .how-step-grid,
+  .how-it-works-page .how-step-grid {
+    grid-template-columns: 1fr;
+  }
+  .products-plan-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .how-it-works-page .how-step-card {
+    padding: 20px 18px 0;
+  }
+  .how-it-works-page .how-step-visual {
+    width: calc(100% + 36px);
+    margin: 16px -18px 0;
+  }
+  .how-it-works-page .how-step-visual--02 .yi-product-ui--profile,
+  .how-it-works-page .how-step-visual--03 .yi-product-ui--profile {
+    transform: none;
+  }
+}
+
+

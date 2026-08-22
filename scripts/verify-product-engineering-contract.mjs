@@ -38,4 +38,17 @@ for (const token of ["00_MASTER_PRODUCT_ENGINEERING_CONTRACT.md", "01_CURRENT_AR
   }
 }
 
+const working = fs.readFileSync(path.join(root, "docs/product-engineering/16_AGENT_WORKING_CONTRACT.md"), "utf8");
+for (const token of ["theme-policy.css", "Selin Kaya", "align-items: stretch", "#F9F8F6", "word-spacing"]) {
+  if (!working.includes(token)) {
+    console.error(`Agent working contract missing UI guardrail: ${token}`);
+    process.exit(1);
+  }
+}
+
+if (!agent.includes("CSS/SVG") || !agent.includes("#F9F8F6")) {
+  console.error("AGENTS.md missing UI guardrail pointers");
+  process.exit(1);
+}
+
 console.log("Product engineering contract: PASS");

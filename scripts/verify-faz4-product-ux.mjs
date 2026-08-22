@@ -136,5 +136,20 @@ const activationTabTail = css.slice(css.lastIndexOf(".activation-tabs button.act
 check(activationTabTail.includes("background: #fff") && !activationTabTail.slice(0, 180).includes("#A37B2C"), "activation mode tabs are not a second gold; submit stays the fill");
 check(css.includes(".yi-app--individual .ds-button--primary") && css.includes(".yi-app .ds-empty"), "individual workspace primaries are solid gold on paper empty states");
 
+check(productVisual.includes("const SPECIMEN") && productVisual.includes("Ürün Yöneticisi") && !productVisual.includes("Ad Soyad"), "product specimen is a named identity, not a field-label mock");
+check(!how.includes("how-phone-mockup") && !home.includes("<img") && !catalog.includes("<img"), "public home, catalog and how-it-works mockups stay CSS/SVG, not raster images");
+check(css.includes(".products-plan-grid {\n  align-items: stretch;") && css.includes(".how-step-grid {\n  align-items: stretch;"), "catalog and how-it-works card grids stretch to equal height");
+check(css.includes("h1, h2, h3, h4 {\n  word-spacing: normal;\n}"), "heading word-spacing stays normal");
+const dsButton = read("app/design-system.css");
+const dsButtonBlock = dsButton.slice(dsButton.indexOf(".ds-button {"), dsButton.indexOf(".ds-button:hover"));
+check(dsButtonBlock.includes("font-weight: 700;"), "design-system buttons stay weight 700");
+check(!css.includes("#8064ff"), "leftover neon purple is retired from canonical CSS");
+const theme = read("app/theme-policy.css");
+check(theme.includes("#F9F8F6") && theme.includes("warm-light") && !theme.includes("#0B0B0B"), "theme policy keeps the warm-light canvas; dark luxury is not the shell");
+const playwright = read("playwright.config.ts");
+check(playwright.includes('name: "webkit"') && playwright.includes('name: "mobile-webkit"') && playwright.includes("iPhone 13"), "Playwright keeps desktop WebKit and iPhone 13 coverage");
+const working = read("docs/product-engineering/16_AGENT_WORKING_CONTRACT.md");
+check(working.includes("Selin Kaya") && working.includes("align-items: stretch") && working.includes("#F9F8F6"), "agent working contract encodes the UI guardrails");
+
 if (failed) process.exit(1);
 console.log("\nFAZ 4 product/UX verification passed.");

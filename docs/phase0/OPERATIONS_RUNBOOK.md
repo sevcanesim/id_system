@@ -45,7 +45,7 @@ Bir fulfillment issue yalnızca gerçek neden düzeltildikten sonra çözülmü�
 ## Kimlik doğrulama ve demo hesap yüzeyi
 
 ### Production demo/test giriş kapısı
-`yenomi-id.vercel.app` (`VERCEL_ENV=production`) üzerinde `account_type='TEST'` ve `@yenomi.test` kimlikleri giriş, oturum cookie yazımı ve session restore sırasında reddedilir. Bu hesaplar routing overlay'dir; erişim kontrolü değildir.
+`yenomi-id.vercel.app` (`VERCEL_ENV=production`) üzerinde `account_type='TEST'` ve `@yenomi.test` kimlikleri giriş, oturum cookie yazımı ve session restore sırasında reddedilir (`Bu test hesabı üretim ortamında kullanılamaz.`). Bu hesaplar routing overlay'dir; erişim kontrolü değildir. Canlıya gerçek bir hesap veya Google/LinkedIn ile girilir.
 
 - Preview/staging fixture kullanımı: `ALLOW_TEST_LOGINS=true` (yalnız izole deployment).
 - Kapıyı production dışında zorlamak: `YENOMI_BLOCK_TEST_LOGINS=true`.
@@ -56,8 +56,8 @@ Tarayıcı `signInWithPassword` çağrısı `*.supabase.co`'ya giderse Next.js m
 
 | Katman | Ne korur | Davranış |
 | --- | --- | --- |
-| Next.js middleware `auth-login` | `POST /api/auth/login` per IP | 10 istek / 60 sn, Redis yoksa **fail-closed** (503) |
-| Login route `auth-login-email` | Aynı uç, e-posta başına | 10 istek / 60 sn, Redis yoksa **fail-closed** |
+| Next.js middleware `auth-login` | `POST /api/auth/login` per IP | 10 istek / 60 sn, Redis yoksa **fail-open** (bellek; Edge 503 yok) |
+| Login route `auth-login-email` | Aynı uç, e-posta başına | 10 istek / 60 sn, Redis yoksa **fail-open** (bellek) |
 | `/giris` sayfa limiti | HTML yükleme | 30 istek / 60 sn, **fail-open** (boş 503 yok) |
 | `/api/auth/session` | Cookie yaz/oku | 30 istek / 60 sn, **fail-open** (giriş cookie'si 503 olmasın) |
 | Supabase Auth (GoTrue) | Direkt `*.supabase.co` denemeleri (OAuth, eski istemciler) | Dashboard → Authentication → Rate Limits. **Bu repodan canlı değerler okunamaz**; sign-in / token / OTP limitlerini orada kontrol edip bu tabloya not düş. |

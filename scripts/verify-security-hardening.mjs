@@ -49,7 +49,7 @@ mustInclude(middleware, "/api/organizations/links/upload", "PDF upload must rema
 mustInclude(middleware, 'NextResponse.redirect(url, 308)', "/nfc-siparis must 308 to /checkout.");
 mustInclude(middleware, '"/nfc-siparis"', "Middleware matcher must include /nfc-siparis.");
 mustInclude(middleware, 'scope: "auth-login"', "Password login must be rate-limited on /api/auth/login.");
-mustInclude(middleware, '"auth-login"', "Password login must fail closed without Redis.");
+mustNotInclude(middleware, '"auth-login",', "Password login must not 503 the account when Redis is unreachable from Edge.");
 mustInclude(middleware, "x-nonce", "Middleware must pass a CSP nonce to Next.js.");
 mustInclude(middleware, "createRequestNonce", "CSP nonce must be generated per request.");
 mustInclude(middleware, "buildContentSecurityPolicy", "Document CSP must be issued in middleware, not as a static next.config header.");
@@ -72,6 +72,7 @@ mustInclude(loginApi, "productionTestLoginBlocked", "Login must refuse productio
 mustInclude(loginApi, "applySessionCookies", "Login must write HttpOnly cookies on the server.");
 mustInclude(loginApi, "logAuthLoginEvent", "Failed login attempts must be visible in logs.");
 mustInclude(loginApi, "auth-login-email", "Login must also limit by email, not only by IP.");
+mustNotInclude(loginApi, "failClosed: true", "Password login must degrade to memory when Redis is down, not 503.");
 mustInclude(loginPage, "passwordLogin", "The login page must send passwords through /api/auth/login.");
 mustNotInclude(loginPage, "signInWithPassword", "Browser GoTrue sign-in would bypass the Next.js limiter.");
 mustInclude(activation, "passwordLogin", "Activation sign-in must use the rate-limited login route.");

@@ -39,25 +39,23 @@ export async function POST(request: NextRequest) {
       return noStore(NextResponse.json({ error: "E-posta veya şifre hatalı.", code: "INVALID_CREDENTIALS" }, { status: 400 }));
     }
 
+    if (productionTestLoginBlocked({ email })) {
+      logAuthLoginEvent({ ok: false, reason: "test_account_blocked", ip, email });
+      return noStore(NextResponse.json({ error: PRODUCTION_TEST_LOGIN_MESSAGE, code: "TEST_ACCOUNT_BLOCKED" }, { status: 403 }));
+    }
+
     const emailLimit = await consumeDistributedRateLimit({
       key: `auth-login-email:${email}`,
       limit: 10,
       windowMs: 60_000,
-      failClosed: true,
+      failClosed: false,
     });
     if (!emailLimit.allowed) {
-      logAuthLoginEvent({ ok: false, reason: emailLimit.unavailable ? "rate_limit_unavailable" : "rate_limited_email", ip, email });
-      const status = emailLimit.unavailable ? 503 : 429;
-      const code = emailLimit.unavailable ? "RATE_LIMIT_UNAVAILABLE" : "RATE_LIMITED";
-      const error = emailLimit.unavailable
-        ? "Güvenlik limiti şu anda doğrulanamıyor. Lütfen kısa süre sonra tekrar deneyin."
-        : "Çok fazla giriş denemesi yapıldı. Lütfen kısa süre sonra tekrar deneyin.";
-      return noStore(NextResponse.json({ error, code }, { status }));
-    }
-
-    if (productionTestLoginBlocked({ email })) {
-      logAuthLoginEvent({ ok: false, reason: "test_account_blocked", ip, email });
-      return noStore(NextResponse.json({ error: PRODUCTION_TEST_LOGIN_MESSAGE, code: "TEST_ACCOUNT_BLOCKED" }, { status: 403 }));
+      logAuthLoginEvent({ ok: false, reason: "rate_limited_email", ip, email });
+      return noStore(NextResponse.json({
+        error: "Çok fazla giriş denemesi yapıldı. Lütfen kısa süre sonra tekrar deneyin.",
+        code: "RATE_LIMITED",
+      }, { status: 429 }));
     }
 
     const auth = getSupabaseAuthClient();

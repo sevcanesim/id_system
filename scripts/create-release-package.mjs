@@ -21,7 +21,6 @@ const excludedFiles = new Set([
 
 function isSecretEnvFile(name) {
   if (name === ".env.example") return false;
-  // Zip exports must never include .env, .env.local, or any assigned secret file.
   return name === ".env" || name.startsWith(".env.") || name.startsWith(".env");
 }
 

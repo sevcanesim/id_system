@@ -5,13 +5,19 @@ import { authorizeCommerceCron } from "../../../../lib/security/cron-authorizati
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function run(request: NextRequest) {
+async function executeCommerceOps(request: NextRequest) {
   if (!authorizeCommerceCron(request)) {
     return NextResponse.json({ error: "Cron yetkisi gerekli.", code: "CRON_UNAUTHORIZED" }, { status: 401 });
   }
   try {
-    const result = await runCommerceOpsJobs();
-    return NextResponse.json({ ok: true, result });
+    const sweep = await runCommerceOpsJobs();
+    return NextResponse.json({
+      ok: true,
+      abandoned: sweep.abandoned,
+      expired: sweep.expired,
+      reconciled: sweep.reconciled,
+      alerts: sweep.alerts,
+    });
   } catch (error) {
     console.error("commerce ops cron failed", error instanceof Error ? error.message : "UNKNOWN");
     return NextResponse.json({ error: "Ticari operasyon işleri çalıştırılamadı." }, { status: 500 });
@@ -19,9 +25,9 @@ async function run(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  return run(request);
+  return executeCommerceOps(request);
 }
 
 export async function POST(request: NextRequest) {
-  return run(request);
+  return executeCommerceOps(request);
 }

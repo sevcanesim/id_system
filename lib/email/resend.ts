@@ -44,9 +44,44 @@ export function sendAbandonedCheckoutEmail(input:{to:string;orderNumber:string;c
   });
 }
 
+function isPrivateIpv4(host: string) {
+  const octets = host.split(".").map(Number);
+  if (octets.length !== 4 || octets.some((octet) => !Number.isInteger(octet) || octet < 0 || octet > 255)) {
+    return false;
+  }
+  const [a, b] = octets;
+  return a === 0 || a === 10 || a === 127
+    || (a === 169 && b === 254)
+    || (a === 172 && b >= 16 && b <= 31)
+    || (a === 192 && b === 168);
+}
+
+export function isPublicHttpsWebhook(raw: string) {
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== "https:") return false;
+  if (parsed.username || parsed.password) return false;
+  const host = parsed.hostname.toLowerCase();
+  if (!host || host === "localhost" || host === "0.0.0.0" || host === "::1" || host === "[::1]") return false;
+  if (host.endsWith(".local") || host.endsWith(".localhost") || host.endsWith(".internal") || host.endsWith(".lan")) {
+    return false;
+  }
+  if (host.includes(":")) {
+    if (host.startsWith("fe80:") || host.startsWith("fc") || host.startsWith("fd")) return false;
+    if (host.startsWith("::ffff:")) return !isPrivateIpv4(host.slice("::ffff:".length));
+  }
+  if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(host) && isPrivateIpv4(host)) return false;
+  return true;
+}
+
 async function notifyOpsChannel(text: string) {
   const webhook = process.env.SLACK_WEBHOOK_URL?.trim();
   if (!webhook) return { sent: false as const, reason: "SLACK_WEBHOOK_UNSET" };
+  if (!isPublicHttpsWebhook(webhook)) return { sent: false as const, reason: "SLACK_WEBHOOK_BLOCKED" };
   try {
     const response = await fetch(webhook, {
       method: "POST",

@@ -16045,5 +16045,17 @@ body:has(.p6-auth-page) .public-site-chrome:has(.yi-nav.is-open)::before {
   }
 }
 
+.products-plan-card h2 {
+  margin: 6px 0 14px;
+}
+.products-plan-card p {
+  margin: 0 0 4px;
+}
+.yi-product-ui--card-metal .yi-card-role,
+.yi-product-ui--card-white .yi-card-role {
+  color: #1A1918;
+}
+
+
 
 

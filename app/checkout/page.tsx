@@ -495,7 +495,7 @@ export default function CheckoutPage() {
                 </div>
                 <button type="submit" className="checkout-pay-button" disabled={busy || !legalVersions || !buyerComplete || !shippingComplete || !approvalComplete}><Icon name="lock" />{busy ? "Ödeme hazırlanıyor…" : "iyzico ile güvenle öde"}</button>
                 {(!buyerComplete || !shippingComplete || !approvalComplete) && !busy ? <p className="checkout-pay-hint">{digitalOnlyCart ? "Ödemeye geçmek için alıcı, fatura ve onay adımlarını tamamla." : "Ödemeye geçmek için alıcı, teslimat ve onay adımlarını tamamla."}</p> : null}
-                <div className="checkout-secure-list"><span><Icon name="lock" /> SSL Güvenli</span>{!digitalOnlyCart && <span><Icon name="truck" /> Ücretsiz Kargo</span>}<span><Icon name="refresh" /> Kolay Aktivasyon</span><span><Icon name="shield" /> iyzico Güvencesi</span></div>
+                <div className="checkout-secure-list"><span><Icon name="lock" /> 256-bit SSL</span>{!digitalOnlyCart && <span><Icon name="truck" /> Ücretsiz Kargo</span>}<span><Icon name="refresh" /> Kolay Aktivasyon</span><span><Icon name="shield" /> iyzico PCI-DSS</span></div>
               </aside>
             </div>
           </form>

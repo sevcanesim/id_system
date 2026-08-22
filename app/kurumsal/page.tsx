@@ -79,7 +79,7 @@ export default async function CorporatePage({
       <section className="corporate-single-hero" aria-labelledby="corporate-single-title">
         <div className="corporate-single-copy">
           <span className="section-kicker">YENOMI BUSINESS</span>
-          <h1 id="corporate-single-title">Şirket NFC kart almıyor.<br />Çalışanların networking altyapısını satın alıyor.</h1>
+          <h1 id="corporate-single-title">Şirket NFC kart{"\u00a0"}almıyor.<br />Çalışanların networking altyapısını satın{"\u00a0"}alıyor.</h1>
           <p>Satış ve saha ekibi aynı standartta tanışır. Unvan değişince baskı yok; kart kaybolursa panelden kapanır. 100 kişiye kadar sepete ekle.</p>
           <div className="corporate-hero-actions">
             <a href="#business-pricing-title" className="corporate-cta">Paketleri İncele <span aria-hidden="true">→</span></a>
@@ -172,12 +172,12 @@ export default async function CorporatePage({
                       {plan.name}
                       {"popular" in plan && plan.popular ? <span className="corporate-pack-badge">Öne çıkan</span> : null}
                     </th>
-                    <td>{plan.seats}</td>
-                    <td>{plan.seats}</td>
-                    <td>{networkMailGrant(plan.seats).toLocaleString("tr-TR")}</td>
-                    <td>{formatTryFromKurus(perSeatKurus(plan.priceKurus, plan.seats))}</td>
-                    <td><strong>{formatTryFromKurus(plan.priceKurus)}</strong></td>
-                    <td>
+                    <td className="is-num">{plan.seats}</td>
+                    <td className="is-num">{plan.seats}</td>
+                    <td className="is-num">{networkMailGrant(plan.seats).toLocaleString("tr-TR")}</td>
+                    <td className="is-num">{formatTryFromKurus(perSeatKurus(plan.priceKurus, plan.seats))}</td>
+                    <td className="is-num"><strong>{formatTryFromKurus(plan.priceKurus)}</strong></td>
+                    <td className="is-action">
                       {corporateCheckoutLive(plan.seats) ? (
                         <AddToCartButton
                           productId={CORPORATE_PACKAGE_PRODUCT_SLUG}
@@ -203,7 +203,7 @@ export default async function CorporatePage({
           </div>
         </details>
         <p className="corporate-pack-note">Tüm paketlerde: 1 yıllık kullanım + NFC kart + ücretsiz kargo. Kullanılmayan Network Mail kredisi paket yenilenirse devreder; yenilenmezse yanar.</p>
-        <div className="corporate-pricing-grid corporate-pricing-grid--compact">
+        <div className="corporate-addon-grid corporate-mail-packs">
           <article className="enterprise">
             <span>ENTERPRISE</span>
             <h3>Enterprise</h3>
@@ -216,8 +216,6 @@ export default async function CorporatePage({
             </ul>
             <a href="/kurumsal?plan=ENTERPRISE#teklif" className="home-mockup__link-secondary">Teklif Al <span aria-hidden="true">→</span></a>
           </article>
-        </div>
-        <div className="corporate-mail-packs">
           <article>
             <span>NETWORK MAIL</span>
             <h3>{NETWORK_MAIL_POSITIONING.name}</h3>

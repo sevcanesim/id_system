@@ -10,8 +10,21 @@ export type CheckoutPrefill = {
   postalCode?: string;
 };
 
-function text(value: unknown) {
+type ShipmentSnapshot = {
+  recipient_name?: string | null;
+  phone?: string | null;
+  address_line?: string | null;
+  district?: string | null;
+  city?: string | null;
+  postal_code?: string | null;
+};
+
+function filled(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function firstShipment(value: ShipmentSnapshot | ShipmentSnapshot[] | null | undefined) {
+  return Array.isArray(value) ? value[0] : value;
 }
 
 export function sessionCheckoutPrefill(user: {
@@ -20,64 +33,50 @@ export function sessionCheckoutPrefill(user: {
   user_metadata?: Record<string, unknown>;
 }): CheckoutPrefill {
   const meta = user.user_metadata ?? {};
-  const name = text(meta.full_name) || text(meta.name) || text(meta.fullName);
-  const rawPhone = text(user.phone) || text(meta.phone) || text(meta.phone_number);
+  const fullName = filled(meta.full_name) || filled(meta.name) || filled(meta.fullName);
+  const phone = filled(user.phone) || filled(meta.phone) || filled(meta.phone_number);
   return {
     email: user.email?.trim() || undefined,
-    recipientName: name || undefined,
-    phone: rawPhone ? normalizeTrPhone(rawPhone) : undefined,
+    recipientName: fullName || undefined,
+    phone: phone ? normalizeTrPhone(phone) : undefined,
   };
 }
 
-export function mergeCheckoutPrefill<T extends CheckoutPrefill>(current: T, patch: CheckoutPrefill): T {
-  const next = { ...current };
-  if (patch.email && !text(current.email)) next.email = patch.email;
-  if (patch.recipientName && !text(current.recipientName)) next.recipientName = patch.recipientName;
-  if (patch.phone && !text(current.phone)) next.phone = patch.phone;
-  if (patch.addressLine && !text(current.addressLine)) next.addressLine = patch.addressLine;
-  if (patch.district && !text(current.district)) next.district = patch.district;
-  if (patch.city && !text(current.city)) next.city = patch.city;
-  if (patch.postalCode && !text(current.postalCode)) next.postalCode = patch.postalCode;
-  return next;
+export function mergeCheckoutPrefill<T extends CheckoutPrefill>(form: T, incoming: CheckoutPrefill): T {
+  const merged = { ...form };
+  if (incoming.email && !filled(form.email)) merged.email = incoming.email;
+  if (incoming.recipientName && !filled(form.recipientName)) merged.recipientName = incoming.recipientName;
+  if (incoming.phone && !filled(form.phone)) merged.phone = incoming.phone;
+  if (incoming.addressLine && !filled(form.addressLine)) merged.addressLine = incoming.addressLine;
+  if (incoming.district && !filled(form.district)) merged.district = incoming.district;
+  if (incoming.city && !filled(form.city)) merged.city = incoming.city;
+  if (incoming.postalCode && !filled(form.postalCode)) merged.postalCode = incoming.postalCode;
+  return merged;
 }
 
-export async function fetchLastOrderCheckoutPrefill(token: string): Promise<CheckoutPrefill | null> {
+export async function fetchLastOrderCheckoutPrefill(accessToken: string): Promise<CheckoutPrefill | null> {
   const response = await fetch("/api/commerce/orders", {
-    headers: { authorization: `Bearer ${token}` },
+    headers: { authorization: `Bearer ${accessToken}` },
     cache: "no-store",
   });
   if (!response.ok) return null;
-  const payload = await response.json() as {
+  const history = await response.json() as {
     orders?: Array<{
       customer_name?: string | null;
       customer_phone?: string | null;
-      shipping_addresses?: Array<{
-        recipient_name?: string | null;
-        phone?: string | null;
-        address_line?: string | null;
-        district?: string | null;
-        city?: string | null;
-        postal_code?: string | null;
-      }> | {
-        recipient_name?: string | null;
-        phone?: string | null;
-        address_line?: string | null;
-        district?: string | null;
-        city?: string | null;
-        postal_code?: string | null;
-      } | null;
+      shipping_addresses?: ShipmentSnapshot | ShipmentSnapshot[] | null;
     }>;
   };
-  const order = payload.orders?.[0];
-  if (!order) return null;
-  const addr = Array.isArray(order.shipping_addresses) ? order.shipping_addresses[0] : order.shipping_addresses;
-  const phone = text(order.customer_phone) || text(addr?.phone);
+  const latestOrder = history.orders?.[0];
+  if (!latestOrder) return null;
+  const shipment = firstShipment(latestOrder.shipping_addresses);
+  const phone = filled(latestOrder.customer_phone) || filled(shipment?.phone);
   return {
-    recipientName: text(order.customer_name) || text(addr?.recipient_name) || undefined,
+    recipientName: filled(latestOrder.customer_name) || filled(shipment?.recipient_name) || undefined,
     phone: phone ? normalizeTrPhone(phone) : undefined,
-    addressLine: text(addr?.address_line) || undefined,
-    district: text(addr?.district) || undefined,
-    city: text(addr?.city) || undefined,
-    postalCode: text(addr?.postal_code) || undefined,
+    addressLine: filled(shipment?.address_line) || undefined,
+    district: filled(shipment?.district) || undefined,
+    city: filled(shipment?.city) || undefined,
+    postalCode: filled(shipment?.postal_code) || undefined,
   };
 }

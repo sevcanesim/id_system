@@ -30,15 +30,15 @@ export async function limitActivationResendOrder(orderId: string) {
 }
 
 export async function rejectCheckoutInitializeFlood(request: NextRequest) {
-  const result = await consumeDistributedRateLimit({
+  const quota = await consumeDistributedRateLimit({
     key: `checkout-api:${requestIp(request.headers)}`,
     limit: 20,
     windowMs: 60_000,
     failClosed: true,
   });
-  if (result.allowed) return null;
+  if (quota.allowed) return null;
   return NextResponse.json(
     publicError("RATE_LIMITED", { message: "Çok fazla ödeme isteği gönderildi. Lütfen kısa süre sonra tekrar deneyin." }),
-    { status: result.unavailable ? 503 : 429 },
+    { status: quota.unavailable ? 503 : 429 },
   );
 }

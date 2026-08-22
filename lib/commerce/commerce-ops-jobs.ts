@@ -9,15 +9,15 @@ const ABANDONED_BATCH = 40;
 type AdminClient = ReturnType<typeof getSupabaseAdminClient>;
 
 export async function runPaidOrderReconciliation(admin: AdminClient) {
-  const { data, error } = await admin.rpc("reconcile_paid_commerce_orders", { p_limit: 250 });
+  const { data: reconciliation, error } = await admin.rpc("reconcile_paid_commerce_orders", { p_limit: 250 });
   if (error) throw error;
-  return data ?? { ok: true };
+  return reconciliation ?? { ok: true };
 }
 
 export async function expireStaleAwaitingOrders(admin: AdminClient) {
-  const { data, error } = await admin.rpc("expire_stale_awaiting_payment_orders", { p_limit: 250 });
+  const { data: expiry, error } = await admin.rpc("expire_stale_awaiting_payment_orders", { p_limit: 250 });
   if (error) throw error;
-  return data ?? { ok: true };
+  return expiry ?? { ok: true };
 }
 
 export async function sendAbandonedCheckoutReminders(admin: AdminClient, now = Date.now()) {
@@ -35,10 +35,10 @@ export async function sendAbandonedCheckoutReminders(admin: AdminClient, now = D
   if (orderError) throw orderError;
   if (!orders?.length) return { scanned: 0, sent: 0, skipped: 0 };
 
-  const ids = orders.map((order) => order.id);
-  const [{ data: attempts, error: attemptError }, { data: events, error: eventError }] = await Promise.all([
-    admin.from("commerce_payment_attempts").select("order_id,status,updated_at").in("order_id", ids),
-    admin.from("commerce_email_events").select("order_id,event_type").in("order_id", ids).in("event_type", ["ABANDONED_CHECKOUT", "ABANDONED_CHECKOUT_24H"]),
+  const orderIds = orders.map((order) => order.id);
+  const [{ data: attempts, error: attemptError }, { data: mailedEvents, error: eventError }] = await Promise.all([
+    admin.from("commerce_payment_attempts").select("order_id,status,updated_at").in("order_id", orderIds),
+    admin.from("commerce_email_events").select("order_id,event_type").in("order_id", orderIds).in("event_type", ["ABANDONED_CHECKOUT", "ABANDONED_CHECKOUT_24H"]),
   ]);
   if (attemptError) throw attemptError;
   if (eventError) throw eventError;
@@ -48,7 +48,7 @@ export async function sendAbandonedCheckoutReminders(admin: AdminClient, now = D
       .filter((attempt) => attempt.status === "PENDING" && now - new Date(attempt.updated_at).getTime() < TWO_HOURS_MS)
       .map((attempt) => attempt.order_id),
   );
-  const sent = new Set((events ?? []).map((event) => `${event.order_id}:${event.event_type}`));
+  const mailedKeys = new Set((mailedEvents ?? []).map((event) => `${event.order_id}:${event.event_type}`));
 
   let mailed = 0;
   let skipped = 0;
@@ -58,21 +58,21 @@ export async function sendAbandonedCheckoutReminders(admin: AdminClient, now = D
       createdAt: order.created_at,
       now,
       hasRecentPendingAttempt: recentPending.has(order.id),
-      sentFirst: sent.has(`${order.id}:ABANDONED_CHECKOUT`),
-      sentDay: sent.has(`${order.id}:ABANDONED_CHECKOUT_24H`),
+      sentFirst: mailedKeys.has(`${order.id}:ABANDONED_CHECKOUT`),
+      sentDay: mailedKeys.has(`${order.id}:ABANDONED_CHECKOUT_24H`),
     });
     if (!wave || !order.guest_email) {
       skipped += 1;
       continue;
     }
     const eventType = abandonedEventType(wave);
-    const mail = await sendAbandonedCheckoutEmail({
+    const outbound = await sendAbandonedCheckoutEmail({
       to: order.guest_email,
       orderNumber: order.order_number,
       checkoutUrl: `${publicSiteUrl}/checkout`,
       wave,
     });
-    if (!mail.sent) {
+    if (!outbound.sent) {
       skipped += 1;
       continue;
     }
@@ -90,65 +90,65 @@ export async function sendAbandonedCheckoutReminders(admin: AdminClient, now = D
 }
 
 export async function notifyOpenFulfillmentIssues(admin: AdminClient, now = Date.now()) {
-  const { data: issues, error } = await admin
+  const { data: openIssues, error: openIssuesError } = await admin
     .from("commerce_fulfillment_issues")
     .select("id,order_id,issue_code,created_at,resolved_at")
     .is("resolved_at", null)
     .order("created_at", { ascending: false })
     .limit(200);
-  if (error) throw error;
-  if (!issues?.length) return { open: 0, alerted: 0, escalated: 0 };
+  if (openIssuesError) throw openIssuesError;
+  if (!openIssues?.length) return { open: 0, alerted: 0, escalated: 0 };
 
-  const orderIds = [...new Set(issues.map((issue) => issue.order_id))];
-  const [{ data: events, error: eventError }, { data: orders, error: orderError }] = await Promise.all([
+  const orderIds = [...new Set(openIssues.map((issue) => issue.order_id))];
+  const [{ data: mailedEvents, error: eventError }, { data: relatedOrders, error: orderError }] = await Promise.all([
     admin.from("commerce_email_events").select("order_id,event_type").in("order_id", orderIds).in("event_type", ["FULFILLMENT_ISSUE_ALERT", "FULFILLMENT_ISSUE_ESCALATION"]),
     admin.from("commerce_orders").select("id,order_number").in("id", orderIds),
   ]);
   if (eventError) throw eventError;
   if (orderError) throw orderError;
 
-  const sent = new Set((events ?? []).map((event) => `${event.order_id}:${event.event_type}`));
-  const numbers = new Map((orders ?? []).map((order) => [order.id, order.order_number]));
-  const fresh = issues.filter((issue) => !sent.has(`${issue.order_id}:FULFILLMENT_ISSUE_ALERT`));
-  const stale = issues.filter((issue) =>
+  const mailedKeys = new Set((mailedEvents ?? []).map((event) => `${event.order_id}:${event.event_type}`));
+  const orderNumbers = new Map((relatedOrders ?? []).map((order) => [order.id, order.order_number]));
+  const freshIssues = openIssues.filter((issue) => !mailedKeys.has(`${issue.order_id}:FULFILLMENT_ISSUE_ALERT`));
+  const staleIssues = openIssues.filter((issue) =>
     now - new Date(issue.created_at).getTime() >= 24 * 60 * 60 * 1000
-    && !sent.has(`${issue.order_id}:FULFILLMENT_ISSUE_ESCALATION`),
+    && !mailedKeys.has(`${issue.order_id}:FULFILLMENT_ISSUE_ESCALATION`),
   );
 
   let alerted = 0;
   let escalated = 0;
-  if (fresh.length) {
-    const mail = await sendOpsFulfillmentAlertEmail({
+  if (freshIssues.length) {
+    const freshNotice = await sendOpsFulfillmentAlertEmail({
       kind: "new",
-      issues: fresh.slice(0, 20).map((issue) => ({
-        orderNumber: numbers.get(issue.order_id) ?? issue.order_id,
+      issues: freshIssues.slice(0, 20).map((issue) => ({
+        orderNumber: orderNumbers.get(issue.order_id) ?? issue.order_id,
         issueCode: issue.issue_code,
         createdAt: issue.created_at,
       })),
-      openCount: issues.length,
+      openCount: openIssues.length,
     });
-    if (mail.sent) {
-      await insertIssueAlerts(admin, fresh, "FULFILLMENT_ISSUE_ALERT");
-      alerted = fresh.length;
+    if (freshNotice.sent) {
+      await insertIssueAlerts(admin, freshIssues, "FULFILLMENT_ISSUE_ALERT");
+      alerted = freshIssues.length;
     }
   }
-  if (stale.length) {
-    const mail = await sendOpsFulfillmentAlertEmail({
+  if (staleIssues.length) {
+    const escalationNotice = await sendOpsFulfillmentAlertEmail({
       kind: "escalation",
-      issues: stale.slice(0, 20).map((issue) => ({
-        orderNumber: numbers.get(issue.order_id) ?? issue.order_id,
+      issues: staleIssues.slice(0, 20).map((issue) => ({
+        orderNumber: orderNumbers.get(issue.order_id) ?? issue.order_id,
         issueCode: issue.issue_code,
         createdAt: issue.created_at,
       })),
-      openCount: issues.length,
+      openCount: openIssues.length,
     });
-    if (mail.sent) {
-      await insertIssueAlerts(admin, stale, "FULFILLMENT_ISSUE_ESCALATION");
-      escalated = stale.length;
+    if (escalationNotice.sent) {
+      await insertIssueAlerts(admin, staleIssues, "FULFILLMENT_ISSUE_ESCALATION");
+      escalated = staleIssues.length;
     }
   }
 
-  return { open: issues.length, alerted, escalated };
+  return { open: openIssues.length, alerted, escalated };
 }
 
 async function insertIssueAlerts(

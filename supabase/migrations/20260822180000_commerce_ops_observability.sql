@@ -1,6 +1,3 @@
--- Commerce ops: abandoned-checkout and fulfillment-alert email vocabulary.
--- Existing event types stay valid; new types are used by the Vercel cron job.
-
 alter table public.commerce_email_events
   drop constraint if exists commerce_email_events_event_type_check;
 

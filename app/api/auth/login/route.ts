@@ -25,6 +25,13 @@ function noStore(response: NextResponse) {
   return response;
 }
 
+function loginFlooded() {
+  return noStore(NextResponse.json({
+    error: "Çok fazla giriş denemesi yapıldı. Lütfen kısa süre sonra tekrar deneyin.",
+    code: "RATE_LIMITED",
+  }, { status: 429 }));
+}
+
 export async function POST(request: NextRequest) {
   const ip = requestIp(request.headers);
   try {
@@ -56,17 +63,11 @@ export async function POST(request: NextRequest) {
     ]);
     if (!ipLimit.allowed) {
       logAuthLoginEvent({ ok: false, reason: "rate_limited_ip", ip, email });
-      return noStore(NextResponse.json({
-        error: "Çok fazla giriş denemesi yapıldı. Lütfen kısa süre sonra tekrar deneyin.",
-        code: "RATE_LIMITED",
-      }, { status: 429 }));
+      return loginFlooded();
     }
     if (!emailLimit.allowed) {
       logAuthLoginEvent({ ok: false, reason: "rate_limited_email", ip, email });
-      return noStore(NextResponse.json({
-        error: "Çok fazla giriş denemesi yapıldı. Lütfen kısa süre sonra tekrar deneyin.",
-        code: "RATE_LIMITED",
-      }, { status: 429 }));
+      return loginFlooded();
     }
 
     const auth = getSupabaseAuthClient();

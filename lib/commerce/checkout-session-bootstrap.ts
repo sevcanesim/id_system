@@ -5,7 +5,7 @@ import {
   sessionCheckoutPrefill,
 } from "./checkout-prefill";
 
-type SessionLike = {
+type CheckoutSession = {
   access_token: string;
   user: {
     id: string;
@@ -15,7 +15,7 @@ type SessionLike = {
   };
 };
 
-type CheckoutForm = {
+type CheckoutBuyerFields = {
   recipientName: string;
   email: string;
   phone: string;
@@ -25,32 +25,34 @@ type CheckoutForm = {
   postalCode: string;
 };
 
-export async function bootstrapAuthenticatedCheckout<T extends CheckoutForm>(
-  session: SessionLike | null,
-  handlers: {
+export async function bootstrapAuthenticatedCheckout<T extends CheckoutBuyerFields>(
+  session: CheckoutSession | null,
+  surface: {
     setForm: (updater: (current: T) => T) => void;
-    setItems: (items: ReturnType<typeof readCart>) => void;
+    setItems: (lines: ReturnType<typeof readCart>) => void;
     setIsAuthenticated: (value: boolean) => void;
     setOrganizationTargets: (value: Record<string, { name: string; role: string }>) => void;
     setCheckoutReady: (value: boolean) => void;
   },
 ) {
   if (!session) {
-    handlers.setCheckoutReady(true);
+    surface.setCheckoutReady(true);
     return;
   }
 
-  handlers.setIsAuthenticated(true);
+  surface.setIsAuthenticated(true);
   setCartOwner(session.user.id, { claimGuest: true });
-  const mergedCart = readCart();
-  handlers.setItems(mergedCart);
-  handlers.setForm((current) => mergeCheckoutPrefill(current, sessionCheckoutPrefill(session.user)));
+  const cartLines = readCart();
+  surface.setItems(cartLines);
+  surface.setForm((current) => mergeCheckoutPrefill(current, sessionCheckoutPrefill(session.user)));
 
   const organizationIds = Array.from(new Set(
-    mergedCart.map((item) => item.configuration?.organizationId).filter((id): id is string => typeof id === "string"),
+    cartLines
+      .map((line) => line.configuration?.organizationId)
+      .filter((organizationId): organizationId is string => typeof organizationId === "string"),
   ));
 
-  const [organizations, lastOrder] = await Promise.all([
+  const [memberships, lastPaidOrder] = await Promise.all([
     organizationIds.length
       ? fetch("/api/organizations/mine?management=true", { headers: { authorization: `Bearer ${session.access_token}` } })
         .then((response) => response.ok ? response.json() : null)
@@ -59,15 +61,18 @@ export async function bootstrapAuthenticatedCheckout<T extends CheckoutForm>(
     fetchLastOrderCheckoutPrefill(session.access_token).catch(() => null),
   ]);
 
-  if (lastOrder) handlers.setForm((current) => mergeCheckoutPrefill(current, lastOrder));
-  if (organizations) {
-    const next: Record<string, { name: string; role: string }> = {};
-    for (const row of organizations.organizations || []) {
-      if (organizationIds.includes(row.organization_id)) {
-        next[row.organization_id] = { name: row.organizations?.name || "Kurumsal hesap", role: row.role || "" };
+  if (lastPaidOrder) surface.setForm((current) => mergeCheckoutPrefill(current, lastPaidOrder));
+  if (memberships) {
+    const managedOrgs: Record<string, { name: string; role: string }> = {};
+    for (const membership of memberships.organizations || []) {
+      if (organizationIds.includes(membership.organization_id)) {
+        managedOrgs[membership.organization_id] = {
+          name: membership.organizations?.name || "Kurumsal hesap",
+          role: membership.role || "",
+        };
       }
     }
-    handlers.setOrganizationTargets(next);
+    surface.setOrganizationTargets(managedOrgs);
   }
-  handlers.setCheckoutReady(true);
+  surface.setCheckoutReady(true);
 }

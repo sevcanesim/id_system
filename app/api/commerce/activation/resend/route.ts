@@ -11,7 +11,7 @@ import { limitActivationResendIp, limitActivationResendOrder } from "../../../..
 
 export const runtime = "nodejs";
 const schema = z.object({ email: z.string().trim().email(), orderNumber: z.string().trim().min(4).max(80).optional() });
-const genericOk = { ok: true, message: "Uygun bir sipariş bulunursa yeni bağlantı gönderildi." };
+const opaqueAck = { ok: true, message: "Uygun bir sipariş bulunursa yeni bağlantı gönderildi." };
 export async function POST(request: NextRequest) {
   try {
     const parsed = schema.safeParse(await request.json());
@@ -21,34 +21,35 @@ export async function POST(request: NextRequest) {
     const admin = getSupabaseAdminClient();
     let query = admin.from("commerce_orders").select("id,order_number,guest_email,status,user_id,activation_deadline_at").eq("guest_email", parsed.data.email.toLowerCase()).eq("status", "PAID").is("user_id", null).order("created_at", { ascending: false }).limit(1);
     if (parsed.data.orderNumber) query = query.eq("order_number", parsed.data.orderNumber);
-    const { data: order } = await query.maybeSingle();
-    // Hesap varlığını ifşa etmemek için her durumda aynı yanıt.
-    if (!order || (order.activation_deadline_at && new Date(order.activation_deadline_at) < new Date())) return NextResponse.json(genericOk);
-    const orderLimit = await limitActivationResendOrder(order.id);
-    if (!orderLimit.allowed) return NextResponse.json(genericOk);
-    await admin.from("activation_tokens").update({ used_at: new Date().toISOString() }).eq("order_id", order.id).is("used_at", null);
+    const { data: paidOrder } = await query.maybeSingle();
+    if (!paidOrder || (paidOrder.activation_deadline_at && new Date(paidOrder.activation_deadline_at) < new Date())) {
+      return NextResponse.json(opaqueAck);
+    }
+    const orderLimit = await limitActivationResendOrder(paidOrder.id);
+    if (!orderLimit.allowed) return NextResponse.json(opaqueAck);
+    await admin.from("activation_tokens").update({ used_at: new Date().toISOString() }).eq("order_id", paidOrder.id).is("used_at", null);
     const rawToken = randomBytes(32).toString("hex");
     const { activationResendHours } = await getDatabaseLifecycleSettings();
     const expires = new Date(); expires.setHours(expires.getHours() + activationResendHours);
-    await admin.from("activation_tokens").insert({ order_id: order.id, token_hash: createHash("sha256").update(rawToken).digest("hex"), expires_at: expires.toISOString() });
+    await admin.from("activation_tokens").insert({ order_id: paidOrder.id, token_hash: createHash("sha256").update(rawToken).digest("hex"), expires_at: expires.toISOString() });
     const activationUrl = `${publicSiteUrl}/aktivasyon?token=${encodeURIComponent(rawToken)}`;
-    const mail = await sendActivationEmail({
-      to: order.guest_email,
+    const outbound = await sendActivationEmail({
+      to: paidOrder.guest_email,
       activationUrl,
-      orderNumber: order.order_number,
+      orderNumber: paidOrder.order_number,
       hoursValid: activationResendHours,
-      audience: (await loadCommerceOrderKind(admin, order.id)).corporate ? "corporate" : "individual",
+      audience: (await loadCommerceOrderKind(admin, paidOrder.id)).corporate ? "corporate" : "individual",
     });
     await admin.from("commerce_email_events").insert({
-      order_id: order.id,
+      order_id: paidOrder.id,
       event_type: "ACTIVATION_RESEND",
-      recipient: order.guest_email,
-      status: mail.sent ? "SENT" : "SKIPPED",
-      provider_message: mail.sent ? null : mail.reason,
+      recipient: paidOrder.guest_email,
+      status: outbound.sent ? "SENT" : "SKIPPED",
+      provider_message: outbound.sent ? null : outbound.reason,
     });
-    return NextResponse.json(genericOk);
+    return NextResponse.json(opaqueAck);
   } catch (error) {
-    console.error("activation resend error", error);
+    console.error("activation resend error", error instanceof Error ? error.message : "unknown");
     return NextResponse.json({ error: "Aktivasyon bağlantısı yenilenemedi." }, { status: 500 });
   }
 }

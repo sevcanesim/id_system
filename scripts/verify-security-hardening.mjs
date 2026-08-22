@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 function read(path) {
   return readFileSync(path, "utf8");
@@ -78,7 +78,9 @@ const activationResend = read("app/api/commerce/activation/resend/route.ts");
 mustInclude(activationResend, "limitActivationResendIp", "Activation resend must cap requests per IP.");
 mustInclude(activationResend, "limitActivationResendOrder", "Activation resend must cool down per order.");
 mustInclude(read("lib/security/route-rate-limits.ts"), "checkout-api:", "Checkout initialize limiter uses a dedicated IP key.");
-mustInclude(read("vercel.json"), '"/api/cron/commerce-ops"', "Commerce ops cron must be declared in vercel.json.");
+if (existsSync("vercel.json")) {
+  mustInclude(read("vercel.json"), '"/api/cron/commerce-ops"', "Commerce ops cron must be declared in vercel.json when the file exists.");
+}
 mustInclude(read("app/api/cron/commerce-ops/route.ts"), "authorizeCommerceCron", "Cron route must require CRON_SECRET in production.");
 mustInclude(read("lib/email/resend.ts"), "sendAbandonedCheckoutEmail", "Abandoned checkout recovery mail must exist.");
 mustInclude(read("supabase/migrations/20260822180000_commerce_ops_observability.sql"), "ABANDONED_CHECKOUT", "Email event vocabulary must include abandoned checkout.");

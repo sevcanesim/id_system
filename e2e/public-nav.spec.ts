@@ -66,11 +66,13 @@ test.describe("public hamburger", () => {
     const individualHtml = await individual.text();
     expect(individualHtml).toContain("<h2>Hesabına giriş yap</h2>");
     expect(individualHtml).toContain('action="/api/auth/login"');
+    expect(individualHtml).toContain('data-login-portal="individual"');
 
     const business = await request.get("/giris?portal=business");
     expect(business.ok()).toBeTruthy();
     const html = await business.text();
     expect(html).toContain("<h2>Kurumsal hesabına giriş yap</h2>");
+    expect(html).toContain('data-login-portal="business"');
     expect(html).toContain("Kurumsal / Ekip");
     expect(html).not.toContain("<h2>Hesabına giriş yap</h2>");
   });

@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import LoginClient from "./LoginClient";
 import {
   firstSearchParam,
@@ -19,11 +20,15 @@ export default async function LoginPage({
     error?: string | string[];
   }>;
 }) {
+  const headerList = await headers();
   const params = await searchParams;
-  const portal = parseLoginPortal(firstSearchParam(params.portal));
-  const initialNext = resolveLoginReturnPath(portal, firstSearchParam(params.next));
-  const initialMode = parseLoginMode(firstSearchParam(params.mode));
-  const initialMessage = loginErrorMessage(firstSearchParam(params.error));
+  const portal = parseLoginPortal(headerList.get("x-login-portal") || firstSearchParam(params.portal));
+  const initialNext = resolveLoginReturnPath(
+    portal,
+    headerList.get("x-login-next") || firstSearchParam(params.next),
+  );
+  const initialMode = parseLoginMode(headerList.get("x-login-mode") || firstSearchParam(params.mode));
+  const initialMessage = loginErrorMessage(headerList.get("x-login-error") || firstSearchParam(params.error));
 
   return (
     <LoginClient

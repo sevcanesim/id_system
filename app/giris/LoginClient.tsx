@@ -349,18 +349,14 @@ export default function LoginClient({
     setMode("login");
     setSignupCompleted(false);
     persistActivePortal(nextPortal);
-    const nextPath = returnPath === "/hesabim" || returnPath === "/kartlarim" || returnPath === "/kurumsal/panel"
-      ? (nextPortal === "business" ? "/kurumsal/panel" : "/kartlarim")
-      : returnPath;
     if (returnPath === "/hesabim" || returnPath === "/kartlarim" || returnPath === "/kurumsal/panel") {
       setReturnPath(nextPortal === "business" ? "/kurumsal/panel" : "/kartlarim");
     }
-    window.history.replaceState(null, "", portalTabHref(nextPortal, nextPath));
   }
 
   function onPortalTabClick(event: MouseEvent<HTMLAnchorElement>, nextPortal: LoginPortal) {
+    persistActivePortal(nextPortal);
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
-    event.preventDefault();
     choosePortal(nextPortal);
   }
 
@@ -403,7 +399,7 @@ export default function LoginClient({
   ) : null;
 
   return (
-    <main id="main-content" className="p6-auth-page" data-ui-context="public">
+    <main id="main-content" className="p6-auth-page" data-ui-context="public" data-login-portal={portal}>
       {/* Public chrome is provided by PublicSiteShell. Do not remount AppHeader/AppFooter. */}
       <section className="p6-auth-shell">
         <aside className="p6-auth-story" aria-label="Yenomi ID ürün özeti">
@@ -535,12 +531,7 @@ export default function LoginClient({
                     </button>
                   </form>
                 ) : (
-                  <form
-                    onSubmit={submit}
-                    className="p6-auth-form"
-                    noValidate
-                    {...(mode === "login" ? { method: "post" as const, action: "/api/auth/login" } : {})}
-                  >
+                  <form method="post" action="/api/auth/login" onSubmit={submit} className="p6-auth-form" noValidate>
                     {mode === "login" ? (
                       <>
                         <input type="hidden" name="portal" value={portal} />

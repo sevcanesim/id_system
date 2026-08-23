@@ -90,6 +90,8 @@ mustInclude(read("supabase/migrations/20260822180000_commerce_ops_observability.
 mustNotInclude(loginApi, "failClosed: true", "Password login must degrade to memory when Redis is down, not 503.");
 mustInclude(loginPage, "passwordLogin", "The login page must send passwords through /api/auth/login.");
 mustInclude(read("app/giris/page.tsx"), "searchParams", "Login HTML must be rendered from the request query so portal tabs work before hydration.");
+mustInclude(read("app/giris/page.tsx"), "x-login-portal", "Login portal must also be read from the middleware request header, not only searchParams.");
+mustInclude(middleware, "x-login-portal", "Middleware must copy the login portal query onto the request headers.");
 mustInclude(loginApi, "application/x-www-form-urlencoded", "Password login must accept a native form POST when JavaScript is blocked.");
 mustInclude(loginApi, "formData", "Form login must read urlencoded fields, not only JSON.");
 mustNotInclude(loginPage, "signInWithPassword", "Browser GoTrue sign-in would bypass the Next.js limiter.");

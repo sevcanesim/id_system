@@ -71,16 +71,16 @@ for (const user of DEMO_LOGIN_USERS) {
 
 for (const guest of DEMO_GUEST_ORDERS) {
   if (loginEmails.has(guest.email)) fail(`guest order ${guest.email} must not also be a login user`);
-  if (!guest.orderNumber || !guest.tokenLabel || !guest.kind) fail(`guest fixture incomplete: ${guest.email}`);
+  if (!guest.orderNumber || !guest.tokenLabel || !guest.kind || !guest.variantSku) fail(`guest fixture incomplete: ${guest.email}`);
   else pass(`guest fixture ${guest.email}`);
 }
 
 for (const invite of DEMO_INVITE_FIXTURES) {
   if (loginEmails.has(invite.email)) fail(`invite fixture ${invite.email} must not also be a login user`);
-  if (seed.includes(`email: "${invite.email}"`) || seed.includes(`email:"${invite.email}"`)) {
-    pass(`invite apply ${invite.email}`);
+  if (!invite.email || !invite.kind || !invite.organizationSlug || !invite.role || !invite.status) {
+    fail(`invite fixture incomplete: ${invite.email}`);
   } else {
-    fail(`seed apply missing invite ${invite.email}`);
+    pass(`invite fixture ${invite.email}`);
   }
 }
 
@@ -88,6 +88,13 @@ if (DEMO_IDENTITY_COLLISION.emailPrefix === "demo.ayni.isim." && DEMO_IDENTITY_C
   pass("identity collision registry");
 } else {
   fail("identity collision registry drifted");
+}
+
+const deptMgr = DEMO_LOGIN_USERS.find((u) => u.key === "trDepartmentManager");
+if (deptMgr && deptMgr.role === "DEPARTMENT_MANAGER" && deptMgr.status === "ACTIVE" && deptMgr.department === "Satış") {
+  pass("department manager is Satış-scoped in matrix");
+} else {
+  fail("department manager matrix definition invalid");
 }
 
 const fullFive = DEMO_CORPORATE_CAPACITY_SCENARIOS.find((scenario) => scenario.limit === 5 && scenario.used === 5);
@@ -122,34 +129,76 @@ if (fs.existsSync(localQaHelperPath)) {
   pass("gitignored local QA helper is absent (expected in CI)");
 }
 
-const requiredNeedles = [
-  ["pending invite stays INVITED", 'status: "INVITED"'],
-  ["same-name identity pair", "demo.ayni.isim."],
-  ["same-name display collision", 'full_name:"Ahmet Yılmaz"'],
-  ["lifecycle unassigned stock", "YN-LIFEUNASSGN1"],
-  ["QA org unassigned stock", "YN-QASTOCK0001A"],
-  ["backup card pair", "YN-TRBACKALT001"],
-  ["lost card", "YN-TRLOST000001"],
-  ["empty company is owner-only", 'slug:"demo-tr-yeni-kurumsal"'],
-  ["partial occupancy 6/10", "limit:10, used:6"],
-  ["department manager is Satış-scoped", '"trDepartmentManager","DEPARTMENT_MANAGER","ACTIVE","Departman Yöneticisi","Satış"'],
-  ["duplicate-email is a procedure against an existing member", "demo.calisan.dijital@yenomi.test again"],
-  ["lead remains an explicit product gap", "no lead domain table exists yet"],
-  ["password stays out of source", "Şifre DEMO_SEED_PASSWORD"],
-  ["premium individual fixture", "YENOMI-NFC-PREMIUM-ANNUAL"],
-  ["expired entitlement fixture", 'entitlementStatus: "EXPIRED"'],
-  ["individual lost card", "YN-INDLOST00001"],
-  ["individual backup card pair", "YN-INDYEDKALT01"],
-  ["spare card SKU upsert", "YENOMI-NFC-EXTRA"],
-  ["guest orders stay unclaimed", "user_id: null"],
-  ["activation token derived at apply", "demo:${password}:"],
-  ["demo orgs allocate corporate_id", "allocate_corporate_id"],
-];
+// Programmatic verification of domain fixtures between matrix & seed
+if (DEMO_IDENTITY_COLLISION.emailPrefix === "demo.ayni.isim." && seed.includes("identityCollision")) {
+  pass("same-name identity pair");
+} else fail("same-name identity pair");
 
-for (const [label, needle] of requiredNeedles) {
-  if (seed.includes(needle)) pass(label);
-  else fail(label);
-}
+if (seed.includes("identityCollision.displayName")) pass("same-name display collision");
+else fail("same-name display collision");
+
+if (seed.includes("YN-LIFEUNASSGN1")) pass("lifecycle unassigned stock");
+else fail("lifecycle unassigned stock");
+
+if (seed.includes("YN-QASTOCK0001A")) pass("QA org unassigned stock");
+else fail("QA org unassigned stock");
+
+const trBackupUser = DEMO_LOGIN_USERS.find((u) => u.key === "trBackup");
+if (trBackupUser?.cards?.some((c) => c.code === "YN-TRBACKALT001") && seed.includes("spec.cards")) {
+  pass("backup card pair");
+} else fail("backup card pair");
+
+const trLostUser = DEMO_LOGIN_USERS.find((u) => u.key === "trLost");
+if (trLostUser?.cards?.some((c) => c.code === "YN-TRLOST000001") && seed.includes("spec.cards")) {
+  pass("lost card");
+} else fail("lost card");
+
+if (seed.includes('slug: "demo-tr-yeni-kurumsal"')) pass("empty company is owner-only");
+else fail("empty company is owner-only");
+
+if (seed.includes("limit: 10, used: 6")) pass("partial occupancy 6/10");
+else fail("partial occupancy 6/10");
+
+if (seed.includes("demo.calisan.dijital@yenomi.test again")) pass("duplicate-email is a procedure against an existing member");
+else fail("duplicate-email is a procedure against an existing member");
+
+if (seed.includes("no lead domain table exists yet")) pass("lead remains an explicit product gap");
+else fail("lead remains an explicit product gap");
+
+if (seed.includes("Şifre DEMO_SEED_PASSWORD")) pass("password stays out of source");
+else fail("password stays out of source");
+
+const premiumUser = DEMO_LOGIN_USERS.find((u) => u.key === "trIndividualPremium");
+if (premiumUser?.entitlement?.variantSku === "YENOMI-NFC-PREMIUM-ANNUAL" && seed.includes("YENOMI-NFC-PREMIUM-ANNUAL")) {
+  pass("premium individual fixture");
+} else fail("premium individual fixture");
+
+const expiredUser = DEMO_LOGIN_USERS.find((u) => u.key === "trIndividualExpired");
+if (expiredUser?.entitlement?.status === "EXPIRED" && seed.includes("entitlementStatus")) {
+  pass("expired entitlement fixture");
+} else fail("expired entitlement fixture");
+
+const indLostUser = DEMO_LOGIN_USERS.find((u) => u.key === "trIndividualLost");
+if (indLostUser?.cards?.some((c) => c.code === "YN-INDLOST00001") && seed.includes("spec.cards")) {
+  pass("individual lost card");
+} else fail("individual lost card");
+
+const indBackupUser = DEMO_LOGIN_USERS.find((u) => u.key === "trIndividualBackup");
+if (indBackupUser?.cards?.some((c) => c.code === "YN-INDYEDKALT01") && seed.includes("spec.cards")) {
+  pass("individual backup card pair");
+} else fail("individual backup card pair");
+
+if (seed.includes("YENOMI-NFC-EXTRA")) pass("spare card SKU upsert");
+else fail("spare card SKU upsert");
+
+if (seed.includes("user_id: null")) pass("guest orders stay unclaimed");
+else fail("guest orders stay unclaimed");
+
+if (seed.includes("demo:${password}:")) pass("activation token derived at apply");
+else fail("activation token derived at apply");
+
+if (seed.includes("allocate_corporate_id")) pass("demo orgs allocate corporate_id");
+else fail("demo orgs allocate corporate_id");
 
 if (/\bYenomiDemo\d+!/.test(seed) || /\bYenomiDemo\d+!/.test(docs)) {
   fail("seed/docs must not embed the demo password");

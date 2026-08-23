@@ -43,6 +43,32 @@ export type DemoInviteKind =
   | "INVITE_REVOKED"
   | "LIFECYCLE_INVITE_PENDING";
 
+export type DemoCardFixture = {
+  code: string;
+  status: "ACTIVE" | "LOST" | "DISABLED" | "UNASSIGNED";
+};
+
+export type DemoProfileFixture = {
+  slug: string;
+  name?: string;
+  isPublished?: boolean;
+  cardStatus?: "ACTIVE" | "LOST" | "SUSPENDED";
+};
+
+export type DemoEntitlementFixture = {
+  status: "ACTIVE" | "EXPIRED" | "PENDING_ACTIVATION";
+  variantSku: string;
+};
+
+export type DemoAdditionalOrg = {
+  slug: string;
+  name: string;
+  role: "OWNER" | "ADMIN" | "HR" | "DEPARTMENT_MANAGER" | "EMPLOYEE";
+  status: "ACTIVE" | "INVITED" | "SUSPENDED" | "LEFT";
+  title?: string;
+  department?: string;
+};
+
 export type DemoLoginUser = {
   key: string;
   email: string;
@@ -50,6 +76,18 @@ export type DemoLoginUser = {
   kind: DemoUserKind;
   loginScope: DemoLoginScope;
   intent: string;
+  isAdmin?: boolean;
+  orderNumber?: string;
+  organizationSlug?: string;
+  organizationName?: string;
+  role?: "OWNER" | "ADMIN" | "HR" | "DEPARTMENT_MANAGER" | "EMPLOYEE";
+  status?: "ACTIVE" | "INVITED" | "SUSPENDED" | "LEFT";
+  title?: string;
+  department?: string;
+  profile?: DemoProfileFixture | null;
+  cards?: DemoCardFixture[];
+  entitlement?: DemoEntitlementFixture | null;
+  additionalOrganizations?: DemoAdditionalOrg[];
 };
 
 export type DemoGuestOrder = {
@@ -58,12 +96,21 @@ export type DemoGuestOrder = {
   audience: "individual" | "corporate";
   orderNumber: string;
   tokenLabel: string;
+  variantSku: string;
+  entitlementStatus?: "PENDING_ACTIVATION" | null;
   intent: string;
 };
 
 export type DemoInviteFixture = {
   email: string;
   kind: DemoInviteKind;
+  organizationSlug: string;
+  role: "EMPLOYEE";
+  status: "INVITED" | "LEFT";
+  title: string;
+  department: string;
+  isExpired?: boolean;
+  isRevoked?: boolean;
   intent: string;
 };
 
@@ -84,6 +131,8 @@ export const DEMO_CORPORATE_CAPACITY_SCENARIOS = capacityScenarios as DemoCapaci
 export const DEMO_IDENTITY_COLLISION = identityCollision as {
   displayName: string;
   emailPrefix: string;
+  organizationSlug: string;
+  suffixes: string[];
   intent: string;
 };
 export const renderDemoTestUsersMarkdown = renderMarkdown as () => string;

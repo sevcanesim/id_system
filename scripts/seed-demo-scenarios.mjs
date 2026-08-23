@@ -5,6 +5,8 @@ import path from "node:path";
 import {
   DEMO_CORPORATE_CAPACITY_SCENARIOS as corporateScenarios,
   DEMO_GUEST_ORDERS as guestOrders,
+  DEMO_IDENTITY_COLLISION as identityCollision,
+  DEMO_INVITE_FIXTURES as inviteFixtures,
   DEMO_LOGIN_USERS as demoUsers,
 } from "../tests/fixtures/demo-user-matrix.mjs";
 
@@ -90,7 +92,7 @@ if (foreignUsers.length && !allowNonEmpty) {
 const authByEmail = new Map(listed.users.map((user) => [user.email?.toLowerCase(), user]));
 const users = {};
 for (const spec of demoUsers) {
-  let user = authByEmail.get(spec.email);
+  let user = authByEmail.get(spec.email.toLowerCase());
   if (!user) {
     const { data, error } = await supabase.auth.admin.createUser({
       email: spec.email,
@@ -116,7 +118,9 @@ for (const spec of demoUsers) {
   await supabase.from("user_accounts").update({ account_type: "TEST", test_login_scope: spec.loginScope }).eq("id", users[spec.key].id).throwOnError();
 }
 
-await supabase.from("admin_users").upsert({ user_id: users.superAdmin.id }, { onConflict: "user_id" }).throwOnError();
+for (const spec of demoUsers.filter((u) => u.isAdmin)) {
+  await supabase.from("admin_users").upsert({ user_id: users[spec.key].id }, { onConflict: "user_id" }).throwOnError();
+}
 
 await supabase.from("products").upsert({ slug: "nfc-business-card", name: "Yenomi ID NFC + QR Kart", kind: "NFC_PHYSICAL_CARD", description: "Fiziksel NFC kart, kişisel QR ve dijital kartvizit erişimi", is_active: true }, { onConflict: "slug" }).throwOnError();
 const { data: baseProduct, error: baseProductError } = await supabase.from("products").select("id").eq("slug", "nfc-business-card").single();
@@ -186,31 +190,23 @@ for (const pack of seatPacks) {
 
 const { data: product, error: productError } = await supabase.from("products").select("id,slug,name,kind").eq("slug", "nfc-business-card").single();
 if (productError) throw productError;
-const { data: variant, error: variantError } = await supabase.from("product_variants").select("id,sku,price_kurus,billing_period").eq("sku", "YENOMI-NFC-CARD-ANNUAL").single();
-if (variantError) throw variantError;
 
-async function seedIndividual({
-  user,
-  orderNumber,
-  withProfile,
-  profileSlug,
-  profileName,
-  variantSku = "YENOMI-NFC-CARD-ANNUAL",
-  entitlementStatus = "ACTIVE",
-  startsAt,
-  expiresAt,
-  graceEndsAt,
-  physicalCards = [],
-  claimActivation = true,
-}) {
+async function seedIndividualUser(spec) {
+  if (!spec.orderNumber && !spec.entitlement && !spec.profile) return;
+  const user = users[spec.key];
   const now = new Date();
-  const starts = startsAt ?? now;
-  const expires = expiresAt ?? new Date(now.getTime() + 365 * 86400000);
-  const grace = graceEndsAt ?? new Date(now.getTime() + 372 * 86400000);
+  const entitlementStatus = spec.entitlement?.status || "ACTIVE";
+  const isExpired = entitlementStatus === "EXPIRED";
+  const starts = isExpired ? new Date(now.getTime() - 400 * 86400000) : now;
+  const expires = isExpired ? new Date(now.getTime() - 35 * 86400000) : new Date(now.getTime() + 365 * 86400000);
+  const grace = isExpired ? new Date(now.getTime() - 28 * 86400000) : new Date(now.getTime() + 372 * 86400000);
+  const variantSku = spec.entitlement?.variantSku || "YENOMI-NFC-CARD-ANNUAL";
+
   const { data: chosenVariant, error: chosenVariantError } = await supabase.from("product_variants").select("id,sku,price_kurus,billing_period").eq("sku", variantSku).single();
   if (chosenVariantError) throw chosenVariantError;
+
   const orderPayload = {
-    order_number: orderNumber,
+    order_number: spec.orderNumber || `YI-DEMO-${spec.key.toUpperCase()}`,
     user_id: user.id,
     guest_email: user.email,
     status: "PAID",
@@ -222,10 +218,11 @@ async function seedIndividual({
     customer_phone: "+905550000000",
     country_code: "TR",
     paid_at: now.toISOString(),
-    activation_claimed_at: claimActivation ? now.toISOString() : null,
+    activation_claimed_at: now.toISOString(),
   };
   const { data: order, error: orderError } = await supabase.from("commerce_orders").upsert(orderPayload, { onConflict: "order_number" }).select("id").single();
   if (orderError) throw orderError;
+
   let { data: item } = await supabase.from("commerce_order_items").select("id").eq("order_id", order.id).limit(1).maybeSingle();
   const itemPayload = {
     order_id: order.id,
@@ -248,6 +245,7 @@ async function seedIndividual({
   } else {
     await supabase.from("commerce_order_items").update(itemPayload).eq("id", item.id).throwOnError();
   }
+
   const { data: entitlement, error: entitlementError } = await supabase.from("entitlements").upsert({
     user_id: user.id,
     order_item_id: item.id,
@@ -259,24 +257,26 @@ async function seedIndividual({
     grace_ends_at: grace.toISOString(),
   }, { onConflict: "order_item_id,instance_no" }).select("id").single();
   if (entitlementError) throw entitlementError;
+
   await supabase.from("commerce_order_consents").upsert({ order_id: order.id, distance_sales_accepted: true, personalization_accepted: true, distance_sales_version: "2026-08-07", personalization_version: "2026-08-07", privacy_version: "2026-08-07", request_id: "DEMO-SEED" }, { onConflict: "order_id" }).throwOnError();
+
   let profile = null;
-  if (withProfile) {
-    const lost = physicalCards.some((card) => card.status === "LOST");
-    const safeSlug = profileSlug || `demo-${user.email.split("@")[0].replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`;
+  if (spec.profile) {
+    const lost = spec.cards?.some((card) => card.status === "LOST");
+    const safeSlug = spec.profile.slug || `demo-${user.email.split("@")[0].replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`;
     const profilePayload = {
       user_id: user.id,
       entitlement_id: entitlement.id,
       slug: safeSlug,
-      name: profileName || user.user_metadata.full_name || "Demo Kullanıcı",
+      name: spec.profile.name || user.user_metadata.full_name || "Demo Kullanıcı",
       role: "Demo Kullanıcı",
       company: "Yenomi Demo",
       phone: "+90 555 000 00 01",
       email: user.email,
       website: "https://yenomilabs.com",
       location: "İstanbul, Türkiye",
-      is_published: true,
-      card_status: lost ? "LOST" : "ACTIVE",
+      is_published: spec.profile.isPublished !== false,
+      card_status: lost ? "LOST" : spec.profile.cardStatus || "ACTIVE",
     };
     const existingProfile = await supabase.from("card_profiles").select("id").eq("entitlement_id", entitlement.id).maybeSingle();
     if (existingProfile.error) throw existingProfile.error;
@@ -290,8 +290,9 @@ async function seedIndividual({
       profile = inserted.data;
     }
   }
-  if (profile) {
-    for (const card of physicalCards) {
+
+  if (profile && spec.cards?.length) {
+    for (const card of spec.cards) {
       const existingCard = await supabase.from("physical_cards").select("id").eq("card_code", card.code).maybeSingle();
       if (existingCard.error) throw existingCard.error;
       const cardPayload = {
@@ -310,50 +311,10 @@ async function seedIndividual({
   }
 }
 
-await seedIndividual({ user: users.cardPending, orderNumber: "YI-DEMO-PENDING", withProfile: false });
-await seedIndividual({ user: users.cardComplete, orderNumber: "YI-DEMO-COMPLETE", withProfile: true, profileSlug: "demo-karti-hazir", profileName: "Kartı Hazır Kullanıcı" });
-await seedIndividual({ user: users.trIndividualEmpty, orderNumber: "YI-TR-BIREYSEL-BOS", withProfile: false });
-await seedIndividual({ user: users.trIndividualActive, orderNumber: "YI-TR-BIREYSEL-AKTIF", withProfile: true, profileSlug: "demo-bireysel-aktif", profileName: "Bireysel Aktif Kullanıcı" });
-{
-  const now = new Date();
-  await seedIndividual({
-    user: users.trIndividualPremium,
-    orderNumber: "YI-TR-BIREYSEL-PREMIUM",
-    withProfile: true,
-    profileSlug: "demo-bireysel-premium",
-    profileName: "Bireysel Premium Kullanıcı",
-    variantSku: "YENOMI-NFC-PREMIUM-ANNUAL",
-  });
-  await seedIndividual({
-    user: users.trIndividualExpired,
-    orderNumber: "YI-TR-BIREYSEL-EXPIRED",
-    withProfile: true,
-    profileSlug: "demo-bireysel-suresi-dolmus",
-    profileName: "Süresi Dolmuş Bireysel",
-    entitlementStatus: "EXPIRED",
-    startsAt: new Date(now.getTime() - 400 * 86400000),
-    expiresAt: new Date(now.getTime() - 35 * 86400000),
-    graceEndsAt: new Date(now.getTime() - 28 * 86400000),
-  });
-  await seedIndividual({
-    user: users.trIndividualLost,
-    orderNumber: "YI-TR-BIREYSEL-KAYIP",
-    withProfile: true,
-    profileSlug: "demo-bireysel-kayip",
-    profileName: "Kayıp Kart Bireysel",
-    physicalCards: [{ code: "YN-INDLOST00001", status: "LOST" }],
-  });
-  await seedIndividual({
-    user: users.trIndividualBackup,
-    orderNumber: "YI-TR-BIREYSEL-YEDEK",
-    withProfile: true,
-    profileSlug: "demo-bireysel-yedek",
-    profileName: "Yedek Kart Bireysel",
-    physicalCards: [
-      { code: "YN-INDYEDKMAIN1", status: "ACTIVE" },
-      { code: "YN-INDYEDKALT01", status: "ACTIVE" },
-    ],
-  });
+// Seed individual users from canonical matrix
+const individualUsers = demoUsers.filter((u) => u.loginScope === "INDIVIDUAL" && (u.orderNumber || u.entitlement || u.profile));
+for (const spec of individualUsers) {
+  await seedIndividualUser(spec);
 }
 
 async function ensureOrganization({ slug, name, status = "ACTIVE" }) {
@@ -371,7 +332,7 @@ async function ensureOrganization({ slug, name, status = "ACTIVE" }) {
   return inserted.data;
 }
 
-async function ensureCorporateDemoProfile(user, organization, slug, title = "Demo Çalışan") {
+async function ensureCorporateDemoProfile(user, organization, slug, title = "Demo Çalışan", isPublished = true, cardStatus = "ACTIVE") {
   const payload = {
     user_id: user.id,
     slug,
@@ -385,15 +346,23 @@ async function ensureCorporateDemoProfile(user, organization, slug, title = "Dem
     instagram: null,
     website: "https://yenomilabs.com",
     location: "İstanbul, Türkiye",
-    is_published: true,
-    card_status: "ACTIVE",
+    is_published: isPublished,
+    card_status: cardStatus,
   };
   const existing = await supabase.from("card_profiles").select("id").eq("user_id", user.id).eq("company", organization.name).maybeSingle();
   if (existing.error) throw existing.error;
-  if (existing.data) await supabase.from("card_profiles").update(payload).eq("id", existing.data.id).throwOnError();
-  else await supabase.from("card_profiles").insert(payload).throwOnError();
+  if (existing.data) {
+    const updated = await supabase.from("card_profiles").update(payload).eq("id", existing.data.id).select("id").single();
+    if (updated.error) throw updated.error;
+    return updated.data;
+  } else {
+    const inserted = await supabase.from("card_profiles").insert(payload).select("id").single();
+    if (inserted.error) throw inserted.error;
+    return inserted.data;
+  }
 }
 
+// Seed corporate capacity scenarios
 for (const scenario of corporateScenarios) {
   const owner = users[scenario.owner];
   const { data: plan, error: planError } = await supabase.from("business_plans").select("id").eq("code", scenario.plan).single();
@@ -429,8 +398,6 @@ for (const scenario of corporateScenarios) {
     await ensureCorporateDemoProfile(worker, organization, `${scenario.slug}-calisan-${index}`);
   }
 
-  // P2 #22: demo activity is intentionally deterministic and distinct.
-  // The overview feed represents recent membership activity, not creation time.
   const activityMembers = [
     { email: owner.email, hoursAgo: 2 },
     ...Array.from({ length: Math.max(0, scenario.used - 1) }, (_, offset) => ({
@@ -448,107 +415,79 @@ for (const scenario of corporateScenarios) {
   }
 }
 
-
-// v24.4 — Complete corporate member/card lifecycle matrix.
-// This purpose-built organization is intentionally separate from occupancy fixtures so
-// SUSPENDED/LEFT states do not distort the requested 5/5, 5/3, 10/10 seat scenarios.
+// Complete corporate member/card lifecycle matrix driven from canonical DEMO_LOGIN_USERS
 {
   const owner = users.lifecycleOwner;
-  const { data: organization, error: orgError } = await supabase.from("organizations")
-    .select("id,name").eq("slug", "demo-yasam-dongusu").single();
+  const { data: organization, error: orgError } = await supabase.from("organizations").select("id,name").eq("slug", "demo-yasam-dongusu").single();
   if (orgError) throw orgError;
 
-  const memberSpecs = [
-    { key: "lifecycleNoCard", title: "Aktif Hesap / Kart Yok", department: "Operasyon", status: "ACTIVE", profile: false, card: null },
-    { key: "lifecycleDigital", title: "Dijital Kart Hazır", department: "Satış", status: "ACTIVE", profile: true, published: true, card: null },
-    { key: "lifecycleAssigned", title: "Fiziksel Kart Atanmış", department: "Satış", status: "ACTIVE", profile: true, published: true, card: "ACTIVE", code: "YN-LIFEASSIGN01" },
-    { key: "lifecycleLost", title: "Kayıp Kart", department: "Operasyon", status: "ACTIVE", profile: true, published: true, card: "LOST", code: "YN-LIFELOST0001" },
-    { key: "lifecycleDisabled", title: "Kart Devre Dışı", department: "İnsan Kaynakları", status: "ACTIVE", profile: true, published: true, card: "DISABLED", code: "YN-LIFEDISABL01" },
-    { key: "lifecycleSuspended", title: "Pasif Çalışan", department: "Operasyon", status: "SUSPENDED", profile: true, published: false, card: "DISABLED", code: "YN-LIFESUSPEND1" },
-    { key: "lifecycleLeft", title: "Ayrılmış Çalışan", department: "Satış", status: "LEFT", profile: true, published: false, card: "DISABLED", code: "YN-LIFELEFT0001" },
-  ];
+  const lifecycleUsers = demoUsers.filter((u) => u.organizationSlug === "demo-yasam-dongusu" && u.key !== "lifecycleOwner");
+  
+  // Pending invite fixture
+  const lifecycleInviteFixture = inviteFixtures.find((i) => i.email === "demo.lifecycle.invited@yenomi.test");
+  if (lifecycleInviteFixture) {
+    const { data: lifecycleInvitedMember, error: lifecycleInvitedError } = await supabase.from("organization_members").upsert({
+      organization_id: organization.id,
+      email: lifecycleInviteFixture.email,
+      full_name: "Davet Bekleyen Kullanıcı",
+      title: lifecycleInviteFixture.title,
+      department: lifecycleInviteFixture.department,
+      role: lifecycleInviteFixture.role,
+      status: lifecycleInviteFixture.status,
+    }, { onConflict: "organization_id,email" }).select("id").single();
+    if (lifecycleInvitedError) throw lifecycleInvitedError;
+    await supabase.from("organization_invites").delete().eq("member_id", lifecycleInvitedMember.id).is("used_at", null);
+    await supabase.from("organization_invites").insert({
+      organization_id: organization.id,
+      member_id: lifecycleInvitedMember.id,
+      token_hash: "qa-invite-lifecycle-" + lifecycleInvitedMember.id.replaceAll("-", ""),
+      expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
+    }).throwOnError();
+  }
 
-  // One real INVITED row without auth user exercises the pre-acceptance state.
-  await supabase.from("organization_members").upsert({
-    organization_id: organization.id,
-    email: "demo.lifecycle.invited@yenomi.test",
-    full_name: "Davet Bekleyen Kullanıcı",
-    title: "Davet Kabul Edilmedi",
-    department: "Satış",
-    role: "EMPLOYEE",
-    status: "INVITED",
-  }, { onConflict: "organization_id,email" }).throwOnError();
-
-  for (const spec of memberSpecs) {
+  for (const spec of lifecycleUsers) {
     const user = users[spec.key];
-    const { data: member, error: memberError } = await supabase.from("organization_members").upsert({
+    await supabase.from("organization_members").upsert({
       organization_id: organization.id,
       user_id: user.id,
       email: user.email,
-      full_name: user.user_metadata.full_name,
+      full_name: user.name,
       title: spec.title,
       department: spec.department,
-      role: "EMPLOYEE",
-      status: spec.status,
-    }, { onConflict: "organization_id,email" }).select("id").single();
-    if (memberError) throw memberError;
+      role: spec.role || "EMPLOYEE",
+      status: spec.status || "ACTIVE",
+    }, { onConflict: "organization_id,email" }).throwOnError();
 
     let profile = null;
     if (spec.profile) {
-      const slug = `demo-lifecycle-${spec.key.replace("lifecycle", "").toLowerCase()}`;
-      const payload = {
-        user_id: user.id,
-        slug,
-        name: user.user_metadata.full_name,
-        role: spec.title,
-        company: organization.name,
-        email: user.email,
-        phone: "+90 555 100 20 30",
-        website: "https://yenomilabs.com",
-        is_published: Boolean(spec.published),
-        card_status: spec.status === "LEFT" || spec.status === "SUSPENDED" || spec.card === "DISABLED" ? "SUSPENDED" : spec.card === "LOST" ? "LOST" : "ACTIVE",
-      };
-      const existing = await supabase.from("card_profiles").select("id").eq("user_id", user.id).eq("company", organization.name).maybeSingle();
-      if (existing.error) throw existing.error;
-      if (existing.data) {
-        const updated = await supabase.from("card_profiles").update(payload).eq("id", existing.data.id).select("id").single();
-        if (updated.error) throw updated.error;
-        profile = updated.data;
-      } else {
-        const inserted = await supabase.from("card_profiles").insert(payload).select("id").single();
-        if (inserted.error) throw inserted.error;
-        profile = inserted.data;
-      }
+      const cardStatus = spec.status === "LEFT" || spec.status === "SUSPENDED" || spec.cards?.some((c) => c.status === "DISABLED")
+        ? "SUSPENDED"
+        : spec.cards?.some((c) => c.status === "LOST")
+        ? "LOST"
+        : "ACTIVE";
+      profile = await ensureCorporateDemoProfile(user, organization, spec.profile.slug, spec.title, spec.profile.isPublished !== false, cardStatus);
     }
 
-    if (spec.card && profile) {
-      const existingCard = await supabase.from("physical_cards").select("id,status").eq("card_code", spec.code).maybeSingle();
-      if (existingCard.error) throw existingCard.error;
-      if (!existingCard.data) {
-        await supabase.from("physical_cards").insert({
-          card_code: spec.code,
+    if (profile && spec.cards?.length) {
+      for (const card of spec.cards) {
+        const existingCard = await supabase.from("physical_cards").select("id").eq("card_code", card.code).maybeSingle();
+        if (existingCard.error) throw existingCard.error;
+        const cardPayload = {
           owner_profile_id: profile.id,
           owner_user_id: user.id,
           organization_id: organization.id,
           activated_at: new Date().toISOString(),
-          status: spec.card,
-        }).throwOnError();
-      } else {
-        // Seed must repair stale ownership as well as status. Otherwise a card
-        // from a previous demo run can stay linked to another user/org and the
-        // employee UI will incorrectly derive UNASSIGNED.
-        await supabase.from("physical_cards").update({
-          owner_profile_id: profile.id,
-          owner_user_id: user.id,
-          organization_id: organization.id,
-          activated_at: new Date().toISOString(),
-          status: spec.card,
-        }).eq("id", existingCard.data.id).throwOnError();
+          status: card.status,
+        };
+        if (!existingCard.data) {
+          await supabase.from("physical_cards").insert({ card_code: card.code, ...cardPayload }).throwOnError();
+        } else {
+          await supabase.from("physical_cards").update(cardPayload).eq("id", existingCard.data.id).throwOnError();
+        }
       }
     }
   }
 
-  // Physical inventory card: belongs to the company but is not yet assigned to anyone.
   const inventoryCode = "YN-LIFEUNASSGN1";
   const inventory = await supabase.from("physical_cards").select("id").eq("card_code", inventoryCode).maybeSingle();
   if (inventory.error) throw inventory.error;
@@ -561,11 +500,8 @@ for (const scenario of corporateScenarios) {
   }
 }
 
-
-
-// v24.5 — Deterministic end-to-end QA organization and Turkish scenario matrix.
+// Deterministic end-to-end QA organization driven from canonical DEMO_LOGIN_USERS
 {
-  // Dedicated plan avoids occupancy fixtures being distorted by the larger QA matrix.
   await supabase.from("business_plans").upsert({
     code: "DEMO-50", name: "Demo QA 50", seat_limit: 50, annual_price_kurus: 0,
     features: ["QA_ONLY"], is_active: true,
@@ -574,120 +510,127 @@ for (const scenario of corporateScenarios) {
   if (planError) throw planError;
   const qaOrg = await ensureOrganization({ slug: "demo-qa-uctan-uca", name: "Demo Şirket / Uçtan Uca QA" });
   const existingSub = await supabase.from("organization_subscriptions").select("id").eq("organization_id", qaOrg.id).limit(1).maybeSingle();
-  const subPayload = { organization_id: qaOrg.id, plan_id: plan.id, status: "ACTIVE", starts_at: new Date().toISOString(), expires_at: new Date(Date.now()+365*86400000).toISOString(), seat_limit: 50 };
+  const subPayload = { organization_id: qaOrg.id, plan_id: plan.id, status: "ACTIVE", starts_at: new Date().toISOString(), expires_at: new Date(Date.now() + 365 * 86400000).toISOString(), seat_limit: 50 };
   if (existingSub.data) await supabase.from("organization_subscriptions").update(subPayload).eq("id", existingSub.data.id).throwOnError();
   else await supabase.from("organization_subscriptions").insert(subPayload).throwOnError();
 
-  const members = [
-    ["trOwner","OWNER","ACTIVE","Şirket Sahibi","Yönetim"],
-    ["trAdmin","ADMIN","ACTIVE","Kurumsal Admin","Yönetim"],
-    ["trHr","HR","ACTIVE","İnsan Kaynakları","İnsan Kaynakları"],
-    ["trDepartmentManager","DEPARTMENT_MANAGER","ACTIVE","Departman Yöneticisi","Satış"],
-    ["trRegistered","EMPLOYEE","ACTIVE","Hesap Aktif / Profil Yok","Operasyon"],
-    ["trNoCard","EMPLOYEE","ACTIVE","Kart Oluşturulmadı","Operasyon"],
-    ["trDigital","EMPLOYEE","ACTIVE","Dijital Kart Hazır","Satış"],
-    ["trAssigned","EMPLOYEE","ACTIVE","Fiziksel Kart Atanmış","Satış"],
-    ["trLost","EMPLOYEE","ACTIVE","Kayıp Kart","Operasyon"],
-    ["trBackup","EMPLOYEE","ACTIVE","Ana + Yedek Kart","Satış"],
-    ["trSuspended","EMPLOYEE","SUSPENDED","Pasif Çalışan","Operasyon"],
-    ["trLeft","EMPLOYEE","LEFT","İşten Ayrıldı","Satış"],
-    ["multiOrgUser","ADMIN","ACTIVE","Çoklu Şirket Admin","Yönetim"],
-  ];
+  const qaOrgUsers = demoUsers.filter((u) => u.organizationSlug === "demo-qa-uctan-uca");
+  for (const spec of qaOrgUsers) {
+    const user = users[spec.key];
+    await supabase.from("organization_members").upsert({
+      organization_id: qaOrg.id,
+      user_id: user.id,
+      email: user.email,
+      full_name: user.name,
+      title: spec.title,
+      department: spec.department,
+      role: spec.role || "EMPLOYEE",
+      status: spec.status || "ACTIVE",
+    }, { onConflict: "organization_id,email" }).throwOnError();
 
-  const memberRows = new Map();
-  for (const [key,role,status,title,department] of members) {
-    const user = users[key];
-    const { data: row, error } = await supabase.from("organization_members").upsert({
-      organization_id: qaOrg.id, user_id: user.id, email: user.email, full_name: user.user_metadata.full_name,
-      title, department, role, status,
-    }, { onConflict: "organization_id,email" }).select("id").single();
-    if (error) throw error;
-    memberRows.set(key,row);
-  }
-
-  // Real invited/no-auth fixture requested by QA matrix.
-  const { data: invitedMember, error: invitedError } = await supabase.from("organization_members").upsert({
-    organization_id: qaOrg.id, email: "demo.calisan.davet@yenomi.test", full_name: "Davet Bekleyen Çalışan",
-    title: "Davet Kabul Edilmedi", department: "Satış", role: "EMPLOYEE", status: "INVITED",
-  }, { onConflict: "organization_id,email" }).select("id").single();
-  if (invitedError) throw invitedError;
-  await supabase.from("organization_invites").delete().eq("member_id", invitedMember.id).is("used_at", null);
-  await supabase.from("organization_invites").insert({
-    organization_id: qaOrg.id, member_id: invitedMember.id,
-    token_hash: "qa-invite-active-" + invitedMember.id.replaceAll("-", ""),
-    expires_at: new Date(Date.now()+7*86400000).toISOString(),
-  }).throwOnError();
-
-  // Expired and revoked invitation edge cases.
-  for (const inviteCase of [
-    { email:"demo.calisan.davet.expired@yenomi.test", name:"Süresi Dolmuş Davet", expired:true, revoked:false },
-    { email:"demo.calisan.davet.revoked@yenomi.test", name:"İptal Edilmiş Davet", expired:false, revoked:true },
-  ]) {
-    const row=await supabase.from("organization_members").upsert({organization_id:qaOrg.id,email:inviteCase.email,full_name:inviteCase.name,title:"Davet Edge Case",department:"QA",role:"EMPLOYEE",status:inviteCase.revoked?"LEFT":"INVITED"},{onConflict:"organization_id,email"}).select("id").single();
-    if(row.error) throw row.error;
-    await supabase.from("organization_invites").delete().eq("member_id",row.data.id);
-    await supabase.from("organization_invites").insert({organization_id:qaOrg.id,member_id:row.data.id,token_hash:`qa-${inviteCase.expired?"expired":"revoked"}-`+row.data.id.replaceAll("-",""),expires_at:new Date(Date.now()+(inviteCase.expired?-1:7)*86400000).toISOString(),revoked_at:inviteCase.revoked?new Date().toISOString():null}).throwOnError();
-  }
-
-  async function ensureCorporateProfile(key, published=true) {
-    const user=users[key];
-    const payload={ user_id:user.id, organization_id:qaOrg.id, slug:`qa-${key.toLowerCase()}`, name:user.user_metadata.full_name,
-      role:(members.find(m=>m[0]===key)?.[3] || "Çalışan"), company:qaOrg.name, email:user.email,
-      linkedin:null, instagram:null,
-      phone:"+90 555 240 50 00", website:"https://yenomilabs.com", is_published:published, card_status:"ACTIVE" };
-    const existing=await supabase.from("card_profiles").select("id").eq("user_id",user.id).eq("company",qaOrg.name).maybeSingle();
-    if(existing.error) throw existing.error;
-    if(existing.data){ const u=await supabase.from("card_profiles").update(payload).eq("id",existing.data.id).select("id").single(); if(u.error) throw u.error; return u.data; }
-    const i=await supabase.from("card_profiles").insert(payload).select("id").single(); if(i.error) throw i.error; return i.data;
-  }
-  async function ensureCard(code,key,profile,status="ACTIVE") {
-    const user=users[key];
-    const existing=await supabase.from("physical_cards").select("id,status,owner_user_id,owner_profile_id,organization_id,replaced_by_card_id").eq("card_code",code).maybeSingle();
-    if(existing.error) throw existing.error;
-    const payload={ owner_profile_id:profile.id, owner_user_id:user.id, organization_id:qaOrg.id, activated_at:new Date().toISOString(), status };
-    if(existing.data) {
-      // QA seed is a repair operation, not only an insert operation. A previous
-      // lifecycle mutation (ACTIVE -> LOST, owner change, org reassignment)
-      // must never survive the next deterministic seed run. Replacement links
-      // are intentionally preserved and repaired by the dedicated RPC below.
-      const updated=await supabase.from("physical_cards").update(payload).eq("id",existing.data.id).select("id,status").single();
-      if(updated.error) throw updated.error;
-      return updated.data;
+    let profile = null;
+    if (spec.profile) {
+      profile = await ensureCorporateDemoProfile(user, qaOrg, spec.profile.slug, spec.title, spec.profile.isPublished !== false, spec.profile.cardStatus || "ACTIVE");
     }
-    const i=await supabase.from("physical_cards").insert({ card_code:code, ...payload }).select("id,status").single();
-    if(i.error) throw i.error; return i.data;
+
+    if (profile && spec.cards?.length) {
+      for (const card of spec.cards) {
+        const existingCard = await supabase.from("physical_cards").select("id").eq("card_code", card.code).maybeSingle();
+        if (existingCard.error) throw existingCard.error;
+        const cardPayload = {
+          owner_profile_id: profile.id,
+          owner_user_id: user.id,
+          organization_id: qaOrg.id,
+          activated_at: new Date().toISOString(),
+          status: card.status,
+        };
+        if (!existingCard.data) {
+          await supabase.from("physical_cards").insert({ card_code: card.code, ...cardPayload }).throwOnError();
+        } else {
+          await supabase.from("physical_cards").update(cardPayload).eq("id", existingCard.data.id).throwOnError();
+        }
+      }
+    }
   }
 
-  const digital = await ensureCorporateProfile("trDigital", true);
-  const assigned = await ensureCorporateProfile("trAssigned", true);
-  const lost = await ensureCorporateProfile("trLost", true);
-  const backup = await ensureCorporateProfile("trBackup", true);
-  const suspended = await ensureCorporateProfile("trSuspended", false);
-  const left = await ensureCorporateProfile("trLeft", false);
-  await ensureCard("YN-TRASSIGN0001","trAssigned",assigned,"ACTIVE");
-  await ensureCard("YN-TRLOST000001","trLost",lost,"LOST");
-  await ensureCard("YN-TRBACKMAIN01","trBackup",backup,"ACTIVE");
-  await ensureCard("YN-TRBACKALT001","trBackup",backup,"ACTIVE");
-  await ensureCard("YN-TRSUSPEND001","trSuspended",suspended,"DISABLED");
-  await ensureCard("YN-TRLEFT000001","trLeft",left,"DISABLED");
+  // Active invite fixture
+  const activeInvite = inviteFixtures.find((i) => i.email === "demo.calisan.davet@yenomi.test");
+  if (activeInvite) {
+    const { data: invitedMember, error: invitedError } = await supabase.from("organization_members").upsert({
+      organization_id: qaOrg.id, email: activeInvite.email, full_name: "Davet Bekleyen Çalışan",
+      title: activeInvite.title, department: activeInvite.department, role: activeInvite.role, status: activeInvite.status,
+    }, { onConflict: "organization_id,email" }).select("id").single();
+    if (invitedError) throw invitedError;
+    await supabase.from("organization_invites").delete().eq("member_id", invitedMember.id).is("used_at", null);
+    await supabase.from("organization_invites").insert({
+      organization_id: qaOrg.id, member_id: invitedMember.id,
+      token_hash: "qa-invite-active-" + invitedMember.id.replaceAll("-", ""),
+      expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
+    }).throwOnError();
+  }
+
+  // Expired and revoked invitation edge cases from DEMO_INVITE_FIXTURES
+  for (const inviteCase of inviteFixtures.filter((i) => i.isExpired || i.isRevoked)) {
+    const row = await supabase.from("organization_members").upsert({
+      organization_id: qaOrg.id, email: inviteCase.email, full_name: inviteCase.intent,
+      title: inviteCase.title, department: inviteCase.department, role: inviteCase.role, status: inviteCase.status,
+    }, { onConflict: "organization_id,email" }).select("id").single();
+    if (row.error) throw row.error;
+    await supabase.from("organization_invites").delete().eq("member_id", row.data.id);
+    await supabase.from("organization_invites").insert({
+      organization_id: qaOrg.id, member_id: row.data.id,
+      token_hash: `qa-${inviteCase.isExpired ? "expired" : "revoked"}-` + row.data.id.replaceAll("-", ""),
+      expires_at: new Date(Date.now() + (inviteCase.isExpired ? -1 : 7) * 86400000).toISOString(),
+      revoked_at: inviteCase.isRevoked ? new Date().toISOString() : null,
+    }).throwOnError();
+  }
 
   // Replacement case: old LOST card permanently points to the new ACTIVE card.
-  const oldReplacement = await ensureCard("YN-TRREPOLD0001","trAssigned",assigned,"LOST");
-  const newReplacement = await ensureCard("YN-TRREPNEW0001","trAssigned",assigned,"ACTIVE");
-  const oldState = await supabase.from("physical_cards").select("replaced_by_card_id").eq("id",oldReplacement.id).single();
-  if(oldState.error) throw oldState.error;
-  if(!oldState.data.replaced_by_card_id){ const rpc=await supabase.rpc("replace_physical_card",{p_old_card_id:oldReplacement.id,p_new_card_id:newReplacement.id}); if(rpc.error) throw rpc.error; }
-
-  // Same-name collision: identity must be member/user ID, not display name.
-  for (const suffix of ["a","b"]) {
-    await supabase.from("organization_members").upsert({
-      organization_id:qaOrg.id,email:`demo.ayni.isim.${suffix}@yenomi.test`,full_name:"Ahmet Yılmaz",
-      title:suffix==="a"?"Satış Uzmanı":"Operasyon Uzmanı",department:suffix==="a"?"Satış":"Operasyon",role:"EMPLOYEE",status:"INVITED",
-    },{onConflict:"organization_id,email"}).throwOnError();
+  const assignedProfile = await supabase.from("card_profiles").select("id").eq("slug", "qa-trassigned").single();
+  const assignedUser = users.trAssigned;
+  if (assignedProfile.data && assignedUser) {
+    const oldReplacement = await supabase.from("physical_cards").select("id").eq("card_code", "YN-TRREPOLD0001").maybeSingle();
+    let oldId = oldReplacement.data?.id;
+    if (!oldId) {
+      const insertedOld = await supabase.from("physical_cards").insert({
+        card_code: "YN-TRREPOLD0001", owner_profile_id: assignedProfile.data.id, owner_user_id: assignedUser.id,
+        organization_id: qaOrg.id, activated_at: new Date().toISOString(), status: "LOST",
+      }).select("id").single();
+      if (insertedOld.error) throw insertedOld.error;
+      oldId = insertedOld.data.id;
+    }
+    const newReplacement = await supabase.from("physical_cards").select("id").eq("card_code", "YN-TRREPNEW0001").maybeSingle();
+    let newId = newReplacement.data?.id;
+    if (!newId) {
+      const insertedNew = await supabase.from("physical_cards").insert({
+        card_code: "YN-TRREPNEW0001", owner_profile_id: assignedProfile.data.id, owner_user_id: assignedUser.id,
+        organization_id: qaOrg.id, activated_at: new Date().toISOString(), status: "ACTIVE",
+      }).select("id").single();
+      if (insertedNew.error) throw insertedNew.error;
+      newId = insertedNew.data.id;
+    }
+    const oldState = await supabase.from("physical_cards").select("replaced_by_card_id").eq("id", oldId).single();
+    if (oldState.error) throw oldState.error;
+    if (!oldState.data.replaced_by_card_id) {
+      const rpc = await supabase.rpc("replace_physical_card", { p_old_card_id: oldId, p_new_card_id: newId });
+      if (rpc.error) throw rpc.error;
+    }
   }
 
-  // Duplicate-email error is a procedure, not a second fixture: as owner, invite
-  // demo.calisan.dijital@yenomi.test again. Server must return the existing-member error.
+  // Same-name identity pair from DEMO_IDENTITY_COLLISION
+  for (const suffix of identityCollision.suffixes) {
+    await supabase.from("organization_members").upsert({
+      organization_id: qaOrg.id,
+      email: `${identityCollision.emailPrefix}${suffix}@yenomi.test`,
+      full_name: identityCollision.displayName,
+      title: suffix === "a" ? "Satış Uzmanı" : "Operasyon Uzmanı",
+      department: suffix === "a" ? "Satış" : "Operasyon",
+      role: "EMPLOYEE",
+      status: "INVITED",
+    }, { onConflict: "organization_id,email" }).throwOnError();
+  }
+
+  // Duplicate-email is a procedure against an existing member: demo.calisan.dijital@yenomi.test again
 
   // Unassigned physical stock on the org the Turkish owner actually opens.
   for (const code of ["YN-QASTOCK0001A", "YN-QASTOCK0002A"]) {
@@ -711,16 +654,17 @@ for (const scenario of corporateScenarios) {
 
   // Second organization for cross-org context/isolation tests.
   const orgB = await ensureOrganization({ slug: "demo-qa-ikinci-sirket", name: "Demo QA / İkinci Şirket" });
-  const subB=await supabase.from("organization_subscriptions").select("id").eq("organization_id",orgB.id).limit(1).maybeSingle();
-  const payloadB={organization_id:orgB.id,plan_id:plan.id,status:"ACTIVE",starts_at:new Date().toISOString(),expires_at:new Date(Date.now()+365*86400000).toISOString(),seat_limit:50};
-  if(subB.data) await supabase.from("organization_subscriptions").update(payloadB).eq("id",subB.data.id).throwOnError(); else await supabase.from("organization_subscriptions").insert(payloadB).throwOnError();
-  await supabase.from("organization_members").upsert({organization_id:orgB.id,user_id:users.multiOrgUser.id,email:users.multiOrgUser.email,full_name:users.multiOrgUser.user_metadata.full_name,title:"İkinci Şirket Admin",department:"Yönetim",role:"ADMIN",status:"ACTIVE"},{onConflict:"organization_id,email"}).throwOnError();
+  const subB = await supabase.from("organization_subscriptions").select("id").eq("organization_id", orgB.id).limit(1).maybeSingle();
+  const payloadB = { organization_id: orgB.id, plan_id: plan.id, status: "ACTIVE", starts_at: new Date().toISOString(), expires_at: new Date(Date.now() + 365 * 86400000).toISOString(), seat_limit: 50 };
+  if (subB.data) await supabase.from("organization_subscriptions").update(payloadB).eq("id", subB.data.id).throwOnError();
+  else await supabase.from("organization_subscriptions").insert(payloadB).throwOnError();
+  await supabase.from("organization_members").upsert({ organization_id: orgB.id, user_id: users.multiOrgUser.id, email: users.multiOrgUser.email, full_name: users.multiOrgUser.name, title: "İkinci Şirket Admin", department: "Yönetim", role: "ADMIN", status: "ACTIVE" }, { onConflict: "organization_id,email" }).throwOnError();
 
-  // Template fixture. Lead fixture remains a deliberate product gap: no lead domain table exists yet.
+  // Template fixture. Lead fixture remains an explicit product gap: no lead domain table exists yet.
   {
     const current = await supabase.from("organization_card_templates").select("id").eq("organization_id", qaOrg.id).eq("is_default", true).maybeSingle();
     if (current.error) throw current.error;
-    const payload = { organization_id:qaOrg.id,name:"QA Kurumsal Şablon",is_default:true,primary_color:"#6F42C1",fields:{qa:true} };
+    const payload = { organization_id: qaOrg.id, name: "QA Kurumsal Şablon", is_default: true, primary_color: "#6F42C1", fields: { qa: true } };
     if (current.data) await supabase.from("organization_card_templates").update(payload).eq("id", current.data.id).throwOnError();
     else await supabase.from("organization_card_templates").insert(payload).throwOnError();
   }
@@ -728,25 +672,29 @@ for (const scenario of corporateScenarios) {
 
 // Turkish corporate occupancy aliases: separate orgs for 0/full/partial cases.
 for (const scenario of [
-  { key:"trFullOwner", slug:"demo-tr-tam-kapasite", name:"Demo TR / Tam Kapasite", limit:5, used:5 },
-  { key:"trEmptyOwner", slug:"demo-tr-yeni-kurumsal", name:"Demo TR / Yeni Kurumsal", limit:5, used:1 },
-  { key:"trPartialOwner", slug:"demo-tr-kismen-dolu", name:"Demo TR / Kısmen Dolu", limit:10, used:6 },
-  { key:"trTemplateOwner", slug:"demo-tr-template", name:"Demo TR / Şablon", limit:5, used:1 },
-  { key:"trLeadOwner", slug:"demo-tr-lead", name:"Demo TR / Lead (Modül Bekliyor)", limit:5, used:1 },
+  { key: "trFullOwner", slug: "demo-tr-tam-kapasite", name: "Demo TR / Tam Kapasite", limit: 5, used: 5 },
+  { key: "trEmptyOwner", slug: "demo-tr-yeni-kurumsal", name: "Demo TR / Yeni Kurumsal", limit: 5, used: 1 },
+  { key: "trPartialOwner", slug: "demo-tr-kismen-dolu", name: "Demo TR / Kısmen Dolu", limit: 10, used: 6 },
+  { key: "trTemplateOwner", slug: "demo-tr-template", name: "Demo TR / Şablon", limit: 5, used: 1 },
+  { key: "trLeadOwner", slug: "demo-tr-lead", name: "Demo TR / Lead (Modül Bekliyor)", limit: 5, used: 1 },
 ]) {
-  const planCode=scenario.limit===10?"DEMO-10":"DEMO-5";
-  const plan=await supabase.from("business_plans").select("id").eq("code",planCode).single(); if(plan.error) throw plan.error;
+  const planCode = scenario.limit === 10 ? "DEMO-10" : "DEMO-5";
+  const plan = await supabase.from("business_plans").select("id").eq("code", planCode).single();
+  if (plan.error) throw plan.error;
   const org = await ensureOrganization({ slug: scenario.slug, name: scenario.name });
-  const owner=users[scenario.key];
-  await supabase.from("organization_members").upsert({organization_id:org.id,user_id:owner.id,email:owner.email,full_name:owner.user_metadata.full_name,title:"Şirket Sahibi",department:"Yönetim",role:"OWNER",status:"ACTIVE"},{onConflict:"organization_id,email"}).throwOnError();
-  const sub=await supabase.from("organization_subscriptions").select("id").eq("organization_id",org.id).limit(1).maybeSingle();
-  const subPayload={organization_id:org.id,plan_id:plan.data.id,status:"ACTIVE",starts_at:new Date().toISOString(),expires_at:new Date(Date.now()+365*86400000).toISOString(),seat_limit:scenario.limit};
-  if(sub.data) await supabase.from("organization_subscriptions").update(subPayload).eq("id",sub.data.id).throwOnError(); else await supabase.from("organization_subscriptions").insert(subPayload).throwOnError();
-  for(let i=2;i<=scenario.used;i++) await supabase.from("organization_members").upsert({organization_id:org.id,email:`koltuk${i}.${scenario.slug}@yenomi.test`,full_name:`Demo Çalışan ${i}`,title:"Çalışan",department:"Operasyon",role:"EMPLOYEE",status:"INVITED"},{onConflict:"organization_id,email"}).throwOnError();
-  if(scenario.key==="trTemplateOwner") {
-    const current=await supabase.from("organization_card_templates").select("id").eq("organization_id",org.id).eq("is_default",true).maybeSingle(); if(current.error) throw current.error;
-    const payload={organization_id:org.id,name:"Kurumsal Standart",is_default:true,primary_color:"#6F42C1",fields:{logo:true}};
-    if(current.data) await supabase.from("organization_card_templates").update(payload).eq("id",current.data.id).throwOnError(); else await supabase.from("organization_card_templates").insert(payload).throwOnError();
+  const owner = users[scenario.key];
+  await supabase.from("organization_members").upsert({ organization_id: org.id, user_id: owner.id, email: owner.email, full_name: owner.name, title: "Şirket Sahibi", department: "Yönetim", role: "OWNER", status: "ACTIVE" }, { onConflict: "organization_id,email" }).throwOnError();
+  const sub = await supabase.from("organization_subscriptions").select("id").eq("organization_id", org.id).limit(1).maybeSingle();
+  const subPayload = { organization_id: org.id, plan_id: plan.data.id, status: "ACTIVE", starts_at: new Date().toISOString(), expires_at: new Date(Date.now() + 365 * 86400000).toISOString(), seat_limit: scenario.limit };
+  if (sub.data) await supabase.from("organization_subscriptions").update(subPayload).eq("id", sub.data.id).throwOnError();
+  else await supabase.from("organization_subscriptions").insert(subPayload).throwOnError();
+  for (let i = 2; i <= scenario.used; i++) await supabase.from("organization_members").upsert({ organization_id: org.id, email: `koltuk${i}.${scenario.slug}@yenomi.test`, full_name: `Demo Çalışan ${i}`, title: "Çalışan", department: "Operasyon", role: "EMPLOYEE", status: "INVITED" }, { onConflict: "organization_id,email" }).throwOnError();
+  if (scenario.key === "trTemplateOwner") {
+    const current = await supabase.from("organization_card_templates").select("id").eq("organization_id", org.id).eq("is_default", true).maybeSingle();
+    if (current.error) throw current.error;
+    const payload = { organization_id: org.id, name: "Kurumsal Standart", is_default: true, primary_color: "#6F42C1", fields: { logo: true } };
+    if (current.data) await supabase.from("organization_card_templates").update(payload).eq("id", current.data.id).throwOnError();
+    else await supabase.from("organization_card_templates").insert(payload).throwOnError();
   }
 }
 
@@ -873,7 +821,7 @@ const guestActivationUrls = [];
       orderNumber: guest.orderNumber,
       tokenLabel: guest.tokenLabel,
       audience: "individual",
-      variantSku: "YENOMI-NFC-CARD-ANNUAL",
+      variantSku: guest.variantSku || "YENOMI-NFC-CARD-ANNUAL",
     });
     guestActivationUrls.push({ email: guest.email, orderNumber: guest.orderNumber, url: `/aktivasyon?token=${encodeURIComponent(seeded.token.raw)}` });
   }
@@ -884,7 +832,7 @@ const guestActivationUrls = [];
     orderNumber: corporateGuest.orderNumber,
     tokenLabel: corporateGuest.tokenLabel,
     audience: "corporate",
-    variantSku: "YENOMI-CORP-2",
+    variantSku: corporateGuest.variantSku || "YENOMI-CORP-2",
   });
   guestActivationUrls.push({ email: corporateGuest.email, orderNumber: corporateGuest.orderNumber, url: `/aktivasyon?token=${encodeURIComponent(seededCorp.token.raw)}` });
 }

@@ -701,5 +701,5 @@ Payment chain: only with sandbox. Until then report **NOT RUN**.
 
 1. Land **#127** (CSP nonce on Next scripts, funnel document nonce lock, catalog 4-row grid).  
 2. Human: fill production secrets and dispatch Protected Production Deploy.  
-3. Post-deploy smoke: live HTML `nonce=` matches CSP; iPhone hamburger; Campaign Mail gone; how-it-works board; sitemap locs match `PRODUCTION_SITE_URL`.  
+3. Post-deploy smoke: `npm run verify:faz10:smoke` against `PRODUCTION_SITE_URL` (nonce, how-steps-board, no Campaign Mail card, sitemap host). Then iPhone hamburger.  
 4. Do not add `unsafe-inline`, restyle the shell, or treat skipped iyzico E2E as coverage.

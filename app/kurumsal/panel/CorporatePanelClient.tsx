@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { writeSessionCookie } from "../../components/AuthSessionBridge";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 import { Icon } from "../../icons";
-import { EmptyState, LoadingState } from "../../components/ui/States";
+import { EmptyState, ErrorState, LoadingState } from "../../components/ui/States";
 import PanelSidebar from "../../components/ui/PanelSidebar";
 import { YenomiProductVisual } from "../../ui/YenomiProductVisual";
 import {
@@ -1478,11 +1478,11 @@ export default function CompanyPanel() {
                   const visibleError = scopedDataError || overviewMemberError;
                   if (!visibleError) return null;
                   return (
-                    <div className="enterprise-data-error" role="alert" aria-live="assertive">
-                      <strong>Kurumsal veriler yüklenemedi.</strong>
-                      <p>{visibleError}</p>
-                      <button type="button" onClick={() => void reloadPanelData()}>Yeniden Dene</button>
-                    </div>
+                    <ErrorState
+                      title="Kurumsal veriler yüklenemedi"
+                      description={visibleError}
+                      onRetry={() => void reloadPanelData()}
+                    />
                   );
                 })()}
                 {currentTab === "overview" && (

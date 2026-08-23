@@ -1,4 +1,4 @@
-import { cloneElement, isValidElement, useId } from "react";
+import { cloneElement, isValidElement, useId, useState } from "react";
 import type {
   ButtonHTMLAttributes,
   HTMLAttributes,
@@ -54,8 +54,10 @@ export function Avatar({ name, src, size = "md", className }: {
   className?: string;
 }) {
   const initials = name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase() || "YI";
+  const [hasError, setHasError] = useState(false);
+  const showSrc = Boolean(src) && !hasError;
   return <span className={cx("ds-avatar", `ds-avatar--${size}`, className)} aria-label={name}>
-    {src ? <img src={src} alt="" /> : <span aria-hidden="true">{initials}</span>}
+    {showSrc ? <img src={src} alt="" onError={() => setHasError(true)} /> : <span aria-hidden="true">{initials}</span>}
   </span>;
 }
 

@@ -78,6 +78,11 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
   const whatsapp = cleanPhone(data.whatsapp || data.phone).replace(/^\+/, "");
   const initials = data.name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "YK";
   const [qrDataUrl, setQrDataUrl] = useState("");
+  const [imgError, setImgError] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+
+  useEffect(() => { setImgError(false); }, [data.image]);
+  useEffect(() => { setLogoError(false); }, [branding?.logoUrl]);
 
   const generatedLinks = [
     data.phone && { title: "Telefon", subtitle: data.phone, href: `tel:${phone}`, kind: "phone" as const },
@@ -119,13 +124,13 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
     return () => { cancelled = true; };
   }, [brandVariant, isCorporate, publicHref]);
 
-  const identityPhoto = (className: string) => data.image
-    ? <img className={className} src={data.image} alt={`${data.name || "Profil"} görseli`} style={{ objectPosition: imagePosition ?? "50% 50%" }} />
+  const identityPhoto = (className: string) => (data.image && !imgError)
+    ? <img className={className} src={data.image} alt={`${data.name || "Profil"} görseli`} onError={() => setImgError(true)} style={{ objectPosition: imagePosition ?? "50% 50%" }} />
     : <span className={`${className} corporate-avatar-fallback`}>{initials}</span>;
 
   const corporateBrand = (
     <div className="corp-logo-lockup">
-      {brandLogo ? <img src={brandLogo} alt={`${companyName} logosu`} /> : <span className="corp-logo-symbol">Y</span>}
+      {(brandLogo && !logoError) ? <img src={brandLogo} alt={`${companyName} logosu`} onError={() => setLogoError(true)} /> : <span className="corp-logo-symbol">Y</span>}
       <strong>{companyName}</strong>
     </div>
   );
@@ -387,8 +392,8 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
         </a>
       </div>
       <section className="compact-card" aria-label={`${data.name || "Dijital kartvizit"}`}>
-        <div className={`compact-cover ${!data.image ? "compact-cover-placeholder" : ""}`}>
-          {data.image ? <img src={data.image} alt={`${data.name || "Profil"} görseli`} style={{ objectPosition: imagePosition ?? "50% 50%" }} /> : <b>{initials}</b>}
+        <div className={`compact-cover ${(!data.image || imgError) ? "compact-cover-placeholder" : ""}`}>
+          {(data.image && !imgError) ? <img src={data.image} alt={`${data.name || "Profil"} görseli`} onError={() => setImgError(true)} style={{ objectPosition: imagePosition ?? "50% 50%" }} /> : <b>{initials}</b>}
           <div className="compact-shade" />
         </div>
         <div className="compact-identity"><div className="identity-copy"><h1>{data.name || "Ad Soyad"}</h1><p>{role}</p></div><span className="verified-pill">Dijital Kartvizit</span></div>

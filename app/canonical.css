@@ -16487,6 +16487,161 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
   font-size: 15px;
 }
 
+/* Image display, avatar containment, and compact card preview visual stability */
+.compact-wrap {
+  width: min(100%, 420px);
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.brand-top {
+  display: flex;
+  justify-content: center;
+}
+.brand-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--border-gold);
+  border-radius: 999px;
+  background: var(--gold-dim);
+  color: var(--ink-2);
+  font-size: 11px;
+  text-decoration: none;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.brand-pill:hover {
+  border-color: var(--gold-hi);
+  transform: translateY(-1px);
+}
+.brand-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold-hi);
+}
+.compact-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+}
+.compact-cover {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1f1b16 0%, #120e0b 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.compact-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  image-rendering: -webkit-optimize-contrast;
+}
+.compact-cover-placeholder {
+  color: var(--gold-hi);
+  font: 800 36px var(--font-mono);
+}
+.compact-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(20, 16, 13, 0.82) 0%, transparent 60%);
+  pointer-events: none;
+}
+.compact-identity {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 16px 18px;
+  margin-top: -36px;
+  position: relative;
+  z-index: 2;
+}
+.identity-copy {
+  min-width: 0;
+}
+.identity-copy h1 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 800;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.identity-copy p {
+  margin: 4px 0 0;
+  color: var(--gold-hi);
+  font-size: 13px;
+  font-weight: 600;
+}
+.verified-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid var(--border-gold);
+  border-radius: 999px;
+  background: var(--gold-dim);
+  color: var(--gold-hi);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.compact-links {
+  display: grid;
+  gap: 8px;
+}
+.compact-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--ink-3);
+  font-size: 11px;
+  padding: 8px 4px;
+}
+.compact-footer a {
+  color: var(--ink-2);
+  text-decoration: none;
+}
+.compact-footer a:hover {
+  color: var(--gold-hi);
+}
+
+/* Avatar Image & Logo visual fixes across all card formats */
+.p12-avatar,
+.corp-essential-avatar,
+.corp-professional-avatar,
+.corp-executive-avatar {
+  flex-shrink: 0;
+  display: block;
+  object-fit: cover;
+  image-rendering: -webkit-optimize-contrast;
+}
+.corp-logo-lockup img {
+  flex-shrink: 0;
+  display: block;
+  object-fit: cover;
+  image-rendering: -webkit-optimize-contrast;
+}
+.qr-first-code img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+
 
 
 

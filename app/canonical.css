@@ -16641,6 +16641,95 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
   image-rendering: -webkit-optimize-contrast;
 }
 
+/* Premium Login Surface Redesign & Smart Tab Switcher */
+.p6-auth-form-card {
+  width: min(100%, 460px);
+  padding: 32px;
+  border: 1px solid rgba(24, 19, 13, 0.08);
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.p6-auth-portal-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 22px;
+  border: 1px solid rgba(24, 19, 13, 0.08);
+  border-radius: 14px;
+  background: var(--surface-2, #f5f4f0);
+}
+
+.p6-auth-portal-tabs a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.p6-auth-portal-tabs a.active {
+  background: #ffffff;
+  color: #17120c;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.p6-auth-message-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.p6-auth-switch-tab-btn {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 5px 10px;
+  border: 1px solid var(--border-gold);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--gold-hi);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.p6-auth-switch-tab-btn:hover {
+  background: var(--gold-dim);
+}
+
+.p6-auth-input {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.p6-auth-input:focus-within {
+  border-color: var(--gold-hi);
+  box-shadow: 0 0 0 3px rgba(212, 180, 131, 0.2);
+}
+
+.p6-auth-submit {
+  background: linear-gradient(135deg, #d4b483 0%, #a88448 100%);
+  color: #17120c;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(168, 132, 72, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.p6-auth-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(168, 132, 72, 0.35);
+}
+
+
 
 
 

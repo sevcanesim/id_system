@@ -394,7 +394,35 @@ export default function LoginClient({
       role={messageTone === "error" ? "alert" : "status"}
       aria-live={messageTone === "error" ? "assertive" : "polite"}
     >
-      {message}
+      <div className="p6-auth-message-content">
+        <span>{message}</span>
+        {message.includes("bireysel hesaptır") && portal !== "individual" && (
+          <button
+            type="button"
+            className="p6-auth-switch-tab-btn"
+            onClick={() => {
+              setPortal("individual");
+              setMessage("");
+              persistActivePortal("individual");
+            }}
+          >
+            Bireysel Giriş Sekmesine Geç →
+          </button>
+        )}
+        {message.includes("kurumsal hesaptır") && portal !== "business" && (
+          <button
+            type="button"
+            className="p6-auth-switch-tab-btn"
+            onClick={() => {
+              setPortal("business");
+              setMessage("");
+              persistActivePortal("business");
+            }}
+          >
+            Kurumsal Giriş Sekmesine Geç →
+          </button>
+        )}
+      </div>
     </div>
   ) : null;
 

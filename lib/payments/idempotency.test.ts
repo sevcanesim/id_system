@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { COMMERCIAL_PRICING, COMMERCIAL_SKUS } from "../config/commercial";
 import { createCheckoutFingerprint } from "./idempotency";
 
 const base = {
-  items: [{ productSlug: "nfc-kart", variantSku: "YENOMI-NFC-CARD-ANNUAL", quantity: 1 }],
+  items: [{ productSlug: "nfc-kart", variantSku: COMMERCIAL_SKUS.INITIAL, quantity: 1 }],
   email: "ada@example.com",
-  totalKurus: 79_900,
+  totalKurus: COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus,
   shipping: { city: "İzmir" },
   consents: { privacyVersion: "1" },
 };

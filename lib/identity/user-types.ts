@@ -2,8 +2,10 @@ import { COMMERCIAL_SKUS } from "../config/commercial";
 import {
   ADMIN_PROVISION_PLAN_CODES,
   CORPORATE_PACKAGE_LADDER,
+  INDIVIDUAL_DIGITAL_PLAN,
   INDIVIDUAL_PLAN,
   INDIVIDUAL_PREMIUM_PLAN,
+  RETIRED_CORPORATE_PACKAGE_CODES,
   resolveCorporatePlanCode,
 } from "../commerce/packages";
 import type { AccountType, TestLoginScope } from "../auth/account-type";
@@ -84,6 +86,9 @@ const ADMIN_ONLY_PACKAGES: IdentityPackageRecord[] = [
   { code: "GROWTH", name: "Growth (alias CORP-25)", occupancy: "CORPORATE", productFamily: "DIGITAL_ID", live: false },
   { code: "BUSINESS", name: "Business (alias CORP-50)", occupancy: "CORPORATE", productFamily: "DIGITAL_ID", live: false },
   { code: "ENTERPRISE", name: "Enterprise", occupancy: "CORPORATE", productFamily: "DIGITAL_ID", live: false },
+  { code: "CORP-4", name: "Kurumsal 4", occupancy: "CORPORATE", productFamily: "DIGITAL_ID", live: false },
+  { code: "CORP-20", name: "Kurumsal 20", occupancy: "CORPORATE", productFamily: "DIGITAL_ID", live: false },
+  { code: "CORP-75", name: "Kurumsal 75", occupancy: "CORPORATE", productFamily: "DIGITAL_ID", live: false },
 ];
 
 const ROADMAP_PACKAGES: IdentityPackageRecord[] = [
@@ -101,6 +106,13 @@ export const IDENTITY_PACKAGE_CATALOG: readonly IdentityPackageRecord[] = [
     occupancy: "INDIVIDUAL",
     productFamily: "DIGITAL_ID",
     live: false,
+  },
+  {
+    code: INDIVIDUAL_DIGITAL_PLAN.code,
+    name: INDIVIDUAL_DIGITAL_PLAN.name,
+    occupancy: "INDIVIDUAL",
+    productFamily: "DIGITAL_ID",
+    live: true,
   },
   {
     code: INDIVIDUAL_PLAN.code,
@@ -167,12 +179,14 @@ export function familyFromCommerceKind(kind: string | null | undefined): Identit
 }
 
 const SKU_TO_PACKAGE: Record<string, string> = {
+  [COMMERCIAL_SKUS.DIGITAL]: INDIVIDUAL_DIGITAL_PLAN.code,
   [COMMERCIAL_SKUS.INITIAL]: INDIVIDUAL_PLAN.code,
   [COMMERCIAL_SKUS.RENEWAL]: INDIVIDUAL_PLAN.code,
   [COMMERCIAL_SKUS.PREMIUM]: INDIVIDUAL_PREMIUM_PLAN.code,
   [COMMERCIAL_SKUS.PREMIUM_RENEWAL]: INDIVIDUAL_PREMIUM_PLAN.code,
   [COMMERCIAL_SKUS.PREMIUM_UPGRADE]: INDIVIDUAL_PREMIUM_PLAN.code,
   ...Object.fromEntries(CORPORATE_PACKAGE_LADDER.map((row) => [`YENOMI-${row.code}`, row.code])),
+  ...Object.fromEntries(RETIRED_CORPORATE_PACKAGE_CODES.map((code) => [`YENOMI-${code}`, code])),
 };
 
 export function packageCodeFromSku(sku: string | null | undefined): string {

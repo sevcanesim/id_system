@@ -8,14 +8,14 @@ import { PublicPageTitle } from "../../components/PublicPageTitle";
 
 export const metadata: Metadata = {
   title: "NFC + QR Kart",
-  description: "Premium NFC + QR kart. Unvanın değişince baskı yok; kaybolursa kapatırsın. 1 yıl dijital hizmet ve Türkiye içi kargo dahil. Kart numarası iyzico’da kalır.",
+  description: "Premium NFC + QR kart. Unvanın değişince baskı yok; kaybolursa kapatırsın. Tek seferlik ödeme, 1 yıl platform üyeliği ve Türkiye içi kargo dahil. Kart numarası iyzico’da kalır.",
 };
 
 const benefits = [
   ["01", "NFC", "NFC destekli telefonlarda tek dokunuşla profilini aç."],
   ["02", "QR", "NFC kullanılamadığında aynı kalıcı profile QR ile ulaş."],
   ["03", "Sabit bağlantı", "Kartı yeniden bastırmadan profilindeki bilgileri güncelle."],
-  ["04", "1 yıllık kullanım", "İlk satın alma bedeline dijital profil hizmeti dahildir."],
+  ["04", "1 yıl dahil", "Tek seferlik ödemeye 1 yıl platform üyeliği dahildir."],
 ];
 
 const steps = [
@@ -25,12 +25,12 @@ const steps = [
 ];
 
 const faq = [
-  [`${COMMERCIAL_COPY.initialPrice}’ye tam olarak ne dahil?`, "1 adet kişiselleştirilmiş NFC + QR kart, aynı karta bağlı dijital kartvizit, 1 yıllık dijital hizmet ve Türkiye içi ücretsiz kargo dahildir."],
-  [`Bireysel Premium ${COMMERCIAL_COPY.premiumPrice} neden farklı?`, "Premium, bireysel paketteki her şeyi içerir; ayrıca toplantı, sunum, kişi yönetimi ve 100 Network Mail kredisi verir. Kredi ödeme sonrası hesabına yazılır."],
+  [`${COMMERCIAL_COPY.initialPrice}’ye tam olarak ne dahil?`, "1 adet kişiselleştirilmiş NFC + QR kart, aynı karta bağlı dijital kartvizit, 1 yıl platform üyeliği ve Türkiye içi ücretsiz kargo dahildir. Tek seferlik ödeme."],
+  [`Premium ${COMMERCIAL_COPY.premiumPrice} neden farklı?`, "Premium, NFC paketteki her şeyi içerir; ayrıca toplantı, sunum, kişi yönetimi ve 500 Network Mail kredisi verir. Kredi ödeme sonrası hesabına yazılır."],
   ["Kart kaç günde hazırlanır?", "Profil ve sipariş bilgileriniz tamamlandıktan sonra kartınız 2 iş günü içinde hazırlanıp kargoya teslim edilir. Kargo firmasının teslim süresi bu süreye dahil değildir."],
   ["Kargo dahil mi?", "Evet. Türkiye içi standart kargo ürün fiyatına dahildir. Şimdilik Türkiye dışına sipariş alınmamaktadır."],
-  ["İlk yıl dijital hizmet fiyata dahil mi?", "Evet. Satın alma bedeli dijital kartvizit sayfasının 1 yıllık dijital hizmetini kapsar."],
-  ["Süre dolunca ne olur?", `Bireysel hizmet ${COMMERCIAL_COPY.renewalPrice}/yıl, Bireysel Premium ${COMMERCIAL_COPY.premiumRenewalPrice}/yıl yenilenir. Yeni kart gönderilmez. Premium’da kullanılmayan Network Mail bir sonraki yıla taşınır.`],
+  ["İlk yıl platform üyeliği fiyata dahil mi?", "Evet. Tek seferlik satın alma bedeli dijital kartvizit sayfasının 1 yıllık kullanımını kapsar. Aylık abonelik yoktur."],
+  ["Süre dolunca ne olur?", `NFC hizmet ${COMMERCIAL_COPY.renewalPrice}, Premium ${COMMERCIAL_COPY.premiumRenewalPrice} ile yenilenir. Yeni kart gönderilmez. Premium’da kullanılmayan Network Mail bir sonraki yıla taşınır.`],
   ["Bilgilerimi kaç kez değiştirebilirim?", "Aktif kullanım süreniz boyunca telefon, unvan, şirket, sosyal medya, web sitesi ve diğer profil bilgilerinizi istediğiniz kadar güncelleyebilirsiniz."],
   ["NFC her telefonda çalışır mı?", "NFC destekli çoğu modern telefonda kartı yaklaştırarak profil açılır. NFC kapalıysa veya cihaz NFC desteklemiyorsa kart üzerindeki QR kod kullanılabilir."],
   ["QR kodum değişir mi?", "Hayır. Kart üzerindeki QR kod ve profil bağlantısı sabit kalır. Sayfadaki bilgiler değişse bile kartı yeniden bastırmanız gerekmez."],
@@ -88,8 +88,8 @@ export default async function NfcKartPage({
       <section className="nfc-includes">
         <div className="yi-container nfc-includes__grid">
           <div><span className="nfc-kicker">NE ALIYORSUN?</span><h2>Karttan fazlası.<br />Kimliğin sende kalır.</h2></div>
-          <ul><li>1 adet kişisel NFC kart</li><li>Değişmeyen kişisel QR kod</li><li>1 yıllık dijital kartvizit sayfası</li><li>Aktif dönemde sınırsız bilgi güncelleme</li><li>Kayıp modu ve yedek kart desteği</li><li>Türkiye içi standart kargo dahil</li></ul>
-          <div className="nfc-includes__cta"><span>Kargo dahil paket fiyatı</span><strong>{formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)}</strong><small>1 kart • 1 yıllık sayfa • Türkiye içi teslimat</small><Link className="home-mockup__link-secondary" href="#nfc-hero-price-row">Sepete Ekle</Link></div>
+          <ul><li>1 adet kişisel NFC kart</li><li>Değişmeyen kişisel QR kod</li><li>1 yıl platform üyeliği dahil</li><li>Aktif dönemde sınırsız bilgi güncelleme</li><li>Kayıp modu ve yedek kart desteği</li><li>Türkiye içi standart kargo dahil</li></ul>
+          <div className="nfc-includes__cta"><span>Tek seferlik, kargo dahil</span><strong>{formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)}</strong><small>1 kart • 1 yıl dahil • Türkiye içi teslimat</small><Link className="home-mockup__link-secondary" href="#nfc-hero-price-row">Sepete Ekle</Link></div>
         </div>
       </section>
 
@@ -100,7 +100,7 @@ export default async function NfcKartPage({
       </section>
 
       <section className="nfc-final">
-          <div className="yi-container"><span className="nfc-kicker">ŞİMDİ BAŞLA</span><h2>Bir sonraki tanışmada<br />güncel ol.</h2><p>İlk paket {formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)}. 1 yıl dijital hizmet ve Türkiye içi kargo dahil.</p><Link className="home-mockup__link-secondary" href="#nfc-hero-price-row">Sepete Ekle</Link></div>
+          <div className="yi-container"><span className="nfc-kicker">ŞİMDİ BAŞLA</span><h2>Bir sonraki tanışmada<br />güncel ol.</h2><p>Ana ürün {formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)}. Tek seferlik ödeme, 1 yıl platform üyeliği ve Türkiye içi kargo dahil.</p><Link className="home-mockup__link-secondary" href="#nfc-hero-price-row">Sepete Ekle</Link></div>
       </section>
     </main>
   );

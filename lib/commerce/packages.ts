@@ -9,17 +9,29 @@
  */
 
 export const NETWORK_MAIL_PER_SEAT_ANNUAL = 100;
-export const INDIVIDUAL_PREMIUM_NETWORK_MAIL = NETWORK_MAIL_PER_SEAT_ANNUAL;
+export const INDIVIDUAL_PREMIUM_NETWORK_MAIL = 500;
 export const NETWORK_MAIL_DAILY_SEND_CAP = 150;
 
+/** Digital-only first purchase. No NFC; QR profile + 1 year platform access. */
+export const INDIVIDUAL_DIGITAL_PLAN = {
+  code: "INDIVIDUAL_DIGITAL",
+  name: "Dijital",
+  priceKurus: 79_900,
+  durationMonths: 12,
+  nfcCards: 0,
+  networkMailCredits: 0,
+  popular: false,
+} as const;
+
+/** Hero individual offer: one NFC card + digital profile. One payment, 1 year included. */
 export const INDIVIDUAL_PLAN = {
   code: "INDIVIDUAL",
-  name: "Bireysel",
-  priceKurus: 79_900,
+  name: "NFC",
+  priceKurus: 149_000,
   durationMonths: 12,
   nfcCards: 1,
   networkMailCredits: 0,
-  popular: false,
+  popular: true,
 } as const;
 
 /** Extra physical NFC + QR on an existing profile. No new year, no new identity. */
@@ -33,12 +45,12 @@ export const ADDITIONAL_CARD_PLAN = {
 
 export const INDIVIDUAL_PREMIUM_PLAN = {
   code: "INDIVIDUAL_PREMIUM",
-  name: "Bireysel Premium",
-  priceKurus: 125_000,
+  name: "Premium",
+  priceKurus: 249_000,
   durationMonths: 12,
   nfcCards: 1,
   networkMailCredits: INDIVIDUAL_PREMIUM_NETWORK_MAIL,
-  popular: true,
+  popular: false,
 } as const;
 
 /** Year-2+ Premium: no NFC, unused Network Mail rolls over. */
@@ -52,29 +64,29 @@ export const INDIVIDUAL_PREMIUM_RENEWAL_PLAN = {
 } as const;
 
 /**
- * Active 799 → Premium for the remaining term. 1.250 − 799.
+ * Active NFC → Premium for the remaining term. 2.490 − 1.490.
  * No second NFC, no extra year.
  */
 export const INDIVIDUAL_PREMIUM_UPGRADE_PLAN = {
   code: "INDIVIDUAL_PREMIUM_UPGRADE",
-  name: "Bireysel Premium yükseltme",
+  name: "Premium yükseltme",
   priceKurus: INDIVIDUAL_PREMIUM_PLAN.priceKurus - INDIVIDUAL_PLAN.priceKurus,
   nfcCards: 0,
   networkMailCredits: INDIVIDUAL_PREMIUM_NETWORK_MAIL,
 } as const;
 
 export const CORPORATE_PACKAGE_LADDER = [
-  { code: "CORP-2", name: "Kurumsal 2", seats: 2, priceKurus: 240_000 },
-  { code: "CORP-3", name: "Kurumsal 3", seats: 3, priceKurus: 350_000 },
-  { code: "CORP-4", name: "Kurumsal 4", seats: 4, priceKurus: 450_000 },
-  { code: "CORP-5", name: "Kurumsal 5", seats: 5, priceKurus: 550_000 },
-  { code: "CORP-10", name: "Kurumsal 10", seats: 10, priceKurus: 990_000, popular: true },
-  { code: "CORP-20", name: "Kurumsal 20", seats: 20, priceKurus: 1_890_000 },
-  { code: "CORP-25", name: "Kurumsal 25", seats: 25, priceKurus: 2_290_000 },
-  { code: "CORP-50", name: "Kurumsal 50", seats: 50, priceKurus: 3_990_000 },
-  { code: "CORP-75", name: "Kurumsal 75", seats: 75, priceKurus: 5_690_000 },
-  { code: "CORP-100", name: "Kurumsal 100", seats: 100, priceKurus: 6_990_000 },
+  { code: "CORP-2", name: "Kurumsal 2", seats: 2, priceKurus: 349_000 },
+  { code: "CORP-3", name: "Kurumsal 3", seats: 3, priceKurus: 499_000 },
+  { code: "CORP-5", name: "Kurumsal 5", seats: 5, priceKurus: 749_000 },
+  { code: "CORP-10", name: "Kurumsal 10", seats: 10, priceKurus: 1_290_000 },
+  { code: "CORP-25", name: "Kurumsal 25", seats: 25, priceKurus: 2_990_000, popular: true },
+  { code: "CORP-50", name: "Kurumsal 50", seats: 50, priceKurus: 5_490_000 },
+  { code: "CORP-100", name: "Kurumsal 100", seats: 100, priceKurus: 9_990_000 },
 ] as const;
+
+/** Left the public ladder. Existing tenants keep the plan code; new sales are off. */
+export const RETIRED_CORPORATE_PACKAGE_CODES = ["CORP-4", "CORP-20", "CORP-75"] as const;
 
 export type CorporatePackageCode = (typeof CORPORATE_PACKAGE_LADDER)[number]["code"];
 
@@ -125,11 +137,11 @@ export const CAMPAIGN_MAIL_STAGE = "COMING_SOON" as const;
 
 /** Mid-cycle seat top-ups. Priced so buying the next official pack stays cheaper. */
 export const BUSINESS_SEAT_PACKS = [
-  { sku: "YENOMI-BUSINESS-SEATS-1", seats: 1, priceKurus: 99_000, name: "Ek 1 Kullanıcı + Kart" },
-  { sku: "YENOMI-BUSINESS-SEATS-2", seats: 2, priceKurus: 189_000, name: "Ek 2 Kullanıcı + Kart" },
-  { sku: "YENOMI-BUSINESS-SEATS-3", seats: 3, priceKurus: 269_000, name: "Ek 3 Kullanıcı + Kart" },
-  { sku: "YENOMI-BUSINESS-SEATS-5", seats: 5, priceKurus: 449_000, name: "Ek 5 Kullanıcı + Kart" },
-  { sku: "YENOMI-BUSINESS-SEATS-10", seats: 10, priceKurus: 849_000, name: "Ek 10 Kullanıcı + Kart" },
+  { sku: "YENOMI-BUSINESS-SEATS-1", seats: 1, priceKurus: 159_000, name: "Ek 1 Kullanıcı + Kart" },
+  { sku: "YENOMI-BUSINESS-SEATS-2", seats: 2, priceKurus: 279_000, name: "Ek 2 Kullanıcı + Kart" },
+  { sku: "YENOMI-BUSINESS-SEATS-3", seats: 3, priceKurus: 409_000, name: "Ek 3 Kullanıcı + Kart" },
+  { sku: "YENOMI-BUSINESS-SEATS-5", seats: 5, priceKurus: 549_000, name: "Ek 5 Kullanıcı + Kart" },
+  { sku: "YENOMI-BUSINESS-SEATS-10", seats: 10, priceKurus: 1_049_000, name: "Ek 10 Kullanıcı + Kart" },
 ] as const;
 
 export const ADMIN_PROVISION_PLAN_CODES = [
@@ -379,6 +391,25 @@ export function seatDecreasePolicy(input: {
   };
 }
 
+export const INDIVIDUAL_DIGITAL_FEATURES = [
+  "1 dijital kartvizit",
+  "QR paylaşımı",
+  "Kişisel mini profil",
+  "İletişim bilgileri",
+  "Sosyal medya bağlantıları",
+  "WhatsApp / telefon / e-posta aksiyonları",
+  "Temel görüntülenme istatistikleri",
+  "1 yıl platform üyeliği dahil",
+] as const;
+
+export const INDIVIDUAL_DIGITAL_CATALOG_POINTS = [
+  "Canlı dijital kartvizit",
+  "QR ile paylaş",
+  "Temel görüntülenme",
+  "Tek seferlik ödeme",
+  "1 yıl platform üyeliği dahil",
+] as const;
+
 export const INDIVIDUAL_FEATURES = [
   "1 dijital kartvizit",
   "1 NFC kart",
@@ -390,40 +421,40 @@ export const INDIVIDUAL_FEATURES = [
   "QR paylaşımı",
   "NFC paylaşımı",
   "Temel görüntülenme istatistikleri",
-  "1 yıllık kullanım",
+  "1 yıl platform üyeliği dahil",
   "Ücretsiz kargo",
 ] as const;
 
 /** Short decision list for public catalog cards. Full inventory stays on the PDP. */
 export const INDIVIDUAL_CATALOG_POINTS = [
   "1 NFC + QR kart",
-  "Canlı dijital kartvizit",
-  "Unvan değişince baskı yok",
-  "1 yıllık kullanım",
+  "Canlı dijital profil",
+  "Temel görüntülenme",
+  "Tek seferlik ödeme, 1 yıl dahil",
   "Türkiye içi kargo dahil",
 ] as const;
 
 export const INDIVIDUAL_PREMIUM_FEATURES = [
-  "Bireysel paketteki her şey",
+  "NFC paketteki her şey",
   "Toplantı oluşturma",
   "Sunum ekleme ve paylaşımı",
   "Gelişmiş istatistikler",
   "Contact / bağlantı yönetimi",
-  "100 Network Mail kredisi / yıl",
+  "500 Network Mail kredisi",
   "Hazır follow-up senaryoları",
   "Kişiye özel follow-up",
   "Etkinlik / fuar networking",
   "1 NFC kart",
-  "1 yıllık kullanım",
+  "1 yıl platform üyeliği dahil",
   "Ücretsiz kargo",
 ] as const;
 
 export const INDIVIDUAL_PREMIUM_CATALOG_POINTS = [
-  "Bireysel paketteki her şey",
-  "100 Network Mail / yıl",
+  "NFC paketteki her şey",
+  "500 Network Mail",
   "Toplantı ve sunum",
-  "Gelişmiş istatistik",
-  "Kişi ve follow-up yönetimi",
+  "Gelişmiş profil ve kişi yönetimi",
+  "Tek seferlik ödeme, 1 yıl dahil",
 ] as const;
 
 export const ADDITIONAL_CARD_FEATURES = [

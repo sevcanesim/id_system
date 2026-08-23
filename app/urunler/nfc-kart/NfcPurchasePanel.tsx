@@ -30,8 +30,9 @@ export default function NfcPurchasePanel({
   const unitPriceKurus = offerPriceKurus + (selectedVariant?.priceDeltaKurus ?? 0);
   const price = formatTryFromKurus(unitPriceKurus);
   const productName = selectedVariant
-    ? `${packageId === "premium" ? "Yenomi ID Bireysel Premium" : product.name} — ${selectedVariant.name}`
-    : packageId === "premium" ? "Yenomi ID Bireysel Premium" : product.name;
+    ? `${packageId === "premium" ? "Yenomi ID Premium" : product.name} — ${selectedVariant.name}`
+    : packageId === "premium" ? "Yenomi ID Premium" : product.name;
+  const ctaLabel = packageId === "premium" ? "Premium’u Seç →" : "NFC Kartımı Al →";
   const configuration = useMemo(
     () => selectedVariant
       ? { variantId: selectedVariant.id, variantName: selectedVariant.name, packageCode: packageId === "premium" ? INDIVIDUAL_PREMIUM_PLAN.code : INDIVIDUAL_PLAN.code }
@@ -73,14 +74,14 @@ export default function NfcPurchasePanel({
         {accessRequired
           ? "Yedek veya replacement kart için aktif bir Yenomi ID hizmetin gerekir. Aşağıdan ilk kartını alabilirsin; ödeme sunucuda yeniden doğrulanır."
           : packageId === "premium"
-            ? "Premium: NFC kart + 1 yıl + 100 Network Mail. Kredi ödeme sonrası hesabına yazılır. Kart numarası iyzico’da kalır."
-            : "Hesabın varsa sipariş bağlanır. Yoksa hesap açmadan ödeyebilirsin. Kart numarası Yenomi sunucularında tutulmaz."}
+            ? "Premium: NFC kart + 1 yıl platform üyeliği + 500 Network Mail. Tek seferlik ödeme. Kart numarası iyzico’da kalır."
+            : "Tek seferlik ödeme, 1 yıl platform üyeliği dahil. Hesabın varsa sipariş bağlanır. Kart numarası Yenomi sunucularında tutulmaz."}
       </p>
 
       <div className="nfc-price-row" id="nfc-hero-price-row">
         <div className="nfc-price-tag">
           <strong>{price}</strong>
-          <small>{packageId === "premium" ? "kart + 1 yıl + 100 Network Mail" : "kart + 1 yıllık kullanım"}</small>
+          <small>{packageId === "premium" ? "tek seferlik · NFC + 1 yıl + 500 Network Mail" : "tek seferlik · NFC + 1 yıl dahil"}</small>
         </div>
         <div className="nfc-price-actions">
           <AddToCartButton
@@ -90,7 +91,7 @@ export default function NfcPurchasePanel({
             name={productName}
             unitPriceKurus={unitPriceKurus}
             configuration={configuration}
-            label="Sepete Ekle"
+            label={ctaLabel}
           />
         </div>
       </div>
@@ -111,6 +112,7 @@ export default function NfcPurchasePanel({
         productName={productName}
         unitPriceKurus={unitPriceKurus}
         variantSku={offerSku}
+        label={ctaLabel}
       />
     </>
   );

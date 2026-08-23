@@ -293,7 +293,7 @@ export async function POST(request: NextRequest) {
     });
     const includesNewDigitalService = calculated.some((item) => {
       const metadata = (item.variant.metadata || {}) as Record<string, unknown>;
-      return metadata.digital_service_included === true || metadata.fulfillment_kind === "INITIAL_BUNDLE" || metadata.fulfillment_kind === "CORPORATE_PACKAGE" || item.variant.sku === COMMERCIAL_SKUS.INITIAL || item.variant.sku === COMMERCIAL_SKUS.PREMIUM;
+      return metadata.digital_service_included === true || metadata.fulfillment_kind === "INITIAL_BUNDLE" || metadata.fulfillment_kind === "DIGITAL_INITIAL" || metadata.fulfillment_kind === "CORPORATE_PACKAGE" || item.variant.sku === COMMERCIAL_SKUS.INITIAL || item.variant.sku === COMMERCIAL_SKUS.PREMIUM || item.variant.sku === COMMERCIAL_SKUS.DIGITAL;
     });
     const physicalOnlyCardNeedsActiveEntitlement = hasPhysicalOnlyCard && !includesNewDigitalService;
     const includesRenewal = calculated.some((item) => ((item.variant.metadata || {}) as Record<string, unknown>).fulfillment_kind === "DIGITAL_RENEWAL");

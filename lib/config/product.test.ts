@@ -19,16 +19,16 @@ describe("selectInitialOfferVariant", () => {
     ];
     expect(selectInitialOfferVariant(variants)).toBeUndefined();
     expect(listingPriceKurus(variants)).toBe(NFC_PRODUCT.unitPriceKurus);
-    expect(listingPriceKurus(variants)).toBe(79_900);
+    expect(listingPriceKurus(variants)).toBe(149_000);
   });
 
-  it("keeps public listing on the 799 SKU even if Premium is also INITIAL_BUNDLE", () => {
+  it("keeps public listing on the NFC SKU even if Premium is also INITIAL_BUNDLE", () => {
     const variants = [
       { sku: COMMERCIAL_SKUS.PREMIUM, priceKurus: COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.priceKurus, metadata: { fulfillment_kind: "INITIAL_BUNDLE" } },
       { sku: COMMERCIAL_SKUS.INITIAL, priceKurus: COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus, metadata: { fulfillment_kind: "INITIAL_BUNDLE" } },
     ];
     expect(selectInitialOfferVariant(variants)?.sku).toBe(COMMERCIAL_SKUS.INITIAL);
-    expect(listingPriceKurus(variants)).toBe(79_900);
+    expect(listingPriceKurus(variants)).toBe(149_000);
   });
 
   it("does not list Premium renewal or upgrade as the public NFC price", () => {
@@ -38,6 +38,6 @@ describe("selectInitialOfferVariant", () => {
       { sku: COMMERCIAL_SKUS.INITIAL, priceKurus: COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus, metadata: { fulfillment_kind: "INITIAL_BUNDLE" } },
     ];
     expect(selectInitialOfferVariant(variants)?.sku).toBe(COMMERCIAL_SKUS.INITIAL);
-    expect(listingPriceKurus(variants)).toBe(79_900);
+    expect(listingPriceKurus(variants)).toBe(149_000);
   });
 });

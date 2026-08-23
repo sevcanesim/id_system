@@ -115,6 +115,7 @@ export default function CheckoutPage() {
     [items],
   );
   const hasInitialBundle = items.some((item) => isPhysicalBundleSku(item.variantSku));
+  const hasDigitalMembership = hasInitialBundle || items.some((item) => item.variantSku === COMMERCIAL_SKUS.DIGITAL);
   const hasExtraCard = items.some((item) => item.variantSku === COMMERCIAL_SKUS.ADDITIONAL_CARD);
   const hasRenewal = items.some((item) => isRenewalSku(item.variantSku));
   const hasPremiumUpgrade = items.some((item) => isPremiumUpgradeSku(item.variantSku));
@@ -357,7 +358,7 @@ export default function CheckoutPage() {
           <div className="checkout-trust-row checkout-trust-row-compact" aria-label="Sipariş avantajları">
             {!digitalOnlyCart && <span><Icon name="truck" />Ücretsiz kargo</span>}
             {hasInitialBundle && <span><Icon name="clock" />Ana kart 2 iş gününde hazırlanır</span>}
-            {hasInitialBundle && <span><Icon name="shield" />1 yıllık dijital kullanım</span>}
+            {hasDigitalMembership && <span><Icon name="shield" />1 yıl platform üyeliği dahil</span>}
             {hasExtraCard && <span><Icon name="shield" />Mevcut Yenomi ID hizmetine bağlı</span>}
             {hasRenewal && <span><Icon name="shield" />Yalnız dijital hizmet yenilemesi</span>}
             {hasReplacement && <span><Icon name="shield" />Mevcut profilin korunur</span>}
@@ -482,11 +483,11 @@ export default function CheckoutPage() {
                 <div className="checkout-summary-total"><span>TOPLAM</span><div><strong>{formatTryFromKurus(total)}</strong><small>KDV dahil</small></div></div>
                 <div className="checkout-summary-benefits">
                   {!digitalOnlyCart && <span><Icon name="check" /> Türkiye içi kargo dahil</span>}
-                  {hasInitialBundle && <span><Icon name="check" /> 1 yıllık dijital kullanım</span>}
+                  {hasDigitalMembership && <span><Icon name="check" /> 1 yıl platform üyeliği dahil</span>}
                   {hasExtraCard && <span><Icon name="check" /> Mevcut profile bağlı; yeni süre başlatmaz</span>}
                   {hasRenewal && <span><Icon name="check" /> Mevcut kartınla 1 yıl dijital hizmet yenilemesi</span>}
                   {hasRenewal && <span><Icon name="check" /> Kartın zaten sende; yeni kart satın alman gerekmez</span>}
-                  {hasPremiumUpgrade && <span><Icon name="check" /> 100 Network Mail bu döneme eklenir; ikinci kart gönderilmez</span>}
+                  {hasPremiumUpgrade && <span><Icon name="check" /> 500 Network Mail bu döneme eklenir; ikinci kart gönderilmez</span>}
                   {hasReplacement && <span><Icon name="check" /> Kayıp kartın yerine; profilin ve hizmet süren korunur</span>}
                   {hasBusinessCapacity && <span><Icon name="check" /> Mevcut abonelik dönemi sonuna kadar ek kapasite</span>}
                   {hasCorporatePackage && <span><Icon name="check" /> 1 yıllık kurumsal panel + NFC kartlar</span>}

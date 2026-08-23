@@ -25,7 +25,7 @@ check(
   (purchasePanel.includes("product.defaultOfferSku") && purchasePanel.includes("COMMERCIAL_SKUS.PREMIUM") && purchasePanel.includes("variantSku={offerSku}"))
   || purchasePanel.includes("variantSku={product.defaultOfferSku}")
   || productPage.includes("variantSku={NFC_PRODUCT.defaultOfferSku}"),
-  "canonical NFC product purchase sends an explicit offer SKU (799 default, Premium optional)",
+  "canonical NFC product purchase sends an explicit offer SKU (NFC default, Premium optional)",
 );
 check(legacyOrder.includes("variantSku: NFC_PRODUCT.defaultOfferSku"), "legacy NFC order bridge also sends explicit initial offer SKU");
 check(cart.includes("legacyInitialOffer") && cart.includes("COMMERCIAL_SKUS.INITIAL"), "legacy carts without variant SKU migrate deterministically to initial offer");
@@ -40,6 +40,7 @@ check(cart.includes('const LEGACY_KEY = "yenomi-cart-v1"') && cart.includes("The
 
 const skuLiterals = [
   "YENOMI-NFC-CARD-ANNUAL",
+  "YENOMI-DIGITAL-ANNUAL",
   "YENOMI-DIGITAL-RENEWAL-ANNUAL",
   "YENOMI-NFC-EXTRA",
   "YENOMI-NFC-REPLACEMENT",

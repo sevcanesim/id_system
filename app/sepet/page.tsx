@@ -70,7 +70,7 @@ export default function CartPage() {
               description={
                 audience === "corporate"
                   ? "Bireysel NFC kartını buradan ekle. Şirket lisans paketleri paneldeki Lisanslar’dan yönetilir."
-                  : "Bireysel NFC + QR kart: 1 yıl dijital hizmet ve Türkiye içi kargo dahil."
+                  : "NFC + QR kart: tek seferlik ödeme, 1 yıl platform üyeliği ve Türkiye içi kargo dahil."
               }
               action={
                 <div className="ds-empty-actions">

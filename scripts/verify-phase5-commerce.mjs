@@ -50,7 +50,7 @@ check(phase5Doc.includes("app/canonical.css") && !phase5Doc.includes("`app/comme
 
 check(product.includes('className="nfc-product-page"'), "NFC product uses the live product-page scope");
 check(/fiziksel NFC \+ QR kart.*güncellenebilir/i.test(productLayout), "NFC product explains physical + digital package");
-check(product.includes("1 yıllık dijital") && product.includes("Türkiye içi kargo dahil"), "product inclusion and delivery remain explicit");
+check(product.includes("1 yıl") && product.includes("Türkiye içi kargo dahil"), "product inclusion and delivery remain explicit");
 check(product.includes("Sepete Ekle") && product.includes("#nfc-hero-price-row"), "product exposes add-to-cart purchase path");
 check(!product.includes("AppFooter") && !product.includes("AppHeader"), "product flow does not remount public chrome");
 

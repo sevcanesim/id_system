@@ -5,6 +5,7 @@ import {
   CAMPAIGN_MAIL_PACKS,
   CAMPAIGN_MAIL_STAGE,
   CORPORATE_PACKAGE_LADDER,
+  INDIVIDUAL_DIGITAL_PLAN,
   INDIVIDUAL_PLAN,
   INDIVIDUAL_PREMIUM_CHECKOUT,
   INDIVIDUAL_PREMIUM_PLAN,
@@ -101,29 +102,37 @@ describe("corporate ladder", () => {
 });
 
 describe("individual plans", () => {
-  it("keeps the 799 listing SKU cheaper than Premium", () => {
-    expect(INDIVIDUAL_PLAN.priceKurus).toBe(79_900);
-    expect(INDIVIDUAL_PREMIUM_PLAN.priceKurus).toBe(125_000);
-    expect(INDIVIDUAL_PREMIUM_PLAN.networkMailCredits).toBe(100);
+  it("sells Digital, NFC as the hero, and Premium without a SaaS monthly frame", () => {
+    expect(INDIVIDUAL_DIGITAL_PLAN.priceKurus).toBe(79_900);
+    expect(INDIVIDUAL_DIGITAL_PLAN.nfcCards).toBe(0);
+    expect(INDIVIDUAL_PLAN.priceKurus).toBe(149_000);
+    expect(INDIVIDUAL_PLAN.nfcCards).toBe(1);
+    expect(INDIVIDUAL_PLAN.popular).toBe(true);
+    expect(INDIVIDUAL_PREMIUM_PLAN.priceKurus).toBe(249_000);
+    expect(INDIVIDUAL_PREMIUM_PLAN.networkMailCredits).toBe(500);
     expect(INDIVIDUAL_PLAN.networkMailCredits).toBe(0);
-    expect(INDIVIDUAL_PREMIUM_PLAN.popular).toBe(true);
+    expect(INDIVIDUAL_PREMIUM_PLAN.popular).toBe(false);
+    expect(INDIVIDUAL_DIGITAL_PLAN.priceKurus).toBeLessThan(INDIVIDUAL_PLAN.priceKurus);
+    expect(INDIVIDUAL_PLAN.priceKurus).toBeLessThan(INDIVIDUAL_PREMIUM_PLAN.priceKurus);
   });
 
   it("prices Premium renewal below year-1 and without a second NFC", () => {
     expect(INDIVIDUAL_PREMIUM_RENEWAL_PLAN.priceKurus).toBe(59_900);
     expect(INDIVIDUAL_PREMIUM_RENEWAL_PLAN.nfcCards).toBe(0);
-    expect(INDIVIDUAL_PREMIUM_RENEWAL_PLAN.networkMailCredits).toBe(100);
+    expect(INDIVIDUAL_PREMIUM_RENEWAL_PLAN.networkMailCredits).toBe(500);
     expect(INDIVIDUAL_PREMIUM_RENEWAL_PLAN.priceKurus).toBeLessThan(INDIVIDUAL_PREMIUM_PLAN.priceKurus);
     expect(INDIVIDUAL_PREMIUM_RENEWAL_PLAN.priceKurus).toBeGreaterThan(COMMERCIAL_PRICING.YENOMI_ID_RENEWAL.priceKurus);
   });
 
-  it("prices the in-term 799 → Premium upgrade as 1.250 − 799", () => {
-    expect(INDIVIDUAL_PREMIUM_UPGRADE_PLAN.priceKurus).toBe(45_100);
+  it("prices the in-term NFC → Premium upgrade as 2.490 − 1.490", () => {
+    expect(INDIVIDUAL_PREMIUM_UPGRADE_PLAN.priceKurus).toBe(100_000);
     expect(INDIVIDUAL_PREMIUM_UPGRADE_PLAN.nfcCards).toBe(0);
-    expect(INDIVIDUAL_PREMIUM_UPGRADE_PLAN.networkMailCredits).toBe(100);
+    expect(INDIVIDUAL_PREMIUM_UPGRADE_PLAN.networkMailCredits).toBe(500);
   });
 
   it("keeps live catalog SKUs aligned with the package ladder", () => {
+    expect(COMMERCIAL_PRICING.YENOMI_ID_DIGITAL.sku).toBe(COMMERCIAL_SKUS.DIGITAL);
+    expect(COMMERCIAL_PRICING.YENOMI_ID_DIGITAL.priceKurus).toBe(INDIVIDUAL_DIGITAL_PLAN.priceKurus);
     expect(COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.sku).toBe(COMMERCIAL_SKUS.PREMIUM);
     expect(COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.priceKurus).toBe(INDIVIDUAL_PREMIUM_PLAN.priceKurus);
     expect(COMMERCIAL_PRICING.YENOMI_ID_PREMIUM_RENEWAL.priceKurus).toBe(INDIVIDUAL_PREMIUM_RENEWAL_PLAN.priceKurus);
@@ -251,6 +260,7 @@ describe("credit packs", () => {
     expect(isDirectCheckoutBlocked({ fulfillment_kind: "CAMPAIGN_MAIL_CREDIT_PACK", stage: "COMING_SOON" })).toBe(true);
     expect(isDirectCheckoutBlocked({ live_checkout: false })).toBe(true);
     expect(isDirectCheckoutBlocked({ fulfillment_kind: "INITIAL_BUNDLE" })).toBe(false);
+    expect(isDirectCheckoutBlocked({ fulfillment_kind: "DIGITAL_INITIAL" })).toBe(false);
     expect(isDirectCheckoutBlocked({ fulfillment_kind: "CORPORATE_PACKAGE" })).toBe(false);
   });
 });

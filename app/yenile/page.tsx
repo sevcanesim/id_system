@@ -49,20 +49,20 @@ const OFFER_COPY: Record<IndividualSubscriptionOfferId, {
     facts: ["1 yıl dijital kartvizit hizmeti", "Mevcut profil ve bağlantılar korunur", "Yeni fiziksel kart gönderilmez"],
   },
   PREMIUM_RENEWAL: {
-    title: "Bireysel Premium — 1 Yıl Yenileme",
+    title: "Premium — 1 Yıl Yenileme",
     sku: COMMERCIAL_PRICING.YENOMI_ID_PREMIUM_RENEWAL.sku,
     priceKurus: COMMERCIAL_PRICING.YENOMI_ID_PREMIUM_RENEWAL.priceKurus,
     label: "Premium’u yenile",
     message: INDIVIDUAL_PREMIUM_RENEWAL_MESSAGE,
-    facts: ["1 yıl Premium hizmet", "100 Network Mail eklenir; kullanılmayan kredi taşınır", "Yeni fiziksel kart gönderilmez"],
+    facts: ["1 yıl Premium hizmet", "500 Network Mail eklenir; kullanılmayan kredi taşınır", "Yeni fiziksel kart gönderilmez"],
   },
   PREMIUM_UPGRADE: {
-    title: "Bireysel Premium yükseltme",
+    title: "Premium yükseltme",
     sku: COMMERCIAL_PRICING.YENOMI_ID_PREMIUM_UPGRADE.sku,
     priceKurus: COMMERCIAL_PRICING.YENOMI_ID_PREMIUM_UPGRADE.priceKurus,
     label: "Premium’a yükselt",
     message: INDIVIDUAL_PREMIUM_UPGRADE_MESSAGE,
-    facts: ["100 Network Mail bu döneme eklenir", "Mevcut kart ve bitiş tarihi korunur", "İkinci NFC kart gönderilmez"],
+    facts: ["500 Network Mail bu döneme eklenir", "Mevcut süre korunur", "İkinci NFC kart gönderilmez"],
   },
 };
 

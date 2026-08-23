@@ -9,17 +9,29 @@
  */
 
 export const NETWORK_MAIL_PER_SEAT_ANNUAL = 100;
-export const INDIVIDUAL_PREMIUM_NETWORK_MAIL = NETWORK_MAIL_PER_SEAT_ANNUAL;
+export const INDIVIDUAL_PREMIUM_NETWORK_MAIL = 500;
 export const NETWORK_MAIL_DAILY_SEND_CAP = 150;
 
+/** Digital-only first purchase. No NFC; QR profile + 1 year platform access. */
+export const INDIVIDUAL_DIGITAL_PLAN = {
+  code: "INDIVIDUAL_DIGITAL",
+  name: "Dijital",
+  priceKurus: 79_900,
+  durationMonths: 12,
+  nfcCards: 0,
+  networkMailCredits: 0,
+  popular: false,
+} as const;
+
+/** Hero individual offer: one NFC card + digital profile. One payment, 1 year included. */
 export const INDIVIDUAL_PLAN = {
   code: "INDIVIDUAL",
-  name: "Bireysel",
-  priceKurus: 79_900,
+  name: "NFC",
+  priceKurus: 149_000,
   durationMonths: 12,
   nfcCards: 1,
   networkMailCredits: 0,
-  popular: false,
+  popular: true,
 } as const;
 
 /** Extra physical NFC + QR on an existing profile. No new year, no new identity. */
@@ -33,12 +45,12 @@ export const ADDITIONAL_CARD_PLAN = {
 
 export const INDIVIDUAL_PREMIUM_PLAN = {
   code: "INDIVIDUAL_PREMIUM",
-  name: "Bireysel Premium",
-  priceKurus: 125_000,
+  name: "Premium",
+  priceKurus: 249_000,
   durationMonths: 12,
   nfcCards: 1,
   networkMailCredits: INDIVIDUAL_PREMIUM_NETWORK_MAIL,
-  popular: true,
+  popular: false,
 } as const;
 
 /** Year-2+ Premium: no NFC, unused Network Mail rolls over. */
@@ -52,12 +64,12 @@ export const INDIVIDUAL_PREMIUM_RENEWAL_PLAN = {
 } as const;
 
 /**
- * Active 799 → Premium for the remaining term. 1.250 − 799.
+ * Active NFC → Premium for the remaining term. 2.490 − 1.490.
  * No second NFC, no extra year.
  */
 export const INDIVIDUAL_PREMIUM_UPGRADE_PLAN = {
   code: "INDIVIDUAL_PREMIUM_UPGRADE",
-  name: "Bireysel Premium yükseltme",
+  name: "Premium yükseltme",
   priceKurus: INDIVIDUAL_PREMIUM_PLAN.priceKurus - INDIVIDUAL_PLAN.priceKurus,
   nfcCards: 0,
   networkMailCredits: INDIVIDUAL_PREMIUM_NETWORK_MAIL,
@@ -379,6 +391,25 @@ export function seatDecreasePolicy(input: {
   };
 }
 
+export const INDIVIDUAL_DIGITAL_FEATURES = [
+  "1 dijital kartvizit",
+  "QR paylaşımı",
+  "Kişisel mini profil",
+  "İletişim bilgileri",
+  "Sosyal medya bağlantıları",
+  "WhatsApp / telefon / e-posta aksiyonları",
+  "Temel görüntülenme istatistikleri",
+  "1 yıl platform üyeliği dahil",
+] as const;
+
+export const INDIVIDUAL_DIGITAL_CATALOG_POINTS = [
+  "Canlı dijital kartvizit",
+  "QR ile paylaş",
+  "Temel görüntülenme",
+  "Tek seferlik ödeme",
+  "1 yıl platform üyeliği dahil",
+] as const;
+
 export const INDIVIDUAL_FEATURES = [
   "1 dijital kartvizit",
   "1 NFC kart",
@@ -390,40 +421,40 @@ export const INDIVIDUAL_FEATURES = [
   "QR paylaşımı",
   "NFC paylaşımı",
   "Temel görüntülenme istatistikleri",
-  "1 yıllık kullanım",
+  "1 yıl platform üyeliği dahil",
   "Ücretsiz kargo",
 ] as const;
 
 /** Short decision list for public catalog cards. Full inventory stays on the PDP. */
 export const INDIVIDUAL_CATALOG_POINTS = [
   "1 NFC + QR kart",
-  "Canlı dijital kartvizit",
-  "Unvan değişince baskı yok",
-  "1 yıllık kullanım",
+  "Canlı dijital profil",
+  "Temel görüntülenme",
+  "Tek seferlik ödeme, 1 yıl dahil",
   "Türkiye içi kargo dahil",
 ] as const;
 
 export const INDIVIDUAL_PREMIUM_FEATURES = [
-  "Bireysel paketteki her şey",
+  "NFC paketteki her şey",
   "Toplantı oluşturma",
   "Sunum ekleme ve paylaşımı",
   "Gelişmiş istatistikler",
   "Contact / bağlantı yönetimi",
-  "100 Network Mail kredisi / yıl",
+  "500 Network Mail kredisi",
   "Hazır follow-up senaryoları",
   "Kişiye özel follow-up",
   "Etkinlik / fuar networking",
   "1 NFC kart",
-  "1 yıllık kullanım",
+  "1 yıl platform üyeliği dahil",
   "Ücretsiz kargo",
 ] as const;
 
 export const INDIVIDUAL_PREMIUM_CATALOG_POINTS = [
-  "Bireysel paketteki her şey",
-  "100 Network Mail / yıl",
+  "NFC paketteki her şey",
+  "500 Network Mail",
   "Toplantı ve sunum",
-  "Gelişmiş istatistik",
-  "Kişi ve follow-up yönetimi",
+  "Gelişmiş profil ve kişi yönetimi",
+  "Tek seferlik ödeme, 1 yıl dahil",
 ] as const;
 
 export const ADDITIONAL_CARD_FEATURES = [

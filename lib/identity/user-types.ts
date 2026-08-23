@@ -2,6 +2,7 @@ import { COMMERCIAL_SKUS } from "../config/commercial";
 import {
   ADMIN_PROVISION_PLAN_CODES,
   CORPORATE_PACKAGE_LADDER,
+  INDIVIDUAL_DIGITAL_PLAN,
   INDIVIDUAL_PLAN,
   INDIVIDUAL_PREMIUM_PLAN,
   RETIRED_CORPORATE_PACKAGE_CODES,
@@ -107,6 +108,13 @@ export const IDENTITY_PACKAGE_CATALOG: readonly IdentityPackageRecord[] = [
     live: false,
   },
   {
+    code: INDIVIDUAL_DIGITAL_PLAN.code,
+    name: INDIVIDUAL_DIGITAL_PLAN.name,
+    occupancy: "INDIVIDUAL",
+    productFamily: "DIGITAL_ID",
+    live: true,
+  },
+  {
     code: INDIVIDUAL_PLAN.code,
     name: INDIVIDUAL_PLAN.name,
     occupancy: "INDIVIDUAL",
@@ -171,6 +179,7 @@ export function familyFromCommerceKind(kind: string | null | undefined): Identit
 }
 
 const SKU_TO_PACKAGE: Record<string, string> = {
+  [COMMERCIAL_SKUS.DIGITAL]: INDIVIDUAL_DIGITAL_PLAN.code,
   [COMMERCIAL_SKUS.INITIAL]: INDIVIDUAL_PLAN.code,
   [COMMERCIAL_SKUS.RENEWAL]: INDIVIDUAL_PLAN.code,
   [COMMERCIAL_SKUS.PREMIUM]: INDIVIDUAL_PREMIUM_PLAN.code,

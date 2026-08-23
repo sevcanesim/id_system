@@ -15,9 +15,9 @@ const principles = [
 ];
 
 const journey = [
-  ["01", "Kartını seç", "Bireysel NFC + QR veya ekip paketi. Fiyat ödeme adımında sunucuda doğrulanır."],
-  ["02", "Profilini yayınla", "Ödemeden sonra hesabını bağla. Bilgilerin aynı kalıcı bağlantıda durur."],
-  ["03", "Paylaş ve izle", "Dokunuş veya QR. Görüntülenmeyi panelden gör."],
+  ["01", "Kartını seç", "Bireysel NFC + QR veya ekip paketini seç. Fiyat ve kapsam ödeme öncesi net görünür."],
+  ["02", "Profilini yayınla", "Ödemeden sonra hesabını bağla. Bilgilerin aynı kalıcı bağlantıda güncel kalır."],
+  ["03", "Paylaş ve yönet", "NFC veya QR ile paylaş. Kartını ve profilini gerektiğinde uzaktan güncelle."],
 ];
 
 export default function HomePage() {
@@ -35,26 +35,26 @@ export default function HomePage() {
               Kimliğin her gün güncel kalır.
             </h1>
             <p>
-              Fiziksel NFC + QR kartın, canlı dijital kartvizitine bağlanır. Kağıt gibi eskimez.
-              Kendin için al; ekibini tek panelden aynı standartta yönet.
+              Tek bir NFC + QR kartla canlı dijital kartvizitini paylaş. Bilgilerin değiştiğinde kartı değil, profilini güncelle.
+              Bireysel kullan veya ekibini tek panelden aynı standartta yönet.
             </p>
 
             <div className="home-mockup__actions">
               <Link className="home-mockup__button home-mockup__button--gold home-mockup__button--primary" href="/urunler/nfc-kart">
-                NFC Kartı Satın Al <span aria-hidden>→</span>
+                Kartımı Seç <span aria-hidden>→</span>
               </Link>
               <Link className="home-mockup__link-secondary" href="/kurumsal">
-                Ekip paketini incele <span aria-hidden>→</span>
+                Ekip Paketlerini Gör <span aria-hidden>→</span>
               </Link>
             </div>
 
             <div className="home-mockup__meta" aria-label="Ürün özellikleri">
-              <span>BİREYSEL</span>
-              <span>KURUMSAL</span>
+              <span>UYGULAMA GEREKTİRMEZ</span>
               <span>NFC + QR</span>
+              <span>CANLI PROFİL</span>
               <span>KAYIP MODU</span>
             </div>
-            <small className="home-mockup__guest">Hesap açmadan ödeyebilirsin. Siparişin e-posta adresinle otomatik eşleşir. Kart numarası Yenomi’de saklanmaz.</small>
+            <small className="home-mockup__guest">Hesap açmadan satın al. Kart bilgilerin iyzico’da işlenir; Yenomi’de saklanmaz.</small>
           </div>
 
           <div className="home-mockup__visual" aria-label="Yenomi ID dijital kartvizit önizlemesi">
@@ -77,14 +77,14 @@ export default function HomePage() {
             <article>
               <span>BİREYSEL</span>
               <h3>Tek kart. Her tanışmada güncel.</h3>
-              <p>NFC + QR kartın, canlı profilin ve kayıp modun. Unvanın değişince baskı yok.</p>
-              <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">NFC Kartı Satın Al <span aria-hidden>→</span></Link>
+              <p>NFC + QR kartın, canlı profilin ve kayıp modun. Bilgilerin değişince yeniden baskı yok.</p>
+              <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">Kartımı Seç <span aria-hidden>→</span></Link>
             </article>
             <article>
               <span>KURUMSAL</span>
               <h3>Ekip aynı standartta tanışır.</h3>
-              <p>Çalışan kartları, yetkiler ve analitik tek panelde. 100 kişiye kadar sepete ekle.</p>
-              <Link className="home-mockup__button home-premium__path-secondary" href="/kurumsal">Ekip paketlerini keşfet <span aria-hidden>→</span></Link>
+              <p>Çalışan kartları, yetkiler ve görünürlük tek panelde. 100 kişiye kadar doğrudan paket seç.</p>
+              <Link className="home-mockup__button home-premium__path-secondary" href="/kurumsal">Ekip Paketlerini Gör <span aria-hidden>→</span></Link>
             </article>
           </div>
         </section>
@@ -95,9 +95,7 @@ export default function HomePage() {
               <span className="home-mockup__kicker">FİZİKSEL KART · CANLI PROFİL</span>
               <h2 id="proof-title">Kartın fiziksel.<br />Kartvizitin dijital.</h2>
             </div>
-            <p>
-              NFC veya QR aynı kalıcı profile açılır. Kart numarası iyzico’da işlenir; Yenomi’de saklanmaz.
-            </p>
+            <p>NFC veya QR aynı kalıcı profile açılır. Karşı taraf uygulama indirmez; profil tarayıcıda açılır.</p>
           </div>
 
           <div className="home-premium__principles">
@@ -119,7 +117,7 @@ export default function HomePage() {
               <span className="home-mockup__kicker">NET BİR BAŞLANGIÇ</span>
               <h2 id="journey-title">Seç, bağla,<br />paylaş.</h2>
             </div>
-            <p>Hesap açmadan ödeyebilirsin. Siparişin e-posta adresinle otomatik eşleşir.</p>
+            <p>Satın alırken hesap açmak zorunda değilsin. Siparişin e-posta adresinle hesabına bağlanır.</p>
           </div>
           <ol className="home-premium__journey-steps">
             {journey.map(([number, title, text]) => (
@@ -130,21 +128,21 @@ export default function HomePage() {
             ))}
           </ol>
           <div className="home-premium__journey-action">
-            <p><strong>Karşı taraf uygulama indirmez.</strong> Profil tarayıcıda açılır.</p>
-            <Link className="home-mockup__link-secondary" href="/nasil-calisir">Nasıl çalıştığını gör <span aria-hidden>→</span></Link>
+            <p><strong>Uygulama indirme yok.</strong> NFC veya QR ile profil doğrudan tarayıcıda açılır.</p>
+            <Link className="home-mockup__link-secondary" href="/nasil-calisir">30 saniyede nasıl çalıştığını gör <span aria-hidden>→</span></Link>
           </div>
         </section>
 
         <section className="home-premium__final" aria-labelledby="final-title">
           <span className="home-mockup__kicker">DİJİTAL KARTVİZİT</span>
-          <h2 id="final-title">Bir sonraki tanışmada<br />sistemin hazır olsun.</h2>
-          <p>Bireysel kart veya kurumsal panel — ikisi de aynı Yenomi ID altyapısı.</p>
+          <h2 id="final-title">Bir sonraki tanışmada<br />kartvizitin hazır olsun.</h2>
+          <p>Kendin için tek kart seç veya ekibini aynı Yenomi ID standardında yönet.</p>
           <div className="home-mockup__actions">
             <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">
-              NFC Kartı Satın Al <span aria-hidden>→</span>
+              Kartımı Seç <span aria-hidden>→</span>
             </Link>
             <Link className="home-mockup__link-secondary" href="/kurumsal">
-              Ekip paketini incele <span aria-hidden>→</span>
+              Ekip Paketlerini Gör <span aria-hidden>→</span>
             </Link>
           </div>
         </section>

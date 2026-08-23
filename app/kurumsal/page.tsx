@@ -69,7 +69,7 @@ export default async function CorporatePage({
     { icon: "users" as const, title: "Toplu Yönetim", text: "Çalışan ve kart tek panelde. Yeni kişi dakikalar içinde yayında." },
     { icon: "building" as const, title: "Marka Kontrolü", text: "Logo, renk, şablon. Dağınık kartvizit kalmaz." },
     { icon: "shield" as const, title: "Yetki & Güvenlik", text: "Rol kilitli erişim. Ayrılan kart panelden kapanır." },
-    { icon: "analytics" as const, title: "Ölçülebilir", text: "Hangi kartın çalıştığını ekip bazında görürsünüz." },
+    { icon: "analytics" as const, title: "Ölçülebilir", text: "Kart etkileşimlerini ekip bazında izleyin." },
   ];
 
   return (
@@ -78,13 +78,13 @@ export default async function CorporatePage({
         <div className="corporate-single-copy">
           <span className="section-kicker">YENOMI BUSINESS</span>
           <h1 id="corporate-single-title">
-            <span className="corporate-hero-line">Şirket NFC kart almıyor.</span>
-            <span className="corporate-hero-line corporate-hero-line--accent">Çalışanların networking altyapısını satın alıyor.</span>
+            <span className="corporate-hero-line">Ekibiniz tek kartvizit standardıyla tanışsın.</span>
+            <span className="corporate-hero-line corporate-hero-line--accent">Kimlikleri merkezden yönetin, yeniden baskıyı azaltın.</span>
           </h1>
-          <p>Satış ve saha ekibi aynı standartta tanışır. Unvan değişince baskı yok; kart kaybolursa panelden kapanır. 100 kişiye kadar paketinizi doğrudan seçip satın alın.</p>
+          <p>Çalışan kartları, canlı profiller, yetkiler ve kayıp kart yönetimi tek panelde. 2–100 kişi için paketinizi doğrudan seçin; 100+ kişi ve özel entegrasyonlarda birlikte planlayalım.</p>
           <div className="corporate-hero-actions">
             <a href="#business-pricing-title" className="corporate-cta">Ekibime Uygun Paketi Seç <span aria-hidden="true">→</span></a>
-            <a href="/kurumsal?plan=ENTERPRISE#teklif" className="home-mockup__link-secondary">100+ kişi için Teklif Al <span aria-hidden="true">→</span></a>
+            <a href="/kurumsal?plan=ENTERPRISE#teklif" className="home-mockup__link-secondary">100+ Kişi İçin Teklif Al <span aria-hidden="true">→</span></a>
           </div>
           <div className="corporate-single-proof" aria-label="Kurumsal ürün sonuçları">
             {outcomes.slice(0, 3).map((item) => <div key={item.label}><strong>{item.value}</strong><span>{item.label}</span></div>)}
@@ -130,12 +130,12 @@ export default async function CorporatePage({
 
       <section className="corporate-single-cta" aria-labelledby="corporate-single-cta-title">
         <div>
-          <span className="section-kicker">NASIL SATIN ALINIR?</span>
-          <h2 id="corporate-single-cta-title">100 kişiye kadar doğrudan satın alın. Daha büyük ekipte birlikte planlayalım.</h2>
-          <p>2–100 kişi arasında kapasitenizi seçin ve sepete ilerleyin. 100+ kişi, özel raporlama veya entegrasyon ihtiyacında teklif formunu kullanın.</p>
+          <span className="section-kicker">PAKETİNİZİ SEÇİN</span>
+          <h2 id="corporate-single-cta-title">2–100 kişi için doğrudan satın alın. Daha büyük ekipte birlikte planlayalım.</h2>
+          <p>Önce ekip büyüklüğünü seçin. Fiyat, kişi başı maliyet ve dahil olan kapasite tek ekranda görünür. 100+ kişi veya özel entegrasyonlarda teklif akışına geçin.</p>
         </div>
         <div className="corporate-single-cta-actions">
-          <a href="#business-pricing-title" className="corporate-cta">Kapasite Seç <span aria-hidden="true">→</span></a>
+          <a href="#business-pricing-title" className="corporate-cta">Paketimi Seç <span aria-hidden="true">→</span></a>
           <a href="/giris?portal=business&next=%2Fkurumsal%2Fpanel" className="corporate-secondary-cta">Kurumsal Giriş</a>
         </div>
       </section>
@@ -143,8 +143,8 @@ export default async function CorporatePage({
       <section className="corporate-pricing-section corporate-single-details" aria-labelledby="business-pricing-title">
         <div className="corporate-section-heading">
           <span className="section-kicker">YILLIK KURUMSAL SİSTEM</span>
-          <h2 id="business-pricing-title">Ekibinize uygun seviyeyi seçin.</h2>
-          <p>Start küçük ekipler, Business büyüyen şirketler içindir. 100+ çalışan veya özel kurulum ihtiyacında Enterprise teklif akışına geçin. Tüm doğrudan satın alınabilen paketlerde NFC kart, 1 yıl üyelik ve Türkiye içi ücretsiz kargo dahildir.</p>
+          <h2 id="business-pricing-title">Önce seviyeyi, sonra ekip büyüklüğünü seçin.</h2>
+          <p>Start 2–10 kişilik ekipler için hızlı başlangıçtır. Business 25–100 kişilik büyüyen ekipler için en dengeli yapıdır. Enterprise 100+ kişi, özel raporlama veya entegrasyon ihtiyacında kuruma özel planlanır.</p>
         </div>
         <CorporatePackPicker
           packs={packOptions}
@@ -152,7 +152,7 @@ export default async function CorporatePage({
           initialCode={selectedPlan}
         />
         <details className="corporate-pack-details">
-          <summary>2–100 kişi için tüm kapasite ve fiyatları gör</summary>
+          <summary>Tüm kapasite ve yıllık fiyatları karşılaştır</summary>
           <div className="corporate-pack-table-wrap">
             <table className="corporate-pack-table">
               <caption className="sr-only">Kurumsal fiyat listesi</caption>
@@ -172,7 +172,7 @@ export default async function CorporatePage({
                   <tr key={plan.code} className={"popular" in plan && plan.popular ? "is-popular" : undefined}>
                     <th scope="row">
                       {plan.name}
-                      {"popular" in plan && plan.popular ? <span className="corporate-pack-badge">Öne çıkan</span> : null}
+                      {"popular" in plan && plan.popular ? <span className="corporate-pack-badge">En çok tercih edilen</span> : null}
                     </th>
                     <td className="is-num">{plan.seats}</td>
                     <td className="is-num">{plan.seats}</td>
@@ -187,7 +187,7 @@ export default async function CorporatePage({
                           kind="BUSINESS_CARD"
                           name={plan.name}
                           unitPriceKurus={plan.priceKurus}
-                          label="Sepete Ekle"
+                          label="Bu Paketi Seç"
                           appearance="secondary"
                           className={"popular" in plan && plan.popular ? "corporate-plan-link" : "corporate-plan-text"}
                           configuration={{ packageCode: plan.code, seatCount: plan.seats }}
@@ -202,7 +202,7 @@ export default async function CorporatePage({
             </table>
           </div>
         </details>
-        <p className="corporate-pack-note">Tüm paketlerde: 1 yıllık kullanım + NFC kart + ücretsiz kargo. Kullanılmayan Network Mail kredisi paket yenilenirse devreder; yenilenmezse yanar.</p>
+        <p className="corporate-pack-note">Doğrudan satın alınabilen paketlerde 1 yıllık kullanım, seçilen kullanıcı sayısı kadar NFC kart ve Türkiye içi ücretsiz kargo dahildir. Ekip büyüdükçe kişi başı maliyet düşer.</p>
         <div className="corporate-addon-grid corporate-mail-packs">
           <article>
             <span>NETWORK MAIL</span>
@@ -220,12 +220,53 @@ export default async function CorporatePage({
 
       <section className="corporate-lead-section" id="teklif" aria-labelledby="corporate-lead-title">
         <div className="corporate-lead-copy">
-          <span className="section-kicker">ENTERPRISE / ÖZEL KURULUM</span>
-          <h2 id="corporate-lead-title">100+ çalışan veya özel ihtiyaç için kapsamı birlikte çıkaralım.</h2>
-          <p>Bu form yalnızca standart satın alma akışının dışındaki ihtiyaçlar içindir. Çalışan sayınızı ve ihtiyacınızı paylaşın; ekibimiz 1 iş günü içinde sizinle iletişime geçsin.</p>
-          <ul><li>100+ çalışan kapasitesi</li><li>Özel raporlama veya entegrasyon</li><li>Kuruma özel kurulum planı</li></ul>
+          <span className="section-kicker">100+ KİŞİ · ÖZEL KURULUM</span>
+          <h2 id="corporate-lead-title">Kurumsal yapınızı birlikte planlayalım.</h2>
+          <p>100+ çalışan, özel entegrasyon, farklı kart şablonları veya kuruma özel raporlama ihtiyacınızı paylaşın. Size uygun yapı ve fiyatlandırmayla dönüş yapalım.</p>
         </div>
-        <CorporateLeadForm plan={selectedPlan || "ENTERPRISE"} />
+        <CorporateLeadForm initialPlan={selectedPlan} />
+      </section>
+
+      <section className="corporate-analytics-section" aria-labelledby="corporate-analytics-title">
+        <div className="corporate-section-heading">
+          <span className="section-kicker">ÖLÇÜLEBİLİR KARTVİZİT</span>
+          <h2 id="corporate-analytics-title">Kart dağıtmakla kalmayın. Kullanımı görün.</h2>
+          <p>Kurumsal panel, ekip kartlarının görünürlüğünü ve kullanımını tek yerde toplar.</p>
+        </div>
+        <div className="corporate-analytics-grid">
+          {analytics.map((item) => <article key={item.title}><strong>{item.value}</strong><h3>{item.title}</h3><p>{item.text}</p></article>)}
+        </div>
+      </section>
+
+      <section className="corporate-resource-section" aria-labelledby="corporate-resource-title">
+        <div className="corporate-section-heading">
+          <span className="section-kicker">KARTTAN DAHA FAZLASI</span>
+          <h2 id="corporate-resource-title">Satış materyallerinizi de aynı profile bağlayın.</h2>
+          <p>Çalışan kartı yalnız iletişim bilgisi değil, kurumsal kaynaklara açılan kontrollü bir giriş noktası olur.</p>
+        </div>
+        <div className="corporate-resource-grid">
+          {corporateResources.map((item) => <article key={item.title}><Icon name={item.icon} /><h3>{item.title}</h3><p>{item.text}</p></article>)}
+        </div>
+      </section>
+
+      <section className="corporate-usecase-section" aria-labelledby="corporate-usecase-title">
+        <div className="corporate-section-heading">
+          <span className="section-kicker">KULLANIM SENARYOLARI</span>
+          <h2 id="corporate-usecase-title">Ekip büyüdükçe kartvizit dağılmasın.</h2>
+        </div>
+        <div className="corporate-usecase-grid">
+          {useCases.map((item) => <article key={item.title}><Icon name={item.icon} /><h3>{item.title}</h3><p>{item.text}</p></article>)}
+        </div>
+      </section>
+
+      <section className="corporate-steps-section" aria-labelledby="corporate-steps-title">
+        <div className="corporate-section-heading">
+          <span className="section-kicker">KURUMSAL KURULUM</span>
+          <h2 id="corporate-steps-title">Üç adımda ekibiniz yayında.</h2>
+        </div>
+        <ol className="corporate-steps-grid">
+          {steps.map(([number, title, text]) => <li key={number}><span>{number}</span><div><h3>{title}</h3><p>{text}</p></div></li>)}
+        </ol>
       </section>
     </main>
   );

@@ -17,7 +17,8 @@ function check(condition, message) {
 }
 
 check(staging.includes("npm run verify:migration-drift"), "staging promotion blocks on local/remote migration drift");
-check(staging.includes("npm run verify:phase20:staging"), "staging promotion uses canonical Phase 20 gate");
+check(staging.includes("npm run verify:db") && staging.includes("npm run verify:catalog"), "pre-deploy verifies live schema and catalog");
+check(!staging.includes("npm run verify:phase20:staging") && !staging.includes("ALLOW_STAGING_MUTATIONS"), "pre-deploy does not run staging mutation contract");
 check(staging.includes("npm run verify:release"), "staging promotion verifies source quality before mutation");
 check(!staging.includes("test:visual") && !staging.includes("playwright"), "staging workflow keeps legacy visual Playwright gate removed");
 check(!staging.includes("npm run test:quality"), "staging workflow does not revive the removed quality Playwright suite");

@@ -29,11 +29,14 @@ check(
   hero.includes("QRCode.toDataURL") && panel.includes("representativeCard?.slug"),
 );
 check(
-  "staging isolation runs before canonical staging promotion",
-  staging.indexOf("Prove database isolation before mutation") > -1 &&
-    staging.indexOf("Prove database isolation before mutation") <
-      staging.indexOf("Verify RC3 staging promotion contract") &&
-    staging.includes("npm run verify:phase20:staging"),
+  "pre-deploy gate verifies production schema without staging mutation",
+  staging.includes("npm run verify:release") &&
+    staging.includes("npm run verify:migration-drift") &&
+    staging.includes("npm run verify:db") &&
+    staging.includes("npm run verify:catalog") &&
+    staging.includes("PRODUCTION_SUPABASE_PROJECT_REF") &&
+    !staging.includes("npm run verify:phase20:staging") &&
+    !staging.includes("ALLOW_STAGING_MUTATIONS"),
 );
 check(
   "production deploy is blocked by staging and canonical production gate",

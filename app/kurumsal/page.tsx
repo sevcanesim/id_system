@@ -74,7 +74,6 @@ export default async function CorporatePage({
 
   return (
     <main id="main-content" className="theme-light corporate-page corporate-sales-page corporate-single-page">
-
       <section className="corporate-single-hero" aria-labelledby="corporate-single-title">
         <div className="corporate-single-copy">
           <span className="section-kicker">YENOMI BUSINESS</span>
@@ -82,10 +81,10 @@ export default async function CorporatePage({
             <span className="corporate-hero-line">Şirket NFC kart almıyor.</span>
             <span className="corporate-hero-line corporate-hero-line--accent">Çalışanların networking altyapısını satın alıyor.</span>
           </h1>
-          <p>Satış ve saha ekibi aynı standartta tanışır. Unvan değişince baskı yok; kart kaybolursa panelden kapanır. 100 kişiye kadar sepete ekle.</p>
+          <p>Satış ve saha ekibi aynı standartta tanışır. Unvan değişince baskı yok; kart kaybolursa panelden kapanır. 100 kişiye kadar paketinizi doğrudan seçip satın alın.</p>
           <div className="corporate-hero-actions">
-            <a href="#business-pricing-title" className="corporate-cta">Paketleri İncele <span aria-hidden="true">→</span></a>
-            <a href="#teklif" className="corporate-secondary-cta">100+ kişi için teklif <span aria-hidden="true">→</span></a>
+            <a href="#business-pricing-title" className="corporate-cta">Ekibime Uygun Paketi Seç <span aria-hidden="true">→</span></a>
+            <a href="#teklif" className="corporate-secondary-cta">100+ kişi / özel kurulum <span aria-hidden="true">→</span></a>
           </div>
           <div className="corporate-single-proof" aria-label="Kurumsal ürün sonuçları">
             {outcomes.slice(0, 3).map((item) => <div key={item.label}><strong>{item.value}</strong><span>{item.label}</span></div>)}
@@ -131,20 +130,21 @@ export default async function CorporatePage({
 
       <section className="corporate-single-cta" aria-labelledby="corporate-single-cta-title">
         <div>
-          <span className="section-kicker">YENOMI BUSINESS</span>
-          <h2 id="corporate-single-cta-title">Ekip aynı standartta tanışır. Yönetim tek panelde kalır.</h2>
-          <p>100 kişiye kadar paketi doğrudan sepete ekle. 100 kişiyi aşan kapasite ve özel kurulum için teklif al.</p>
+          <span className="section-kicker">NASIL SATIN ALINIR?</span>
+          <h2 id="corporate-single-cta-title">100 kişiye kadar doğrudan satın alın. Daha büyük ekipte birlikte planlayalım.</h2>
+          <p>2–100 kişi arasında kapasitenizi seçin ve sepete ilerleyin. 100+ kişi, özel raporlama veya entegrasyon ihtiyacında teklif formunu kullanın.</p>
         </div>
         <div className="corporate-single-cta-actions">
-          <a href="/giris?portal=business&next=%2Fkurumsal%2Fpanel" className="corporate-secondary-cta">Kurumsal Giriş <span aria-hidden="true">→</span></a>
+          <a href="#business-pricing-title" className="corporate-cta">Kapasite Seç <span aria-hidden="true">→</span></a>
+          <a href="/giris?portal=business&next=%2Fkurumsal%2Fpanel" className="corporate-secondary-cta">Kurumsal Giriş</a>
         </div>
       </section>
 
       <section className="corporate-pricing-section corporate-single-details" aria-labelledby="business-pricing-title">
         <div className="corporate-section-heading">
           <span className="section-kicker">YILLIK KURUMSAL SİSTEM</span>
-          <h2 id="business-pricing-title">Kişi sayısı artınca kişi başı düşer.</h2>
-          <p>Her pakette NFC kart + 1 yıl üyelik + Türkiye içi ücretsiz kargo birlikte düşünülür. Network Mail kişi başı 100 kredidir; 10 kişi 5 kişiyle aynı fiyat olmaz.</p>
+          <h2 id="business-pricing-title">Ekibinize uygun seviyeyi seçin.</h2>
+          <p>Start küçük ekipler, Business büyüyen şirketler içindir. 100+ çalışan veya özel kurulum ihtiyacında Enterprise teklif akışına geçin. Tüm doğrudan satın alınabilen paketlerde NFC kart, 1 yıl üyelik ve Türkiye içi ücretsiz kargo dahildir.</p>
         </div>
         <CorporatePackPicker
           packs={packOptions}
@@ -152,7 +152,7 @@ export default async function CorporatePage({
           initialCode={selectedPlan}
         />
         <details className="corporate-pack-details">
-          <summary>Tüm fiyat listesini tablo olarak gör</summary>
+          <summary>2–100 kişi için tüm kapasite ve fiyatları gör</summary>
           <div className="corporate-pack-table-wrap">
             <table className="corporate-pack-table">
               <caption className="sr-only">Kurumsal fiyat listesi</caption>
@@ -193,9 +193,7 @@ export default async function CorporatePage({
                           configuration={{ packageCode: plan.code, seatCount: plan.seats }}
                         />
                       ) : (
-                        <a href={`/kurumsal?plan=${plan.code}#teklif`} className="corporate-plan-text">
-                          Teklif Al
-                        </a>
+                        <a href={`/kurumsal?plan=${plan.code}#teklif`} className="corporate-plan-text">Teklif Al</a>
                       )}
                     </td>
                   </tr>
@@ -206,18 +204,6 @@ export default async function CorporatePage({
         </details>
         <p className="corporate-pack-note">Tüm paketlerde: 1 yıllık kullanım + NFC kart + ücretsiz kargo. Kullanılmayan Network Mail kredisi paket yenilenirse devreder; yenilenmezse yanar.</p>
         <div className="corporate-addon-grid corporate-mail-packs">
-          <article className="enterprise">
-            <span>ENTERPRISE</span>
-            <h3>Enterprise</h3>
-            <p>100 kişiyi aşan kapasite, özel kurulum ve raporlama.</p>
-            <strong>Özel teklif</strong>
-            <ul>
-              <li>Özel çalışan kapasitesi</li>
-              <li>Kuruma özel uygulama planı</li>
-              <li>Merkezi yönetim ve raporlama</li>
-            </ul>
-            <a href="/kurumsal?plan=ENTERPRISE#teklif" className="home-mockup__link-secondary">Teklif Al <span aria-hidden="true">→</span></a>
-          </article>
           <article>
             <span>NETWORK MAIL</span>
             <h3>{NETWORK_MAIL_POSITIONING.name}</h3>
@@ -227,19 +213,19 @@ export default async function CorporatePage({
                 <li key={pack.sku}><b>{pack.credits.toLocaleString("tr-TR")} kredi</b> {formatTryFromKurus(pack.priceKurus)}</li>
               ))}
             </ul>
-            <a href="/kurumsal?plan=NETWORK-MAIL#teklif" className="home-mockup__link-secondary">Teklif Al <span aria-hidden="true">→</span></a>
+            <a href="/kurumsal?plan=NETWORK-MAIL#teklif" className="home-mockup__link-secondary">Network Mail için bilgi al <span aria-hidden="true">→</span></a>
           </article>
         </div>
       </section>
 
       <section className="corporate-lead-section" id="teklif" aria-labelledby="corporate-lead-title">
         <div className="corporate-lead-copy">
-          <span className="section-kicker">KURUMSAL TEKLİF</span>
-          <h2 id="corporate-lead-title">100 kişiyi aşan ekipler için özel kapsam çıkaralım.</h2>
-          <p>Enterprise ve özel kurulum talepleriniz kayda alınır; ekibimiz 1 iş günü içinde sizinle iletişime geçer. 100 kişiye kadar paketleri doğrudan sepete ekleyebilirsiniz.</p>
-          <ul><li>Kurulum ve kart kapsamı birlikte netleştirilir.</li><li>Özel kapasite gerekiyorsa Enterprise planı ayrıca değerlendirilir.</li><li>İsterseniz <a href="mailto:hello@yenomilabs.com?subject=Yenomi%20Business%20Teklif">e-posta ile</a> ulaşabilirsiniz.</li></ul>
+          <span className="section-kicker">ENTERPRISE / ÖZEL KURULUM</span>
+          <h2 id="corporate-lead-title">100+ çalışan veya özel ihtiyaç için kapsamı birlikte çıkaralım.</h2>
+          <p>Bu form yalnızca standart satın alma akışının dışındaki ihtiyaçlar içindir. Çalışan sayınızı ve ihtiyacınızı paylaşın; ekibimiz 1 iş günü içinde sizinle iletişime geçsin.</p>
+          <ul><li>100+ çalışan kapasitesi</li><li>Özel raporlama veya entegrasyon</li><li>Kuruma özel kurulum planı</li></ul>
         </div>
-        <CorporateLeadForm plan={selectedPlan || "GENEL"} />
+        <CorporateLeadForm plan={selectedPlan || "ENTERPRISE"} />
       </section>
     </main>
   );

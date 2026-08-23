@@ -16649,31 +16649,62 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
   display: inline-block;
 }
 
-/* Floating Mockup Scene with Ambient Glow */
+/* Floating 3D Mockup Scene with Ambient Glow */
 .p6-auth-product-flow {
   position: relative;
   min-height: 0;
-  margin-top: 20px;
+  margin-top: 24px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  perspective: 1000px;
   animation: p6FloatScene 6s ease-in-out infinite alternate;
 }
 
 .p6-auth-product-flow::before {
   content: "";
   position: absolute;
-  inset: -20px;
+  inset: -24px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(169, 129, 47, 0.18) 0%, rgba(109, 61, 224, 0.08) 50%, transparent 70%);
-  filter: blur(20px);
+  background: radial-gradient(circle, rgba(169, 129, 47, 0.22) 0%, rgba(109, 61, 224, 0.09) 50%, transparent 70%);
+  filter: blur(24px);
   pointer-events: none;
   z-index: 0;
 }
 
+.p6-auth-visual-card {
+  width: 176px;
+  flex: 0 0 auto;
+  transform: perspective(1000px) rotateY(-8deg) rotateX(4deg) rotate(-5deg);
+  filter: drop-shadow(0 20px 32px rgba(40, 34, 28, 0.16));
+  transition: transform var(--motion-standard) var(--ease-emphasis);
+}
+
+.p6-auth-visual-card:hover {
+  transform: perspective(1000px) rotateY(-4deg) rotateX(2deg) rotate(-2deg) scale(1.02);
+}
+
+.p6-auth-mini-phone {
+  width: 136px;
+  margin-left: -4px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: perspective(1000px) rotateY(6deg) rotateX(-2deg) rotate(4deg);
+  filter: drop-shadow(0 16px 28px rgba(40, 34, 28, 0.14));
+  color: inherit;
+  text-align: left;
+  transition: transform var(--motion-standard) var(--ease-emphasis);
+}
+
+.p6-auth-mini-phone:hover {
+  transform: perspective(1000px) rotateY(2deg) rotateX(0deg) rotate(2deg) scale(1.02);
+}
+
 @keyframes p6FloatScene {
   0% { transform: translateY(0px); }
-  100% { transform: translateY(-6px); }
+  100% { transform: translateY(-7px); }
 }
 
 /* 2x2 Bento Grid Feature Layout */
@@ -16688,25 +16719,27 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 14px 16px;
+  padding: 16px;
   border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface-2);
-  transition: transform var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard);
+  border-radius: 16px;
+  background: rgba(250, 248, 243, 0.95);
+  box-shadow: 0 2px 8px rgba(40, 34, 28, 0.03);
+  transition: transform var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard);
 }
 
 .p6-bento-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   border-color: var(--border-gold);
+  box-shadow: 0 8px 20px rgba(169, 129, 47, 0.14);
 }
 
 .p6-bento-icon {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 9px;
   background: var(--gold-dim);
   color: var(--gold-hi);
 }
@@ -16735,14 +16768,14 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
   line-height: 1.35;
 }
 
-/* Premium Login Surface Redesign & Smart Tab Switcher */
+/* Premium Auth Card & Apple Segmented Toggle */
 .p6-auth-form-card {
   width: min(100%, 460px);
-  padding: 32px;
+  padding: 34px;
   border: 1px solid var(--border);
   border-radius: 24px;
   background: var(--surface);
-  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 24px 60px -12px rgba(40, 34, 28, 0.12), 0 2px 6px rgba(0, 0, 0, 0.03);
 }
 
 .p6-auth-portal-tabs {
@@ -16772,10 +16805,10 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
 }
 
 .p6-auth-portal-tabs a.active {
-  background: var(--gold);
-  color: #17120c;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hi) 100%);
+  color: #ffffff;
   font-weight: 800;
-  box-shadow: 0 4px 12px rgba(169, 129, 47, 0.25);
+  box-shadow: 0 4px 14px rgba(169, 129, 47, 0.3);
 }
 
 .p6-auth-message-content {
@@ -16787,9 +16820,9 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
 .p6-auth-switch-tab-btn {
   align-self: flex-start;
   margin-top: 4px;
-  padding: 5px 10px;
+  padding: 6px 12px;
   border: 1px solid var(--border-gold);
-  border-radius: 8px;
+  border-radius: 9px;
   background: var(--surface);
   color: var(--gold-hi);
   font-size: 12px;
@@ -16803,6 +16836,7 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
 }
 
 .p6-auth-input {
+  border-radius: 14px;
   transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard);
 }
 
@@ -16813,16 +16847,27 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
 
 .p6-auth-submit {
   background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hi) 100%);
-  color: #17120c;
+  color: #ffffff;
+  font-size: 14px;
   font-weight: 800;
-  box-shadow: 0 4px 14px rgba(169, 129, 47, 0.25);
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(169, 129, 47, 0.35);
   transition: transform var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard);
 }
 
 .p6-auth-submit:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(169, 129, 47, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(169, 129, 47, 0.45);
 }
+
+.p6-auth-submit .yi-icon {
+  transition: transform var(--motion-fast) var(--ease-standard);
+}
+
+.p6-auth-submit:hover:not(:disabled) .yi-icon {
+  transform: translateX(3px);
+}
+
 
 
 

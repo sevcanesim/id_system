@@ -24,35 +24,31 @@ if (e2e06.includes("test.skip(true")) {
   fail("E2E-06 must not be a skeleton skip.");
 }
 
-const skipTrueCount = (source.match(/test\.skip\(true/g) || []).length;
-const automatedCount = IDS.length - skipTrueCount;
-const skippedIds = IDS.filter((id) => {
-  const start = source.indexOf(`test("${id}`);
-  const next = IDS.map((other) => source.indexOf(`test("${other}`)).filter((index) => index > start);
-  const end = next.length ? Math.min(...next) : source.length;
-  return source.slice(start, end).includes("test.skip(true");
-});
-const automatedIds = IDS.filter((id) => !skippedIds.includes(id));
+const explicitAutomation = new Map();
+for (const id of IDS) {
+  const match = source.match(new RegExp(`\\[${id}\\]\\s+AUTOMATION:\\s+(FULL|PARTIAL|NONE)`));
+  if (!match) fail(`${id} must declare [${id}] AUTOMATION: FULL|PARTIAL|NONE.`);
+  explicitAutomation.set(id, match[1]);
+}
+
+const automatedIds = IDS.filter((id) => explicitAutomation.get(id) === "FULL");
+const partialIds = IDS.filter((id) => explicitAutomation.get(id) === "PARTIAL");
+const missingIds = IDS.filter((id) => explicitAutomation.get(id) === "NONE");
 
 const banner = [
   "================================================================================",
-  `CRITICAL JOURNEYS: ${automatedCount}/${IDS.length} automated. ${skippedIds.length}/${IDS.length} NOT AUTOMATED.`,
-  `Automated: ${automatedIds.join(", ") || "(none)"}.`,
-  `Not automated: ${skippedIds.join(", ") || "(none)"}.`,
-  "Payment → entitlement → activation → claim is not covered by E2E.",
+  `CRITICAL JOURNEYS: ${automatedIds.length}/${IDS.length} FULL, ${partialIds.length}/${IDS.length} PARTIAL, ${missingIds.length}/${IDS.length} NONE.`,
+  `Full: ${automatedIds.join(", ") || "(none)"}.`,
+  `Partial: ${partialIds.join(", ") || "(none)"}.`,
+  `None: ${missingIds.join(", ") || "(none)"}.`,
+  "Payment → entitlement → activation → claim is not considered covered until its journey is marked FULL and runs in CI.",
   "A skipped Playwright test is not a pass.",
-  "Sandbox E2E-03 (duplicate callback) and E2E-05 (authenticated auto-claim) still need iyzico CI secrets.",
   "================================================================================",
 ].join("\n");
 
 console.error(banner);
-if (process.env.GITHUB_ACTIONS === "true") {
-  console.error(`::warning title=Critical journeys::${skippedIds.length}/${IDS.length} critical journeys are NOT automated. Only ${automatedIds.join(", ") || "none"} run.`);
+if (process.env.GITHUB_ACTIONS === "true" && (partialIds.length || missingIds.length)) {
+  console.error(`::warning title=Critical journeys::FULL ${automatedIds.length}/${IDS.length}; PARTIAL ${partialIds.length}/${IDS.length}; NONE ${missingIds.length}/${IDS.length}.`);
 }
 
-if (skipTrueCount < 1) {
-  // If every journey is automated, the banner still prints; do not fail.
-  console.error("Critical journeys coverage: all named journeys appear automated.");
-}
-
-console.log(`Critical journeys coverage: ${automatedCount}/${IDS.length} automated.`);
+console.log(`Critical journeys coverage: ${automatedIds.length}/${IDS.length} full.`);

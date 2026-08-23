@@ -41,7 +41,7 @@ export default function CorporatePackPicker({
       <div className="corporate-pack-picker__head">
         <div>
           <span className="corporate-pack-picker__kicker">{pack.code}</span>
-          <h3>{pack.name}{pack.popular ? <span className="corporate-pack-picker__badge">Öne çıkan</span> : null}</h3>
+          <h3>{pack.name}{pack.popular ? <span className="corporate-pack-picker__badge">En çok tercih edilen</span> : null}</h3>
         </div>
         <div className="corporate-pack-picker__price">
           <strong>{formatTryFromKurus(pack.priceKurus)} <small>/ yıl</small></strong>
@@ -50,7 +50,7 @@ export default function CorporatePackPicker({
       </div>
 
       <div className="corporate-pack-picker__control">
-        <div className="corporate-pack-picker__ticks" role="list">
+        <div className="corporate-pack-picker__ticks" role="list" aria-label="Ekip büyüklüğü">
           {packs.map((item, tickIndex) => (
             <button
               key={item.code}
@@ -58,7 +58,7 @@ export default function CorporatePackPicker({
               role="listitem"
               className={`corporate-pack-picker__tick${tickIndex === index ? " is-active" : ""}${item.popular ? " is-popular" : ""}`}
               onClick={() => setIndex(tickIndex)}
-              aria-label={`${item.seats} kullanıcı${item.popular ? ", öne çıkan paket" : ""}`}
+              aria-label={`${item.seats} kullanıcı${item.popular ? ", en çok tercih edilen paket" : ""}`}
               aria-pressed={tickIndex === index}
             >
               {item.seats}
@@ -71,21 +71,21 @@ export default function CorporatePackPicker({
           max={packs.length - 1}
           step={1}
           value={index}
-          aria-label="Kurumsal paket kişi sayısı"
+          aria-label="Ekip büyüklüğüne göre paket seç"
           aria-valuetext={`${pack.name}, ${pack.seats} kullanıcı, ${formatTryFromKurus(pack.priceKurus)} yıllık`}
           onChange={(event) => setIndex(Number(event.target.value))}
         />
       </div>
 
-      <div className="corporate-pack-picker__meta">
+      <div className="corporate-pack-picker__meta" aria-label="Pakete dahil kapasite">
         <span>{pack.seats} kullanıcı</span>
         <span>{pack.seats} NFC kart</span>
-        <span>{pack.networkMail.toLocaleString("tr-TR")} Network Mail</span>
+        <span>{pack.networkMail.toLocaleString("tr-TR")} Network Mail kredisi</span>
       </div>
 
       <ul className="corporate-pack-picker__features" aria-label="Pakete dahil">
-        {CORPORATE_SHARED_FEATURES.slice(0, 8).map((item) => (
-          <li key={item}>{item}</li>
+        {CORPORATE_SHARED_FEATURES.slice(0, 8).map((feature) => (
+          <li key={feature}>{feature}</li>
         ))}
       </ul>
 
@@ -98,14 +98,14 @@ export default function CorporatePackPicker({
               kind="BUSINESS_CARD"
               name={pack.name}
               unitPriceKurus={pack.priceKurus}
-              label="Sepete Ekle"
+              label="Ekibimi Kur"
               className="corporate-cta"
               configuration={{ packageCode: pack.code, seatCount: pack.seats }}
             />
-            <a href="#teklif" className="home-mockup__link-secondary">100+ kişi için teklif</a>
+            <a href="#teklif" className="home-mockup__link-secondary">100+ kişi için kurumsal teklif</a>
           </>
         ) : (
-          <a href={`/kurumsal?plan=${pack.code}#teklif`} className="corporate-cta">Teklif Al</a>
+          <a href={`/kurumsal?plan=${pack.code}#teklif`} className="corporate-cta">Kurumsal Teklif Al</a>
         )}
       </div>
     </div>

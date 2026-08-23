@@ -21,7 +21,7 @@ function versionAtLeast(version, baseline) {
 const pkg = JSON.parse(read("package.json"));
 const states = read("app/components/ui/States.tsx");
 const skeleton = read("app/components/ui/DesignSystem.tsx");
-const login = read("app/giris/page.tsx");
+const login = read("app/giris/page.tsx") + read("app/giris/LoginClient.tsx");
 const shell = read("app/components/ui/AppShell.tsx");
 const client = read("app/kurumsal/panel/CorporatePanelClient.tsx");
 const employees = read("app/kurumsal/panel/components/EmployeesPanel.tsx");

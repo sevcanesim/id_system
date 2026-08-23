@@ -5,7 +5,7 @@ const bridge = readFileSync("app/components/AuthSessionBridge.tsx", "utf8");
 const session = readFileSync("app/api/auth/session/route.ts", "utf8");
 const helper = readFileSync("lib/auth/http-only-session.ts", "utf8");
 const middleware = readFileSync("middleware.ts", "utf8");
-const login = readFileSync("app/giris/page.tsx", "utf8");
+const login = readFileSync("app/giris/page.tsx", "utf8") + readFileSync("app/giris/LoginClient.tsx", "utf8");
 
 function requireText(source, token, message) {
   if (!source.includes(token)) throw new Error(message);

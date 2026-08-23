@@ -13,6 +13,7 @@ const exists = (file) => fs.existsSync(path.join(root, file));
 
 const required = [
   "app/giris/page.tsx",
+  "app/giris/LoginClient.tsx",
   "app/hesabim/page.tsx",
   "app/aktivasyon/page.tsx",
   "docs/AUTHENTICATION_ACTIVATION_PHASE6_V25.8.46.md",
@@ -21,7 +22,7 @@ const required = [
 for (const file of required) check(exists(file), `phase6 artifact exists: ${file}`);
 
 const layout = read("app/layout.tsx");
-const login = read("app/giris/page.tsx");
+const login = read("app/giris/page.tsx") + read("app/giris/LoginClient.tsx") + read("lib/auth/login-search.ts");
 const account = read("app/hesabim/page.tsx");
 const activation = read("app/aktivasyon/page.tsx");
 const checkout = read("app/checkout/page.tsx");
@@ -38,12 +39,13 @@ check(exists("app/canonical.css") && layout.includes('./canonical.css'), "auth f
 check(login.includes('className="p6-auth-page"'), "login migrated to Phase 6 auth scope");
 check(!login.includes('from "qrcode"') && !login.includes("QRCode."), "login no longer ships runtime QR generation");
 check(!login.includes("style={{"), "login has no inline style objects");
+check(read("app/giris/page.tsx").includes("searchParams") && read("app/giris/page.tsx").includes("force-dynamic") && !read("app/giris/page.tsx").trimStart().startsWith('"use client"'), "login first HTML is a server document of the selected portal");
 check(login.includes('role="tablist"') && login.includes("Bireysel") && login.includes("Kurumsal / Ekip"), "one auth foundation exposes individual and corporate contexts");
 check(login.includes('portalTabHref("business"') && login.includes("/giris?"), "corporate portal tab remains a real /giris destination");
 check(login.includes('messageTone === "error" ? "alert"') && login.includes("authAlert"), "auth errors render on the card as an alert, not only inside a form that can unmount");
 check(login.includes("persistActivePortal") && login.includes("noValidate"), "portal persistence cannot abort auth boot; login owns its validation messages");
-check(login.includes('setReturnPath(safeNext(params.get("next")))'), "explicit next destination is sanitized and preserved");
-check(login.includes('useState("/kartlarim")') && login.includes('nextPortal === "business" ? "/kurumsal/panel" : "/kartlarim"'), "auth routes directly to selected portal workspace without visible account-check surface");
+check(login.includes('setReturnPath') && login.includes('safeNext(params.get("next"))'), "explicit next destination is sanitized and preserved");
+check(login.includes('useState(initialNext') && login.includes('nextPortal === "business" ? "/kurumsal/panel" : "/kartlarim"'), "auth routes directly to selected portal workspace without visible account-check surface");
 check(login.includes("options: { emailRedirectTo }"), "signup verification preserves auth return destination");
 check(login.includes("resetPasswordForEmail"), "forgot-password flow implemented");
 check(login.includes('event === "PASSWORD_RECOVERY"'), "Supabase password recovery state handled");

@@ -67,7 +67,7 @@ mustInclude(csp, "'strict-dynamic'", "Nonce CSP must allow Next.js to load its o
 mustNotInclude(csp, "script-src 'self' 'unsafe-inline'", "script-src must not allow arbitrary inline scripts.");
 
 const loginApi = read("app/api/auth/login/route.ts");
-const loginPage = read("app/giris/page.tsx");
+const loginPage = read("app/giris/page.tsx") + read("app/giris/LoginClient.tsx");
 const testGate = read("lib/auth/production-test-gate.ts");
 const sessionRoute = read("app/api/auth/session/route.ts");
 mustInclude(loginApi, "signInWithPassword", "Password verification must happen on the Next.js login route.");
@@ -89,6 +89,11 @@ mustInclude(read("lib/email/resend.ts"), "sendAbandonedCheckoutEmail", "Abandone
 mustInclude(read("supabase/migrations/20260822180000_commerce_ops_observability.sql"), "ABANDONED_CHECKOUT", "Email event vocabulary must include abandoned checkout.");
 mustNotInclude(loginApi, "failClosed: true", "Password login must degrade to memory when Redis is down, not 503.");
 mustInclude(loginPage, "passwordLogin", "The login page must send passwords through /api/auth/login.");
+mustInclude(read("app/giris/page.tsx"), "searchParams", "Login HTML must be rendered from the request query so portal tabs work before hydration.");
+mustInclude(read("app/giris/page.tsx"), "x-login-portal", "Login portal must also be read from the middleware request header, not only searchParams.");
+mustInclude(middleware, "x-login-portal", "Middleware must copy the login portal query onto the request headers.");
+mustInclude(loginApi, "application/x-www-form-urlencoded", "Password login must accept a native form POST when JavaScript is blocked.");
+mustInclude(loginApi, "formData", "Form login must read urlencoded fields, not only JSON.");
 mustNotInclude(loginPage, "signInWithPassword", "Browser GoTrue sign-in would bypass the Next.js limiter.");
 mustInclude(activation, "passwordLogin", "Activation sign-in must use the rate-limited login route.");
 mustNotInclude(activation, "signInWithPassword", "Activation must not call GoTrue from the browser.");

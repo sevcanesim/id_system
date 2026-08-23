@@ -134,6 +134,12 @@ export async function middleware(request: NextRequest) {
   requestHeaders.set("x-request-id", requestId);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", cspValue(nonce));
+  if (pathname === "/giris") {
+    requestHeaders.set("x-login-portal", request.nextUrl.searchParams.get("portal") || "");
+    requestHeaders.set("x-login-next", request.nextUrl.searchParams.get("next") || "");
+    requestHeaders.set("x-login-mode", request.nextUrl.searchParams.get("mode") || "");
+    requestHeaders.set("x-login-error", request.nextUrl.searchParams.get("error") || "");
+  }
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   withCsp(response, requestId, nonce, pathname);
   if (PRIVATE_OR_PROFILE_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {

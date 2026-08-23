@@ -38,6 +38,16 @@ test.describe("public hamburger", () => {
     await expect(nav).not.toHaveClass(/is-open/);
   });
 
+  test("Escape closes the open drawer", async ({ page }) => {
+    await page.goto("/", { waitUntil: "load" });
+    const toggle = page.locator("button.yi-menu");
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await page.keyboard.press("Escape");
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await expect(page.locator("#site-primary-nav")).not.toHaveClass(/is-open/);
+  });
+
   test("login, cart, and checkout documents stamp the CSP nonce", async ({ request }) => {
     for (const path of ["/giris", "/sepet", "/checkout"]) {
       const response = await request.get(path);

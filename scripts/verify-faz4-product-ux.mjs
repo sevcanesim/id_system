@@ -193,8 +193,9 @@ check(productVisual.includes("const SPECIMEN") && productVisual.includes("Ürün
 check(!how.includes("how-phone-mockup") && !home.includes("<img") && !catalog.includes("<img"), "public home, catalog and how-it-works mockups stay CSS/SVG, not raster images");
 check(css.includes(".products-plan-grid {\n  align-items: stretch;") && css.includes(".how-step-grid {\n  align-items: stretch;"), "catalog and how-it-works card grids stretch to equal height");
 check(
-  css.includes("grid-template-rows: auto auto minmax(0, 1fr) auto")
-    && css.includes(".products-plan-card {\n  display: grid;"),
+  css.includes("grid-template-rows: auto auto auto minmax(0, 1fr)")
+    && css.includes(".products-plan-card {\n  display: grid;")
+    && css.includes("justify-content: flex-end"),
   "catalog plan cards use a four-row grid so CTA footers share one baseline"
 );
 check(css.includes("h1, h2, h3, h4 {\n  word-spacing: normal;\n}"), "heading word-spacing stays normal");
@@ -217,6 +218,7 @@ check(
     && publicNavE2e.includes("/giris")
     && publicNavE2e.includes("/checkout")
     && publicNavE2e.includes("Kartın henüz sepette değil.")
+    && publicNavE2e.includes("Escape")
     && !publicNavE2e.includes("test.skip(true"),
   "public hamburger has a 390px Playwright journey that is not a skeleton skip"
 );

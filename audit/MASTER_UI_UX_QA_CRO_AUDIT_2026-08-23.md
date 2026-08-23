@@ -42,7 +42,7 @@ Code fixes that do not require production secrets:
 | QA-009 footer product links | **Merged in #126.** |
 | QA-010 recover-by-UUID | **Already gated in current code** (`cookie` or authenticated owner). Not re-opened. |
 | QA-011 ticker duplicate | **Merged in #126.** |
-| QA-007 catalog equal height | **Code in PR #127.** Four-row grid so guest spare-card hint cannot unstick the CTA row. |
+| QA-007 catalog equal height | **Code in PR #127.** Card grid is `auto auto auto 1fr` with CTA `flex-end`; spare-card hint/login sit above Sepete Ekle so the three purchase controls share one baseline. |
 
 Remaining to close the audit in **production**, not in git: land **#127**, fill `PRODUCTION_*` / `LEGAL_*` / Vercel secrets, dispatch Protected Production Deploy, then retest hamburger on a real iPhone and confirm live SHA === `main`.
 
@@ -250,7 +250,7 @@ BROWSER: Chrome 1440
 DEVICE: desktop  
 PRECONDITIONS: Logged-out  
 
-PROBLEM: Live catalog trio does not read as equal-height. Flex + `margin-top: auto` still lets the Premium badge wrap and the Yedek Kart guest hint steal the footer row. **#127** switches `.products-plan-card` to `grid-template-rows: auto auto minmax(0, 1fr) auto`.  
+PROBLEM: Live catalog trio does not read as equal-height. Flex + `margin-top: auto` still lets the Premium badge wrap and the Yedek Kart guest hint steal the footer row. **#127** uses `grid-template-rows: auto auto auto minmax(0, 1fr)` and packs the CTA to the bottom so Sepete Ekle stays on one baseline.  
 
 STEPS TO REPRODUCE:  
 1. Open `/urunler` at 1440.  
@@ -262,7 +262,7 @@ ACTUAL RESULT: Uneven bottoms on live.
 FAIL CONDITION: Card footer CTAs not on a shared baseline.  
 BUSINESS IMPACT: Catalog looks unfinished; Premium (the upsell) looks accidental rather than chosen.  
 UX IMPACT: Hierarchy leaks through leftover height.  
-RECOMMENDED FIX: Shipped in **#127** (four-row grid, no per-card `min-height`). Recheck bounding boxes after production deploy.  
+RECOMMENDED FIX: Shipped in **#127** (CTA row grows; hint/login above the purchase button). Recheck bounding boxes after production deploy.  
 AUTOMATION CANDIDATE: YES (Playwright screenshot + bounding boxes)  
 REGRESSION TEST REQUIRED: YES  
 CLASSIFICATION: [HYBRID]

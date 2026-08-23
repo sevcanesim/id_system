@@ -1799,8 +1799,8 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .yi-btn--ghost{background:transparent;border-color:transparent;color:inherit}
 .yi-btn--dark{background:#151119;color:#fff}
 .yi-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
-.yi-menu{display:none;width:44px;height:44px;border:0;background:transparent;color:inherit}
-.yi-menu span{display:block;width:20px;height:1px;background:currentColor;margin:5px auto}
+.yi-menu{position:relative;z-index:23;display:none;flex:0 0 44px;width:44px;height:44px;border:0;background:transparent;color:inherit;pointer-events:auto}
+.yi-menu span{display:block;width:20px;height:1px;background:currentColor;margin:5px auto;pointer-events:none}
 .yi-section{padding:110px 0}
 .yi-section--dark{background:var(--void);color:var(--ink)}
 .yi-section--light{background:#f7f5ef;color:#17131c}
@@ -5127,7 +5127,6 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
   isolation:isolate;
   background:rgba(251,250,247,.96);
   box-shadow:0 1px 0 rgba(36,29,22,.08);
-  transform:translateZ(0);
 }
 .public-site-chrome .p4-announcement,
 .public-site-chrome .yi-header{
@@ -14045,6 +14044,7 @@ body:has(.legal-page) .yi-footer__trust .yi-icon {
 @media (max-width: 1180px) {
   .public-site-chrome .yi-menu {
     display: block;
+    pointer-events: auto;
   }
   .public-site-chrome .yi-header__actions .yi-btn {
     display: none;
@@ -14062,9 +14062,11 @@ body:has(.legal-page) .yi-footer__trust .yi-icon {
     border-radius: 18px;
     background: #fff;
     box-shadow: var(--shadow);
+    pointer-events: none;
   }
   .public-site-chrome .yi-nav.is-open {
     display: flex;
+    pointer-events: auto;
   }
 }
 
@@ -14097,19 +14099,35 @@ body:has(.legal-page) .yi-footer__trust .yi-icon {
   padding-block: 10px;
 }
 
-.public-site-chrome:has(.yi-nav.is-open)::before {
-  content: "";
+.yi-nav-backdrop {
   position: fixed;
   inset: 0;
   z-index: 18;
+  margin: 0;
+  border: 0;
+  padding: 0;
   background: rgba(26, 25, 24, .32);
+  cursor: pointer;
+  pointer-events: auto;
 }
 .public-site-chrome .yi-header {
   position: relative;
   z-index: 21;
+  overflow: visible;
+}
+.public-site-chrome .yi-header__inner {
+  position: relative;
+  z-index: 21;
+}
+.public-site-chrome .yi-header__actions,
+.public-site-chrome .yi-menu {
+  position: relative;
+  z-index: 23;
+  pointer-events: auto;
 }
 .public-site-chrome .yi-nav.is-open {
   z-index: 22;
+  pointer-events: auto;
 }
 
 .home-mockup__actions .home-mockup__link-secondary,
@@ -15202,10 +15220,9 @@ h1, h2, h3, h4 {
 body:has(.p6-auth-page) .public-site-chrome {
   pointer-events: none;
 }
-body:has(.p6-auth-page) .public-site-chrome .yi-header {
-  pointer-events: auto;
-}
-body:has(.p6-auth-page) .public-site-chrome:has(.yi-nav.is-open)::before {
+body:has(.p6-auth-page) .public-site-chrome .yi-header,
+body:has(.p6-auth-page) .public-site-chrome .yi-menu,
+body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
   pointer-events: auto;
 }
 .p6-auth-portal-tabs {
@@ -16376,6 +16393,15 @@ body:has(.p6-auth-page) .public-site-chrome:has(.yi-nav.is-open)::before {
     display: block;
     height: auto;
   }
+}
+
+/* Public hamburger: sticky chrome must not become a containing block for
+   the drawer overlay, and the toggle stays above the open panel. */
+.public-site-chrome {
+  transform: none;
+}
+.public-site-chrome .yi-menu {
+  pointer-events: auto;
 }
 
 

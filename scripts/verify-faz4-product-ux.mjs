@@ -157,6 +157,17 @@ check(
     && css.includes("body:has(.legal-page) .public-site-chrome .yi-header__actions .yi-btn--primary"),
   "first-viewport sticky header gold is ghosted where the page already owns a fill"
 );
+const header = read("app/ui/SiteHeader.tsx");
+check(
+  header.includes("yi-nav-backdrop")
+    && header.includes('aria-controls="site-primary-nav"')
+    && header.includes('aria-label={open ? "Menüyü kapat" : "Menüyü aç"}')
+    && css.includes(".yi-nav-backdrop")
+    && css.includes("pointer-events: auto")
+    && !css.includes("transform:translateZ(0)")
+    && !css.includes("public-site-chrome:has(.yi-nav.is-open)::before"),
+  "public hamburger stays clickable above a real backdrop, not a transformed sticky overlay"
+);
 check(invite.includes('className="home-mockup__link-secondary" href="/kurumsal/panel"') && invite.includes("Kurumsal Girişe Git") && invite.includes("Kurumsal Kartımı Oluştur"), "invite error recovery is text; login and accepted create stay gold");
 const publicCard = read("app/p/[publicId]/page.tsx");
 const physicalCard = read("app/c/[cardCode]/page.tsx");

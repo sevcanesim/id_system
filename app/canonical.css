@@ -16010,7 +16010,7 @@ body:has(.p6-auth-page) .public-site-chrome:has(.yi-nav.is-open)::before {
     height: auto;
   }
   .how-it-works-page .how-step-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     height: auto;
   }
   .how-it-works-page .how-step-card {
@@ -16054,6 +16054,158 @@ body:has(.p6-auth-page) .public-site-chrome:has(.yi-nav.is-open)::before {
 .yi-product-ui--card-metal .yi-card-role,
 .yi-product-ui--card-white .yi-card-role {
   color: #1A1918;
+}
+
+.how-live-sync {
+  position: relative;
+  margin: 0 0 8px;
+}
+.how-live-sync__stage {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: 28px;
+  min-height: 320px;
+  padding: 12px 8px 8px;
+}
+.how-live-sync__card {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.how-live-sync__card-face {
+  display: none;
+  width: min(260px, 100%);
+}
+.how-live-sync__card-face .yi-product-ui--card {
+  width: 100%;
+}
+#how-live-product:checked ~ .how-live-sync__stage .how-live-sync__card-face--product,
+#how-live-sales:checked ~ .how-live-sync__stage .how-live-sync__card-face--sales {
+  display: block;
+}
+.how-live-sync__pulse {
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  opacity: 0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #1A1918;
+  color: #F9F8F6;
+  font: 650 12px/1 var(--font-ui);
+  letter-spacing: .04em;
+}
+#how-live-sales:checked ~ .how-live-sync__stage .how-live-sync__pulse {
+  opacity: 1;
+}
+.how-live-sync__device {
+  width: min(280px, 100%);
+  margin-inline: auto;
+  border: 8px solid #28231f;
+  border-radius: 34px;
+  overflow: hidden;
+  background: #f8f5ee;
+  box-shadow: 0 28px 55px rgba(35, 26, 20, .22);
+}
+.how-live-sync__device-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px 10px;
+  background: #1A1918;
+  color: #F3EEE4;
+  font: 650 12px/1 var(--font-ui);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.how-live-sync__device-bar i {
+  width: 28px;
+  height: 4px;
+  border-radius: 999px;
+  background: #6B655D;
+}
+.how-live-sync__device-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px 18px 22px;
+}
+.how-live-sync__device-body > strong {
+  font-size: 20px;
+  letter-spacing: -.03em;
+}
+.how-live-sync__device-body > span {
+  color: #6B655D;
+  font-size: 13px;
+}
+.how-live-sync__field {
+  margin: 12px 0 0;
+  color: #8b6835;
+  font: 700 12px/1 var(--font-ui);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.how-live-sync__choices {
+  display: grid;
+  gap: 8px;
+}
+.how-live-sync__choices label {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border: 1px solid rgba(30, 25, 19, .12);
+  border-radius: 12px;
+  background: #fff;
+  color: #3f3a35;
+  cursor: pointer;
+  font-size: 14px;
+}
+#how-live-product:checked ~ .how-live-sync__stage label[for="how-live-product"],
+#how-live-sales:checked ~ .how-live-sync__stage label[for="how-live-sales"] {
+  border-color: rgba(163, 123, 44, .42);
+  background: #FFFCF6;
+  color: #1A1918;
+  box-shadow: 0 0 0 1px rgba(163, 123, 44, .18);
+}
+.how-live-sync__device-body ul {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.how-live-sync__device-body li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0 0;
+  border-top: 1px solid rgba(30, 25, 19, .08);
+  color: #6B655D;
+  font-size: 13px;
+}
+.how-live-sync__device-body li b {
+  color: #1A1918;
+}
+
+@media (max-width: 760px) {
+  .how-live-sync__stage {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 8px 0 18px;
+  }
+  .how-live-sync__pulse {
+    bottom: auto;
+    top: -8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .how-live-sync__pulse {
+    transition: none;
+  }
 }
 
 

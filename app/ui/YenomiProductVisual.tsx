@@ -17,11 +17,13 @@ export function YenomiProductVisual({
   compact = false,
   face = "front",
   finish = "matte",
+  role = SPECIMEN.role,
 }: {
   variant?: VisualVariant;
   compact?: boolean;
   face?: CardFace;
   finish?: CardFinish;
+  role?: string;
 }) {
   if (variant === "dashboard") {
     return (
@@ -60,7 +62,7 @@ export function YenomiProductVisual({
         <div className="yi-card-face">
           <div className="yi-card-identity">
             <strong>{SPECIMEN.name}</strong>
-            <span className="yi-card-role">{SPECIMEN.role}</span>
+            <span className="yi-card-role">{role}</span>
             <b>{SPECIMEN.company}</b>
           </div>
           <div className="yi-card-nfc-mark">
@@ -83,7 +85,7 @@ export function YenomiProductVisual({
       </div>
       <div className="yi-profile-body">
         <strong>{SPECIMEN.name}</strong>
-        <span>{SPECIMEN.role} · {SPECIMEN.company}</span>
+        <span>{role} · {SPECIMEN.company}</span>
         <p className="yi-profile-bio">Kart bir kez basılır. Unvanın değişince profil güncellenir; baskı tekrarlanmaz.</p>
         <div className="yi-profile-cta-row">
           <div className="yi-profile-save">Rehbere Kaydet</div>

@@ -17,6 +17,15 @@ check(home.includes("KAYIP MODU") && home.includes("Kaybolursa kapanır") && pro
 check(product.includes("Kayıp modu ve yedek kart desteği") && product.includes("Kartımı kaybedersem ne olur?"), "NFC product page explains lost-card lifecycle");
 check(home.includes('href="/nasil-calisir"') && home.includes("home-premium__proof") && home.includes("home-premium__final") && how.includes("how-it-works-page"), "landing retains how-it-works, proof and final conversion structure");
 check(how.includes("Kaybolursa kapat") && !how.includes("12.8K") && !how.includes("4.2K"), "how-it-works keeps lost-mode without fake analytics totals");
+check(
+  how.includes("Tarzını ve Kartını Seç")
+    && how.includes("how-card-gallery")
+    && how.includes("Profilini Oluştur ve Canlı Tut")
+    && how.includes("how-live-sync")
+    && !how.includes("Profilini yayınla")
+    && !how.includes("how-phone-mockup"),
+  "how-it-works keeps the finish gallery and live profile-sync step"
+);
 
 const landingPurchaseMatches = home.match(/NFC Kartı Satın Al/g) ?? [];
 check(landingPurchaseMatches.length >= 3, "public purchase CTAs use canonical 'NFC Kartı Satın Al' copy");

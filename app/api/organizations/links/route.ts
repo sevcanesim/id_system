@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { removeOrganizationAsset } from "../../../../lib/organizations/organization-assets";
 import { canManageTemplates, isOrganizationRole } from "../../../../lib/organizations/permissions";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 
@@ -107,6 +108,12 @@ export async function POST(request: NextRequest) {
   if (!member || !canManageTemplates(member.role, "ACTIVE")) return NextResponse.json({ error: "Kurumsal bağlantı yönetimi yalnız şirket sahibi ve yöneticilere açıktır." }, { status: 403 });
 
   const publishAt = parsed.data.publishAt || new Date().toISOString();
+  const { data: existing } = await ctx.admin
+    .from("organization_links")
+    .select("file_path")
+    .eq("organization_id", parsed.data.organizationId)
+    .eq("kind", parsed.data.kind)
+    .maybeSingle();
   const { error } = await ctx.admin.from("organization_links").upsert({
     organization_id: parsed.data.organizationId,
     kind: parsed.data.kind,
@@ -123,6 +130,7 @@ export async function POST(request: NextRequest) {
     updated_at: new Date().toISOString(),
   }, { onConflict: "organization_id,kind" });
   if (error) return NextResponse.json({ error: "Bağlantı kaydedilemedi." }, { status: 500 });
+  if (existing?.file_path) await removeOrganizationAsset(ctx.admin, existing.file_path);
   return NextResponse.json({ ok: true });
 }
 
@@ -186,7 +194,14 @@ export async function DELETE(request: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: "Geçersiz istek." }, { status: 400 });
   const member = await membership(ctx.admin, ctx.user.id, parsed.data.organizationId);
   if (!member || !canManageTemplates(member.role, "ACTIVE")) return NextResponse.json({ error: "Kurumsal bağlantı yönetimi yalnız şirket sahibi ve yöneticilere açıktır." }, { status: 403 });
+  const { data: existing } = await ctx.admin
+    .from("organization_links")
+    .select("file_path")
+    .eq("organization_id", parsed.data.organizationId)
+    .eq("kind", parsed.data.kind)
+    .maybeSingle();
   const { error } = await ctx.admin.from("organization_links").delete().eq("organization_id", parsed.data.organizationId).eq("kind", parsed.data.kind);
   if (error) return NextResponse.json({ error: "Bağlantı kaldırılamadı." }, { status: 500 });
+  if (existing?.file_path) await removeOrganizationAsset(ctx.admin, existing.file_path);
   return NextResponse.json({ ok: true });
 }

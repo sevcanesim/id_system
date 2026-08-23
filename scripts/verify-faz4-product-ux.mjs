@@ -203,6 +203,15 @@ const playwright = read("playwright.config.ts");
 check(playwright.includes('name: "webkit"') && playwright.includes('name: "mobile-webkit"') && playwright.includes("iPhone 13"), "Playwright keeps desktop WebKit and iPhone 13 coverage");
 const working = read("docs/product-engineering/16_AGENT_WORKING_CONTRACT.md");
 check(working.includes("Selin Kaya") && working.includes("align-items: stretch") && working.includes("#F9F8F6"), "agent working contract encodes the UI guardrails");
+const publicNavE2e = read("e2e/public-nav.spec.ts");
+check(
+  publicNavE2e.includes('name: "Menüyü aç"')
+    && publicNavE2e.includes("#site-primary-nav")
+    && publicNavE2e.includes("width: 390")
+    && publicNavE2e.includes("/urunler")
+    && !publicNavE2e.includes("test.skip(true"),
+  "public hamburger has a 390px Playwright journey that is not a skeleton skip"
+);
 
 const sitemapSource = read("app/sitemap.ts");
 const robotsSource = read("app/robots.ts");

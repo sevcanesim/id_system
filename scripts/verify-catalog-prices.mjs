@@ -24,6 +24,9 @@ const packages = fs.readFileSync(path.join(root, 'lib/commerce/packages.ts'), 'u
 for (const match of packages.matchAll(/code:\s*"(CORP-\d+)",\s*name:\s*"[^"]+",\s*seats:\s*\d+,\s*priceKurus:\s*([\d_]+)/g)) {
   expected.set(`YENOMI-${match[1]}`, Number(match[2].replaceAll('_', '')));
 }
+for (const match of packages.matchAll(/sku:\s*"(YENOMI-BUSINESS-SEATS-\d+)",\s*seats:\s*\d+,\s*priceKurus:\s*([\d_]+)/g)) {
+  expected.set(match[1], Number(match[2].replaceAll('_', '')));
+}
 
 const env = { ...readEnvFile(path.join(root, '.env.local')), ...process.env };
 if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {

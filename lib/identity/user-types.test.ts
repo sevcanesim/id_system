@@ -73,6 +73,8 @@ describe("user identity types", () => {
       expect(IDENTITY_PACKAGE_CATALOG.some((item) => item.code === row.code)).toBe(true);
     }
     expect(ADMIN_PROVISION_PLAN_CODES).toContain("DEMO-5");
+    expect(packageCodeFromSku("YENOMI-CORP-4")).toBe("CORP-4");
+    expect(IDENTITY_PACKAGE_CATALOG.find((row) => row.code === "CORP-4")?.live).toBe(false);
     expect(IDENTITY_PACKAGE_CATALOG.filter((row) => row.code === "PET_ID" && row.live)).toHaveLength(0);
   });
 });

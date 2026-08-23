@@ -134,16 +134,13 @@ await supabase.from("products").upsert({ slug: "yenomi-business", name: "Yenomi 
 const { data: corporateProduct, error: corporateProductError } = await supabase.from("products").select("id").eq("slug", "yenomi-business").single();
 if (corporateProductError) throw corporateProductError;
 const corporateLadder = [
-  { sku: "YENOMI-CORP-2", name: "Kurumsal 2", price: 240000, seats: 2, code: "CORP-2" },
-  { sku: "YENOMI-CORP-3", name: "Kurumsal 3", price: 350000, seats: 3, code: "CORP-3" },
-  { sku: "YENOMI-CORP-4", name: "Kurumsal 4", price: 450000, seats: 4, code: "CORP-4" },
-  { sku: "YENOMI-CORP-5", name: "Kurumsal 5", price: 550000, seats: 5, code: "CORP-5" },
-  { sku: "YENOMI-CORP-10", name: "Kurumsal 10", price: 990000, seats: 10, code: "CORP-10" },
-  { sku: "YENOMI-CORP-20", name: "Kurumsal 20", price: 1890000, seats: 20, code: "CORP-20" },
-  { sku: "YENOMI-CORP-25", name: "Kurumsal 25", price: 2290000, seats: 25, code: "CORP-25" },
-  { sku: "YENOMI-CORP-50", name: "Kurumsal 50", price: 3990000, seats: 50, code: "CORP-50" },
-  { sku: "YENOMI-CORP-75", name: "Kurumsal 75", price: 5690000, seats: 75, code: "CORP-75" },
-  { sku: "YENOMI-CORP-100", name: "Kurumsal 100", price: 6990000, seats: 100, code: "CORP-100" },
+  { sku: "YENOMI-CORP-2", name: "Kurumsal 2", price: 349000, seats: 2, code: "CORP-2" },
+  { sku: "YENOMI-CORP-3", name: "Kurumsal 3", price: 499000, seats: 3, code: "CORP-3" },
+  { sku: "YENOMI-CORP-5", name: "Kurumsal 5", price: 749000, seats: 5, code: "CORP-5" },
+  { sku: "YENOMI-CORP-10", name: "Kurumsal 10", price: 1290000, seats: 10, code: "CORP-10" },
+  { sku: "YENOMI-CORP-25", name: "Kurumsal 25", price: 2990000, seats: 25, code: "CORP-25" },
+  { sku: "YENOMI-CORP-50", name: "Kurumsal 50", price: 5490000, seats: 50, code: "CORP-50" },
+  { sku: "YENOMI-CORP-100", name: "Kurumsal 100", price: 9990000, seats: 100, code: "CORP-100" },
 ];
 for (const pack of corporateLadder) {
   await supabase.from("product_variants").upsert({
@@ -166,6 +163,24 @@ for (const pack of corporateLadder) {
     },
     is_active: true,
   }, { onConflict: "sku" }).throwOnError();
+}
+await supabase.from("product_variants").update({ is_active: false }).in("sku", ["YENOMI-CORP-4", "YENOMI-CORP-20", "YENOMI-CORP-75"]).throwOnError();
+for (const pack of corporateLadder) {
+  await supabase.from("business_plans").update({ annual_price_kurus: pack.price, monthly_price_kurus: null, is_active: true }).eq("code", pack.code).throwOnError();
+}
+await supabase.from("business_plans").update({ is_active: false }).in("code", ["CORP-4", "CORP-20", "CORP-75"]).throwOnError();
+await supabase.from("business_plans").update({ annual_price_kurus: 1290000 }).eq("code", "STARTER").throwOnError();
+await supabase.from("business_plans").update({ annual_price_kurus: 2990000 }).eq("code", "GROWTH").throwOnError();
+await supabase.from("business_plans").update({ annual_price_kurus: 5490000 }).eq("code", "BUSINESS").throwOnError();
+const seatPacks = [
+  { sku: "YENOMI-BUSINESS-SEATS-1", price: 159000 },
+  { sku: "YENOMI-BUSINESS-SEATS-2", price: 279000 },
+  { sku: "YENOMI-BUSINESS-SEATS-3", price: 409000 },
+  { sku: "YENOMI-BUSINESS-SEATS-5", price: 549000 },
+  { sku: "YENOMI-BUSINESS-SEATS-10", price: 1049000 },
+];
+for (const pack of seatPacks) {
+  await supabase.from("product_variants").update({ price_kurus: pack.price }).eq("sku", pack.sku).throwOnError();
 }
 
 const { data: product, error: productError } = await supabase.from("products").select("id,slug,name,kind").eq("slug", "nfc-business-card").single();

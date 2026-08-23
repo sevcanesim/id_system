@@ -54,9 +54,15 @@ describe("corporate ladder", () => {
   it("does not price 10 seats the same as 5 seats", () => {
     const five = CORPORATE_PACKAGE_LADDER.find((row) => row.seats === 5)!;
     const ten = CORPORATE_PACKAGE_LADDER.find((row) => row.seats === 10)!;
-    expect(five.priceKurus).toBe(550_000);
-    expect(ten.priceKurus).toBe(990_000);
+    expect(five.priceKurus).toBe(749_000);
+    expect(ten.priceKurus).toBe(1_290_000);
     expect(ten.priceKurus).toBeGreaterThan(five.priceKurus);
+  });
+
+  it("sells the published 2–100 ladder and features the 25-seat pack", () => {
+    expect(CORPORATE_PACKAGE_LADDER.map((row) => row.seats)).toEqual([2, 3, 5, 10, 25, 50, 100]);
+    expect(CORPORATE_PACKAGE_LADDER.find((row) => row.code === "CORP-25")?.popular).toBe(true);
+    expect(CORPORATE_PACKAGE_LADDER.filter((row) => "popular" in row && row.popular)).toHaveLength(1);
   });
 
   it("decreases per-seat price as pack size grows", () => {
@@ -64,7 +70,7 @@ describe("corporate ladder", () => {
     for (let i = 1; i < perSeat.length; i += 1) {
       expect(perSeat[i]).toBeLessThan(perSeat[i - 1]);
     }
-    expect(perSeat[perSeat.length - 1]).toBe(69_900);
+    expect(perSeat[perSeat.length - 1]).toBe(99_900);
   });
 
   it("grants 100 Network Mail per included seat", () => {
@@ -85,6 +91,7 @@ describe("corporate ladder", () => {
     expect(corporateCheckoutLive(101)).toBe(false);
     expect(corporatePackageSku("CORP-10")).toBe("YENOMI-CORP-10");
     expect(isCorporatePackageSku("YENOMI-CORP-100")).toBe(true);
+    expect(isCorporatePackageSku("YENOMI-CORP-4")).toBe(false);
     expect(isCorporatePackageSku(COMMERCIAL_SKUS.INITIAL)).toBe(false);
     for (const row of CORPORATE_PACKAGE_LADDER) {
       expect(corporateCheckoutLive(row.seats)).toBe(true);
@@ -252,9 +259,21 @@ describe("seat top-ups vs official packs", () => {
   it("keeps a 5-seat top-up from undercutting 5 → 10 pack upgrade", () => {
     const delta = upgradeDeltaKurus(5, 10);
     const fivePack = BUSINESS_SEAT_PACKS.find((row) => row.seats === 5)!;
-    expect(delta).toBe(440_000);
+    expect(delta).toBe(541_000);
     expect(fivePack.priceKurus).toBeGreaterThanOrEqual(delta!);
     expect(fivePack.sku).toBe("YENOMI-BUSINESS-SEATS-5");
+  });
+
+  it("keeps every matching seat top-up from undercutting an official pack step", () => {
+    for (let from = 0; from < CORPORATE_PACKAGE_LADDER.length; from += 1) {
+      for (let to = from + 1; to < CORPORATE_PACKAGE_LADDER.length; to += 1) {
+        const extra = CORPORATE_PACKAGE_LADDER[to]!.seats - CORPORATE_PACKAGE_LADDER[from]!.seats;
+        const topUp = BUSINESS_SEAT_PACKS.find((row) => row.seats === extra);
+        if (!topUp) continue;
+        const delta = CORPORATE_PACKAGE_LADDER[to]!.priceKurus - CORPORATE_PACKAGE_LADDER[from]!.priceKurus;
+        expect(topUp.priceKurus).toBeGreaterThanOrEqual(delta);
+      }
+    }
   });
 });
 
@@ -267,13 +286,13 @@ describe("missing commercial algorithms", () => {
   it("recommends the smallest pack that covers the headcount", () => {
     expect(recommendCorporatePack(1).code).toBe("CORP-2");
     expect(recommendCorporatePack(10).code).toBe("CORP-10");
-    expect(recommendCorporatePack(11).code).toBe("CORP-20");
+    expect(recommendCorporatePack(11).code).toBe("CORP-25");
     expect(recommendCorporatePack(101).code).toBe("ENTERPRISE");
   });
 
   it("prorates pack upgrades by remaining term days", () => {
     expect(prorateUpgradeKurus({ fromSeats: 5, toSeats: 10, daysRemaining: 182, termDays: 365 })).toBe(
-      Math.round(440_000 * (182 / 365)),
+      Math.round(541_000 * (182 / 365)),
     );
   });
 

@@ -64,17 +64,17 @@ export const INDIVIDUAL_PREMIUM_UPGRADE_PLAN = {
 } as const;
 
 export const CORPORATE_PACKAGE_LADDER = [
-  { code: "CORP-2", name: "Kurumsal 2", seats: 2, priceKurus: 240_000 },
-  { code: "CORP-3", name: "Kurumsal 3", seats: 3, priceKurus: 350_000 },
-  { code: "CORP-4", name: "Kurumsal 4", seats: 4, priceKurus: 450_000 },
-  { code: "CORP-5", name: "Kurumsal 5", seats: 5, priceKurus: 550_000 },
-  { code: "CORP-10", name: "Kurumsal 10", seats: 10, priceKurus: 990_000, popular: true },
-  { code: "CORP-20", name: "Kurumsal 20", seats: 20, priceKurus: 1_890_000 },
-  { code: "CORP-25", name: "Kurumsal 25", seats: 25, priceKurus: 2_290_000 },
-  { code: "CORP-50", name: "Kurumsal 50", seats: 50, priceKurus: 3_990_000 },
-  { code: "CORP-75", name: "Kurumsal 75", seats: 75, priceKurus: 5_690_000 },
-  { code: "CORP-100", name: "Kurumsal 100", seats: 100, priceKurus: 6_990_000 },
+  { code: "CORP-2", name: "Kurumsal 2", seats: 2, priceKurus: 349_000 },
+  { code: "CORP-3", name: "Kurumsal 3", seats: 3, priceKurus: 499_000 },
+  { code: "CORP-5", name: "Kurumsal 5", seats: 5, priceKurus: 749_000 },
+  { code: "CORP-10", name: "Kurumsal 10", seats: 10, priceKurus: 1_290_000 },
+  { code: "CORP-25", name: "Kurumsal 25", seats: 25, priceKurus: 2_990_000, popular: true },
+  { code: "CORP-50", name: "Kurumsal 50", seats: 50, priceKurus: 5_490_000 },
+  { code: "CORP-100", name: "Kurumsal 100", seats: 100, priceKurus: 9_990_000 },
 ] as const;
+
+/** Left the public ladder. Existing tenants keep the plan code; new sales are off. */
+export const RETIRED_CORPORATE_PACKAGE_CODES = ["CORP-4", "CORP-20", "CORP-75"] as const;
 
 export type CorporatePackageCode = (typeof CORPORATE_PACKAGE_LADDER)[number]["code"];
 
@@ -125,11 +125,11 @@ export const CAMPAIGN_MAIL_STAGE = "COMING_SOON" as const;
 
 /** Mid-cycle seat top-ups. Priced so buying the next official pack stays cheaper. */
 export const BUSINESS_SEAT_PACKS = [
-  { sku: "YENOMI-BUSINESS-SEATS-1", seats: 1, priceKurus: 99_000, name: "Ek 1 Kullanıcı + Kart" },
-  { sku: "YENOMI-BUSINESS-SEATS-2", seats: 2, priceKurus: 189_000, name: "Ek 2 Kullanıcı + Kart" },
-  { sku: "YENOMI-BUSINESS-SEATS-3", seats: 3, priceKurus: 269_000, name: "Ek 3 Kullanıcı + Kart" },
-  { sku: "YENOMI-BUSINESS-SEATS-5", seats: 5, priceKurus: 449_000, name: "Ek 5 Kullanıcı + Kart" },
-  { sku: "YENOMI-BUSINESS-SEATS-10", seats: 10, priceKurus: 849_000, name: "Ek 10 Kullanıcı + Kart" },
+  { sku: "YENOMI-BUSINESS-SEATS-1", seats: 1, priceKurus: 159_000, name: "Ek 1 Kullanıcı + Kart" },
+  { sku: "YENOMI-BUSINESS-SEATS-2", seats: 2, priceKurus: 279_000, name: "Ek 2 Kullanıcı + Kart" },
+  { sku: "YENOMI-BUSINESS-SEATS-3", seats: 3, priceKurus: 409_000, name: "Ek 3 Kullanıcı + Kart" },
+  { sku: "YENOMI-BUSINESS-SEATS-5", seats: 5, priceKurus: 549_000, name: "Ek 5 Kullanıcı + Kart" },
+  { sku: "YENOMI-BUSINESS-SEATS-10", seats: 10, priceKurus: 1_049_000, name: "Ek 10 Kullanıcı + Kart" },
 ] as const;
 
 export const ADMIN_PROVISION_PLAN_CODES = [

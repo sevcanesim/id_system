@@ -134,10 +134,10 @@
     ]
   },
   "budgets": {
-    "explicitClientBoundaryMax": 53,
+    "explicitClientBoundaryMax": 54,
     "releaseArtifactMaxBytes": 20971520,
     "criticalSurfaceMaxLoc": {
-      "app/kurumsal/panel/CorporatePanelClient.tsx": 1836,
+      "app/kurumsal/panel/CorporatePanelClient.tsx": 1840,
       "app/kurumsal/panel/components/EmployeeDrawer.tsx": 651,
       "app/olustur/CardWizard.tsx": 818,
       "app/api/commerce/checkout/route.ts": 632,

@@ -22,8 +22,8 @@ export function isBlockedTestIdentity(input: {
 
 export function shouldBlockTestLogins(): boolean {
   if (process.env.ALLOW_TEST_LOGINS === "true") return false;
-  if (process.env.YENOMI_BLOCK_TEST_LOGINS === "true") return true;
   if (process.env.NODE_ENV === "development") return false;
+  if (process.env.YENOMI_BLOCK_TEST_LOGINS === "true") return true;
   return process.env.VERCEL_ENV === "production";
 }
 

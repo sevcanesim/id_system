@@ -108,13 +108,17 @@ export default function LoginClient({
         showMessage(allowed.message, "error");
         return;
       }
+      const sessionStored = await writeSessionCookie(
+        data.session.access_token,
+        data.session.expires_at,
+        data.session.refresh_token,
+      );
+      if (!sessionStored) {
+        await supabase.auth.signOut();
+        showMessage("Oturum kaydedilemedi. Lütfen yeniden dene.", "error");
+        return;
+      }
       if (await isAdminSession(data.session.access_token)) {
-        const sessionStored = await writeSessionCookie(data.session.access_token, data.session.expires_at, data.session.refresh_token);
-        if (!sessionStored) {
-          await supabase.auth.signOut();
-          showMessage("Oturum kaydedilemedi. Lütfen yeniden dene.", "error");
-          return;
-        }
         window.location.replace("/admin");
         return;
       }
@@ -172,7 +176,11 @@ export default function LoginClient({
     setRememberedLogin(rememberMe, email ? normalizeEmail(email) : undefined);
     setLoading(true);
     const redirectTo = `${window.location.origin}/giris?portal=${portal}&next=${encodeURIComponent(returnPath)}`;
-    const { error } = await supabase.auth.signInWithOAuth({ provider: "linkedin_oidc", options: { redirectTo, scopes: "openid profile email" } });
+    let { error } = await supabase.auth.signInWithOAuth({ provider: "linkedin_oidc", options: { redirectTo, scopes: "openid profile email" } });
+    if (error && (error.message?.includes("provider") || error.message?.includes("not supported"))) {
+      const fallback = await supabase.auth.signInWithOAuth({ provider: "linkedin" as any, options: { redirectTo, scopes: "r_liteprofile r_emailaddress" } });
+      error = fallback.error;
+    }
     if (error) {
       setLoading(false);
       showMessage(authErrorMessage(error, "LinkedIn ile giriş başlatılamadı. Lütfen yeniden dene."), "error");

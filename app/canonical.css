@@ -600,9 +600,7 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .p6-auth-mini-phone .yi-product-ui--profile { min-height:176px; border-width:5px; border-radius:22px; }
 .p6-auth-page .p6-auth-mini-phone > small { display:block; margin-top:8px; color:#5c564e; font-size:11px; line-height:1.4; }
 .p6-auth-flow-arrow { color:var(--gold); font-size:18px; }
-.p6-auth-features { list-style:none; margin:18px 0 0; padding:0; display:grid; grid-template-columns:1fr; gap:8px; }
-.p6-auth-features > li { display:grid; grid-template-columns:18px minmax(0,1fr); gap:10px; align-items:start; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:#fff; color:var(--ink-2); font-size:12px; }
-.p6-auth-features .yi-icon { width:16px; height:16px; margin-top:2px; color:var(--gold-hi); }
+
 .p6-auth-form-side { min-width:0; display:flex; justify-content:flex-end; }
 .p6-auth-form-card {
   width:min(100%,480px); padding:28px 28px 24px; border:1px solid var(--border); border-radius:20px;

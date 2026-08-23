@@ -3,7 +3,7 @@
 **Date:** 23 August 2026  
 **Auditor role:** Senior QA + UX/UI + CRO + business-flow review  
 **Live surface:** https://yenomi-id.vercel.app  
-**Code baseline reviewed:** `origin/main` @ `e76f308` (#125 audit + #126 canonical/honesty merged) plus in-flight PR **#127** (CSP nonce hydration)  
+**Code baseline reviewed:** `origin/main` @ `e76f308` (#125 audit + #126 canonical/honesty merged) plus in-flight PR **#127** (CSP nonce hydration + catalog 4-row grid)  
 **Package:** 25.9.4  
 
 ## Evidence bounds (read first)
@@ -23,7 +23,7 @@ Never treat BLOCKED or NOT RUN as PASS.
 
 **Product contract (binding, not optional taste):** public chrome stays warm-light `#F9F8F6`. Dark luxury is specimen-only. Do not restyle the shell to `#0B0B0B`. Specimen identity is Selin Kaya / Ürün Yöneticisi / Yenomi Labs. Public purchase CTA is `NFC Kartı Satın Al`. Corporate header CTA is `Paketleri İncele`.
 
-Live vs `main` delta is itself a conversion defect: customers on Vercel do not yet have merged how-it-works board, Campaign Mail removal, or hamburger fix.
+Live vs `main` delta is itself a conversion defect: customers on Vercel do not yet have merged how-it-works board, Campaign Mail removal, hamburger overlay, or CSP nonce on static documents. Recrawl 23 Aug ~14:24 UTC: `/` `/giris` `/sepet` `/checkout` `/aktivasyon` `/nasil-calisir` are Vercel HTML HITs with **zero** `nonce=` (scripts blocked). `/urunler` `/destek` `/urunler/nfc-kart` `/kurumsal` are MISSes that already stamp a matching nonce — those pages can hydrate, but live CSS still has `.public-site-chrome{transform:translateZ(0)}` and no `.yi-nav-backdrop`, so the overlay bug remains even where JS runs.
 
 ## Follow-through (23 August, same day)
 
@@ -32,7 +32,7 @@ Code fixes that do not require production secrets:
 | Item | Status |
 | --- | --- |
 | QA-001 hamburger overlay | **Code on `main`.** PR **#124** merged. Live still has no `.yi-nav-backdrop`. |
-| QA-001b CSP hydration (was QA-015 P3) | **Code in PR #127.** Static HTML HIT + per-request `strict-dynamic` nonce blocked every Next chunk. Overlay fix alone cannot open the menu because React never hydrates. Do not add `unsafe-inline`. |
+| QA-001b CSP hydration (was QA-015 P3) | **Code in PR #127.** Live recrawl: `/giris` (age ~14h), `/checkout`, `/sepet`, `/aktivasyon`, `/` are HITs with 0 `nonce=`. Login, cart, and pay never hydrate on those documents. Overlay fix alone cannot open a menu (or a login tab) that never hydrates. Do not add `unsafe-inline`. |
 | QA-002 production secrets / deploy | **Unchanged. Human-only.** Do not weaken `verify:phase20:production`. |
 | QA-003 Campaign Mail card | **Code on `main`** (PR #119). Live `/kurumsal` still has `Campaign Mail` (15) / `CAMPAIGN-MAIL` (9). |
 | QA-004 how-it-works board | **Code on `main`** (PR #123). Live still lacks `how-steps-board`. |
@@ -42,21 +42,23 @@ Code fixes that do not require production secrets:
 | QA-009 footer product links | **Merged in #126.** |
 | QA-010 recover-by-UUID | **Already gated in current code** (`cookie` or authenticated owner). Not re-opened. |
 | QA-011 ticker duplicate | **Merged in #126.** |
+| QA-007 catalog equal height | **Code in PR #127.** Four-row grid so guest spare-card hint cannot unstick the CTA row. |
 
-Remaining to close the audit in **production**, not in git: fill `PRODUCTION_*` / `LEGAL_*` / Vercel secrets, dispatch Protected Production Deploy, then retest hamburger on a real iPhone and confirm live SHA === `main`.
+Remaining to close the audit in **production**, not in git: land **#127**, fill `PRODUCTION_*` / `LEGAL_*` / Vercel secrets, dispatch Protected Production Deploy, then retest hamburger on a real iPhone and confirm live SHA === `main`.
 
 ---
 
 # 1. EXECUTIVE SUMMARY
 
-Live production is a warm-light, contract-compliant marketing site with a **broken mobile navigation**, a **stale deploy**, and **unproven payment/entitlement journeys**. Desktop public pages look intentional. Mobile cannot open the primary nav. Canonical URLs still advertise `qr.yenomilabs.com` (this environment cannot resolve that host). Playwright covers **1/7** critical journeys.
+Live production is a warm-light, contract-compliant marketing site with a **broken mobile navigation**, **non-hydrating login/checkout/cart documents**, a **stale deploy**, and **unproven payment/entitlement journeys**. Desktop public pages look intentional. Mobile cannot open the primary nav on `/`. Canonical URLs still advertise `qr.yenomilabs.com` (this environment cannot resolve that host). Playwright covers **1/7** critical journeys.
 
 The product is not failing because it looks “not dark-luxury enough.” It is failing because:
 
-1. Mobile users cannot use the hamburger (live).
-2. Production cannot be promoted (secrets / env contract).
-3. Guest purchase → pay → activate is not E2E-proven.
-4. Live pages still show retired Campaign Mail merchandising and the old how-it-works 4-up.
+1. Static Vercel HITs ship HTML without the response CSP nonce, so Next never hydrates (`/`, `/giris`, `/sepet`, `/checkout`, `/aktivasyon`).
+2. Live CSS still creates a containing-block overlay over the hamburger (`translateZ(0)`).
+3. Production cannot be promoted (secrets / env contract).
+4. Guest purchase → pay → activate is not E2E-proven.
+5. Live pages still show retired Campaign Mail merchandising and the old how-it-works 4-up.
 
 Fix those before another visual restyle.
 
@@ -75,7 +77,7 @@ BROWSER: Chrome DevTools
 DEVICE: 390px iPhone emulation  
 PRECONDITIONS: Logged-out visitor, viewport ≤1180px  
 
-PROBLEM: Hamburger is visible but does not open the drawer. Mobile visitors cannot reach Ürünler, Nasıl Çalışır, Kurumsal, Destek, or Giriş from the header.
+PROBLEM: Hamburger is visible but does not open the drawer. Mobile visitors cannot reach Ürünler, Nasıl Çalışır, Kurumsal, Destek, or Giriş from the header. Same CSP miss also leaves `/giris`, `/sepet`, and `/checkout` as dead documents on cache HIT.
 
 STEPS TO REPRODUCE:  
 1. Open https://yenomi-id.vercel.app/ at 390px.  
@@ -87,7 +89,7 @@ ACTUAL RESULT: No drawer. Control does not toggle.
 FAIL CONDITION: `aria-expanded` stays false / `.yi-nav.is-open` never appears after a tap.  
 BUSINESS IMPACT: Majority of traffic is mobile. Discovery and purchase paths are header-dependent.  
 UX IMPACT: The chrome looks tappable and does nothing. Trust drops immediately.  
-RECOMMENDED FIX: Overlay/stacking is PR **#124** (merged). Hydration is PR **#127**: root layout must read `x-nonce`, documents must be `no-store`, Next scripts must carry the same nonce as the response CSP. Overlay without hydration is still a dead control. **Land #127 and run Protected Production Deploy.** Do not add `unsafe-inline`.  
+RECOMMENDED FIX: Overlay/stacking is PR **#124** (merged). Hydration is PR **#127**: root layout must read `x-nonce`, documents must be `no-store`, Next scripts must carry the same nonce as the response CSP. Overlay without hydration is still a dead control; hydration without overlay fix still fails on live CSS. **Land #127 and run Protected Production Deploy.** Do not add `unsafe-inline`.  
 AUTOMATION CANDIDATE: YES  
 REGRESSION TEST REQUIRED: YES  
 CLASSIFICATION: [AUTOMATE]
@@ -202,7 +204,7 @@ ACTUAL RESULT: Dual-host; marketing routes missing from sitemap.
 FAIL CONDITION: Shared OG URL 404s or NXDOMAIN; Google indexes a host customers never use.  
 BUSINESS IMPACT: Share cards, QR printed URLs, and search can point at a dead or split origin.  
 UX IMPACT: “Open this card” from iMessage/LinkedIn fails if DNS/HTTPS is wrong.  
-RECOMMENDED FIX: Single source of truth: `NEXT_PUBLIC_SITE_URL`. Drive `metadataBase`, `sitemap.ts`, `robots.ts`, `lib/public-card/urls.ts`. Add `/`, `/nasil-calisir`, `/kurumsal`, `/destek` to the sitemap. Confirm DNS + TLS for the chosen host **before** printing QR plates.  
+RECOMMENDED FIX: Single source of truth: `NEXT_PUBLIC_SITE_URL`. Drive `metadataBase`, `sitemap.ts`, `robots.ts`, `lib/public-card/urls.ts`. Add `/`, `/nasil-calisir`, `/kurumsal`, `/destek` to the sitemap **and** robots `allow` (code on `main` + #127). Confirm DNS + TLS for the chosen host **before** printing QR plates.  
 AUTOMATION CANDIDATE: YES  
 REGRESSION TEST REQUIRED: YES  
 CLASSIFICATION: [HYBRID]
@@ -248,7 +250,7 @@ BROWSER: Chrome 1440
 DEVICE: desktop  
 PRECONDITIONS: Logged-out  
 
-PROBLEM: Live catalog trio does not read as equal-height. Code on `main` already uses `align-items: stretch`, column flex, `ul { flex: 1 }`, CTA `margin-top: auto`. Live may be stale CSS **or** Yedek Kart guest hint (`Giriş gerekli…`) plus Premium badge wrapping still stretching one card after deploy.  
+PROBLEM: Live catalog trio does not read as equal-height. Flex + `margin-top: auto` still lets the Premium badge wrap and the Yedek Kart guest hint steal the footer row. **#127** switches `.products-plan-card` to `grid-template-rows: auto auto minmax(0, 1fr) auto`.  
 
 STEPS TO REPRODUCE:  
 1. Open `/urunler` at 1440.  
@@ -260,7 +262,7 @@ ACTUAL RESULT: Uneven bottoms on live.
 FAIL CONDITION: Card footer CTAs not on a shared baseline.  
 BUSINESS IMPACT: Catalog looks unfinished; Premium (the upsell) looks accidental rather than chosen.  
 UX IMPACT: Hierarchy leaks through leftover height.  
-RECOMMENDED FIX: After deploy, if still uneven: give `__head`, description, `ul`, and `__cta` explicit grid rows (`grid-template-rows: auto auto 1fr auto`) so the guest hint cannot steal the CTA row. Do not add `min-height` hacks per card.  
+RECOMMENDED FIX: Shipped in **#127** (four-row grid, no per-card `min-height`). Recheck bounding boxes after production deploy.  
 AUTOMATION CANDIDATE: YES (Playwright screenshot + bounding boxes)  
 REGRESSION TEST REQUIRED: YES  
 CLASSIFICATION: [HYBRID]
@@ -407,8 +409,8 @@ CATEGORY: [SECURITY] [FUNCTIONAL]
 SEVERITY: P0 (originally filed P3 as console noise; runtime retest 23 August)  
 PAGE: All public documents  
 URL: https://yenomi-id.vercel.app/ and local `next start`  
-PROBLEM: Middleware CSP is `script-src 'nonce-…' 'strict-dynamic'`. Live is a Vercel HIT (`age` > 4000s) whose HTML has **zero** `nonce=` attributes. Parser-inserted Next chunks are blocked. React never hydrates; hamburger `onClick` never attaches. Local `next start` reproduced the same block until the root layout consumed `x-nonce`.  
-RECOMMENDED FIX: PR **#127** — `headers()` in root layout, document `Cache-Control: private, no-store`, Playwright journey at 390px. Do **not** add `unsafe-inline`.  
+PROBLEM: Middleware CSP is `script-src 'nonce-…' 'strict-dynamic'`. Live homepage HIT (`age` ~4700s) and `/giris` HIT (`age` ~52000s) have **zero** `nonce=` attributes. Parser-inserted Next chunks are blocked. React never hydrates; hamburger `onClick`, login tabs, cart, and checkout never attach. Dynamic routes such as `/urunler` already stamp a matching nonce (30+ attrs) — proof the runtime can do it when the document is not a static HIT. Local `next start` reproduced the homepage block until the root layout consumed `x-nonce`.  
+RECOMMENDED FIX: PR **#127** — `headers()` in root layout, document `Cache-Control: private, no-store`, Playwright journey at 390px plus nonce assertions on `/giris` `/sepet` `/checkout`. Do **not** add `unsafe-inline`.  
 CLASSIFICATION: [AUTOMATE]
 
 ---
@@ -436,7 +438,7 @@ CURRENT BEHAVIOR: Premium column taller.
 WHY IT LOOKS / FEELS WRONG: Feature lists of different length without a shared CTA row.  
 PREMIUM IMPACT: Medium.  
 CONVERSION IMPACT: Premium badge fights the grid instead of anchoring it.  
-RECOMMENDED CHANGE: After deploy, if still broken, card = 4-row grid, CTA last row. “Şu hatalı: yükseklik içeriğe bağlı. Bunun yerine: `grid-template-rows: auto auto 1fr auto`.”  
+RECOMMENDED CHANGE: Code in **#127**. Recheck live after deploy.  
 PRIORITY: P2  
 
 PROBLEM: Dark-luxury shell is **not** a defect.  
@@ -523,11 +525,12 @@ Safari macOS / iPhone: **not run**. PR #124 specifically targets WebKit containi
 
 | Item | Status |
 | --- | --- |
-| Live homepage | Vercel HIT, prerendered |
-| Checkout / activation | Client islands; first paint is a spinner story |
+| Live homepage | Vercel HIT, prerendered, **no script nonce** |
+| Checkout / activation / login / cart | Client islands on **HIT HTML with 0 nonce** — JS does not run |
+| `/urunler` `/destek` | Dynamic MISS; nonce matches CSP |
 | Ticker animation | 90s+ loop; `prefers-reduced-motion` disables |
 | Layout shift | Not measured (no CLS lab) |
-| CSP console volume | Noisy; not proven functional break |
+| CSP | Functional break on static documents (P0), not console noise |
 
 ---
 
@@ -555,7 +558,7 @@ Performed as **normal use only**. No exploit payloads.
 | `/giris` disallowed in robots | PASS |
 | `/checkout` first HTML does not include TCKN | PASS |
 | Recover-by-UUID residual | P2 (see 010) |
-| CSP is nonce + strict-dynamic (good). Do not reintroduce `unsafe-inline` | PASS / do not regress |
+| CSP is nonce + strict-dynamic; live HTML has no matching nonce, so Next chunks are blocked | P0 (see 015 / #127). Do not add `unsafe-inline` |
 | `/api/auth/session` GET requires `x-yenomi-session: 1` (hardening) | prior PASS, not retested live |
 | Public card “protection” is watermark, not security | documented; do not sell as DRM |
 
@@ -675,7 +678,7 @@ Payment chain: only with sandbox. Until then report **NOT RUN**.
 10. **Activation first paint** — no “sipariş kontrol ediliyor” without a token.  
 11. **Footer product links** (text, not gold).  
 12. **Ticker `aria-hidden` on duplicate track.**  
-13. **Catalog card 4-row grid** if still uneven post-deploy.  
+13. **Catalog card 4-row grid** — code in #127; verify live after deploy.  
 14. **Recover API ownership** (cookie or session).  
 15. **iPhone Safari hamburger retest.**  
 16. **390px corporate slider + table** after nav works.  
@@ -696,7 +699,7 @@ Payment chain: only with sandbox. Until then report **NOT RUN**.
 
 ## Next engineering move
 
-1. Land **#127** (CSP nonce on Next scripts + hamburger Playwright).  
+1. Land **#127** (CSP nonce on Next scripts, funnel document nonce lock, catalog 4-row grid).  
 2. Human: fill production secrets and dispatch Protected Production Deploy.  
 3. Post-deploy smoke: live HTML `nonce=` matches CSP; iPhone hamburger; Campaign Mail gone; how-it-works board; sitemap locs match `PRODUCTION_SITE_URL`.  
 4. Do not add `unsafe-inline`, restyle the shell, or treat skipped iyzico E2E as coverage.

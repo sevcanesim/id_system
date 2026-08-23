@@ -16420,6 +16420,24 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
   color: #a47b28;
 }
 
+/* Catalog trio: head, copy, features, CTA as four rows so a taller
+   Premium badge or guest spare-card hint cannot unstick the footer. */
+.products-plan-grid {
+  align-items: stretch;
+}
+.products-plan-card {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  height: 100%;
+}
+.products-plan-card ul {
+  min-height: 0;
+}
+.products-plan-card__cta {
+  margin-top: 0;
+  align-self: stretch;
+}
+
 
 
 

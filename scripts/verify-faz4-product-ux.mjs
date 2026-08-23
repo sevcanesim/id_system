@@ -192,6 +192,11 @@ check(css.includes(".yi-app--individual .ds-button--primary") && css.includes(".
 check(productVisual.includes("const SPECIMEN") && productVisual.includes("Ürün Yöneticisi") && !productVisual.includes("Ad Soyad"), "product specimen is a named identity, not a field-label mock");
 check(!how.includes("how-phone-mockup") && !home.includes("<img") && !catalog.includes("<img"), "public home, catalog and how-it-works mockups stay CSS/SVG, not raster images");
 check(css.includes(".products-plan-grid {\n  align-items: stretch;") && css.includes(".how-step-grid {\n  align-items: stretch;"), "catalog and how-it-works card grids stretch to equal height");
+check(
+  css.includes("grid-template-rows: auto auto minmax(0, 1fr) auto")
+    && css.includes(".products-plan-card {\n  display: grid;"),
+  "catalog plan cards use a four-row grid so CTA footers share one baseline"
+);
 check(css.includes("h1, h2, h3, h4 {\n  word-spacing: normal;\n}"), "heading word-spacing stays normal");
 const dsButton = read("app/design-system.css");
 const dsButtonBlock = dsButton.slice(dsButton.indexOf(".ds-button {"), dsButton.indexOf(".ds-button:hover"));
@@ -209,6 +214,9 @@ check(
     && publicNavE2e.includes("#site-primary-nav")
     && publicNavE2e.includes("width: 390")
     && publicNavE2e.includes("/urunler")
+    && publicNavE2e.includes("/giris")
+    && publicNavE2e.includes("/checkout")
+    && publicNavE2e.includes("Kartın henüz sepette değil.")
     && !publicNavE2e.includes("test.skip(true"),
   "public hamburger has a 390px Playwright journey that is not a skeleton skip"
 );
@@ -226,6 +234,9 @@ check(
 );
 check(
   robotsSource.includes("publicCardOrigin")
+    && robotsSource.includes("/nasil-calisir")
+    && robotsSource.includes("/kurumsal")
+    && robotsSource.includes("/destek")
     && layoutSource.includes("publicCardOrigin")
     && layoutSource.includes("metadataBase: new URL(siteOrigin)"),
   "robots and metadataBase use the public card origin helper"

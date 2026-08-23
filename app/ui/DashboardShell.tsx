@@ -1,20 +1,203 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
-import { Brand } from "./Brand";
+import { useId, useEffect, useState, type ReactNode } from "react";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
-import { useEffect,useState } from "react";
 import { validateCardWorkspace, validatePortal, type PortalCheckResult } from "../../lib/auth/portal-guard";
 import { INDIVIDUAL_SIDEBAR_CONFIG } from "../components/ui/sidebar-config";
+import PanelSidebar from "../components/ui/PanelSidebar";
+import type { SidebarNavItem } from "../components/ui/SidebarNav";
+import { Icon } from "../icons";
 
-type ShellAction={href?:string;label:string;primary?:boolean;onClick?:()=>void;disabled?:boolean};
-export default function DashboardShell({title,description,children,actions=[],portal="individual"}:{title:string;description?:string;children:ReactNode;actions?:ShellAction[];portal?:"individual"|"business"}) {
- const pathname=usePathname(); const [email,setEmail]=useState(""); const [portalState,setPortalState]=useState<"checking"|"allowed"|"denied">("checking");
- useEffect(()=>{let cancelled=false; const sb=getSupabaseBrowserClient(); if(!sb){setPortalState("allowed");return;} void (async()=>{const {data}=await sb.auth.getUser(); if(!data.user){if(!cancelled){setPortalState("denied"); window.location.replace(`/giris?portal=${portal}&next=${encodeURIComponent(pathname)}`);}return;} const result:PortalCheckResult=portal==="individual"?await validateCardWorkspace(sb,data.user.id):await validatePortal(sb,data.user.id,portal); if(cancelled)return; if(result.ok){setEmail(data.user.email||"");setPortalState("allowed");}else{setPortalState("denied");window.location.replace(portal==="individual"?"/kurumsal/panel":"/kartlarim");}})(); return()=>{cancelled=true;};},[pathname,portal]);
- if(portalState!=="allowed") return <main className="yi-app yi-app--loading" aria-busy="true"><div className="yi-app__loading" role="status" aria-live="polite"><strong>{portalState==="checking"?"Çalışma alanınız hazırlanıyor…":"Yönlendiriliyorsunuz…"}</strong><span>Hesap türünüz doğrulanıyor.</span></div></main>;
- return <main className={`yi-app yi-app--${portal}`}>
-  <aside className="yi-app__sidebar"><Brand compact/><nav aria-label="Hesap menüsü">{INDIVIDUAL_SIDEBAR_CONFIG.map(({href,label})=><Link key={href} href={href} aria-current={pathname===href||pathname.startsWith(`${href}/`)?"page":undefined}>{label}</Link>)}</nav><div className="yi-app__support"><Link href="/destek">Destek</Link><a href="mailto:hello@yenomilabs.com">Bize ulaşın</a></div></aside>
-  <section className="yi-app__main"><header className="yi-app__top"><div className="yi-top-account"><span className="yi-top-account__label">HESAP</span><span>{email}</span></div><div className="yi-top-actions"><Link href="/destek">Yardım</Link><Link href="/">Siteye dön</Link></div></header><div className="yi-app__content"><div className="yi-page-head"><span>YENOMI ID</span><h1>{title}</h1>{description&&<p>{description}</p>}{actions.length>0&&<div className="yi-actions">{actions.map((a)=>a.href?<Link key={a.href} className={`yi-btn ${a.primary?"yi-btn--primary":"yi-btn--secondary"}`} href={a.href}>{a.label}</Link>:<button key={a.label} type="button" className={`yi-btn ${a.primary?"yi-btn--primary":"yi-btn--secondary"}`} onClick={a.onClick} disabled={a.disabled}>{a.label}</button>)}</div>}</div>{children}</div></section>
- </main>;
+type ShellAction = { href?: string; label: string; primary?: boolean; onClick?: () => void; disabled?: boolean };
+
+export default function DashboardShell({
+  title,
+  description,
+  children,
+  actions = [],
+  portal = "individual",
+  activeKey,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+  actions?: ShellAction[];
+  portal?: "individual" | "business";
+  activeKey?: string;
+}) {
+  const pathname = usePathname();
+  const menuButtonId = useId();
+  const sidebarId = `${menuButtonId.replace(/:/g, "")}-sidebar`;
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [portalState, setPortalState] = useState<"checking" | "allowed" | "denied">("checking");
+  const [hasCorporateSubscription, setHasCorporateSubscription] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const sb = getSupabaseBrowserClient();
+    if (!sb) {
+      setPortalState("allowed");
+      return;
+    }
+    void (async () => {
+      const { data } = await sb.auth.getUser();
+      if (!data.user) {
+        if (!cancelled) {
+          setPortalState("denied");
+          window.location.replace(`/giris?portal=${portal}&next=${encodeURIComponent(pathname)}`);
+        }
+        return;
+      }
+      const result: PortalCheckResult =
+        portal === "individual"
+          ? await validateCardWorkspace(sb, data.user.id)
+          : await validatePortal(sb, data.user.id, portal);
+      if (cancelled) return;
+      if (result.ok) {
+        setEmail(data.user.email || "");
+        setPortalState("allowed");
+
+        const sessionRes = await sb.auth.getSession();
+        const token = sessionRes.data.session?.access_token;
+        if (token) {
+          try {
+            const orgRes = await fetch("/api/organizations/mine", {
+              headers: { authorization: `Bearer ${token}` },
+              cache: "no-store",
+            });
+            if (orgRes.ok) {
+              const body = (await orgRes.json()) as { organizations?: unknown[] };
+              if (!cancelled) setHasCorporateSubscription(Boolean(body.organizations?.length));
+            }
+          } catch {
+            // Sessizce yok say
+          }
+        }
+      } else {
+        setPortalState("denied");
+        window.location.replace(portal === "individual" ? "/kurumsal/panel" : "/kartlarim");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname, portal]);
+
+  if (portalState !== "allowed")
+    return (
+      <main className="yi-app yi-app--loading" aria-busy="true">
+        <div className="yi-app__loading" role="status" aria-live="polite">
+          <strong>{portalState === "checking" ? "Çalışma alanınız hazırlanıyor…" : "Yönlendiriliyorsunuz…"}</strong>
+          <span>Hesap türünüz doğrulanıyor.</span>
+        </div>
+      </main>
+    );
+
+  const calculatedActiveKey =
+    activeKey ??
+    INDIVIDUAL_SIDEBAR_CONFIG.find(
+      (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
+    )?.key;
+
+  return (
+    <main className={`yi-app yi-app--${portal} enterprise-dashboard-shell p7-shell`}>
+      <button
+        id={menuButtonId}
+        className="p7-menu-button enterprise-sidebar-mobile-trigger"
+        type="button"
+        aria-label={mobileOpen ? "Menüyü kapat" : "Menüyü aç"}
+        aria-controls={sidebarId}
+        aria-expanded={mobileOpen}
+        onClick={() => setMobileOpen((val) => !val)}
+      >
+        <span />
+        <span />
+        <span />
+      </button>
+      {mobileOpen && (
+        <button
+          className="p7-backdrop"
+          type="button"
+          aria-label="Menüyü kapat"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      <PanelSidebar
+        ariaLabel="Kullanıcı paneli navigasyonu"
+        id={sidebarId}
+        labelledBy={menuButtonId}
+        subtitle="Kimlik Stüdyosu"
+        brandHref="/kartlarim"
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        activeKey={calculatedActiveKey}
+        storageKey="yenomi:individual-sidebar:collapsed"
+        items={INDIVIDUAL_SIDEBAR_CONFIG.map<SidebarNavItem>((item) => ({
+          ...item,
+          hidden: item.key === "subscription" && hasCorporateSubscription,
+        }))}
+      >
+        <div className="enterprise-side-links enterprise-side-management canonical-personal-support">
+          <a href="mailto:hello@yenomilabs.com">
+            <Icon name="headset" />
+            <span>Destek</span>
+          </a>
+          <a href="https://www.yenomilabs.com" target="_blank" rel="noopener noreferrer">
+            <Icon name="external" />
+            <span>Yenomilabs</span>
+          </a>
+        </div>
+      </PanelSidebar>
+
+      <section className="yi-app__main p7-workspace">
+        <header className="yi-app__top p7-topbar">
+          <div className="yi-top-account">
+            <span className="yi-top-account__label">HESAP</span>
+            <span>{email}</span>
+          </div>
+          <div className="yi-top-actions p7-topbar-actions">
+            <Link href="/destek">Yardım</Link>
+            <Link href="/">Siteye dön</Link>
+          </div>
+        </header>
+        <div className="yi-app__content p7-content">
+          <div className="yi-page-head">
+            <span>YENOMI ID</span>
+            <h1>{title}</h1>
+            {description && <p>{description}</p>}
+            {actions.length > 0 && (
+              <div className="yi-actions">
+                {actions.map((a, i) =>
+                  a.href ? (
+                    <Link
+                      key={`${a.href}-${i}`}
+                      className={`yi-btn ${a.primary ? "yi-btn--primary" : "yi-btn--secondary"}`}
+                      href={a.href}
+                    >
+                      {a.label}
+                    </Link>
+                  ) : (
+                    <button
+                      key={`${a.label}-${i}`}
+                      type="button"
+                      className={`yi-btn ${a.primary ? "yi-btn--primary" : "yi-btn--secondary"}`}
+                      onClick={a.onClick}
+                      disabled={a.disabled}
+                    >
+                      {a.label}
+                    </button>
+                  ),
+                )}
+              </div>
+            )}
+          </div>
+          {children}
+        </div>
+      </section>
+    </main>
+  );
 }
+

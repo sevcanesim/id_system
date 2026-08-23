@@ -12130,10 +12130,11 @@ article[id] {
   align-self: center;
   padding: clamp(12px, 6%, 20px) clamp(12px, 5%, 18px);
   color: #d7c09a;
+  border-radius: 16px;
   background:
-    radial-gradient(120% 90% at 50% 0%, rgba(215, 192, 154, .14), transparent 52%),
-    linear-gradient(180deg, #171717 0%, #0c0c0c 48%, #070707 100%);
-  box-shadow: 0 28px 48px rgba(8, 6, 4, .32), inset 0 1px 0 rgba(215, 192, 154, .2);
+    radial-gradient(120% 90% at 50% 0%, rgba(215, 192, 154, .18), transparent 52%),
+    linear-gradient(180deg, #1a1a1a 0%, #0e0e0e 48%, #070707 100%);
+  box-shadow: 0 28px 48px rgba(8, 6, 4, .36), inset 0 1px 0 rgba(215, 192, 154, .28), inset 0 0 0 1px rgba(255, 255, 255, .04);
 }
 .yi-product-ui--card-foil:after {
   background: linear-gradient(118deg, transparent 38%, rgba(215, 192, 154, .12) 50%, transparent 62%);

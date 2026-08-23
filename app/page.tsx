@@ -20,44 +20,47 @@ const journey = [
   ["03", "Paylaş ve yönet", "NFC veya QR ile paylaş. Kartını ve profilini gerektiğinde uzaktan güncelle."],
 ];
 
+const heroTrust = [
+  "Hesap açmadan ödeme",
+  "Türkiye içi ücretsiz kargo",
+  "Kart bilgisi Yenomi’de tutulmaz",
+];
+
 export default function HomePage() {
   return (
-    <div className="home-mockup home-premium">
+    <div className="home-mockup home-premium home-premium--hero-v2">
       <main id="main-content">
-        <section className="home-mockup__hero" aria-labelledby="home-title">
+        <section className="home-mockup__hero home-premium__hero-v2" aria-labelledby="home-title">
           <div className="home-mockup__orbit home-mockup__orbit--left" aria-hidden="true" />
           <div className="home-mockup__orbit home-mockup__orbit--right" aria-hidden="true" />
 
           <div className="home-mockup__copy">
-            <span className="home-mockup__kicker">YENOMI ID · NFC KARTVİZİT</span>
+            <span className="home-premium__hero-pill"><i aria-hidden="true" /> NFC KARTVİZİT · DİJİTAL KİMLİK</span>
             <h1 id="home-title">
               Kart bir kez basılır.<br />
-              Kimliğin her gün güncel kalır.
+              <span>Kimliğin her gün güncel kalır.</span>
             </h1>
             <p>
-              Tek bir NFC + QR kartla canlı dijital kartvizitini paylaş. Bilgilerin değiştiğinde kartı değil, profilini güncelle.
-              Bireysel kullan veya ekibini tek panelden aynı standartta yönet.
+              Fiziksel NFC + QR kartın, canlı dijital kartvizitine bağlanır. Bilgilerin değiştiğinde kartı değil profilini güncelle.
+              Tek kartla paylaş, gerektiğinde uzaktan yönet.
             </p>
 
-            <div className="home-mockup__actions">
+            <div className="home-mockup__actions home-premium__hero-actions">
               <Link className="home-mockup__button home-mockup__button--gold home-mockup__button--primary" href="/urunler/nfc-kart">
-                Kartımı Seç <span aria-hidden>→</span>
+                NFC Kartımı Seç <span aria-hidden>→</span>
               </Link>
-              <Link className="home-mockup__link-secondary" href="/kurumsal">
-                Ekip Paketlerini Gör <span aria-hidden>→</span>
+              <Link className="home-premium__hero-secondary" href="/kurumsal">
+                Ekip Paketini İncele <span aria-hidden>→</span>
               </Link>
             </div>
 
-            <div className="home-mockup__meta" aria-label="Ürün özellikleri">
-              <span>UYGULAMA GEREKTİRMEZ</span>
-              <span>NFC + QR</span>
-              <span>CANLI PROFİL</span>
-              <span>KAYIP MODU</span>
+            <div className="home-premium__hero-trust" aria-label="Satın alma güvenceleri">
+              {heroTrust.map((item) => <span key={item}><i aria-hidden="true">✓</i>{item}</span>)}
             </div>
-            <small className="home-mockup__guest">Hesap açmadan satın al. Kart bilgilerin iyzico’da işlenir; Yenomi’de saklanmaz.</small>
           </div>
 
-          <div className="home-mockup__visual" aria-label="Yenomi ID dijital kartvizit önizlemesi">
+          <div className="home-mockup__visual home-premium__hero-stage" aria-label="Yenomi ID dijital kartvizit önizlemesi">
+            <div className="home-premium__hero-stage-label" aria-hidden="true">CANLI PROFİL · NFC + QR</div>
             <div className="home-mockup__halo" aria-hidden="true" />
             <div className="home-mockup__phone">
               <YenomiProductVisual variant="profile" />

@@ -56,7 +56,7 @@ const tiers: readonly Tier[] = [
 ] as const;
 
 function tierForSeats(seats: number): Tier {
-  return tiers.find((tier) => tier.maxSeats !== null && seats >= tier.minSeats && seats <= tier.maxSeats) ?? tiers[1];
+  return tiers.find((tier) => seats >= tier.minSeats && (tier.maxSeats === null || seats <= tier.maxSeats)) ?? tiers[0];
 }
 
 export default function CorporatePackPicker({
@@ -102,10 +102,12 @@ export default function CorporatePackPicker({
                 if (nextIndex >= 0) setIndex(nextIndex);
               }}
             >
+              <span className="corporate-pack-picker__tier-status" aria-hidden="true">
+                {active ? "Seçili" : tierOption.popular ? "En çok tercih edilen" : ""}
+              </span>
               <span className="corporate-pack-picker__tier-copy">{tierOption.eyebrow}</span>
               <strong className="corporate-pack-picker__tier-name">{tierOption.title}</strong>
               <small className="corporate-pack-picker__tier-copy">{tierOption.description}</small>
-              {tierOption.popular ? <em>En çok tercih edilen</em> : null}
             </button>
           );
         })}
@@ -114,7 +116,7 @@ export default function CorporatePackPicker({
       <div className="corporate-pack-picker__head">
         <div>
           <span className="corporate-pack-picker__kicker">{tier.title.toUpperCase()} · {pack.seats} KİŞİ</span>
-          <h3>{pack.name}{pack.popular ? <span className="corporate-pack-picker__badge">öne çıkan paket</span> : null}</h3>
+          <h3>{pack.name}{pack.popular ? <span className="corporate-pack-picker__badge">En çok tercih edilen kapasite</span> : null}</h3>
           <p>İhtiyacınız değişirse kapasiteyi yeniden baskı beklemeden yükseltebilirsiniz.</p>
         </div>
         <div className="corporate-pack-picker__price">
@@ -124,12 +126,11 @@ export default function CorporatePackPicker({
       </div>
 
       <div className="corporate-pack-picker__control">
-        <div className="corporate-pack-picker__ticks" role="list" aria-label="Ekip büyüklüğü">
+        <div className="corporate-pack-picker__ticks" aria-label="Ekip büyüklüğü">
           {packs.map((packOption, tickIndex) => (
             <button
               key={packOption.code}
               type="button"
-              role="listitem"
               className={`corporate-pack-picker__tick${tickIndex === index ? " is-active" : ""}${packOption.popular ? " is-popular" : ""}`}
               onClick={() => setIndex(tickIndex)}
               aria-label={`${packOption.seats} kullanıcı${packOption.popular ? ", en çok tercih edilen kapasite" : ""}`}

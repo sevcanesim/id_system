@@ -394,7 +394,7 @@ export default function CheckoutPage() {
                   <label>Ad Soyad<input required autoComplete="name" value={form.recipientName} onChange={(e) => update("recipientName", e.target.value)} placeholder="Kartın ve faturanın sahibi" /></label>
                   <label>Telefon<input required inputMode="tel" autoComplete="tel" value={form.phone} onChange={(e) => update("phone", normalizeTrPhone(e.target.value))} placeholder="+90 5xx xxx xx xx" />{form.phone.replace(/\D/g, "").length >= 10 && <small className="field-ok"><Icon name="check" /> Telefon doğrulandı</small>}</label>
                   <label>E-posta<input required type="email" autoComplete="email" value={form.email} onChange={(e) => !isAuthenticated && update("email", e.target.value)} readOnly={isAuthenticated} />{isAuthenticated ? <small className="field-ok"><Icon name="check" /> Hesabına bağlı e-posta</small> : <small>Hesap açmadan ödeyebilirsin. Siparişin bu e-posta ile hesabına bağlanır.</small>}</label>
-                  <label>T.C. kimlik numarası<input required inputMode="numeric" maxLength={11} name="iyzico-identity" autoComplete="off" autoCorrect="off" spellCheck={false} value={form.identityNumber} onChange={(e) => update("identityNumber", e.target.value.replace(/\D/g, ""))} placeholder="11 haneli T.C. kimlik numarası" /><small>iyzico ödemesi için zorunlu. Yenomi kaydetmez.</small></label>
+                  <label>T.C. kimlik numarası<input required inputMode="numeric" maxLength={11} name="iyzico-identity" autoComplete="off" autoCorrect="off" spellCheck={false} aria-describedby="identity-note" value={form.identityNumber} onChange={(e) => update("identityNumber", e.target.value.replace(/\D/g, ""))} placeholder="11 haneli T.C. kimlik numarası" /><small id="identity-note">iyzico ödemesi için zorunlu. Yenomi kaydetmez.</small></label>
                   {hasCorporatePackage ? (
                     <div className="checkout-company-fields">
                       <p className="checkout-company-kicker">ŞİRKET FATURASI</p>
@@ -404,7 +404,7 @@ export default function CheckoutPage() {
                     </div>
                   ) : null}
                   <button type="button" className="checkout-next" onClick={advanceBuyer}>{digitalOnlyCart ? "Fatura adresine geç" : "Teslimatı doğrula"} <Icon name="chevronRight" /></button>
-                  {message && activeStep === "buyer" ? <div className="checkout-message" role="alert">{message}</div> : null}
+                  {message && activeStep === "buyer" ? <div id="checkout-buyer-error" className="checkout-message" role="alert" aria-live="assertive">{message}</div> : null}
                 </div>}
               </section>
 

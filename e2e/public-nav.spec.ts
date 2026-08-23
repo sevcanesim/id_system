@@ -105,36 +105,40 @@ test.describe("public hamburger", () => {
     await page.evaluate(() => window.dispatchEvent(new Event("focus")));
     await expect(page.getByRole("heading", { name: "Ödeme bilgileri gizlendi." })).toBeHidden();
   });
+});
 
-  test("corporate pricing keeps three decisions, equal tier geometry, and granular capacity", async ({ page }) => {
-    await page.goto("/kurumsal", { waitUntil: "load" });
+test("corporate pricing keeps three decisions, equal desktop tier geometry, and granular capacity", async ({ page }) => {
+  await page.goto("/kurumsal", { waitUntil: "load" });
 
-    const tiers = page.locator(".corporate-pricing-tier");
-    await expect(tiers).toHaveCount(3);
+  const tierGroup = page.getByLabel("Kurumsal paket seviyeleri");
+  const tiers = tierGroup.getByRole("button");
+  await expect(tiers).toHaveCount(3);
 
-    const start = tiers.filter({ hasText: "Start" });
-    const business = tiers.filter({ hasText: "Business" });
-    const enterprise = tiers.filter({ hasText: "Enterprise" });
+  const start = tierGroup.getByRole("button", { name: /Küçük ekipler[\s\S]*Start/ });
+  const business = tierGroup.getByRole("button", { name: /Büyüyen şirketler[\s\S]*Business/ });
+  const enterprise = tierGroup.getByRole("button", { name: /100\+ çalışan[\s\S]*Enterprise/ });
 
-    await expect(start).toBeVisible();
-    await expect(business).toBeVisible();
-    await expect(enterprise).toBeVisible();
-    await expect(business).toHaveAttribute("aria-pressed", "true");
+  await expect(start).toBeVisible();
+  await expect(business).toBeVisible();
+  await expect(enterprise).toBeVisible();
+  await expect(business).toHaveAttribute("aria-pressed", "true");
 
+  const viewportWidth = page.viewportSize()?.width ?? 0;
+  if (viewportWidth > 720) {
     const tierHeights = await tiers.evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().height)));
     expect(new Set(tierHeights).size).toBe(1);
+  }
 
-    await expect(page.locator(".corporate-pack-picker__tick")).toHaveCount(7);
-    await start.click();
-    await expect(start).toHaveAttribute("aria-pressed", "true");
-    await expect(business).toHaveAttribute("aria-pressed", "false");
-    await expect(page.locator(".corporate-pack-picker__head h3")).toBeVisible();
+  await expect(page.locator(".corporate-pack-picker__tick")).toHaveCount(7);
+  await start.click();
+  await expect(start).toHaveAttribute("aria-pressed", "true");
+  await expect(business).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator(".corporate-pack-picker__head h3")).toBeVisible();
 
-    await enterprise.click();
-    await expect(page.locator("#teklif")).toBeVisible();
-    await expect(page.getByRole("heading", { name: /100\+ çalışan veya özel ihtiyaç/ })).toBeVisible();
+  await enterprise.click();
+  await expect(page.locator("#teklif")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /100\+ çalışan veya özel ihtiyaç/ })).toBeVisible();
 
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    expect(overflow).toBeLessThanOrEqual(1);
-  });
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
 });

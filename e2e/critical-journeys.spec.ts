@@ -4,15 +4,17 @@ const baseURL = process.env.E2E_BASE_URL || "";
 const sandboxReady = Boolean(process.env.IYZICO_API_KEY && process.env.IYZICO_SECRET_KEY);
 
 /**
- * Critical journeys E2E-01…07 from the hardening audit.
+ * [E2E-01] AUTOMATION: NONE
+ * [E2E-02] AUTOMATION: PARTIAL
+ * [E2E-03] AUTOMATION: PARTIAL
+ * [E2E-04] AUTOMATION: NONE
+ * [E2E-05] AUTOMATION: PARTIAL
+ * [E2E-06] AUTOMATION: FULL
+ * [E2E-07] AUTOMATION: NONE
  *
- * COVERAGE: 1/7 automated (E2E-06). 6/7 are skeleton skips.
- * A skipped test is not a pass. `npm run verify:release` prints this banner
- * so CI cannot treat the file name as payment-chain coverage.
- *
- * Payment → entitlement → activation → claim is not an E2E yet.
- * Duplicate-callback and auto-claim behavior is covered at unit level in
- * lib/payments/settle-commerce-payment.test.ts until sandbox secrets exist.
+ * PARTIAL means the core domain behavior has deterministic automated coverage,
+ * but the named browser/provider journey is not yet executed end-to-end in CI.
+ * A skipped Playwright test is never counted as FULL.
  */
 test.describe("critical journeys", () => {
   test.skip(!baseURL, "E2E_BASE_URL is unset; journeys are not run.");
@@ -25,26 +27,26 @@ test.describe("critical journeys", () => {
 
   test("E2E-02 delayed callback recover", async () => {
     test.skip(true, sandboxReady
-      ? "Recover-after-closed-tab journey is not automated in this pass."
-      : "iyzico sandbox credentials are unset; payment journeys are not run.");
+      ? "Browser recovery journey is not automated; settlement pending/recovery behavior is covered deterministically at unit level."
+      : "iyzico sandbox credentials are unset; browser recovery journey is not run.");
   });
 
   test("E2E-03 duplicate callback is idempotent", async () => {
     test.skip(true, sandboxReady
-      ? "Callback replay journey is not automated in this pass."
-      : "iyzico sandbox credentials are unset; payment journeys are not run.");
+      ? "Provider callback replay is not automated end-to-end; ALREADY_PAID idempotency is covered at settlement unit level."
+      : "iyzico sandbox credentials are unset; provider callback replay is not run.");
   });
 
   test("E2E-04 guest claim binds the matching email", async () => {
     test.skip(true, sandboxReady
       ? "Guest activation claim journey is not automated in this pass."
-      : "iyzico sandbox credentials are unset; payment journeys are not run.");
+      : "iyzico sandbox credentials are unset; guest activation claim journey is not run.");
   });
 
   test("E2E-05 authenticated purchase auto-claims", async () => {
     test.skip(true, sandboxReady
-      ? "Authenticated auto-claim journey is not automated in this pass."
-      : "iyzico sandbox credentials are unset; payment journeys are not run.");
+      ? "Browser/provider auto-claim journey is not automated end-to-end; finalize_authenticated_commerce_order is covered at settlement unit level."
+      : "iyzico sandbox credentials are unset; browser/provider auto-claim journey is not run.");
   });
 
   test("E2E-06 spare card stays gated for guests", async ({ page }) => {

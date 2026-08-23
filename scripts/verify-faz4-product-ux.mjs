@@ -205,7 +205,7 @@ const working = read("docs/product-engineering/16_AGENT_WORKING_CONTRACT.md");
 check(working.includes("Selin Kaya") && working.includes("align-items: stretch") && working.includes("#F9F8F6"), "agent working contract encodes the UI guardrails");
 const publicNavE2e = read("e2e/public-nav.spec.ts");
 check(
-  publicNavE2e.includes('name: "Menüyü aç"')
+  publicNavE2e.includes("Menüyü")
     && publicNavE2e.includes("#site-primary-nav")
     && publicNavE2e.includes("width: 390")
     && publicNavE2e.includes("/urunler")

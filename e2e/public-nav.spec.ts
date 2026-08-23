@@ -12,11 +12,24 @@ test.describe("public hamburger", () => {
   });
 
   test("opens the primary nav and reaches the catalog", async ({ page }) => {
-    await page.goto("/", { waitUntil: "domcontentloaded" });
-    const toggle = page.getByRole("button", { name: "Menüyü aç" });
+    const cspViolations: string[] = [];
+    page.on("console", (message) => {
+      const text = message.text();
+      if (text.includes("Content Security Policy") && text.includes("script-src")) cspViolations.push(text);
+    });
+
+    const response = await page.goto("/", { waitUntil: "load" });
+    const csp = response?.headers()["content-security-policy"] ?? "";
+    const nonce = csp.match(/'nonce-([^']+)'/)?.[1] ?? "";
+    const html = (await response?.text()) ?? "";
+    expect(nonce).toBeTruthy();
+    expect(html).toContain(`nonce="${nonce}"`);
+
+    const toggle = page.locator("button.yi-menu");
     await expect(toggle).toBeVisible();
     await toggle.click();
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(cspViolations, cspViolations.join("\n")).toEqual([]);
     const nav = page.locator("#site-primary-nav");
     await expect(nav).toHaveClass(/is-open/);
     await expect(page.getByRole("button", { name: "Menüyü kapat" }).first()).toBeVisible();

@@ -63,9 +63,12 @@ function cspValue(nonce: string) {
   return buildContentSecurityPolicy(nonce, { allowUnsafeEval: process.env.NODE_ENV !== "production" });
 }
 
-function withCsp(response: NextResponse, requestId: string, nonce = createRequestNonce()) {
+function withCsp(response: NextResponse, requestId: string, nonce = createRequestNonce(), pathname = "") {
   response.headers.set("X-Request-Id", requestId);
   response.headers.set("Content-Security-Policy", cspValue(nonce));
+  if (pathname && !pathname.startsWith("/api/") && !pathname.startsWith("/_next/")) {
+    response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
+  }
   return response;
 }
 
@@ -77,7 +80,7 @@ export async function middleware(request: NextRequest) {
   if (pathname === "/nfc-siparis" || pathname.startsWith("/nfc-siparis/")) {
     const url = request.nextUrl.clone();
     url.pathname = "/checkout";
-    return withCsp(NextResponse.redirect(url, 308), requestId, nonce);
+    return withCsp(NextResponse.redirect(url, 308), requestId, nonce, pathname);
   }
 
   if (payloadTooLarge(pathname, request.method, request.headers)) {
@@ -88,6 +91,7 @@ export async function middleware(request: NextRequest) {
       ),
       requestId,
       nonce,
+      pathname,
     );
   }
 
@@ -98,7 +102,7 @@ export async function middleware(request: NextRequest) {
     loginUrl.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
     const redirect = NextResponse.redirect(loginUrl);
     clearSessionCookies(redirect);
-    return withCsp(redirect, requestId, nonce);
+    return withCsp(redirect, requestId, nonce, pathname);
   }
 
   const rule = ruleFor(pathname, request.method);
@@ -120,9 +124,9 @@ export async function middleware(request: NextRequest) {
         : "Çok fazla istek gönderildi. Lütfen kısa süre sonra tekrar deneyin.";
       const headers = { "Retry-After": String(retryAfter), "X-RateLimit-Limit": String(result.limit), "X-RateLimit-Remaining": String(result.remaining), "X-Request-Id": requestId };
       if (pathname.startsWith("/api/")) {
-        return withCsp(NextResponse.json({ error, code, reference: requestId }, { status, headers }), requestId, nonce);
+        return withCsp(NextResponse.json({ error, code, reference: requestId }, { status, headers }), requestId, nonce, pathname);
       }
-      return withCsp(new NextResponse(error, { status, headers: { ...headers, "Content-Type": "text/plain; charset=utf-8" } }), requestId, nonce);
+      return withCsp(new NextResponse(error, { status, headers: { ...headers, "Content-Type": "text/plain; charset=utf-8" } }), requestId, nonce, pathname);
     }
   }
 
@@ -131,7 +135,7 @@ export async function middleware(request: NextRequest) {
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", cspValue(nonce));
   const response = NextResponse.next({ request: { headers: requestHeaders } });
-  withCsp(response, requestId, nonce);
+  withCsp(response, requestId, nonce, pathname);
   if (PRIVATE_OR_PROFILE_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
     response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive, nosnippet");
     response.headers.set("Cache-Control", pathname.startsWith("/api/") ? "private, no-store" : "private, no-store, max-age=0");

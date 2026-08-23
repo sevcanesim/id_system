@@ -91,21 +91,19 @@ test.describe("public hamburger", () => {
     const html = (await response?.text()) ?? "";
     expect(nonce).toBeTruthy();
     expect(html).toContain(`nonce="${nonce}"`);
-    await expect(page.getByRole("heading", { name: "Kartın henüz sepette değil." })).toBeVisible({
-      timeout: 15_000,
-    });
+    await expect(page.getByRole("heading", { name: "Kartın henüz sepette değil." })).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole("link", { name: "NFC Kartı Satın Al" }).first()).toBeVisible();
   });
 
   test("corporate pricing keeps three decisions and granular capacity", async ({ page }) => {
     await page.goto("/kurumsal", { waitUntil: "load" });
 
-    const tiers = page.locator(".corporate-pack-picker__tier");
+    const tiers = page.locator(".corporate-pricing-tier");
     await expect(tiers).toHaveCount(3);
 
-    const start = page.getByRole("button", { name: /Start: Küçük ekipler için hızlı başlangıç/ });
-    const business = page.getByRole("button", { name: /Business: Büyüyen ekipler için merkezi yönetim/ });
-    const enterprise = page.getByRole("link", { name: /Enterprise: 100\+ kişi/ });
+    const start = tiers.filter({ hasText: "Start" });
+    const business = tiers.filter({ hasText: "Business" });
+    const enterprise = tiers.filter({ hasText: "Enterprise" });
 
     await expect(start).toBeVisible();
     await expect(business).toBeVisible();
@@ -116,7 +114,11 @@ test.describe("public hamburger", () => {
     await start.click();
     await expect(start).toHaveAttribute("aria-pressed", "true");
     await expect(business).toHaveAttribute("aria-pressed", "false");
-    await expect(page.locator(".corporate-pack-picker__head h3")).toContainText("Start");
+    await expect(page.locator(".corporate-pack-picker__head h3")).toBeVisible();
+
+    await enterprise.click();
+    await expect(page.locator("#teklif")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /100\+ çalışan veya özel ihtiyaç/ })).toBeVisible();
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);

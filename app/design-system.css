@@ -193,7 +193,7 @@
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .ds-button,.ds-card--interactive,.ds-input,.ds-select,.ds-textarea,.ds-switch__thumb { transition:none !important; }
+  .ds-button,.ds-card--interactive,.ds-input,.ds-select,.ds-textarea,.ds-switch__thumb { transition:none; }
 }
 @media (max-width: 720px) {
   .ds-form-grid { grid-template-columns:1fr; }

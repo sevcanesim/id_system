@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import { FormEvent, useState } from "react";
 import { CORPORATE_PACKAGE_LADDER } from "../../lib/commerce/packages";
@@ -15,22 +15,22 @@ export default function CorporateLeadForm({ plan = "GENEL", compact = false }: P
     setStatus("loading");
     setMessage("");
     const form = event.currentTarget;
-    const data = Object.fromEntries(new FormData(form).entries());
+    const formValues = Object.fromEntries(new FormData(form).entries());
 
     try {
       const response = await fetch("/api/corporate-leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, plan: String(data.plan || plan) }),
+        body: JSON.stringify({ ...formValues, plan: String(formValues.plan || plan) }),
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "Talebin gönderilemedi.");
+      if (!response.ok) throw new Error(payload.error || "Talep gönderilemedi.");
       form.reset();
       setStatus("success");
-      setMessage("Talebin alındı. Ekibimiz 1 iş günü içinde seninle iletişime geçecek.");
+      setMessage("Talebiniz alındı. Ekibimiz 1 iş günü içinde sizinle iletişime geçecek.");
     } catch (error) {
       setStatus("error");
-      setMessage(error instanceof Error ? error.message : "Talep gönderilemedi. Lütfen tekrar dene.");
+      setMessage(error instanceof Error ? error.message : "Talep gönderilemedi. Lütfen tekrar deneyin.");
     }
   }
 
@@ -43,7 +43,7 @@ export default function CorporateLeadForm({ plan = "GENEL", compact = false }: P
         <Field label="Şirket" required className="corporate-lead-full"><Input name="company" required minLength={2} maxLength={160} autoComplete="organization" placeholder="Şirket adı" /></Field>
         <Field label="Paket">
           <Select name="plan" defaultValue={plan === "INDIVIDUAL_PREMIUM" || plan === "CAMPAIGN-MAIL" ? "GENEL" : plan}>
-            <option value="GENEL">Genel teklif</option>
+            <option value="GENEL">İhtiyacıma göre yönlendirin</option>
             {CORPORATE_PACKAGE_LADDER.map((row) => (
               <option key={row.code} value={row.code}>{row.name} — {row.seats} kişi</option>
             ))}
@@ -52,16 +52,16 @@ export default function CorporateLeadForm({ plan = "GENEL", compact = false }: P
           </Select>
         </Field>
         <Field label="Çalışan sayısı"><Select name="employeeCount" defaultValue=""><option value="" disabled>Seçin</option><option value="1-10">1–10</option><option value="11-50">11–50</option><option value="51-250">51–250</option><option value="251-1000">251–1.000</option><option value="1000+">1.000+</option></Select></Field>
-        <Field label="İhtiyacınız" className="corporate-lead-full"><Textarea name="message" maxLength={1000} rows={4} placeholder="Departman, kart adedi veya özel kullanım senaryonuzu kısaca paylaşın." /></Field>
+        <Field label="İhtiyacınız" className="corporate-lead-full"><Textarea name="message" maxLength={1000} rows={4} placeholder="Ekip yapınızı, kart adedini veya özel entegrasyon ihtiyacınızı kısaca paylaşın." /></Field>
       </FormGrid>
       <div className="corporate-lead-actions">
         <Button type="submit" variant="primary" disabled={status === "loading"} className="corporate-cta">
-          {status === "loading" ? "Kayda alınıyor…" : "Teklif Al"} <span aria-hidden>→</span>
+          {status === "loading" ? "Gönderiliyor…" : "Kurumsal Teklif Al"} <span aria-hidden>→</span>
         </Button>
-        <span className="corporate-lead-note">1 iş günü içinde dönüş · kart numarası istenmez</span>
+        <span className="corporate-lead-note">1 iş günü içinde dönüş · ödeme veya kart bilgisi istenmez</span>
       </div>
       {message && <p className={`corporate-lead-feedback ${status}`} role={status === "error" ? "alert" : "status"}>{message}</p>}
-      <p className="corporate-lead-privacy">Bilgilerin yalnızca teklif talebini değerlendirmek ve seninle iletişime geçmek için kullanılır.</p>
+      <p className="corporate-lead-privacy">Bilgileriniz yalnızca kurumsal ihtiyacınızı değerlendirmek ve sizinle iletişime geçmek için kullanılır.</p>
     </form>
   );
 }

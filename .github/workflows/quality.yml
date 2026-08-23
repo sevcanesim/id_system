@@ -44,3 +44,47 @@ jobs:
 
       - name: Enforce release artifact budget and hygiene
         run: npm run verify:release-artifact
+
+  browser-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: source-quality
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start application
+        run: npm run start -- --hostname 127.0.0.1 --port 3000 > /tmp/yenomi-next.log 2>&1 &
+
+      - name: Wait for application
+        run: npx --yes wait-on http://127.0.0.1:3000
+
+      - name: Run desktop public and security regression
+        env:
+          E2E_BASE_URL: http://127.0.0.1:3000
+        run: npx playwright test e2e/public-nav.spec.ts e2e/security-headers.spec.ts --project=chromium
+
+      - name: Run mobile public regression
+        env:
+          E2E_BASE_URL: http://127.0.0.1:3000
+        run: npx playwright test e2e/public-nav.spec.ts --project=mobile-chromium
+
+      - name: Print server log on failure
+        if: failure()
+        run: cat /tmp/yenomi-next.log

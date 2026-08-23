@@ -13,9 +13,9 @@ const scripts = packageJson.scripts || {};
 
 if (!quality.includes('npm run verify:p0:static')) fail('Quality Gate verify:p0:static çalıştırmıyor.');
 if (!quality.includes('npm run verify:release')) fail('Quality Gate source/build verification çalıştırmıyor.');
-if (quality.includes('test:visual') || quality.includes('playwright')) fail('Legacy visual-test gate hâlâ Quality workflow içinde.');
+if (quality.includes('test:visual') || quality.includes('verify:visual-contract')) fail('Legacy visual-test gate hâlâ Quality workflow içinde.');
 if (!staging.includes('npm run verify:release')) fail('Staging gate source verification çalıştırmıyor.');
-if (staging.includes('test:visual') || staging.includes('playwright')) fail('Legacy visual-test gate hâlâ staging workflow içinde.');
+if (staging.includes('test:visual') || staging.includes('verify:visual-contract')) fail('Legacy visual-test gate hâlâ staging workflow içinde.');
 if (staging.includes('npm run verify:phase20:staging') || staging.includes('ALLOW_STAGING_MUTATIONS') || staging.includes('STAGING_SITE_URL')) {
   fail('Pre-deploy workflow production isolation sözleşmesini staging mutation ile karıştırıyor.');
 }
@@ -32,4 +32,4 @@ if (!String(scripts['verify:release'] || '').includes('verify:critical-journeys'
 }
 if (scripts['verify:visual-contract']) fail('Legacy verify:visual-contract scripti hâlâ package.json içinde.');
 
-console.log('P0 release gate contract BAŞARILI: source/build gate aktif, legacy test gate kaldırıldı.');
+console.log('P0 release gate contract BAŞARILI: source/build gate aktif, legacy visual gate kaldırıldı; browser regression ayrı kalite katmanı olabilir.');

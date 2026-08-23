@@ -432,7 +432,7 @@ export default function LoginClient({
       <section className="p6-auth-shell">
         <aside className="p6-auth-story" aria-label="Yenomi ID ürün özeti">
           <span className="p6-auth-kicker">YENOMI ID</span>
-          <h1>Kartın sende.<br />Profilin her an güncel.</h1>
+          <h1>Kartın sende.<br /><span className="p6-gold-text">Profilin her an güncel.</span></h1>
           <p>Yaklaştır, paylaş. Unvanın değişince baskı yok. Kart numarası Yenomi’de saklanmaz.</p>
           <div className="p6-auth-product-flow" aria-label="Karttan dijital profile geçiş">
             <div className="p6-auth-visual-card">
@@ -444,12 +444,36 @@ export default function LoginClient({
               <small>Canlı dijital kartvizit</small>
             </div>
           </div>
-          <ul className="p6-auth-features" aria-label="Yenomi ID avantajları">
-            <li><Icon name="nfc" /><span><strong>Tek dokunuşla paylaş</strong><small>NFC veya QR ile uygulama gerektirmeden.</small></span></li>
-            <li><Icon name="refresh" /><span><strong>Bilgilerin hep güncel</strong><small>Kartı yeniden bastırmadan profilini değiştir.</small></span></li>
-            <li><Icon name="shield" /><span><strong>Tek hesap, kontrollü erişim</strong><small>Bireysel ve kurumsal yetkiler güvenli erişim kurallarıyla korunur.</small></span></li>
-            <li><Icon name="link" /><span><strong>Fiziksel + dijital birlikte</strong><small>Kartın, profilin ve paylaşılan bağlantın tek deneyimde birleşir.</small></span></li>
-          </ul>
+          <div className="p6-auth-features-bento" aria-label="Yenomi ID avantajları">
+            <div className="p6-bento-card">
+              <div className="p6-bento-icon"><Icon name="nfc" /></div>
+              <div className="p6-bento-content">
+                <strong>Tek dokunuşla paylaş</strong>
+                <small>NFC veya QR ile uygulama gerektirmeden.</small>
+              </div>
+            </div>
+            <div className="p6-bento-card">
+              <div className="p6-bento-icon"><Icon name="refresh" /></div>
+              <div className="p6-bento-content">
+                <strong>Bilgilerin hep güncel</strong>
+                <small>Kartı yeniden bastırmadan profilini değiştir.</small>
+              </div>
+            </div>
+            <div className="p6-bento-card">
+              <div className="p6-bento-icon"><Icon name="shield" /></div>
+              <div className="p6-bento-content">
+                <strong>Tek hesap, kontrollü erişim</strong>
+                <small>Bireysel ve kurumsal yetkiler korunur.</small>
+              </div>
+            </div>
+            <div className="p6-bento-card">
+              <div className="p6-bento-icon"><Icon name="link" /></div>
+              <div className="p6-bento-content">
+                <strong>Fiziksel + dijital birlikte</strong>
+                <small>Kartın ve profilin tek deneyimde birleşir.</small>
+              </div>
+            </div>
+          </div>
         </aside>
 
         <section className="p6-auth-form-side">

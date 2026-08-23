@@ -16641,6 +16641,100 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
   image-rendering: -webkit-optimize-contrast;
 }
 
+/* Gold Accent Text Clipping */
+.p6-gold-text {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hi) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+/* Floating Mockup Scene with Ambient Glow */
+.p6-auth-product-flow {
+  position: relative;
+  min-height: 0;
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: p6FloatScene 6s ease-in-out infinite alternate;
+}
+
+.p6-auth-product-flow::before {
+  content: "";
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(169, 129, 47, 0.18) 0%, rgba(109, 61, 224, 0.08) 50%, transparent 70%);
+  filter: blur(20px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes p6FloatScene {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(-6px); }
+}
+
+/* 2x2 Bento Grid Feature Layout */
+.p6-auth-features-bento {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.p6-bento-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-2);
+  transition: transform var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard);
+}
+
+.p6-bento-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-gold);
+}
+
+.p6-bento-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--gold-dim);
+  color: var(--gold-hi);
+}
+
+.p6-bento-icon .yi-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.p6-bento-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.p6-bento-content strong {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.p6-bento-content small {
+  color: var(--ink-3);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 /* Premium Login Surface Redesign & Smart Tab Switcher */
 .p6-auth-form-card {
   width: min(100%, 460px);
@@ -16678,9 +16772,10 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
 }
 
 .p6-auth-portal-tabs a.active {
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: var(--gold);
+  color: #17120c;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(169, 129, 47, 0.25);
 }
 
 .p6-auth-message-content {
@@ -16728,6 +16823,7 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
   transform: translateY(-1px);
   box-shadow: 0 6px 18px rgba(169, 129, 47, 0.35);
 }
+
 
 
 

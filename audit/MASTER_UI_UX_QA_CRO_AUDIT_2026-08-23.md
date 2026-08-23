@@ -44,7 +44,7 @@ Code fixes that do not require production secrets:
 | QA-011 ticker duplicate | **Merged in #126.** |
 | QA-007 catalog equal height | **Code in PR #127.** Card grid is `auto auto auto 1fr` with CTA `flex-end`; spare-card hint/login sit above Sepete Ekle so the three purchase controls share one baseline. |
 
-Remaining to close the audit in **production**, not in git: land **#127**, fill `PRODUCTION_*` / `LEGAL_*` / Vercel secrets, dispatch Protected Production Deploy, then retest hamburger on a real iPhone and confirm live SHA === `main`.
+Remaining to close the audit in **production**, not in git: land **#127**, fill `PRODUCTION_*` / `LEGAL_*` / Vercel secrets, dispatch Protected Production Deploy. Post-deploy `verify:faz10:smoke` now fails closed unless live HTML stamps the CSP nonce, `/nasil-calisir` has `how-steps-board`, `/kurumsal` has no Campaign Mail sales card, and sitemap locs match `NEXT_PUBLIC_SITE_URL`. Retest hamburger on a real iPhone and confirm live SHA === `main`.
 
 ---
 

@@ -95,7 +95,18 @@ test.describe("public hamburger", () => {
     await expect(page.getByRole("link", { name: "NFC Kartı Satın Al" }).first()).toBeVisible();
   });
 
-  test("corporate pricing keeps three decisions and granular capacity", async ({ page }) => {
+  test("checkout masks sensitive content on blur and restores on focus", async ({ page }) => {
+    await page.goto("/checkout", { waitUntil: "load" });
+    await expect(page.getByRole("heading", { name: "Ödeme bilgileri gizlendi." })).toBeHidden();
+
+    await page.evaluate(() => window.dispatchEvent(new Event("blur")));
+    await expect(page.getByRole("heading", { name: "Ödeme bilgileri gizlendi." })).toBeVisible();
+
+    await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+    await expect(page.getByRole("heading", { name: "Ödeme bilgileri gizlendi." })).toBeHidden();
+  });
+
+  test("corporate pricing keeps three decisions, equal tier geometry, and granular capacity", async ({ page }) => {
     await page.goto("/kurumsal", { waitUntil: "load" });
 
     const tiers = page.locator(".corporate-pricing-tier");
@@ -109,6 +120,9 @@ test.describe("public hamburger", () => {
     await expect(business).toBeVisible();
     await expect(enterprise).toBeVisible();
     await expect(business).toHaveAttribute("aria-pressed", "true");
+
+    const tierHeights = await tiers.evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().height)));
+    expect(new Set(tierHeights).size).toBe(1);
 
     await expect(page.locator(".corporate-pack-picker__tick")).toHaveCount(7);
     await start.click();

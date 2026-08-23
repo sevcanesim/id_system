@@ -224,7 +224,7 @@ export default async function CorporatePage({
           <h2 id="corporate-lead-title">Kurumsal yapınızı birlikte planlayalım.</h2>
           <p>100+ çalışan, özel entegrasyon, farklı kart şablonları veya kuruma özel raporlama ihtiyacınızı paylaşın. Size uygun yapı ve fiyatlandırmayla dönüş yapalım.</p>
         </div>
-        <CorporateLeadForm initialPlan={selectedPlan} />
+        <CorporateLeadForm plan={selectedPlan} />
       </section>
 
       <section className="corporate-analytics-section" aria-labelledby="corporate-analytics-title">
@@ -234,38 +234,62 @@ export default async function CorporatePage({
           <p>Kurumsal panel, ekip kartlarının görünürlüğünü ve kullanımını tek yerde toplar.</p>
         </div>
         <div className="corporate-analytics-grid">
-          {analytics.map((item) => <article key={item.title}><strong>{item.value}</strong><h3>{item.title}</h3><p>{item.text}</p></article>)}
+          {analytics.map((item) => (
+            <article key={item.title}>
+              <strong>{item.value}</strong>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+            </article>
+          ))}
         </div>
       </section>
 
-      <section className="corporate-resource-section" aria-labelledby="corporate-resource-title">
+      <section className="corporate-resources-section" aria-labelledby="corporate-resources-title">
         <div className="corporate-section-heading">
           <span className="section-kicker">KARTTAN DAHA FAZLASI</span>
-          <h2 id="corporate-resource-title">Satış materyallerinizi de aynı profile bağlayın.</h2>
-          <p>Çalışan kartı yalnız iletişim bilgisi değil, kurumsal kaynaklara açılan kontrollü bir giriş noktası olur.</p>
+          <h2 id="corporate-resources-title">Kurumsal içeriklerinizi tek profilde toplayın.</h2>
+          <p>Katalog, sunum, toplantı ve referans bağlantılarını çalışan kartlarından erişilebilir hale getirin.</p>
         </div>
         <div className="corporate-resource-grid">
-          {corporateResources.map((item) => <article key={item.title}><Icon name={item.icon} /><h3>{item.title}</h3><p>{item.text}</p></article>)}
+          {corporateResources.map((resource) => (
+            <article key={resource.title}>
+              <Icon name={resource.icon} />
+              <h3>{resource.title}</h3>
+              <p>{resource.text}</p>
+            </article>
+          ))}
         </div>
       </section>
 
-      <section className="corporate-usecase-section" aria-labelledby="corporate-usecase-title">
+      <section className="corporate-use-cases" aria-labelledby="corporate-use-cases-title">
         <div className="corporate-section-heading">
-          <span className="section-kicker">KULLANIM SENARYOLARI</span>
-          <h2 id="corporate-usecase-title">Ekip büyüdükçe kartvizit dağılmasın.</h2>
+          <span className="section-kicker">EKİP SENARYOLARI</span>
+          <h2 id="corporate-use-cases-title">Satıştan İK’ya, aynı standart.</h2>
         </div>
-        <div className="corporate-usecase-grid">
-          {useCases.map((item) => <article key={item.title}><Icon name={item.icon} /><h3>{item.title}</h3><p>{item.text}</p></article>)}
+        <div className="corporate-use-case-grid">
+          {useCases.map((item) => (
+            <article key={item.title}>
+              <Icon name={item.icon} />
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+            </article>
+          ))}
         </div>
       </section>
 
       <section className="corporate-steps-section" aria-labelledby="corporate-steps-title">
         <div className="corporate-section-heading">
-          <span className="section-kicker">KURUMSAL KURULUM</span>
+          <span className="section-kicker">KURULUM</span>
           <h2 id="corporate-steps-title">Üç adımda ekibiniz yayında.</h2>
         </div>
-        <ol className="corporate-steps-grid">
-          {steps.map(([number, title, text]) => <li key={number}><span>{number}</span><div><h3>{title}</h3><p>{text}</p></div></li>)}
+        <ol className="corporate-step-grid">
+          {steps.map(([number, title, text]) => (
+            <li key={number}>
+              <span>{number}</span>
+              <h3>{title}</h3>
+              <p>{text}</p>
+            </li>
+          ))}
         </ol>
       </section>
     </main>

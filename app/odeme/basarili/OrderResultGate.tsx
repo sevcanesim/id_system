@@ -56,19 +56,23 @@ export default function OrderResultGate() {
 
     void (async () => {
       try {
+        let attempts = 0;
         let data = await verifyPaid();
-        const needsRecover = !data?.paid
-          || (data.corporate && !data.corporateReady)
-          || (data.reviewRequired && !data.activationRequired);
-        if (needsRecover) {
+
+        while (active && attempts < 4 && (!data?.paid || (data.corporate && !data.corporateReady))) {
+          attempts++;
           await fetch("/api/payments/iyzico/recover", {
             method: "POST",
             credentials: "same-origin",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({ orderId }),
-          });
+          }).catch(() => null);
+
+          await new Promise((resolve) => setTimeout(resolve, attempts * 750));
+          if (!active) return;
           data = await verifyPaid();
         }
+
         if (!active) return;
         setState(data?.paid ? "verified" : "invalid");
         setActivationRequired(Boolean(data?.activationRequired));

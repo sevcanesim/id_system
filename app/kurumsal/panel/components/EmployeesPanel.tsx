@@ -370,15 +370,15 @@ export default function EmployeesPanel(props: Props) {
           </form>
         )}
 
-        {!canInvite && (
-          <div className="p11-capacity-warning" role="status">
+        {!canInvite && availableSeats !== null && availableSeats <= 0 && (
+          <div className="p11-alert" role="status">
             <span>
-              <Icon name="lock" />
+              <strong>Lisans Kapasitesi Doldu ({totalMembers} / {seatLimit})</strong>
               <span>
-                <b lang="tr">{usedSeats} / {seatLimit} lisans kullanılıyor.</b>
-                {" "}{canManageLicenses
+                {canManageLicenses
                   ? "Yeni çalışan eklemek için +1 lisans satın almanız gerekiyor."
                   : "Yeni çalışan eklemek için yöneticinin +1 lisans satın alması gerekiyor."}
+                {suspendedSeats > 0 && ` (Dondurulmuş ${suspendedSeats} çalışan lisans kotasını işgal ediyor. Şirketten ayırarak yer açabilirsiniz.)`}
               </span>
             </span>
             {canManageLicenses && (
@@ -431,7 +431,16 @@ export default function EmployeesPanel(props: Props) {
                   <td><span className={`p11-status ${physicalState === "ACTIVE" ? "success" : physicalState === "LOST" ? "warning" : physicalState === "DISABLED" ? "error" : "neutral"}`}>{physicalCardLabel(physicalState)}</span></td>
                   <td><span className={`p11-status status-${member.status.toLowerCase()}`}>{memberStatusLabel(member.status)}</span></td>
                   <td><span className="p11-relative">{relativeTime(member.created_at)}</span></td>
-                  <td className="actions"><button type="button" onClick={() => openProfile(member)}>Detay</button><button type="button" onClick={() => openMemberDrawer(member, "card")}>Kartı Yönet</button></td>
+                  <td className="actions">
+                    <button type="button" onClick={() => openProfile(member)}>Detay</button>
+                    <button type="button" onClick={() => openMemberDrawer(member, "card")}>Kartı Yönet</button>
+                    {member.status === "SUSPENDED" && (
+                      <button type="button" disabled={bulkBusy} onClick={() => {
+                        setSelectedIds(new Set([member.id]));
+                        void runBulkStatus("LEFT");
+                      }}>Lisansı Boşa Çıkar</button>
+                    )}
+                  </td>
                 </tr>;
               })}
             </tbody>

@@ -770,5 +770,209 @@
     "empty_state": false,
     "error_state": false,
     "lines": 25
+  },
+  {
+    "route": "/destek",
+    "file": "app/destek/page.tsx",
+    "domain": "Public Support",
+    "user_types": [
+      "Visitor",
+      "Individual User",
+      "Corporate Employee"
+    ],
+    "purpose": "Kullanıcı destek ve yardım bilgi alanı",
+    "primary_action": "Destek Al",
+    "secondary_action": "Soru-Cevap",
+    "rendering": "server/mixed",
+    "uses_supabase": false,
+    "uses_api_fetch": false,
+    "uses_user_panel_shell": false,
+    "uses_app_header": true,
+    "loading_state": false,
+    "empty_state": false,
+    "error_state": false,
+    "lines": 10
+  },
+  {
+    "route": "/e/:eventPublicId",
+    "file": "app/e/[eventPublicId]/page.tsx",
+    "domain": "Public Events",
+    "user_types": [
+      "Visitor",
+      "Individual User"
+    ],
+    "purpose": "Etkinlik detay ve katılım açılış sayfası",
+    "primary_action": "Kayıt Ol",
+    "secondary_action": "Detayları İncele",
+    "rendering": "server/mixed",
+    "uses_supabase": true,
+    "uses_api_fetch": true,
+    "uses_user_panel_shell": false,
+    "uses_app_header": false,
+    "loading_state": true,
+    "empty_state": true,
+    "error_state": true,
+    "lines": 45
+  },
+  {
+    "route": "/hizmet-sartlari",
+    "file": "app/hizmet-sartlari/page.tsx",
+    "domain": "Legal",
+    "user_types": [
+      "Visitor"
+    ],
+    "purpose": "Hizmet Şartları ve kullanım metni",
+    "primary_action": "Şartları İncele",
+    "secondary_action": "Ana Sayfaya Dön",
+    "rendering": "server/static",
+    "uses_supabase": false,
+    "uses_api_fetch": false,
+    "uses_user_panel_shell": false,
+    "uses_app_header": true,
+    "loading_state": false,
+    "empty_state": false,
+    "error_state": false,
+    "lines": 10
+  },
+  {
+    "route": "/kurumsal/panel/etkinlikler",
+    "file": "app/kurumsal/panel/etkinlikler/page.tsx",
+    "domain": "Corporate Management",
+    "user_types": [
+      "Corporate Admin"
+    ],
+    "purpose": "Kurumsal etkinlik ve katılımcı yönetimi",
+    "primary_action": "Etkinlik Oluştur",
+    "secondary_action": "Katılımcı Listesi",
+    "rendering": "client/mixed",
+    "uses_supabase": true,
+    "uses_api_fetch": true,
+    "uses_user_panel_shell": true,
+    "uses_app_header": false,
+    "loading_state": true,
+    "empty_state": true,
+    "error_state": true,
+    "lines": 60
+  },
+  {
+    "route": "/kurumsal/panel/gorusmeler",
+    "file": "app/kurumsal/panel/gorusmeler/page.tsx",
+    "domain": "Corporate Networking",
+    "user_types": [
+      "Corporate Admin",
+      "Corporate Employee"
+    ],
+    "purpose": "Kurumsal kartvizit görüşmeleri ve temas geçmişi",
+    "primary_action": "Görüşme Detayları",
+    "secondary_action": "Dışa Aktar",
+    "rendering": "client/mixed",
+    "uses_supabase": true,
+    "uses_api_fetch": true,
+    "uses_user_panel_shell": true,
+    "uses_app_header": false,
+    "loading_state": true,
+    "empty_state": true,
+    "error_state": true,
+    "lines": 55
+  },
+  {
+    "route": "/kurumsal/panel/kartim",
+    "file": "app/kurumsal/panel/kartim/page.tsx",
+    "domain": "Corporate Card Editor",
+    "user_types": [
+      "Corporate Employee"
+    ],
+    "purpose": "Kurumsal çalışan dijital kartvizit düzenleme alanı",
+    "primary_action": "Profili Kaydet",
+    "secondary_action": "Önizleme",
+    "rendering": "client/mixed",
+    "uses_supabase": true,
+    "uses_api_fetch": true,
+    "uses_user_panel_shell": true,
+    "uses_app_header": false,
+    "loading_state": true,
+    "empty_state": true,
+    "error_state": true,
+    "lines": 80
+  },
+  {
+    "route": "/kurumsal/panel/leadler",
+    "file": "app/kurumsal/panel/leadler/page.tsx",
+    "domain": "Corporate Leads",
+    "user_types": [
+      "Corporate Admin"
+    ],
+    "purpose": "Toplanan kurumsal müşteri adayları listesi",
+    "primary_action": "Lead İndir",
+    "secondary_action": "Filtrele",
+    "rendering": "client/mixed",
+    "uses_supabase": true,
+    "uses_api_fetch": true,
+    "uses_user_panel_shell": true,
+    "uses_app_header": false,
+    "loading_state": true,
+    "empty_state": true,
+    "error_state": true,
+    "lines": 70
+  },
+  {
+    "route": "/kvkk",
+    "file": "app/kvkk/page.tsx",
+    "domain": "Legal",
+    "user_types": [
+      "Visitor"
+    ],
+    "purpose": "KVKK ve Kişisel Veriler Aydınlatma Metni",
+    "primary_action": "Metni Oku",
+    "secondary_action": "Ana Sayfaya Dön",
+    "rendering": "server/static",
+    "uses_supabase": false,
+    "uses_api_fetch": false,
+    "uses_user_panel_shell": false,
+    "uses_app_header": true,
+    "loading_state": false,
+    "empty_state": false,
+    "error_state": false,
+    "lines": 10
+  },
+  {
+    "route": "/leadler",
+    "file": "app/leadler/page.tsx",
+    "domain": "Individual Networking",
+    "user_types": [
+      "Individual User"
+    ],
+    "purpose": "Bireysel kullanıcının topladığı temas ve müşteri adayları",
+    "primary_action": "Kişiyi Kaydet",
+    "secondary_action": "CSV İndir",
+    "rendering": "client/mixed",
+    "uses_supabase": true,
+    "uses_api_fetch": true,
+    "uses_user_panel_shell": true,
+    "uses_app_header": false,
+    "loading_state": true,
+    "empty_state": true,
+    "error_state": true,
+    "lines": 65
+  },
+  {
+    "route": "/nasil-calisir",
+    "file": "app/nasil-calisir/page.tsx",
+    "domain": "Public Guide",
+    "user_types": [
+      "Visitor"
+    ],
+    "purpose": "Yenomi NFC kart ve dijital profil kullanım rehberi",
+    "primary_action": "Adımları İncele",
+    "secondary_action": "Kartını Seç",
+    "rendering": "server/static",
+    "uses_supabase": false,
+    "uses_api_fetch": false,
+    "uses_user_panel_shell": false,
+    "uses_app_header": true,
+    "loading_state": false,
+    "empty_state": false,
+    "error_state": false,
+    "lines": 10
   }
 ]

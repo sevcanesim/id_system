@@ -1217,6 +1217,10 @@ export default function CompanyPanel() {
   const sidebarItems = org ? corporateSidebarItems(org.role) : [];
   const tabs: ReadonlyArray<readonly [CorporatePanelTab, string]> = sidebarItems.map(({ key, label }) => [key, label] as const);
   const sidebarPermissionsLoading = !org && loading;
+  const TAB_LABELS: [CorporatePanelTab, string][] = [
+    ["templates", "Marka & Şablon"],
+    ["content", "İçerik"],
+  ];
   const tabRoutes: Record<CorporatePanelTab, string> = {
     overview: "/kurumsal/panel",
     employees: "/kurumsal/panel/calisanlar",

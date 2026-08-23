@@ -4,16 +4,16 @@
  */
 :root {
   /* Color */
-  --background: #F9F8F6;
-  --surface: #ffffff;
-  --surface-secondary: #F2EFE9;
-  --surface-elevated: #ffffff;
+  --background: #FAF9F6;
+  --surface: #FFFFFF;
+  --surface-secondary: #F4F1EB;
+  --surface-elevated: #FFFFFF;
   --text-primary: var(--ink);
   --text-secondary: var(--ink-2);
   --text-tertiary: var(--ink-3);
   --text-inverse: #ffffff;
-  --border: #E6E2D8;
-  --border-strong: #D8D2C4;
+  --border: #E9E4DA;
+  --border-strong: #D8D1C5;
   --primary: var(--gold);
   --primary-hover: var(--gold-hi);
   --primary-active: #896420;
@@ -28,14 +28,16 @@
   --info-subtle: rgba(58,107,196,.10);
 
   /* Warm Premium canonical aliases */
-  --surface-base: #F9F8F6;
+  --surface-base: #FAF9F6;
   --surface-card: #FFFFFF;
-  --surface-soft: #F2EFE9;
-  --border-subdued: #E6E2D8;
-  --border-interactive: #D8D2C4;
+  --surface-soft: #F4F1EB;
+  --surface-accent: #F8F4EC;
+  --surface-dark-product: #171512;
+  --border-subdued: #E9E4DA;
+  --border-interactive: #D8D1C5;
   --brand-gold: #A37B2C;
-  --brand-gold-deep: #9E7728;
-  --brand-gold-hover: #896420;
+  --brand-gold-deep: #8D6924;
+  --brand-gold-hover: #7E5E20;
   --brand-gold-soft: #F6F1E5;
   --warm-text-primary: #1A1918;
   --warm-text-secondary: #68645D;
@@ -53,10 +55,12 @@
   --radius-full: 999px;
 
   /* Elevation */
-  --shadow-xs: 0 1px 2px rgba(40,34,28,.06);
-  --shadow-sm: var(--shadow-soft);
-  --shadow-md: 0 18px 44px rgba(40,34,28,.12);
-  --shadow-overlay: var(--shadow);
+  --shadow-xs: 0 1px 2px rgba(40,34,28,.045), 0 5px 18px rgba(40,34,28,.025);
+  --shadow-sm: 0 1px 2px rgba(40,34,28,.04), 0 10px 28px rgba(40,34,28,.055);
+  --shadow-md: 0 2px 6px rgba(40,34,28,.045), 0 18px 48px rgba(40,34,28,.085);
+  --shadow-lg: 0 4px 10px rgba(40,34,28,.05), 0 28px 72px rgba(40,34,28,.11);
+  --shadow-product: 0 10px 24px rgba(20,17,13,.12), 0 34px 78px rgba(20,17,13,.22);
+  --shadow-overlay: var(--shadow-lg);
 
   /* Spacing — 4px base */
   --space-1: 4px;
@@ -107,14 +111,14 @@
 
 /* Tailwind / atomic component semantic contract. Keep these aliases stable. */
 :root {
-  --color-surface-base: #F9F8F6;
+  --color-surface-base: #FAF9F6;
   --color-surface-card: #FFFFFF;
-  --color-surface-soft: #F2EFE9;
-  --color-border-subdued: #E6E2D8;
-  --color-border-interactive: #D8D2C4;
+  --color-surface-soft: #F4F1EB;
+  --color-border-subdued: #E9E4DA;
+  --color-border-interactive: #D8D1C5;
   --color-brand-gold: #A37B2C;
-  --color-brand-gold-deep: #9E7728;
-  --color-brand-gold-hover: #896420;
+  --color-brand-gold-deep: #8D6924;
+  --color-brand-gold-hover: #7E5E20;
   --color-brand-gold-soft: #F6F1E5;
   --color-text-primary: #1A1918;
   --color-text-secondary: #68645D;

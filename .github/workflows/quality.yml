@@ -73,12 +73,12 @@ jobs:
         run: npm run start -- --hostname 127.0.0.1 --port 3000 > /tmp/yenomi-next.log 2>&1 &
 
       - name: Wait for application
-        run: npx wait-on http://127.0.0.1:3000
+        run: npx --yes wait-on http://127.0.0.1:3000
 
       - name: Run public and security regression
         env:
           E2E_BASE_URL: http://127.0.0.1:3000
-        run: npx playwright test e2e/public-nav.spec.ts e2e/security-headers.spec.ts --project=chromium
+        run: npx playwright test e2e/public-nav.spec.ts e2e/security-headers.spec.ts
 
       - name: Print server log on failure
         if: failure()

@@ -42,3 +42,18 @@ export async function rejectCheckoutInitializeFlood(request: NextRequest) {
     { status: quota.unavailable ? 503 : 429 },
   );
 }
+
+export async function rejectPaymentRecoverFlood(request: NextRequest) {
+  const quota = await consumeDistributedRateLimit({
+    key: `payment-recover-api:${requestIp(request.headers)}`,
+    limit: 15,
+    windowMs: 60_000,
+    failClosed: true,
+  });
+  if (quota.allowed) return null;
+  return NextResponse.json(
+    publicError("RATE_LIMITED", { message: "Çok fazla doğrulama isteği gönderildi. Lütfen kısa süre sonra tekrar deneyin." }),
+    { status: quota.unavailable ? 503 : 429 },
+  );
+}
+

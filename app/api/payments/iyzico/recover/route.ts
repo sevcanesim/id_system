@@ -4,6 +4,7 @@ import { ownerMayRecover, resolveRecoverIntent } from "../../../../../lib/paymen
 import { readPendingOrderId } from "../../../../../lib/payments/pending-order-cookie";
 import { settlePendingCommercePaymentByOrderId } from "../../../../../lib/payments/settle-commerce-payment";
 import { getSupabaseAdminClient } from "../../../../../lib/supabase/server-admin";
+import { rejectPaymentRecoverFlood } from "../../../../../lib/security/route-rate-limits";
 
 export const runtime = "nodejs";
 
@@ -16,6 +17,9 @@ export const runtime = "nodejs";
  */
 export async function POST(request: NextRequest) {
   try {
+    const rateLimited = await rejectPaymentRecoverFlood(request);
+    if (rateLimited) return rateLimited;
+
     const body = await request.json().catch(() => ({}));
     const bodyOrderId = String((body as { orderId?: unknown }).orderId || "");
     const intent = resolveRecoverIntent(readPendingOrderId(request), bodyOrderId || null);

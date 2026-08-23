@@ -61,7 +61,7 @@
   --surface-3: #f1eee6;
   --ink: #18151b;
   --ink-2: #514c46;
-  --ink-3: #7a746c;
+  --ink-3: #5f5850;
   --gold: #a9812f;
   --gold-hi: #8a6a26;
   --gold-dim: rgba(169,129,47,.12);
@@ -16864,6 +16864,20 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
 
 .p6-auth-submit:hover:not(:disabled) .yi-icon {
   transform: translateX(3px);
+}
+
+/* Button Active Micro-Feedback & Mobile Touch-Target Protection */
+.p6-auth-submit:active:not(:disabled),
+.yi-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+@media (max-width: 768px) {
+  button,
+  .p6-auth-portal-tabs a,
+  .p6-auth-switch-tab-btn {
+    min-height: 44px;
+  }
 }
 
 

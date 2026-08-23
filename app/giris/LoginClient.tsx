@@ -398,6 +398,7 @@ export default function LoginClient({
   const showWorkspace = (transitioning || activeSessionEmail) && mode !== "recovery" && messageTone !== "error";
   const authAlert = message ? (
     <div
+      id="p6-auth-message-alert"
       className={`p6-auth-message ${messageTone}`}
       role={messageTone === "error" ? "alert" : "status"}
       aria-live={messageTone === "error" ? "assertive" : "polite"}

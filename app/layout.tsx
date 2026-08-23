@@ -13,9 +13,12 @@ import "./theme-policy.css";
 import HashScrollHandler from "./components/HashScrollHandler";
 import AuthSessionBridge from "./components/AuthSessionBridge";
 import PublicSiteShell from "./components/PublicSiteShell";
+import { publicCardOrigin } from "../lib/public-card/urls";
+
+const siteOrigin = publicCardOrigin();
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://qr.yenomilabs.com"),
+  metadataBase: new URL(siteOrigin),
   title: {
     default: "Yenomi ID | Kartvizitin güncel kalsın",
     template: "%s | Yenomi ID",
@@ -29,7 +32,7 @@ export const metadata: Metadata = {
     siteName: "Yenomi ID",
     title: "Yenomi ID | Kartvizitin güncel kalsın",
     description: "NFC + QR kartvizit. Kendin için al, ekibin için yönet. Kart numarası Yenomi’de saklanmaz.",
-    url: "https://qr.yenomilabs.com",
+    url: siteOrigin,
     images: ["/images/yenomilabs-share.png"],
   },
   twitter: {

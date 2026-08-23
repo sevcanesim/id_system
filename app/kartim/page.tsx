@@ -15,15 +15,10 @@ import { Icon } from "../icons";
 import AddToCartButton from "../components/AddToCartButton";
 import { EXTRA_NFC_CARD_PRICE_KURUS, formatTryFromKurus, NFC_PRODUCT, REPLACEMENT_NFC_CARD_PRICE_KURUS } from "../../lib/config/product";
 import { COMMERCIAL_PRICING } from "../../lib/config/commercial";
-import { cardQrUrl, cardSharePath, cardShareUrl, physicalCardPath } from "../../lib/public-card/urls";
+import { cardQrUrl, cardSharePath, cardShareUrl, physicalCardPath, publicCardOrigin } from "../../lib/public-card/urls";
 
 type CardData = EditableCardData;
 type PhysicalCard = { id:string;card_code:string;status:"ACTIVE"|"LOST"|"DISABLED";replaced_by_card_id:string|null };
-
-function getPublicOrigin() {
-  if (typeof window !== "undefined") return window.location.origin;
-  return "https://qr.yenomilabs.com";
-}
 
 export default function MyCardPage() {
   const router = useRouter();
@@ -95,10 +90,10 @@ export default function MyCardPage() {
   const generatedSlug = useMemo(() => data?.name.toLocaleLowerCase("tr").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ı/g,"i").replace(/[^a-z0-9]+/g, "").slice(0, 40) || "kartim", [data]);
   const slug = savedSlug || generatedSlug;
   const editHref = profileId ? `/olustur?id=${encodeURIComponent(profileId)}` : "/olustur";
-  const publicUrl = cardShareUrl(slug, getPublicOrigin());
+  const publicUrl = cardShareUrl(slug, publicCardOrigin());
   const qrUrl = physicalCard
-    ? `${getPublicOrigin()}${physicalCardPath(physicalCard.card_code)}`
-    : (publicId ? cardQrUrl(publicId, getPublicOrigin()) : publicUrl);
+    ? `${publicCardOrigin()}${physicalCardPath(physicalCard.card_code)}`
+    : (publicId ? cardQrUrl(publicId, publicCardOrigin()) : publicUrl);
   const liveHref = cardSharePath(slug);
   const completion = data ? Math.min(100, [data.name, data.role, data.email, data.phone, data.image].filter(Boolean).length * 20) : 0;
 

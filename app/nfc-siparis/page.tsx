@@ -14,6 +14,7 @@ import { NfcCardFront, NfcCardBack } from "../components/ui/NfcCardArt";
 import { fetchOwnProfile } from "../../lib/repositories/profiles";
 import { track } from "../../lib/analytics";
 import { TURKEY_CITIES, normalizeEmailField, normalizeTrPhone } from "../../lib/form-standards";
+import { publicCardOrigin } from "../../lib/public-card/urls";
 import { clearPendingCheckoutOrderId, getOrCreateCheckoutIdempotencyKey, lookupPendingCheckoutOrder, rotateCheckoutIdempotencyKey, setPendingCheckoutOrderId, setCheckoutReturnPath } from "../../lib/payments/browser-checkout";
 // v22: Bu sayfa artık yalnızca ürünü KİŞİSELLEŞTİRİYOR (renk, isim, teslimat).
 // Ödeme ve sipariş oluşturma tek boru hattından geçsin diye
@@ -65,7 +66,7 @@ export default function NfcOrderPage() {
   const [legalVersions, setLegalVersions] = useState<{ distanceSales: string; personalization: string; privacy: string } | null>(null);
 
   const publicCardUrl = useMemo(() => {
-    const base = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || (typeof window !== "undefined" ? window.location.origin : "https://qr.yenomilabs.com");
+    const base = publicCardOrigin();
     return slug ? `${base}/${slug}` : base;
   }, [slug]);
 

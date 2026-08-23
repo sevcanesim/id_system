@@ -5,12 +5,7 @@ import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 import { fetchOwnProfile } from "../../../lib/repositories/profiles";
 import { Icon } from "../../icons";
 import { track } from "../../../lib/analytics";
-import { cardShareUrl } from "../../../lib/public-card/urls";
-
-function getPublicOrigin() {
-  if (typeof window !== "undefined") return window.location.origin;
-  return "https://qr.yenomilabs.com";
-}
+import { cardQrUrl, cardShareUrl, publicCardOrigin } from "../../../lib/public-card/urls";
 
 /**
  * Ödeme sonrası satın alma anını değerlendiren küçük bir paylaşım/referans
@@ -29,8 +24,8 @@ export default function PaymentSuccessShare() {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
       const { data: profile } = await fetchOwnProfile(supabase, data.user.id);
-      if (profile?.slug) setPublicUrl(cardShareUrl(profile.slug, getPublicOrigin()));
-      else if (profile?.public_id) setPublicUrl(`${getPublicOrigin()}/p/${profile.public_id}`);
+      if (profile?.slug) setPublicUrl(cardShareUrl(profile.slug, publicCardOrigin()));
+      else if (profile?.public_id) setPublicUrl(cardQrUrl(profile.public_id, publicCardOrigin()));
     });
   }, []);
 

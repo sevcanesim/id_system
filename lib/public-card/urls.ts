@@ -7,6 +7,10 @@ export function publicCardOrigin(origin?: string) {
   return value.replace(/\/$/, "");
 }
 
+export function publicCardHost(origin?: string) {
+  return new URL(publicCardOrigin(origin)).host;
+}
+
 export function cardSharePath(slug: string) {
   return `${SHARE_PREFIX}/${slug}`;
 }

@@ -10,6 +10,11 @@ function FooterContent() {
         <div className="yi-footer__brand">
           <Brand compact />
           <p>NFC kart. Canlı profil. Şirket paneli. Kart numarası Yenomi’de saklanmaz.</p>
+          <nav className="yi-footer__product" aria-label="Ürün">
+            <Link href="/urunler">Dijital Kartvizit</Link>
+            <Link href="/nasil-calisir">Nasıl Çalışır</Link>
+            <Link href="/kurumsal">Kurumsal</Link>
+          </nav>
         </div>
 
         <div className="yi-footer__layers" aria-label="Ürün katmanları">

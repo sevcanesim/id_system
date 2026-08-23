@@ -16404,6 +16404,22 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
   pointer-events: auto;
 }
 
+.yi-footer__product {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 14px;
+}
+.yi-footer__product a {
+  color: #71695f;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  text-decoration: none;
+}
+.yi-footer__product a:hover {
+  color: #a47b28;
+}
+
 
 
 

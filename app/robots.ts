@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { publicCardOrigin } from "../lib/public-card/urls";
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
@@ -11,6 +13,6 @@ export default function robots(): MetadataRoute.Robots {
         "/sepet", "/odeme/", "/kurumsal/panel", "/kurumsal/davet", "/p/", "/e/", "/qr/"
       ],
     },
-    sitemap: "https://qr.yenomilabs.com/sitemap.xml",
+    sitemap: `${publicCardOrigin()}/sitemap.xml`,
   };
 }

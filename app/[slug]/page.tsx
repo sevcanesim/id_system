@@ -7,7 +7,7 @@ import { getPublicSupabaseClient } from "../../lib/supabase/public";
 import { isCardProfileServiceActive, type CardProfileRow } from "../../lib/card-profile";
 import { demoProfileToCardData } from "../../lib/demo-card-profile";
 import { fetchProfileBySlug } from "../../lib/repositories/profiles";
-import { cardSharePath } from "../../lib/public-card/urls";
+import { cardSharePath, cardShareUrl, publicCardOrigin } from "../../lib/public-card/urls";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       alternates: { canonical: `/${databaseProfile.slug}` },
       openGraph: {
         type: "profile",
-        url: `https://qr.yenomilabs.com${cardSharePath(databaseProfile.slug)}`,
+        url: cardShareUrl(databaseProfile.slug),
         title: `${databaseProfile.name} | Yenomilabs`,
         description,
         images: databaseProfile.image_url ? [databaseProfile.image_url] : [],
@@ -83,7 +83,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     alternates: { canonical: `/${profile.slug}` },
     openGraph: {
       type: "profile",
-      url: `https://qr.yenomilabs.com/${profile.slug}`,
+      url: `${publicCardOrigin()}/${profile.slug}`,
       title: `${profile.name} | Yenomilabs`,
       description: profile.description,
       images: [profile.image],

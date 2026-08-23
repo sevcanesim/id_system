@@ -5,7 +5,7 @@ import QRCode from "qrcode";
 import { Arrow, Icon } from "./icons";
 import { toGoogleMapsUrl } from "../lib/maps";
 import type { OrganizationRole } from "../lib/organizations/permissions";
-import { cardQrUrl, cardVcardPath } from "../lib/public-card/urls";
+import { cardQrUrl, cardVcardPath, publicCardOrigin } from "../lib/public-card/urls";
 
 export type CardTemplateLink = {
   title: string;
@@ -92,7 +92,8 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
   const clickProps = preview ? { onClick: (event: MouseEvent<HTMLAnchorElement>) => event.preventDefault() } : {};
   const saveHref = data.saveHref || (publicId ? cardVcardPath(publicId) : slug ? `/${slug}/vcard` : "#");
   const whatsappHref = data.whatsappHref || (whatsapp ? `https://wa.me/${whatsapp}` : "");
-  const publicHref = publicId ? cardQrUrl(publicId) : slug ? `https://qr.yenomilabs.com/${slug.replace(/^\//, "")}` : "https://qr.yenomilabs.com";
+  const siteOrigin = publicCardOrigin();
+  const publicHref = publicId ? cardQrUrl(publicId) : slug ? `${siteOrigin}/${slug.replace(/^\//, "")}` : siteOrigin;
 
   const brandColor = safeHexColor(branding?.primaryColor);
   const brandLogo = safeImageUrl(branding?.logoUrl);
@@ -139,7 +140,7 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
     return (
       <article className={`p12-public-card ${isCorporate ? "is-corporate" : "is-individual"}`} aria-label={`${data.name || "Dijital kartvizit"}`} style={brandColor ? ({ "--card-brand-color": brandColor } as CSSProperties) : undefined}>
         <header className="p12-card-brand">
-          <a href="https://qr.yenomilabs.com" aria-label="Yenomi ID ana sayfa">
+          <a href={siteOrigin} aria-label="Yenomi ID ana sayfa">
             {isCorporate ? corporateBrand : <><span className="p12-brand-mark">Y</span><span><strong>Yenomi ID</strong><small>Digital identity</small></span></>}
           </a>
           {isCorporate && <span className="p12-managed-badge"><Icon name="shield" /> Kurumsal profil</span>}
@@ -196,7 +197,7 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
         {extras}
 
         <footer className="p12-card-footer">
-          <a href="https://qr.yenomilabs.com">Yenomi ID</a>
+          <a href={siteOrigin}>Yenomi ID</a>
           <span>{isCorporate ? `${companyName} tarafından yönetilir` : "Dijital kartvizit"}</span>
         </footer>
       </article>
@@ -381,7 +382,7 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
   return (
     <div className={`qr-wrap compact-wrap ${preview ? "embedded-card-preview" : ""}`}>
       <div className="brand-top">
-        <a className="brand-pill" href="https://qr.yenomilabs.com" aria-label="Yenomilabs ana sayfa" {...clickProps}>
+        <a className="brand-pill" href={siteOrigin} aria-label="Yenomilabs ana sayfa" {...clickProps}>
           <span className="brand-dot" /><span>Powered by <strong>Yenomilabs</strong></span>
         </a>
       </div>
@@ -402,7 +403,7 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
       <section className="compact-links" aria-label="İletişim bağlantıları">
         {links.length ? links.map((link) => <a className="compact-link" href={link.href} key={`${link.title}-${link.href}`} target={link.href.startsWith("http") ? "_blank" : undefined} rel={link.href.startsWith("http") ? "noopener" : undefined} {...clickProps}><span className="compact-link-icon"><Icon name={link.kind} /></span><span className="compact-link-copy"><strong>{link.title}</strong><small>{link.subtitle}</small></span><span className="compact-link-arrow"><Arrow /></span></a>) : <div className="compact-link compact-link-empty"><span className="compact-link-icon"><Icon name="phone" /></span><span className="compact-link-copy"><strong>İletişim bilgileri</strong><small>Doldurduğun bilgiler burada aynı düzende görünür.</small></span></div>}
       </section>
-      <footer className="compact-footer"><a href="https://qr.yenomilabs.com" {...clickProps}>Yenomi ID ile hazırlandı.</a><span>© 2026 Yenomilabs</span></footer>
+      <footer className="compact-footer"><a href={siteOrigin} {...clickProps}>Yenomi ID ile hazırlandı.</a><span>© 2026 Yenomilabs</span></footer>
     </div>
   );
 }

@@ -377,7 +377,7 @@ export default function CheckoutPage() {
         </div>
 
         {!checkoutReady ? (
-          <div className="cart-empty"><h2>Ödeme hazırlanıyor…</h2><p>Sepetini ve güvenli ödeme bağlantını hazırlıyoruz.</p></div>
+          <div className="cart-empty"><h2>Sipariş yükleniyor…</h2><p>Henüz bir ödeme alınmadı. Sepetin kontrol ediliyor.</p></div>
         ) : !items.length ? (
           <div className="cart-empty"><h2>Kartın henüz sepette değil.</h2><Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart">NFC Kartı Satın Al</Link></div>
         ) : (

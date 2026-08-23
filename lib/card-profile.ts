@@ -1,4 +1,5 @@
 import type { EditableCardData } from "../app/CardTemplate";
+import { cardQrUrl, cardShareUrl, publicCardOrigin } from "./public-card/urls";
 
 export type CardProfileRow = {
   id: string;
@@ -71,7 +72,7 @@ export function createVCard(profile: CardProfileRow) {
     profile.linkedin ? `X-SOCIALPROFILE;TYPE=linkedin:${profile.linkedin}` : "",
     profile.instagram ? `X-SOCIALPROFILE;TYPE=instagram:${profile.instagram}` : "",
     profile.location ? `URL;TYPE=location:${profile.location}` : "",
-    `URL;TYPE=profile:https://qr.yenomilabs.com/${profile.slug ? `p/${profile.slug}` : profile.public_id ? `p/${profile.public_id}` : ""}`,
+    `URL;TYPE=profile:${profile.slug ? cardShareUrl(profile.slug) : profile.public_id ? cardQrUrl(profile.public_id) : publicCardOrigin()}`,
     "END:VCARD"
   ].filter(Boolean);
   return `${lines.join("\r\n")}\r\n`;

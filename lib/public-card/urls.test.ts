@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cardQrPath, cardSharePath, eventAttributionPath, looksLikePublicId } from "./urls";
+import { cardQrPath, cardSharePath, cardShareUrl, eventAttributionPath, looksLikePublicId, publicCardHost, publicCardOrigin } from "./urls";
 
 describe("public card URL contract", () => {
   it("keeps share links on the readable slug under /p", () => {
@@ -28,5 +28,30 @@ describe("public card URL contract", () => {
   it("treats hyphenated slugs as not public ids", () => {
     expect(looksLikePublicId("ahmet-yilmaz")).toBe(false);
     expect(looksLikePublicId("8Kx4mQ72")).toBe(true);
+  });
+
+  it("prefers NEXT_PUBLIC_SITE_URL over the production fallback host", () => {
+    const previous = process.env.NEXT_PUBLIC_SITE_URL;
+    process.env.NEXT_PUBLIC_SITE_URL = "https://yenomi-id.vercel.app/";
+    try {
+      expect(publicCardOrigin()).toBe("https://yenomi-id.vercel.app");
+      expect(publicCardHost()).toBe("yenomi-id.vercel.app");
+      expect(cardShareUrl("selin-kaya")).toBe("https://yenomi-id.vercel.app/p/selin-kaya");
+    } finally {
+      if (previous === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
+      else process.env.NEXT_PUBLIC_SITE_URL = previous;
+    }
+  });
+
+  it("keeps the production fallback host when no site URL is configured", () => {
+    const previous = process.env.NEXT_PUBLIC_SITE_URL;
+    delete process.env.NEXT_PUBLIC_SITE_URL;
+    try {
+      expect(publicCardOrigin()).toBe("https://qr.yenomilabs.com");
+      expect(publicCardHost()).toBe("qr.yenomilabs.com");
+    } finally {
+      if (previous === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
+      else process.env.NEXT_PUBLIC_SITE_URL = previous;
+    }
   });
 });

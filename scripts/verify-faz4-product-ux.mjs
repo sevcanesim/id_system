@@ -204,5 +204,47 @@ check(playwright.includes('name: "webkit"') && playwright.includes('name: "mobil
 const working = read("docs/product-engineering/16_AGENT_WORKING_CONTRACT.md");
 check(working.includes("Selin Kaya") && working.includes("align-items: stretch") && working.includes("#F9F8F6"), "agent working contract encodes the UI guardrails");
 
+const sitemapSource = read("app/sitemap.ts");
+const robotsSource = read("app/robots.ts");
+const layoutSource = read("app/layout.tsx");
+check(
+  sitemapSource.includes("publicCardOrigin")
+    && sitemapSource.includes("/nasil-calisir")
+    && sitemapSource.includes("/kurumsal")
+    && sitemapSource.includes("/destek")
+    && !sitemapSource.includes("https://qr.yenomilabs.com"),
+  "sitemap is origin-driven and lists marketing routes"
+);
+check(
+  robotsSource.includes("publicCardOrigin")
+    && layoutSource.includes("publicCardOrigin")
+    && layoutSource.includes("metadataBase: new URL(siteOrigin)"),
+  "robots and metadataBase use the public card origin helper"
+);
+const checkout = read("app/checkout/page.tsx");
+check(
+  checkout.includes("Sipariş yükleniyor")
+    && checkout.includes("Henüz bir ödeme alınmadı")
+    && checkout.includes('{busy ? "Ödeme hazırlanıyor…"'),
+  "empty checkout first paint is not a fake payment; pay-button busy copy stays"
+);
+const activationPage = read("app/aktivasyon/page.tsx");
+check(
+  activationPage.includes("hasToken")
+    && activationPage.includes("Aktivasyon bağlantısı yok")
+    && activationPage.includes("Sipariş bağlantın kontrol ediliyor."),
+  "activation fallback does not claim an order link is being checked without a token"
+);
+const footer = read("app/ui/SiteFooter.tsx");
+check(
+  footer.includes('aria-label="Ürün"')
+    && footer.includes('href="/urunler"')
+    && footer.includes('href="/nasil-calisir"')
+    && footer.includes('href="/kurumsal"')
+    && !footer.includes("NFC Kartı Satın Al"),
+  "footer exposes product routes as text links, not a second gold"
+);
+check(read("app/components/AnnouncementBar.tsx").includes('aria-hidden="true"'), "ticker duplicate track is hidden from assistive tech");
+
 if (failed) process.exit(1);
 console.log("\nFAZ 4 product/UX verification passed.");

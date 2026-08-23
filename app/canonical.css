@@ -16043,6 +16043,11 @@ body:has(.p6-auth-page) .public-site-chrome:has(.yi-nav.is-open)::before {
   .how-card-gallery__item {
     transition: none;
   }
+  #how-card-matte:checked ~ .how-card-gallery__stage .how-card-gallery__item--matte,
+  #how-card-metal:checked ~ .how-card-gallery__stage .how-card-gallery__item--metal,
+  #how-card-white:checked ~ .how-card-gallery__stage .how-card-gallery__item--white {
+    transform: scale(1.04);
+  }
 }
 
 .products-plan-card h2 {

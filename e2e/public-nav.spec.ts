@@ -136,8 +136,9 @@ test("corporate pricing keeps three decisions, equal desktop tier geometry, and 
   await expect(page.locator(".corporate-pack-picker__head h3")).toBeVisible();
 
   await enterprise.click();
-  await expect(page.locator("#teklif")).toBeVisible();
-  await expect(page.getByRole("heading", { name: /100\+ çalışan veya özel ihtiyaç/ })).toBeVisible();
+  const enterpriseLead = page.locator("#teklif");
+  await expect(enterpriseLead).toBeVisible();
+  await expect(enterpriseLead.getByRole("heading", { name: "Kurumsal yapınızı birlikte planlayalım." })).toBeVisible();
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);

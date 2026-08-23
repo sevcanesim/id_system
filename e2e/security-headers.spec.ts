@@ -2,14 +2,6 @@ import { expect, test } from "@playwright/test";
 
 const sensitivePages = ["/giris", "/checkout", "/aktivasyon"];
 
-function header(response: Awaited<ReturnType<typeof testRequest>>, name: string) {
-  return response.headers()[name.toLowerCase()] ?? "";
-}
-
-async function testRequest(request: Parameters<Parameters<typeof test>[1]>[0]["request"], path: string) {
-  return request.get(path, { maxRedirects: 0 });
-}
-
 test.describe("security response contract", () => {
   for (const path of sensitivePages) {
     test(`${path} is private and CSP protected`, async ({ request }) => {

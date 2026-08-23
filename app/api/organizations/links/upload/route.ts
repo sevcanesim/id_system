@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { removeOrganizationAsset } from "../../../../../lib/organizations/organization-assets";
 import { canManageTemplates, isOrganizationRole } from "../../../../../lib/organizations/permissions";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../lib/supabase/server-admin";
 
@@ -40,6 +41,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Kurumsal bağlantı yönetimi yalnız şirket sahibi ve yöneticilere açıktır." }, { status: 403 });
   }
 
+  const { data: existing } = await ctx.admin
+    .from("organization_links")
+    .select("file_path")
+    .eq("organization_id", organizationId)
+    .eq("kind", kind)
+    .maybeSingle();
+
   const path = `${organizationId}/${kind.toLowerCase()}-${Date.now()}.pdf`;
   const bytes = new Uint8Array(await file.arrayBuffer());
   const { error: uploadError } = await ctx.admin.storage.from("organization-assets").upload(path, bytes, { contentType: "application/pdf", upsert: false });
@@ -61,8 +69,11 @@ export async function POST(request: NextRequest) {
     updated_at: new Date().toISOString(),
   }, { onConflict: "organization_id,kind" });
   if (dbError) {
-    await ctx.admin.storage.from("organization-assets").remove([path]);
+    await removeOrganizationAsset(ctx.admin, path);
     return NextResponse.json({ error: "Bağlantı kaydedilemedi." }, { status: 500 });
+  }
+  if (existing?.file_path && existing.file_path !== path) {
+    await removeOrganizationAsset(ctx.admin, existing.file_path);
   }
 
   const publicUrl = ctx.admin.storage.from("organization-assets").getPublicUrl(path).data.publicUrl;

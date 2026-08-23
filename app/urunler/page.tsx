@@ -21,6 +21,7 @@ import {
 } from "../../lib/commerce/packages";
 import { COMMERCIAL_PRICING, COMMERCIAL_SKUS } from "../../lib/config/commercial";
 import { formatTryFromKurus, NFC_PRODUCT } from "../../lib/config/product";
+import "./products-premium.css";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {

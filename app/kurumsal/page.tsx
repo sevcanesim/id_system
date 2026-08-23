@@ -84,7 +84,7 @@ export default async function CorporatePage({
           <p>Satış ve saha ekibi aynı standartta tanışır. Unvan değişince baskı yok; kart kaybolursa panelden kapanır. 100 kişiye kadar paketinizi doğrudan seçip satın alın.</p>
           <div className="corporate-hero-actions">
             <a href="#business-pricing-title" className="corporate-cta">Ekibime Uygun Paketi Seç <span aria-hidden="true">→</span></a>
-            <a href="#teklif" className="corporate-secondary-cta">100+ kişi / özel kurulum <span aria-hidden="true">→</span></a>
+            <a href="/kurumsal?plan=ENTERPRISE#teklif" className="home-mockup__link-secondary">100+ kişi için Teklif Al <span aria-hidden="true">→</span></a>
           </div>
           <div className="corporate-single-proof" aria-label="Kurumsal ürün sonuçları">
             {outcomes.slice(0, 3).map((item) => <div key={item.label}><strong>{item.value}</strong><span>{item.label}</span></div>)}
@@ -213,7 +213,7 @@ export default async function CorporatePage({
                 <li key={pack.sku}><b>{pack.credits.toLocaleString("tr-TR")} kredi</b> {formatTryFromKurus(pack.priceKurus)}</li>
               ))}
             </ul>
-            <a href="/kurumsal?plan=NETWORK-MAIL#teklif" className="home-mockup__link-secondary">Network Mail için bilgi al <span aria-hidden="true">→</span></a>
+            <a href="/kurumsal?plan=NETWORK-MAIL#teklif" className="home-mockup__link-secondary">Network Mail için Teklif Al <span aria-hidden="true">→</span></a>
           </article>
         </div>
       </section>

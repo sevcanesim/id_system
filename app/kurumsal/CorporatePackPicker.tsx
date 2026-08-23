@@ -113,7 +113,7 @@ export default function CorporatePackPicker({
       <div className="corporate-pack-picker__head">
         <div>
           <span className="corporate-pack-picker__kicker">{tier.title.toUpperCase()} · {pack.seats} KİŞİ</span>
-          <h3>{pack.name}{pack.popular ? <span className="corporate-pack-picker__badge">En çok tercih edilen kapasite</span> : null}</h3>
+          <h3>{pack.name}{pack.popular ? <span className="corporate-pack-picker__badge">öne çıkan paket</span> : null}</h3>
           <p>İhtiyacınız değişirse kapasiteyi yeniden baskı beklemeden yükseltebilirsiniz.</p>
         </div>
         <div className="corporate-pack-picker__price">
@@ -175,10 +175,10 @@ export default function CorporatePackPicker({
               className="corporate-cta"
               configuration={{ packageCode: pack.code, seatCount: pack.seats }}
             />
-            <a href="#teklif" className="home-mockup__link-secondary">100+ kişi veya özel kurulum</a>
+            <a href="#teklif" className="home-mockup__link-secondary">100+ kişi için teklif</a>
           </>
         ) : (
-          <a href={`/kurumsal?plan=${pack.code}#teklif`} className="corporate-cta">Kurumsal Teklif Al</a>
+          <a href={`/kurumsal?plan=${pack.code}#teklif`} className="corporate-cta">Teklif Al</a>
         )}
       </div>
     </div>

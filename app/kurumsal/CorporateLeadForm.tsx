@@ -56,7 +56,7 @@ export default function CorporateLeadForm({ plan = "GENEL", compact = false }: P
       </FormGrid>
       <div className="corporate-lead-actions">
         <Button type="submit" variant="primary" disabled={status === "loading"} className="corporate-cta">
-          {status === "loading" ? "Gönderiliyor…" : "Kurumsal Teklif Al"} <span aria-hidden>→</span>
+          {status === "loading" ? "Gönderiliyor…" : "Teklif Al"} <span aria-hidden>→</span>
         </Button>
         <span className="corporate-lead-note">1 iş günü içinde dönüş · ödeme veya kart bilgisi istenmez</span>
       </div>

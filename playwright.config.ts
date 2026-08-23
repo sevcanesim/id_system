@@ -24,6 +24,14 @@ export default defineConfig({
       name: "mobile-chromium",
       use: { ...devices["Pixel 7"] },
     },
+    {
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
+    },
+    {
+      name: "mobile-webkit",
+      use: { ...devices["iPhone 13"] },
+    },
   ],
   outputDir: "test-results",
 });

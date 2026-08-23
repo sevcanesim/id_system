@@ -15016,6 +15016,77 @@ h1, h2, h3, h4 {
   padding: 28px 28px 24px;
   gap: 20px;
 }
+.corporate-pricing-tiers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 6px;
+}
+@media (max-width: 768px) {
+  .corporate-pricing-tiers {
+    grid-template-columns: 1fr;
+  }
+}
+.corporate-pricing-tier {
+  appearance: none;
+  background: #FAF8F5;
+  border: 1px solid rgba(36, 29, 23, 0.12);
+  border-radius: 14px;
+  padding: 16px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  font-family: inherit;
+}
+.corporate-pricing-tier:hover {
+  border-color: rgba(163, 123, 44, 0.5);
+  background: #ffffff;
+}
+.corporate-pricing-tier.is-active {
+  border-color: #A37B2C;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(163, 123, 44, 0.12), inset 0 0 0 1px #A37B2C;
+}
+.corporate-pricing-tier.is-popular {
+  border-color: rgba(163, 123, 44, 0.35);
+}
+.corporate-pricing-tier span {
+  font-size: 12px;
+  font-weight: 650;
+  color: #8B6835;
+  letter-spacing: 0.02em;
+  display: block;
+}
+.corporate-pricing-tier strong {
+  font-size: 18px;
+  font-weight: 700;
+  color: #17120C;
+  display: block;
+}
+.corporate-pricing-tier small {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #5C554E;
+  margin-top: 4px;
+  display: block;
+  font-style: normal;
+}
+.corporate-pricing-tier em {
+  display: inline-block;
+  margin-top: 8px;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+  color: #17120C;
+  background: rgba(163, 123, 44, 0.15);
+  padding: 3px 8px;
+  border-radius: 999px;
+  width: fit-content;
+}
 .corporate-pack-picker h3 {
   display: flex;
   flex-wrap: wrap;

@@ -109,12 +109,13 @@ test.describe("public hamburger", () => {
   test("corporate pricing keeps three decisions, equal tier geometry, and granular capacity", async ({ page }) => {
     await page.goto("/kurumsal", { waitUntil: "load" });
 
-    const tiers = page.locator(".corporate-pricing-tier");
+    const tierGroup = page.getByLabel("Kurumsal paket seviyeleri");
+    const tiers = tierGroup.getByRole("button");
     await expect(tiers).toHaveCount(3);
 
-    const start = tiers.filter({ hasText: "Start" });
-    const business = tiers.filter({ hasText: "Business" });
-    const enterprise = tiers.filter({ hasText: "Enterprise" });
+    const start = tierGroup.getByRole("button", { name: /Küçük ekipler.*Start/s });
+    const business = tierGroup.getByRole("button", { name: /Büyüyen şirketler.*Business/s });
+    const enterprise = tierGroup.getByRole("button", { name: /100\+ çalışan.*Enterprise/s });
 
     await expect(start).toBeVisible();
     await expect(business).toBeVisible();

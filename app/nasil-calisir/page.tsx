@@ -14,8 +14,12 @@ const finishes = [
   { id: "white", finish: "white" as const, label: "Minimal beyaz", prev: "metal", next: "matte" },
 ];
 
+const liveRoles = [
+  { id: "product", role: "Ürün Yöneticisi" },
+  { id: "sales", role: "Satış Direktörü" },
+];
+
 const laterSteps = [
-  { number: "02", title: "Profilini yayınla", text: "İletişim ve unvanın tek canlı sayfada durur. Değişince baskı yok.", visual: "profile" as const },
   { number: "03", title: "Yaklaştır veya okut", text: "NFC veya QR. Karşı taraf uygulama indirmez; profil tarayıcıda açılır.", visual: "tap" as const },
   { number: "04", title: "Kaybolursa kapat", text: "Kayıp modu fiziksel kartı durdurur. Dijital kimliğin sende kalır.", premium: true },
 ];
@@ -100,6 +104,54 @@ export default function HowItWorksPage() {
           </div>
         </article>
 
+        <article className="how-step-feature">
+          <span className="how-step-number">Adım 2</span>
+          <h3>Profilini Oluştur ve Canlı Tut</h3>
+          <p>Bilgilerinizi (unvan, iletişim, sosyal medya) tek bir dijital kartvizit sayfasında toplayın. Değişiklikler anında yansır.</p>
+
+          <div className="how-live-sync">
+            {liveRoles.map((option, index) => (
+              <input
+                key={option.id}
+                className="sr-only"
+                type="radio"
+                name="how-live-role"
+                id={`how-live-${option.id}`}
+                defaultChecked={index === 0}
+              />
+            ))}
+            <div className="how-live-sync__stage">
+              <div className="how-live-sync__card" aria-label="Kart önizlemesi">
+                {liveRoles.map((option) => (
+                  <div key={option.id} className={`how-live-sync__card-face how-live-sync__card-face--${option.id}`}>
+                    <YenomiProductVisual variant="card" finish="metal" compact role={option.role} />
+                  </div>
+                ))}
+                <span className="how-live-sync__pulse">Anında yansıdı</span>
+              </div>
+              <div className="how-live-sync__editor" aria-label="Profil düzenleme">
+                <div className="how-live-sync__device">
+                  <div className="how-live-sync__device-bar"><i /><span>Profil düzenle</span></div>
+                  <div className="how-live-sync__device-body">
+                    <strong>Selin Kaya</strong>
+                    <span>Yenomi Labs</span>
+                    <p className="how-live-sync__field">Unvan</p>
+                    <div className="how-live-sync__choices">
+                      {liveRoles.map((option) => (
+                        <label key={option.id} htmlFor={`how-live-${option.id}`}>{option.role}</label>
+                      ))}
+                    </div>
+                    <ul>
+                      <li><b>WhatsApp</b> Hızlı mesaj</li>
+                      <li><b>LinkedIn</b> Yenomi Labs</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
         <div className="how-step-grid">
           {laterSteps.map((step) => (
             <article key={step.number} className={`how-step-card${step.premium ? " how-step-card--premium" : ""}`}>
@@ -109,12 +161,10 @@ export default function HowItWorksPage() {
               </div>
               <h3>{step.title}</h3>
               <p>{step.text}</p>
-              {step.visual === "tap" || step.visual === "profile" ? (
+              {step.visual === "tap" ? (
                 <div className={`how-step-visual how-step-visual--${step.number}`}>
                   <YenomiProductVisual variant="profile" compact />
-                  {step.visual === "tap" ? (
-                    <div className="how-qr" aria-hidden="true"><Icon name="qr" /></div>
-                  ) : null}
+                  <div className="how-qr" aria-hidden="true"><Icon name="qr" /></div>
                 </div>
               ) : (
                 <div className="how-dashboard" aria-label="Yönetim paneli önizlemesi">

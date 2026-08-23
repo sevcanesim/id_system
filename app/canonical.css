@@ -16878,6 +16878,12 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
   .p6-auth-switch-tab-btn {
     min-height: 44px;
   }
+  .yi-footer__base--responsive {
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+    gap: 12px;
+  }
 }
 
 

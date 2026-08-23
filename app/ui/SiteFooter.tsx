@@ -33,8 +33,8 @@ function FooterContent() {
         </div>
       </div>
 
-      <div className="yi-footer__base">
-        <span>© 2026 Yenomilabs</span>
+      <div className="yi-footer__base yi-footer__base--responsive">
+        <span>© 2026 Yenomilabs · Tüm Hakları Saklıdır</span>
         <a href="https://yenomilabs.com" target="_blank" rel="noreferrer">yenomilabs.com ↗</a>
         <nav aria-label="Yasal bağlantılar">
           <Link href="/destek">Destek</Link>

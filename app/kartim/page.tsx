@@ -187,6 +187,16 @@ export default function MyCardPage() {
     if (!loading && accountContextChecked && !data) router.replace("/kartlarim");
   }, [accountContextChecked, data, loading, router]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMessage("");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   if (loading) return <UserPanelShell activeKey="card" title="Kartım" description="Kartvizitiniz yükleniyor."><Card><p className="p14-state-copy">Kartvizit hazırlanıyor…</p></Card></UserPanelShell>;
 
   if (!data) return <UserPanelShell activeKey="card" title="Kartım" description="Kart durumunuz kontrol ediliyor."><Card><p className="p14-state-copy">Kart durumu kontrol ediliyor…</p></Card></UserPanelShell>;

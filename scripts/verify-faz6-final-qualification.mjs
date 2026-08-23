@@ -39,7 +39,9 @@ quality.includes('npm run verify:p0:static') && quality.includes('npm run verify
   : fail('quality workflow keeps legacy visual Playwright gate removed');
 
 const staging = fs.readFileSync('.github/workflows/staging-integration.yml', 'utf8');
-staging.includes('npm run verify:phase20:staging') ? pass('staging workflow retains canonical promotion gate') : fail('staging workflow retains canonical promotion gate');
+staging.includes('npm run verify:migration-drift') && staging.includes('npm run verify:catalog') && !staging.includes('npm run verify:phase20:staging')
+  ? pass('pre-deploy workflow retains production schema gate without staging mutation')
+  : fail('pre-deploy workflow retains production schema gate without staging mutation');
 !staging.includes('test:visual') && !staging.includes('playwright')
   ? pass('staging workflow keeps legacy visual Playwright gate removed')
   : fail('staging workflow keeps legacy visual Playwright gate removed');

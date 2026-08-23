@@ -10640,10 +10640,19 @@ article[id] {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.products-plan-card:hover {
+  border-color: rgba(141, 107, 54, 0.35);
+  box-shadow: 0 16px 40px rgba(58, 48, 38, .1);
 }
 .products-plan-card.is-popular {
   border-color: rgba(141, 107, 54, .45);
   box-shadow: 0 16px 40px rgba(125, 96, 49, .12);
+}
+.products-plan-card.is-popular:hover {
+  border-color: rgba(141, 107, 54, .65);
+  box-shadow: 0 20px 48px rgba(125, 96, 49, .18);
 }
 .products-plan-card__head {
   display: flex;

@@ -107,6 +107,25 @@ test.describe("public hamburger", () => {
   });
 });
 
+test("product catalog keeps three primary plans and separates the existing-user add-on", async ({ page }) => {
+  await page.goto("/urunler", { waitUntil: "load" });
+
+  const primaryPlans = page.locator(".products-premium-v2__plan-card");
+  await expect(primaryPlans).toHaveCount(3);
+  await expect(page.getByRole("heading", { name: "İhtiyacınız kadar başlayın." })).toBeVisible();
+  await expect(page.getByText("En dengeli seçim")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Aynı profile ikinci kart ekleyin." })).toBeVisible();
+
+  const viewportWidth = page.viewportSize()?.width ?? 0;
+  if (viewportWidth > 980) {
+    const heights = await primaryPlans.evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().height)));
+    expect(new Set(heights).size).toBe(1);
+  }
+
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+});
+
 test("corporate pricing keeps three decisions, equal desktop tier geometry, and granular capacity", async ({ page }) => {
   await page.goto("/kurumsal", { waitUntil: "load" });
 

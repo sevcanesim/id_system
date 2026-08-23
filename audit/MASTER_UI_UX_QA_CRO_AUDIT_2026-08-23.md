@@ -3,7 +3,7 @@
 **Date:** 23 August 2026  
 **Auditor role:** Senior QA + UX/UI + CRO + business-flow review  
 **Live surface:** https://yenomi-id.vercel.app  
-**Code baseline reviewed:** `origin/main` @ `dd40b09` (hamburger merged) plus follow-up PR **#126** (canonical host / sitemap / honesty)  
+**Code baseline reviewed:** `origin/main` @ `e76f308` (#125 audit + #126 canonical/honesty merged) plus in-flight PR **#127** (CSP nonce hydration)  
 **Package:** 25.9.4  
 
 ## Evidence bounds (read first)
@@ -31,16 +31,17 @@ Code fixes that do not require production secrets:
 
 | Item | Status |
 | --- | --- |
-| QA-001 hamburger | **Code on `main`.** PR **#124** merged (`dd40b09`). Live still stale until Protected Production Deploy. |
+| QA-001 hamburger overlay | **Code on `main`.** PR **#124** merged. Live still has no `.yi-nav-backdrop`. |
+| QA-001b CSP hydration (was QA-015 P3) | **Code in PR #127.** Static HTML HIT + per-request `strict-dynamic` nonce blocked every Next chunk. Overlay fix alone cannot open the menu because React never hydrates. Do not add `unsafe-inline`. |
 | QA-002 production secrets / deploy | **Unchanged. Human-only.** Do not weaken `verify:phase20:production`. |
-| QA-003 Campaign Mail card | **Code on `main`** (PR #119). Live still shows the card until deploy. |
-| QA-004 how-it-works board | **Code on `main`** (PR #123). Live still 4-up until deploy. |
-| QA-005 canonical host + sitemap | **Code in PR #126** (`cursor/canonical-host-sitemap-d5bb`). `publicCardOrigin()` drives sitemap, robots, `metadataBase`, vCard, and share URLs. Sitemap lists `/`, `/urunler`, `/nasil-calisir`, `/kurumsal`, `/destek`, legal. |
+| QA-003 Campaign Mail card | **Code on `main`** (PR #119). Live `/kurumsal` still has `Campaign Mail` (15) / `CAMPAIGN-MAIL` (9). |
+| QA-004 how-it-works board | **Code on `main`** (PR #123). Live still lacks `how-steps-board`. |
+| QA-005 canonical host + sitemap | **Merged.** PR **#126** on `main` (`e76f308`). Live `/sitemap.xml` still hardcodes `qr.yenomilabs.com` and omits marketing routes. |
 | QA-006 guest purchase E2E | **Not run.** Still needs iyzico sandbox. Skipped specs are not a pass. |
-| QA-008 checkout / activation first paint | **Code in PR #126.** Empty checkout: “Sipariş yükleniyor… / Henüz bir ödeme alınmadı.” Tokenless activation fallback no longer claims the order link is being checked. Pay-button busy copy stays “Ödeme hazırlanıyor…”. |
-| QA-009 footer product links | **Code in PR #126.** Text links to `/urunler`, `/nasil-calisir`, `/kurumsal`. No second gold. |
+| QA-008 checkout / activation first paint | **Merged in #126.** Live still serves the stale first-paint copy. |
+| QA-009 footer product links | **Merged in #126.** |
 | QA-010 recover-by-UUID | **Already gated in current code** (`cookie` or authenticated owner). Not re-opened. |
-| QA-011 ticker duplicate | **Code in PR #126.** `.yi-brand-marquee__track` is `aria-hidden`. |
+| QA-011 ticker duplicate | **Merged in #126.** |
 
 Remaining to close the audit in **production**, not in git: fill `PRODUCTION_*` / `LEGAL_*` / Vercel secrets, dispatch Protected Production Deploy, then retest hamburger on a real iPhone and confirm live SHA === `main`.
 
@@ -86,7 +87,7 @@ ACTUAL RESULT: No drawer. Control does not toggle.
 FAIL CONDITION: `aria-expanded` stays false / `.yi-nav.is-open` never appears after a tap.  
 BUSINESS IMPACT: Majority of traffic is mobile. Discovery and purchase paths are header-dependent.  
 UX IMPACT: The chrome looks tappable and does nothing. Trust drops immediately.  
-RECOMMENDED FIX: Already implemented on PR **#124** (`cursor/hamburger-menu-click-d5bb`): remove `transform: translateZ(0)` on sticky chrome (it trapped `position: fixed` overlay on the header), replace pseudo overlay with `.yi-nav-backdrop`, keep `.yi-menu` above the panel. **Merge #124 and run Protected Production Deploy.**  
+RECOMMENDED FIX: Overlay/stacking is PR **#124** (merged). Hydration is PR **#127**: root layout must read `x-nonce`, documents must be `no-store`, Next scripts must carry the same nonce as the response CSP. Overlay without hydration is still a dead control. **Land #127 and run Protected Production Deploy.** Do not add `unsafe-inline`.  
 AUTOMATION CANDIDATE: YES  
 REGRESSION TEST REQUIRED: YES  
 CLASSIFICATION: [AUTOMATE]
@@ -402,12 +403,13 @@ CLASSIFICATION: [MANUAL]
 ---
 
 TEST ID: QA-2026-08-23-015  
-CATEGORY: [SECURITY]  
-SEVERITY: P3  
-PAGE: CSP console  
-PROBLEM: DevTools reports many `script-src` nonce / `strict-dynamic` violations. Policy is intentional (no `unsafe-inline` / `unsafe-eval` on scripts). Common sources: extensions, Next bootstrap. **Not proven** to block Google/LinkedIn OAuth (Supabase redirect, not GIS.js).  
-RECOMMENDED FIX: Confirm SSO redirect in a clean profile. Do not add `unsafe-inline` to silence the console.  
-CLASSIFICATION: [MANUAL]
+CATEGORY: [SECURITY] [FUNCTIONAL]  
+SEVERITY: P0 (originally filed P3 as console noise; runtime retest 23 August)  
+PAGE: All public documents  
+URL: https://yenomi-id.vercel.app/ and local `next start`  
+PROBLEM: Middleware CSP is `script-src 'nonce-…' 'strict-dynamic'`. Live is a Vercel HIT (`age` > 4000s) whose HTML has **zero** `nonce=` attributes. Parser-inserted Next chunks are blocked. React never hydrates; hamburger `onClick` never attaches. Local `next start` reproduced the same block until the root layout consumed `x-nonce`.  
+RECOMMENDED FIX: PR **#127** — `headers()` in root layout, document `Cache-Control: private, no-store`, Playwright journey at 390px. Do **not** add `unsafe-inline`.  
+CLASSIFICATION: [AUTOMATE]
 
 ---
 
@@ -687,7 +689,6 @@ Payment chain: only with sandbox. Until then report **NOT RUN**.
 ## Out of scope / rejected recommendations
 
 - Dark canvas, Playfair, extra gold glow.  
-- Treating CSP console noise as a launch blocker without a broken SSO repro.  
 - Treating skipped Playwright as coverage.  
 - Filing every radius delta as its own P3.
 
@@ -695,7 +696,7 @@ Payment chain: only with sandbox. Until then report **NOT RUN**.
 
 ## Next engineering move
 
-1. Land **#126** (canonical host, sitemap, honest first paint, footer, ticker).  
+1. Land **#127** (CSP nonce on Next scripts + hamburger Playwright).  
 2. Human: fill production secrets and dispatch Protected Production Deploy.  
-3. Post-deploy smoke: live hamburger on iPhone; Campaign Mail gone; how-it-works board; sitemap locs match `PRODUCTION_SITE_URL`.  
-4. Do not start a visual restyle, E2E greenwash, or secret-gate weakening while live is still a stale HIT.
+3. Post-deploy smoke: live HTML `nonce=` matches CSP; iPhone hamburger; Campaign Mail gone; how-it-works board; sitemap locs match `PRODUCTION_SITE_URL`.  
+4. Do not add `unsafe-inline`, restyle the shell, or treat skipped iyzico E2E as coverage.

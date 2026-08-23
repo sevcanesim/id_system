@@ -3,7 +3,7 @@
 **Date:** 23 August 2026  
 **Auditor role:** Senior QA + UX/UI + CRO + business-flow review  
 **Live surface:** https://yenomi-id.vercel.app  
-**Code baseline reviewed:** `origin/main` @ `d1f6dcb` (how-it-works board merged) plus in-flight PR **#124** (hamburger)  
+**Code baseline reviewed:** `origin/main` @ `dd40b09` (hamburger merged) plus follow-up PR **#126** (canonical host / sitemap / honesty)  
 **Package:** 25.9.4  
 
 ## Evidence bounds (read first)
@@ -24,6 +24,25 @@ Never treat BLOCKED or NOT RUN as PASS.
 **Product contract (binding, not optional taste):** public chrome stays warm-light `#F9F8F6`. Dark luxury is specimen-only. Do not restyle the shell to `#0B0B0B`. Specimen identity is Selin Kaya / Ürün Yöneticisi / Yenomi Labs. Public purchase CTA is `NFC Kartı Satın Al`. Corporate header CTA is `Paketleri İncele`.
 
 Live vs `main` delta is itself a conversion defect: customers on Vercel do not yet have merged how-it-works board, Campaign Mail removal, or hamburger fix.
+
+## Follow-through (23 August, same day)
+
+Code fixes that do not require production secrets:
+
+| Item | Status |
+| --- | --- |
+| QA-001 hamburger | **Code on `main`.** PR **#124** merged (`dd40b09`). Live still stale until Protected Production Deploy. |
+| QA-002 production secrets / deploy | **Unchanged. Human-only.** Do not weaken `verify:phase20:production`. |
+| QA-003 Campaign Mail card | **Code on `main`** (PR #119). Live still shows the card until deploy. |
+| QA-004 how-it-works board | **Code on `main`** (PR #123). Live still 4-up until deploy. |
+| QA-005 canonical host + sitemap | **Code in PR #126** (`cursor/canonical-host-sitemap-d5bb`). `publicCardOrigin()` drives sitemap, robots, `metadataBase`, vCard, and share URLs. Sitemap lists `/`, `/urunler`, `/nasil-calisir`, `/kurumsal`, `/destek`, legal. |
+| QA-006 guest purchase E2E | **Not run.** Still needs iyzico sandbox. Skipped specs are not a pass. |
+| QA-008 checkout / activation first paint | **Code in PR #126.** Empty checkout: “Sipariş yükleniyor… / Henüz bir ödeme alınmadı.” Tokenless activation fallback no longer claims the order link is being checked. Pay-button busy copy stays “Ödeme hazırlanıyor…”. |
+| QA-009 footer product links | **Code in PR #126.** Text links to `/urunler`, `/nasil-calisir`, `/kurumsal`. No second gold. |
+| QA-010 recover-by-UUID | **Already gated in current code** (`cookie` or authenticated owner). Not re-opened. |
+| QA-011 ticker duplicate | **Code in PR #126.** `.yi-brand-marquee__track` is `aria-hidden`. |
+
+Remaining to close the audit in **production**, not in git: fill `PRODUCTION_*` / `LEGAL_*` / Vercel secrets, dispatch Protected Production Deploy, then retest hamburger on a real iPhone and confirm live SHA === `main`.
 
 ---
 
@@ -676,6 +695,7 @@ Payment chain: only with sandbox. Until then report **NOT RUN**.
 
 ## Next engineering move
 
-1. Land **#124**.  
-2. Human deploy.  
-3. Then implement items 4–13 on a follow-up branch (`cursor/canonical-host-sitemap-d5bb` etc.). Do not stack them into the hamburger PR.
+1. Land **#126** (canonical host, sitemap, honest first paint, footer, ticker).  
+2. Human: fill production secrets and dispatch Protected Production Deploy.  
+3. Post-deploy smoke: live hamburger on iPhone; Campaign Mail gone; how-it-works board; sitemap locs match `PRODUCTION_SITE_URL`.  
+4. Do not start a visual restyle, E2E greenwash, or secret-gate weakening while live is still a stale HIT.

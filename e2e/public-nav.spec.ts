@@ -113,9 +113,9 @@ test.describe("public hamburger", () => {
     const tiers = tierGroup.getByRole("button");
     await expect(tiers).toHaveCount(3);
 
-    const start = tierGroup.getByRole("button", { name: /Küçük ekipler.*Start/s });
-    const business = tierGroup.getByRole("button", { name: /Büyüyen şirketler.*Business/s });
-    const enterprise = tierGroup.getByRole("button", { name: /100\+ çalışan.*Enterprise/s });
+    const start = tierGroup.getByRole("button", { name: /Küçük ekipler[\s\S]*Start/ });
+    const business = tierGroup.getByRole("button", { name: /Büyüyen şirketler[\s\S]*Business/ });
+    const enterprise = tierGroup.getByRole("button", { name: /100\+ çalışan[\s\S]*Enterprise/ });
 
     await expect(start).toBeVisible();
     await expect(business).toBeVisible();

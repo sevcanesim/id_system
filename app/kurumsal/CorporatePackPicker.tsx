@@ -82,29 +82,30 @@ export default function CorporatePackPicker({
 
   return (
     <div className="corporate-pack-picker">
-      <div className="corporate-pricing-tiers" aria-label="Kurumsal paket seviyeleri">
-        {tiers.map((item) => {
-          const active = item.id === tier.id;
+      <div className="corporate-pack-picker__tiers" aria-label="Kurumsal paket seviyeleri">
+        {tiers.map((tierOption) => {
+          const active = tierOption.id === tier.id;
+          const enterprise = tierOption.id === "ENTERPRISE";
           return (
             <button
-              key={item.id}
+              key={tierOption.id}
               type="button"
-              className={`corporate-pricing-tier${active ? " is-active" : ""}${item.popular ? " is-popular" : ""}`}
+              className={`corporate-pack-picker__tier${active ? " is-active" : ""}${tierOption.popular ? " is-popular" : ""}${enterprise ? " corporate-pack-picker__tier--enterprise" : ""}`}
               aria-pressed={active}
               onClick={() => {
-                if (item.id === "ENTERPRISE") {
+                if (enterprise) {
                   document.querySelector("#teklif")?.scrollIntoView({ behavior: "smooth", block: "start" });
                   return;
                 }
-                const preferredSeats = item.id === "START" ? 5 : 25;
+                const preferredSeats = tierOption.id === "START" ? 5 : 25;
                 const nextIndex = packs.findIndex((candidate) => candidate.seats === preferredSeats);
                 if (nextIndex >= 0) setIndex(nextIndex);
               }}
             >
-              <span>{item.eyebrow}</span>
-              <strong>{item.title}</strong>
-              <small>{item.description}</small>
-              {item.popular ? <em>En çok tercih edilen</em> : null}
+              <span className="corporate-pack-picker__tier-copy">{tierOption.eyebrow}</span>
+              <strong className="corporate-pack-picker__tier-name">{tierOption.title}</strong>
+              <small className="corporate-pack-picker__tier-copy">{tierOption.description}</small>
+              {tierOption.popular ? <em>En çok tercih edilen</em> : null}
             </button>
           );
         })}
@@ -124,17 +125,17 @@ export default function CorporatePackPicker({
 
       <div className="corporate-pack-picker__control">
         <div className="corporate-pack-picker__ticks" role="list" aria-label="Ekip büyüklüğü">
-          {packs.map((item, tickIndex) => (
+          {packs.map((packOption, tickIndex) => (
             <button
-              key={item.code}
+              key={packOption.code}
               type="button"
               role="listitem"
-              className={`corporate-pack-picker__tick${tickIndex === index ? " is-active" : ""}${item.popular ? " is-popular" : ""}`}
+              className={`corporate-pack-picker__tick${tickIndex === index ? " is-active" : ""}${packOption.popular ? " is-popular" : ""}`}
               onClick={() => setIndex(tickIndex)}
-              aria-label={`${item.seats} kullanıcı${item.popular ? ", en çok tercih edilen kapasite" : ""}`}
+              aria-label={`${packOption.seats} kullanıcı${packOption.popular ? ", en çok tercih edilen kapasite" : ""}`}
               aria-pressed={tickIndex === index}
             >
-              {item.seats}
+              {packOption.seats}
             </button>
           ))}
         </div>

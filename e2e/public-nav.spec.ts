@@ -60,6 +60,28 @@ test.describe("public hamburger", () => {
     }
   });
 
+  test("corporate login copy is in the first HTML, before hydration", async ({ request }) => {
+    const individual = await request.get("/giris");
+    expect(individual.ok()).toBeTruthy();
+    const individualHtml = await individual.text();
+    expect(individualHtml).toContain("<h2>Hesabına giriş yap</h2>");
+    expect(individualHtml).toContain('action="/api/auth/login"');
+
+    const business = await request.get("/giris?portal=business");
+    expect(business.ok()).toBeTruthy();
+    const html = await business.text();
+    expect(html).toContain("<h2>Kurumsal hesabına giriş yap</h2>");
+    expect(html).toContain("Kurumsal / Ekip");
+    expect(html).not.toContain("<h2>Hesabına giriş yap</h2>");
+  });
+
+  test("Kurumsal tab paints corporate copy", async ({ page }) => {
+    await page.goto("/giris", { waitUntil: "load" });
+    await page.getByRole("tab", { name: "Kurumsal / Ekip" }).click();
+    await expect(page).toHaveURL(/portal=business/);
+    await expect(page.getByRole("heading", { name: "Kurumsal hesabına giriş yap" })).toBeVisible();
+  });
+
   test("empty checkout hydrates to a shop CTA, not a fake pending payment", async ({ page }) => {
     const response = await page.goto("/checkout", { waitUntil: "load" });
     const csp = response?.headers()["content-security-policy"] ?? "";

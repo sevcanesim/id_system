@@ -86,7 +86,7 @@ check(picker.includes("home-mockup__link-secondary") && picker.includes("100+ ki
 check(leadForm.includes(">Teklif Al<") || leadForm.includes('"Teklif Al"'), "corporate lead submit uses canonical Teklif Al");
 check(css.includes("scroll-margin-top: 124px") && css.includes("business-pricing-title"), "corporate pricing heading clears sticky chrome");
 check(read("app/ui/SiteHeader.tsx").includes("onAuthSurface"), "login header does not repeat Giriş Yap on /giris");
-check(read("app/giris/page.tsx").includes('href={portalTabHref("business"') && css.includes(".p6-auth-portal-tabs a") && css.includes(".p6-auth-message.error"), "login corporate tab stays a real link and auth errors stay painted on the card");
+check(read("app/giris/page.tsx").includes("searchParams") && read("app/giris/LoginClient.tsx").includes('href={portalTabHref("business"') && css.includes(".p6-auth-portal-tabs a") && css.includes(".p6-auth-message.error"), "login corporate tab stays a real link and auth errors stay painted on the card");
 
 const kartim = read("app/kartim/page.tsx");
 const notFound = read("app/not-found.tsx");
@@ -218,6 +218,7 @@ check(
     && publicNavE2e.includes("/giris")
     && publicNavE2e.includes("/checkout")
     && publicNavE2e.includes("Kartın henüz sepette değil.")
+    && publicNavE2e.includes("Kurumsal hesabına giriş yap")
     && publicNavE2e.includes("Escape")
     && !publicNavE2e.includes("test.skip(true"),
   "public hamburger has a 390px Playwright journey that is not a skeleton skip"

@@ -111,7 +111,6 @@ export default function AddToCartButton({
 
   return (
     <>
-      {button}
       {copy.hint ? (
         <p id={hintId} role="status">{copy.hint}</p>
       ) : null}
@@ -120,6 +119,7 @@ export default function AddToCartButton({
           {copy.loginAction}
         </button>
       ) : null}
+      {button}
     </>
   );
 }

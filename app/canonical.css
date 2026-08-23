@@ -16420,6 +16420,33 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
   color: #a47b28;
 }
 
+/* Catalog trio: head, copy, features, then a stretching CTA so Sepete Ekle
+   shares one baseline. Guest spare-card hint/login sit above that button. */
+.products-plan-grid {
+  align-items: stretch;
+}
+.products-plan-card {
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  height: 100%;
+}
+.products-plan-card ul {
+  min-height: 0;
+}
+.products-plan-card__cta {
+  margin-top: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.products-plan-card__cta .ds-button {
+  margin-top: 0;
+  align-self: stretch;
+  width: 100%;
+}
+
 
 
 

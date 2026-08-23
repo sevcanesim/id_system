@@ -53,6 +53,9 @@ mustNotInclude(middleware, '"auth-login",', "Password login must not 503 the acc
 mustInclude(middleware, "x-nonce", "Middleware must pass a CSP nonce to Next.js.");
 mustInclude(middleware, "createRequestNonce", "CSP nonce must be generated per request.");
 mustInclude(middleware, "buildContentSecurityPolicy", "Document CSP must be issued in middleware, not as a static next.config header.");
+mustInclude(middleware, 'private, no-store, max-age=0, must-revalidate', "Nonce CSP documents must not be CDN-cached against a different request nonce.");
+mustInclude(read("app/layout.tsx"), 'from "next/headers"', "Root layout must read request headers so Next can stamp the CSP nonce.");
+mustInclude(read("app/layout.tsx"), "x-nonce", "Root layout must consume the middleware nonce header.");
 
 mustNotInclude(nextConfig, "'unsafe-eval'", "CSP must not allow unsafe-eval.");
 mustNotInclude(nextConfig, "Content-Security-Policy", "A static next.config CSP would AND with the nonce policy and re-open unsafe-inline.");

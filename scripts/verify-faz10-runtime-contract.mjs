@@ -30,9 +30,10 @@ check(production.includes("needs: staging-gate"), "production deploy cannot star
 check(production.includes("npm run verify:phase20:production"), "production env/build contract runs before deploy");
 check(production.includes("npm run verify:faz10:smoke"), "production deploy is followed by live smoke verification");
 
-for (const route of ["'/'", "'/giris'", "'/urunler'", "'/urunler/nfc-kart'", "'/robots.txt'"]) {
-  check(smoke.includes(route), `production smoke covers ${route.replaceAll("'", "")}`);
+for (const route of ['"/"', '"/giris"', '"/urunler"', '"/urunler/nfc-kart"', '"/nasil-calisir"', '"/kurumsal"', '"/checkout"', '"/robots.txt"', '"/sitemap.xml"']) {
+  check(smoke.includes(route), `production smoke covers ${route.replaceAll('"', "")}`);
 }
+check(smoke.includes("how-steps-board") && smoke.includes("CAMPAIGN-MAIL") && smoke.includes("nonce="), "production smoke refuses a stale HIT without CSP nonce, how-it-works board, or Campaign Mail card");
 
 check(packageJson.scripts["verify:faz10:local"]?.includes("verify:faz9:local"), "FAZ 10 local qualification includes frozen FAZ 9 baseline");
 check(packageJson.scripts["verify:faz10:staging"]?.includes("verify:migration-drift"), "FAZ 10 staging command explicitly checks migration drift");

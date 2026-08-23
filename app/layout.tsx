@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 
 
 
@@ -43,9 +44,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // Consume x-nonce so this layout is request-bound. Next then stamps the same
+  // nonce onto its scripts. A static HTML HIT plus a fresh CSP nonce blocks every client bundle.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
-    <html lang="tr">
+    <html lang="tr" suppressHydrationWarning={Boolean(nonce)}>
       <head />
       <body><a className="yi-skip-link" href="#main-content">Ana içeriğe geç</a><AuthSessionBridge /><HashScrollHandler /><PublicSiteShell>{children}</PublicSiteShell></body>
     </html>

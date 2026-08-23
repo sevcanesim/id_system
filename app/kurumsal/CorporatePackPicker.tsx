@@ -17,6 +17,48 @@ export type CorporatePackOption = {
   sku: string;
 };
 
+type Tier = {
+  id: "START" | "BUSINESS" | "ENTERPRISE";
+  title: string;
+  eyebrow: string;
+  description: string;
+  minSeats: number;
+  maxSeats: number | null;
+  popular?: boolean;
+};
+
+const tiers: readonly Tier[] = [
+  {
+    id: "START",
+    title: "Start",
+    eyebrow: "Küçük ekipler",
+    description: "İlk kurumsal standardı hızlıca kurun. Ekip büyüdükçe paketi panelden yükseltin.",
+    minSeats: 2,
+    maxSeats: 10,
+  },
+  {
+    id: "BUSINESS",
+    title: "Business",
+    eyebrow: "Büyüyen şirketler",
+    description: "Satış, saha ve yönetim ekiplerini tek standartta yönetin. En dengeli kapasite ve birim maliyet.",
+    minSeats: 25,
+    maxSeats: 100,
+    popular: true,
+  },
+  {
+    id: "ENTERPRISE",
+    title: "Enterprise",
+    eyebrow: "100+ çalışan",
+    description: "Özel kapasite, kurulum planı, raporlama ve entegrasyon ihtiyaçları için kuruma özel yapı.",
+    minSeats: 101,
+    maxSeats: null,
+  },
+] as const;
+
+function tierForSeats(seats: number): Tier {
+  return tiers.find((tier) => tier.maxSeats !== null && seats >= tier.minSeats && seats <= tier.maxSeats) ?? tiers[1];
+}
+
 export default function CorporatePackPicker({
   packs,
   productId,
@@ -36,12 +78,43 @@ export default function CorporatePackPicker({
   const pack = packs[index] ?? packs[0];
   if (!pack) return null;
 
+  const tier = tierForSeats(pack.seats);
+
   return (
     <div className="corporate-pack-picker">
+      <div className="corporate-pricing-tiers" aria-label="Kurumsal paket seviyeleri">
+        {tiers.map((item) => {
+          const active = item.id === tier.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className={`corporate-pricing-tier${active ? " is-active" : ""}${item.popular ? " is-popular" : ""}`}
+              aria-pressed={active}
+              onClick={() => {
+                if (item.id === "ENTERPRISE") {
+                  document.querySelector("#teklif")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  return;
+                }
+                const preferredSeats = item.id === "START" ? 5 : 25;
+                const nextIndex = packs.findIndex((candidate) => candidate.seats === preferredSeats);
+                if (nextIndex >= 0) setIndex(nextIndex);
+              }}
+            >
+              <span>{item.eyebrow}</span>
+              <strong>{item.title}</strong>
+              <small>{item.description}</small>
+              {item.popular ? <em>En çok tercih edilen</em> : null}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="corporate-pack-picker__head">
         <div>
-          <span className="corporate-pack-picker__kicker">{pack.code}</span>
-          <h3>{pack.name}{pack.popular ? <span className="corporate-pack-picker__badge">En çok tercih edilen</span> : null}</h3>
+          <span className="corporate-pack-picker__kicker">{tier.title.toUpperCase()} · {pack.seats} KİŞİ</span>
+          <h3>{pack.name}{pack.popular ? <span className="corporate-pack-picker__badge">En çok tercih edilen kapasite</span> : null}</h3>
+          <p>İhtiyacınız değişirse kapasiteyi yeniden baskı beklemeden yükseltebilirsiniz.</p>
         </div>
         <div className="corporate-pack-picker__price">
           <strong>{formatTryFromKurus(pack.priceKurus)} <small>/ yıl</small></strong>
@@ -58,7 +131,7 @@ export default function CorporatePackPicker({
               role="listitem"
               className={`corporate-pack-picker__tick${tickIndex === index ? " is-active" : ""}${item.popular ? " is-popular" : ""}`}
               onClick={() => setIndex(tickIndex)}
-              aria-label={`${item.seats} kullanıcı${item.popular ? ", en çok tercih edilen paket" : ""}`}
+              aria-label={`${item.seats} kullanıcı${item.popular ? ", en çok tercih edilen kapasite" : ""}`}
               aria-pressed={tickIndex === index}
             >
               {item.seats}
@@ -71,7 +144,7 @@ export default function CorporatePackPicker({
           max={packs.length - 1}
           step={1}
           value={index}
-          aria-label="Ekip büyüklüğüne göre paket seç"
+          aria-label="Ekip büyüklüğüne göre kapasite seç"
           aria-valuetext={`${pack.name}, ${pack.seats} kullanıcı, ${formatTryFromKurus(pack.priceKurus)} yıllık`}
           onChange={(event) => setIndex(Number(event.target.value))}
         />
@@ -102,7 +175,7 @@ export default function CorporatePackPicker({
               className="corporate-cta"
               configuration={{ packageCode: pack.code, seatCount: pack.seats }}
             />
-            <a href="#teklif" className="home-mockup__link-secondary">100+ kişi için kurumsal teklif</a>
+            <a href="#teklif" className="home-mockup__link-secondary">100+ kişi veya özel kurulum</a>
           </>
         ) : (
           <a href={`/kurumsal?plan=${pack.code}#teklif`} className="corporate-cta">Kurumsal Teklif Al</a>

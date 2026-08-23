@@ -96,4 +96,29 @@ test.describe("public hamburger", () => {
     });
     await expect(page.getByRole("link", { name: "NFC Kartı Satın Al" }).first()).toBeVisible();
   });
+
+  test("corporate pricing keeps three decisions and granular capacity", async ({ page }) => {
+    await page.goto("/kurumsal", { waitUntil: "load" });
+
+    const tiers = page.locator(".corporate-pack-picker__tier");
+    await expect(tiers).toHaveCount(3);
+
+    const start = page.getByRole("button", { name: /Start: Küçük ekipler için hızlı başlangıç/ });
+    const business = page.getByRole("button", { name: /Business: Büyüyen ekipler için merkezi yönetim/ });
+    const enterprise = page.getByRole("link", { name: /Enterprise: 100\+ kişi/ });
+
+    await expect(start).toBeVisible();
+    await expect(business).toBeVisible();
+    await expect(enterprise).toBeVisible();
+    await expect(business).toHaveAttribute("aria-pressed", "true");
+
+    await expect(page.locator(".corporate-pack-picker__tick")).toHaveCount(7);
+    await start.click();
+    await expect(start).toHaveAttribute("aria-pressed", "true");
+    await expect(business).toHaveAttribute("aria-pressed", "false");
+    await expect(page.locator(".corporate-pack-picker__head h3")).toContainText("Start");
+
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+  });
 });

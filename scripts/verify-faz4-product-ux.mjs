@@ -19,6 +19,7 @@ check(home.includes('href="/nasil-calisir"') && home.includes("home-premium__pro
 check(how.includes("Kaybolursa kapat") && !how.includes("12.8K") && !how.includes("4.2K"), "how-it-works keeps lost-mode without fake analytics totals");
 check(
   how.includes("Tarzını ve Kartını Seç")
+    && how.includes("how-steps-board")
     && how.includes("how-card-gallery")
     && how.includes("Profilini Oluştur ve Canlı Tut")
     && how.includes("how-live-sync")

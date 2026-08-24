@@ -157,7 +157,12 @@
 .products-public-v2-package-card li { font-size:14px; color:#5d5750; }/* @canonical-block:000222 */
 .products-public-v2-addon { display:grid; grid-template-columns:1fr .8fr; gap:30px; align-items:flex-start; }/* @canonical-block:000223 */
 .products-public-v2-final { display:grid; grid-template-columns:1fr auto; align-items:center; gap:40px; padding-bottom:120px; }/* @canonical-block:000224 */
-.products-public-v2-note { color:#6b645c; font-size:12px; }/* @canonical-block:000969 */
+.products-public-v2-note { color:#6b645c; font-size:12px; }/* @canonical-block:000961 */
+.card-art-lines { position:absolute; border:1px solid rgba(212,180,131,.12); border-radius:50%; pointer-events:none; }/* @canonical-block:000962 */
+.card-art-lines-a { width:150%; height:120%; left:-25%; top:-10%; transform:rotate(-18deg); }/* @canonical-block:000963 */
+.card-art-lines-b { width:120%; height:90%; left:-10%; top:10%; transform:rotate(12deg); }/* @canonical-block:000964 */
+.qr-first-badge { position:relative; z-index:2; font:700 11px var(--font-mono); letter-spacing:.12em; }/* @canonical-block:000967 */
+.qr-fallback-icon { color:#17120c; }/* @canonical-block:000969 */
 .nfc-symbol { display:grid; place-items:center; width:30px; height:30px; border:1px solid rgba(212,180,131,.34); border-radius:50%; color:#d4b483; font-style:normal; }/* @canonical-block:001447 */
 
 /* How it works — light editorial product walkthrough */

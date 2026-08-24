@@ -58,7 +58,8 @@
 .p6-auth-switch:focus-visible,.p6-auth-text-action:focus-visible,.p6-auth-login-options > button:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }/* @canonical-block:000319 */
 .p6-auth-message { margin:0; padding:10px 12px; border-radius:10px; font-size:13px; line-height:1.45; }/* @canonical-block:000323 */
 .p6-auth-password-rules { display:flex; flex-wrap:wrap; gap:6px; }/* @canonical-block:000324 */
-.p6-auth-password-rules span { display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:var(--surface-2, #F5F4F0); color:var(--ink-3); font-size:11px; }/* @canonical-block:000326 */
+.p6-auth-password-rules span { display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background:var(--surface-2, #F5F4F0); color:var(--ink-3); font-size:11px; }/* @canonical-block:000325 */
+.p6-auth-password-rules span.valid { color:#2a5a34; background:#f3f8f4; }/* @canonical-block:000326 */
 .p6-auth-password-rules i { width:6px; height:6px; border-radius:50%; background:currentColor; }/* @canonical-block:000327 */
 .p6-auth-state { display:grid; gap:10px; justify-items:start; padding:4px 0 8px; }/* @canonical-block:000328 */
 .p6-auth-state h2 { margin:0; font-size:22px; line-height:1.2; }/* @canonical-block:000329 */
@@ -191,7 +192,8 @@
 .p7-topbar-actions > a { width:36px; height:36px; display:grid; place-items:center; border:1px solid var(--border); border-radius:10px; color:var(--ink-2); }/* @canonical-block:000774 */
 .p7-avatar { width:34px; height:34px; display:grid; place-items:center; border:1px solid var(--border-gold); border-radius:50%; background:var(--gold-dim); color:var(--gold-hi); font:700 12px var(--font-mono); }/* @canonical-block:000775 */
 .p7-content { width:min(calc(100% - 56px),1180px); margin:auto; padding:35px 0 90px; }/* @canonical-block:000781 */
-.p7-menu-button { display:none; }/* @canonical-block:001180 */
+.p7-menu-button { display:none; }/* @canonical-block:000954 */
+.account-loading { min-height:60vh; display:grid; place-items:center; padding:48px 24px; }/* @canonical-block:001180 */
 
 /* public profile — mobile-first, single-purpose contact surface */
 .p12-public-card-page { min-height:100vh; display:grid; place-items:center; padding:24px 16px; background:linear-gradient(180deg,#f8f7f4 0%,#f2f0eb 58%,#ece9e2 100%); }/* @canonical-block:001181 */

@@ -3,7 +3,10 @@
 /* shared chrome */
 .p4-announcement { min-height:36px; display:flex; align-items:center; justify-content:center; gap:12px; padding:8px 20px; background:var(--surface-2); border-bottom:1px solid var(--border); color:var(--ink-2); font-size:12px; font-weight:650; letter-spacing:.02em; text-align:center; }/* @canonical-block:000037 */
 .p4-announcement__item { color:var(--ink-2); }/* @canonical-block:000038 */
-.p4-announcement i { width:3px; height:3px; border-radius:50%; background:var(--gold); }/* @canonical-block:000074 */
+.p4-announcement i { width:3px; height:3px; border-radius:50%; background:var(--gold); }/* @canonical-block:000043 */
+.global-brand-group { display:flex; align-items:center; gap:11px; min-width:0; }/* @canonical-block:000044 */
+.global-brand-mark-link { display:flex; }/* @canonical-block:000058 */
+.global-cart-badge { position:absolute; top:2px; right:1px; min-width:16px; height:16px; padding:0 4px; display:grid; place-items:center; border-radius:99px; background:var(--gold); color:#17120c; font:700 11px/1 var(--font-mono); }/* @canonical-block:000074 */
 
 /* dark public landing */
 .p4-public-home { min-height:100vh; overflow:hidden; background:radial-gradient(760px 520px at 82% 8%,rgba(109,61,224,.05),transparent 68%),linear-gradient(180deg,#f8f7f4 0%,#f2f0eb 55%,#ece9e2 100%); }/* @canonical-block:000075 */
@@ -71,7 +74,15 @@
 .p4-pack-price { width:max-content; min-width:250px; display:grid; gap:4px; padding:18px 20px; border:1px solid var(--border-gold); border-radius:14px; background:linear-gradient(145deg,rgba(212,180,131,.10),rgba(109,61,224,.06)); }/* @canonical-block:000144 */
 .p4-pack-price small { color:var(--ink-3); }/* @canonical-block:000145 */
 .p4-pack-price strong { font:700 30px var(--font-mono); color:var(--gold-hi); }/* @canonical-block:000146 */
-.p4-pack-price span { font-size:12px; color:var(--ink-3); }/* @canonical-block:000560 */
+.p4-pack-price span { font-size:12px; color:var(--ink-3); }/* @canonical-block:000550 */
+.public-page-title__inner {
+  position: relative;
+  z-index: 2;
+  width: min(100%, var(--wide));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}/* @canonical-block:000560 */
 
 /* legal */
 
@@ -89,7 +100,12 @@
 .legal-shell table { width:100%; border-collapse:collapse; margin-top:18px; }/* @canonical-block:000572 */
 .legal-shell th,.legal-shell td { padding:11px; border:1px solid var(--border); text-align:left; color:var(--ink-2); font-size:14px; vertical-align:top; }/* @canonical-block:000573 */
 .legal-shell th { color:var(--ink); background:var(--glass); }/* @canonical-block:000574 */
-.legal-notice { margin-top:24px; padding:16px; border:1px solid var(--border-gold); border-radius:12px; background:var(--gold-dim); color:var(--ink-2); font-size:14px; }/* @canonical-block:000949 */
+.legal-notice { margin-top:24px; padding:16px; border:1px solid var(--border-gold); border-radius:12px; background:var(--gold-dim); color:var(--ink-2); font-size:14px; }/* @canonical-block:000940 */
+
+/* ---- P0 FIX: FAQList bileşeni (anasayfa "Sık sorulan sorular") hiç
+   stillenmemişti — .yi-faq-* sınıflarının canonical.css'te karşılığı
+   yoktu. ---- */
+.p4-faq-layout { display:grid; grid-template-columns:.85fr 1.15fr; gap:32px; align-items:start; }/* @canonical-block:000949 */
 @media (max-width:860px) { .p4-faq-layout { grid-template-columns:1fr; } }/* @canonical-block:000952 */
 .legal-link { color:var(--gold); }/* @canonical-block:000953 */
 .legal-link:hover { color:var(--gold-hi); text-decoration:underline; text-underline-offset:3px; }/* @canonical-block:001547 */

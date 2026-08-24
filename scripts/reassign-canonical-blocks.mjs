@@ -64,8 +64,70 @@ function parsePartFile(content) {
   return blocks;
 }
 
+function extractSelectorPreludes(css) {
+  const clean = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const preludes = [];
+  let current = "";
+  let depth = 0;
+  let inMediaOrSupports = false;
+  let mediaDepth = -1;
+  let inQuote = null;
+
+  for (let i = 0; i < clean.length; i += 1) {
+    const char = clean[i];
+
+    if (inQuote) {
+      if (char === inQuote && clean[i - 1] !== "\\") {
+        inQuote = null;
+      }
+      current += char;
+      continue;
+    }
+
+    if (char === '"' || char === "'") {
+      inQuote = char;
+      current += char;
+      continue;
+    }
+
+    if (char === "{") {
+      const trimmed = current.trim();
+      current = "";
+      if (/^@(media|supports|container)\b/i.test(trimmed)) {
+        inMediaOrSupports = true;
+        mediaDepth = depth;
+      } else if (trimmed.startsWith("@")) {
+        // Skip at-rules like @font-face, @keyframes, @import, @page
+      } else if (depth === 0 || (inMediaOrSupports && depth === mediaDepth + 1)) {
+        if (trimmed.length > 0) {
+          preludes.push(trimmed);
+        }
+      }
+      depth += 1;
+    } else if (char === "}") {
+      depth -= 1;
+      current = "";
+      if (inMediaOrSupports && depth <= mediaDepth) {
+        inMediaOrSupports = false;
+        mediaDepth = -1;
+      }
+    } else {
+      current += char;
+    }
+  }
+  return preludes;
+}
+
 function classNames(css) {
-  return [...css.matchAll(/\.([_a-zA-Z][\w-]*)/g)].map((match) => match[1]);
+  const preludes = extractSelectorPreludes(css);
+  const classes = new Set();
+  for (const prelude of preludes) {
+    const sanitized = prelude.replace(/\[[^\]]*\]/g, "");
+    for (const match of sanitized.matchAll(/\.([_a-zA-Z][\w-]*)/g)) {
+      classes.add(match[1]);
+    }
+  }
+  return [...classes];
 }
 
 function domainForClass(className) {

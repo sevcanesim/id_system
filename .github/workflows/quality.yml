@@ -45,6 +45,9 @@ jobs:
       - name: Audit cascade-safe canonical tail
         run: node scripts/split-canonical-css.mjs --domain=auto
 
+      - name: Verify canonical source decomposition
+        run: node scripts/verify-canonical-source.mjs
+
       - name: Typecheck
         run: npm run typecheck
 

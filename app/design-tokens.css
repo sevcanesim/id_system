@@ -76,6 +76,7 @@
   --border-gold: color-mix(in srgb,var(--primary) 34%,transparent);
   --glow: 0 0 48px color-mix(in srgb,var(--primary) 14%,transparent);
 
+
   /* Radius */
   --radius-xs: 6px;
   --radius-sm: 10px;

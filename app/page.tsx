@@ -4,6 +4,7 @@ import Link from "next/link";
 import { NFC_PRODUCT, formatTryFromKurus } from "../lib/config/product";
 import howItWorks from "./home-how-it-works.module.css";
 import homePolish from "./home-premium-polish.module.css";
+import faqStyles from "./home-faq.module.css";
 
 export const metadata: Metadata = {
   title: "Yenomi ID | Kartvizitin güncel kalsın",
@@ -55,6 +56,33 @@ const comparisonRows = [
   ["Kart kayboldu", "Kontrol sende değildir", "Kayıp moduyla erişimi kapatırsın"],
   ["İletişim kaydı", "Manuel giriş gerekir", "Tek dokunuşla rehbere kaydet"],
 ];
+
+const faqItems = [
+  [
+    "Uygulama indirmek gerekiyor mu?",
+    "Hayır. Kartı alan kişi NFC ile dokundurduğunda veya QR kodu okuttuğunda profil modern tarayıcıda doğrudan açılır.",
+  ],
+  [
+    "Telefonum veya ünvanım değişirse kartı yeniden bastırır mıyım?",
+    "Hayır. Fiziksel kart aynı kalır; canlı profilindeki bilgileri güncellersin. NFC ve QR aynı profile açılmaya devam eder.",
+  ],
+  [
+    "Kartımı kaybedersem ne olur?",
+    "Fiziksel kart erişimini panelden kapatabilirsin. Böylece kart kaybolduğunda kontrol sende kalır.",
+  ],
+  [
+    "NFC kullanılmazsa paylaşım nasıl yapılır?",
+    "Kart üzerindeki QR kod aynı canlı profile bağlıdır. NFC yerine QR ile de profil açılabilir.",
+  ],
+  [
+    "Ödeme kartı bilgilerim Yenomi’de tutuluyor mu?",
+    "Hayır. Ödeme kartı bilgileri Yenomi’de saklanmaz; ödeme iyzico altyapısı üzerinden gerçekleşir.",
+  ],
+  [
+    "Satın alıma ilk yıl platform üyeliği dahil mi?",
+    "Evet. NFC kartın tek seferlik ürün bedeline ilk yıl platform üyeliği dahil olarak sunulur.",
+  ],
+] as const;
 
 export default function HomePage() {
   return (
@@ -205,6 +233,29 @@ export default function HomePage() {
                 <span role="cell"><i aria-hidden="true">✓</i>{yenomi}</span>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section className={faqStyles.section} aria-labelledby="faq-title">
+          <div className={faqStyles.intro}>
+            <span className="home-mockup__kicker">SIK SORULANLAR</span>
+            <h2 id="faq-title">Satın almadan önce<br />bilmen gerekenler.</h2>
+            <p>Karar vermeyi yavaşlatan temel soruların kısa cevapları.</p>
+          </div>
+          <div className={faqStyles.list}>
+            {faqItems.map(([question, answer], index) => (
+              <details className={faqStyles.item} key={question} open={index === 0}>
+                <summary>
+                  <span>{question}</span>
+                  <i aria-hidden="true">+</i>
+                </summary>
+                <p>{answer}</p>
+              </details>
+            ))}
+          </div>
+          <div className={faqStyles.supportRow}>
+            <span>Başka bir sorun mu var?</span>
+            <Link href="/destek">Yardım merkezine git <span aria-hidden>→</span></Link>
           </div>
         </section>
 

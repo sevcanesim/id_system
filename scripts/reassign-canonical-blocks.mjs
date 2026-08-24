@@ -26,18 +26,21 @@ const OWNER_FILES = {
 };
 
 const DOMAINS = [
-  { name: "foundation", prefixes: ["yi-", "ds-"] },
-  { name: "public", prefixes: ["home-", "p4-", "support-", "legal-", "public-site-"] },
-  { name: "products", prefixes: ["products-", "nfc-", "how-"] },
-  { name: "corporate", prefixes: ["corporate-", "corp-", "p10-", "p11-", "p14-", "enterprise-", "business-", "v25-", "v26-"] },
-  { name: "account", prefixes: ["p6-", "p7-", "p8-", "p9-", "p12-"] },
-  { name: "commerce", prefixes: ["checkout-", "cart-", "order-", "payment-", "commerce-", "add-to-cart-"] },
+  { name: "foundation", prefixes: ["yi-", "ds-", "section-kicker", "field-grid", "canonical-sidebar-backdrop", "brand-top", "brand-dot"] },
+  { name: "public", prefixes: ["home-", "p4-", "support-", "legal-", "public-", "global-", "reference-"] },
+  { name: "products", prefixes: ["products-", "product-", "nfc-", "how-", "premium-", "yenomi-card-art", "quantity-premium", "wizard-", "physical-", "stacked-card-", "brand-back-", "pane-", "qr-first-", "brand-pill", "card-art-", "embedded-card-", "qr-fallback-"] },
+  { name: "corporate", prefixes: ["corporate-", "corp-", "p10-", "p11-", "p14-", "p18-", "enterprise-", "enterprise", "business-", "v25-", "v26-", "settings-tristate", "company-settings-", "job-title", "license-reference-", "template-", "seat-pack-", "org-save-", "org-name-", "title-request-", "mini-meter"] },
+  { name: "account", prefixes: ["p6-", "p7-", "p8-", "p9-", "p12-", "identity-", "compact-", "primary-save", "quick-actions", "auth-message", "profile-state-", "account-loading", "verified-pill"] },
+  { name: "commerce", prefixes: ["checkout-", "cart-", "order-", "payment-", "commerce-", "add-to-cart-", "activation-", "admin-", "p5-", "stripe-", "result-", "smart-location-", "price", "pricing-"] },
 ];
 
 const NEUTRAL_CLASSES = new Set([
-  "active", "inactive", "disabled", "selected", "secondary", "primary",
+  "active", "inactive", "disabled", "hidden", "loading", "open", "selected", "visible", "mono", "metric", "caption", "sr-only",
+  "primary", "secondary", "theme-light", "theme-dark", "woff2", "blue", "amber", "green", "purple", "done", "empty", "waiting", "total", "actions", "error", "danger", "warning", "online",
+  "published", "ready", "recommended", "valid", "success", "info", "offline", "digital-renewal", "secondary-link",
+  "text-caption", "back", "front", "white", "gold", "violet", "muted", "single", "draft", "scheduled", "allowed", "denied", "optional-label", "highlight", "step-counter",
+  "css", "tsx", "vercel", "app",
   "is-active", "is-open", "is-loading", "is-disabled", "is-selected",
-  "theme-light", "theme-dark",
 ]);
 
 function sha256(value) {

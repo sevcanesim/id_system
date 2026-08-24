@@ -262,7 +262,9 @@
   min-width:0;
   overflow:hidden;
 }/* @canonical-block:001251 */
-.p10-corporate-platform .enterprise-mobile-commandbar { margin:0 -28px; }/* @canonical-block:001411 */
+.p10-corporate-platform .enterprise-mobile-commandbar { margin:0 -28px; }/* @canonical-block:001273 */
+.v26-card-qr { width:96px; height:96px; display:block; border-radius:8px; background:#fff; }/* @canonical-block:001274 */
+.v26-card-qr-placeholder { width:96px; height:96px; border-radius:8px; background:var(--glass); }/* @canonical-block:001411 */
 
 /* Corporate console composition — Phase 3 */
 .p10-corporate-platform .business-shell {
@@ -1384,7 +1386,9 @@
   .corp-links-panel { padding: 16px; }
   .p11-form-grid { grid-template-columns: 1fr; }
   .enterprise-data-error { grid-template-columns: 1fr; }
-}/* @canonical-block:002077 */
+}/* @canonical-block:002061 */
+.v25-identity-audit-empty { margin: 0; color: var(--ink-3); font-size: 12px; }/* @canonical-block:002066 */
+.v25-card-preview-wrap { min-width: 0; }/* @canonical-block:002077 */
 
 .p10-domain-panel > header {
   display: flex;

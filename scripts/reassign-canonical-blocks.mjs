@@ -19,10 +19,16 @@ const OWNER_FILES = {
 };
 
 const BATCH = [
-  ["000777", "foundation"], ["000780", "foundation"], ["000861", "foundation"], ["000865", "foundation"], ["000866", "foundation"],
-  ["000878", "foundation"], ["000880", "foundation"], ["000881", "foundation"], ["000882", "foundation"], ["000884", "foundation"],
-  ["000886", "foundation"], ["000887", "foundation"], ["000893", "foundation"], ["000894", "foundation"], ["000895", "foundation"],
-  ["000914", "foundation"], ["000915", "foundation"], ["000916", "foundation"], ["000917", "foundation"], ["000918", "foundation"],
+  ["000209", "products"],
+  ["000481", "corporate"],
+  ["000825", "corporate"],
+  ["000885", "foundation"],
+  ["000925", "foundation"],
+  ["000926", "foundation"],
+  ["000927", "foundation"],
+  ["000932", "foundation"],
+  ["000933", "foundation"],
+  ["000944", "foundation"],
 ];
 
 function sha256(value) { return crypto.createHash("sha256").update(value).digest("hex"); }
@@ -69,7 +75,7 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`READY — ${BATCH.length} canonical blocks can move from mixed to foundation`);
+console.log(`READY — ${BATCH.length} canonical blocks can move from mixed to owned domains`);
 for (const [id, targetOwner] of BATCH) console.log(`${id}: mixed -> ${targetOwner}`);
 if (mode === "dry-run") {
   console.log("DRY RUN — no files changed. Re-run with --apply to write ownership changes.");

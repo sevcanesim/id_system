@@ -1,11 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 
-
-
-
-
-
 import "./canonical.css";
 import "./design-tokens.css";
 import "./design-system.css";
@@ -13,6 +8,8 @@ import "./employee-management.css";
 import "./theme-policy.css";
 import "./public-chrome-premium.css";
 import "./authentic-enterprise.css";
+import "./homepage.css";
+import "./kurumsal/panel/employee-action-first.css";
 import HashScrollHandler from "./components/HashScrollHandler";
 import AuthSessionBridge from "./components/AuthSessionBridge";
 import PublicSiteShell from "./components/PublicSiteShell";
@@ -47,8 +44,6 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  // Consume x-nonce so this layout is request-bound. Next then stamps the same
-  // nonce onto its scripts. A static HTML HIT plus a fresh CSP nonce blocks every client bundle.
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang="tr" suppressHydrationWarning={Boolean(nonce)}>

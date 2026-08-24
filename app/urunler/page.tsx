@@ -16,7 +16,6 @@ import {
 import { COMMERCIAL_PRICING, COMMERCIAL_SKUS } from "../../lib/config/commercial";
 import { formatTryFromKurus, NFC_PRODUCT } from "../../lib/config/product";
 
-export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Yenomi ID — NFC Dijital Kartvizit",
   description: "Yenomi ID ile NFC + QR kartınızı tek bir canlı dijital profile bağlayın. 1 yıl platform erişimi ve Türkiye içi kargo dahil.",
@@ -28,7 +27,7 @@ const commerceTrust = [
   ["truck", "Türkiye içi kargo dahil"],
 ] as const;
 
-export default async function ProductsPage() {
+export default function ProductsPage() {
   return (
     <div className="products-commerce-v3 products-commerce-v4 yi-site">
       <main id="main-content">
@@ -55,11 +54,6 @@ export default async function ProductsPage() {
                   label="Yenomi ID’mi Al"
                 />
                 <a href="#nasil-calisir" className="products-commerce-v3__text-link">Nasıl çalışır? <span aria-hidden="true">→</span></a>
-              </div>
-              <div className="products-commerce-v3__hero-trust" aria-label="Satın alma güvenceleri">
-                <span>Hesap açmadan ödeme</span>
-                <span>2 iş gününde hazırlık</span>
-                <span>Ücretsiz kargo</span>
               </div>
             </div>
 

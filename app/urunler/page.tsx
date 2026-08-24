@@ -102,7 +102,7 @@ export default async function ProductsPage() {
                 <p>Üç planın temel kimliği aynı. Fark, fiziksel NFC kart ve networking araçlarının kapsamı.</p>
               </div>
               <div className="products-premium-v2__trust" aria-label="Satın alma güvenceleri">
-                {planTrust.map((item) => <span key={item}><Icon name="check" />{item}</span>)}
+                {commerceTrust.map(([icon, label]) => <span key={label}><Icon name={icon} />{label}</span>)}
               </div>
             </div>
 

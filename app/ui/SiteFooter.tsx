@@ -6,44 +6,38 @@ type FooterVariant = "default" | "compact" | "how-it-works";
 function FooterContent() {
   return (
     <>
-      <div className="yi-footer__identity">
-        <div className="yi-footer__brand">
+      <div className="yi-footer__premium-grid">
+        <div className="yi-footer__premium-brand">
           <Brand compact />
-          <p>NFC kart. Canlı profil. Şirket paneli. Kart numarası Yenomi’de saklanmaz.</p>
-          <nav className="yi-footer__product" aria-label="Ürün">
-            <Link href="/urunler">Dijital Kartvizit</Link>
-            <Link href="/nasil-calisir">Nasıl Çalışır</Link>
-            <Link href="/kurumsal">Kurumsal</Link>
-          </nav>
+          <p>NFC + QR dijital kartvizit. Kartın aynı kalır, bilgilerin güncel kalır.</p>
         </div>
 
-        <div className="yi-footer__layers" aria-label="Ürün katmanları">
-          <div className="yi-footer__layer">
-            <span>Endüstri katmanımız</span>
-            <a className="yi-footer__serp-title" href="https://opsola.com" target="_blank" rel="noreferrer">Opsola</a>
-            <a className="yi-footer__serp-url" href="https://opsola.com" target="_blank" rel="noreferrer">https://opsola.com</a>
-            <p>Karmaşık sistemlere mühendislik çözümleri. İmalat, otomasyon ve devreye alma.</p>
-          </div>
-          <div className="yi-footer__layer">
-            <span>Yazılım katmanımız</span>
-            <a className="yi-footer__serp-title" href="https://yenomilabs.com" target="_blank" rel="noreferrer">Yenomilabs</a>
-            <a className="yi-footer__serp-url" href="https://yenomilabs.com" target="_blank" rel="noreferrer">https://yenomilabs.com</a>
-            <p>Markalar ve endüstriyel operasyonlar için özel yazılım sistemleri, QR tabanlı platformlar ve portal çözümleri.</p>
-          </div>
-        </div>
-      </div>
+        <nav className="yi-footer__premium-column" aria-label="Ürün">
+          <strong>Ürün</strong>
+          <Link href="/urunler/nfc-kart">NFC Kart</Link>
+          <Link href="/nasil-calisir">Nasıl Çalışır</Link>
+          <Link href="/kurumsal">Kurumsal</Link>
+        </nav>
 
-      <div className="yi-footer__base yi-footer__base--responsive">
-        <span>© 2026 Yenomilabs · Tüm Hakları Saklıdır</span>
-        <a href="https://yenomilabs.com" target="_blank" rel="noreferrer">yenomilabs.com ↗</a>
-        <nav aria-label="Yasal bağlantılar">
-          <Link href="/destek">Destek</Link>
+        <nav className="yi-footer__premium-column" aria-label="Destek">
+          <strong>Destek</strong>
+          <Link href="/destek">Yardım Merkezi</Link>
           <Link href="/iade-iptal">İade &amp; İptal</Link>
-          <Link href="/mesafeli-satis-sozlesmesi">Mesafeli Satış Sözleşmesi</Link>
+          <Link href="/giris">Hesabım</Link>
+        </nav>
+
+        <nav className="yi-footer__premium-column" aria-label="Yasal">
+          <strong>Yasal</strong>
+          <Link href="/mesafeli-satis-sozlesmesi">Mesafeli Satış</Link>
           <Link href="/hizmet-sartlari">Hizmet Şartları</Link>
           <Link href="/kvkk">KVKK</Link>
           <Link href="/gizlilik">Gizlilik</Link>
         </nav>
+      </div>
+
+      <div className="yi-footer__premium-base">
+        <span>© 2026 Yenomi ID</span>
+        <span>Yenomilabs ürünü</span>
       </div>
     </>
   );
@@ -51,7 +45,7 @@ function FooterContent() {
 
 export default function SiteFooter({ variant = "default" }: { variant?: FooterVariant }) {
   return (
-    <footer className={`yi-footer yi-footer--new ${variant === "compact" ? "yi-footer--compact" : ""} ${variant === "how-it-works" ? "yi-footer--how-it-works" : ""}`}>
+    <footer className={`yi-footer yi-footer--new yi-footer--premium ${variant === "compact" ? "yi-footer--compact" : ""} ${variant === "how-it-works" ? "yi-footer--how-it-works" : ""}`}>
       <div className="yi-container">
         <FooterContent />
       </div>

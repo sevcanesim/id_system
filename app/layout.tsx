@@ -11,6 +11,7 @@ import "./design-tokens.css";
 import "./design-system.css";
 import "./employee-management.css";
 import "./theme-policy.css";
+import "./public-chrome-premium.css";
 import HashScrollHandler from "./components/HashScrollHandler";
 import AuthSessionBridge from "./components/AuthSessionBridge";
 import PublicSiteShell from "./components/PublicSiteShell";

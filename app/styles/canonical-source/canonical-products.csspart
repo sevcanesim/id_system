@@ -141,7 +141,8 @@
 .products-public-v2-flow p { grid-column:2; margin:0; font-size:14px; color:#6b645d; }/* @canonical-block:000206 */
 .products-public-v2-flow-arrow { display:grid; place-items:center; color:#9d7b43; font-size:20px; }/* @canonical-block:000207 */
 .products-public-v2-compare-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }/* @canonical-block:000208 */
-.products-public-v2-choice { min-height:350px; display:flex; flex-direction:column; }/* @canonical-block:000210 */
+.products-public-v2-choice { min-height:350px; display:flex; flex-direction:column; }/* @canonical-block:000209 */
+.products-public-v2-choice.is-primary { border-color:rgba(153,117,57,.4); box-shadow:0 22px 52px rgba(94,71,34,.12); }/* @canonical-block:000210 */
 .products-public-v2-choice h3 { margin:10px 0 8px; font-size:24px; color:#1b1818; }/* @canonical-block:000211 */
 .products-public-v2-choice p { color:#625c55; }/* @canonical-block:000212 */
 .products-public-v2-choice ul { display:grid; gap:8px; padding:0; margin:20px 0; list-style:none; }/* @canonical-block:000213 */

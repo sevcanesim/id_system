@@ -1,6 +1,5 @@
 import { Icon } from "../icons";
 import AddToCartButton from "../components/AddToCartButton";
-import CorporatePackPicker from "./CorporatePackPicker";
 import {
   CORPORATE_PACKAGE_LADDER,
   CORPORATE_PACKAGE_PRODUCT_SLUG,
@@ -52,17 +51,6 @@ export default async function CorporatePage({
 }) {
   const params = await searchParams;
   const selectedPlan = Array.isArray(params.plan) ? params.plan[0] : params.plan;
-  const packOptions = CORPORATE_PACKAGE_LADDER.map((plan) => ({
-    code: plan.code,
-    name: plan.name,
-    seats: plan.seats,
-    priceKurus: plan.priceKurus,
-    perSeatKurus: perSeatKurus(plan.priceKurus, plan.seats),
-    networkMail: networkMailGrant(plan.seats),
-    popular: "popular" in plan && Boolean(plan.popular),
-    checkoutLive: corporateCheckoutLive(plan.seats),
-    sku: corporatePackageSku(plan.code),
-  }));
 
   return (
     <main id="main-content" className="theme-light corporate-page corporate-sales-page corporate-single-page">
@@ -73,9 +61,9 @@ export default async function CorporatePage({
             <span className="corporate-hero-line">Ekibinizin dijital kimliğini tek yerden yönetin.</span>
             <span className="corporate-hero-line corporate-hero-line--accent">Yeniden baskıyı ve dağınık kartvizit yönetimini azaltın.</span>
           </h1>
-          <p>Yeni çalışanı yayınlayın, bilgileri güncelleyin, ayrılan personelin kartını kapatın. 2–100 kişi için paketinizi doğrudan seçin; 100+ kişi ve özel entegrasyonlarda birlikte planlayalım.</p>
+          <p>Yeni çalışanı yayınlayın, bilgileri güncelleyin ve ayrılan personelin kartını kapatın. Tüm kurumsal hesaplar aynı yönetim panelini kullanır; yalnızca ekip kapasitesi ve fiziksel kart adedi ihtiyaca göre değişir.</p>
           <div className="corporate-hero-actions">
-            <a href="#business-pricing-title" className="corporate-cta">Ekibime Uygun Paketi Seç <span aria-hidden="true">→</span></a>
+            <a href="#business-pricing-title" className="corporate-cta">Kapasite ve Fiyatları Gör <span aria-hidden="true">→</span></a>
             <a href="/kurumsal?plan=ENTERPRISE#teklif" className="home-mockup__link-secondary">100+ Kişi İçin Teklif Al <span aria-hidden="true">→</span></a>
           </div>
         </div>
@@ -103,22 +91,17 @@ export default async function CorporatePage({
       <section className="corporate-pricing-section corporate-single-details" aria-labelledby="business-pricing-title">
         <div className="corporate-section-heading">
           <span className="section-kicker">YILLIK KURUMSAL SİSTEM</span>
-          <h2 id="business-pricing-title">Önce seviyeyi, sonra ekip büyüklüğünü seçin.</h2>
-          <p>Start 2–10 kişilik ekipler için hızlı başlangıçtır. Business 25–100 kişilik büyüyen ekipler için ekip yönetimi katmanıdır. Enterprise 100+ kişi, özel raporlama veya entegrasyon ihtiyacında kuruma özel planlanır.</p>
+          <h2 id="business-pricing-title">Tek panel, ekip büyüklüğüne göre kapasite.</h2>
+          <p>Tüm kurumsal hesaplarda aynı yönetim deneyimi kullanılır. Aşağıdaki seçenekler özellik seviyesi değil; yalnızca kullanıcı, NFC kart ve yıllık kapasite farkını gösterir.</p>
         </div>
-        <CorporatePackPicker
-          packs={packOptions}
-          productId={CORPORATE_PACKAGE_PRODUCT_SLUG}
-          initialCode={selectedPlan}
-        />
-        <details className="corporate-pack-details">
-          <summary>Tüm kapasite ve yıllık fiyatları karşılaştır</summary>
+        <details className="corporate-pack-details" open>
+          <summary>Kapasite ve yıllık fiyatlar</summary>
           <div className="corporate-pack-table-wrap">
             <table className="corporate-pack-table">
-              <caption className="sr-only">Kurumsal fiyat listesi</caption>
+              <caption className="sr-only">Kurumsal kapasite ve fiyat listesi</caption>
               <thead>
                 <tr>
-                  <th scope="col">Paket</th>
+                  <th scope="col">Kapasite</th>
                   <th scope="col">Kullanıcı</th>
                   <th scope="col">NFC kart</th>
                   <th scope="col">Network Mail</th>
@@ -130,7 +113,7 @@ export default async function CorporatePage({
               <tbody>
                 {CORPORATE_PACKAGE_LADDER.map((plan) => (
                   <tr key={plan.code}>
-                    <th scope="row">{plan.name}</th>
+                    <th scope="row">{plan.seats} kişilik</th>
                     <td className="is-num">{plan.seats}</td>
                     <td className="is-num">{plan.seats}</td>
                     <td className="is-num">{networkMailGrant(plan.seats).toLocaleString("tr-TR")}</td>
@@ -159,7 +142,7 @@ export default async function CorporatePage({
             </table>
           </div>
         </details>
-        <p className="corporate-pack-note">Doğrudan satın alınabilen paketlerde 1 yıllık kullanım, seçilen kullanıcı sayısı kadar NFC kart ve Türkiye içi ücretsiz kargo dahildir. Ekip büyüdükçe kişi başı maliyet düşer.</p>
+        <p className="corporate-pack-note">1 yıllık kullanım, seçilen kullanıcı sayısı kadar NFC kart ve Türkiye içi ücretsiz kargo dahildir. Panel özellikleri kurumsal hesaplar arasında değişmez; yalnızca kapasite ekip büyüklüğüne göre seçilir.</p>
         <div className="corporate-addon-grid corporate-mail-packs">
           <article>
             <span>NETWORK MAIL</span>
@@ -179,7 +162,7 @@ export default async function CorporatePage({
         <div className="corporate-lead-copy">
           <span className="section-kicker">100+ KİŞİ · ÖZEL KURULUM</span>
           <h2 id="corporate-lead-title">Kurumsal yapınızı birlikte planlayalım.</h2>
-          <p>100+ çalışan, özel entegrasyon, farklı kart şablonları veya kuruma özel raporlama ihtiyacınızı paylaşın. Size uygun yapı ve fiyatlandırmayla dönüş yapalım.</p>
+          <p>100+ çalışan, özel entegrasyon, farklı kart şablonları veya kuruma özel raporlama ihtiyacınızı paylaşın. Size uygun kapasite ve fiyatlandırmayla dönüş yapalım.</p>
         </div>
         <CorporateLeadForm plan={selectedPlan} />
       </section>

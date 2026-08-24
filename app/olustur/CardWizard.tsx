@@ -7,7 +7,8 @@ import CardTemplate from "../CardTemplate";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { isSupabaseConfigured } from "../../lib/supabase/config";
 import UserPanelShell from "../components/UserPanelShell";
-import { Badge, Button, Drawer, Field, Input, Select, Textarea } from "../components/ui";
+import QRCode from "qrcode";
+import { Badge, Button, Drawer, Field, Input, Modal, Select, Textarea } from "../components/ui";
 import { Icon } from "../icons";
 import { TITLE_OPTIONS, normalizeEmailField, normalizeTrPhone } from "../../lib/form-standards";
 import { unusedEntitlementId } from "../../lib/commerce/entitlement-bind";
@@ -21,8 +22,10 @@ import {
 } from "../kurumsal/panel/domain/navigation";
 
 import {
+  calculateProfileCompletion,
   createProfileSlug,
   ensureRealImage,
+  formatMissingItemsText,
   isSupportedImageMimeType,
   INITIAL_CARD_DATA,
   sanitizeCardDraft,
@@ -79,6 +82,9 @@ export default function CardWizard() {
   const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<(typeof CARD_SECTIONS)[number]["id"]>("p8-basic");
+  const [phoneTestOpen, setPhoneTestOpen] = useState(false);
+  const [phoneTestQrDataUrl, setPhoneTestQrDataUrl] = useState("");
+  const [saveFeedback, setSaveFeedback] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedProfileId = searchParams.get("id");
@@ -87,16 +93,48 @@ export default function CardWizard() {
   const isBusinessCard = searchParams.get("business") === "1" && Boolean(businessOrganizationId);
 
   useEffect(() => {
-    const applyHash = () => {
-      const id = window.location.hash.replace("#", "");
-      if (CARD_SECTIONS.some((section) => section.id === id)) {
-        setActiveSection(id as (typeof CARD_SECTIONS)[number]["id"]);
+    if (accessState !== "allowed") return;
+    const sectionIds = CARD_SECTIONS.map((sec) => sec.id);
+    const elements = sectionIds.map((id) => document.getElementById(id)).filter(Boolean);
+    if (!elements.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting);
+        if (visible.length > 0) {
+          const sorted = visible.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+          if (sorted[0]?.target.id) {
+            setActiveSection(sorted[0].target.id as (typeof CARD_SECTIONS)[number]["id"]);
+          }
+        }
+      },
+      { rootMargin: "-90px 0px -40% 0px", threshold: [0.1, 0.4] },
+    );
+
+    elements.forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, [accessState]);
+
+  const handleSectionClick = (event: React.MouseEvent<HTMLAnchorElement>, id: (typeof CARD_SECTIONS)[number]["id"]) => {
+    event.preventDefault();
+    const element = document.getElementById(id);
+    if (element) {
+      const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      element.scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth", block: "start" });
+      setActiveSection(id);
+      if (typeof window !== "undefined" && window.history?.pushState) {
+        window.history.pushState(null, "", `#${id}`);
       }
-    };
-    applyHash();
-    window.addEventListener("hashchange", applyHash);
-    return () => window.removeEventListener("hashchange", applyHash);
-  }, []);
+    }
+  };
+
+  useEffect(() => {
+    if (!phoneTestOpen) return;
+    const shareUrl = cardShareUrl(profileSlug || publicId || "yenomi-id");
+    QRCode.toDataURL(shareUrl, { width: 360, margin: 2, errorCorrectionLevel: "H" })
+      .then(setPhoneTestQrDataUrl)
+      .catch(() => setPhoneTestQrDataUrl(""));
+  }, [phoneTestOpen, profileSlug, publicId]);
 
   useEffect(() => {
     try {
@@ -477,6 +515,7 @@ export default function CardWizard() {
     }
 
     setSaving(true);
+    setSaveFeedback("Kaydediliyor...");
     setMessage("");
     if (!isBusinessCard) localStorage.setItem("yenomi-card-draft", JSON.stringify(sanitizeCardDraft(data)));
 
@@ -607,6 +646,7 @@ export default function CardWizard() {
       } else {
         router.push("/kartim");
       }
+      setSaveFeedback("Kaydedildi.");
       setSaving(false);
     } catch (error) {
       if (uploaded?.uploaded && uploaded.path) {
@@ -618,6 +658,7 @@ export default function CardWizard() {
         ? "Sunucuya ulaşılamadı. İnternet bağlantını ve Supabase ayarlarını kontrol edip tekrar dene."
         : rawMessage;
       setMessage(friendlyMessage);
+      setSaveFeedback("Değişiklikler kaydedilemedi. Tekrar deneyin.");
       setSaving(false);
     }
   }
@@ -648,7 +689,7 @@ export default function CardWizard() {
           href={`#${section.id}`}
           className={activeSection === section.id ? "is-active" : undefined}
           aria-current={activeSection === section.id ? "true" : undefined}
-          onClick={() => setActiveSection(section.id)}
+          onClick={(e) => handleSectionClick(e, section.id)}
         >
           {section.label}
         </a>
@@ -656,7 +697,9 @@ export default function CardWizard() {
     </nav>
 
     <div className="p8-editor-grid">
-      <form onSubmit={(event) => event.preventDefault()} className="p8-form" aria-label="Dijital kartvizit profil bilgileri"><p className="p8-required-hint"><span aria-hidden="true">*</span> işaretli alanlar zorunludur. Değişiklikler kaydetmeden canlı önizlemede görünür.</p>
+      <form onSubmit={(event) => event.preventDefault()} className="p8-form" aria-label="Dijital kartvizit profil bilgileri">
+        <p className="p8-required-hint">Yıldız (*) ile işaretlenen alanlar zorunludur. Değişiklikler anında önizlemede görünür.</p>
+
         <section id="p8-basic" className="p8-section-card">
           <div className="p8-section-heading"><span>01</span><div><h2>Temel Bilgiler</h2><p>Tanışma anında ilk görülecek kimlik bilgilerini düzenleyin.</p></div></div>
           <div className="p8-field-grid">
@@ -672,11 +715,11 @@ export default function CardWizard() {
             <Field label="Telefon" help={orgLock?.lockPhone === "locked" ? "Şirket tarafından yönetiliyor" : undefined}>
               <Input type="tel" inputMode="tel" autoComplete="tel" value={data.phone} onChange={(e) => update("phone", normalizeTrPhone(e.target.value))} placeholder="+90 5xx xxx xx xx" disabled={orgLock?.lockPhone === "locked"}/>
             </Field>
-            <Field label="E-posta" help={orgLock?.lockEmail === "locked" ? "Şirket tarafından yönetiliyor" : undefined}>
-              <Input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} value={data.email} onChange={(e) => update("email", e.target.value)} onBlur={() => update("email", normalizeEmailField(data.email))} placeholder="ad@firma.com" disabled={orgLock?.lockEmail === "locked"}/>
-            </Field>
             <Field label="WhatsApp" help="Telefon numaranızdan farklıysa doldurun.">
-              <Input type="tel" inputMode="tel" value={data.whatsapp} onChange={(e) => update("whatsapp", normalizeTrPhone(e.target.value))} placeholder="+90 5xx xxx xx xx"/>
+              <Input type="tel" inputMode="tel" autoComplete="tel" value={data.whatsapp} onChange={(e) => update("whatsapp", normalizeTrPhone(e.target.value))} placeholder="+90 5xx xxx xx xx"/>
+            </Field>
+            <Field label="E-posta" className="p8-field-wide" help={orgLock?.lockEmail === "locked" ? "Şirket tarafından yönetiliyor" : undefined}>
+              <Input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} value={data.email} onChange={(e) => update("email", e.target.value)} onBlur={() => update("email", normalizeEmailField(data.email))} placeholder="ad@firma.com" disabled={orgLock?.lockEmail === "locked"}/>
             </Field>
             <Field label="Konum" className="p8-field-wide" help={locationMessage || "Şehir veya bölge bilgisi yeterlidir."}>
               <div className="p8-inline-field"><Input value={data.location} onChange={(e) => update("location", e.target.value)} placeholder="İzmir, Türkiye"/><Button variant="secondary" onClick={() => void detectCity()} disabled={locationLoading}><Icon name="map" />{locationLoading ? "Bulunuyor" : "Konumumu Bul"}</Button></div>
@@ -753,13 +796,88 @@ export default function CardWizard() {
       </form>
 
       <aside className="p8-preview-column" aria-label="Canlı kart önizlemesi">
-        <section className="p8-preview-card"><div className="p8-preview-title"><div><h2>Kart Önizlemesi</h2><p>Kaydetmeden önce profilinizin nasıl görüneceğini kontrol edin.</p></div><Badge>Önizleme</Badge></div>{preview}</section>
-        <section className="p8-url-card"><div><h3>Kart bağlantınız</h3><p>Paylaşım adresi okunabilir slug kullanır. QR kimliği ayrıdır ve değişmez.</p></div><div className="p8-url-row"><span>{cardShareUrl(profileSlug || "yenomi-id").replace(/^https?:\/\//, "")}</span><Button size="sm" variant="secondary" onClick={() => navigator.clipboard?.writeText(cardShareUrl(profileSlug || ""))}><Icon name="copy" />Kopyala</Button></div>{publicId && <p>QR kimliği: /p/{publicId}</p>}</section>
-        <section className="p8-note"><Icon name="refresh" /><div><strong>Anlık güncelleme</strong><p>Kaydettiğiniz değişiklikler QR ve NFC kartınızı yeniden üretmeden aynı bağlantıda yayınlanır.</p></div></section>
+        {(() => {
+          const completion = calculateProfileCompletion(data);
+          const missingHint = formatMissingItemsText(data);
+          return (
+            <section className="p8-completion-card" aria-label="Profil doluluk seviyesi">
+              <div className="p8-completion-header">
+                <div>
+                  <strong>Profilin %{completion} hazır</strong>
+                  <small>{completion === 100 ? "Tamamlandı" : "Önerilen adımlar"}</small>
+                </div>
+                <Badge tone={completion === 100 ? "success" : "neutral"}>%{completion}</Badge>
+              </div>
+              <div className="p8-completion-bar-track" aria-hidden="true">
+                <div className="p8-completion-bar-fill" style={{ width: `${completion}%` }} />
+              </div>
+              <p className="p8-completion-hint">{missingHint}</p>
+            </section>
+          );
+        })()}
+
+        <section className="p8-preview-card">
+          <div className="p8-preview-title">
+            <div>
+              <h2>Kart Önizlemesi</h2>
+              <p>Kaydetmeden önce profilinizin nasıl görüneceğini kontrol edin.</p>
+            </div>
+            <div className="p8-preview-actions-strip">
+              <Button size="sm" variant="secondary" onClick={() => setPhoneTestOpen(true)}>
+                <Icon name="qr" /> Telefonda Test Et
+              </Button>
+              <Badge>Önizleme</Badge>
+            </div>
+          </div>
+          {preview}
+        </section>
+
+        <section className="p8-url-card">
+          <div>
+            <h3>Kart bağlantınız</h3>
+            <p>Paylaşım adresi okunabilir slug kullanır. QR kimliği ayrıdır ve değişmez.</p>
+          </div>
+          <div className="p8-url-row">
+            <span>{cardShareUrl(profileSlug || "yenomi-id").replace(/^https?:\/\//, "")}</span>
+            <Button size="sm" variant="secondary" onClick={() => navigator.clipboard?.writeText(cardShareUrl(profileSlug || ""))}>
+              <Icon name="copy" /> Kopyala
+            </Button>
+          </div>
+          {publicId && <p>QR kimliği: /p/{publicId}</p>}
+        </section>
+
+        <section className="p8-note">
+          <Icon name="refresh" />
+          <div>
+            <strong>Anlık güncelleme</strong>
+            <p>Kaydettiğiniz değişiklikler QR ve NFC kartınızı yeniden üretmeden aynı bağlantıda yayınlanır.</p>
+          </div>
+        </section>
       </aside>
     </div>
 
     <Drawer open={mobilePreviewOpen} title="Kart Önizlemesi" onClose={() => setMobilePreviewOpen(false)}><div className="p8-mobile-preview">{preview}</div></Drawer>
+
+    <Modal open={phoneTestOpen} title="Telefonda Test Et" onClose={() => setPhoneTestOpen(false)}>
+      <div className="p8-phone-test-modal">
+        {profileId ? (
+          <>
+            <p>Mobil cihazınızın kamerası ile aşağıdaki QR kodu okutarak canlı kart profilinizi telefonunuzda hemen görüntüleyin.</p>
+            {phoneTestQrDataUrl ? (
+              <img src={phoneTestQrDataUrl} alt="Mobil test QR kodu" className="p8-phone-test-qr" />
+            ) : (
+              <div className="p8-qr-placeholder">QR hazırlanıyor...</div>
+            )}
+            <span className="p8-phone-test-url">{cardShareUrl(profileSlug || publicId || "yenomi-id")}</span>
+          </>
+        ) : (
+          <div className="p8-phone-test-unpublished">
+            <p>Kartınız henüz yayınlanmadı.</p>
+            <p>Telefonda test edebilmek için önce <strong>"Kaydet ve Yayınla"</strong> düğmesi ile profilinizi yayınlayın.</p>
+          </div>
+        )}
+      </div>
+    </Modal>
   </div>;
 
   if (!isBusinessCard) {
@@ -794,7 +912,7 @@ export default function CardWizard() {
         </button>
       </div>
       <div className="enterprise-side-plan">
-        <small>{orgLock?.planName || "Business"}</small>
+        <small>{(orgLock?.planName || "Business").replace(/BUSİNESS/g, "BUSINESS")}</small>
         <strong>{orgLock?.seatLimit ? `${orgLock.seatLimit} lisans kapasiteli kurumsal plan` : "Aktif kurumsal lisans"}</strong>
         {canManageLicenses && <Link href={CORPORATE_PANEL_TAB_ROUTE.licenses}>Lisansları Yönet</Link>}
       </div>
@@ -810,7 +928,18 @@ export default function CardWizard() {
           <strong>Kartım</strong>
         </div>
       </div>
-      <header className="p8-corporate-header"><div><span>Kurumsal Kart</span><h1>{profileId ? "Kart Profilini Düzenle" : "Kart Profilini Oluştur"}</h1><p>Şirket politikasına açık alanları düzenleyin; kilitli alanlar merkezi olarak yönetilir.</p></div><div><Link className="ds-button ds-button--secondary" href={cancelHref}>İptal</Link><Button variant="primary" disabled={publishDisabled} onClick={() => void publish()}>{saving ? "Kaydediliyor..." : "Kaydet ve Yayınla"}</Button></div></header>
+      <header className="p8-corporate-header">
+        <div>
+          <span>Kurumsal Kart</span>
+          <h1>{profileId ? "Kart Profilini Düzenle" : "Kart Profilini Oluştur"}</h1>
+          <p>Şirket politikasına açık alanları düzenleyin; kilitli alanlar merkezi olarak yönetilir.</p>
+        </div>
+        <div className="p8-header-actions">
+          {saveFeedback && <span className="p8-save-feedback-badge" role="status">{saveFeedback}</span>}
+          <Link className="ds-button ds-button--secondary" href={cancelHref}>İptal</Link>
+          <Button variant="primary" disabled={publishDisabled} onClick={() => void publish()}>{saving ? "Kaydediliyor..." : "Kaydet ve Yayınla"}</Button>
+        </div>
+      </header>
       <div className="p8-corporate-content">{editorBody}</div>
     </section>
   </main>;

@@ -81,3 +81,56 @@ export async function ensureRealImage(file: File) {
     URL.revokeObjectURL(objectUrl);
   }
 }
+
+/**
+ * Profile completion calculation model.
+ *
+ * CATEGORY-BASED MODEL (6 CATEGORIES):
+ * 1. IDENTITY: name AND role present
+ * 2. CONTACT: phone OR email present (at least one valid contact method)
+ * 3. VISUAL: profile image present
+ * 4. COMPANY: company identity present
+ * 5. CONTENT: bio present
+ * 6. NETWORKING: linkedin present
+ *
+ * Each completed category contributes equally (1/6 = ~16.67%).
+ * Total completion = Math.round((completedCategories / totalCategories) * 100).
+ */
+export function calculateProfileCompletion(data: CardData): number {
+  let categoriesCompleted = 0;
+  const TOTAL_CATEGORIES = 6;
+
+  if (data.name?.trim() && data.role?.trim()) categoriesCompleted += 1;
+  if (data.phone?.trim() || data.email?.trim()) categoriesCompleted += 1;
+  if (data.image?.trim()) categoriesCompleted += 1;
+  if (data.company?.trim()) categoriesCompleted += 1;
+  if (data.bio?.trim()) categoriesCompleted += 1;
+  if (data.linkedin?.trim()) categoriesCompleted += 1;
+
+  return Math.round((categoriesCompleted / TOTAL_CATEGORIES) * 100);
+}
+
+export function getMissingProfileItems(data: CardData): string[] {
+  const missing: string[] = [];
+  if (!data.name?.trim() || !data.role?.trim()) missing.push("ad soyad ve ünvan");
+  if (!data.phone?.trim() && !data.email?.trim()) missing.push("iletişim bilgisi");
+  if (!data.image?.trim()) missing.push("profil fotoğrafı");
+  if (!data.company?.trim()) missing.push("şirket bilgisi");
+  if (!data.bio?.trim()) missing.push("kısa biyografi");
+  if (!data.linkedin?.trim()) missing.push("LinkedIn");
+  return missing;
+}
+
+export function formatMissingItemsText(data: CardData): string {
+  const missing = getMissingProfileItems(data).slice(0, 2);
+  if (missing.length === 0) {
+    return "Profiliniz tam kapasiteyle yayınlanmaya hazır.";
+  }
+  if (missing.length === 1) {
+    return `${missing[0]} ekleyerek kartını tamamla.`;
+  }
+  return `${missing[0]} ve ${missing[1]} ekleyerek kartını tamamla.`;
+}
+
+
+

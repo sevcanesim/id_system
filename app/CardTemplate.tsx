@@ -180,7 +180,7 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
 
         <a className="p12-save-contact" href={saveHref}>
           <span className="p12-save-icon"><Icon name="save" /></span>
-          <span><strong>{saveLabel?.title || "Rehbere Kaydet"}</strong><small>{saveLabel?.subtitle || "İletişim bilgilerini tek dokunuşla ekle"}</small></span>
+          <span><strong>{saveLabel?.title || "Kişiye Ekle"}</strong><small>{saveLabel?.subtitle || "İletişim bilgilerini tek dokunuşla ekle"}</small></span>
           <Arrow />
         </a>
 
@@ -223,6 +223,7 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
   }
 
   if (isCorporate) {
+    const TitleTag = preview ? "h2" : "h1";
     return (
       <div
         className={`corporate-card-shell corporate-template-${brandVariant.toLowerCase()} ${preview ? "embedded-card-preview" : ""}`}
@@ -238,7 +239,7 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
             <section className="corp-essential-identity">
               {identityPhoto("corp-essential-avatar")}
               <div>
-                <h1>{identity.name}</h1>
+                <TitleTag>{identity.name}</TitleTag>
                 <p>{identity.role}</p>
                 <small>{identity.company || companyName}</small>
                 {corporateIdentityBadge && (
@@ -253,7 +254,7 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
             <nav className="corp-main-actions corp-main-actions-dark" aria-label="Hızlı iletişim">
               {phone && <a href={`tel:${phone}`} {...clickProps}><Icon name="phone" /><span>Ara</span></a>}
               {data.email && <a href={`mailto:${data.email}`} {...clickProps}><Icon name="mail" /><span>E-posta</span></a>}
-              <a href={saveHref} {...clickProps}><Icon name="save" /><span>Rehbere Kaydet</span></a>
+              <a href={saveHref} {...clickProps}><Icon name="save" /><span>Kişiye Ekle</span></a>
             </nav>
 
             <nav className="corp-social-strip" aria-label="Sosyal bağlantılar">
@@ -287,14 +288,14 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
             <div className="corp-professional-cover">{corporateBrand}</div>
             <section className="corp-professional-identity">
               {identityPhoto("corp-professional-avatar")}
-              <h1>{identity.name}</h1>
+              <TitleTag>{identity.name}</TitleTag>
               <p>{identity.role}</p>
               <span>{identity.company || companyName}</span>
             </section>
             <nav className="corp-main-actions" aria-label="Hızlı iletişim">
               {phone && <a href={`tel:${phone}`} {...clickProps}><Icon name="phone" /><span>Ara</span></a>}
               {data.email && <a href={`mailto:${data.email}`} {...clickProps}><Icon name="mail" /><span>E-posta</span></a>}
-              <a href={saveHref} {...clickProps}><Icon name="save" /><span>Kaydet</span></a>
+              <a href={saveHref} {...clickProps}><Icon name="save" /><span>Kişiye Ekle</span></a>
             </nav>
           </div>
         )}
@@ -304,7 +305,7 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
             <header>{corporateBrand}</header>
             <section className="corp-executive-identity">
               {identityPhoto("corp-executive-avatar")}
-              <h1>{identity.name}</h1>
+              <TitleTag>{identity.name}</TitleTag>
               <p>{identity.role}</p>
               <span>{identity.company || companyName}</span>
             </section>
@@ -315,13 +316,15 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
     );
   }
 
+  const TitleTag = preview ? "h2" : "h1";
   return (
     <div className="card-template-preview">
       <section className="card-template-preview__identity">
         {identityPhoto("card-template-preview__avatar")}
-        <h1>{identity.name}</h1>
+        <TitleTag>{identity.name}</TitleTag>
         <p>{[identity.role, identity.company].filter(Boolean).join(" · ")}</p>
       </section>
     </div>
   );
+
 }

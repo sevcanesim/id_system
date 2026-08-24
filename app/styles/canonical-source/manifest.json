@@ -1255,7 +1255,7 @@
     },
     {
       "id": "000209",
-      "owner": "mixed",
+      "owner": "products",
       "sha256": "f607b2b67be08935116ae07e8523cf38bb202712b122e96e782a488434923923",
       "bytes": 119
     },
@@ -2887,7 +2887,7 @@
     },
     {
       "id": "000481",
-      "owner": "mixed",
+      "owner": "corporate",
       "sha256": "38d20125e61f820c8d6a72adef8ac0ace89bd6551e975625584739d7fb981b68",
       "bytes": 54
     },
@@ -4951,7 +4951,7 @@
     },
     {
       "id": "000825",
-      "owner": "mixed",
+      "owner": "corporate",
       "sha256": "ca6232fb20fc6785cfbbe71d543cf20fed93799e2ba73b0dc40d4d9866885103",
       "bytes": 62
     },
@@ -5311,7 +5311,7 @@
     },
     {
       "id": "000885",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "7f1b06e768c740ad5bf23546ada1d7fd077fa66c7d650713f464f2f09648a75f",
       "bytes": 474
     },
@@ -5551,19 +5551,19 @@
     },
     {
       "id": "000925",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "66a1ec073360689e5b8c324decfdd767c6bb6e9b6aeadaebb2fff1fbba0f30b8",
       "bytes": 106
     },
     {
       "id": "000926",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "08b73e9718e74b47752a4877fe03ec68dae52a500cef47d39938d2a23c75286a",
       "bytes": 106
     },
     {
       "id": "000927",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "9493dcac66328c3c36bf86445ffc339fb59c52fadc0896bcbea0cb5fb00de2ce",
       "bytes": 87
     },
@@ -5593,13 +5593,13 @@
     },
     {
       "id": "000932",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "a9a43620676972414cf90ccf1f63d003171a94bd1e1a318a0ead91af714c347a",
       "bytes": 104
     },
     {
       "id": "000933",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "af4444103192e48e49e57c0908ffd95adee25cc0778e0f92dbf5441324bfc981",
       "bytes": 49
     },
@@ -5665,7 +5665,7 @@
     },
     {
       "id": "000944",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "b6870b2b1a0bac3d03140a7b00d6881736cc4f0683df5fa013146b324460887c",
       "bytes": 258
     },

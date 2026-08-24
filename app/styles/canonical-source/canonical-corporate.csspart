@@ -79,7 +79,8 @@
 .corporate-conversion p,.corporate-lead-copy p { color:#625c55; }/* @canonical-block:000267 */
 .corporate-lead-section { grid-template-columns:.9fr 1.1fr; }/* @canonical-block:000268 */
 .corporate-lead-copy ul { padding-left:20px; color:#625c55; }/* @canonical-block:000479 */
-.p10-domain-panel,.p11-filter-control { padding:16px; }/* @canonical-block:000488 */
+.p10-domain-panel,.p11-filter-control { padding:16px; }/* @canonical-block:000481 */
+.v25-donut-wrap { display:grid; place-items:center; }/* @canonical-block:000488 */
 .enterprise-side-management { display:grid; gap:8px; }/* @canonical-block:000489 */
 .enterprise-side-links,.enterprise-side-primary-links { display:grid; gap:4px; }/* @canonical-block:000490 */
 .enterprise-side-links a,.enterprise-side-primary-links a { padding:10px 11px; border-radius:9px; color:var(--ink-2); font-size:14px; }/* @canonical-block:000491 */
@@ -225,7 +226,8 @@
 .business-hero h1 { margin:6px 0; font-size:clamp(28px,4vw,46px); }/* @canonical-block:000815 */
 .business-hero-art { width:150px; aspect-ratio:1; display:grid; place-items:center; border-radius:20px; border:1px solid var(--border-gold); background:radial-gradient(circle at 50% 40%,rgba(109,61,224,.28),transparent 60%),var(--glass); }/* @canonical-block:000818 */
 .business-kpis strong { display:block; color:var(--gold-hi); font:700 22px var(--font-mono); }/* @canonical-block:000819 */
-.business-kpis span { color:var(--ink-3); font-size:12px; }/* @canonical-block:000850 */
+.business-kpis span { color:var(--ink-3); font-size:12px; }/* @canonical-block:000825 */
+.v25-quick-actions { display:flex; flex-wrap:wrap; gap:8px; }/* @canonical-block:000850 */
 .business-seat-pack-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }/* @canonical-block:001237 */
 .p11-networking-message { margin:0 0 12px; color:var(--ink-2); }/* @canonical-block:001238 */
 .p11-networking-list,

@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import CorporatePanelGate from "./CorporatePanelGate";
 import { PageLoadingView } from "../../components/ui/States";
-import "./employee-action-first.css";
 
 /**
  * Persistent corporate workspace shell.

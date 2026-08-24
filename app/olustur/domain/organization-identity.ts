@@ -71,7 +71,7 @@ export async function fetchOrganizationIdentity(
       organizationId: org.organization_id,
       organizationName: org.organizations?.name || "",
       membershipRole: org.role || "EMPLOYEE",
-      planName: org.organization_subscriptions?.[0]?.business_plans?.name || "Business",
+      planName: (org.organization_subscriptions?.[0]?.business_plans?.name || "Business").replace(/BUSİNESS/g, "BUSINESS"),
       seatLimit: org.organization_subscriptions?.[0]?.seat_limit ?? null,
       lockCompany: readLockMode(fields.lockCompany, "free"),
       lockTitle: readLockMode(fields.lockTitle, "free"),

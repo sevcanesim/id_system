@@ -7,6 +7,13 @@ const canonicalPath = path.join(root, "app/canonical.css");
 const sourceDir = path.join(root, "app/styles/canonical-source");
 const manifestPath = path.join(sourceDir, "manifest.json");
 const mode = process.argv.includes("--apply") ? "apply" : "dry-run";
+const limitArg = process.argv.find((arg) => arg.startsWith("--limit="));
+const limit = Number(limitArg?.split("=")[1] ?? 20);
+
+if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+  console.error("--limit must be an integer between 1 and 100");
+  process.exit(1);
+}
 
 const OWNER_FILES = {
   foundation: "canonical-foundation.csspart",
@@ -18,21 +25,29 @@ const OWNER_FILES = {
   mixed: "canonical-mixed.csspart",
 };
 
-const BATCH = [
-  ["000209", "products"],
-  ["000481", "corporate"],
-  ["000825", "corporate"],
-  ["000885", "foundation"],
-  ["000925", "foundation"],
-  ["000926", "foundation"],
-  ["000927", "foundation"],
-  ["000932", "foundation"],
-  ["000933", "foundation"],
-  ["000944", "foundation"],
+const DOMAINS = [
+  { name: "foundation", prefixes: ["yi-", "ds-"] },
+  { name: "public", prefixes: ["home-", "p4-", "support-", "legal-", "public-site-"] },
+  { name: "products", prefixes: ["products-", "nfc-", "how-"] },
+  { name: "corporate", prefixes: ["corporate-", "corp-", "p10-", "p11-", "p14-", "enterprise-", "business-", "v25-", "v26-"] },
+  { name: "account", prefixes: ["p6-", "p7-", "p8-", "p9-", "p12-"] },
+  { name: "commerce", prefixes: ["checkout-", "cart-", "order-", "payment-", "commerce-", "add-to-cart-"] },
 ];
 
-function sha256(value) { return crypto.createHash("sha256").update(value).digest("hex"); }
-function marker(id) { return `/* @canonical-block:${id} */`; }
+const NEUTRAL_CLASSES = new Set([
+  "active", "inactive", "disabled", "selected", "secondary", "primary",
+  "is-active", "is-open", "is-loading", "is-disabled", "is-selected",
+  "theme-light", "theme-dark",
+]);
+
+function sha256(value) {
+  return crypto.createHash("sha256").update(value).digest("hex");
+}
+
+function marker(id) {
+  return `/* @canonical-block:${id} */`;
+}
+
 function parsePartFile(content) {
   const matches = [...content.matchAll(/\/\* @canonical-block:(\d{6}) \*\//g)];
   const blocks = new Map();
@@ -44,6 +59,20 @@ function parsePartFile(content) {
     blocks.set(current[1], content.slice(start, end));
   }
   return blocks;
+}
+
+function classNames(css) {
+  return [...css.matchAll(/\.([_a-zA-Z][\w-]*)/g)].map((match) => match[1]);
+}
+
+function domainForClass(className) {
+  if (NEUTRAL_CLASSES.has(className)) return "neutral";
+  return DOMAINS.find((domain) => domain.prefixes.some((prefix) => className.startsWith(prefix)))?.name ?? "unknown";
+}
+
+function mediaScope(css) {
+  const match = css.match(/@media\s*([^\{]+)/);
+  return match ? match[1].replace(/\s+/g, " ").trim() : "base";
 }
 
 if (!fs.existsSync(manifestPath)) {
@@ -59,15 +88,55 @@ for (const [owner, filename] of Object.entries(OWNER_FILES)) {
   parts.set(owner, fs.existsSync(file) ? parsePartFile(fs.readFileSync(file, "utf8")) : new Map());
 }
 
+const mixedBlocks = parts.get("mixed");
+const classOccurrences = new Map();
+for (const [id, css] of mixedBlocks) {
+  for (const className of new Set(classNames(css))) {
+    const ids = classOccurrences.get(className) ?? [];
+    ids.push(id);
+    classOccurrences.set(className, ids);
+  }
+}
+
+const candidates = [];
+for (const entry of manifest.order) {
+  if (entry.owner !== "mixed") continue;
+  const css = mixedBlocks.get(entry.id);
+  if (!css || mediaScope(css) !== "base") continue;
+
+  const classes = [...new Set(classNames(css))];
+  if (!classes.length) continue;
+
+  const meaningfulOwners = new Set();
+  let hasUnknown = false;
+  let duplicated = false;
+
+  for (const className of classes) {
+    const owner = domainForClass(className);
+    if (owner === "unknown") hasUnknown = true;
+    else if (owner !== "neutral") meaningfulOwners.add(owner);
+    if ((classOccurrences.get(className)?.length ?? 0) > 1) duplicated = true;
+  }
+
+  if (hasUnknown || duplicated || meaningfulOwners.size !== 1) continue;
+  const targetOwner = [...meaningfulOwners][0];
+  candidates.push([entry.id, targetOwner]);
+  if (candidates.length >= limit) break;
+}
+
+if (!candidates.length) {
+  console.log("NO SAFE CANDIDATES — no base-scope, single-domain, non-duplicated mixed blocks remain under the current classifier.");
+  process.exit(0);
+}
+
 const errors = [];
-for (const [id, targetOwner] of BATCH) {
+for (const [id, targetOwner] of candidates) {
   const entry = entriesById.get(id);
-  if (!entry) { errors.push(`${id}: missing from manifest`); continue; }
-  if (entry.owner !== "mixed") { errors.push(`${id}: expected mixed owner, found ${entry.owner}`); continue; }
-  const sourceBlock = parts.get("mixed").get(id);
-  if (!sourceBlock) { errors.push(`${id}: missing from canonical-mixed.csspart`); continue; }
-  if (sha256(sourceBlock) !== entry.sha256) { errors.push(`${id}: block hash differs from manifest`); continue; }
-  if (!OWNER_FILES[targetOwner]) errors.push(`${id}: unsupported target owner ${targetOwner}`);
+  const sourceBlock = mixedBlocks.get(id);
+  if (!entry || entry.owner !== "mixed") errors.push(`${id}: expected mixed manifest entry`);
+  else if (!sourceBlock) errors.push(`${id}: missing from canonical-mixed.csspart`);
+  else if (sha256(sourceBlock) !== entry.sha256) errors.push(`${id}: block hash differs from manifest`);
+  else if (!OWNER_FILES[targetOwner]) errors.push(`${id}: unsupported target owner ${targetOwner}`);
 }
 
 if (errors.length) {
@@ -75,16 +144,17 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`READY — ${BATCH.length} canonical blocks can move from mixed to owned domains`);
-for (const [id, targetOwner] of BATCH) console.log(`${id}: mixed -> ${targetOwner}`);
+console.log(`READY — ${candidates.length} automatically selected canonical blocks can move from mixed to owned domains`);
+for (const [id, targetOwner] of candidates) console.log(`${id}: mixed -> ${targetOwner}`);
+
 if (mode === "dry-run") {
   console.log("DRY RUN — no files changed. Re-run with --apply to write ownership changes.");
   process.exit(0);
 }
 
-for (const [id, targetOwner] of BATCH) {
-  const block = parts.get("mixed").get(id);
-  parts.get("mixed").delete(id);
+for (const [id, targetOwner] of candidates) {
+  const block = mixedBlocks.get(id);
+  mixedBlocks.delete(id);
   parts.get(targetOwner).set(id, block);
   entriesById.get(id).owner = targetOwner;
 }
@@ -99,8 +169,14 @@ fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 let rebuilt = "";
 for (const entry of manifest.order) {
   const block = parts.get(entry.owner).get(entry.id);
-  if (!block) { console.error(`FAIL — canonical block ${entry.id} missing after reassignment`); process.exit(1); }
-  if (sha256(block) !== entry.sha256) { console.error(`FAIL — canonical block ${entry.id} content changed during reassignment`); process.exit(1); }
+  if (!block) {
+    console.error(`FAIL — canonical block ${entry.id} missing after reassignment`);
+    process.exit(1);
+  }
+  if (sha256(block) !== entry.sha256) {
+    console.error(`FAIL — canonical block ${entry.id} content changed during reassignment`);
+    process.exit(1);
+  }
   rebuilt += block;
 }
 
@@ -111,4 +187,5 @@ if (rebuiltSha !== manifest.sourceSha256 || canonicalSha !== manifest.sourceSha2
   console.error(`FAIL — canonical equivalence drifted (rebuilt ${rebuiltSha}, runtime ${canonicalSha}, expected ${manifest.sourceSha256})`);
   process.exit(1);
 }
-console.log(`PASS — reassigned ${BATCH.length} blocks with byte-identical canonical rebuild (${rebuiltSha})`);
+
+console.log(`PASS — reassigned ${candidates.length} blocks with byte-identical canonical rebuild (${rebuiltSha})`);

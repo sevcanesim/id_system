@@ -2911,7 +2911,7 @@
     },
     {
       "id": "000485",
-      "owner": "mixed",
+      "owner": "corporate",
       "sha256": "bdaeae8477304ac408a5bbd260a8c015a3391ee54e48fd734d233836f4b1fbfe",
       "bytes": 159
     },
@@ -2959,7 +2959,7 @@
     },
     {
       "id": "000493",
-      "owner": "mixed",
+      "owner": "corporate",
       "sha256": "6daa068167f74f10ee45572ed9e469f8e7ad12461911b14e43bf1fb25a255656",
       "bytes": 56
     },
@@ -3001,7 +3001,7 @@
     },
     {
       "id": "000500",
-      "owner": "mixed",
+      "owner": "corporate",
       "sha256": "6f2ffc4c7813e57877fa0191694d4cd78891cf094d80c2158a746321ac1ca3b2",
       "bytes": 97
     },
@@ -3079,7 +3079,7 @@
     },
     {
       "id": "000513",
-      "owner": "mixed",
+      "owner": "corporate",
       "sha256": "5d63caebf5a392746f87f5f3be07ecb9b7e468b374d2f43cc0fd949b893da4e5",
       "bytes": 203
     },
@@ -3175,7 +3175,7 @@
     },
     {
       "id": "000529",
-      "owner": "mixed",
+      "owner": "corporate",
       "sha256": "7db2fe22508f7c906df2209ee0c7b0671a3133f5eda5a3f28912400515cea6a4",
       "bytes": 255
     },
@@ -3241,7 +3241,7 @@
     },
     {
       "id": "000540",
-      "owner": "mixed",
+      "owner": "corporate",
       "sha256": "b6da24bc329d42154d38e42913f79b60caf61d4f081abbff636e9973e1250763",
       "bytes": 175
     },
@@ -5671,7 +5671,7 @@
     },
     {
       "id": "000945",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "f6b24a12101e003268d2aae3449f7501c9dacd5df4aea45cf3e0852efe27b4f6",
       "bytes": 191
     },
@@ -5875,7 +5875,7 @@
     },
     {
       "id": "000979",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "56afff63b0673d984025ede143af80cd023be9e10e923f179a60004b5fcba29a",
       "bytes": 95
     },
@@ -6019,7 +6019,7 @@
     },
     {
       "id": "001003",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "11293df7d53f412b909e2f44ae70026141b74dd1e60b2f30b71de21e041a9832",
       "bytes": 45
     },
@@ -6049,13 +6049,13 @@
     },
     {
       "id": "001008",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "bf8565e073fdfeb64b07fd1c905f208bc9267112db1e0b898db115bf8d0b8ba8",
       "bytes": 59
     },
     {
       "id": "001009",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "f90d68e9b4b3a13b25a09cdf66024a609ec7489e9f5dd76d08faf8aeed4a0943",
       "bytes": 53
     },
@@ -6091,7 +6091,7 @@
     },
     {
       "id": "001015",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "4802c6727401caecbea5e02baeb31787ae600b83245bbc788172aba16777c594",
       "bytes": 78
     },
@@ -6109,13 +6109,13 @@
     },
     {
       "id": "001018",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "5e424b40d31003adb7c8fd44c1fb2b579d8397529d06ea8e578cf1e41c0f6d64",
       "bytes": 37
     },
     {
       "id": "001019",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "61bb2a0d450c44ddb7b79a791e0d246501a8c265f62cbaac489b5243ccd9aab2",
       "bytes": 60
     },
@@ -6211,7 +6211,7 @@
     },
     {
       "id": "001035",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "b2ca4c7f30de7ea9b55bc7ae7e93385c254f75869876e6f3e1304c4f0523e745",
       "bytes": 27
     },
@@ -6301,7 +6301,7 @@
     },
     {
       "id": "001050",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "1303f3713691ea6d798f2cdcd2af71cc7a5def957efc8a0095219b80fed1f4f3",
       "bytes": 99
     },
@@ -6361,7 +6361,7 @@
     },
     {
       "id": "001060",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "05efaee0ca17dc1cab3401dec9a6cd00ffeaf7152766ca737721f025d42b2085",
       "bytes": 72
     },
@@ -6397,7 +6397,7 @@
     },
     {
       "id": "001066",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "0b513bc66bcb1f8eb8f027b5a5b84cd60ac2616af0915ca0d5bf9c5a22313b0f",
       "bytes": 103
     },
@@ -6433,13 +6433,13 @@
     },
     {
       "id": "001072",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "4373e96c105c9181fc11bf7a41742c01caa4492443b2a9bbb86abbf83902d1eb",
       "bytes": 48
     },
     {
       "id": "001073",
-      "owner": "mixed",
+      "owner": "foundation",
       "sha256": "a4fde39cd519ffe1133f88c76dacf40811064e528bc7ba39b8ee74328370ebab",
       "bytes": 110
     },

@@ -12,10 +12,10 @@ export const metadata: Metadata = {
 const initialPrice = formatTryFromKurus(NFC_PRODUCT.unitPriceKurus);
 
 const howItWorksSteps = [
-  { number: "01", title: "Kartını seç", text: "Fiziksel NFC + QR kartını seç. Kartın tek bir kalıcı dijital profile bağlanır." },
-  { number: "02", title: "Profilini oluştur", text: "İletişim bilgilerini, ünvanını ve bağlantılarını tek canlı profilde topla." },
-  { number: "03", title: "Dokundur veya okut", text: "NFC ile yaklaştır ya da QR’ı okut. Karşı taraf uygulama indirmeden profilini açar." },
-  { number: "04", title: "Güncelle ve yönet", text: "Bilgin değişirse profili güncelle. Kart kaybolursa fiziksel erişimi panelden kapat." },
+  { number: "01", title: "Kartını seç", text: "NFC + QR kartını seç. Kartın tek bir kalıcı dijital profile bağlanır." },
+  { number: "02", title: "Profilini oluştur", text: "İletişim bilgilerini, ünvanını ve bağlantılarını tek profilde topla." },
+  { number: "03", title: "Dokundur veya okut", text: "NFC ile yaklaştır veya QR’ı okut. Profil uygulama indirmeden açılır." },
+  { number: "04", title: "Güncelle ve yönet", text: "Bilgin değişirse profili güncelle. Kart kaybolursa fiziksel erişimi kapat." },
 ] as const;
 
 const heroTrust = ["Türkiye içi kargo dahil", "2 iş gününde hazırlanır", "Uygulama gerekmez"];
@@ -71,19 +71,6 @@ export default function HomePage() {
           <ol className="home-sales-steps">
             {howItWorksSteps.map((step) => <li className="home-sales-step" key={step.number}><span className="home-sales-step-number">Adım {step.number}</span><h3>{step.title}</h3><p>{step.text}</p></li>)}
           </ol>
-          <div className="home-sales-editorial">
-            <div className="home-sales-editorial-copy">
-              <span className="home-mockup__kicker">TEK KART · CANLI PROFİL</span>
-              <h3>Fiziksel kart aynı kalır.<br />Kontrol sende kalır.</h3>
-              <p>Telefon veya ünvan değiştiğinde profilini güncellersin. Kart kaybolursa fiziksel erişimi kapatırsın. NFC çalışmasa bile QR aynı profile açılır.</p>
-              <Link className="home-mockup__link-secondary" href="/nasil-calisir">Detaylı anlatımı gör <span aria-hidden>→</span></Link>
-            </div>
-            <div className="home-sales-facts" aria-label="Yenomi ID temel çalışma prensipleri">
-              <div><strong>NFC + QR</strong><span>Aynı canlı profile açılır</span></div>
-              <div><strong>Uygulamasız</strong><span>Modern tarayıcıda doğrudan açılır</span></div>
-              <div><strong>Yönetilebilir</strong><span>Bilgiyi güncelle, kartı gerektiğinde kapat</span></div>
-            </div>
-          </div>
         </section>
 
         <section className="home-premium__paths home-sales-paths" aria-labelledby="paths-title">

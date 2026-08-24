@@ -15,15 +15,15 @@
   max-width: 650px;
   font-size: clamp(4rem, 4.55vw, 5.35rem) !important;
   line-height: 0.94 !important;
-  letter-spacing: -0.058em !important;
+  letter-spacing: -0.04em !important;
   font-weight: 620 !important;
 }
 
 .heroCopy > p {
   max-width: 520px;
   font-size: 1.03rem !important;
-  line-height: 1.62 !important;
-  color: #5f5a52 !important;
+  line-height: 1.6 !important;
+  color: var(--text-secondary) !important;
 }
 
 .heroActions {
@@ -32,10 +32,30 @@
 }
 
 .heroActions :global(.home-mockup__button) {
-  min-height: 50px;
+  min-height: var(--control-height-lg);
   padding-inline: 23px;
-  border-radius: 11px;
+  border-radius: var(--radius-sm);
   box-shadow: none;
+  transition:
+    transform var(--motion-fast) var(--ease-emphasis),
+    background-color var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard);
+}
+
+.heroActions :global(.home-mockup__button:hover) {
+  transform: translateY(-1px);
+}
+
+.heroActions :global(.home-mockup__button:active) {
+  transform: scale(.985);
+}
+
+.heroActions :global(.home-premium__hero-secondary) {
+  transition: color var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-emphasis);
+}
+
+.heroActions :global(.home-premium__hero-secondary:hover) {
+  transform: translateY(-1px);
 }
 
 .heroOffer {
@@ -47,7 +67,7 @@
 }
 
 .heroOffer span {
-  color: #6a655d;
+  color: var(--text-secondary);
 }
 
 .heroTrust {
@@ -56,19 +76,17 @@
 
 .heroTrust span {
   font-size: 0.78rem !important;
-  color: #6b665f !important;
+  color: var(--text-secondary) !important;
 }
 
 .heroStage {
   position: relative;
-  min-height: 520px;
+  min-height: 500px;
   padding: 62px 38px 42px;
-  border: 1px solid rgba(31, 27, 21, 0.07);
-  border-radius: 24px;
-  background:
-    radial-gradient(circle at 52% 44%, rgba(181, 141, 69, 0.10), transparent 43%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(242, 237, 226, 0.76));
-  box-shadow: 0 22px 58px rgba(37, 30, 20, 0.055);
+  border: 1px solid var(--border-subdued);
+  border-radius: var(--radius-lg);
+  background: var(--surface-soft);
+  box-shadow: var(--shadow-xs);
 }
 
 .stageEyebrow {
@@ -77,21 +95,22 @@
   left: 26px;
   z-index: 3;
   font-size: 0.66rem;
-  font-weight: 750;
-  letter-spacing: 0.12em;
-  color: #8a8175;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  color: var(--text-tertiary);
 }
 
 .heroGlow {
-  width: 58% !important;
-  background: rgba(176, 136, 65, 0.085) !important;
-  filter: blur(78px) !important;
+  width: 54% !important;
+  background: var(--primary-subtle) !important;
+  filter: blur(72px) !important;
+  opacity: .72;
 }
 
 .heroProductImage {
-  width: min(88%, 545px) !important;
-  transform: translateY(16px);
-  filter: drop-shadow(0 28px 36px rgba(28, 23, 16, 0.13)) !important;
+  width: min(86%, 530px) !important;
+  transform: translateY(14px);
+  filter: drop-shadow(0 24px 34px rgba(28, 23, 16, 0.11)) !important;
 }
 
 .capabilities {
@@ -109,61 +128,104 @@
   align-items: center;
   min-height: 29px;
   padding: 0 10px;
-  border: 1px solid rgba(31, 27, 21, 0.08);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-subdued);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--surface-card) 84%, transparent);
   font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #4e4942;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  color: var(--text-secondary);
 }
 
 .sectionRhythm {
-  padding-top: 112px !important;
-  padding-bottom: 112px !important;
+  padding-top: var(--space-30) !important;
+  padding-bottom: var(--space-30) !important;
 }
 
 .stepsGrid {
-  gap: 14px !important;
+  gap: 12px !important;
 }
 
 .step {
-  border-radius: 16px !important;
-  background: rgba(255, 255, 255, 0.70) !important;
+  border-radius: var(--radius-md) !important;
+  border-color: var(--border-subdued) !important;
+  background: var(--surface-card) !important;
   box-shadow: none !important;
-  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+  transition:
+    transform var(--motion-fast) var(--ease-emphasis),
+    border-color var(--motion-fast) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard);
 }
 
 .step:hover {
-  transform: translateY(-2px);
-  border-color: rgba(156, 113, 31, 0.18) !important;
-  background: rgba(255, 255, 255, 0.88) !important;
+  transform: translateY(-1px);
+  border-color: var(--border-strong) !important;
+  background: var(--surface-card) !important;
 }
 
 .productStory {
   margin-top: 28px !important;
-  border-radius: 22px !important;
-  box-shadow: 0 24px 64px rgba(37, 30, 20, 0.055);
-}
-
-.proofGrid {
-  margin-top: 34px !important;
-}
-
-.pathGrid article {
-  border-radius: 18px !important;
+  border-radius: var(--radius-lg) !important;
+  border-color: var(--border-subdued) !important;
+  background: var(--surface-soft) !important;
   box-shadow: none !important;
 }
 
+.productStoryEditorial {
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr) !important;
+  min-height: 0 !important;
+}
+
+.editorialFacts {
+  display: grid;
+  align-self: stretch;
+  border-left: 1px solid var(--border-subdued);
+  background: color-mix(in srgb, var(--surface-card) 58%, transparent);
+}
+
+.editorialFacts > div {
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  min-height: 150px;
+  padding: 28px 34px;
+}
+
+.editorialFacts > div + div {
+  border-top: 1px solid var(--border-subdued);
+}
+
+.editorialFacts strong {
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.editorialFacts span {
+  color: var(--text-secondary);
+  font-size: .88rem;
+  line-height: 1.55;
+}
+
+.pathGrid article {
+  border-radius: var(--radius-card) !important;
+  border-color: var(--border-subdued) !important;
+  box-shadow: none !important;
+}
+
+.pathGrid article:first-child {
+  background: var(--surface-card) !important;
+}
+
 .comparison {
-  padding-top: 112px !important;
-  padding-bottom: 120px !important;
+  padding-top: var(--space-30) !important;
+  padding-bottom: var(--space-30) !important;
 }
 
 .final {
-  padding-top: 120px !important;
-  padding-bottom: 120px !important;
+  padding-top: var(--space-30) !important;
+  padding-bottom: var(--space-30) !important;
 }
 
 @media (max-width: 1180px) {
@@ -178,12 +240,12 @@
   }
 
   .heroStage {
-    min-height: 480px;
+    min-height: 470px;
     padding: 58px 24px 34px;
   }
 
   .heroProductImage {
-    width: min(90%, 490px) !important;
+    width: min(88%, 480px) !important;
   }
 }
 
@@ -204,14 +266,34 @@
   }
 
   .heroStage {
-    min-height: 500px;
+    min-height: 480px;
     width: 100%;
     max-width: 720px;
     margin: 0 auto;
   }
 
   .heroProductImage {
-    width: min(82%, 520px) !important;
+    width: min(80%, 500px) !important;
+  }
+
+  .productStoryEditorial {
+    grid-template-columns: 1fr !important;
+  }
+
+  .editorialFacts {
+    grid-template-columns: repeat(3, 1fr);
+    border-left: 0;
+    border-top: 1px solid var(--border-subdued);
+  }
+
+  .editorialFacts > div {
+    min-height: 130px;
+    padding: 24px;
+  }
+
+  .editorialFacts > div + div {
+    border-top: 0;
+    border-left: 1px solid var(--border-subdued);
   }
 }
 
@@ -223,8 +305,8 @@
 
   .heroCopy h1 {
     font-size: clamp(2.75rem, 12vw, 3.85rem) !important;
-    line-height: 0.96 !important;
-    letter-spacing: -0.05em !important;
+    line-height: 0.97 !important;
+    letter-spacing: -0.035em !important;
   }
 
   .heroCopy > p {
@@ -263,9 +345,9 @@
   }
 
   .heroStage {
-    min-height: 390px;
+    min-height: 380px;
     padding: 54px 14px 50px;
-    border-radius: 20px;
+    border-radius: var(--radius-card);
   }
 
   .stageEyebrow {
@@ -275,8 +357,8 @@
   }
 
   .heroProductImage {
-    width: min(88%, 410px) !important;
-    transform: translateY(10px);
+    width: min(86%, 400px) !important;
+    transform: translateY(8px);
   }
 
   .capabilities {
@@ -286,8 +368,8 @@
   }
 
   .sectionRhythm {
-    padding-top: 78px !important;
-    padding-bottom: 78px !important;
+    padding-top: var(--space-20) !important;
+    padding-bottom: var(--space-20) !important;
   }
 
   .stepsGrid {
@@ -299,26 +381,45 @@
   }
 
   .productStory {
-    border-radius: 18px !important;
+    border-radius: var(--radius-card) !important;
+  }
+
+  .editorialFacts {
+    grid-template-columns: 1fr;
+  }
+
+  .editorialFacts > div {
+    min-height: 0;
+    padding: 20px 24px;
+  }
+
+  .editorialFacts > div + div {
+    border-left: 0;
+    border-top: 1px solid var(--border-subdued);
   }
 
   .comparison {
-    padding-top: 84px !important;
-    padding-bottom: 90px !important;
+    padding-top: var(--space-20) !important;
+    padding-bottom: var(--space-24) !important;
   }
 
   .final {
-    padding-top: 88px !important;
-    padding-bottom: 88px !important;
+    padding-top: var(--space-24) !important;
+    padding-bottom: var(--space-24) !important;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .step {
+  .step,
+  .heroActions :global(.home-mockup__button),
+  .heroActions :global(.home-premium__hero-secondary) {
     transition: none;
   }
 
-  .step:hover {
+  .step:hover,
+  .heroActions :global(.home-mockup__button:hover),
+  .heroActions :global(.home-mockup__button:active),
+  .heroActions :global(.home-premium__hero-secondary:hover) {
     transform: none;
   }
 }

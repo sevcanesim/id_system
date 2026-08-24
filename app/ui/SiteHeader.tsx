@@ -29,7 +29,7 @@ export default function SiteHeader({
   const [signedIn, setSignedIn] = useState(false);
   const [count, setCount] = useState(0);
   const primaryCta = actions.filter((a) => a.primary).slice(0, 1)[0]
-    ?? (showDefaultCta ? { href: "/urunler/nfc-kart", label: "NFC Kartı Satın Al", primary: true } : null);
+    ?? (showDefaultCta ? { href: "/urunler/nfc-kart", label: "NFC Kartımı Al", primary: true } : null);
   const onAuthSurface = pathname === "/giris" || pathname.startsWith("/giris/");
   const showAccountLink = signedIn || !onAuthSurface;
 

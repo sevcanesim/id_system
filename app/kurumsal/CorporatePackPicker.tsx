@@ -24,7 +24,6 @@ type Tier = {
   description: string;
   minSeats: number;
   maxSeats: number | null;
-  popular?: boolean;
 };
 
 const tiers: readonly Tier[] = [
@@ -40,10 +39,9 @@ const tiers: readonly Tier[] = [
     id: "BUSINESS",
     title: "Business",
     eyebrow: "Büyüyen şirketler",
-    description: "Satış, saha ve yönetim ekiplerini tek standartta yönetin. En dengeli kapasite ve birim maliyet.",
+    description: "Satış, saha ve yönetim ekiplerini tek standartta yönetin. Kapasiteyi ekip büyüklüğünüze göre seçin.",
     minSeats: 25,
     maxSeats: 100,
-    popular: true,
   },
   {
     id: "ENTERPRISE",
@@ -71,8 +69,8 @@ export default function CorporatePackPicker({
   const startIndex = useMemo(() => {
     const fromQuery = packs.findIndex((pack) => pack.code === initialCode);
     if (fromQuery >= 0) return fromQuery;
-    const popular = packs.findIndex((pack) => pack.popular);
-    return popular >= 0 ? popular : 0;
+    const defaultIndex = packs.findIndex((pack) => pack.popular);
+    return defaultIndex >= 0 ? defaultIndex : 0;
   }, [packs, initialCode]);
   const [index, setIndex] = useState(startIndex);
   const pack = packs[index] ?? packs[0];
@@ -90,7 +88,7 @@ export default function CorporatePackPicker({
             <button
               key={tierOption.id}
               type="button"
-              className={`corporate-pack-picker__tier${active ? " is-active" : ""}${tierOption.popular ? " is-popular" : ""}${enterprise ? " corporate-pack-picker__tier--enterprise" : ""}`}
+              className={`corporate-pack-picker__tier${active ? " is-active" : ""}${enterprise ? " corporate-pack-picker__tier--enterprise" : ""}`}
               aria-pressed={active}
               onClick={() => {
                 if (enterprise) {
@@ -102,9 +100,7 @@ export default function CorporatePackPicker({
                 if (nextIndex >= 0) setIndex(nextIndex);
               }}
             >
-              <span className="corporate-pack-picker__tier-status" aria-hidden="true">
-                {active ? "Seçili" : tierOption.popular ? "En çok tercih edilen" : ""}
-              </span>
+              <span className="corporate-pack-picker__tier-status" aria-hidden="true">{active ? "Seçili" : ""}</span>
               <span className="corporate-pack-picker__tier-copy">{tierOption.eyebrow}</span>
               <strong className="corporate-pack-picker__tier-name">{tierOption.title}</strong>
               <small className="corporate-pack-picker__tier-copy">{tierOption.description}</small>
@@ -116,7 +112,7 @@ export default function CorporatePackPicker({
       <div className="corporate-pack-picker__head">
         <div>
           <span className="corporate-pack-picker__kicker">{tier.title.toUpperCase()} · {pack.seats} KİŞİ</span>
-          <h3>{pack.name}{pack.popular ? <span className="corporate-pack-picker__badge">öne çıkan paket</span> : null}</h3>
+          <h3>{pack.name}</h3>
           <p>İhtiyacınız değişirse kapasiteyi yeniden baskı beklemeden yükseltebilirsiniz.</p>
         </div>
         <div className="corporate-pack-picker__price">
@@ -131,9 +127,9 @@ export default function CorporatePackPicker({
             <button
               key={packOption.code}
               type="button"
-              className={`corporate-pack-picker__tick${tickIndex === index ? " is-active" : ""}${packOption.popular ? " is-popular" : ""}`}
+              className={`corporate-pack-picker__tick${tickIndex === index ? " is-active" : ""}`}
               onClick={() => setIndex(tickIndex)}
-              aria-label={`${packOption.seats} kullanıcı${packOption.popular ? ", en çok tercih edilen kapasite" : ""}`}
+              aria-label={`${packOption.seats} kullanıcı`}
               aria-pressed={tickIndex === index}
             >
               {packOption.seats}

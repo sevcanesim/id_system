@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import { YenomiProductVisual } from "./ui/YenomiProductVisual";
 import { NFC_PRODUCT, formatTryFromKurus } from "../lib/config/product";
 import howItWorks from "./home-how-it-works.module.css";
 
@@ -16,26 +16,22 @@ const howItWorksSteps = [
   {
     number: "01",
     title: "Kartını seç",
-    text: "Sana uygun fiziksel kartı seç. NFC ve QR aynı canlı profile bağlanır.",
-    visual: "cards",
+    text: "Fiziksel NFC + QR kartını seç. Kartın tek bir kalıcı dijital profile bağlanır.",
   },
   {
     number: "02",
     title: "Profilini oluştur",
     text: "İletişim bilgilerini, ünvanını ve bağlantılarını tek canlı profilde topla.",
-    visual: "profile",
   },
   {
     number: "03",
     title: "Dokundur veya okut",
     text: "NFC ile yaklaştır ya da QR’ı okut. Karşı taraf uygulama indirmeden profilini açar.",
-    visual: "share",
   },
   {
     number: "04",
     title: "Güncelle ve yönet",
     text: "Bilgin değişirse profili güncelle. Kart kaybolursa fiziksel erişimi panelden kapat.",
-    visual: "dashboard",
   },
 ] as const;
 
@@ -58,41 +54,6 @@ const comparisonRows = [
   ["Kart kayboldu", "Kontrol sende değildir", "Kayıp moduyla erişimi kapatırsın"],
   ["İletişim kaydı", "Manuel giriş gerekir", "Tek dokunuşla rehbere kaydet"],
 ];
-
-function StepVisual({ visual }: { visual: (typeof howItWorksSteps)[number]["visual"] }) {
-  if (visual === "cards") {
-    return (
-      <div className={howItWorks.cardFan} aria-hidden="true">
-        <div className={howItWorks.cardFanItem}><YenomiProductVisual variant="card" compact finish="matte" /></div>
-        <div className={howItWorks.cardFanItem}><YenomiProductVisual variant="card" compact finish="metal" /></div>
-        <div className={howItWorks.cardFanItem}><YenomiProductVisual variant="card" compact finish="white" /></div>
-      </div>
-    );
-  }
-
-  if (visual === "profile") {
-    return (
-      <div className={howItWorks.singleVisual} aria-hidden="true">
-        <YenomiProductVisual variant="profile" compact />
-      </div>
-    );
-  }
-
-  if (visual === "share") {
-    return (
-      <div className={howItWorks.shareVisual} aria-hidden="true">
-        <div className={howItWorks.shareCard}><YenomiProductVisual variant="card" compact face="back" /></div>
-        <div className={howItWorks.shareProfile}><YenomiProductVisual variant="profile" compact /></div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={howItWorks.dashboardVisual} aria-hidden="true">
-      <YenomiProductVisual variant="dashboard" compact />
-    </div>
-  );
-}
 
 export default function HomePage() {
   return (
@@ -132,15 +93,17 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="home-mockup__visual home-premium__hero-stage" aria-label="Yenomi ID dijital kartvizit önizlemesi">
-            <div className="home-premium__hero-stage-label" aria-hidden="true">CANLI PROFİL · NFC + QR</div>
-            <div className="home-mockup__halo" aria-hidden="true" />
-            <div className="home-mockup__phone">
-              <YenomiProductVisual variant="profile" />
-            </div>
-            <div className="home-mockup__card">
-              <YenomiProductVisual variant="card" />
-            </div>
+          <div className={howItWorks.heroProduct} aria-label="Yenomi ID NFC + QR kart ürün görseli">
+            <div className={howItWorks.heroProductGlow} aria-hidden="true" />
+            <Image
+              src="/images/nfc-kart-hero.png"
+              alt="Yenomi ID NFC ve QR kart ürün görseli"
+              width={1350}
+              height={1484}
+              priority
+              sizes="(max-width: 900px) 92vw, 48vw"
+              className={howItWorks.heroProductImage}
+            />
           </div>
         </section>
 
@@ -154,17 +117,31 @@ export default function HomePage() {
           <ol className={howItWorks.grid}>
             {howItWorksSteps.map((step) => (
               <li className={howItWorks.step} key={step.number}>
-                <div className={howItWorks.stepCopy}>
-                  <span className={howItWorks.stepNumber}>Adım {step.number}</span>
-                  <h3>{step.title}</h3>
-                  <p>{step.text}</p>
-                </div>
-                <div className={howItWorks.visualWrap}>
-                  <StepVisual visual={step.visual} />
-                </div>
+                <span className={howItWorks.stepNumber}>Adım {step.number}</span>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
               </li>
             ))}
           </ol>
+
+          <div className={howItWorks.productStory}>
+            <div className={howItWorks.productStoryCopy}>
+              <span className="home-mockup__kicker">TEK KART · CANLI PROFİL</span>
+              <h3>Fiziksel kartın aynı kalır.<br />Dijital kimliğin değişir.</h3>
+              <p>NFC ve QR aynı kalıcı profile açılır. Bilgin değiştiğinde yeniden kart bastırmazsın; profilini güncellersin.</p>
+              <Link className="home-mockup__link-secondary" href="/nasil-calisir">Detaylı anlatımı gör <span aria-hidden>→</span></Link>
+            </div>
+            <div className={howItWorks.productStoryVisual} aria-hidden="true">
+              <Image
+                src="/images/nfc-kart-hero.png"
+                alt=""
+                width={1350}
+                height={1484}
+                sizes="(max-width: 900px) 86vw, 38vw"
+                className={howItWorks.productStoryImage}
+              />
+            </div>
+          </div>
 
           <div className={howItWorks.proofGrid} aria-label="Yenomi ID kullanım güvenceleri">
             {proofItems.map(([title, text]) => (
@@ -178,9 +155,6 @@ export default function HomePage() {
           <div className={howItWorks.actionRow}>
             <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">
               NFC Kartımı Al <span aria-hidden>→</span>
-            </Link>
-            <Link className="home-mockup__link-secondary" href="/nasil-calisir">
-              Detaylı anlatımı gör <span aria-hidden>→</span>
             </Link>
           </div>
         </section>

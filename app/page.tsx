@@ -90,7 +90,7 @@ export default function HomePage() {
       <main id="main-content">
         <section className={`home-mockup__hero home-premium__hero-v2 ${howItWorks.hero} ${homePolish.heroShell}`} aria-labelledby="home-title">
           <div className={`home-mockup__copy ${homePolish.heroCopy}`}>
-            <span className="home-premium__hero-pill"><i aria-hidden="true" /> NFC + QR DİJİTAL KARTVİZİT</span>
+            <span className="home-premium__hero-pill"><i aria-hidden="true" /> KAYIP MODU · Kaybolursa kapanır</span>
             <h1 id="home-title">
               Bir kez basılır.<br />
               <span>Her zaman güncel kalır.</span>
@@ -102,7 +102,7 @@ export default function HomePage() {
 
             <div className={`home-mockup__actions home-premium__hero-actions ${homePolish.heroActions}`}>
               <Link className="home-mockup__button home-mockup__button--gold home-mockup__button--primary" href="/urunler/nfc-kart">
-                NFC Kartımı Al <span aria-hidden>→</span>
+                NFC Kartı Satın Al <span aria-hidden>→</span>
               </Link>
               <Link className="home-premium__hero-secondary" href="/kurumsal">
                 Kurumsal çözümler <span aria-hidden>→</span>
@@ -175,7 +175,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className={`${howItWorks.proofGrid} ${homePolish.proofGrid}`} aria-label="Yenomi ID kullanım güvenceleri">
+          <div className={`home-premium__proof ${howItWorks.proofGrid} ${homePolish.proofGrid}`} aria-label="Yenomi ID kullanım güvenceleri">
             {proofItems.map(([title, text]) => (
               <article key={title}>
                 <strong>{title}</strong>
@@ -186,7 +186,7 @@ export default function HomePage() {
 
           <div className={howItWorks.actionRow}>
             <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">
-              NFC Kartımı Al <span aria-hidden>→</span>
+              NFC Kartı Satın Al <span aria-hidden>→</span>
             </Link>
           </div>
         </section>
@@ -202,7 +202,7 @@ export default function HomePage() {
               <h3>Tek kart. Her tanışmada güncel.</h3>
               <p>NFC + QR kartın, canlı profilin ve kayıp modun. Bilgilerin değişince yeniden baskı yok.</p>
               <div className={howItWorks.pathMeta}><strong>{initialPrice}</strong><small>1 kart · 1 yıl dahil</small></div>
-              <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">NFC Kartımı Al <span aria-hidden>→</span></Link>
+              <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">NFC Kartı Satın Al <span aria-hidden>→</span></Link>
             </article>
             <article>
               <span>KURUMSAL</span>
@@ -269,7 +269,7 @@ export default function HomePage() {
           </div>
           <div className="home-mockup__actions">
             <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">
-              NFC Kartımı Al <span aria-hidden>→</span>
+              NFC Kartı Satın Al <span aria-hidden>→</span>
             </Link>
             <Link className="home-mockup__link-secondary" href="/kurumsal">
               Kurumsal çözümler <span aria-hidden>→</span>

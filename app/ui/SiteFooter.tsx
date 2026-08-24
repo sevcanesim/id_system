@@ -14,7 +14,7 @@ function FooterContent() {
 
         <nav className="yi-footer__premium-column" aria-label="Ürün">
           <strong>Ürün</strong>
-          <Link href="/urunler/nfc-kart">NFC Kart</Link>
+          <Link href="/urunler">Ürünler</Link>
           <Link href="/nasil-calisir">Nasıl Çalışır</Link>
           <Link href="/kurumsal">Kurumsal</Link>
         </nav>

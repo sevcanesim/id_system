@@ -1,10 +1,8 @@
 "use client";
 
 import { Icon } from "../../../icons";
-import CorporateHeroPreview from "./CorporateHeroPreview";
 import type { CardAnalytics, Member, MemberCardStatus, Org, PhysicalCard, Template } from "../domain/types";
 import type { CorporatePanelTab } from "../domain/navigation";
-import { CORPORATE_PANEL_TAB_META } from "../domain/navigation";
 import { normalizeOrganizationRole } from "../../../../lib/organizations/permissions";
 import { ROLE_LABELS } from "../../../../lib/organizations/role-matrix";
 import { countMembersWithoutPhysicalAssignment } from "../../../../lib/organizations/lifecycle";
@@ -65,8 +63,6 @@ export default function OverviewPanel({
   digitalCardsReady,
   members,
   physicalCards,
-  memberCardStatuses,
-  templates,
   analytics,
   analyticsDays,
   onPeriodChange,
@@ -79,60 +75,111 @@ export default function OverviewPanel({
   onEditOwnCard,
   onExportCsv,
 }: Props) {
-  const daysUntilExpiry = subscription?.expires_at
-    ? Math.max(0, Math.ceil((new Date(subscription.expires_at).getTime() - Date.now()) / 86400000))
-    : null;
-  const seatLimit = subscription?.seat_limit ?? 0;
-  const seatPercent = seatLimit ? Math.min(100, Math.round((usedSeats / seatLimit) * 100)) : 0;
-  const cardActivationPercent = usedSeats ? Math.round((digitalCardsReady / usedSeats) * 100) : 0;
   const acceptedMembers = members.filter((member) => member.status !== "LEFT" && member.status !== "INVITED");
   const cardsWithoutDigital = Math.max(0, acceptedMembers.length - digitalCardsReady);
   const unassignedPhysical = countMembersWithoutPhysicalAssignment(members, physicalCards);
+  const daysUntilExpiry = subscription?.expires_at
+    ? Math.max(0, Math.ceil((new Date(subscription.expires_at).getTime() - Date.now()) / 86400000))
+    : null;
+  const cardActivationPercent = usedSeats ? Math.round((digitalCardsReady / usedSeats) * 100) : 0;
+  const organizationRole = normalizeOrganizationRole(org?.role);
+  const organizationRoleLabel = organizationRole ? ROLE_LABELS[organizationRole] : "—";
+  const ownMember = members.find((member) => member.user_id === currentUserId);
   const recentActivity = [...members]
     .sort((a, b) => new Date(b.last_activity_at || b.created_at).getTime() - new Date(a.last_activity_at || a.created_at).getTime())
     .slice(0, 5);
-  const ownMember = members.find((member) => member.user_id === currentUserId);
-  const representative = ownMember || members.find((member) => member.role === "OWNER" && member.status === "ACTIVE") || members.find((member) => member.status === "ACTIVE") || members[0];
-  const organizationRole = normalizeOrganizationRole(org?.role);
-  const organizationRoleLabel = organizationRole ? ROLE_LABELS[organizationRole] : "—";
-  const representativeCard = memberCardStatuses.find((item) => item.memberId === representative?.id);
   const overviewSeries = analytics?.byDay?.length ? analytics.byDay : [{ date: new Date().toISOString().slice(0, 10), count: 0 }];
   const hasOverviewData = overviewSeries.some((item) => item.count > 0);
   const overviewChartPoints = chartPoints(overviewSeries);
-  const activePhysicalOwners = new Set(
-    physicalCards.filter((card) => card.status === "ACTIVE" && card.ownerUserId).map((card) => card.ownerUserId),
-  ).size;
-  const digitalOnlyCards = Math.max(0, digitalCardsReady - activePhysicalOwners);
-  const distributedCardTotal = digitalOnlyCards + activePhysicalOwners;
-  const digitalCardPercent = distributedCardTotal ? Math.round((digitalOnlyCards / distributedCardTotal) * 100) : 0;
-  const interactionClicks = analytics?.content?.clicks ?? 0;
-  const interactionDownloads = analytics?.content?.downloads ?? 0;
-  const interactionTotal = interactionClicks + interactionDownloads;
-  const clickPercent = interactionTotal ? Math.round((interactionClicks / interactionTotal) * 100) : 0;
-  const ringHole = "radial-gradient(circle at center,#fff 55%,transparent 57%)";
-  const ringTrack = "#E6E2D8";
-  const cardRing = distributedCardTotal
-    ? `${ringHole},conic-gradient(#8d3ff0 0 ${digitalCardPercent}%,#4f8ee8 ${digitalCardPercent}% 100%)`
-    : `${ringHole},conic-gradient(${ringTrack} 0 100%)`;
-  const interactionRing = interactionTotal
-    ? `${ringHole},conic-gradient(#8d3ff0 0 ${clickPercent}%,#dca12d ${clickPercent}% 100%)`
-    : `${ringHole},conic-gradient(${ringTrack} 0 100%)`;
-  const licenseRing = `${ringHole},conic-gradient(#8d3ff0 0 ${seatPercent}%,${ringTrack} ${seatPercent}% 100%)`;
-  const healthWarning = availableSeats === 0 || (daysUntilExpiry ?? 999) <= 30;
+  const analyticsAvailable = analytics?.available !== false;
+  const totalViews = analyticsAvailable ? analytics?.totalViews ?? 0 : null;
+  const contentClicks = analytics?.content?.clicks ?? 0;
 
-  const tasks = [
-    ["employees", `${invitedMembers} davet bekliyor`, "Davetleri takip et", invitedMembers, invitedMembers > 0],
-    ["cards", `${cardsWithoutDigital} dijital kart eksik`, "Kart kurulumunu tamamla", cardsWithoutDigital, cardsWithoutDigital > 0],
-    ["cards", `${unassignedPhysical} fiziksel kart atanmamış`, "Kart eşleştirmesini bitir", unassignedPhysical, unassignedPhysical > 0],
-    [canManageLicenses ? "licenses" : "employees", "Kalan lisans", availableSeats === 0 ? "Kapasite dolu · lisans ekle" : `${usedSeats} / ${subscription?.seat_limit ?? "—"} kullanım`, availableSeats ?? 0, availableSeats === 0],
-  ] as const;
+  const canOpen = (tab: CorporatePanelTab) => visibleTabs.some(([visibleTab]) => visibleTab === tab);
+
+  let priority: {
+    eyebrow: string;
+    title: string;
+    copy: string;
+    action: string;
+    tab: CorporatePanelTab;
+    tone: "critical" | "attention" | "healthy";
+    icon: "lock" | "contact" | "users" | "check";
+  };
+
+  if (unassignedPhysical > 0) {
+    priority = {
+      eyebrow: "ÖNCELİKLİ İŞ",
+      title: `${unassignedPhysical} çalışanın fiziksel kartı atanmayı bekliyor.`,
+      copy: "Kartları çalışanlarla eşleştirerek fiziksel dağıtımı tamamlayın.",
+      action: "Kartları eşleştir",
+      tab: "cards",
+      tone: "attention",
+      icon: "contact",
+    };
+  } else if (availableSeats === 0) {
+    priority = {
+      eyebrow: "KAPASİTE DOLU",
+      title: "Yeni çalışan eklemek için lisans kapasitesini artırın.",
+      copy: `${usedSeats} / ${subscription?.seat_limit ?? "—"} lisans kullanımda. Yeni davetler ek kapasite açılana kadar durdurulur.`,
+      action: canManageLicenses ? "Lisansları yönet" : "Ekibi görüntüle",
+      tab: canManageLicenses ? "licenses" : "employees",
+      tone: "critical",
+      icon: "lock",
+    };
+  } else if (invitedMembers > 0) {
+    priority = {
+      eyebrow: "DAVETLER",
+      title: `${invitedMembers} çalışan daveti yanıt bekliyor.`,
+      copy: "Bekleyen davetleri kontrol edin ve ekip kurulumunu tamamlayın.",
+      action: "Davetleri görüntüle",
+      tab: "employees",
+      tone: "attention",
+      icon: "users",
+    };
+  } else if (cardsWithoutDigital > 0) {
+    priority = {
+      eyebrow: "KART KURULUMU",
+      title: `${cardsWithoutDigital} çalışanın dijital kart kurulumu eksik.`,
+      copy: "Eksik profilleri tamamlayarak tüm ekibin aynı standartta görünmesini sağlayın.",
+      action: "Kartları tamamla",
+      tab: "cards",
+      tone: "attention",
+      icon: "contact",
+    };
+  } else if (daysUntilExpiry != null && daysUntilExpiry <= 30) {
+    priority = {
+      eyebrow: "YENİLEME",
+      title: `Aboneliğiniz ${daysUntilExpiry} gün içinde yenilenmeli.`,
+      copy: "Hizmet kesintisi yaşamamak için yenileme planınızı kontrol edin.",
+      action: canManageLicenses ? "Lisansları yönet" : "Ekibi görüntüle",
+      tab: canManageLicenses ? "licenses" : "employees",
+      tone: "attention",
+      icon: "lock",
+    };
+  } else {
+    priority = {
+      eyebrow: "SİSTEM DURUMU",
+      title: "Kurumsal kart operasyonunuz güncel.",
+      copy: "Ekip, lisans ve dijital kart kurulumlarında şu anda kritik bir iş bulunmuyor.",
+      action: "Ekibi yönet",
+      tab: "employees",
+      tone: "healthy",
+      icon: "check",
+    };
+  }
 
   return (
-    <div className="v25-overview p11-overview">
-      <div className="p11-overview-org">
-        <div className="business-company-picker">
+    <div className="cp-overview-v2" data-overview-version="2">
+      <header className="cp-overview-v2__workspace">
+        <div>
+          <span className="cp-overview-v2__eyebrow">YENOMI BUSINESS</span>
+          <h2>Genel Bakış</h2>
+          <p>Bugün müdahale gerektiren işleri ve ekip sağlığını tek ekranda görün.</p>
+        </div>
+        <div className="cp-overview-v2__workspace-meta">
           <label>
-            Şirket
+            <span>Şirket</span>
             <select value={selected} onChange={(event) => onSelectOrganization(event.target.value)}>
               {orgs.map((item) => (
                 <option key={item.organization_id} value={item.organization_id}>
@@ -141,245 +188,145 @@ export default function OverviewPanel({
               ))}
             </select>
           </label>
-        </div>
-        <div className="business-account-strip">
-          <div>
-            <small>Aktif kurumsal hesap</small>
-            <strong>{org?.organizations?.name || "—"}</strong>
-            <span>{organizationRoleLabel}</span>
-          </div>
-          <div>
-            <small>Paket / lisans</small>
-            <strong>{subscription?.business_plans?.name ?? "—"}</strong>
-            <span>{loading ? "—" : usedSeats} / {subscription?.seat_limit ?? "—"} lisans kullanılıyor</span>
+          <div className="cp-overview-v2__plan">
+            <span>{subscription?.business_plans?.name ?? "Kurumsal plan"}</span>
+            <strong>{loading ? "—" : usedSeats} / {subscription?.seat_limit ?? "—"}</strong>
+            <small>{organizationRoleLabel}</small>
           </div>
         </div>
-      </div>
+      </header>
 
-      <section className="v26-overview-hero">
-        <div className="v26-overview-copy">
-          <span>YENOMI BUSINESS · {org?.organizations?.name || "ŞİRKET"}</span>
-          <small>Merhaba, {representative?.full_name?.split(" ")[0] || "Yönetici"}.</small>
-          <h2>Dijital kartvizit altyapınız <em>tam kontrol</em> altında.</h2>
-          <p>Çalışan kartlarını, kurumsal bağlantıları, lisans kapasitesini ve gerçek etkileşim verilerini tek merkezden yönetin.</p>
-          <div>
-            <button type="button" className="primary" onClick={() => openTab("employees")}>
-              <Icon name="users" /> Ekibi Yönet
+      <section className={`cp-overview-v2__priority is-${priority.tone}`} aria-labelledby="corporate-priority-title">
+        <div className="cp-overview-v2__priority-icon"><Icon name={priority.icon} /></div>
+        <div className="cp-overview-v2__priority-copy">
+          <span>{priority.eyebrow}</span>
+          <h3 id="corporate-priority-title">{priority.title}</h3>
+          <p>{priority.copy}</p>
+        </div>
+        <div className="cp-overview-v2__priority-actions">
+          {canOpen(priority.tab) && (
+            <button type="button" className="cp-overview-v2__primary" onClick={() => openTab(priority.tab)}>
+              {priority.action} <span aria-hidden="true">→</span>
             </button>
-            <button type="button" onClick={onEditOwnCard}>
-              <Icon name="pencil" /> Kartımı Düzenle
-            </button>
-          </div>
-        </div>
-        <aside className="v26-card-stage" aria-label="Kart paylaşımı">
-          <CorporateHeroPreview
-            company={org?.organizations?.name || "Şirket"}
-            name={representative?.full_name || org?.organizations?.name || "Kurumsal Kart"}
-            title={representative?.title || representative?.department || "Kurumsal Dijital Kartvizit"}
-            email={representative?.email || "Kurumsal profil"}
-            slug={representativeCard?.slug || ""}
-          />
-        </aside>
-        <nav className="v26-hero-capabilities" aria-label="Birincil panel görevleri">
-          {([
-            ["employees", "Çalışanları yönet", "Davet ve ekip"],
-            ["cards", "Kartları yönet", "Fiziksel ve dijital"],
-            ["licenses", "Lisansları yönet", "Kapasite ve paket"],
-            ["content", "İçerik dağıt", "Bağlantı ve dosya"],
-            ["analytics", "Performansı gör", "Görüntülenme"],
-          ] as const)
-            .filter(([key]) => visibleTabs.some(([tab]) => tab === key))
-            .map(([key, label, hint]) => (
-              <button type="button" key={key} onClick={() => openTab(key)}>
-                <Icon name={CORPORATE_PANEL_TAB_META[key].icon} />
-                <span>
-                  <b>{label}</b>
-                  <small>{hint}</small>
-                </span>
-                <em aria-hidden="true">→</em>
-              </button>
-            ))}
-        </nav>
-      </section>
-
-      <div className={`v25-health-strip${healthWarning ? " warning" : ""}`}>
-        <span className="v25-health-dot">
-          <Icon name={healthWarning ? "lock" : "check"} />
-        </span>
-        <strong>
-          {availableSeats === 0
-            ? "Lisans kapasitesi dolu"
-            : daysUntilExpiry != null && daysUntilExpiry <= 30
-              ? `Abonelik ${daysUntilExpiry} gün içinde bitiyor`
-              : "Her şey yolunda"}
-        </strong>
-        <small>
-          {availableSeats === 0
-            ? "Yeni çalışan daveti kapatıldı; ek lisans alındığında otomatik açılır."
-            : daysUntilExpiry != null && daysUntilExpiry <= 30
-              ? "Kesinti yaşamamak için yenileme planını kontrol edin."
-              : "Tüm temel sistemler aktif durumda."}
-        </small>
-        <button
-          type="button"
-          onClick={() => {
-            if ((availableSeats ?? 0) > 0 && (daysUntilExpiry ?? 999) <= 30) {
-              window.location.href = `mailto:hello@yenomilabs.com?subject=${encodeURIComponent(`${org?.organizations?.name || "Kurumsal hesap"} yenileme teklifi`)}`;
-              return;
-            }
-            openTab(availableSeats === 0 && canManageLicenses ? "licenses" : "employees");
-          }}
-        >
-          {availableSeats === 0
-            ? canManageLicenses
-              ? "Lisans Satın Al →"
-              : "Çalışanları görüntüle →"
-            : daysUntilExpiry != null && daysUntilExpiry <= 30
-              ? "Yenileme için teklif iste →"
-              : "Detayları görüntüle →"}
-        </button>
-      </div>
-
-      <section className="p11-overview-today" aria-label="Bugün yapılacaklar">
-        {tasks.map(([tab, title, hint, count, alert]) => (
-          <button type="button" key={title} className={alert ? "is-alert" : undefined} onClick={() => openTab(tab)}>
-            <small>Bugün</small>
-            <strong>{count}</strong>
-            <span>{title}</span>
-            <em>{hint}</em>
+          )}
+          <button type="button" className="cp-overview-v2__secondary" onClick={onEditOwnCard}>
+            Kartımı düzenle
           </button>
-        ))}
+        </div>
       </section>
 
-      <div className="v26-reference-dashboard">
-        <section className="v26-reference-kpis">
-          <article><i className="violet"><Icon name="users" /></i><span><small>Aktif Çalışan</small><b>{usedSeats}</b><em>Kullanılan lisans</em></span></article>
-          <article><i className="green"><Icon name="contact" /></i><span><small>Aktif Kart</small><b>{digitalCardsReady} / {usedSeats || 0}</b><em>%{cardActivationPercent} aktivasyon oranı</em></span></article>
-          <article><i className="violet"><Icon name="analytics" /></i><span><small>Toplam Görüntülenme</small><b>{analytics?.available === false ? "—" : (analytics?.totalViews ?? 0).toLocaleString("tr-TR")}</b><em>Seçili dönem</em></span></article>
-          <article><i className="blue"><Icon name="link" /></i><span><small>İçerik Etkileşimi</small><b>{analytics?.content?.clicks ?? 0}</b><em>URL tıklaması</em></span></article>
+      <section className="cp-overview-v2__metrics" aria-label="Kurumsal hesap özeti">
+        <article>
+          <span>Lisans kullanımı</span>
+          <strong>{usedSeats}<small> / {subscription?.seat_limit ?? "—"}</small></strong>
+          <p>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} lisans kullanılabilir`}</p>
+        </article>
+        <article>
+          <span>Aktif dijital kart</span>
+          <strong>{digitalCardsReady}<small> / {usedSeats || 0}</small></strong>
+          <p>%{cardActivationPercent} kurulum tamamlandı</p>
+        </article>
+        <article>
+          <span>Görüntülenme</span>
+          <strong>{totalViews == null ? "—" : totalViews.toLocaleString("tr-TR")}</strong>
+          <p>Son {analyticsDays} gün</p>
+        </article>
+      </section>
+
+      <div className="cp-overview-v2__main-grid">
+        <section className="cp-overview-v2__performance" aria-labelledby="corporate-performance-title">
+          <header>
+            <div>
+              <span className="cp-overview-v2__eyebrow">PERFORMANS</span>
+              <h3 id="corporate-performance-title">Kart etkileşimleri</h3>
+              <p>QR ve NFC üzerinden oluşan gerçek görüntülenme verileri.</p>
+            </div>
+            <div className="cp-overview-v2__chart-tools">
+              <select
+                aria-label="Etkileşim tarih aralığı"
+                value={analyticsDays}
+                onChange={(event) => onPeriodChange(Number(event.target.value) as 7 | 30 | 90)}
+              >
+                <option value={7}>7 gün</option>
+                <option value={30}>30 gün</option>
+                <option value={90}>90 gün</option>
+              </select>
+              <button type="button" onClick={onExportCsv}>CSV</button>
+            </div>
+          </header>
+
+          <div className="cp-overview-v2__chart-summary">
+            <div><span>Toplam görüntülenme</span><strong>{totalViews == null ? "—" : totalViews.toLocaleString("tr-TR")}</strong></div>
+            <div><span>İçerik tıklaması</span><strong>{contentClicks.toLocaleString("tr-TR")}</strong></div>
+          </div>
+
+          <div className={`cp-overview-v2__chart${hasOverviewData ? " has-data" : " is-empty"}`}>
+            {hasOverviewData ? (
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Kart görüntülenme eğrisi">
+                <defs>
+                  <linearGradient id="overviewGoldArea" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#b58a35" stopOpacity=".24" />
+                    <stop offset="100%" stopColor="#b58a35" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <polygon points={`0,100 ${overviewChartPoints} 100,100`} fill="url(#overviewGoldArea)" />
+                <polyline points={overviewChartPoints} fill="none" stroke="#a9812f" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+              </svg>
+            ) : (
+              <div className="cp-overview-v2__empty">
+                <Icon name="analytics" />
+                <strong>Henüz görüntülenme yok</strong>
+                <span>İlk QR veya NFC etkileşimi geldiğinde performans burada görünür.</span>
+              </div>
+            )}
+          </div>
         </section>
 
-        <div className="v26-reference-main-row">
-          <section className="v26-reference-chart">
-            <header>
-              <div>
-                <h3>Kart Etkileşimleri</h3>
-                <p>Gerçek kart görüntüleme verileri</p>
-              </div>
-              <div className="p11-overview-chart-tools">
-                <select
-                  aria-label="Etkileşim tarih aralığı"
-                  value={analyticsDays}
-                  onChange={(event) => onPeriodChange(Number(event.target.value) as 7 | 30 | 90)}
-                >
-                  <option value={7}>Son 7 gün</option>
-                  <option value={30}>Son 30 gün</option>
-                  <option value={90}>Son 90 gün</option>
-                </select>
-                <button type="button" onClick={onExportCsv}>CSV indir</button>
-              </div>
-            </header>
-            <div className="v26-chart-tabs">
-              <b>Görüntülenme</b>
-              <span>QR / NFC ölçümleri yalnızca kayıt oluştuğunda gösterilir</span>
+        <aside className="cp-overview-v2__activity" aria-labelledby="corporate-activity-title">
+          <header>
+            <div>
+              <span className="cp-overview-v2__eyebrow">SON HAREKETLER</span>
+              <h3 id="corporate-activity-title">Ekip aktivitesi</h3>
             </div>
-            <div className="v26-chart-canvas">
-              {hasOverviewData ? (
-                <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Kart görüntülenme eğrisi">
-                  <defs>
-                    <linearGradient id="overviewArea" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0" stopColor="#9848f2" stopOpacity=".52" />
-                      <stop offset="1" stopColor="#9848f2" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <polygon points={`0,100 ${overviewChartPoints} 100,100`} fill="url(#overviewArea)" />
-                  <polyline points={overviewChartPoints} fill="none" stroke="#a855f7" strokeWidth="2" vectorEffect="non-scaling-stroke" />
-                </svg>
-              ) : (
-                <p>Bu dönemde henüz kart görüntülenmesi yok.</p>
-              )}
-            </div>
-            <footer>
-              <span>{analytics?.periodStart || overviewSeries[0]?.date}</span>
-              <strong>{(analytics?.totalViews ?? 0).toLocaleString("tr-TR")} toplam görüntülenme</strong>
-              <span>{analytics?.periodEnd || overviewSeries[overviewSeries.length - 1]?.date}</span>
-            </footer>
-          </section>
-          <section className="v26-reference-activity">
-            <header>
-              <h3>Son Aktiviteler</h3>
-              <button type="button" onClick={() => openTab("employees")}>Tümünü Gör →</button>
-            </header>
+            {canOpen("employees") && <button type="button" onClick={() => openTab("employees")}>Tümü →</button>}
+          </header>
+          <div className="cp-overview-v2__activity-list">
             {recentActivity.length ? recentActivity.map((member) => {
               const activity = member.status === "INVITED"
-                ? { text: "Çalışan daveti oluşturuldu", tone: "invite", icon: "mail" as const }
-                : member.status === "ACTIVE"
-                  ? { text: "Çalışan hesabı aktif", tone: "active", icon: "check" as const }
+                ? "Davet bekliyor"
+                : member.status === "SUSPENDED"
+                  ? "Hesap pasife alındı"
                   : member.status === "LEFT"
-                    ? { text: "Çalışan şirketten ayrıldı", tone: "left", icon: "logout" as const }
-                    : member.status === "SUSPENDED"
-                      ? { text: "Çalışan hesabı pasife alındı", tone: "suspended", icon: "lock" as const }
-                      : { text: "Çalışan kaydı güncellendi", tone: "updated", icon: "users" as const };
+                    ? "Şirketten ayrıldı"
+                    : "Çalışan hesabı aktif";
               return (
                 <button type="button" key={member.id} onClick={() => { openTab("employees"); openMemberDrawer(member); }}>
-                  <i className={`tone-${activity.tone}`}><Icon name={activity.icon} /></i>
-                  <span>
-                    <b>{member.full_name || member.email}</b>
-                    <small>{activity.text}</small>
+                  <span className="cp-overview-v2__avatar" aria-hidden="true">
+                    {(member.full_name || member.email || "Y").trim().slice(0, 1).toUpperCase()}
+                  </span>
+                  <span className="cp-overview-v2__activity-copy">
+                    <strong>{member.full_name || member.email}</strong>
+                    <small>{activity}</small>
                   </span>
                   <time>{relativeTime(member.last_activity_at || member.created_at)}</time>
                 </button>
               );
-            }) : <p className="v25-empty-line">Henüz aktivite oluşmadı.</p>}
-          </section>
-        </div>
-
-        <section className="v26-reference-bottom">
-          <article>
-            <h3>Kart Dağılımı</h3>
-            <div className="v26-summary-body">
-              <div className="v26-ring" style={{ background: cardRing }}><b>{distributedCardTotal}</b><small>Toplam</small></div>
-              <ul>
-                <li><i className="purple" />Yalnız Dijital <b>{digitalOnlyCards}</b></li>
-                <li><i className="blue" />Fiziksel + Dijital <b>{activePhysicalOwners}</b></li>
-              </ul>
-            </div>
-            <button type="button" onClick={() => openTab("cards")}>Kartları Yönet →</button>
-          </article>
-          <article>
-            <h3>Etkileşim Kanalları</h3>
-            <div className="v26-summary-body">
-              <div className="v26-ring alternate" style={{ background: interactionRing }}><b>{interactionTotal}</b><small>Toplam</small></div>
-              <ul>
-                <li><i className="purple" />URL Tıklaması <b>{interactionClicks}</b></li>
-                <li><i className="gold" />PDF Açma <b>{interactionDownloads}</b></li>
-              </ul>
-            </div>
-            <button type="button" onClick={() => openTab("analytics")}>Detayları Görüntüle →</button>
-          </article>
-          <article>
-            <h3>Kart Şablonları</h3>
-            <div className="v26-template-count">
-              <i><Icon name="pencil" /></i>
-              <b>{templates.length}</b>
-              <span>Kayıtlı şablon</span>
-            </div>
-            <p>Kurumsal kart görünümünü merkezi yönetin.</p>
-            <button type="button" onClick={() => openTab("templates")}>Şablonları Yönet →</button>
-          </article>
-          <article>
-            <h3>Lisans Kullanımı</h3>
-            <div className="v26-summary-body">
-              <div className="v26-ring" style={{ background: licenseRing }}><b>{usedSeats}/{subscription?.seat_limit ?? "—"}</b><small>Kullanılan</small></div>
-              <ul>
-                <li><i className="purple" />Kullanılan <b>{usedSeats}</b></li>
-                <li><i className="muted" />Boş <b>{availableSeats ?? "—"}</b></li>
-              </ul>
-            </div>
-            {canManageLicenses && <button type="button" onClick={() => openTab("licenses")}>Lisansları Yönet →</button>}
-          </article>
-        </section>
+            }) : (
+              <div className="cp-overview-v2__activity-empty">Henüz ekip aktivitesi oluşmadı.</div>
+            )}
+          </div>
+        </aside>
       </div>
+
+      <footer className="cp-overview-v2__quick-actions" aria-label="Hızlı işlemler">
+        {canOpen("employees") && <button type="button" onClick={() => openTab("employees")}><Icon name="users" /> Ekibi yönet</button>}
+        {canOpen("cards") && <button type="button" onClick={() => openTab("cards")}><Icon name="contact" /> Kartları yönet</button>}
+        {canManageLicenses && canOpen("licenses") && <button type="button" onClick={() => openTab("licenses")}><Icon name="lock" /> Lisanslar</button>}
+      </footer>
+
+      <span className="cp-overview-v2__sr-summary" aria-live="polite">
+        {org?.organizations?.name || "Kurumsal hesap"}: {usedSeats} aktif lisans, {digitalCardsReady} aktif kart, {unassignedPhysical} fiziksel kart ataması bekliyor.
+      </span>
     </div>
   );
 }

@@ -42,6 +42,9 @@ jobs:
           DESIGN_SYSTEM_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: node scripts/verify-css-budget.mjs
 
+      - name: Audit cascade-safe canonical tail
+        run: node scripts/split-canonical-css.mjs --domain=auto
+
       - name: Typecheck
         run: npm run typecheck
 

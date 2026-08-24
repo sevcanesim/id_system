@@ -1,17 +1,19 @@
 .heroShell {
-  max-width: 1320px !important;
+  max-width: 1380px !important;
   margin: 0 auto;
-  padding-inline: 40px !important;
-  column-gap: 64px !important;
+  padding: 72px 40px 76px !important;
+  column-gap: 56px !important;
+  grid-template-columns: minmax(580px, 0.96fr) minmax(520px, 1.04fr) !important;
+  align-items: center !important;
 }
 
 .heroCopy {
-  max-width: 590px;
+  max-width: 650px;
 }
 
 .heroCopy h1 {
-  max-width: 760px;
-  font-size: clamp(4rem, 5.4vw, 6.2rem) !important;
+  max-width: 650px;
+  font-size: clamp(4rem, 4.55vw, 5.35rem) !important;
   line-height: 0.94 !important;
   letter-spacing: -0.058em !important;
   font-weight: 620 !important;
@@ -19,29 +21,29 @@
 
 .heroCopy > p {
   max-width: 520px;
-  font-size: 1.05rem !important;
-  line-height: 1.65 !important;
+  font-size: 1.03rem !important;
+  line-height: 1.62 !important;
   color: #5f5a52 !important;
 }
 
 .heroActions {
-  margin-top: 28px !important;
+  margin-top: 26px !important;
   gap: 22px !important;
 }
 
 .heroActions :global(.home-mockup__button) {
-  min-height: 52px;
-  padding-inline: 24px;
+  min-height: 50px;
+  padding-inline: 23px;
   border-radius: 11px;
   box-shadow: none;
 }
 
 .heroOffer {
-  margin-top: 22px !important;
+  margin-top: 20px !important;
 }
 
 .heroOffer strong {
-  font-size: 1.28rem;
+  font-size: 1.24rem;
 }
 
 .heroOffer span {
@@ -59,43 +61,43 @@
 
 .heroStage {
   position: relative;
-  min-height: 610px;
-  padding: 72px 42px 42px;
+  min-height: 520px;
+  padding: 62px 38px 42px;
   border: 1px solid rgba(31, 27, 21, 0.07);
-  border-radius: 28px;
+  border-radius: 24px;
   background:
-    radial-gradient(circle at 52% 44%, rgba(181, 141, 69, 0.12), transparent 43%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.55), rgba(242, 237, 226, 0.82));
-  box-shadow: 0 28px 70px rgba(37, 30, 20, 0.07);
+    radial-gradient(circle at 52% 44%, rgba(181, 141, 69, 0.10), transparent 43%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(242, 237, 226, 0.76));
+  box-shadow: 0 22px 58px rgba(37, 30, 20, 0.055);
 }
 
 .stageEyebrow {
   position: absolute;
-  top: 26px;
-  left: 28px;
+  top: 24px;
+  left: 26px;
   z-index: 3;
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 750;
   letter-spacing: 0.12em;
   color: #8a8175;
 }
 
 .heroGlow {
-  width: 62% !important;
-  background: rgba(176, 136, 65, 0.10) !important;
-  filter: blur(82px) !important;
+  width: 58% !important;
+  background: rgba(176, 136, 65, 0.085) !important;
+  filter: blur(78px) !important;
 }
 
 .heroProductImage {
-  width: min(104%, 690px) !important;
-  transform: translateY(22px) scale(1.025);
-  filter: drop-shadow(0 34px 42px rgba(28, 23, 16, 0.15)) !important;
+  width: min(88%, 545px) !important;
+  transform: translateY(16px);
+  filter: drop-shadow(0 28px 36px rgba(28, 23, 16, 0.13)) !important;
 }
 
 .capabilities {
   position: absolute;
-  left: 28px;
-  bottom: 24px;
+  left: 26px;
+  bottom: 22px;
   z-index: 3;
   display: flex;
   gap: 8px;
@@ -105,21 +107,21 @@
 .capabilities span {
   display: inline-flex;
   align-items: center;
-  min-height: 30px;
-  padding: 0 11px;
+  min-height: 29px;
+  padding: 0 10px;
   border: 1px solid rgba(31, 27, 21, 0.08);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(10px);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   color: #4e4942;
 }
 
 .sectionRhythm {
-  padding-top: 120px !important;
-  padding-bottom: 120px !important;
+  padding-top: 112px !important;
+  padding-bottom: 112px !important;
 }
 
 .stepsGrid {
@@ -155,35 +157,40 @@
 }
 
 .comparison {
-  padding-top: 120px !important;
-  padding-bottom: 128px !important;
+  padding-top: 112px !important;
+  padding-bottom: 120px !important;
 }
 
 .final {
-  padding-top: 128px !important;
-  padding-bottom: 128px !important;
+  padding-top: 120px !important;
+  padding-bottom: 120px !important;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1180px) {
   .heroShell {
+    grid-template-columns: minmax(500px, 1fr) minmax(440px, 0.95fr) !important;
     padding-inline: 28px !important;
     column-gap: 32px !important;
   }
 
   .heroCopy h1 {
-    font-size: clamp(3.6rem, 6.7vw, 5.3rem) !important;
+    font-size: clamp(3.7rem, 5.6vw, 4.8rem) !important;
   }
 
   .heroStage {
-    min-height: 520px;
-    padding: 60px 26px 34px;
+    min-height: 480px;
+    padding: 58px 24px 34px;
+  }
+
+  .heroProductImage {
+    width: min(90%, 490px) !important;
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 980px) {
   .heroShell {
     grid-template-columns: 1fr !important;
-    padding: 64px 24px 34px !important;
+    padding: 58px 24px 40px !important;
     row-gap: 34px !important;
   }
 
@@ -193,29 +200,29 @@
 
   .heroCopy h1 {
     max-width: 720px;
-    font-size: clamp(3.35rem, 10vw, 5.3rem) !important;
+    font-size: clamp(3.35rem, 8vw, 5rem) !important;
   }
 
   .heroStage {
-    min-height: 520px;
+    min-height: 500px;
     width: 100%;
     max-width: 720px;
     margin: 0 auto;
   }
 
   .heroProductImage {
-    width: min(96%, 610px) !important;
+    width: min(82%, 520px) !important;
   }
 }
 
 @media (max-width: 640px) {
   .heroShell {
-    padding: 46px 20px 26px !important;
-    row-gap: 28px !important;
+    padding: 42px 20px 28px !important;
+    row-gap: 26px !important;
   }
 
   .heroCopy h1 {
-    font-size: clamp(2.85rem, 13vw, 4rem) !important;
+    font-size: clamp(2.75rem, 12vw, 3.85rem) !important;
     line-height: 0.96 !important;
     letter-spacing: -0.05em !important;
   }
@@ -230,7 +237,7 @@
     flex-direction: column !important;
     align-items: stretch !important;
     gap: 12px !important;
-    margin-top: 24px !important;
+    margin-top: 22px !important;
   }
 
   .heroActions :global(.home-mockup__button) {
@@ -239,7 +246,7 @@
   }
 
   .heroActions :global(.home-premium__hero-secondary) {
-    min-height: 48px;
+    min-height: 46px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -256,31 +263,31 @@
   }
 
   .heroStage {
-    min-height: 430px;
-    padding: 58px 16px 54px;
-    border-radius: 22px;
+    min-height: 390px;
+    padding: 54px 14px 50px;
+    border-radius: 20px;
   }
 
   .stageEyebrow {
-    top: 20px;
-    left: 20px;
-    font-size: 0.62rem;
+    top: 18px;
+    left: 18px;
+    font-size: 0.6rem;
   }
 
   .heroProductImage {
-    width: min(108%, 500px) !important;
-    transform: translateY(14px) scale(1.02);
+    width: min(88%, 410px) !important;
+    transform: translateY(10px);
   }
 
   .capabilities {
-    left: 18px;
-    right: 18px;
-    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    bottom: 14px;
   }
 
   .sectionRhythm {
-    padding-top: 82px !important;
-    padding-bottom: 82px !important;
+    padding-top: 78px !important;
+    padding-bottom: 78px !important;
   }
 
   .stepsGrid {
@@ -296,13 +303,13 @@
   }
 
   .comparison {
-    padding-top: 88px !important;
-    padding-bottom: 94px !important;
+    padding-top: 84px !important;
+    padding-bottom: 90px !important;
   }
 
   .final {
-    padding-top: 92px !important;
-    padding-bottom: 92px !important;
+    padding-top: 88px !important;
+    padding-bottom: 88px !important;
   }
 }
 

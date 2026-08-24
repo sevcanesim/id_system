@@ -5,14 +5,21 @@ const root = process.cwd();
 const sourcePath = path.join(root, "app/canonical.css");
 const outDir = path.join(root, "app/styles");
 const APPLY = process.argv.includes("--apply");
+const requestedDomain = process.argv.find((arg) => arg.startsWith("--domain="))?.split("=")[1] ?? "auto";
 
-const domains = [
-  { name: "public", file: "canonical-public.css", prefixes: ["home-", "p4-", "support-", "legal-"] },
-  { name: "products", file: "canonical-products.css", prefixes: ["products-", "nfc-", "how-"] },
-  { name: "corporate", file: "canonical-corporate.css", prefixes: ["corporate-", "corp-", "p10-", "p11-", "enterprise-", "business-"] },
-  { name: "account", file: "canonical-account.css", prefixes: ["p6-", "p7-", "p8-", "p9-", "p12-"] },
-  { name: "commerce", file: "canonical-commerce.css", prefixes: ["checkout-", "cart-", "order-", "payment-", "commerce-"] },
-];
+const targets = {
+  "support-legal": { file: "canonical-public.css", prefixes: ["support-", "legal-"] },
+  "public-marketing": { file: "canonical-public.css", prefixes: ["home-", "p4-"] },
+  products: { file: "canonical-products.css", prefixes: ["products-", "nfc-", "how-"] },
+  corporate: { file: "canonical-corporate.css", prefixes: ["corporate-", "corp-", "p10-", "p11-", "enterprise-", "business-"] },
+  account: { file: "canonical-account.css", prefixes: ["p6-", "p7-", "p8-", "p9-", "p12-"] },
+  commerce: { file: "canonical-commerce.css", prefixes: ["checkout-", "cart-", "order-", "payment-", "commerce-"] },
+};
+
+if (requestedDomain !== "auto" && !targets[requestedDomain]) {
+  console.error(`Unknown domain '${requestedDomain}'. Allowed: auto, ${Object.keys(targets).join(", ")}`);
+  process.exit(1);
+}
 
 const source = fs.readFileSync(sourcePath, "utf8");
 
@@ -27,7 +34,6 @@ function splitTopLevelBlocks(css) {
   for (let i = 0; i < css.length; i += 1) {
     const ch = css[i];
     const next = css[i + 1];
-
     if (comment) {
       if (ch === "*" && next === "/") { comment = false; i += 1; }
       continue;
@@ -40,84 +46,135 @@ function splitTopLevelBlocks(css) {
       continue;
     }
     if (ch === '"' || ch === "'") { quote = ch; continue; }
-
     if (ch === "{") depth += 1;
     else if (ch === "}") {
       depth -= 1;
-      if (depth === 0) {
-        blocks.push(css.slice(start, i + 1));
-        start = i + 1;
-      }
+      if (depth === 0) { blocks.push(css.slice(start, i + 1)); start = i + 1; }
     } else if (ch === ";" && depth === 0) {
       blocks.push(css.slice(start, i + 1));
       start = i + 1;
     }
   }
 
-  if (source.slice(start).trim()) blocks.push(css.slice(start));
+  if (css.slice(start).trim()) blocks.push(css.slice(start));
   if (depth !== 0 || quote || comment) throw new Error("canonical.css could not be parsed safely: unbalanced structure");
   return blocks;
 }
 
 function classNames(block) {
-  return [...block.matchAll(/\.([_a-zA-Z][\w-]*)/g)].map((m) => m[1]);
+  return [...block.matchAll(/\.([_a-zA-Z][\w-]*)/g)].map((match) => match[1]);
 }
 
-function classify(block) {
-  const classes = classNames(block);
-  if (!classes.length) return null;
-  const matches = new Set();
-  for (const cls of classes) {
-    for (const domain of domains) {
-      if (domain.prefixes.some((prefix) => cls.startsWith(prefix))) matches.add(domain.name);
-    }
-  }
-  if (matches.size !== 1) return null;
-  const [name] = [...matches];
-  // Only move a block when every class selector belongs to the same domain.
-  const domain = domains.find((item) => item.name === name);
-  if (!classes.every((cls) => domain.prefixes.some((prefix) => cls.startsWith(prefix)))) return null;
-  return name;
+function isIgnorable(block) {
+  return block.trim() === "" || /^\s*\/\*[\s\S]*\*\/\s*$/.test(block);
 }
 
 const blocks = splitTopLevelBlocks(source);
-const buckets = new Map(domains.map((domain) => [domain.name, []]));
-const retained = [];
 
-for (const block of blocks) {
-  const domain = classify(block);
-  if (domain) buckets.get(domain).push(block);
-  else retained.push(block);
+function inspectDomain(name) {
+  const target = targets[name];
+  const belongs = (block) => {
+    const classes = classNames(block);
+    if (!classes.length) return false;
+    return classes.every((className) => target.prefixes.some((prefix) => className.startsWith(prefix)));
+  };
+  const indexes = blocks.flatMap((block, index) => belongs(block) ? [index] : []);
+  const first = indexes.at(0) ?? -1;
+  const last = indexes.at(-1) ?? -1;
+  const contiguous = indexes.length > 0 && indexes.every((index, offset) => index === first + offset);
+  const nonIgnorableAfter = last >= 0 ? blocks.slice(last + 1).some((block) => !isIgnorable(block)) : false;
+  const safeSuffix = contiguous && !nonIgnorableAfter;
+  const extracted = safeSuffix ? blocks.slice(first) : [];
+  const css = extracted.join("").trim();
+  return {
+    name,
+    target,
+    indexes,
+    first,
+    last,
+    contiguous,
+    nonIgnorableAfter,
+    safeSuffix,
+    extracted,
+    extractedCss: css,
+    extractableBytes: Buffer.byteLength(css),
+    extractableLines: css ? css.split("\n").length : 0,
+  };
 }
 
-const report = {
-  sourceBytes: Buffer.byteLength(source),
-  sourceLines: source.split("\n").length,
-  totalTopLevelBlocks: blocks.length,
-  retainedBlocks: retained.length,
-  modules: Object.fromEntries(domains.map((domain) => {
-    const css = buckets.get(domain.name).join("");
-    return [domain.name, {
-      blocks: buckets.get(domain.name).length,
-      bytes: Buffer.byteLength(css),
-      lines: css ? css.split("\n").length : 0,
-      file: `app/styles/${domain.file}`,
-    }];
-  })),
-};
+const inspections = Object.keys(targets).map(inspectDomain);
 
-console.log(JSON.stringify(report, null, 2));
+if (requestedDomain === "auto") {
+  console.log(JSON.stringify({
+    sourceBytes: Buffer.byteLength(source),
+    sourceLines: source.split("\n").length,
+    totalTopLevelBlocks: blocks.length,
+    domains: inspections.map((item) => ({
+      domain: item.name,
+      prefixes: item.target.prefixes,
+      matchingBlocks: item.indexes.length,
+      firstMatchingBlock: item.first,
+      lastMatchingBlock: item.last,
+      matchingBlocksContiguous: item.contiguous,
+      safeSuffix: item.safeSuffix,
+      extractableBytes: item.extractableBytes,
+      extractableLines: item.extractableLines,
+      destination: `app/styles/${item.target.file}`,
+    })),
+  }, null, 2));
+  const safe = inspections.filter((item) => item.safeSuffix);
+  if (safe.length === 1) {
+    console.log(`SAFE DOMAIN — ${safe[0].name}`);
+    console.log(`NEXT — node scripts/split-canonical-css.mjs --domain=${safe[0].name} --apply`);
+  } else if (safe.length === 0) {
+    console.log("NO SAFE DOMAIN — no approved domain currently forms a contiguous tail suffix. Do not move CSS yet.");
+  } else {
+    console.log(`AMBIGUOUS — multiple safe domains detected: ${safe.map((item) => item.name).join(", ")}. Review before applying.`);
+  }
+  if (APPLY) {
+    console.error("--apply cannot be used with --domain=auto. Choose the reported safe domain explicitly.");
+    process.exit(1);
+  }
+  process.exit(0);
+}
+
+const inspection = inspections.find((item) => item.name === requestedDomain);
+const { target, safeSuffix, extracted, extractedCss, first, last, contiguous, nonIgnorableAfter } = inspection;
+const retainedCss = safeSuffix ? blocks.slice(0, first).join("").trimEnd() + "\n" : source;
+const existingModulePath = path.join(outDir, target.file);
+const existingModule = fs.existsSync(existingModulePath) ? fs.readFileSync(existingModulePath, "utf8").trimEnd() : "";
+
+console.log(JSON.stringify({
+  domain: requestedDomain,
+  prefixes: target.prefixes,
+  sourceBytesBefore: Buffer.byteLength(source),
+  sourceLinesBefore: source.split("\n").length,
+  totalTopLevelBlocks: blocks.length,
+  matchingBlocks: inspection.indexes.length,
+  firstMatchingBlock: first,
+  lastMatchingBlock: last,
+  matchingBlocksContiguous: contiguous,
+  safeSuffix,
+  nonIgnorableBlocksAfterMatch: nonIgnorableAfter,
+  extractableBytes: inspection.extractableBytes,
+  extractableLines: inspection.extractableLines,
+  destination: `app/styles/${target.file}`,
+}, null, 2));
+
+if (!safeSuffix) {
+  console.log("NOT SAFE TO MOVE — matching rules are not a contiguous suffix of canonical.css. No files changed.");
+  process.exit(APPLY ? 1 : 0);
+}
 
 if (!APPLY) {
-  console.log("DRY RUN — no files changed. Run with --apply only after reviewing the report.");
+  console.log(`DRY RUN — cascade-safe suffix found. To apply: node scripts/split-canonical-css.mjs --domain=${requestedDomain} --apply`);
   process.exit(0);
 }
 
 fs.mkdirSync(outDir, { recursive: true });
-for (const domain of domains) {
-  const css = buckets.get(domain.name).join("").trim();
-  if (!css) continue;
-  fs.writeFileSync(path.join(outDir, domain.file), `/* Extracted from app/canonical.css without selector rewrites. */\n${css}\n`);
-}
-fs.writeFileSync(sourcePath, retained.join("").trimStart());
-console.log("APPLIED — canonical.css and canonical domain modules were rewritten. Run all UI/build/E2E gates before committing.");
+const moduleHeader = "/* Extracted from the tail of app/canonical.css. Cascade order is preserved by importing this file immediately after canonical.css. */";
+const nextModule = [existingModule || moduleHeader, extractedCss].filter(Boolean).join("\n\n") + "\n";
+fs.writeFileSync(existingModulePath, nextModule);
+fs.writeFileSync(sourcePath, retainedCss);
+console.log(`APPLIED — moved ${extracted.length} tail blocks for ${requestedDomain} to app/styles/${target.file}.`);
+console.log("REQUIRED — import the module immediately after canonical.css in app/layout.tsx, then run all UI/build/E2E gates before committing.");

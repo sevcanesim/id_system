@@ -1,34 +1,21 @@
 /**
- * Shared top brand ticker for public browsing chrome.
- * Quiet checkout routes hide this strip on purpose.
+ * Quiet, static purchase-confidence strip for public browsing chrome.
+ * Checkout and other quiet routes hide this strip via PublicSiteShell.
  */
-import { Fragment } from "react";
-import { Icon, type IconName } from "../icons";
-
-const COPIES = 2;
-
-const ITEMS: Array<{ icon: IconName; label: string }> = [
-  { icon: "lock", label: "SSL şifreli hesap ve ödeme" },
-  { icon: "shield", label: "Kartın iyzico’da kalır" },
-  { icon: "truck", label: "Türkiye içi kargo dahil" },
-  { icon: "clock", label: "2 iş gününde hazırlık" },
-];
+const ITEMS = [
+  "Türkiye içi kargo dahil",
+  "2 iş gününde hazırlanır",
+  "Güvenli iyzico ödeme",
+] as const;
 
 export default function AnnouncementBar() {
   return (
-    <div className="yi-brand-marquee" role="note" aria-label="SSL şifreleme, iyzico ödemesi, Türkiye içi kargo ve 2 iş günü hazırlık">
-      <div className="yi-brand-marquee__track" aria-hidden="true">
-        {Array.from({ length: COPIES }, (_, index) => (
-          <span className="yi-brand-marquee__unit" key={index}>
-            {ITEMS.map((item, itemIndex) => (
-              <Fragment key={`${index}-${item.label}`}>
-                {itemIndex > 0 ? <span className="yi-brand-marquee__stars" aria-hidden="true"><i /><i /><i /></span> : null}
-                <span className="yi-brand-marquee__item">
-                  <Icon name={item.icon} />
-                  <strong>{item.label}</strong>
-                </span>
-              </Fragment>
-            ))}
+    <div className="yi-brand-marquee yi-brand-marquee--static" role="note" aria-label="Kargo, hazırlık süresi ve güvenli ödeme bilgileri">
+      <div className="yi-brand-marquee__static-inner">
+        {ITEMS.map((item, index) => (
+          <span className="yi-brand-marquee__static-item" key={item}>
+            {index > 0 ? <i aria-hidden="true" /> : null}
+            <strong>{item}</strong>
           </span>
         ))}
       </div>

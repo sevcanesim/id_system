@@ -16,7 +16,6 @@ function walkCss(dir) {
 }
 walkCss(app);
 
-const canonical = fs.existsSync(css) ? fs.readFileSync(css, "utf8") : "";
 const layout = fs.existsSync(path.join(app, "layout.tsx")) ? read("app/layout.tsx") : "";
 const routeCssImports = [];
 function walkSource(dir) {
@@ -30,9 +29,6 @@ function walkSource(dir) {
   }
 }
 walkSource(app);
-
-let braceBalance = 0;
-for (const char of canonical) braceBalance += char === "{" ? 1 : char === "}" ? -1 : 0;
 
 const REQUIRED_GLOBAL_CSS = [
   "app/canonical.css",
@@ -57,6 +53,12 @@ const APPROVED_CANONICAL_MODULES = [
 
 const existingApprovedModules = APPROVED_CANONICAL_MODULES.filter((file) => fs.existsSync(path.join(root, file)));
 const OWNED_GLOBAL_CSS = [...REQUIRED_GLOBAL_CSS, ...existingApprovedModules];
+const canonicalFiles = ["app/canonical.css", ...existingApprovedModules];
+const canonicalSource = canonicalFiles.map((file) => read(file)).join("\n");
+
+let braceBalance = 0;
+for (const char of canonicalSource) braceBalance += char === "{" ? 1 : char === "}" ? -1 : 0;
+
 const layoutCssImports = [...layout.matchAll(/import\s+"\.\/([^"]+\.css)"/g)].map((match) => `app/${match[1]}`);
 const cssSet = new Set(cssFiles);
 const ownedSet = new Set(OWNED_GLOBAL_CSS);
@@ -76,15 +78,16 @@ const checks = {
     .every((file) => APPROVED_CANONICAL_MODULES.includes(file)),
   noSecondaryStylesheetImport: !layout.includes("ui/styles.css"),
   balancedBraces: braceBalance === 0,
-  noImportant: !/!important\b/.test(canonical),
-  noLegacyYiTokens: !/var\(--yi-/.test(canonical),
+  noImportant: !/!important\b/.test(canonicalSource),
+  noLegacyYiTokens: !/var\(--yi-/.test(canonicalSource),
   noRouteCssImports: routeCssImports.length === 0,
-  p8CorporateEditorContract: [".p8-corporate-editor", ".p8-editor-grid", ".p8-preview-column"].every((selector) => canonical.includes(selector)),
+  p8CorporateEditorContract: [".p8-corporate-editor", ".p8-editor-grid", ".p8-preview-column"].every((selector) => canonicalSource.includes(selector)),
 };
 
 console.log(JSON.stringify({
   ...checks,
   cssFiles,
+  canonicalFiles,
   layoutCssImports,
   approvedCanonicalModules: existingApprovedModules,
   extraCss,

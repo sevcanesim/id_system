@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import { ProductVisual } from "../../ui/ProductVisual";
 import { COMMERCIAL_COPY } from "../../../lib/config/commercial";
 import { NFC_PRODUCT, formatTryFromKurus } from "../../../lib/config/product";
 import NfcPurchasePanel from "./NfcPurchasePanel";
@@ -48,6 +48,7 @@ export default async function NfcKartPage({
   const initialPackage = rawPackage === "premium" ? "premium" : "individual";
   const rawReason = Array.isArray(params.reason) ? params.reason[0] : params.reason;
   const accessRequired = rawReason === "access-required";
+
   return (
     <main id="main-content" className="nfc-product-page">
       <PublicPageTitle
@@ -56,6 +57,7 @@ export default async function NfcKartPage({
         description="NFC veya QR ile paylaş. Unvanın değişince kartı yenileme. Kaybolursa kayıp modu. Ödeme iyzico güvencesinde; kart numarası Yenomi’de saklanmaz."
         className="public-page-title--product"
       />
+
       <section className="nfc-product-hero">
         <div className="yi-container nfc-product-hero__grid">
           <div className="nfc-product-hero__copy">
@@ -63,15 +65,24 @@ export default async function NfcKartPage({
             <p className="nfc-product-hero__body">Kartı telefona yaklaştır veya QR’ı okut. Profil tarayıcıda açılır. Bilgin değişince baskı yok; kart kaybolursa panelden kapatırsın.</p>
             <NfcPurchasePanel product={NFC_PRODUCT} initialPackage={initialPackage} accessRequired={accessRequired} />
           </div>
-          <div className="nfc-product-hero__visual" aria-label="Yenomi ID NFC kart örneği, ön ve arka yüz">
-            <ProductVisual pair />
+          <div className="nfc-product-hero__visual">
+            <Image
+              src="/images/nfc-kart-hero.png"
+              alt="Yenomi ID NFC kart ve dijital profil"
+              width={1400}
+              height={1000}
+              sizes="(max-width: 980px) 92vw, 48vw"
+              priority
+            />
           </div>
         </div>
       </section>
 
       <section className="nfc-benefits" aria-label="Ürün özellikleri">
         <div className="yi-container nfc-benefits__grid">
-          {benefits.map(([number,title,text]) => <article key={number}><span>{number}</span><h2>{title}</h2><p>{text}</p></article>)}
+          {benefits.map(([number, title, text]) => (
+            <article key={number}><span>{number}</span><h2>{title}</h2><p>{text}</p></article>
+          ))}
         </div>
       </section>
 
@@ -81,26 +92,43 @@ export default async function NfcKartPage({
           <p>Sepete ekle, Türkiye içi adresi yaz, öde. Hesabın varsa sipariş bağlanır; yoksa hesap açmadan tamamlarsın. NFC ve QR aynı kalıcı profile gider.</p>
         </div>
         <div className="yi-container nfc-steps">
-          {steps.map(([number,title,text]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></article>)}
+          {steps.map(([number, title, text]) => (
+            <article key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></article>
+          ))}
         </div>
       </section>
 
       <section className="nfc-includes">
         <div className="yi-container nfc-includes__grid">
           <div><span className="nfc-kicker">NE ALIYORSUN?</span><h2>Karttan fazlası.<br />Kimliğin sende kalır.</h2></div>
-          <ul><li>1 adet kişisel NFC kart</li><li>Değişmeyen kişisel QR kod</li><li>1 yıl platform üyeliği dahil</li><li>Aktif dönemde sınırsız bilgi güncelleme</li><li>Kayıp modu ve yedek kart desteği</li><li>Türkiye içi standart kargo dahil</li></ul>
-          <div className="nfc-includes__cta"><span>Tek seferlik, kargo dahil</span><strong>{formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)}</strong><small>1 kart • 1 yıl dahil • Türkiye içi teslimat</small><Link className="home-mockup__link-secondary" href="#nfc-hero-price-row">Sepete Ekle</Link></div>
+          <ul>
+            <li>1 adet kişisel NFC kart</li>
+            <li>Değişmeyen kişisel QR kod</li>
+            <li>1 yıl platform üyeliği dahil</li>
+            <li>Aktif dönemde sınırsız bilgi güncelleme</li>
+            <li>Kayıp modu ve yedek kart desteği</li>
+            <li>Türkiye içi standart kargo dahil</li>
+          </ul>
+          <div className="nfc-includes__cta">
+            <span>Tek seferlik, kargo dahil</span>
+            <strong>{formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)}</strong>
+            <small>1 kart • 1 yıl dahil • Türkiye içi teslimat</small>
+            <Link className="home-mockup__link-secondary" href="#nfc-hero-price-row">Sepete Ekle</Link>
+          </div>
         </div>
       </section>
 
       <section className="nfc-faq">
-          <div className="yi-container"><span className="nfc-kicker">SIK SORULAN SORULAR</span><h2>Satın almadan önce<br />bilmen gerekenler.</h2><p className="nfc-faq__intro">Fiyat, kargo, yıllık kullanım, NFC uyumu ve kayıp kart. Karar bundan sonra net.</p>
-          <div className="nfc-faq__list">{faq.map(([q,a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div>
+        <div className="yi-container">
+          <span className="nfc-kicker">SIK SORULAN SORULAR</span>
+          <h2>Satın almadan önce<br />bilmen gerekenler.</h2>
+          <p className="nfc-faq__intro">Fiyat, kargo, yıllık kullanım, NFC uyumu ve kayıp kart.</p>
+          <div className="nfc-faq__list">
+            {faq.map(([question, answer]) => (
+              <details key={question}><summary>{question}</summary><p>{answer}</p></details>
+            ))}
+          </div>
         </div>
-      </section>
-
-      <section className="nfc-final">
-          <div className="yi-container"><span className="nfc-kicker">ŞİMDİ BAŞLA</span><h2>Bir sonraki tanışmada<br />güncel ol.</h2><p>Ana ürün {formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)}. Tek seferlik ödeme, 1 yıl platform üyeliği ve Türkiye içi kargo dahil.</p><Link className="home-mockup__link-secondary" href="#nfc-hero-price-row">Sepete Ekle</Link></div>
       </section>
     </main>
   );

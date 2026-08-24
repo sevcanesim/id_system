@@ -52,7 +52,7 @@ export default function HomePage() {
             </div>
             <div className="home-sales-offer" aria-label="NFC kart teklif kapsamı"><strong>1 yıl dahil</strong><span>Platform üyeliği · Türkiye içi kargo</span></div>
             <div className="home-premium__hero-trust home-sales-trust" aria-label="Satın alma güvenceleri">
-              {heroTrust.map((item) => <span key={item}><Icon name="check-circle" size={16} />{item}</span>)}
+              {heroTrust.map((item) => <span key={item}><Icon name="check" />{item}</span>)}
             </div>
           </div>
           <div className="home-sales-stage" aria-label="Yenomi ID NFC + QR kart ürün görseli">
@@ -86,7 +86,7 @@ export default function HomePage() {
           <div className="home-sales-comparison-head"><span className="home-mockup__kicker">NEDEN YENOMI ID?</span><h2 id="comparison-title">Kartviziti yeniden<br />bastırmayı bırak.</h2><p>Fiziksel kart aynı kalır. Değişen bilgiyi canlı profilden yönetirsin.</p></div>
           <div className="home-sales-comparison-table" role="table" aria-label="Klasik kartvizit ve Yenomi ID karşılaştırması">
             <div className="home-sales-comparison-header" role="row"><span role="columnheader">Durum</span><span role="columnheader">Klasik kartvizit</span><span role="columnheader">Yenomi ID</span></div>
-            {comparisonRows.map(([label, classic, yenomi]) => <div className="home-sales-comparison-row" role="row" key={label}><strong role="cell">{label}</strong><span role="cell">{classic}</span><span role="cell"><Icon name="check-circle" size={16} />{yenomi}</span></div>)}
+            {comparisonRows.map(([label, classic, yenomi]) => <div className="home-sales-comparison-row" role="row" key={label}><strong role="cell">{label}</strong><span role="cell">{classic}</span><span role="cell"><Icon name="check" />{yenomi}</span></div>)}
           </div>
         </section>
 

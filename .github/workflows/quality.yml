@@ -37,6 +37,11 @@ jobs:
           DESIGN_SYSTEM_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: node scripts/verify-design-system-standard.mjs
 
+      - name: Enforce CSS architecture budget
+        env:
+          DESIGN_SYSTEM_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: node scripts/verify-css-budget.mjs
+
       - name: Typecheck
         run: npm run typecheck
 

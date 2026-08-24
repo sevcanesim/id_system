@@ -73,15 +73,6 @@
   line-height: 1.55;
 }
 
-.corporate-authentic-proof__note {
-  margin: 0;
-  padding: 18px 36px 22px;
-  border-top: 1px solid var(--border-subdued);
-  color: var(--text-tertiary);
-  font-size: 12px;
-  line-height: 1.55;
-}
-
 .corporate-authentic-outcomes {
   width: min(calc(100% - 48px), var(--container-content));
   margin: 0 auto;
@@ -150,7 +141,6 @@
 .corporate-pack-picker,
 .corporate-pricing-section article,
 .corporate-analytics-grid article,
-.corporate-resource-grid article,
 .corporate-use-case-grid article {
   box-shadow: none;
 }
@@ -158,7 +148,6 @@
 .corporate-pack-picker__tier,
 .corporate-pricing-section article,
 .corporate-analytics-grid article,
-.corporate-resource-grid article,
 .corporate-use-case-grid article {
   border-color: var(--border-subdued);
 }
@@ -170,10 +159,6 @@
 
   .corporate-authentic-proof__list > div {
     padding: 21px 24px;
-  }
-
-  .corporate-authentic-proof__note {
-    padding: 16px 24px 20px;
   }
 
   .corporate-authentic-outcomes {

@@ -40,6 +40,10 @@ const OWNED_GLOBAL_CSS = [
   "app/design-system.css",
   "app/employee-management.css",
   "app/theme-policy.css",
+  "app/public-chrome-premium.css",
+  "app/authentic-enterprise.css",
+  "app/homepage.css",
+  "app/kurumsal/panel/employee-action-first.css",
 ];
 
 const layoutCssImports = [...layout.matchAll(/import\s+"\.\/([^"]+\.css)"/g)].map((match) => `app/${match[1]}`);

@@ -14,7 +14,6 @@ import { TITLE_OPTIONS, normalizeEmailField, normalizeTrPhone } from "../../lib/
 import { unusedEntitlementId } from "../../lib/commerce/entitlement-bind";
 import { fetchOwnProfile, fetchOwnProfileById, fetchOwnProfileByOrganizationId, fetchOwnProfiles } from "../../lib/repositories/profiles";
 import { track } from "../../lib/analytics";
-import PanelSidebar from "../components/ui/PanelSidebar";
 import { PageLoadingView } from "../components/ui/States";
 import {
   CORPORATE_PANEL_TAB_ROUTE,
@@ -893,54 +892,19 @@ export default function CardWizard() {
     >{editorBody}</UserPanelShell>;
   }
 
-  return <main id="main-content" className="p8-corporate-editor" data-ui-context="dashboard">
-    <PanelSidebar
-      ariaLabel="Kurumsal yönetim menüsü"
-      subtitle="Kurumsal Panel"
-      className="corporate-card-editor-sidebar"
-      brandHref="/kurumsal/panel"
-      open={mobileNavOpen}
-      onClose={() => setMobileNavOpen(false)}
-      activeKey="kartim"
-      storageKey="yenomi:corporate-sidebar:collapsed"
-      items={corporateNavItems}
-    >
-      <div className="enterprise-side-links enterprise-side-management">
-        <button type="button" onClick={() => void signOut()}>
-          <Icon name="logout" />
-          <span>Çıkış Yap</span>
-        </button>
+  return <div className="p8-corporate-workspace p8-corporate-workspace--decoupled">
+    <header className="p8-corporate-header">
+      <div>
+        <span>Kurumsal Kart</span>
+        <h1>{profileId ? "Kart Profilini Düzenle" : "Kart Profilini Oluştur"}</h1>
+        <p>Şirket politikasına açık alanları düzenleyin; kilitli alanlar merkezi olarak yönetilir.</p>
       </div>
-      <div className="enterprise-side-plan">
-        <small>{(orgLock?.planName || "Business").replace(/BUSİNESS/g, "BUSINESS")}</small>
-        <strong>{orgLock?.seatLimit ? `${orgLock.seatLimit} lisans kapasiteli kurumsal plan` : "Aktif kurumsal lisans"}</strong>
-        {canManageLicenses && <Link href={CORPORATE_PANEL_TAB_ROUTE.licenses}>Lisansları Yönet</Link>}
+      <div className="p8-header-actions">
+        {saveFeedback && <span className="p8-save-feedback-badge" role="status">{saveFeedback}</span>}
+        <Link className="ds-button ds-button--secondary" href={cancelHref}>İptal</Link>
+        <Button variant="primary" disabled={publishDisabled} onClick={() => void publish()}>{saving ? "Kaydediliyor..." : "Kaydet ve Yayınla"}</Button>
       </div>
-    </PanelSidebar>
-    <section className="p8-corporate-workspace">
-      <div className="enterprise-mobile-commandbar">
-        <button type="button" className="enterprise-mobile-menu-button" aria-label={mobileNavOpen ? "Menüyü kapat" : "Menüyü aç"} aria-expanded={mobileNavOpen} onClick={() => setMobileNavOpen((value) => !value)}>
-          <Icon name={mobileNavOpen ? "close" : "menu"} />
-          <span>Menü</span>
-        </button>
-        <div className="enterprise-mobile-current">
-          <small>Yenomi ID · Kurumsal</small>
-          <strong>Kartım</strong>
-        </div>
-      </div>
-      <header className="p8-corporate-header">
-        <div>
-          <span>Kurumsal Kart</span>
-          <h1>{profileId ? "Kart Profilini Düzenle" : "Kart Profilini Oluştur"}</h1>
-          <p>Şirket politikasına açık alanları düzenleyin; kilitli alanlar merkezi olarak yönetilir.</p>
-        </div>
-        <div className="p8-header-actions">
-          {saveFeedback && <span className="p8-save-feedback-badge" role="status">{saveFeedback}</span>}
-          <Link className="ds-button ds-button--secondary" href={cancelHref}>İptal</Link>
-          <Button variant="primary" disabled={publishDisabled} onClick={() => void publish()}>{saving ? "Kaydediliyor..." : "Kaydet ve Yayınla"}</Button>
-        </div>
-      </header>
-      <div className="p8-corporate-content">{editorBody}</div>
-    </section>
-  </main>;
+    </header>
+    <div className="p8-corporate-content">{editorBody}</div>
+  </div>;
 }

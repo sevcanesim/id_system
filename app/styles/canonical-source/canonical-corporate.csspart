@@ -3307,6 +3307,13 @@ body:has(.p10-corporate-platform) {
 .enterprise-side-links button:hover {
   background: #F9F8F6;
   color: #1A1918;
+}/* @canonical-block:003582 */
+.v25-readonly-role-value {
+  display: flex;
+  align-items: center;
+  background: #F9F8F6;
+  color: #1A1918;
+  cursor: default;
 }/* @canonical-block:003593 */
 
 @media (max-width: 900px) {

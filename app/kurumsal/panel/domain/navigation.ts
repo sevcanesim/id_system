@@ -139,3 +139,17 @@ export function corporatePanelNavItems(role?: string, ownCardHref?: string): Cor
     },
   ];
 }
+
+/** Deterministically resolves active navigation key from usePathname(). */
+export function getCorporateSidebarActiveKey(pathname: string): CorporatePanelTab | "kartim" {
+  if (pathname === "/kurumsal/panel/kartim" || pathname.startsWith("/kurumsal/panel/kartim/")) {
+    return "kartim";
+  }
+  const routeTab = CORPORATE_PANEL_ROUTE_TO_TAB[pathname];
+  if (routeTab) return routeTab;
+  for (const [route, tab] of Object.entries(CORPORATE_PANEL_ROUTE_TO_TAB)) {
+    if (pathname === route || pathname.startsWith(`${route}/`)) return tab;
+  }
+  return "overview";
+}
+

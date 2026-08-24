@@ -7,7 +7,7 @@ import { writeSessionCookie } from "../../components/AuthSessionBridge";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 import { Icon } from "../../icons";
 import { EmptyState, ErrorState, LoadingState } from "../../components/ui/States";
-import PanelSidebar from "../../components/ui/PanelSidebar";
+import IDSidebar from "./IDSidebar";
 import { YenomiProductVisual } from "../../ui/YenomiProductVisual";
 import {
   ROLE_LABELS,
@@ -61,7 +61,7 @@ import { useCorporateLinks } from "./hooks/useCorporateLinks";
 import { getIdentityInitials } from "../../../lib/organizations/identity";
 import { isOrganizationRole, normalizeOrganizationRole } from "../../../lib/organizations/permissions";
 
-export default function CompanyPanel() {
+export default function CompanyPanel({ children }: { children?: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -1342,52 +1342,26 @@ export default function CompanyPanel() {
   return (
     <main id="main-content" className="business-console business-console--compact p10-corporate-platform" data-ui-context="dashboard" lang="tr" translate="no">
       <div className="enterprise-dashboard-shell">
-        <PanelSidebar
-          ariaLabel="Kurumsal yönetim menüsü"
-          subtitle="Kurumsal Panel"
+        <IDSidebar
+          role={org?.role}
+          ownCardHref={ownCardEditorHref}
+          user={sidebarUser ? {
+            full_name: sidebarUser.full_name,
+            email: sidebarUser.email,
+            role: sidebarUser.role,
+          } : null}
+          subscription={subscription ? {
+            name: subscription.business_plans?.name,
+            usedSeats,
+            seatLimit: subscription.seat_limit,
+          } : null}
+          canManageLicenses={canManageLicenses}
+          onManageLicenses={() => openTab("licenses")}
+          onSignOut={signOut}
           open={mobileNavOpen}
           onClose={() => setMobileNavOpen(false)}
-          onBrandClick={() => { const next = departmentManager ? "employees" : "overview"; setActiveTab(next); router.push(tabRoutes[next]); }}
-          activeKey={currentTab}
-          onNavigate={(key) => { if (isCorporatePanelTab(key)) setActiveTab(key); }}
-          loading={sidebarPermissionsLoading}
-          storageKey="yenomi:corporate-sidebar:collapsed"
-          items={org ? corporatePanelNavItems(org.role, ownCardEditorHref) : []}
-        >
-          <div className="enterprise-side-links enterprise-side-management">
-            <button type="button" onClick={signOut}>
-              <Icon name="logout" />
-              <span>Çıkış Yap</span>
-            </button>
-          </div>
-          <div className="enterprise-side-plan">
-            <small>
-              {subscription?.business_plans?.name || "Business"}
-            </small>
-            <strong>
-              {loading ? "—" : usedSeats} / {subscription?.seat_limit ?? "—"} Lisans
-            </strong>
-            <div className="enterprise-plan-meter" aria-hidden="true">
-              <span
-                style={{
-                  width: `${subscription?.seat_limit ? Math.min(100, Math.round((usedSeats / subscription.seat_limit) * 100)) : 0}%`,
-                }}
-              />
-            </div>
-            {canManageLicenses && currentTab !== "licenses" && (
-              <button type="button" onClick={() => openTab("licenses")}>
-                Yönet
-              </button>
-            )}
-          </div>
-          <div className="enterprise-side-user">
-            <span>{(sidebarUser?.full_name || sidebarUser?.email || "Y").split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase()}</span>
-            <div>
-              <strong>{sidebarUser?.full_name || sidebarUser?.email || "Yönetici"}</strong>
-              <small>{sidebarRoleLabel}</small>
-            </div>
-          </div>
-        </PanelSidebar>
+          loading={loading || sidebarPermissionsLoading}
+        />
         <section className="enterprise-dashboard-main">
           <div className="enterprise-mobile-commandbar">
             <button type="button" className="enterprise-mobile-menu-button" aria-label={mobileNavOpen ? "Menüyü kapat" : "Menüyü aç"} aria-expanded={mobileNavOpen} onClick={() => setMobileNavOpen((value) => !value)}>
@@ -1396,12 +1370,16 @@ export default function CompanyPanel() {
             </button>
             <div className="enterprise-mobile-current">
               <small>Yenomi ID · Kurumsal</small>
-              <strong>{tabMeta[currentTab].title}</strong>
+              <strong>{pathname.startsWith("/kurumsal/panel/kartim") ? "Kartım" : tabMeta[currentTab]?.title || "Kurumsal Panel"}</strong>
             </div>
             <button type="button" className="enterprise-mobile-account-button" aria-label="Hesap ve lisans bilgileri" onClick={() => setMobileNavOpen(true)}>
               <span>{(sidebarUser?.full_name || sidebarUser?.email || "Y").split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase()}</span>
             </button>
           </div>
+          {pathname.startsWith("/kurumsal/panel/kartim") ? (
+            children
+          ) : (
+            <>
               <header className={`enterprise-topbar${pageOwnsTitle ? " enterprise-topbar--chrome" : ""}`}>
             <div className={pageOwnsTitle ? "sr-only" : undefined}>
               <h1>{tabMeta[currentTab].title}</h1>
@@ -1808,8 +1786,10 @@ export default function CompanyPanel() {
               </>
             )}
           </section>
-        </section>
-      </div>
+        </>
+      )}
+    </section>
+  </div>
       <nav className="enterprise-mobile-bottom-nav" aria-label="Hızlı panel navigasyonu">
         {(["overview", "employees", "cards", "analytics"] as CorporatePanelTab[]).filter((key) => tabs.some(([tabKey]) => tabKey === key)).map((key) => (
           <button

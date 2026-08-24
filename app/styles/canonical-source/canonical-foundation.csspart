@@ -136,7 +136,11 @@ p,li,dd { color: var(--ink-2); }/* @canonical-block:000030 */
 .yi-corporate__stats{height:120px;margin-top:26px;display:grid;grid-template-columns:1fr 1fr;gap:10px}/* @canonical-block:001072 */
 .yi-product-visual--corporate{min-height:430px}/* @canonical-block:001073 */
 
-.yi-buybox{padding:28px;border:1px solid var(--border);border-radius:22px;background:rgba(255,255,255,.045)}/* @canonical-block:001718 */
+.yi-buybox{padding:28px;border:1px solid var(--border);border-radius:22px;background:rgba(255,255,255,.045)}/* @canonical-block:001083 */.yi-buybox__cta{width:100%}/* @canonical-block:001084 */.yi-buybox__note{margin:14px 0 0;color:var(--ink-3);font-size:12px;line-height:1.6}/* @canonical-block:001101 */.yi-product-card--muted{background:#f2efe8;color:#817b84}/* @canonical-block:001121 */
+
+.yi-cart-page{min-height:calc(100vh - 76px)}/* @canonical-block:001123 */
+.yi-cart-items{display:grid;align-content:start;gap:14px;min-width:0}/* @canonical-block:001170 */.yi-status{display:inline-flex;padding:6px 9px;border-radius:999px;font-size:12px;font-weight:700}/* @canonical-block:001171 */.yi-status--success{background:rgba(47,158,95,.12);color:#1f7a49}/* @canonical-block:001172 */.yi-status--warning{background:rgba(169,129,47,.12);color:var(--gold-hi)}/* @canonical-block:001656 */
+.yi-top-account{display:flex;align-items:center;gap:10px;min-width:0}/* @canonical-block:001718 */
 @keyframes yi-route-shimmer { 0% { background-position:100% 0; } 100% { background-position:-100% 0; } }/* @canonical-block:001752 */
 @keyframes yi-home-product-float {
   0%,100% { transform:translate3d(0,0,0); }
@@ -145,7 +149,7 @@ p,li,dd { color: var(--ink-2); }/* @canonical-block:000030 */
 @keyframes yi-skeleton-shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }/* @canonical-block:002341 */
 @keyframes yi-home-card-float{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-12px) rotate(-2deg)}}/* @canonical-block:002342 */
 @keyframes yi-home-phone-float{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-10px) rotate(-3deg)}}/* @canonical-block:002343 */
-@keyframes yi-home-step-in{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}/* @canonical-block:002396 */
+@keyframes yi-home-step-in{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}/* @canonical-block:002362 */.yi-card-nfc{position:absolute;right:25px;top:52px;font:800 24px "IBM Plex Mono",monospace;letter-spacing:-.15em;transform:rotate(-15deg);opacity:.85}/* @canonical-block:002374 */.yi-ui-dashboard-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:9px}/* @canonical-block:002396 */
 @keyframes yi-card-shine{0%,45%{transform:translateX(-80%)}65%,100%{transform:translateX(80%)}}/* @canonical-block:002476 */
 @keyframes yi-v40-phone{
   0%,100%{transform:translateY(0) rotate(-5deg)}
@@ -198,7 +202,12 @@ h1, h2, h3, h4 {
 
 p, li, dd {
   line-height: 1.62;
-}/* @canonical-block:002610 */
+}/* @canonical-block:002559 */
+.ds-avatar--sm { width:32px; height:32px; font-size:11px; }/* @canonical-block:002560 */
+.ds-avatar--md { width:40px; height:40px; font-size:13px; }/* @canonical-block:002561 */
+.ds-avatar--lg { width:56px; height:56px; font-size:16px; }/* @canonical-block:002566 */
+.ds-breadcrumbs__separator { color:var(--gold); }/* @canonical-block:002581 */
+.ds-product-card__badge { margin-bottom:8px; }/* @canonical-block:002610 */
 
 @keyframes ds-skeleton-shimmer { to { background-position:-200% 0; } }/* @canonical-block:002611 */
 @keyframes ds-modal-in { from { opacity:0; transform:translate(-50%,-48%) scale(.985); } to { opacity:1; transform:translate(-50%,-50%) scale(1); } }/* @canonical-block:002612 */

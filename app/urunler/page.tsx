@@ -93,9 +93,9 @@ export default function ProductsPage() {
           <div className="yi-container">
             <div className="products-premium-v2__decision-head">
               <div>
-                <span className="products-single-kicker">PLANINIZI SEÇİN</span>
-                <h2 id="offer-title">İhtiyacınız kadar başlayın.</h2>
-                <p>Üç planın temel kimliği aynı. Fark, fiziksel NFC kart ve networking araçlarının kapsamı.</p>
+                <span className="products-single-kicker">PAKETİNİ SEÇ</span>
+                <h2 id="offer-title">Tek kimlik. İhtiyacına göre üç seviye.</h2>
+                <p>Dijital ile başla, fiziksel NFC karta geç veya networking araçlarını Premium ile ekle.</p>
               </div>
               <div className="products-premium-v2__trust" aria-label="Satın alma güvenceleri">
                 {commerceTrust.map(([icon, label]) => <span key={label}><Icon name={icon} />{label}</span>)}
@@ -110,9 +110,9 @@ export default function ProductsPage() {
                   <strong className="products-single-price">{formatTryFromKurus(INDIVIDUAL_DIGITAL_PLAN.priceKurus)}</strong>
                   <span className="products-premium-v2__price-note">1 yıl kullanım dahil</span>
                 </div>
-                <p className="products-premium-v2__plan-lead">Fiziksel kart istemeyenler için. Dijital kartvizitinizi oluşturun ve QR ile paylaşmaya başlayın.</p>
+                <p className="products-premium-v2__plan-lead">Fiziksel kart istemiyorsan dijital kartvizitini oluştur ve QR ile paylaş.</p>
                 <ul aria-label="Dijital paket içeriği">
-                  {INDIVIDUAL_DIGITAL_CATALOG_POINTS.map((item) => (
+                  {INDIVIDUAL_DIGITAL_CATALOG_POINTS.slice(0, 3).map((item) => (
                     <li key={item}><Icon name="check" /><span>{item}</span></li>
                   ))}
                 </ul>
@@ -123,23 +123,23 @@ export default function ProductsPage() {
                     kind="NFC_PHYSICAL_CARD"
                     name="Yenomi ID Dijital Kartvizit"
                     unitPriceKurus={COMMERCIAL_PRICING.YENOMI_ID_DIGITAL.priceKurus}
-                    label="Dijital Kartımı Oluştur"
+                    label="Dijital’i Seç"
                     appearance="secondary"
                   />
                 </div>
               </article>
 
               <article className="products-plan-card products-premium-v2__plan-card products-premium-v2__plan-card--featured is-popular">
-                <div className="products-premium-v2__featured-label">Ana ürün</div>
+                <div className="products-premium-v2__featured-label">Standart seçim</div>
                 <div className="products-plan-card__head">
                   <span className="products-single-kicker">NFC</span>
                   <h3>{INDIVIDUAL_PLAN.name}</h3>
                   <strong className="products-single-price">{formatTryFromKurus(INDIVIDUAL_PLAN.priceKurus)}</strong>
                   <span className="products-premium-v2__price-note">1 NFC kart + 1 yıl kullanım</span>
                 </div>
-                <p className="products-premium-v2__plan-lead">Dijital profiliniz cebinizdeki tek fiziksel kartla buluşur. Yaklaştırın; profiliniz anında açılsın.</p>
+                <p className="products-premium-v2__plan-lead">Canlı dijital profilini tek fiziksel NFC + QR kartla taşı. Yaklaştır; profil anında açılsın.</p>
                 <ul aria-label="NFC paket içeriği">
-                  {INDIVIDUAL_CATALOG_POINTS.map((item) => (
+                  {INDIVIDUAL_CATALOG_POINTS.slice(0, 3).map((item) => (
                     <li key={item}><Icon name="check" /><span>{item}</span></li>
                   ))}
                 </ul>
@@ -162,9 +162,9 @@ export default function ProductsPage() {
                   <strong className="products-single-price">{formatTryFromKurus(INDIVIDUAL_PREMIUM_PLAN.priceKurus)}</strong>
                   <span className="products-premium-v2__price-note">NFC + networking araçları</span>
                 </div>
-                <p className="products-premium-v2__plan-lead">NFC paketindeki her şey; ayrıca toplantı, sunum, kişi yönetimi ve 500 Network Mail kredisi.</p>
+                <p className="products-premium-v2__plan-lead">NFC paketine toplantı, sunum, kişi yönetimi ve 500 Network Mail kredisi ekle.</p>
                 <ul aria-label="Premium paket içeriği">
-                  {INDIVIDUAL_PREMIUM_CATALOG_POINTS.map((item) => (
+                  {INDIVIDUAL_PREMIUM_CATALOG_POINTS.slice(0, 3).map((item) => (
                     <li key={item}><Icon name="check" /><span>{item}</span></li>
                   ))}
                 </ul>

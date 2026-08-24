@@ -17,7 +17,6 @@ import type { CatalogProduct, ProductVariant } from "../../../lib/config/product
 export default function MobileBuyBar({
   price,
   product,
-  variant,
   configuration,
   productName,
   unitPriceKurus,

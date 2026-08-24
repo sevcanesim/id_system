@@ -17,46 +17,6 @@ export type CorporatePackOption = {
   sku: string;
 };
 
-type Tier = {
-  id: "START" | "BUSINESS" | "ENTERPRISE";
-  title: string;
-  eyebrow: string;
-  description: string;
-  minSeats: number;
-  maxSeats: number | null;
-};
-
-const tiers: readonly Tier[] = [
-  {
-    id: "START",
-    title: "Start",
-    eyebrow: "Küçük ekipler",
-    description: "İlk kurumsal standardı hızlıca kurun. Ekip büyüdükçe paketi panelden yükseltin.",
-    minSeats: 2,
-    maxSeats: 10,
-  },
-  {
-    id: "BUSINESS",
-    title: "Business",
-    eyebrow: "Büyüyen şirketler",
-    description: "Satış, saha ve yönetim ekiplerini tek standartta yönetin. Kapasiteyi ekip büyüklüğünüze göre seçin.",
-    minSeats: 25,
-    maxSeats: 100,
-  },
-  {
-    id: "ENTERPRISE",
-    title: "Enterprise",
-    eyebrow: "100+ çalışan",
-    description: "Özel kapasite, kurulum planı, raporlama ve entegrasyon ihtiyaçları için kuruma özel yapı.",
-    minSeats: 101,
-    maxSeats: null,
-  },
-] as const;
-
-function tierForSeats(seats: number): Tier {
-  return tiers.find((tier) => seats >= tier.minSeats && (tier.maxSeats === null || seats <= tier.maxSeats)) ?? tiers[0];
-}
-
 export default function CorporatePackPicker({
   packs,
   productId,
@@ -76,44 +36,13 @@ export default function CorporatePackPicker({
   const pack = packs[index] ?? packs[0];
   if (!pack) return null;
 
-  const tier = tierForSeats(pack.seats);
-
   return (
     <div className="corporate-pack-picker">
-      <div className="corporate-pack-picker__tiers" aria-label="Kurumsal paket seviyeleri">
-        {tiers.map((tierOption) => {
-          const active = tierOption.id === tier.id;
-          const enterprise = tierOption.id === "ENTERPRISE";
-          return (
-            <button
-              key={tierOption.id}
-              type="button"
-              className={`corporate-pack-picker__tier${active ? " is-active" : ""}${enterprise ? " corporate-pack-picker__tier--enterprise" : ""}`}
-              aria-pressed={active}
-              onClick={() => {
-                if (enterprise) {
-                  document.querySelector("#teklif")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  return;
-                }
-                const preferredSeats = tierOption.id === "START" ? 5 : 25;
-                const nextIndex = packs.findIndex((candidate) => candidate.seats === preferredSeats);
-                if (nextIndex >= 0) setIndex(nextIndex);
-              }}
-            >
-              <span className="corporate-pack-picker__tier-status" aria-hidden="true">{active ? "Seçili" : ""}</span>
-              <span className="corporate-pack-picker__tier-copy">{tierOption.eyebrow}</span>
-              <strong className="corporate-pack-picker__tier-name">{tierOption.title}</strong>
-              <small className="corporate-pack-picker__tier-copy">{tierOption.description}</small>
-            </button>
-          );
-        })}
-      </div>
-
       <div className="corporate-pack-picker__head">
         <div>
-          <span className="corporate-pack-picker__kicker">{tier.title.toUpperCase()} · {pack.seats} KİŞİ</span>
+          <span className="corporate-pack-picker__kicker">{pack.seats} KİŞİLİK KAPASİTE</span>
           <h3>{pack.name}</h3>
-          <p>İhtiyacınız değişirse kapasiteyi yeniden baskı beklemeden yükseltebilirsiniz.</p>
+          <p>Tüm kurumsal hesaplar aynı yönetim panelini kullanır. Yalnızca ekip kapasitenizi seçin.</p>
         </div>
         <div className="corporate-pack-picker__price">
           <strong>{formatTryFromKurus(pack.priceKurus)} <small>/ yıl</small></strong>

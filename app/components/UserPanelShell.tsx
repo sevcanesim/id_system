@@ -5,7 +5,6 @@ type Action = { href?: string; label: string; primary?: boolean; onClick?: () =>
 export default function UserPanelShell({
   title,
   description,
-  eyebrow,
   children,
   actions = [],
   activeKey,

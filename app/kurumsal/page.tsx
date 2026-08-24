@@ -100,7 +100,6 @@ export default async function CorporatePage({
               </div>
             ))}
           </div>
-          <p className="corporate-authentic-proof__note">Gerçek panel ekranı ürün içi arayüzden alınmış ekran görüntüsü hazır olduğunda bu alanda gösterilecek; temsili dashboard kullanılmaz.</p>
         </aside>
       </section>
 
@@ -124,7 +123,7 @@ export default async function CorporatePage({
         <div className="corporate-section-heading">
           <span className="section-kicker">YILLIK KURUMSAL SİSTEM</span>
           <h2 id="business-pricing-title">Önce seviyeyi, sonra ekip büyüklüğünü seçin.</h2>
-          <p>Start 2–10 kişilik ekipler için hızlı başlangıçtır. Business 25–100 kişilik büyüyen ekipler için en dengeli yapıdır. Enterprise 100+ kişi, özel raporlama veya entegrasyon ihtiyacında kuruma özel planlanır.</p>
+          <p>Start 2–10 kişilik ekipler için hızlı başlangıçtır. Business 25–100 kişilik büyüyen ekipler için ekip yönetimi katmanıdır. Enterprise 100+ kişi, özel raporlama veya entegrasyon ihtiyacında kuruma özel planlanır.</p>
         </div>
         <CorporatePackPicker
           packs={packOptions}
@@ -149,11 +148,8 @@ export default async function CorporatePage({
               </thead>
               <tbody>
                 {CORPORATE_PACKAGE_LADDER.map((plan) => (
-                  <tr key={plan.code} className={"popular" in plan && plan.popular ? "is-popular" : undefined}>
-                    <th scope="row">
-                      {plan.name}
-                      {"popular" in plan && plan.popular ? <span className="corporate-pack-badge">En çok tercih edilen</span> : null}
-                    </th>
+                  <tr key={plan.code}>
+                    <th scope="row">{plan.name}</th>
                     <td className="is-num">{plan.seats}</td>
                     <td className="is-num">{plan.seats}</td>
                     <td className="is-num">{networkMailGrant(plan.seats).toLocaleString("tr-TR")}</td>
@@ -169,7 +165,7 @@ export default async function CorporatePage({
                           unitPriceKurus={plan.priceKurus}
                           label="Sepete Ekle"
                           appearance="secondary"
-                          className={"popular" in plan && plan.popular ? "corporate-plan-link" : "corporate-plan-text"}
+                          className="corporate-plan-text"
                           configuration={{ packageCode: plan.code, seatCount: plan.seats }}
                         />
                       ) : (

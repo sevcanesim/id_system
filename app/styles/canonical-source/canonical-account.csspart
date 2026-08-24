@@ -762,6 +762,51 @@
   position: relative;
   z-index: 2;
   margin: 0 0 16px;
+}/* @canonical-block:004390 */
+
+/* Image display, avatar containment, and compact card preview visual stability */
+.compact-wrap {
+  width: min(100%, 420px);
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}/* @canonical-block:004398 */
+.compact-cover-placeholder {
+  color: var(--gold-hi);
+  font: 800 36px var(--font-mono);
+}/* @canonical-block:004399 */
+.compact-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(20, 16, 13, 0.82) 0%, transparent 60%);
+  pointer-events: none;
+}/* @canonical-block:004400 */
+.compact-identity {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 16px 18px;
+  margin-top: -36px;
+  position: relative;
+  z-index: 2;
+}/* @canonical-block:004404 */
+.verified-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid var(--border-gold);
+  border-radius: 999px;
+  background: var(--gold-dim);
+  color: var(--gold-hi);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}/* @canonical-block:004405 */
+.compact-links {
+  display: grid;
+  gap: 8px;
 }/* @canonical-block:004412 */
 
 /* Gold Accent Text Clipping */

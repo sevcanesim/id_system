@@ -1510,6 +1510,19 @@
   border: 1px solid var(--border);
   border-radius: 16px;
   background: var(--surface);
+}/* @canonical-block:002111 */
+.seat-pack-guide {
+  margin: 0 0 8px;
+  max-width: 760px;
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.65;
+}/* @canonical-block:002112 */
+.seat-pack-fit {
+  margin: 0;
+  color: var(--gold-hi);
+  font-size: 12px;
+  font-weight: 750;
 }/* @canonical-block:002113 */
 .business-seat-pack-grid > article h3 { line-height:1.25; }/* @canonical-block:002114 */
 .business-seat-pack-grid > article li { line-height:1.45; }/* @canonical-block:002119 */

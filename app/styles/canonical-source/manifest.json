@@ -7351,7 +7351,7 @@
     },
     {
       "id": "001225",
-      "owner": "mixed",
+      "owner": "account",
       "sha256": "b0bbe71f5e6bde1c3c86ceb481ba9c475be88e1e206f1fc8d00cb097119811c1",
       "bytes": 101
     },
@@ -11611,7 +11611,7 @@
     },
     {
       "id": "001935",
-      "owner": "mixed",
+      "owner": "corporate",
       "sha256": "ea73b41379247bc05e4b95eb784e34237cbb129061731c742f7739a6d32e62ba",
       "bytes": 128
     },
@@ -11995,7 +11995,7 @@
     },
     {
       "id": "001999",
-      "owner": "mixed",
+      "owner": "corporate",
       "sha256": "c8040c70e796ec7d77bc13ce839bb8fdf6f9db6f6c89840f0c7f0abe0a014326",
       "bytes": 91
     },
@@ -21151,7 +21151,7 @@
     },
     {
       "id": "003525",
-      "owner": "mixed",
+      "owner": "corporate",
       "sha256": "15e30d0b4248416cc14929177c104157a3494a783231ce80b081c39fe695b57e",
       "bytes": 128
     },
@@ -21343,7 +21343,7 @@
     },
     {
       "id": "003557",
-      "owner": "mixed",
+      "owner": "corporate",
       "sha256": "96cc0a61bf6b43798e22d1e300f907f736cb58b29fe7f1164c4135cbd682a7ac",
       "bytes": 140
     },
@@ -21529,7 +21529,7 @@
     },
     {
       "id": "003588",
-      "owner": "mixed",
+      "owner": "account",
       "sha256": "4bfecde2cbd6518cbf2f31ff5661fadac5e27640a619cf4d64f4f85896705f70",
       "bytes": 151
     },

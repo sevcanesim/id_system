@@ -180,7 +180,7 @@ export default function IDSidebar({
 
         {loading ? (
           <nav className="id-sidebar__nav id-sidebar__nav--loading" aria-label="Kurumsal yönetim menüsü" aria-busy="true">
-            <p className="id-sidebar__loading-note">Menü yükleniyor…</p>
+            <p className="id-sidebar__loading-note">Menü yükleniyor.</p>
             {Array.from({ length: 6 }).map((_, index) => (
               <div key={index} className="id-sidebar__loading-row" aria-hidden="true">
                 <i />

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { YenomiProductVisual } from "./ui/YenomiProductVisual";
+import { NFC_PRODUCT, formatTryFromKurus } from "../lib/config/product";
 import howItWorks from "./home-how-it-works.module.css";
 
 export const metadata: Metadata = {
@@ -9,11 +10,13 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
+const initialPrice = formatTryFromKurus(NFC_PRODUCT.unitPriceKurus);
+
 const howItWorksSteps = [
   {
     number: "01",
     title: "Kartını seç",
-    text: "Mat siyah, fırçalanmış metal veya minimal beyaz. Sana uygun fiziksel kartı seç.",
+    text: "Sana uygun fiziksel kartı seç. NFC ve QR aynı canlı profile bağlanır.",
     visual: "cards",
   },
   {
@@ -31,7 +34,7 @@ const howItWorksSteps = [
   {
     number: "04",
     title: "Güncelle ve yönet",
-    text: "Bilgilerin değişirse profili güncelle. Kart kaybolursa fiziksel erişimi kapat.",
+    text: "Bilgin değişirse profili güncelle. Kart kaybolursa fiziksel erişimi panelden kapat.",
     visual: "dashboard",
   },
 ] as const;
@@ -39,14 +42,21 @@ const howItWorksSteps = [
 const proofItems = [
   ["Kartın iyzico’da kalır", "Ödeme kartı bilgileri Yenomi’de saklanmaz."],
   ["Anında güncellenir", "Ünvan veya telefon değişince yeniden baskı gerekmez."],
-  ["Uygulama gerekmez", "Profil her modern tarayıcıda doğrudan açılır."],
+  ["Uygulama gerekmez", "Profil modern tarayıcıda doğrudan açılır."],
   ["Kontrol sende", "Profilini ve fiziksel kart durumunu gerektiğinde yönetirsin."],
 ];
 
 const heroTrust = [
-  "Hesap açmadan ödeme",
-  "Türkiye içi ücretsiz kargo",
-  "Kart bilgisi Yenomi’de tutulmaz",
+  "Türkiye içi kargo dahil",
+  "2 iş gününde hazırlanır",
+  "Uygulama gerekmez",
+];
+
+const comparisonRows = [
+  ["Bilgilerin değişti", "Yeniden baskı gerekir", "Profili anında güncellersin"],
+  ["Paylaşım", "Basılı bilgilerle sınırlı", "NFC + QR + canlı profil"],
+  ["Kart kayboldu", "Kontrol sende değildir", "Kayıp moduyla erişimi kapatırsın"],
+  ["İletişim kaydı", "Manuel giriş gerekir", "Tek dokunuşla rehbere kaydet"],
 ];
 
 function StepVisual({ visual }: { visual: (typeof howItWorksSteps)[number]["visual"] }) {
@@ -88,31 +98,36 @@ export default function HomePage() {
   return (
     <div className="home-mockup home-premium home-premium--hero-v2">
       <main id="main-content">
-        <section className="home-mockup__hero home-premium__hero-v2" aria-labelledby="home-title">
+        <section className={`home-mockup__hero home-premium__hero-v2 ${howItWorks.hero}`} aria-labelledby="home-title">
           <div className="home-mockup__orbit home-mockup__orbit--left" aria-hidden="true" />
           <div className="home-mockup__orbit home-mockup__orbit--right" aria-hidden="true" />
 
           <div className="home-mockup__copy">
-            <span className="home-premium__hero-pill"><i aria-hidden="true" /> NFC KARTVİZİT · KAYIP MODU</span>
+            <span className="home-premium__hero-pill"><i aria-hidden="true" /> NFC + QR DİJİTAL KARTVİZİT</span>
             <h1 id="home-title">
               Kart bir kez basılır.<br />
               <span>Kimliğin her gün güncel kalır.</span>
             </h1>
             <p>
-              Fiziksel NFC + QR kartın, canlı dijital kartvizitine bağlanır. Bilgilerin değiştiğinde kartı değil profilini güncelle.
-              Tek kartla paylaş, gerektiğinde uzaktan yönet.
+              Fiziksel NFC + QR kartın canlı dijital kartvizitine bağlanır. Telefonun, ünvanın veya şirketin değiştiğinde
+              kartı değil profilini güncellersin.
             </p>
 
             <div className="home-mockup__actions home-premium__hero-actions">
               <Link className="home-mockup__button home-mockup__button--gold home-mockup__button--primary" href="/urunler/nfc-kart">
-                NFC Kartı Satın Al <span aria-hidden>→</span>
+                NFC Kartımı Al <span aria-hidden>→</span>
               </Link>
               <Link className="home-premium__hero-secondary" href="/kurumsal">
-                Ekip Paketini İncele <span aria-hidden>→</span>
+                Kurumsal çözümler <span aria-hidden>→</span>
               </Link>
             </div>
 
-            <div className="home-premium__hero-trust" aria-label="Satın alma güvenceleri">
+            <div className={howItWorks.heroOffer} aria-label="NFC kart başlangıç fiyatı">
+              <strong>{initialPrice}</strong>
+              <span>Tek seferlik ödeme · 1 yıl platform üyeliği dahil</span>
+            </div>
+
+            <div className={`home-premium__hero-trust ${howItWorks.heroTrust}`} aria-label="Satın alma güvenceleri">
               {heroTrust.map((item) => <span key={item}><i aria-hidden="true">✓</i>{item}</span>)}
             </div>
           </div>
@@ -133,7 +148,7 @@ export default function HomePage() {
           <div className={howItWorks.heading}>
             <span className="home-mockup__kicker">NASIL ÇALIŞIR</span>
             <h2 id="how-it-works-title">Seç. Oluştur.<br />Paylaş. Yönet.</h2>
-            <p>Tek bir kart, dört basit adım. Kurulumdan günlük kullanıma kadar tüm akış aynı yerde.</p>
+            <p>Dört basit adım. Kartını seçtiğin andan günlük kullanıma kadar bütün deneyim tek akışta.</p>
           </div>
 
           <ol className={howItWorks.grid}>
@@ -162,7 +177,7 @@ export default function HomePage() {
 
           <div className={howItWorks.actionRow}>
             <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">
-              NFC Kartı Satın Al <span aria-hidden>→</span>
+              NFC Kartımı Al <span aria-hidden>→</span>
             </Link>
             <Link className="home-mockup__link-secondary" href="/nasil-calisir">
               Detaylı anlatımı gör <span aria-hidden>→</span>
@@ -170,37 +185,65 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="home-premium__paths" aria-labelledby="paths-title">
+        <section className={`home-premium__paths ${howItWorks.paths}`} aria-labelledby="paths-title">
           <div className="home-premium__paths-head">
             <span className="home-mockup__kicker">BİREYSEL · KURUMSAL</span>
             <h2 id="paths-title">Aynı sistem.<br />İki ölçek.</h2>
           </div>
-          <div className="home-premium__path-grid">
+          <div className={`home-premium__path-grid ${howItWorks.pathGrid}`}>
             <article>
               <span>BİREYSEL</span>
               <h3>Tek kart. Her tanışmada güncel.</h3>
               <p>NFC + QR kartın, canlı profilin ve kayıp modun. Bilgilerin değişince yeniden baskı yok.</p>
-              <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">NFC Kartı Satın Al <span aria-hidden>→</span></Link>
+              <div className={howItWorks.pathMeta}><strong>{initialPrice}</strong><small>1 kart · 1 yıl dahil</small></div>
+              <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">NFC Kartımı Al <span aria-hidden>→</span></Link>
             </article>
             <article>
               <span>KURUMSAL</span>
               <h3>Ekip aynı standartta tanışır.</h3>
-              <p>Çalışan kartları, yetkiler ve görünürlük tek panelde. 100 kişiye kadar doğrudan paket seç.</p>
-              <Link className="home-mockup__button home-premium__path-secondary" href="/kurumsal">Ekip Paketlerini Gör <span aria-hidden>→</span></Link>
+              <p>Çalışan kartları, yetkiler ve görünürlük tek panelde. Ekip büyüdükçe aynı sistemi ölçekle.</p>
+              <div className={howItWorks.pathMeta}><strong>Ekip paketleri</strong><small>Merkezi yönetim · rol ve yetki</small></div>
+              <Link className="home-mockup__button home-premium__path-secondary" href="/kurumsal">Paketleri Gör <span aria-hidden>→</span></Link>
             </article>
           </div>
         </section>
 
-        <section className="home-premium__final" aria-labelledby="final-title">
+        <section className={howItWorks.comparison} aria-labelledby="comparison-title">
+          <div className={howItWorks.comparisonHead}>
+            <span className="home-mockup__kicker">NEDEN YENOMI ID?</span>
+            <h2 id="comparison-title">Kartviziti yeniden<br />bastırmayı bırak.</h2>
+            <p>Fiziksel kartın aynı kalır. Değişen şey, kontrolünü kaybetmediğin canlı profilindir.</p>
+          </div>
+          <div className={howItWorks.comparisonTable} role="table" aria-label="Klasik kartvizit ve Yenomi ID karşılaştırması">
+            <div className={howItWorks.comparisonHeader} role="row">
+              <span role="columnheader">Durum</span>
+              <span role="columnheader">Klasik kartvizit</span>
+              <span role="columnheader">Yenomi ID</span>
+            </div>
+            {comparisonRows.map(([label, classic, yenomi]) => (
+              <div className={howItWorks.comparisonRow} role="row" key={label}>
+                <strong role="cell">{label}</strong>
+                <span role="cell">{classic}</span>
+                <span role="cell"><i aria-hidden="true">✓</i>{yenomi}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className={`home-premium__final ${howItWorks.final}`} aria-labelledby="final-title">
           <span className="home-mockup__kicker">DİJİTAL KARTVİZİT</span>
           <h2 id="final-title">Bir sonraki tanışmada<br />kartvizitin hazır olsun.</h2>
-          <p>Kendin için tek kart seç veya ekibini aynı Yenomi ID standardında yönet.</p>
+          <p>Kartın bir kez basılsın. Bilgilerin değiştikçe profilin güncel kalsın.</p>
+          <div className={howItWorks.finalOffer}>
+            <strong>{initialPrice}</strong>
+            <span>1 kart · 1 yıl platform üyeliği · Türkiye içi kargo dahil</span>
+          </div>
           <div className="home-mockup__actions">
             <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">
-              NFC Kartı Satın Al <span aria-hidden>→</span>
+              NFC Kartımı Al <span aria-hidden>→</span>
             </Link>
             <Link className="home-mockup__link-secondary" href="/kurumsal">
-              Ekip Paketlerini Gör <span aria-hidden>→</span>
+              Kurumsal çözümler <span aria-hidden>→</span>
             </Link>
           </div>
         </section>

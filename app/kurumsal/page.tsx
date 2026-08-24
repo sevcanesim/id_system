@@ -27,13 +27,6 @@ const analytics = [
   { value: "Ülke bazında", title: "Erişim dağılımı", text: "Kart etkileşimlerinin ülkelere göre dağılımını kurumsal panelden takip edin." },
 ];
 
-const corporateResources = [
-  { icon: "box" as const, title: "Ürün kataloğu", text: "Güncel ürün kataloğunuzu PDF olarak yükleyin veya katalog URL’nizi ekleyin." },
-  { icon: "building" as const, title: "Şirket sunumu", text: "Kurumsal sunumunuzu çalışan kartlarından tek dokunuşla erişilebilir hale getirin." },
-  { icon: "clock" as const, title: "Toplantı planlama", text: "Randevu ve toplantı bağlantılarını doğrudan kurumsal karta bağlayın." },
-  { icon: "external" as const, title: "Referans projeler", text: "Vaka çalışmaları ve referans projelerinizi PDF veya web bağlantısıyla paylaşın." },
-];
-
 const useCases = [
   { icon: "users" as const, title: "Satış ve saha ekipleri", text: "Her çalışan aynı kurumsal standartla tanışır; telefon, e-posta, katalog ve teklif bağlantılarını tek profilde paylaşır." },
   { icon: "building" as const, title: "İK ve yönetim", text: "Yeni çalışanı ekleyin, ünvan ve departmanı güncelleyin; ayrılan personelin kartını yeniden baskı beklemeden kapatın." },
@@ -105,18 +98,6 @@ export default async function CorporatePage({
 
       <section className="corporate-authentic-outcomes" aria-label="Kurumsal ürün sonuçları">
         {outcomes.map((item) => <div key={item.label}><strong>{item.value}</strong><span>{item.label}</span></div>)}
-      </section>
-
-      <section className="corporate-single-cta" aria-labelledby="corporate-single-cta-title">
-        <div>
-          <span className="section-kicker">PAKETİNİZİ SEÇİN</span>
-          <h2 id="corporate-single-cta-title">2–100 kişi için doğrudan satın alın. Daha büyük ekipte birlikte planlayalım.</h2>
-          <p>Önce ekip büyüklüğünü seçin. Fiyat, kişi başı maliyet ve dahil olan kapasite tek ekranda görünür. 100+ kişi veya özel entegrasyonlarda teklif akışına geçin.</p>
-        </div>
-        <div className="corporate-single-cta-actions">
-          <a href="#business-pricing-title" className="corporate-cta">Paketimi Seç <span aria-hidden="true">→</span></a>
-          <a href="/giris?portal=business&next=%2Fkurumsal%2Fpanel" className="corporate-secondary-cta">Kurumsal Giriş</a>
-        </div>
       </section>
 
       <section className="corporate-pricing-section corporate-single-details" aria-labelledby="business-pricing-title">
@@ -215,23 +196,6 @@ export default async function CorporatePage({
               <strong>{item.value}</strong>
               <h3>{item.title}</h3>
               <p>{item.text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="corporate-resources-section" aria-labelledby="corporate-resources-title">
-        <div className="corporate-section-heading">
-          <span className="section-kicker">KARTTAN DAHA FAZLASI</span>
-          <h2 id="corporate-resources-title">Kurumsal içeriklerinizi tek profilde toplayın.</h2>
-          <p>Katalog, sunum, toplantı ve referans bağlantılarını çalışan kartlarından erişilebilir hale getirin.</p>
-        </div>
-        <div className="corporate-resource-grid">
-          {corporateResources.map((resource) => (
-            <article key={resource.title}>
-              <Icon name={resource.icon} />
-              <h3>{resource.title}</h3>
-              <p>{resource.text}</p>
             </article>
           ))}
         </div>

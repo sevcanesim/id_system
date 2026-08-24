@@ -5,14 +5,26 @@ const root = process.cwd();
 const sourcePath = path.join(root, "app/canonical.css");
 const outDir = path.join(root, "app/styles");
 const APPLY = process.argv.includes("--apply");
+const DOMAIN = process.argv.find((arg) => arg.startsWith("--domain="))?.split("=")[1] ?? "support-legal";
 
-const domains = [
-  { name: "public", file: "canonical-public.css", prefixes: ["home-", "p4-", "support-", "legal-"] },
-  { name: "products", file: "canonical-products.css", prefixes: ["products-", "nfc-", "how-"] },
-  { name: "corporate", file: "canonical-corporate.css", prefixes: ["corporate-", "corp-", "p10-", "p11-", "enterprise-", "business-"] },
-  { name: "account", file: "canonical-account.css", prefixes: ["p6-", "p7-", "p8-", "p9-", "p12-"] },
-  { name: "commerce", file: "canonical-commerce.css", prefixes: ["checkout-", "cart-", "order-", "payment-", "commerce-"] },
-];
+const targets = {
+  "support-legal": {
+    name: "support-legal",
+    file: "canonical-public.css",
+    prefixes: ["support-", "legal-"],
+  },
+  "public-marketing": {
+    name: "public-marketing",
+    file: "canonical-public.css",
+    prefixes: ["home-", "p4-"],
+  },
+};
+
+const target = targets[DOMAIN];
+if (!target) {
+  console.error(`Unknown domain '${DOMAIN}'. Allowed: ${Object.keys(targets).join(", ")}`);
+  process.exit(1);
+}
 
 const source = fs.readFileSync(sourcePath, "utf8");
 
@@ -54,70 +66,66 @@ function splitTopLevelBlocks(css) {
     }
   }
 
-  if (source.slice(start).trim()) blocks.push(css.slice(start));
+  if (css.slice(start).trim()) blocks.push(css.slice(start));
   if (depth !== 0 || quote || comment) throw new Error("canonical.css could not be parsed safely: unbalanced structure");
   return blocks;
 }
 
 function classNames(block) {
-  return [...block.matchAll(/\.([_a-zA-Z][\w-]*)/g)].map((m) => m[1]);
+  return [...block.matchAll(/\.([_a-zA-Z][\w-]*)/g)].map((match) => match[1]);
 }
 
-function classify(block) {
+function belongsEntirelyToTarget(block) {
   const classes = classNames(block);
-  if (!classes.length) return null;
-  const matches = new Set();
-  for (const cls of classes) {
-    for (const domain of domains) {
-      if (domain.prefixes.some((prefix) => cls.startsWith(prefix))) matches.add(domain.name);
-    }
-  }
-  if (matches.size !== 1) return null;
-  const [name] = [...matches];
-  // Only move a block when every class selector belongs to the same domain.
-  const domain = domains.find((item) => item.name === name);
-  if (!classes.every((cls) => domain.prefixes.some((prefix) => cls.startsWith(prefix)))) return null;
-  return name;
+  if (!classes.length) return false;
+  return classes.every((className) => target.prefixes.some((prefix) => className.startsWith(prefix)));
 }
 
 const blocks = splitTopLevelBlocks(source);
-const buckets = new Map(domains.map((domain) => [domain.name, []]));
+const extracted = [];
 const retained = [];
 
 for (const block of blocks) {
-  const domain = classify(block);
-  if (domain) buckets.get(domain).push(block);
+  if (belongsEntirelyToTarget(block)) extracted.push(block);
   else retained.push(block);
 }
 
+const extractedCss = extracted.join("").trim();
+const retainedCss = retained.join("").trimStart();
+const existingModulePath = path.join(outDir, target.file);
+const existingModule = fs.existsSync(existingModulePath) ? fs.readFileSync(existingModulePath, "utf8").trimEnd() : "";
+
 const report = {
-  sourceBytes: Buffer.byteLength(source),
-  sourceLines: source.split("\n").length,
+  domain: DOMAIN,
+  prefixes: target.prefixes,
+  sourceBytesBefore: Buffer.byteLength(source),
+  sourceLinesBefore: source.split("\n").length,
   totalTopLevelBlocks: blocks.length,
-  retainedBlocks: retained.length,
-  modules: Object.fromEntries(domains.map((domain) => {
-    const css = buckets.get(domain.name).join("");
-    return [domain.name, {
-      blocks: buckets.get(domain.name).length,
-      bytes: Buffer.byteLength(css),
-      lines: css ? css.split("\n").length : 0,
-      file: `app/styles/${domain.file}`,
-    }];
-  })),
+  extractedBlocks: extracted.length,
+  extractedBytes: Buffer.byteLength(extractedCss),
+  extractedLines: extractedCss ? extractedCss.split("\n").length : 0,
+  sourceBytesAfter: Buffer.byteLength(retainedCss),
+  sourceLinesAfter: retainedCss.split("\n").length,
+  destination: `app/styles/${target.file}`,
 };
 
 console.log(JSON.stringify(report, null, 2));
 
+if (!extracted.length) {
+  console.error(`No safely isolated ${DOMAIN} blocks found; nothing to apply.`);
+  process.exit(APPLY ? 1 : 0);
+}
+
 if (!APPLY) {
-  console.log("DRY RUN — no files changed. Run with --apply only after reviewing the report.");
+  console.log(`DRY RUN — no files changed. Review the report, then run: node scripts/split-canonical-css.mjs --domain=${DOMAIN} --apply`);
   process.exit(0);
 }
 
 fs.mkdirSync(outDir, { recursive: true });
-for (const domain of domains) {
-  const css = buckets.get(domain.name).join("").trim();
-  if (!css) continue;
-  fs.writeFileSync(path.join(outDir, domain.file), `/* Extracted from app/canonical.css without selector rewrites. */\n${css}\n`);
-}
-fs.writeFileSync(sourcePath, retained.join("").trimStart());
-console.log("APPLIED — canonical.css and canonical domain modules were rewritten. Run all UI/build/E2E gates before committing.");
+const moduleHeader = "/* Canonical public module. Preserve extraction order; no selector rewrites. */";
+const nextModule = [existingModule || moduleHeader, extractedCss].filter(Boolean).join("\n\n") + "\n";
+fs.writeFileSync(existingModulePath, nextModule);
+fs.writeFileSync(sourcePath, retainedCss);
+
+console.log(`APPLIED — moved ${extracted.length} isolated ${DOMAIN} blocks to app/styles/${target.file}.`);
+console.log("NEXT — import the module in app/layout.tsx at the exact intended cascade position, then run UI/build/E2E gates before committing.");

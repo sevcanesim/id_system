@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { NFC_PRODUCT, formatTryFromKurus } from "../lib/config/product";
 import howItWorks from "./home-how-it-works.module.css";
+import homePolish from "./home-premium-polish.module.css";
 
 export const metadata: Metadata = {
   title: "Yenomi ID | Kartvizitin güncel kalsın",
@@ -59,22 +60,19 @@ export default function HomePage() {
   return (
     <div className="home-mockup home-premium home-premium--hero-v2">
       <main id="main-content">
-        <section className={`home-mockup__hero home-premium__hero-v2 ${howItWorks.hero}`} aria-labelledby="home-title">
-          <div className="home-mockup__orbit home-mockup__orbit--left" aria-hidden="true" />
-          <div className="home-mockup__orbit home-mockup__orbit--right" aria-hidden="true" />
-
-          <div className="home-mockup__copy">
+        <section className={`home-mockup__hero home-premium__hero-v2 ${howItWorks.hero} ${homePolish.heroShell}`} aria-labelledby="home-title">
+          <div className={`home-mockup__copy ${homePolish.heroCopy}`}>
             <span className="home-premium__hero-pill"><i aria-hidden="true" /> NFC + QR DİJİTAL KARTVİZİT</span>
             <h1 id="home-title">
-              Kart bir kez basılır.<br />
-              <span>Kimliğin her gün güncel kalır.</span>
+              Bir kez basılır.<br />
+              <span>Her zaman güncel kalır.</span>
             </h1>
             <p>
               Fiziksel NFC + QR kartın canlı dijital kartvizitine bağlanır. Telefonun, ünvanın veya şirketin değiştiğinde
               kartı değil profilini güncellersin.
             </p>
 
-            <div className="home-mockup__actions home-premium__hero-actions">
+            <div className={`home-mockup__actions home-premium__hero-actions ${homePolish.heroActions}`}>
               <Link className="home-mockup__button home-mockup__button--gold home-mockup__button--primary" href="/urunler/nfc-kart">
                 NFC Kartımı Al <span aria-hidden>→</span>
               </Link>
@@ -83,18 +81,19 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className={howItWorks.heroOffer} aria-label="NFC kart başlangıç fiyatı">
+            <div className={`${howItWorks.heroOffer} ${homePolish.heroOffer}`} aria-label="NFC kart başlangıç fiyatı">
               <strong>{initialPrice}</strong>
               <span>Tek seferlik ödeme · 1 yıl platform üyeliği dahil</span>
             </div>
 
-            <div className={`home-premium__hero-trust ${howItWorks.heroTrust}`} aria-label="Satın alma güvenceleri">
+            <div className={`home-premium__hero-trust ${howItWorks.heroTrust} ${homePolish.heroTrust}`} aria-label="Satın alma güvenceleri">
               {heroTrust.map((item) => <span key={item}><i aria-hidden="true">✓</i>{item}</span>)}
             </div>
           </div>
 
-          <div className={howItWorks.heroProduct} aria-label="Yenomi ID NFC + QR kart ürün görseli">
-            <div className={howItWorks.heroProductGlow} aria-hidden="true" />
+          <div className={`${howItWorks.heroProduct} ${homePolish.heroStage}`} aria-label="Yenomi ID NFC + QR kart ürün görseli">
+            <div className={homePolish.stageEyebrow} aria-hidden="true">FİZİKSEL KART · CANLI PROFİL</div>
+            <div className={`${howItWorks.heroProductGlow} ${homePolish.heroGlow}`} aria-hidden="true" />
             <Image
               src="/images/nfc-kart-hero.png"
               alt="Yenomi ID NFC ve QR kart ürün görseli"
@@ -102,21 +101,26 @@ export default function HomePage() {
               height={1484}
               priority
               sizes="(max-width: 900px) 92vw, 48vw"
-              className={howItWorks.heroProductImage}
+              className={`${howItWorks.heroProductImage} ${homePolish.heroProductImage}`}
             />
+            <div className={homePolish.capabilities} aria-hidden="true">
+              <span>NFC</span>
+              <span>QR</span>
+              <span>Uygulamasız</span>
+            </div>
           </div>
         </section>
 
-        <section className={howItWorks.section} aria-labelledby="how-it-works-title">
+        <section className={`${howItWorks.section} ${homePolish.sectionRhythm}`} aria-labelledby="how-it-works-title">
           <div className={howItWorks.heading}>
             <span className="home-mockup__kicker">NASIL ÇALIŞIR</span>
             <h2 id="how-it-works-title">Seç. Oluştur.<br />Paylaş. Yönet.</h2>
             <p>Dört basit adım. Kartını seçtiğin andan günlük kullanıma kadar bütün deneyim tek akışta.</p>
           </div>
 
-          <ol className={howItWorks.grid}>
+          <ol className={`${howItWorks.grid} ${homePolish.stepsGrid}`}>
             {howItWorksSteps.map((step) => (
-              <li className={howItWorks.step} key={step.number}>
+              <li className={`${howItWorks.step} ${homePolish.step}`} key={step.number}>
                 <span className={howItWorks.stepNumber}>Adım {step.number}</span>
                 <h3>{step.title}</h3>
                 <p>{step.text}</p>
@@ -124,7 +128,7 @@ export default function HomePage() {
             ))}
           </ol>
 
-          <div className={howItWorks.productStory}>
+          <div className={`${howItWorks.productStory} ${homePolish.productStory}`}>
             <div className={howItWorks.productStoryCopy}>
               <span className="home-mockup__kicker">TEK KART · CANLI PROFİL</span>
               <h3>Fiziksel kartın aynı kalır.<br />Dijital kimliğin değişir.</h3>
@@ -143,7 +147,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className={howItWorks.proofGrid} aria-label="Yenomi ID kullanım güvenceleri">
+          <div className={`${howItWorks.proofGrid} ${homePolish.proofGrid}`} aria-label="Yenomi ID kullanım güvenceleri">
             {proofItems.map(([title, text]) => (
               <article key={title}>
                 <strong>{title}</strong>
@@ -159,12 +163,12 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className={`home-premium__paths ${howItWorks.paths}`} aria-labelledby="paths-title">
+        <section className={`home-premium__paths ${howItWorks.paths} ${homePolish.sectionRhythm}`} aria-labelledby="paths-title">
           <div className="home-premium__paths-head">
             <span className="home-mockup__kicker">BİREYSEL · KURUMSAL</span>
             <h2 id="paths-title">Aynı sistem.<br />İki ölçek.</h2>
           </div>
-          <div className={`home-premium__path-grid ${howItWorks.pathGrid}`}>
+          <div className={`home-premium__path-grid ${howItWorks.pathGrid} ${homePolish.pathGrid}`}>
             <article>
               <span>BİREYSEL</span>
               <h3>Tek kart. Her tanışmada güncel.</h3>
@@ -182,7 +186,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className={howItWorks.comparison} aria-labelledby="comparison-title">
+        <section className={`${howItWorks.comparison} ${homePolish.comparison}`} aria-labelledby="comparison-title">
           <div className={howItWorks.comparisonHead}>
             <span className="home-mockup__kicker">NEDEN YENOMI ID?</span>
             <h2 id="comparison-title">Kartviziti yeniden<br />bastırmayı bırak.</h2>
@@ -204,7 +208,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className={`home-premium__final ${howItWorks.final}`} aria-labelledby="final-title">
+        <section className={`home-premium__final ${howItWorks.final} ${homePolish.final}`} aria-labelledby="final-title">
           <span className="home-mockup__kicker">DİJİTAL KARTVİZİT</span>
           <h2 id="final-title">Bir sonraki tanışmada<br />kartvizitin hazır olsun.</h2>
           <p>Kartın bir kez basılsın. Bilgilerin değiştikçe profilin güncel kalsın.</p>

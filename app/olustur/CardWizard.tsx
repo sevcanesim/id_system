@@ -786,10 +786,10 @@ export default function CardWizard() {
           </Field>
         </section>
 
-        {auditNotice && <div className="p8-message p8-message--info" role="status">{auditNotice}</div>}
-        {message && <div className="p8-message p8-message--error" role="alert">{message}</div>}
+        {auditNotice && <div className="p8-msg p8-msg--info" role="status">{auditNotice}</div>}
+        {message && <div className="p8-msg p8-msg--error" role="alert">{message}</div>}
 
-        <div className="p8-mobile-actions" aria-label="Profil düzenleme işlemleri">
+        <div className="p8-mob-act" aria-label="Profil düzenleme işlemleri">
           <Button variant="secondary" onClick={() => setMobilePreviewOpen(true)}><Icon name="id" />Önizle</Button>
           <Button variant="primary" disabled={publishDisabled} onClick={() => void publish()}>{saving ? "Kaydediliyor..." : "Kaydet ve Yayınla"}</Button>
         </div>
@@ -800,29 +800,29 @@ export default function CardWizard() {
           const completion = calculateProfileCompletion(data);
           const missingHint = formatMissingItemsText(data);
           return (
-            <section className="p8-completion-card" aria-label="Profil doluluk seviyesi">
-              <div className="p8-completion-header">
+            <section className="p8-ccard" aria-label="Profil doluluk seviyesi">
+              <div className="p8-chead">
                 <div>
                   <strong>Profilin %{completion} hazır</strong>
                   <small>{completion === 100 ? "Tamamlandı" : "Önerilen adımlar"}</small>
                 </div>
                 <Badge tone={completion === 100 ? "success" : "neutral"}>%{completion}</Badge>
               </div>
-              <div className="p8-completion-bar-track" aria-hidden="true">
-                <div className="p8-completion-bar-fill" style={{ width: `${completion}%` }} />
+              <div className="p8-ctrack" aria-hidden="true">
+                <div className="p8-cfill" style={{ width: `${completion}%` }} />
               </div>
-              <p className="p8-completion-hint">{missingHint}</p>
+              <p className="p8-chint">{missingHint}</p>
             </section>
           );
         })()}
 
         <section className="p8-preview-card">
-          <div className="p8-preview-title">
+          <div className="p8-preview-hd">
             <div>
-              <h2>Kart Önizlemesi</h2>
+              <h2>Canlı Kart Önizlemesi</h2>
               <p>Kaydetmeden önce profilinizin nasıl görüneceğini kontrol edin.</p>
             </div>
-            <div className="p8-preview-actions-strip">
+            <div className="p8-preview-acts">
               <Button size="sm" variant="secondary" onClick={() => setPhoneTestOpen(true)}>
                 <Icon name="qr" /> Telefonda Test Et
               </Button>
@@ -847,7 +847,7 @@ export default function CardWizard() {
         </section>
 
         <section className="p8-note">
-          <Icon name="refresh" />
+          <Icon name="sparkles" />
           <div>
             <strong>Anlık güncelleme</strong>
             <p>Kaydettiğiniz değişiklikler QR ve NFC kartınızı yeniden üretmeden aynı bağlantıda yayınlanır.</p>
@@ -859,16 +859,16 @@ export default function CardWizard() {
     <Drawer open={mobilePreviewOpen} title="Kart Önizlemesi" onClose={() => setMobilePreviewOpen(false)}><div className="p8-mobile-preview">{preview}</div></Drawer>
 
     <Modal open={phoneTestOpen} title="Telefonda Test Et" onClose={() => setPhoneTestOpen(false)}>
-      <div className="p8-phone-test-modal">
+      <div className="p8-pmodal">
         {profileId ? (
           <>
             <p>Mobil cihazınızın kamerası ile aşağıdaki QR kodu okutarak canlı kart profilinizi telefonunuzda hemen görüntüleyin.</p>
             {phoneTestQrDataUrl ? (
-              <img src={phoneTestQrDataUrl} alt="Mobil test QR kodu" className="p8-phone-test-qr" />
+              <img src={phoneTestQrDataUrl} alt="Mobil test QR kodu" className="p8-pqr" />
             ) : (
               <div className="p8-qr-placeholder">QR hazırlanıyor...</div>
             )}
-            <span className="p8-phone-test-url">{cardShareUrl(profileSlug || publicId || "yenomi-id")}</span>
+            <span className="p8-purl">{cardShareUrl(profileSlug || publicId || "yenomi-id")}</span>
           </>
         ) : (
           <div className="p8-phone-test-unpublished">

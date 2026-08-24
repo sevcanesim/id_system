@@ -132,14 +132,12 @@ test("product catalog exposes the primary purchase above the fold and keeps thre
 
   await expect(page.getByRole("heading", { name: /Tek kart\.\s*Değişmeyen bağlantın\./ })).toBeVisible();
   await expect(page.getByText("₺1.490").first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "NFC Kartımı Al" }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Yenomi ID’mi Al" }).first()).toBeVisible();
 
   const plans = page.locator(".products-premium-v2__plan-card");
   await expect(plans).toHaveCount(3);
-  await expect(page.getByRole("heading", { name: "İhtiyacınız kadar başlayın." })).toBeVisible();
-  await expect(page.getByText("Ana ürün", { exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Aynı profile ikinci kart ekleyin." })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Aynı standardı tüm ekibe taşıyın." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Tek kimlik\.\s*İhtiyacına göre üç seviye\./ })).toBeVisible();
+  await expect(page.getByText("Standart seçim", { exact: true })).toBeVisible();
 
   const viewportWidth = page.viewportSize()?.width ?? 0;
   if (viewportWidth > 980) {
@@ -154,32 +152,12 @@ test("product catalog exposes the primary purchase above the fold and keeps thre
 test("corporate pricing keeps three decisions, equal desktop tier geometry, and granular capacity", async ({ page }) => {
   await page.goto("/kurumsal", { waitUntil: "load" });
 
-  const tierGroup = page.getByLabel("Kurumsal paket seviyeleri");
-  const tiers = tierGroup.getByRole("button");
-  await expect(tiers).toHaveCount(3);
+  await expect(page.getByRole("heading", { name: "Tek panel, ekip büyüklüğüne göre kapasite." })).toBeVisible();
+  const table = page.locator(".corporate-pack-table");
+  await expect(table).toBeVisible();
+  const rows = table.locator("tbody tr");
+  await expect(rows).toHaveCount(7);
 
-  const start = tierGroup.getByRole("button", { name: /Küçük ekipler[\s\S]*Start/ });
-  const business = tierGroup.getByRole("button", { name: /Büyüyen şirketler[\s\S]*Business/ });
-  const enterprise = tierGroup.getByRole("button", { name: /100\+ çalışan[\s\S]*Enterprise/ });
-
-  await expect(start).toBeVisible();
-  await expect(business).toBeVisible();
-  await expect(enterprise).toBeVisible();
-  await expect(business).toHaveAttribute("aria-pressed", "true");
-
-  const viewportWidth = page.viewportSize()?.width ?? 0;
-  if (viewportWidth > 720) {
-    const tierHeights = await tiers.evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().height)));
-    expect(new Set(tierHeights).size).toBe(1);
-  }
-
-  await expect(page.locator(".corporate-pack-picker__tick")).toHaveCount(7);
-  await start.click();
-  await expect(start).toHaveAttribute("aria-pressed", "true");
-  await expect(business).toHaveAttribute("aria-pressed", "false");
-  await expect(page.locator(".corporate-pack-picker__head h3")).toBeVisible();
-
-  await enterprise.click();
   const enterpriseLead = page.locator("#teklif");
   await expect(enterpriseLead).toBeVisible();
   await expect(enterpriseLead.getByRole("heading", { name: "Kurumsal yapınızı birlikte planlayalım." })).toBeVisible();

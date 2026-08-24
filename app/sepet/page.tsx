@@ -3,9 +3,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { cartItemPresentation, readCart, removeCartItem, setCartOwner, updateCartItemQuantity, writeCart, type CartItem } from "../../lib/cart";
 import { COMMERCIAL_PRICING, isCorporatePackageSku } from "../../lib/config/commercial";
-import { formatTryFromKurus } from "../../lib/config/product";
+import { NFC_PRODUCT, formatTryFromKurus } from "../../lib/config/product";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { EmptyState } from "../components/ui/States";
+import { Badge, ButtonLink, Grid, ProductCard, Stack } from "../components/ui/DesignSystem";
 
 type CartAudience = "guest" | "individual" | "corporate";
 
@@ -64,25 +65,56 @@ export default function CartPage() {
             <p>Fiyat ve stok ödeme adımında sunucuda doğrulanır. Kart numarası Yenomi’de saklanmaz.</p>
           </div>
           {!items.length ? (
-            <EmptyState
-              icon="cart"
-              title="Kartını seçmeye hazır mısın?"
-              description={
-                audience === "corporate"
-                  ? "Bireysel NFC kartını buradan ekle. Şirket lisans paketleri paneldeki Lisanslar’dan yönetilir."
-                  : "NFC + QR kart: tek seferlik ödeme, 1 yıl platform üyeliği ve Türkiye içi kargo dahil."
-              }
-              action={
-                <div className="ds-empty-actions">
-                  <Link className="ds-button ds-button--primary" href="/urunler/nfc-kart">NFC Kartı Satın Al</Link>
-                  {audience === "corporate" ? (
-                    <Link className="home-mockup__link-secondary" href="/kurumsal/panel/lisans">Lisanslara git</Link>
-                  ) : (
-                    <Link className="home-mockup__link-secondary" href="/kurumsal">Ekip paketini incele</Link>
-                  )}
+            <Stack gap={6}>
+              <EmptyState
+                icon="cart"
+                title="Kartını seçmeye hazır mısın?"
+                description={
+                  audience === "corporate"
+                    ? "Bireysel NFC kartını buradan ekle. Şirket lisans paketleri paneldeki Lisanslar’dan yönetilir."
+                    : "NFC + QR kart: tek seferlik ödeme, 1 yıl platform üyeliği ve Türkiye içi kargo dahil."
+                }
+                action={
+                  <div className="ds-empty-actions">
+                    <Link className="ds-button ds-button--primary" href="/urunler/nfc-kart">NFC Kartı Satın Al</Link>
+                    {audience === "corporate" ? (
+                      <Link className="home-mockup__link-secondary" href="/kurumsal/panel/lisans">Lisanslara git</Link>
+                    ) : (
+                      <Link className="home-mockup__link-secondary" href="/kurumsal">Ekip paketini incele</Link>
+                    )}
+                  </div>
+                }
+              />
+
+              <section aria-labelledby="cart-recovery-title">
+                <div className="yi-page-head">
+                  <span>EN ÇOK TERCİH EDİLENLER</span>
+                  <h2 id="cart-recovery-title">Sepeti boş bırakmak zorunda değilsin.</h2>
+                  <p>Kullanım senaryona göre doğrudan doğru ürüne geç.</p>
                 </div>
-              }
-            />
+                <Grid>
+                  <ProductCard
+                    badge={<Badge tone="warning">Bireysel</Badge>}
+                    title="NFC + QR Kart"
+                    description="Tek kart, canlı profil ve ilk yıl platform üyeliği. Türkiye içi kargo dahil."
+                    price={<><strong>{formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)}</strong><span> · 1 yıl dahil</span></>}
+                    action={<ButtonLink href="/urunler/nfc-kart" variant="primary">Kartı incele</ButtonLink>}
+                  />
+                  <ProductCard
+                    badge={<Badge>Kurumsal</Badge>}
+                    title="Ekip Paketi"
+                    description="10–100 kişi için merkezi kart, lisans ve çalışan yönetimi. Kapasiteye göre fiyatı anında gör."
+                    price={<span>Kişi sayına göre hesaplanır</span>}
+                    action={<ButtonLink href={audience === "corporate" ? "/kurumsal/panel/lisans" : "/kurumsal"} variant="secondary-strong">Ekip paketini incele</ButtonLink>}
+                  />
+                </Grid>
+                <div className="ds-empty-actions" aria-label="Ödeme ve teslimat güvenceleri">
+                  <Badge tone="success">iyzico ile ödeme</Badge>
+                  <Badge tone="success">KDV dahil</Badge>
+                  {shippingIncluded && <Badge tone="success">Türkiye içi kargo dahil</Badge>}
+                </div>
+              </section>
+            </Stack>
           ) : (
             <div className="yi-cart-layout">
               <section className="yi-cart-items">

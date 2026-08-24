@@ -15,10 +15,9 @@ import { formatTryFromKurus } from "../../lib/config/product";
 import CorporateLeadForm from "./CorporateLeadForm";
 
 const outcomes = [
-  { value: "Tek panel", label: "Tüm çalışan kimlikleri" },
-  { value: "Dakikalar", label: "Yeni çalışan kurulumu" },
-  { value: "Anında", label: "Pasife alma ve güncelleme" },
-  { value: "Ölçülebilir", label: "Kart etkileşimleri" },
+  { value: "Tek panel", label: "Çalışan, kart ve profil yönetimi" },
+  { value: "Anında", label: "Bilgi güncelleme ve kart kapatma" },
+  { value: "Tek standart", label: "Tüm ekipte kurumsal görünüm" },
 ];
 
 const analytics = [
@@ -47,6 +46,12 @@ const steps = [
   ["03", "Kartları teslim edelim", "NFC + QR kartlar üretilir, profiller eşleştirilir ve yönetim paneliniz kullanıma açılır."],
 ];
 
+const managementProof = [
+  ["Yeni çalışan", "Profili oluştur, kartı ata ve kullanıma aç."],
+  ["Bilgi değişikliği", "Ünvan, telefon ve bağlantıları yeniden baskı olmadan güncelle."],
+  ["Ayrılan çalışan", "Kartı ve erişimi merkezden kapat."],
+] as const;
+
 export default async function CorporatePage({
   searchParams,
 }: {
@@ -65,67 +70,42 @@ export default async function CorporatePage({
     checkoutLive: corporateCheckoutLive(plan.seats),
     sku: corporatePackageSku(plan.code),
   }));
-  const capabilities = [
-    { icon: "users" as const, title: "Toplu Yönetim", text: "Çalışan ve kart tek panelde. Yeni kişi dakikalar içinde yayında." },
-    { icon: "building" as const, title: "Marka Kontrolü", text: "Logo, renk, şablon. Dağınık kartvizit kalmaz." },
-    { icon: "shield" as const, title: "Yetki & Güvenlik", text: "Rol kilitli erişim. Ayrılan kart panelden kapanır." },
-    { icon: "analytics" as const, title: "Ölçülebilir", text: "Kart etkileşimlerini ekip bazında izleyin." },
-  ];
 
   return (
     <main id="main-content" className="theme-light corporate-page corporate-sales-page corporate-single-page">
-      <section className="corporate-single-hero" aria-labelledby="corporate-single-title">
+      <section className="corporate-single-hero corporate-authentic-hero" aria-labelledby="corporate-single-title">
         <div className="corporate-single-copy">
           <span className="section-kicker">YENOMI BUSINESS</span>
           <h1 id="corporate-single-title">
-            <span className="corporate-hero-line">Ekibiniz tek kartvizit standardıyla tanışsın.</span>
-            <span className="corporate-hero-line corporate-hero-line--accent">Kimlikleri merkezden yönetin, yeniden baskıyı azaltın.</span>
+            <span className="corporate-hero-line">Ekibinizin dijital kimliğini tek yerden yönetin.</span>
+            <span className="corporate-hero-line corporate-hero-line--accent">Yeniden baskıyı ve dağınık kartvizit yönetimini azaltın.</span>
           </h1>
-          <p>Çalışan kartları, canlı profiller, yetkiler ve kayıp kart yönetimi tek panelde. 2–100 kişi için paketinizi doğrudan seçin; 100+ kişi ve özel entegrasyonlarda birlikte planlayalım.</p>
+          <p>Yeni çalışanı yayınlayın, bilgileri güncelleyin, ayrılan personelin kartını kapatın. 2–100 kişi için paketinizi doğrudan seçin; 100+ kişi ve özel entegrasyonlarda birlikte planlayalım.</p>
           <div className="corporate-hero-actions">
             <a href="#business-pricing-title" className="corporate-cta">Ekibime Uygun Paketi Seç <span aria-hidden="true">→</span></a>
             <a href="/kurumsal?plan=ENTERPRISE#teklif" className="home-mockup__link-secondary">100+ Kişi İçin Teklif Al <span aria-hidden="true">→</span></a>
           </div>
-          <div className="corporate-single-proof" aria-label="Kurumsal ürün sonuçları">
-            {outcomes.slice(0, 3).map((item) => <div key={item.label}><strong>{item.value}</strong><span>{item.label}</span></div>)}
-          </div>
         </div>
 
-        <div className="corporate-dashboard-stage" aria-label="Yenomi ID kurumsal panel önizlemesi">
-          <div className="corporate-dashboard-glow" />
-          <div className="corporate-dashboard-window">
-            <div className="corporate-dashboard-topbar">
-              <div><span className="corporate-dashboard-dot" />YENOMI ID <small>Kurumsal Panel</small></div>
-              <span className="corporate-dashboard-live">Örnek panel</span>
-            </div>
-            <div className="corporate-dashboard-body">
-              <aside className="corporate-dashboard-sidebar" aria-hidden="true">
-                <span className="active" /><span /><span /><span /><span />
-              </aside>
-              <div className="corporate-dashboard-content">
-                <div className="corporate-dashboard-heading"><div><small>BU AY</small><strong>Networking özeti</strong></div><span>•••</span></div>
-                <div className="corporate-dashboard-kpis">
-                  <div><small>Bağlantı</small><strong>Tanışma</strong><span>karttan gelen kişi</span></div>
-                  <div><small>Follow-up</small><strong>Network Mail</strong><span>takip mesajı</span></div>
-                  <div><small>Lead</small><strong>Toplantı</strong><span>sonraki adım</span></div>
-                </div>
-                <div className="corporate-dashboard-grid">
-                  <div className="corporate-dashboard-chart"><small>KART ETKİLEŞİMLERİ</small><div className="corporate-bars"><i /><i /><i /><i /><i /><i /><i /></div></div>
-                  <div className="corporate-dashboard-team"><small>EKİP DURUMU</small><div><b />Aktif</div><div><b />Beklemede</div><div><b />Pasif</div></div>
-                </div>
-                <div className="corporate-dashboard-footer"><span>Şablonlar</span><span>Entegrasyonlar</span><span>Güvenlik</span><span>Analitik</span></div>
-              </div>
-            </div>
+        <aside className="corporate-authentic-proof" aria-label="Yenomi ID kurumsal yönetim kapsamı">
+          <div className="corporate-authentic-proof__head">
+            <span>MERKEZİ YÖNETİM</span>
+            <strong>Günlük çalışan hareketlerini tek panelden yönetin.</strong>
           </div>
-          <div className="corporate-dashboard-badge"><span /> Merkezi yönetim</div>
-        </div>
+          <div className="corporate-authentic-proof__list">
+            {managementProof.map(([title, text], index) => (
+              <div key={title}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <div><strong>{title}</strong><p>{text}</p></div>
+              </div>
+            ))}
+          </div>
+          <p className="corporate-authentic-proof__note">Gerçek panel ekranı ürün içi arayüzden alınmış ekran görüntüsü hazır olduğunda bu alanda gösterilecek; temsili dashboard kullanılmaz.</p>
+        </aside>
       </section>
 
-      <section className="corporate-capability-bar" aria-label="Kurumsal çözüm yetenekleri">
-        {capabilities.map((item) => <article key={item.title}>
-          <div className="corporate-capability-icon"><Icon name={item.icon} /></div>
-          <div><h2>{item.title}</h2><p>{item.text}</p></div>
-        </article>)}
+      <section className="corporate-authentic-outcomes" aria-label="Kurumsal ürün sonuçları">
+        {outcomes.map((item) => <div key={item.label}><strong>{item.value}</strong><span>{item.label}</span></div>)}
       </section>
 
       <section className="corporate-single-cta" aria-labelledby="corporate-single-cta-title">

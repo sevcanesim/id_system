@@ -107,18 +107,23 @@ test.describe("public hamburger", () => {
   });
 });
 
-test("product catalog keeps three primary plans and separates the existing-user add-on", async ({ page }) => {
+test("product catalog exposes the primary purchase above the fold and keeps three plan decisions", async ({ page }) => {
   await page.goto("/urunler", { waitUntil: "load" });
 
-  const primaryPlans = page.locator(".products-premium-v2__plan-card");
-  await expect(primaryPlans).toHaveCount(3);
-  await expect(page.getByRole("heading", { name: "İhtiyacınız kadar başlayın." })).toBeVisible();
-  await expect(page.getByText("En dengeli seçim")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Aynı profile ikinci kart ekleyin." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Tek kart\.\s*Değişmeyen bağlantın\./ })).toBeVisible();
+  await expect(page.getByText("₺1.490").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "NFC Kartımı Al" }).first()).toBeVisible();
+
+  const plans = page.locator(".products-commerce-v3__plan-card");
+  await expect(plans).toHaveCount(3);
+  await expect(page.getByRole("heading", { name: "İhtiyacına göre başla." })).toBeVisible();
+  await expect(page.getByText("EN ÇOK TERCİH EDİLEN")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Aynı profile ikinci NFC kartını ekle." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /50 kart değil\./ })).toBeVisible();
 
   const viewportWidth = page.viewportSize()?.width ?? 0;
   if (viewportWidth > 980) {
-    const heights = await primaryPlans.evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().height)));
+    const heights = await plans.evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().height)));
     expect(new Set(heights).size).toBe(1);
   }
 

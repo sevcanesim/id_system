@@ -15,11 +15,32 @@ const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 const mixed = fs.readFileSync(mixedPath, "utf8");
 
 const domains = [
-  { name: "public", prefixes: ["home-", "p4-", "support-", "legal-"] },
-  { name: "products", prefixes: ["products-", "nfc-", "how-"] },
-  { name: "corporate", prefixes: ["corporate-", "corp-", "p10-", "p11-", "enterprise-", "business-"] },
+  { name: "foundation", prefixes: ["yi-", "ds-"] },
+  { name: "public", prefixes: ["home-", "p4-", "support-", "legal-", "public-site-"] },
+  { name: "products", prefixes: ["products-", "product-", "nfc-", "how-"] },
+  { name: "corporate", prefixes: ["corporate-", "corp-", "p10-", "p11-", "enterprise-", "business-", "v25-", "v26-"] },
   { name: "account", prefixes: ["p6-", "p7-", "p8-", "p9-", "p12-"] },
   { name: "commerce", prefixes: ["checkout-", "cart-", "order-", "payment-", "commerce-"] },
+];
+
+const neutralClasses = new Set([
+  "active",
+  "disabled",
+  "hidden",
+  "loading",
+  "open",
+  "selected",
+  "visible",
+  "mono",
+  "metric",
+  "caption",
+  "sr-only",
+]);
+
+const neutralPrefixes = [
+  "is-",
+  "has-",
+  "aria-",
 ];
 
 function parsePartFile(content) {
@@ -45,7 +66,8 @@ function selectorPrelude(css) {
   return css.slice(0, brace).replace(/\s+/g, " ").trim().slice(0, 240);
 }
 
-function domainForClass(className) {
+function ownershipForClass(className) {
+  if (neutralClasses.has(className) || neutralPrefixes.some((prefix) => className.startsWith(prefix))) return "neutral";
   return domains.find((domain) => domain.prefixes.some((prefix) => className.startsWith(prefix)))?.name ?? "unknown";
 }
 
@@ -64,7 +86,9 @@ function specificityApprox(selector) {
 const manifestById = new Map(manifest.order.map((entry, index) => [entry.id, { ...entry, orderIndex: index }]));
 const blocks = parsePartFile(mixed).map((block) => {
   const classes = [...new Set(classNames(block.css))];
-  const domainSet = [...new Set(classes.map(domainForClass))].sort();
+  const classOwnership = classes.map((className) => ({ className, owner: ownershipForClass(className) }));
+  const domains = [...new Set(classOwnership.map((item) => item.owner).filter((owner) => owner !== "neutral"))].sort();
+  const unknownClasses = classOwnership.filter((item) => item.owner === "unknown").map((item) => item.className);
   const selector = selectorPrelude(block.css);
   const entry = manifestById.get(block.id);
   return {
@@ -72,7 +96,8 @@ const blocks = parsePartFile(mixed).map((block) => {
     orderIndex: entry?.orderIndex ?? -1,
     bytes: Buffer.byteLength(block.css),
     classes,
-    domains: domainSet,
+    domains,
+    unknownClasses,
     selector,
     media: mediaScope(block.css),
     specificity: specificityApprox(selector),
@@ -92,6 +117,7 @@ const duplicateClasses = [...classOccurrences.entries()]
   .filter(([, list]) => list.length > 1)
   .map(([className, list]) => ({
     className,
+    owner: ownershipForClass(className),
     count: list.length,
     firstOrder: Math.min(...list.map((item) => item.orderIndex)),
     lastOrder: Math.max(...list.map((item) => item.orderIndex)),
@@ -101,15 +127,26 @@ const duplicateClasses = [...classOccurrences.entries()]
   }))
   .sort((a, b) => b.count - a.count || (b.lastOrder - b.firstOrder) - (a.lastOrder - a.firstOrder));
 
+const unknownOccurrences = new Map();
+for (const block of blocks) {
+  for (const className of block.unknownClasses) {
+    unknownOccurrences.set(className, (unknownOccurrences.get(className) ?? 0) + 1);
+  }
+}
+
 const domainMixCounts = new Map();
 for (const block of blocks) {
-  const key = block.domains.join("+") || "unknown";
+  const key = block.domains.join("+") || "neutral-only";
   domainMixCounts.set(key, (domainMixCounts.get(key) ?? 0) + 1);
 }
 
 const safestCandidates = blocks
   .filter((block) => block.domains.length === 1 && block.domains[0] !== "unknown")
-  .filter((block) => block.classes.every((className) => (classOccurrences.get(className)?.length ?? 0) === 1))
+  .filter((block) => block.unknownClasses.length === 0)
+  .filter((block) => block.classes.every((className) => {
+    const owner = ownershipForClass(className);
+    return owner === "neutral" || (classOccurrences.get(className)?.length ?? 0) === 1;
+  }))
   .sort((a, b) => a.orderIndex - b.orderIndex)
   .slice(0, 100)
   .map((block) => ({ id: block.id, domain: block.domains[0], media: block.media, selector: block.selector, bytes: block.bytes }));
@@ -117,7 +154,8 @@ const safestCandidates = blocks
 const highestRiskBlocks = blocks
   .map((block) => {
     const repeatedClassCount = block.classes.filter((className) => (classOccurrences.get(className)?.length ?? 0) > 1).length;
-    const riskScore = repeatedClassCount * 4 + Math.max(0, block.domains.length - 1) * 6 + (block.domains.includes("unknown") ? 3 : 0) + (block.media !== "base" ? 1 : 0);
+    const realDomains = block.domains.filter((domain) => domain !== "unknown");
+    const riskScore = repeatedClassCount * 4 + Math.max(0, realDomains.length - 1) * 6 + block.unknownClasses.length * 3 + (block.media !== "base" ? 1 : 0);
     return { ...block, repeatedClassCount, riskScore };
   })
   .sort((a, b) => b.riskScore - a.riskScore || b.bytes - a.bytes)
@@ -127,6 +165,7 @@ const highestRiskBlocks = blocks
     riskScore: block.riskScore,
     repeatedClassCount: block.repeatedClassCount,
     domains: block.domains,
+    unknownClasses: block.unknownClasses,
     media: block.media,
     specificity: block.specificity,
     selector: block.selector,
@@ -139,6 +178,10 @@ const report = {
   uniqueClasses: classOccurrences.size,
   duplicatedClasses: duplicateClasses.length,
   domainMixes: Object.fromEntries([...domainMixCounts.entries()].sort((a, b) => b[1] - a[1])),
+  topUnknownClasses: [...unknownOccurrences.entries()]
+    .map(([className, count]) => ({ className, count }))
+    .sort((a, b) => b.count - a.count || a.className.localeCompare(b.className))
+    .slice(0, 100),
   topDuplicateClasses: duplicateClasses.slice(0, 100),
   safestCandidates,
   highestRiskBlocks,

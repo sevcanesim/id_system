@@ -27,21 +27,74 @@ const OWNER_FILES = {
 
 const DOMAINS = [
   { name: "foundation", prefixes: ["yi-", "ds-", "section-kicker", "field-grid", "canonical-sidebar-backdrop", "brand-top", "brand-dot"] },
-  { name: "public", prefixes: ["home-", "p4-", "support-", "legal-", "public-", "global-", "reference-"] },
-  { name: "products", prefixes: ["products-", "product-", "nfc-", "how-", "premium-", "yenomi-card-art", "quantity-premium", "wizard-", "physical-", "stacked-card-", "brand-back-", "pane-", "qr-first-", "brand-pill", "card-art-", "embedded-card-", "qr-fallback-"] },
+  { name: "public", prefixes: ["home-", "p4-", "support-", "legal-", "public-site-", "public-page-", "public-reference-", "global-app-", "global-header-", "global-main-", "global-brand-", "global-cart-", "global-mobile-", "global-signout-", "global-account-", "global-menu-", "reference-hero", "reference-step-", "reference-topic-", "reference-contact", "reference-section", "reference-band", "reference-actions", "reference-topic", "reference-step", "compact-footer"] },
+  { name: "products", prefixes: ["products-", "product-", "nfc-", "how-", "premium-", "yenomi-card-art", "quantity-premium", "wizard-", "physical-white", "physical-purple", "stacked-card-", "brand-back-", "pane-heading", "qr-first-", "brand-pill", "card-art-", "embedded-card-", "qr-fallback-"] },
   { name: "corporate", prefixes: ["corporate-", "corp-", "p10-", "p11-", "p14-", "p18-", "enterprise-", "enterprise", "business-", "v25-", "v26-", "settings-tristate", "company-settings-", "job-title", "license-reference-", "template-", "seat-pack-", "org-save-", "org-name-", "title-request-", "mini-meter"] },
-  { name: "account", prefixes: ["p6-", "p7-", "p8-", "p9-", "p12-", "identity-", "compact-", "primary-save", "quick-actions", "auth-message", "profile-state-", "account-loading", "verified-pill"] },
-  { name: "commerce", prefixes: ["checkout-", "cart-", "order-", "payment-", "commerce-", "add-to-cart-", "activation-", "admin-", "p5-", "stripe-", "result-", "smart-location-", "price", "pricing-"] },
+  { name: "account", prefixes: ["p6-", "p7-", "p8-", "p9-", "p12-", "identity-", "compact-card", "compact-identity", "compact-wrap", "compact-cover", "compact-shade", "compact-links", "compact-link-copy", "compact-link", "primary-save", "quick-actions", "auth-message", "profile-state-", "account-loading", "verified-pill"] },
+  { name: "commerce", prefixes: ["checkout-", "cart-", "order-", "payment-", "commerce-", "add-to-cart-", "activation-", "admin-", "p5-", "stripe-", "result-", "smart-location-", "pricing-", "price-mono", "price"] },
 ];
 
 const NEUTRAL_CLASSES = new Set([
-  "active", "inactive", "disabled", "hidden", "loading", "open", "selected", "visible", "mono", "metric", "caption", "sr-only",
-  "primary", "secondary", "theme-light", "theme-dark", "woff2", "blue", "amber", "green", "purple", "done", "empty", "waiting", "total", "actions", "error", "danger", "warning", "online",
-  "published", "ready", "recommended", "valid", "success", "info", "offline", "digital-renewal", "secondary-link",
-  "text-caption", "back", "front", "white", "gold", "violet", "muted", "single", "draft", "scheduled", "allowed", "denied", "optional-label", "highlight", "step-counter",
-  "css", "tsx", "vercel", "app",
-  "is-active", "is-open", "is-loading", "is-disabled", "is-selected",
+  "active",
+  "inactive",
+  "disabled",
+  "hidden",
+  "loading",
+  "open",
+  "selected",
+  "visible",
+  "mono",
+  "metric",
+  "caption",
+  "sr-only",
+  "primary",
+  "secondary",
+  "theme-light",
+  "theme-dark",
+  "blue",
+  "amber",
+  "green",
+  "purple",
+  "done",
+  "empty",
+  "waiting",
+  "total",
+  "actions",
+  "error",
+  "danger",
+  "warning",
+  "online",
+  "published",
+  "ready",
+  "recommended",
+  "valid",
+  "success",
+  "info",
+  "offline",
+  "digital-renewal",
+  "secondary-link",
+  "text-caption",
+  "back",
+  "front",
+  "white",
+  "gold",
+  "violet",
+  "muted",
+  "single",
+  "draft",
+  "scheduled",
+  "allowed",
+  "denied",
+  "optional-label",
+  "highlight",
+  "step-counter",
 ]);
+
+const NEUTRAL_PREFIXES = [
+  "is-",
+  "has-",
+  "aria-",
+];
 
 function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
@@ -131,7 +184,7 @@ function classNames(css) {
 }
 
 function domainForClass(className) {
-  if (NEUTRAL_CLASSES.has(className)) return "neutral";
+  if (NEUTRAL_CLASSES.has(className) || NEUTRAL_PREFIXES.some((prefix) => className.startsWith(prefix))) return "neutral";
   return DOMAINS.find((domain) => domain.prefixes.some((prefix) => className.startsWith(prefix)))?.name ?? "unknown";
 }
 
@@ -179,8 +232,10 @@ for (const entry of manifest.order) {
   for (const className of classes) {
     const owner = domainForClass(className);
     if (owner === "unknown") hasUnknown = true;
-    else if (owner !== "neutral") meaningfulOwners.add(owner);
-    if ((classOccurrences.get(className)?.length ?? 0) > 1) duplicated = true;
+    else if (owner !== "neutral") {
+      meaningfulOwners.add(owner);
+      if ((classOccurrences.get(className)?.length ?? 0) > 1) duplicated = true;
+    }
   }
 
   if (hasUnknown || duplicated || meaningfulOwners.size !== 1) continue;

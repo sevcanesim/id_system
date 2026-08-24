@@ -1,6 +1,8 @@
 /* Yenomi ID — semantic design tokens.
- * New UI consumes semantic tokens only. Legacy names below are compatibility
- * bridges and must not introduce additional palette values.
+ * This file is the single source of truth for palette, typography, spacing,
+ * radius, elevation, motion and layout. New UI consumes semantic tokens only.
+ * Legacy names below are compatibility bridges and must never introduce
+ * additional values.
  */
 :root {
   /* Canonical palette */
@@ -36,46 +38,21 @@
   --info: var(--text-secondary);
   --info-subtle: var(--surface-secondary);
 
-  /* Compatibility aliases: aliases only, no parallel palette. */
-  --surface-base: var(--background);
-  --surface-card: var(--surface);
-  --surface-soft: var(--surface-secondary);
-  --surface-accent: var(--primary-subtle);
-  --surface-dark-product: var(--surface-dark);
-  --border-subdued: var(--border);
-  --border-interactive: var(--border-strong);
-  --brand-gold: var(--primary);
-  --brand-gold-deep: var(--primary-active);
-  --brand-gold-hover: var(--primary-hover);
-  --brand-gold-soft: var(--primary-subtle);
-  --warm-text-primary: var(--text-primary);
-  --warm-text-secondary: var(--text-secondary);
-  --warm-success: var(--success);
-  --warm-warning: var(--warning);
-  --warm-muted: var(--text-tertiary);
-  --warm-danger: var(--error);
-
-  /* Legacy canonical.css color names. These no longer define an independent
-   * purple/blue palette; old selectors resolve to the semantic system. */
-  --void: var(--background);
-  --deep: var(--surface-secondary);
-  --surface-2: var(--background);
-  --surface-3: var(--surface-secondary);
-  --ink: var(--text-primary);
-  --ink-2: var(--text-secondary);
-  --ink-3: var(--text-tertiary);
-  --gold: var(--primary);
-  --gold-hi: var(--primary-hover);
-  --gold-dim: var(--primary-subtle);
-  --violet: var(--primary);
-  --violet-hi: var(--primary-hover);
-  --green: var(--success);
-  --red: var(--error);
-  --amber: var(--warning);
-  --blue: var(--text-secondary);
-  --border-gold: color-mix(in srgb,var(--primary) 34%,transparent);
-  --glow: 0 0 48px color-mix(in srgb,var(--primary) 14%,transparent);
-
+  /* Typography */
+  --font-ui: "Yenomi Inter", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Yenomi Inter Display", "Yenomi Inter", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "PT Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --type-xs: 11px;
+  --type-sm: 12px;
+  --type-body-sm: 14px;
+  --type-body: 16px;
+  --type-body-lg: 18px;
+  --type-h4: 20px;
+  --type-h3: 24px;
+  --type-h2: clamp(28px, 3vw, 40px);
+  --type-h1: clamp(40px, 4.8vw, 64px);
+  --type-display: clamp(48px, 6vw, 76px);
+  --type-metric: 24px;
 
   /* Radius */
   --radius-xs: 6px;
@@ -108,16 +85,6 @@
   --space-24: 96px;
   --space-30: 120px;
 
-  /* Type */
-  --font-family-ui: var(--font-ui);
-  --font-family-display: var(--font-display);
-  --font-size-label: var(--type-sm);
-  --font-size-body: var(--type-body);
-  --font-size-body-lg: var(--type-body-lg);
-  --font-size-title: var(--type-h3);
-  --font-size-page-title: var(--type-h2);
-  --font-size-display: var(--type-display);
-
   /* Controls + motion */
   --control-height-sm: 36px;
   --control-height-md: 44px;
@@ -128,11 +95,60 @@
   --ease-standard: cubic-bezier(.4,0,.2,1);
   --ease-emphasis: cubic-bezier(.2,.8,.2,1);
 
-  /* Containers */
+  /* Layout */
+  --content: 1180px;
+  --wide: 1320px;
+
+  /* Compatibility aliases: aliases only, no parallel palette or scale. */
+  --surface-base: var(--background);
+  --surface-card: var(--surface);
+  --surface-soft: var(--surface-secondary);
+  --surface-accent: var(--primary-subtle);
+  --surface-dark-product: var(--surface-dark);
+  --border-subdued: var(--border);
+  --border-interactive: var(--border-strong);
+  --brand-gold: var(--primary);
+  --brand-gold-deep: var(--primary-active);
+  --brand-gold-hover: var(--primary-hover);
+  --brand-gold-soft: var(--primary-subtle);
+  --warm-text-primary: var(--text-primary);
+  --warm-text-secondary: var(--text-secondary);
+  --warm-success: var(--success);
+  --warm-warning: var(--warning);
+  --warm-muted: var(--text-tertiary);
+  --warm-danger: var(--error);
+
+  /* Legacy canonical.css color names. Frozen for compatibility only. */
+  --void: var(--background);
+  --deep: var(--surface-secondary);
+  --surface-2: var(--background);
+  --surface-3: var(--surface-secondary);
+  --ink: var(--text-primary);
+  --ink-2: var(--text-secondary);
+  --ink-3: var(--text-tertiary);
+  --gold: var(--primary);
+  --gold-hi: var(--primary-hover);
+  --gold-dim: var(--primary-subtle);
+  --violet: var(--primary);
+  --violet-hi: var(--primary-hover);
+  --green: var(--success);
+  --red: var(--error);
+  --amber: var(--warning);
+  --blue: var(--text-secondary);
+  --border-gold: color-mix(in srgb,var(--primary) 34%,transparent);
+  --glow: 0 0 48px color-mix(in srgb,var(--primary) 14%,transparent);
+
+  /* Legacy component aliases */
+  --font-family-ui: var(--font-ui);
+  --font-family-display: var(--font-display);
+  --font-size-label: var(--type-sm);
+  --font-size-body: var(--type-body);
+  --font-size-body-lg: var(--type-body-lg);
+  --font-size-title: var(--type-h3);
+  --font-size-page-title: var(--type-h2);
+  --font-size-display: var(--type-display);
   --container-content: var(--content);
   --container-wide: var(--wide);
-
-  /* Legacy application bridges */
   --yi-bg: var(--background);
   --brand-void: var(--background);
   --store-bg: var(--background);
@@ -141,18 +157,31 @@
 }
 
 /* canonical.css theme selectors have higher specificity than :root. Re-apply
- * legacy aliases inside those scopes so theme wrappers cannot revive the old
- * purple/blue palette. */
+ * frozen aliases inside those scopes so wrappers cannot revive old palettes. */
 .theme-light,
 .theme-light *,
 .theme-dark,
 .theme-dark * {
+  --void: var(--background);
+  --deep: var(--surface-secondary);
+  --surface: var(--surface);
+  --surface-2: var(--background);
+  --surface-3: var(--surface-secondary);
+  --ink: var(--text-primary);
+  --ink-2: var(--text-secondary);
+  --ink-3: var(--text-tertiary);
+  --gold: var(--primary);
+  --gold-hi: var(--primary-hover);
+  --gold-dim: var(--primary-subtle);
   --violet: var(--primary);
   --violet-hi: var(--primary-hover);
   --green: var(--success);
   --red: var(--error);
   --amber: var(--warning);
   --blue: var(--text-secondary);
+  --border: var(--border);
+  --border-gold: color-mix(in srgb,var(--primary) 34%,transparent);
+  --glow: 0 0 48px color-mix(in srgb,var(--primary) 14%,transparent);
 }
 
 /* Tailwind / atomic contract. Values resolve back to the canonical palette. */

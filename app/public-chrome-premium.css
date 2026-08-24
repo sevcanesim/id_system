@@ -3,7 +3,6 @@
   z-index: 20;
 }
 
-/* Yenomi has no dark-mode marketing chrome. Keep the utility bar warm and quiet. */
 .yi-brand-marquee--static {
   min-height: 32px;
   display: flex;
@@ -79,7 +78,6 @@
   border-radius: 10px;
 }
 
-/* Footer is part of the same light product system, not a dark-mode section. */
 .yi-footer--premium {
   padding-top: 0;
   border-top: 1px solid var(--border-subdued);

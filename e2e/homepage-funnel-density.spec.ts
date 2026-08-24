@@ -12,13 +12,18 @@ test("homepage how-it-works stays concise and non-repetitive", async ({ page }) 
 });
 
 test("homepage remains bounded at mobile, tablet, and desktop widths", async ({ page }) => {
-  for (const viewport of [
+  const viewports = [
     { width: 390, height: 844 },
     { width: 768, height: 1024 },
     { width: 1440, height: 900 },
-  ]) {
+  ] as const;
+
+  await page.setViewportSize(viewports[0]);
+  await page.goto("/", { waitUntil: "load" });
+
+  for (const viewport of viewports) {
     await page.setViewportSize(viewport);
-    await page.goto("/", { waitUntil: "load" });
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => resolve(null))));
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, `${viewport.width}px viewport overflow`).toBeLessThanOrEqual(1);

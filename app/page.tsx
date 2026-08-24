@@ -115,7 +115,7 @@ export default function HomePage() {
           <h2 id="final-title">Bir sonraki tanışmada<br />kartvizitin hazır olsun.</h2>
           <p>Kartın bir kez basılsın. Bilgilerin değiştikçe profilin güncel kalsın.</p>
           <div className="home-sales-final-offer"><strong>{initialPrice}</strong><span>1 kart · 1 yıl platform üyeliği · Türkiye içi kargo dahil</span></div>
-          <div className="home-mockup__actions"><Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">NFC Kartımı Al <span aria-hidden>→</span></Link><Link className="home-mockup__link-secondary" href="/kurumsal">Kurumsal çözümler <span aria-hidden>→</span></Link></div>
+          <div className="home-mockup__actions"><Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">NFC Kartımı Al <span aria-hidden>→</span></Link></div>
         </section>
       </main>
     </div>

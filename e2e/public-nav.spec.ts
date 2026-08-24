@@ -1,9 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-/**
- * QA-2026-08-23-001: public hamburger must open the drawer at phone width.
- * Desktop Chromium defaults to 1280px, where `.yi-menu` is hidden; force 390.
- */
 test.describe("public hamburger", () => {
   test.use({
     viewport: { width: 390, height: 844 },
@@ -46,6 +42,20 @@ test.describe("public hamburger", () => {
     await page.keyboard.press("Escape");
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
     await expect(page.locator("#site-primary-nav")).not.toHaveClass(/is-open/);
+  });
+
+  test("homepage remains usable at 390px", async ({ page }) => {
+    await page.goto("/", { waitUntil: "load" });
+    await expect(page.getByRole("heading", { name: /Bir kez basılır/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /NFC Kartımı Al/ }).first()).toBeVisible();
+
+    const stage = page.locator(".home-sales-stage");
+    await expect(stage).toBeVisible();
+    const box = await stage.boundingBox();
+    expect(box?.width ?? 0).toBeLessThanOrEqual(390);
+
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
   });
 
   test("login, cart, and checkout documents stamp the CSP nonce", async ({ request }) => {
@@ -107,6 +117,16 @@ test.describe("public hamburger", () => {
   });
 });
 
+test("homepage has no horizontal overflow at tablet and desktop widths", async ({ page }) => {
+  for (const width of [768, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/", { waitUntil: "load" });
+    await expect(page.getByRole("heading", { name: /Bir kez basılır/ })).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `${width}px viewport overflow`).toBeLessThanOrEqual(1);
+  }
+});
+
 test("product catalog exposes the primary purchase above the fold and keeps three plan decisions", async ({ page }) => {
   await page.goto("/urunler", { waitUntil: "load" });
 
@@ -114,12 +134,12 @@ test("product catalog exposes the primary purchase above the fold and keeps thre
   await expect(page.getByText("₺1.490").first()).toBeVisible();
   await expect(page.getByRole("button", { name: "NFC Kartımı Al" }).first()).toBeVisible();
 
-  const plans = page.locator(".products-commerce-v3__plan-card");
+  const plans = page.locator(".products-premium-v2__plan-card");
   await expect(plans).toHaveCount(3);
-  await expect(page.getByRole("heading", { name: "İhtiyacına göre başla." })).toBeVisible();
-  await expect(page.getByText("EN ÇOK TERCİH EDİLEN")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Aynı profile ikinci NFC kartını ekle." })).toBeVisible();
-  await expect(page.getByRole("heading", { name: /50 kart değil\./ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "İhtiyacınız kadar başlayın." })).toBeVisible();
+  await expect(page.getByText("Ana ürün", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Aynı profile ikinci kart ekleyin." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Aynı standardı tüm ekibe taşıyın." })).toBeVisible();
 
   const viewportWidth = page.viewportSize()?.width ?? 0;
   if (viewportWidth > 980) {

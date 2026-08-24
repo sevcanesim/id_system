@@ -17,21 +17,16 @@ export function useCorporateLinks(
 ) {
   const [corporateLinks, setCorporateLinks] = useState<CorporateLink[]>([]);
   const [linkVersions, setLinkVersions] = useState<LinkVersion[]>([]);
-  const [linkUrlDraft, setLinkUrlDraft] = useState<Record<string, string>>(
-    {},
-  );
-  const [linkScheduleDraft, setLinkScheduleDraft] = useState<
-    Record<string, string>
-  >({});
+  const [linkUrlDraft, setLinkUrlDraft] = useState<Record<string, string>>({});
+  const [linkScheduleDraft, setLinkScheduleDraft] = useState<Record<string, string>>({});
   const [linkBusyKind, setLinkBusyKind] = useState<string | null>(null);
 
   async function loadCorporateLinks(id: string, access?: string) {
     const bearer = access || (await token());
     if (!bearer) return;
-    const response = await fetch(
-      `/api/organizations/links?organizationId=${id}`,
-      { headers: { authorization: `Bearer ${bearer}` } },
-    );
+    const response = await fetch(`/api/organizations/links?organizationId=${id}`, {
+      headers: { authorization: `Bearer ${bearer}` },
+    });
     const data = await response.json();
     if (response.ok) {
       setCorporateLinks(data.links || []);
@@ -43,28 +38,33 @@ export function useCorporateLinks(
     const url = (linkUrlDraft[kind] || "").trim();
     if (!url || !selected) return;
     setLinkBusyKind(kind);
-    const access = await token();
-    const response = await fetch("/api/organizations/links", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${access}`,
-      },
-      body: JSON.stringify({
-        organizationId: selected,
-        kind,
-        url,
-        publishAt: linkScheduleDraft[kind]
-          ? new Date(linkScheduleDraft[kind]).toISOString()
-          : null,
-      }),
-    });
-    const data = await response.json();
-    if (response.ok) {
-      await loadCorporateLinks(selected, access || undefined);
-      setLinkUrlDraft((current) => ({ ...current, [kind]: "" }));
-    } else setMessage(data.error || "Bağlantı kaydedilemedi.");
-    setLinkBusyKind(null);
+    try {
+      const access = await token();
+      const response = await fetch("/api/organizations/links", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${access}`,
+        },
+        body: JSON.stringify({
+          organizationId: selected,
+          kind,
+          url,
+          publishAt: linkScheduleDraft[kind]
+            ? new Date(linkScheduleDraft[kind]).toISOString()
+            : null,
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        await loadCorporateLinks(selected, access || undefined);
+        setLinkUrlDraft((current) => ({ ...current, [kind]: "" }));
+      } else setMessage(data.error || "Bağlantı kaydedilemedi.");
+    } catch {
+      setMessage("Bağlantı kaydedilemedi.");
+    } finally {
+      setLinkBusyKind(null);
+    }
   }
 
   async function uploadCorporateLinkFile(kind: string, file: File) {
@@ -78,106 +78,117 @@ export function useCorporateLinks(
       return;
     }
     setLinkBusyKind(kind);
-    const access = await token();
-    const form = new FormData();
-    form.append("organizationId", selected);
-    form.append("kind", kind);
-    form.append("file", file);
-    if (linkScheduleDraft[kind])
-      form.append(
-        "publishAt",
-        new Date(linkScheduleDraft[kind]).toISOString(),
-      );
-    const response = await fetch("/api/organizations/links/upload", {
-      method: "POST",
-      headers: { authorization: `Bearer ${access}` },
-      body: form,
-    });
-    const data = await response.json();
-    if (response.ok) await loadCorporateLinks(selected, access || undefined);
-    else setMessage(data.error || "PDF yüklenemedi.");
-    setLinkBusyKind(null);
+    try {
+      const access = await token();
+      const form = new FormData();
+      form.append("organizationId", selected);
+      form.append("kind", kind);
+      form.append("file", file);
+      if (linkScheduleDraft[kind]) {
+        form.append("publishAt", new Date(linkScheduleDraft[kind]).toISOString());
+      }
+      const response = await fetch("/api/organizations/links/upload", {
+        method: "POST",
+        headers: { authorization: `Bearer ${access}` },
+        body: form,
+      });
+      const data = await response.json();
+      if (response.ok) await loadCorporateLinks(selected, access || undefined);
+      else setMessage(data.error || "PDF yüklenemedi.");
+    } catch {
+      setMessage("PDF yüklenemedi.");
+    } finally {
+      setLinkBusyKind(null);
+    }
   }
 
   async function removeCorporateLink(kind: string) {
     if (!selected) return;
     setLinkBusyKind(kind);
-    const access = await token();
-    const response = await fetch("/api/organizations/links", {
-      method: "DELETE",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${access}`,
-      },
-      body: JSON.stringify({ organizationId: selected, kind }),
-    });
-    if (response.ok) {
-      await loadCorporateLinks(selected, access || undefined);
-      setMessage("Kurumsal bağlantı kaldırıldı.");
-    } else {
-      const data = await response.json().catch(() => null);
-      setMessage(data?.error || "Bağlantı kaldırılamadı.");
+    try {
+      const access = await token();
+      const response = await fetch("/api/organizations/links", {
+        method: "DELETE",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${access}`,
+        },
+        body: JSON.stringify({ organizationId: selected, kind }),
+      });
+      if (response.ok) {
+        await loadCorporateLinks(selected, access || undefined);
+        setMessage("Kurumsal bağlantı kaldırıldı.");
+      } else {
+        const data = await response.json().catch(() => null);
+        setMessage(data?.error || "Bağlantı kaldırılamadı.");
+      }
+    } catch {
+      setMessage("Bağlantı kaldırılamadı.");
+    } finally {
+      setLinkBusyKind(null);
     }
-    setLinkBusyKind(null);
   }
 
-  async function toggleCorporateLinkPublication(
-    kind: string,
-    isPublished: boolean,
-  ) {
+  async function toggleCorporateLinkPublication(kind: string, isPublished: boolean) {
     if (!selected) return;
     setLinkBusyKind(kind);
-    const access = await token();
-    const response = await fetch("/api/organizations/links", {
-      method: "PATCH",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${access}`,
-      },
-      body: JSON.stringify({
-        organizationId: selected,
-        kind,
-        isPublished,
-        publishAt:
-          isPublished && linkScheduleDraft[kind]
-            ? new Date(linkScheduleDraft[kind]).toISOString()
-            : null,
-      }),
-    });
-    const data = await response.json();
-    if (response.ok) {
-      await loadCorporateLinks(selected, access || undefined);
-      setMessage(
-        isPublished
-          ? "Kurumsal içerik yayınlandı."
-          : "Kurumsal içerik taslağa alındı.",
-      );
-    } else setMessage(data.error || "Yayın durumu güncellenemedi.");
-    setLinkBusyKind(null);
+    try {
+      const access = await token();
+      const response = await fetch("/api/organizations/links", {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${access}`,
+        },
+        body: JSON.stringify({
+          organizationId: selected,
+          kind,
+          isPublished,
+          publishAt:
+            isPublished && linkScheduleDraft[kind]
+              ? new Date(linkScheduleDraft[kind]).toISOString()
+              : null,
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        await loadCorporateLinks(selected, access || undefined);
+        setMessage(isPublished ? "Kurumsal içerik yayınlandı." : "Kurumsal içerik taslağa alındı.");
+      } else setMessage(data.error || "Yayın durumu güncellenemedi.");
+    } catch {
+      setMessage("Yayın durumu güncellenemedi.");
+    } finally {
+      setLinkBusyKind(null);
+    }
   }
 
   async function rollbackCorporateLink(versionId: string, kind: string) {
     if (!selected) return;
     setLinkBusyKind(kind);
-    const access = await token();
-    const response = await fetch("/api/organizations/links", {
-      method: "PATCH",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${access}`,
-      },
-      body: JSON.stringify({
-        action: "ROLLBACK",
-        organizationId: selected,
-        versionId,
-      }),
-    });
-    const data = await response.json();
-    if (response.ok) {
-      await loadCorporateLinks(selected, access || undefined);
-      setMessage("Kurumsal içerik seçilen sürüme geri alındı.");
-    } else setMessage(data.error || "Sürüm geri alınamadı.");
-    setLinkBusyKind(null);
+    try {
+      const access = await token();
+      const response = await fetch("/api/organizations/links", {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${access}`,
+        },
+        body: JSON.stringify({
+          action: "ROLLBACK",
+          organizationId: selected,
+          versionId,
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        await loadCorporateLinks(selected, access || undefined);
+        setMessage("Kurumsal içerik seçilen sürüme geri alındı.");
+      } else setMessage(data.error || "Sürüm geri alınamadı.");
+    } catch {
+      setMessage("Sürüm geri alınamadı.");
+    } finally {
+      setLinkBusyKind(null);
+    }
   }
 
   return {

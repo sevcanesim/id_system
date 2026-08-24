@@ -1,11 +1,6 @@
-/**
- * Public chrome is provided by app/components/PublicSiteShell.
- * Do not mount SiteHeader/AnnouncementBar/AppFooter again on this route.
- */
-
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import { ProductVisual } from "../ui/ProductVisual";
 import AddToCartButton from "../components/AddToCartButton";
 import { Icon } from "../icons";
 import {
@@ -68,9 +63,16 @@ export default async function ProductsPage() {
               </div>
             </div>
 
-            <div className="products-commerce-v3__stage" aria-label="Yenomi ID NFC kart ve dijital profil önizlemesi">
-              <div className="products-commerce-v3__stage-glow" aria-hidden="true" />
-              <ProductVisual pair />
+            <div className="products-commerce-v3__stage" aria-label="Yenomi ID NFC kart ürün görseli">
+              <Image
+                src="/images/nfc-kart-hero.png"
+                alt="Yenomi ID NFC ve QR kart ürün görseli"
+                width={1350}
+                height={1484}
+                priority
+                sizes="(max-width: 900px) 92vw, 48vw"
+                className="home-sales-product"
+              />
               <div className="products-commerce-v3__stage-caption">
                 <span>NFC + QR</span>
                 <strong>Tek profil. Her zaman güncel.</strong>
@@ -211,15 +213,6 @@ export default async function ProductsPage() {
                 appearance="secondary"
               />
             </div>
-          </div>
-        </section>
-
-        <section className="products-single-proof products-premium-v2__proof" aria-label="Yenomi ID satın alma bilgileri">
-          <div className="yi-container products-single-proof__grid">
-            <span><Icon name="shield" />iyzico ödeme altyapısı</span>
-            <span><Icon name="clock" />1 yıl platform erişimi</span>
-            <span><Icon name="truck" />NFC ve Premium’da kargo dahil</span>
-            <span><Icon name="shield" />Kart bilgisi Yenomi’de tutulmaz</span>
           </div>
         </section>
 

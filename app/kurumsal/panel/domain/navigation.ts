@@ -90,8 +90,6 @@ export const CORPORATE_PANEL_TAB_META: Record<CorporatePanelTab, { label: string
 export function corporateSidebarTabs(role?: string): readonly CorporatePanelTab[] {
   const normalizedRole = normalizeOrganizationRole(role);
   if (!normalizedRole) return CORPORATE_PANEL_TAB_ORDER;
-  if (role === "DEPARTMENT_MANAGER") return ["employees"];
-  if (role === "EMPLOYEE") return [];
   if (normalizedRole === "DEPARTMENT_MANAGER") return ["employees"];
   if (normalizedRole === "EMPLOYEE") return [];
   const canManageLicenses = normalizedRole === "OWNER" || normalizedRole === "ADMIN";

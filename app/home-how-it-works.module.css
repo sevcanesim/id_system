@@ -1,13 +1,40 @@
+.hero {
+  isolation: isolate;
+}
+
+.heroOffer {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-top: 18px;
+  color: #171512;
+}
+
+.heroOffer strong {
+  font-size: 1.18rem;
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+
+.heroOffer span {
+  font-size: 0.82rem;
+  color: #746f67;
+}
+
+.heroTrust {
+  margin-top: 12px !important;
+}
+
 .section {
   position: relative;
   max-width: 1240px;
   margin: 0 auto;
-  padding: 120px 32px 104px;
+  padding: 112px 32px 104px;
 }
 
 .heading {
   max-width: 760px;
-  margin-bottom: 42px;
+  margin-bottom: 38px;
 }
 
 .heading h2 {
@@ -42,10 +69,10 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgba(23, 21, 18, 0.08);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 16px 42px rgba(35, 29, 20, 0.055);
+  border: 1px solid rgba(23, 21, 18, 0.075);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 14px 38px rgba(35, 29, 20, 0.045);
 }
 
 .stepCopy {
@@ -55,16 +82,16 @@
 .stepNumber {
   display: inline-flex;
   align-items: center;
-  min-height: 26px;
-  padding: 0 10px;
-  border: 1px solid rgba(167, 123, 37, 0.24);
+  min-height: 25px;
+  padding: 0 9px;
+  border: 1px solid rgba(167, 123, 37, 0.22);
   border-radius: 999px;
-  background: rgba(176, 138, 69, 0.08);
+  background: rgba(176, 138, 69, 0.065);
   color: #8f6a26;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   line-height: 1;
   font-weight: 700;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.035em;
 }
 
 .stepCopy h3 {
@@ -91,8 +118,8 @@
   justify-content: center;
   padding: 22px 18px 24px;
   background:
-    radial-gradient(circle at 50% 36%, rgba(184, 144, 68, 0.10), transparent 42%),
-    linear-gradient(180deg, rgba(250, 247, 241, 0) 0%, rgba(245, 241, 233, 0.82) 100%);
+    radial-gradient(circle at 50% 36%, rgba(184, 144, 68, 0.09), transparent 42%),
+    linear-gradient(180deg, rgba(250, 247, 241, 0) 0%, rgba(245, 241, 233, 0.78) 100%);
 }
 
 .cardFan {
@@ -161,14 +188,14 @@
 .proofGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin-top: 34px;
+  margin-top: 30px;
   border-top: 1px solid rgba(23, 21, 18, 0.09);
   border-bottom: 1px solid rgba(23, 21, 18, 0.09);
 }
 
 .proofGrid article {
   min-width: 0;
-  padding: 24px 24px 26px 0;
+  padding: 22px 24px 24px 0;
 }
 
 .proofGrid article + article {
@@ -194,7 +221,180 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  margin-top: 30px;
+  margin-top: 28px;
+}
+
+.paths {
+  padding-top: 96px !important;
+  padding-bottom: 104px !important;
+}
+
+.pathGrid article {
+  display: flex;
+  flex-direction: column;
+}
+
+.pathMeta {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: auto;
+  padding: 20px 0 16px;
+}
+
+.pathMeta strong {
+  font-size: 1rem;
+  color: #171512;
+  letter-spacing: -0.02em;
+}
+
+.pathMeta small {
+  font-size: 0.78rem;
+  color: #7b756c;
+}
+
+.comparison {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 112px 32px 120px;
+}
+
+.comparisonHead {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(340px, 0.7fr);
+  column-gap: 80px;
+  align-items: end;
+  margin-bottom: 42px;
+}
+
+.comparisonHead > span {
+  grid-column: 1;
+}
+
+.comparisonHead h2 {
+  grid-column: 1;
+  margin: 10px 0 0;
+  font-size: clamp(2.65rem, 4vw, 4.8rem);
+  line-height: 0.98;
+  letter-spacing: -0.052em;
+  font-weight: 650;
+  color: #171512;
+}
+
+.comparisonHead p {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: end;
+  max-width: 430px;
+  margin: 0 0 6px;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: #625f59;
+}
+
+.comparisonTable {
+  overflow: hidden;
+  border: 1px solid rgba(23, 21, 18, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.comparisonHeader,
+.comparisonRow {
+  display: grid;
+  grid-template-columns: 0.8fr 1fr 1.08fr;
+}
+
+.comparisonHeader {
+  min-height: 52px;
+  align-items: center;
+  background: rgba(247, 244, 237, 0.84);
+  border-bottom: 1px solid rgba(23, 21, 18, 0.08);
+}
+
+.comparisonHeader span {
+  padding: 0 24px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #857e73;
+  text-transform: uppercase;
+}
+
+.comparisonRow {
+  min-height: 76px;
+  align-items: center;
+}
+
+.comparisonRow + .comparisonRow {
+  border-top: 1px solid rgba(23, 21, 18, 0.07);
+}
+
+.comparisonRow > * {
+  padding: 18px 24px;
+  min-width: 0;
+}
+
+.comparisonRow > * + * {
+  border-left: 1px solid rgba(23, 21, 18, 0.06);
+}
+
+.comparisonRow strong {
+  font-size: 0.94rem;
+  color: #171512;
+}
+
+.comparisonRow span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: #6e685f;
+}
+
+.comparisonRow span:last-child {
+  color: #2f2b25;
+  font-weight: 600;
+}
+
+.comparisonRow i {
+  display: inline-flex;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(167, 123, 37, 0.10);
+  color: #8f6a26;
+  font-size: 0.72rem;
+  font-style: normal;
+}
+
+.final {
+  padding-top: 116px !important;
+  padding-bottom: 116px !important;
+}
+
+.finalOffer {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0 24px;
+}
+
+.finalOffer strong {
+  font-size: 1.24rem;
+  color: #171512;
+  letter-spacing: -0.025em;
+}
+
+.finalOffer span {
+  font-size: 0.84rem;
+  color: #746f67;
 }
 
 @media (max-width: 1100px) {
@@ -214,11 +414,28 @@
   .proofGrid article:nth-child(4) {
     border-top: 1px solid rgba(23, 21, 18, 0.08);
   }
+
+  .comparisonHead {
+    grid-template-columns: 1fr;
+    row-gap: 18px;
+  }
+
+  .comparisonHead p {
+    grid-column: 1;
+    grid-row: auto;
+    max-width: 620px;
+  }
 }
 
 @media (max-width: 720px) {
+  .heroOffer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
   .section {
-    padding: 80px 20px 72px;
+    padding: 76px 20px 72px;
   }
 
   .heading {
@@ -239,7 +456,7 @@
   }
 
   .step {
-    min-height: 470px;
+    min-height: 450px;
     border-radius: 16px;
   }
 
@@ -248,7 +465,7 @@
   }
 
   .visualWrap {
-    min-height: 270px;
+    min-height: 260px;
     padding-inline: 16px;
   }
 
@@ -273,5 +490,67 @@
     flex-direction: column;
     gap: 14px;
     margin-top: 24px;
+  }
+
+  .paths {
+    padding-top: 72px !important;
+    padding-bottom: 76px !important;
+  }
+
+  .pathMeta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+
+  .comparison {
+    padding: 80px 20px 88px;
+  }
+
+  .comparisonHead {
+    margin-bottom: 28px;
+  }
+
+  .comparisonHead h2 {
+    font-size: clamp(2.45rem, 11vw, 3.7rem);
+  }
+
+  .comparisonTable {
+    border-radius: 14px;
+  }
+
+  .comparisonHeader {
+    display: none;
+  }
+
+  .comparisonRow {
+    grid-template-columns: 1fr;
+    padding: 18px 20px;
+  }
+
+  .comparisonRow > *,
+  .comparisonRow > * + * {
+    padding: 5px 0;
+    border-left: 0;
+  }
+
+  .comparisonRow strong {
+    margin-bottom: 4px;
+  }
+
+  .comparisonRow span:first-of-type {
+    color: #8a847b;
+  }
+
+  .final {
+    padding-top: 84px !important;
+    padding-bottom: 88px !important;
+  }
+
+  .finalOffer {
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    text-align: center;
   }
 }

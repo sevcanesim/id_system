@@ -45,6 +45,9 @@ jobs:
       - name: Verify P0 static release gates
         run: npm run verify:p0:static
 
+      - name: Verify dead-code and orphan cleanup
+        run: npm run verify:faz7:cleanup
+
       - name: Verify source and build
         run: npm run verify:release
 

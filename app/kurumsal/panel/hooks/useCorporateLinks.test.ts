@@ -38,11 +38,11 @@ describe("useCorporateLinks", () => {
   const setMessage = vi.fn<(message: string) => void>();
 
   beforeEach(() => {
+    vi.restoreAllMocks();
     stateHarness.reset();
     token.mockReset();
     token.mockResolvedValue("token");
     setMessage.mockReset();
-    vi.restoreAllMocks();
   });
 
   function render(selected = "org-1") {

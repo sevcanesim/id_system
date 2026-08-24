@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runCommerceOpsJobs } from "../../../../lib/commerce/commerce-ops-jobs";
+import { reconcileAwaitingProviderPayments } from "../../../../lib/commerce/pending-payment-reconciliation";
 import { authorizeCommerceCron } from "../../../../lib/security/cron-authorization";
 
 export const runtime = "nodejs";
@@ -10,9 +11,11 @@ async function executeCommerceOps(request: NextRequest) {
     return NextResponse.json({ error: "Cron yetkisi gerekli.", code: "CRON_UNAUTHORIZED" }, { status: 401 });
   }
   try {
+    const providerReconciliation = await reconcileAwaitingProviderPayments();
     const sweep = await runCommerceOpsJobs();
     return NextResponse.json({
       ok: true,
+      providerReconciliation,
       abandoned: sweep.abandoned,
       expired: sweep.expired,
       reconciled: sweep.reconciled,

@@ -103,8 +103,22 @@ export async function consumeDistributedRateLimit({
   }
 }
 
+function normalizeIp(value: string | null): string | null {
+  const candidate = value?.trim();
+  if (!candidate) return null;
+  if (!/^[0-9a-fA-F:.]+$/.test(candidate)) return null;
+  return candidate;
+}
+
 export function requestIp(headers: Headers): string {
-  return headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-    || headers.get("x-real-ip")?.trim()
-    || "unknown";
+  const platformIp = normalizeIp(headers.get("cf-connecting-ip"))
+    || normalizeIp(headers.get("x-real-ip"));
+  if (platformIp) return platformIp;
+
+  const forwarded = headers.get("x-forwarded-for")
+    ?.split(",")
+    .map((value) => normalizeIp(value))
+    .filter((value): value is string => Boolean(value));
+
+  return forwarded?.at(-1) || "unknown";
 }

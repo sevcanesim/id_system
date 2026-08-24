@@ -22,6 +22,47 @@ function paidSuccessRedirect(orderId: string, reviewRequired = false) {
   );
 }
 
+async function recoverVerifiedPaidCallback(token: string) {
+  const admin = getSupabaseAdminClient();
+  const { data: attempt } = await admin
+    .from("commerce_payment_attempts")
+    .select("id,order_id,amount_kurus,currency,conversation_id")
+    .eq("provider_token", token)
+    .maybeSingle();
+  if (!attempt) return null;
+
+  const result = await retrieveCheckout(token);
+  const paid = verifyIyzicoCheckoutResult(
+    {
+      orderId: attempt.order_id,
+      amountKurus: attempt.amount_kurus,
+      currency: attempt.currency,
+      conversationId: attempt.conversation_id,
+    },
+    result,
+  );
+  if (!paid) return null;
+
+  const { error: issueError } = await admin.rpc("record_commerce_fulfillment_issue", {
+    p_order_id: attempt.order_id,
+    p_order_item_id: null,
+    p_issue_code: "PAYMENT_CALLBACK_COMMIT_FAILED",
+    p_details: {
+      attemptId: attempt.id,
+      recoverySource: "callback-route",
+      providerPaymentId: result?.paymentId ?? null,
+    },
+  });
+  if (issueError) {
+    console.error("verified paid callback issue could not be recorded", {
+      orderId: attempt.order_id,
+      message: issueError.message,
+    });
+  }
+
+  return attempt.order_id;
+}
+
 export async function POST(request: NextRequest) {
   const form = await request.formData();
   const token = String(form.get("token") || "");
@@ -30,7 +71,13 @@ export async function POST(request: NextRequest) {
   try {
     const commerce = await settleCommercePaymentByProviderToken(token, { failIfUnpaid: true });
     if (commerce.kind !== "not_found") {
-      if (commerce.kind === "error") return failure(commerce.reason);
+      if (commerce.kind === "error") {
+        if (commerce.reason === "callback") {
+          const recoveredOrderId = await recoverVerifiedPaidCallback(token);
+          if (recoveredOrderId) return paidSuccessRedirect(recoveredOrderId, true);
+        }
+        return failure(commerce.reason);
+      }
       if (commerce.kind === "pending") return failure("callback");
       if (commerce.kind === "failed") {
         return NextResponse.redirect(`${publicSiteUrl}/odeme/basarisiz?order=${commerce.orderId}`, 303);

@@ -1251,17 +1251,7 @@ export default function CompanyPanel() {
     organization: { title: "Organizasyon", description: "Şirket kimliği, alan politikaları ve ünvan standardını yönet.", icon: "building" },
     settings: { title: "Ayarlar", description: "Sık değişmeyen kurumsal yönetim alanlarına ulaş.", icon: "adjustments" },
   };
-  const pageOwnsTitle =
-    currentTab === "content" ||
-    currentTab === "templates" ||
-    currentTab === "leads" ||
-    currentTab === "events" ||
-    currentTab === "meetings" ||
-    currentTab === "settings" ||
-    currentTab === "roles" ||
-    currentTab === "organization" ||
-    currentTab === "licenses" ||
-    currentTab === "analytics";
+  const pageOwnsTitle = true;
   const openTab = (tab: CorporatePanelTab) => {
     const allowed = !org || corporateSidebarItems(org.role).some((item) => item.key === tab);
     if (!allowed) {

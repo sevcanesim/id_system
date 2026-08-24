@@ -3,14 +3,16 @@
   z-index: 20;
 }
 
+/* Yenomi has no dark-mode marketing chrome. Keep the utility bar warm and quiet. */
 .yi-brand-marquee--static {
   min-height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: #171512;
-  color: rgba(255, 255, 255, 0.88);
+  border-bottom: 1px solid var(--border-subdued);
+  background: var(--surface-soft);
+  color: var(--text-secondary);
 }
 
 .yi-brand-marquee__static-inner {
@@ -34,18 +36,20 @@
 }
 
 .yi-brand-marquee__static-item strong {
-  font-weight: 560;
+  font-weight: 600;
 }
 
 .yi-brand-marquee__static-item i {
   width: 3px;
   height: 3px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.34);
+  background: var(--brand-gold-deep);
+  opacity: .42;
 }
 
 .public-site-chrome .yi-header {
-  border-bottom-color: rgba(23, 21, 18, 0.06);
+  border-bottom-color: var(--border-subdued);
+  background: var(--surface-card);
   box-shadow: none;
 }
 
@@ -75,13 +79,17 @@
   border-radius: 10px;
 }
 
+/* Footer is part of the same light product system, not a dark-mode section. */
 .yi-footer--premium {
   padding-top: 0;
+  border-top: 1px solid var(--border-subdued);
+  background: var(--surface-card);
+  color: var(--text-primary);
 }
 
 .yi-footer--premium .yi-container {
   max-width: 1240px;
-  padding-top: 72px;
+  padding-top: 64px;
   padding-bottom: 28px;
 }
 
@@ -99,7 +107,7 @@
 .yi-footer__premium-brand p {
   margin: 18px 0 0;
   max-width: 330px;
-  color: rgba(255, 255, 255, 0.56);
+  color: var(--text-secondary);
   font-size: 0.9rem;
   line-height: 1.65;
 }
@@ -113,33 +121,40 @@
 
 .yi-footer__premium-column strong {
   margin-bottom: 5px;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--text-primary);
   font-size: 0.76rem;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .yi-footer__premium-column a {
-  color: rgba(255, 255, 255, 0.58);
+  color: var(--text-secondary);
   font-size: 0.86rem;
   text-decoration: none;
-  transition: color 160ms ease;
+  transition: color var(--motion-fast) var(--ease-standard);
 }
 
 .yi-footer__premium-column a:hover,
 .yi-footer__premium-column a:focus-visible {
-  color: rgba(255, 255, 255, 0.96);
+  color: var(--text-primary);
+}
+
+.yi-footer__premium-column a:focus-visible {
+  outline: 2px solid var(--brand-gold);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
 .yi-footer__premium-base {
-  margin-top: 56px;
+  margin-top: 52px;
   padding-top: 22px;
-  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  border-top: 1px solid var(--border-subdued);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  color: rgba(255, 255, 255, 0.38);
+  color: var(--text-tertiary);
   font-size: 0.76rem;
 }
 
@@ -177,7 +192,7 @@
   }
 
   .yi-footer--premium .yi-container {
-    padding-top: 52px;
+    padding-top: 48px;
   }
 
   .yi-footer__premium-grid {

@@ -164,7 +164,6 @@
 .theme-dark * {
   --void: var(--background);
   --deep: var(--surface-secondary);
-  --surface: var(--surface);
   --surface-2: var(--background);
   --surface-3: var(--surface-secondary);
   --ink: var(--text-primary);
@@ -179,7 +178,6 @@
   --red: var(--error);
   --amber: var(--warning);
   --blue: var(--text-secondary);
-  --border: var(--border);
   --border-gold: color-mix(in srgb,var(--primary) 34%,transparent);
   --glow: 0 0 48px color-mix(in srgb,var(--primary) 14%,transparent);
 }

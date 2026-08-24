@@ -55,6 +55,27 @@
   --warm-muted: var(--text-tertiary);
   --warm-danger: var(--error);
 
+  /* Legacy canonical.css color names. These no longer define an independent
+   * purple/blue palette; old selectors resolve to the semantic system. */
+  --void: var(--background);
+  --deep: var(--surface-secondary);
+  --surface-2: var(--background);
+  --surface-3: var(--surface-secondary);
+  --ink: var(--text-primary);
+  --ink-2: var(--text-secondary);
+  --ink-3: var(--text-tertiary);
+  --gold: var(--primary);
+  --gold-hi: var(--primary-hover);
+  --gold-dim: var(--primary-subtle);
+  --violet: var(--primary);
+  --violet-hi: var(--primary-hover);
+  --green: var(--success);
+  --red: var(--error);
+  --amber: var(--warning);
+  --blue: var(--text-secondary);
+  --border-gold: color-mix(in srgb,var(--primary) 34%,transparent);
+  --glow: 0 0 48px color-mix(in srgb,var(--primary) 14%,transparent);
+
   /* Radius */
   --radius-xs: 6px;
   --radius-sm: 10px;
@@ -116,6 +137,21 @@
   --store-bg: var(--background);
   --ui-bg: var(--background);
   --y-ink: var(--text-primary);
+}
+
+/* canonical.css theme selectors have higher specificity than :root. Re-apply
+ * legacy aliases inside those scopes so theme wrappers cannot revive the old
+ * purple/blue palette. */
+.theme-light,
+.theme-light *,
+.theme-dark,
+.theme-dark * {
+  --violet: var(--primary);
+  --violet-hi: var(--primary-hover);
+  --green: var(--success);
+  --red: var(--error);
+  --amber: var(--warning);
+  --blue: var(--text-secondary);
 }
 
 /* Tailwind / atomic contract. Values resolve back to the canonical palette. */

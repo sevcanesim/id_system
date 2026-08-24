@@ -98,7 +98,8 @@
 .admin-order { display:grid; gap:16px; min-width:0; padding:18px; border:1px solid var(--border); border-radius:16px; background:var(--surface); box-shadow:var(--shadow-soft); }/* @canonical-block:001787 */
 .admin-order-top { display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; }/* @canonical-block:001793 */
 .admin-status-controls { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }/* @canonical-block:001794 */
-.payment-retry { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)) auto; gap:12px; align-items:end; }/* @canonical-block:003456 */
+.payment-retry { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)) auto; gap:12px; align-items:end; }/* @canonical-block:001795 */
+.admin-order-actions { display:flex; flex-wrap:wrap; gap:8px; }/* @canonical-block:003456 */
 .cart-shell,
 .checkout-shell {
   padding: 20px 0 40px;

@@ -364,6 +364,16 @@ h1, h2, h3, h4 {
 
 .yi-product-ui--card-matte {
   color: #d7c09a;
+}/* @canonical-block:004391 */
+.brand-top {
+  display: flex;
+  justify-content: center;
+}/* @canonical-block:004394 */
+.brand-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold-hi);
 }/* @canonical-block:004419 */
 
 @keyframes p6FloatScene {

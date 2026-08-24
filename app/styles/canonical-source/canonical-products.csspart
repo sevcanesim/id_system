@@ -348,7 +348,10 @@
   transform:scale(.94);
   transform-origin:center bottom;
 }/* @canonical-block:001761 */
-.how-qr { display:none; }/* @canonical-block:002408 */
+.how-qr { display:none; }/* @canonical-block:002254 */
+.product-one-page__statement-inner{max-width:900px}/* @canonical-block:002275 */
+.product-one-page__final-inner{max-width:850px;margin:auto}/* @canonical-block:002282 */
+.product-one-page__hero--soon{min-height:70vh;display:grid;align-items:center}/* @canonical-block:002408 */
 .how-hero h1{
   margin:8px 0 10px;
   font-size:clamp(48px,6vw,82px);

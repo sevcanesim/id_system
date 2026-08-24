@@ -25,16 +25,46 @@
   margin-top: 12px !important;
 }
 
+.heroProduct {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  overflow: hidden;
+}
+
+.heroProductGlow {
+  position: absolute;
+  width: 72%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: rgba(179, 139, 68, 0.10);
+  filter: blur(70px);
+  pointer-events: none;
+}
+
+.heroProductImage {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 660px);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 28px 38px rgba(28, 23, 16, 0.12));
+}
+
 .section {
   position: relative;
   max-width: 1240px;
   margin: 0 auto;
-  padding: 112px 32px 104px;
+  padding: 104px 32px 104px;
 }
 
 .heading {
   max-width: 760px;
-  margin-bottom: 38px;
+  margin-bottom: 36px;
 }
 
 .heading h2 {
@@ -57,7 +87,7 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -65,18 +95,12 @@
 
 .step {
   min-width: 0;
-  min-height: 520px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  min-height: 228px;
+  padding: 24px;
   border: 1px solid rgba(23, 21, 18, 0.075);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 14px 38px rgba(35, 29, 20, 0.045);
-}
-
-.stepCopy {
-  padding: 24px 24px 10px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.80);
+  box-shadow: 0 10px 30px rgba(35, 29, 20, 0.035);
 }
 
 .stepNumber {
@@ -84,9 +108,9 @@
   align-items: center;
   min-height: 25px;
   padding: 0 9px;
-  border: 1px solid rgba(167, 123, 37, 0.22);
+  border: 1px solid rgba(167, 123, 37, 0.20);
   border-radius: 999px;
-  background: rgba(176, 138, 69, 0.065);
+  background: rgba(176, 138, 69, 0.055);
   color: #8f6a26;
   font-size: 0.7rem;
   line-height: 1;
@@ -94,95 +118,84 @@
   letter-spacing: 0.035em;
 }
 
-.stepCopy h3 {
-  margin: 14px 0 8px;
+.step h3 {
+  margin: 38px 0 9px;
   font-size: 1.18rem;
   line-height: 1.18;
   letter-spacing: -0.025em;
   color: #171512;
 }
 
-.stepCopy p {
+.step p {
+  max-width: 245px;
   margin: 0;
-  font-size: 0.92rem;
-  line-height: 1.55;
+  font-size: 0.91rem;
+  line-height: 1.58;
   color: #666159;
 }
 
-.visualWrap {
+.productStory {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(420px, 1fr);
+  align-items: center;
+  min-height: 520px;
+  margin-top: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(23, 21, 18, 0.075);
+  border-radius: 18px;
+  background: #f3efe6;
+}
+
+.productStoryCopy {
+  padding: 56px;
+}
+
+.productStoryCopy h3 {
+  margin: 14px 0 18px;
+  max-width: 500px;
+  font-size: clamp(2rem, 3vw, 3.45rem);
+  line-height: 1;
+  letter-spacing: -0.045em;
+  font-weight: 650;
+  color: #171512;
+}
+
+.productStoryCopy p {
+  max-width: 480px;
+  margin: 0 0 24px;
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: #625f59;
+}
+
+.productStoryVisual {
   position: relative;
-  flex: 1;
-  min-height: 300px;
+  min-height: 520px;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  padding: 22px 18px 24px;
-  background:
-    radial-gradient(circle at 50% 36%, rgba(184, 144, 68, 0.09), transparent 42%),
-    linear-gradient(180deg, rgba(250, 247, 241, 0) 0%, rgba(245, 241, 233, 0.78) 100%);
+  overflow: hidden;
+  background: rgba(255,255,255,0.24);
 }
 
-.cardFan {
-  position: relative;
-  width: 100%;
-  height: 250px;
-}
-
-.cardFanItem {
+.productStoryVisual::before {
+  content: "";
   position: absolute;
-  left: 50%;
-  bottom: 14px;
-  width: 76%;
-  transform-origin: 50% 100%;
+  width: 70%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: rgba(179, 139, 68, 0.11);
+  filter: blur(70px);
 }
 
-.cardFanItem:nth-child(1) {
-  transform: translateX(-68%) rotate(-8deg);
+.productStoryImage {
+  position: relative;
   z-index: 1;
-}
-
-.cardFanItem:nth-child(2) {
-  transform: translateX(-50%) translateY(-8px);
-  z-index: 3;
-}
-
-.cardFanItem:nth-child(3) {
-  transform: translateX(-32%) rotate(8deg);
-  z-index: 2;
-}
-
-.singleVisual {
-  width: min(92%, 240px);
-  transform: translateY(12px);
-}
-
-.shareVisual {
-  position: relative;
-  width: 100%;
-  height: 270px;
-}
-
-.shareCard {
-  position: absolute;
-  width: 86%;
-  left: 6%;
-  bottom: 18px;
-  transform: rotate(-5deg);
-}
-
-.shareProfile {
-  position: absolute;
-  width: 52%;
-  right: 0;
-  top: 18px;
-  transform: rotate(3deg);
-  filter: drop-shadow(0 14px 24px rgba(24, 20, 14, 0.11));
-}
-
-.dashboardVisual {
-  width: 100%;
-  padding: 0 4px 16px;
-  filter: drop-shadow(0 16px 24px rgba(24, 20, 14, 0.10));
+  width: min(88%, 510px);
+  height: auto;
+  object-fit: contain;
+  transform: translateY(18px) scale(1.04);
+  filter: drop-shadow(0 26px 34px rgba(28, 23, 16, 0.12));
 }
 
 .proofGrid {
@@ -402,6 +415,14 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .productStory {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .productStoryCopy {
+    padding: 42px;
+  }
+
   .proofGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -434,6 +455,15 @@
     gap: 5px;
   }
 
+  .heroProduct {
+    min-height: 410px;
+    margin-top: 18px;
+  }
+
+  .heroProductImage {
+    width: min(100%, 520px);
+  }
+
   .section {
     padding: 76px 20px 72px;
   }
@@ -452,21 +482,43 @@
 
   .grid {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 10px;
   }
 
   .step {
-    min-height: 450px;
+    min-height: auto;
+    padding: 22px 20px 24px;
+  }
+
+  .step h3 {
+    margin-top: 28px;
+  }
+
+  .step p {
+    max-width: 100%;
+  }
+
+  .productStory {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    margin-top: 14px;
     border-radius: 16px;
   }
 
-  .stepCopy {
-    padding: 22px 20px 8px;
+  .productStoryCopy {
+    padding: 34px 24px 18px;
   }
 
-  .visualWrap {
-    min-height: 260px;
-    padding-inline: 16px;
+  .productStoryCopy h3 {
+    font-size: clamp(2rem, 10vw, 3rem);
+  }
+
+  .productStoryVisual {
+    min-height: 390px;
+  }
+
+  .productStoryImage {
+    width: min(96%, 450px);
   }
 
   .proofGrid {

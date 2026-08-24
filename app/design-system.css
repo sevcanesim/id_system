@@ -1,5 +1,8 @@
 .yi-icon-badge--soft .yi-icon { stroke-width:1.75; }
 
+.ds-button { display:inline-flex; align-items:center; justify-content:center; font-weight: 700; }
+.ds-button:hover { opacity:0.9; }
+
 /* Product/public cards reuse the same visual contract. */
 .ds-product-card,.ds-pricing-card {
   overflow:hidden; border:1px solid var(--border); border-radius:var(--radius-lg);

@@ -35,7 +35,7 @@ export default function HomePage() {
           <div className="home-mockup__orbit home-mockup__orbit--right" aria-hidden="true" />
 
           <div className="home-mockup__copy">
-            <span className="home-premium__hero-pill"><i aria-hidden="true" /> NFC KARTVİZİT · DİJİTAL KİMLİK</span>
+            <span className="home-premium__hero-pill"><i aria-hidden="true" /> NFC KARTVİZİT · KAYIP MODU</span>
             <h1 id="home-title">
               Kart bir kez basılır.<br />
               <span>Kimliğin her gün güncel kalır.</span>
@@ -47,7 +47,7 @@ export default function HomePage() {
 
             <div className="home-mockup__actions home-premium__hero-actions">
               <Link className="home-mockup__button home-mockup__button--gold home-mockup__button--primary" href="/urunler/nfc-kart">
-                NFC Kartımı Seç <span aria-hidden>→</span>
+                NFC Kartı Satın Al <span aria-hidden>→</span>
               </Link>
               <Link className="home-premium__hero-secondary" href="/kurumsal">
                 Ekip Paketini İncele <span aria-hidden>→</span>
@@ -81,7 +81,7 @@ export default function HomePage() {
               <span>BİREYSEL</span>
               <h3>Tek kart. Her tanışmada güncel.</h3>
               <p>NFC + QR kartın, canlı profilin ve kayıp modun. Bilgilerin değişince yeniden baskı yok.</p>
-              <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">Kartımı Seç <span aria-hidden>→</span></Link>
+              <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">NFC Kartı Satın Al <span aria-hidden>→</span></Link>
             </article>
             <article>
               <span>KURUMSAL</span>
@@ -142,7 +142,7 @@ export default function HomePage() {
           <p>Kendin için tek kart seç veya ekibini aynı Yenomi ID standardında yönet.</p>
           <div className="home-mockup__actions">
             <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">
-              Kartımı Seç <span aria-hidden>→</span>
+              NFC Kartı Satın Al <span aria-hidden>→</span>
             </Link>
             <Link className="home-mockup__link-secondary" href="/kurumsal">
               Ekip Paketlerini Gör <span aria-hidden>→</span>

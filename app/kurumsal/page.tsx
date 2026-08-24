@@ -187,7 +187,7 @@ export default async function CorporatePage({
                           kind="BUSINESS_CARD"
                           name={plan.name}
                           unitPriceKurus={plan.priceKurus}
-                          label="Bu Paketi Seç"
+                          label="Sepete Ekle"
                           appearance="secondary"
                           className={"popular" in plan && plan.popular ? "corporate-plan-link" : "corporate-plan-text"}
                           configuration={{ packageCode: plan.code, seatCount: plan.seats }}

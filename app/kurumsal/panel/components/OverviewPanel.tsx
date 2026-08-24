@@ -217,17 +217,22 @@ export default function OverviewPanel({
 
       <section className="cp-overview-v2__metrics" aria-label="Kurumsal hesap özeti">
         <article>
-          <span>Lisans kullanımı</span>
+          <span>Aktif Çalışan</span>
+          <strong>{usedSeats}<small> / {subscription?.seat_limit ?? "—"}</small></strong>
+          <p>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} boş lisansları kullanılabilir`}</p>
+        </article>
+        <article>
+          <span>Lisans Kullanımı</span>
           <strong>{usedSeats}<small> / {subscription?.seat_limit ?? "—"}</small></strong>
           <p>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} lisans kullanılabilir`}</p>
         </article>
         <article>
-          <span>Aktif dijital kart</span>
+          <span>Aktif Kart</span>
           <strong>{digitalCardsReady}<small> / {usedSeats || 0}</small></strong>
           <p>%{cardActivationPercent} kurulum tamamlandı</p>
         </article>
         <article>
-          <span>Görüntülenme</span>
+          <span>Kart görüntülenmeleri</span>
           <strong>{totalViews == null ? "—" : totalViews.toLocaleString("tr-TR")}</strong>
           <p>Son {analyticsDays} gün</p>
         </article>

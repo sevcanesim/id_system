@@ -60,7 +60,7 @@ export default function HowItWorksPage() {
             <article className="how-scene how-scene--select how-step-feature">
               <span className="how-step-number">Adım 1</span>
               <h3>Tarzını ve Kartını Seç</h3>
-              <p>Size en uygun tasarımı belirleyin; akıllı NFC ve QR özellikli kartınız adresinize gelsin.</p>
+              <p>Size en uygun tasarımı, iletişim, sosyal tek QR kartvizit sayfanızda toplayın. Değişiklik anında yansır.</p>
 
               <div className="how-card-gallery">
                 {finishes.map((option, index) => (
@@ -105,7 +105,7 @@ export default function HowItWorksPage() {
             <article className="how-scene how-scene--live how-step-feature">
               <span className="how-step-number">Adım 2</span>
               <h3>Profilini Oluştur ve Canlı Tut</h3>
-              <p>Bilgilerinizi (unvan, iletişim, sosyal medya) tek bir dijital kartvizit sayfasında toplayın. Değişiklikler anında yansır.</p>
+              <p>Bilgilerinizi (unvan, sosyal, sosyal kartvizit sayfanızda toplayın, anında yansır.</p>
 
               <div className="how-live-sync">
                 {liveRoles.map((option, index) => (
@@ -121,11 +121,11 @@ export default function HowItWorksPage() {
                 <div className="how-live-sync__stage">
                   <div className="how-live-sync__editor" aria-label="Profil düzenleme">
                     <div className="how-live-sync__device">
-                      <div className="how-live-sync__device-bar"><i /><span>Profil düzenle</span></div>
+                      <div className="how-live-sync__device-bar"><i /><span>PROFİL DÜZENLE</span></div>
                       <div className="how-live-sync__device-body">
                         <strong>Selin Kaya</strong>
                         <span>Yenomi Labs</span>
-                        <p className="how-live-sync__field">Unvan</p>
+                        <p className="how-live-sync__field">UNVAN</p>
                         <div className="how-live-sync__choices">
                           {liveRoles.map((option) => (
                             <label key={option.id} htmlFor={`how-live-${option.id}`}>{option.role}</label>
@@ -171,10 +171,21 @@ export default function HowItWorksPage() {
                     <div className="how-dashboard-bar"><span>Yenomi ID</span><i/><i/><i/></div>
                     <div className="how-dashboard-kpis"><b>Görüntülenme</b><b>Bağlantı</b><b>Profil</b></div>
                     <div className="how-dashboard-grid"><div className="how-chart"><span/><span/><span/><span/><span/></div><div className="how-mini-list"><i/><i/><i/><i/></div><div className="how-mini-chart"><span/><span/><span/><span/></div><div className="how-mini-list"><i/><i/><i/></div></div>
+                    <div className="how-toggle-badge"><span>Anında Durdur</span><i className="is-on" /></div>
                   </div>
                 )}
               </article>
             ))}
+          </div>
+        </div>
+
+        <div className="how-bottom-timeline" aria-hidden="true">
+          <div className="how-timeline-line" />
+          <div className="how-timeline-markers">
+            <span>Adım 1</span>
+            <span>Adım 2</span>
+            <span>Adım 3</span>
+            <span>Adım 4</span>
           </div>
         </div>
       </section>

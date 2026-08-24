@@ -116,7 +116,7 @@ export default function CorporatePackPicker({
       <div className="corporate-pack-picker__head">
         <div>
           <span className="corporate-pack-picker__kicker">{tier.title.toUpperCase()} · {pack.seats} KİŞİ</span>
-          <h3>{pack.name}{pack.popular ? <span className="corporate-pack-picker__badge">En çok tercih edilen kapasite</span> : null}</h3>
+          <h3>{pack.name}{pack.popular ? <span className="corporate-pack-picker__badge">öne çıkan paket</span> : null}</h3>
           <p>İhtiyacınız değişirse kapasiteyi yeniden baskı beklemeden yükseltebilirsiniz.</p>
         </div>
         <div className="corporate-pack-picker__price">

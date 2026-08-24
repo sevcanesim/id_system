@@ -65,7 +65,8 @@
 .checkout-summary-row strong { display:block; color:var(--ink); font-size:13px; }/* @canonical-block:000396 */
 .checkout-summary-row span { color:var(--ink-3); font-size:11px; }/* @canonical-block:000397 */
 .checkout-summary-row > b { color:var(--ink); font:700 13px var(--font-mono); white-space:nowrap; }/* @canonical-block:000398 */
-.checkout-summary-thumb { position:relative; width:46px; height:46px; min-width:46px; border-radius:10px; background:linear-gradient(155deg,#171225,#0a0612); overflow:hidden; }/* @canonical-block:000400 */
+.checkout-summary-thumb { position:relative; width:46px; height:46px; min-width:46px; border-radius:10px; background:linear-gradient(155deg,#171225,#0a0612); overflow:hidden; }/* @canonical-block:000399 */
+.checkout-summary-thumb.digital-renewal { display:grid; place-items:center; background:var(--gold-dim); color:var(--gold-hi); }/* @canonical-block:000400 */
 .checkout-summary-thumb-card { position:absolute; inset:0; border-radius:10px; }/* @canonical-block:000403 */
 .checkout-summary-free { color:var(--green,#2f9e5f) ; }/* @canonical-block:000404 */
 .checkout-summary-benefits { display:grid; gap:8px; margin:16px 0; padding:14px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); }/* @canonical-block:000405 */
@@ -88,8 +89,15 @@
 
 /* nfc purchase */
 .order-page-v166 { min-height:100vh; }/* @canonical-block:000596 */
-.order-success-actions { display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:22px; }/* @canonical-block:001785 */
-.order-list { display:grid; gap:14px; }/* @canonical-block:001794 */
+.order-success-actions { display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:22px; }/* @canonical-block:000955 */
+.admin-helper-copy { margin:-10px 0 6px; color:var(--ink-2); font-size:14px; }/* @canonical-block:000956 */
+.admin-muted-copy { margin:4px 0 0; color:var(--ink-3); font-size:12px; }/* @canonical-block:000957 */
+.admin-provision-button { margin-top:18px; }/* @canonical-block:001784 */
+.admin-filter { display:flex; flex-wrap:wrap; gap:12px; margin:0 0 18px; }/* @canonical-block:001785 */
+.order-list { display:grid; gap:14px; }/* @canonical-block:001786 */
+.admin-order { display:grid; gap:16px; min-width:0; padding:18px; border:1px solid var(--border); border-radius:16px; background:var(--surface); box-shadow:var(--shadow-soft); }/* @canonical-block:001787 */
+.admin-order-top { display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; }/* @canonical-block:001793 */
+.admin-status-controls { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }/* @canonical-block:001794 */
 .payment-retry { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)) auto; gap:12px; align-items:end; }/* @canonical-block:003456 */
 .cart-shell,
 .checkout-shell {

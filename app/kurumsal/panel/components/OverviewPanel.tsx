@@ -177,23 +177,6 @@ export default function OverviewPanel({
           <h2>Genel Bakış</h2>
           <p>Bugün müdahale gerektiren işleri ve ekip sağlığını tek ekranda görün.</p>
         </div>
-        <div className="cp-overview-v2__workspace-meta">
-          <label>
-            <span>Şirket</span>
-            <select value={selected} onChange={(event) => onSelectOrganization(event.target.value)}>
-              {orgs.map((item) => (
-                <option key={item.organization_id} value={item.organization_id}>
-                  {item.organizations?.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="cp-overview-v2__plan">
-            <span>{subscription?.business_plans?.name ?? "Kurumsal plan"}</span>
-            <strong>{loading ? "—" : usedSeats} / {subscription?.seat_limit ?? "—"}</strong>
-            <small>{organizationRoleLabel}</small>
-          </div>
-        </div>
       </header>
 
       <section className={`cp-overview-v2__priority is-${priority.tone}`} aria-labelledby="corporate-priority-title">
@@ -217,26 +200,44 @@ export default function OverviewPanel({
 
       <section className="cp-overview-v2__metrics" aria-label="Kurumsal hesap özeti">
         <article>
-          <span>Aktif Çalışan</span>
+          <span>Lisans Kapasitesi</span>
           <strong>{usedSeats}<small> / {subscription?.seat_limit ?? "—"}</small></strong>
-          <p>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} boş lisansları kullanılabilir`}</p>
+          <p>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} boş lisans`}</p>
         </article>
         <article>
-          <span>Lisans Kullanımı</span>
-          <strong>{usedSeats}<small> / {subscription?.seat_limit ?? "—"}</small></strong>
-          <p>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} lisans kullanılabilir`}</p>
+          <span>Bekleyen Davetler</span>
+          <strong>{invitedMembers}</strong>
+          <p>{invitedMembers > 0 ? "Yanıt bekliyor" : "Tüm davetler kabul edildi"}</p>
         </article>
         <article>
-          <span>Aktif Kart</span>
+          <span>Dijital Profil Kurulumu</span>
           <strong>{digitalCardsReady}<small> / {usedSeats || 0}</small></strong>
           <p>%{cardActivationPercent} kurulum tamamlandı</p>
         </article>
         <article>
-          <span>Kart görüntülenmeleri</span>
-          <strong>{totalViews == null ? "—" : totalViews.toLocaleString("tr-TR")}</strong>
-          <p>Son {analyticsDays} gün</p>
+          <span>Fiziksel Kart Atamaları</span>
+          <strong>{unassignedPhysical}</strong>
+          <p>{unassignedPhysical > 0 ? "Kart atanmayı bekliyor" : "Tüm kartlar eşleşti"}</p>
         </article>
       </section>
+
+      <div className="cp-overview-v2__quick-actions" aria-label="Hızlı işlemler">
+        {canOpen("employees") && (
+          <button type="button" onClick={() => openTab("employees")}>
+            <Icon name="users" /> Ekibi Yönet
+          </button>
+        )}
+        {canOpen("cards") && (
+          <button type="button" onClick={() => openTab("cards")}>
+            <Icon name="contact" /> Kartları Eşleştir
+          </button>
+        )}
+        {canOpen("licenses") && canManageLicenses && (
+          <button type="button" onClick={() => openTab("licenses")}>
+            <Icon name="lock" /> Lisans Ekle
+          </button>
+        )}
+      </div>
 
       <div className="cp-overview-v2__main-grid">
         <section className="cp-overview-v2__performance" aria-labelledby="corporate-performance-title">

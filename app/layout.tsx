@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 
 import "./canonical.css";
+import "./styles/canonical-corporate.css";
 import "./design-tokens.css";
 import "./design-system.css";
 import "./employee-management.css";

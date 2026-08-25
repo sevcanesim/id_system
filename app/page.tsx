@@ -124,8 +124,8 @@ export default function HomePage() {
             padding: 10px 10px 10px 14px;
             border: 1px solid var(--border-subdued);
             border-radius: var(--radius-md);
-            background: rgba(255, 255, 255, .94);
-            box-shadow: 0 14px 40px rgba(35, 29, 22, .16);
+            background: var(--surface-card);
+            box-shadow: var(--shadow-md);
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
           }

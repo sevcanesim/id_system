@@ -106,6 +106,14 @@ export default function HomePage() {
           <div className="home-mockup__actions"><Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">NFC Kartımı Al <span aria-hidden>→</span></Link></div>
         </section>
       </main>
+
+      <aside className="home-sales-mobile-cta" aria-label="NFC kart hızlı satın alma">
+        <div className="home-sales-mobile-cta__offer">
+          <strong>{initialPrice}</strong>
+          <span>1 yıl dahil</span>
+        </div>
+        <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">NFC Kartımı Al <span aria-hidden>→</span></Link>
+      </aside>
     </div>
   );
 }

@@ -27,6 +27,7 @@ import JobTitlesPanel from "./components/JobTitlesPanel";
 import CorporateLinksPanel from "./components/CorporateLinksPanel";
 import TemplatesPanel from "./components/TemplatesPanel";
 import CompanySettingsPanel from "./components/CompanySettingsPanel";
+import OrganizationStructurePanel from "./components/OrganizationStructurePanel";
 import RolesPanel from "./components/RolesPanel";
 import EmployeesPanel from "./components/EmployeesPanel";
 import EmployeeDrawer from "./components/EmployeeDrawer";
@@ -1791,6 +1792,13 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                 {currentTab === "roles" && <RolesPanel members={members} />}
                 {currentTab === "organization" && (
                   <div className="p11-org-workspace">
+                    <OrganizationStructurePanel
+                      members={members}
+                      onFilterDepartment={(dept) => {
+                        setDepartmentFilter(dept);
+                        openTab("employees");
+                      }}
+                    />
                     <CompanySettingsPanel
                     fields={companyFields}
                     setFields={(value) => {

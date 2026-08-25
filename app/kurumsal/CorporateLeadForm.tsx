@@ -12,10 +12,22 @@ export default function CorporateLeadForm({ plan = "GENEL", compact = false }: P
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setStatus("loading");
     setMessage("");
     const form = event.currentTarget;
     const formValues = Object.fromEntries(new FormData(form).entries());
+
+    const fullName = String(formValues.fullName || "").trim();
+    const email = String(formValues.email || "").trim();
+    const company = String(formValues.company || "").trim();
+    const website = String(formValues.website || "").trim();
+
+    if (!website && (!fullName || fullName.length < 2 || !email || !email.includes("@") || !company || company.length < 2)) {
+      setStatus("error");
+      setMessage("Lütfen zorunlu alanları (Ad Soyad, Kurumsal e-posta, Şirket) eksiksiz doldurun.");
+      return;
+    }
+
+    setStatus("loading");
 
     try {
       const response = await fetch("/api/corporate-leads", {

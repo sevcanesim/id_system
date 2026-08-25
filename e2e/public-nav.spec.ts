@@ -47,7 +47,7 @@ test.describe("public hamburger", () => {
   test("homepage remains usable at 390px", async ({ page }) => {
     await page.goto("/", { waitUntil: "load" });
     await expect(page.getByRole("heading", { name: /Bir kez basılır/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: /NFC Kartımı Al/ }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /NFC Kartı Satın Al/ }).first()).toBeVisible();
 
     const stage = page.locator(".home-sales-stage");
     await expect(stage).toBeVisible();

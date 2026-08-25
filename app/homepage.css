@@ -206,57 +206,6 @@
   line-height: 1.6;
 }
 
-.home-sales-steps {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  border-top: 1px solid var(--border-subdued);
-  border-bottom: 1px solid var(--border-subdued);
-}
-
-.home-sales-step {
-  position: relative;
-  min-width: 0;
-  min-height: 176px;
-  padding: var(--space-6) var(--space-6) var(--space-8) 0;
-  background: transparent;
-}
-
-.home-sales-step + .home-sales-step {
-  padding-left: var(--space-6);
-  border-left: 1px solid var(--border-subdued);
-}
-
-.home-sales-step-number {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  color: var(--brand-gold-deep);
-  font-size: var(--type-xs);
-  font-weight: 700;
-  letter-spacing: .05em;
-}
-
-.home-sales-step h3 {
-  margin: var(--space-6) 0 var(--space-2);
-  color: var(--text-primary);
-  font-size: var(--type-body-lg);
-  line-height: 1.2;
-  letter-spacing: -.02em;
-}
-
-.home-sales-step p {
-  max-width: 238px;
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: var(--type-body-sm);
-  line-height: 1.55;
-}
-
 .home-sales-paths {
   border: 0;
   background: transparent;
@@ -600,20 +549,6 @@
     padding-bottom: var(--space-16);
   }
 
-  .home-sales-steps {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .home-sales-step:nth-child(3) {
-    border-left: 0;
-    border-top: 1px solid var(--border-subdued);
-    padding-left: 0;
-  }
-
-  .home-sales-step:nth-child(4) {
-    border-top: 1px solid var(--border-subdued);
-  }
-
   .home-sales-comparison-head {
     grid-template-columns: 1fr;
     row-gap: var(--space-4);
@@ -731,30 +666,6 @@
 
   .home-sales-faq-intro h2 {
     font-size: clamp(36px, 9.6vw, 46px);
-  }
-
-  .home-sales-steps {
-    grid-template-columns: 1fr;
-    border-bottom: 0;
-  }
-
-  .home-sales-step,
-  .home-sales-step + .home-sales-step,
-  .home-sales-step:nth-child(3),
-  .home-sales-step:nth-child(4) {
-    min-height: 0;
-    padding: var(--space-5) 0;
-    border-left: 0;
-    border-top: 0;
-    border-bottom: 1px solid var(--border-subdued);
-  }
-
-  .home-sales-step h3 {
-    margin-top: var(--space-4);
-  }
-
-  .home-sales-step p {
-    max-width: 100%;
   }
 
   .home-sales-paths article {

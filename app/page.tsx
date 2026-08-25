@@ -168,7 +168,7 @@ export default function HomePage() {
             <div className="home-sales-comparison-header" role="row"><span role="columnheader">Durum</span><span role="columnheader">Klasik kartvizit</span><span role="columnheader">Yenomi ID</span></div>
             {comparisonRows.map(([label, classic, yenomi]) => (
               <div className="home-sales-comparison-row" role="row" key={label}>
-                <strong role="cell">{label}</strong>
+                <strong role="rowheader">{label}</strong>
                 <span role="cell">{classic}</span>
                 <span role="cell"><Icon name="check" />{yenomi}</span>
               </div>

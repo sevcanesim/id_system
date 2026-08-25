@@ -160,6 +160,8 @@
 .products-commerce-v3__existing-features .yi-icon { width:13px; height:13px; min-width:13px; color:var(--brand-gold); }
 .products-commerce-v3__existing-buy { min-width:190px; display:grid; justify-items:end; gap:12px; }
 .products-commerce-v3__existing-buy strong { font-size:34px; letter-spacing:-.045em; }
+.products-commerce-v3__existing-buy [role="status"] { font-size:11px; color:var(--text-tertiary); margin:0; text-align:right; max-width:220px; }
+.products-commerce-v3__existing-buy .add-to-cart-button { width:100%; text-align:center; justify-content:center; }
 .products-commerce-v3__trust-strip { padding:0; background:#f4f1e9; }
 .products-commerce-v3__trust-strip .yi-container { min-height:72px; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border-top:1px solid var(--border-subdued); }
 .products-commerce-v3__trust-strip span { display:flex; align-items:center; justify-content:center; gap:8px; color:var(--text-tertiary); font-size:11px; font-weight:650; }

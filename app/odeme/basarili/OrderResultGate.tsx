@@ -145,7 +145,7 @@ export default function OrderResultGate() {
     if (data.corporate && !data.corporateReady) {
       throw new Error("Kurulum hâlâ tamamlanmadı. Ödeme tekrar alınmaz; destek ile iletişime geçebilirsin.");
     }
-    if (data.reviewRequired) {
+    if (data.reviewRequired && !data.activationRequired) {
       throw new Error("Sipariş hâlâ kontrol ediliyor. Ödeme tekrar alınmaz; birkaç dakika sonra yeniden dene.");
     }
   }

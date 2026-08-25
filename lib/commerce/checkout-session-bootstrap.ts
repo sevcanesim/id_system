@@ -36,6 +36,7 @@ export async function bootstrapAuthenticatedCheckout<T extends CheckoutBuyerFiel
   },
 ) {
   if (!session) {
+    surface.setItems(readCart());
     surface.setCheckoutReady(true);
     return;
   }

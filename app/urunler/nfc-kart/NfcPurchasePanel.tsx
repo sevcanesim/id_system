@@ -32,7 +32,7 @@ export default function NfcPurchasePanel({
   const productName = selectedVariant
     ? `${packageId === "premium" ? "Yenomi ID Premium" : product.name} — ${selectedVariant.name}`
     : packageId === "premium" ? "Yenomi ID Premium" : product.name;
-  const ctaLabel = packageId === "premium" ? "Premium’u Seç →" : "NFC Kartımı Al →";
+  const ctaLabel = packageId === "premium" ? "Premium’u Seç →" : "NFC Kartı Satın Al →";
   const configuration = useMemo(
     () => selectedVariant
       ? { variantId: selectedVariant.id, variantName: selectedVariant.name, packageCode: packageId === "premium" ? INDIVIDUAL_PREMIUM_PLAN.code : INDIVIDUAL_PLAN.code }

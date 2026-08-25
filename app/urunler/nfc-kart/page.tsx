@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { COMMERCIAL_COPY } from "../../../lib/config/commercial";
 import { NFC_PRODUCT, formatTryFromKurus } from "../../../lib/config/product";
 import NfcPurchasePanel from "./NfcPurchasePanel";
 import { PublicPageTitle } from "../../components/PublicPageTitle";
+import { YenomiProductVisual } from "../../ui/YenomiProductVisual";
 
 export const metadata: Metadata = {
   title: "NFC + QR Kart",
@@ -66,14 +66,10 @@ export default async function NfcKartPage({
             <NfcPurchasePanel product={NFC_PRODUCT} initialPackage={initialPackage} accessRequired={accessRequired} />
           </div>
           <div className="nfc-product-hero__visual">
-            <Image
-              src="/images/nfc-kart-hero.png"
-              alt="Yenomi ID NFC kart ve dijital profil"
-              width={1400}
-              height={1000}
-              sizes="(max-width: 980px) 92vw, 48vw"
-              priority
-            />
+            <div className="home-hero-specimens">
+              <YenomiProductVisual variant="card" finish="matte" />
+              <YenomiProductVisual variant="profile" compact />
+            </div>
           </div>
         </div>
       </section>

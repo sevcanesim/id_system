@@ -178,13 +178,13 @@ export default function CartPage() {
                     <b>{formatTryFromKurus(total)}</b>
                   </div>
                 </div>
-                <p>Hesap açmadan hızlıca sipariş verebilirsin. Siparişin e-posta adresinle otomatik eşleşir. Fiyat ödeme adımında sunucuda doğrulanır.</p>
-                <Link href="/checkout" className="yi-btn yi-btn--primary">
+                <p>Hesap açmadan ödeme yapabilirsin. Siparişin e-posta adresinle otomatik eşleşir. Fiyat ödeme adımında sunucuda doğrulanır.</p>
+                <ButtonLink href="/checkout" variant="primary">
                   Ödemeye geç
-                </Link>
-                <Link href="/urunler/nfc-kart" className="yi-btn yi-btn--ghost">
+                </ButtonLink>
+                <ButtonLink href="/urunler/nfc-kart" variant="ghost">
                   Kart seçimine dön
-                </Link>
+                </ButtonLink>
               </aside>
             </div>
           )}

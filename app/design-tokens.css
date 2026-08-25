@@ -6,7 +6,7 @@
  */
 :root {
   /* Canonical palette */
-  --background: #FAF9F6;
+  --background: #F9F8F6;
   --surface: #FFFFFF;
   --surface-secondary: #F4F1EB;
   --surface-elevated: var(--surface);

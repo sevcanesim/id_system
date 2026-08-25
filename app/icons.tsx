@@ -72,6 +72,8 @@ export function Icon({ name, className, variant = "line" }: {
 }) {
   const svg = renderIcon(name);
   return cloneElement(svg, {
+    width: svg.props.width || 24,
+    height: svg.props.height || 24,
     className: ["yi-icon", `yi-icon--${variant}`, svg.props.className, className].filter(Boolean).join(" "),
     "aria-hidden": true,
   });

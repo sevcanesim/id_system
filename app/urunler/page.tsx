@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import AddToCartButton from "../components/AddToCartButton";
 import { Icon } from "../icons";
+import { YenomiProductVisual } from "../ui/YenomiProductVisual";
 import {
   ADDITIONAL_CARD_FEATURES,
   ADDITIONAL_CARD_PLAN,
@@ -51,22 +51,17 @@ export default function ProductsPage() {
                   kind="NFC_PHYSICAL_CARD"
                   name="Yenomi ID NFC Kart"
                   unitPriceKurus={COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus}
-                  label="Yenomi ID’mi Al"
+                  label="NFC Kartı Satın Al"
                 />
                 <a href="#nasil-calisir" className="products-commerce-v3__text-link">Nasıl çalışır? <span aria-hidden="true">→</span></a>
               </div>
             </div>
 
             <div className="products-commerce-v3__stage" aria-label="Yenomi ID NFC kart ürün görseli">
-              <Image
-                src="/images/nfc-kart-hero.png"
-                alt="Yenomi ID NFC ve QR kart ürün görseli"
-                width={1350}
-                height={1484}
-                priority
-                sizes="(max-width: 900px) 92vw, 48vw"
-                className="home-sales-product"
-              />
+              <div className="home-hero-specimens">
+                <YenomiProductVisual variant="card" finish="matte" />
+                <YenomiProductVisual variant="profile" compact />
+              </div>
               <div className="products-commerce-v3__stage-caption">
                 <span>NFC + QR</span>
                 <strong>Tek profil. Her zaman güncel.</strong>
@@ -150,7 +145,7 @@ export default function ProductsPage() {
                     kind="NFC_PHYSICAL_CARD"
                     name="Yenomi ID NFC Kart"
                     unitPriceKurus={COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus}
-                    label="NFC Kartımı Al"
+                    label="NFC Kartı Satın Al"
                   />
                 </div>
               </article>

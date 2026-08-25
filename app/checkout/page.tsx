@@ -78,7 +78,10 @@ export default function CheckoutPage() {
   }, []);
 
   useEffect(() => {
-    const sync = () => setItems(readCart());
+    const sync = () => {
+      const mergedCart = readCart();
+      setItems(mergedCart);
+    };
     sync();
     window.addEventListener("yenomi-cart-change", sync);
     return () => window.removeEventListener("yenomi-cart-change", sync);
@@ -197,8 +200,8 @@ export default function CheckoutPage() {
     if (buyerMessage) return buyerMessage;
     const shippingMessage = shippingError();
     if (shippingMessage) return shippingMessage;
-    if (!form.distanceSalesAccepted) return "Mesafeli satış ve ön bilgilendirme metinlerini onaylamalısın.";
-    if (!form.personalizationAccepted) return "Kişiselleştirilmiş ürün koşullarını onaylamalısın.";
+    if (!form.distanceSalesAccepted) return "Mesafeli Satış Sözleşmesini kabul etmelisin.";
+    if (!form.personalizationAccepted) return "Kişiselleştirilmiş ürün ve KVKK şartlarını kabul etmelisin.";
     return "";
   }
 
@@ -336,9 +339,16 @@ export default function CheckoutPage() {
         <section className="checkout-shell checkout-confirm-shell">
           <div className="checkout-heading checkout-heading-compact">
             <h1>{hasCorporatePackage ? "Kurumsal ödemeyi tamamla." : digitalOnlyCart ? "Dijital ödemeyi tamamla." : "Ödemeyi tamamla."}</h1>
-            <p>{hasCorporatePackage ? "Fatura ve teslimatı doğrula. Son adımda iyzico kartını alır; Yenomi saklamaz." : digitalOnlyCart ? "Fatura ili ve ilçesini doğrula. Teslimat adresi yok. Kartın iyzico’da kalır." : "Alıcı ve teslimatı doğrula. Kart numarası iyzico’da işlenir; Yenomi’de saklanmaz."}</p>
-            <div className="checkout-account-note" role="status">{isAuthenticated ? <><Icon name="check" /> Hesabın bağlı. Siparişin hesabına otomatik eklenir.</> : <><Icon name="mail" /> Hesap açmadan hızlıca sipariş verebilirsin. Siparişin e-posta adresinle otomatik eşleşir.</>}</div>
+            <p>iyzico ile güvenle öde. {hasCorporatePackage ? "Fatura ve teslimatı doğrula. Son adımda iyzico kartını alır; Yenomi saklamaz." : digitalOnlyCart ? "Fatura ili ve ilçesini doğrula. Teslimat adresi yok. Kart numarası iyzico’da işlenir." : "Alıcı ve teslimatı doğrula. Kart numarası iyzico’da işlenir; Yenomi’de saklanmaz."}</p>
+            <div className="checkout-account-note" role="status">
+              {isAuthenticated ? (
+                <><Icon name="check" /> Hesabın bağlı. Siparişin hesabına otomatik eklenir.</>
+              ) : (
+                <><Icon name="mail" /> Hesap açmadan güvenli ödeme yapabilirsin; siparişini bu e-posta ile hesabına bağlayabilirsin.</>
+              )}
+            </div>
             <div className="checkout-trust-row checkout-trust-row-compact" aria-label="Sipariş avantajları">
+              <span><Icon name="shield" />iyzico ile güvenle öde</span>
               {!digitalOnlyCart && <span><Icon name="truck" />Ücretsiz kargo</span>}
               {hasInitialBundle && <span><Icon name="clock" />Ana kart 2 iş gününde hazırlanır</span>}
               {hasDigitalMembership && <span><Icon name="shield" />1 yıl platform üyeliği dahil</span>}
@@ -403,12 +413,45 @@ export default function CheckoutPage() {
                     <span><strong>Onay ve ödeme</strong><small>Kart bilgisi iyzico’da girilir</small></span>
                   </button>
                   {activeStep === "approval" && <div className="checkout-step-body">
-                    <label><input type="checkbox" checked={form.distanceSalesAccepted} onChange={(event) => update("distanceSalesAccepted", event.target.checked)} /> Mesafeli satış ve ön bilgilendirme metinlerini kabul ediyorum.</label>
-                    <label><input type="checkbox" checked={form.personalizationAccepted} onChange={(event) => update("personalizationAccepted", event.target.checked)} /> Kişiselleştirilmiş ürün koşullarını kabul ediyorum.</label>
+                    <label>
+                      <input type="checkbox" checked={form.distanceSalesAccepted} onChange={(event) => update("distanceSalesAccepted", event.target.checked)} />
+                      <span><Link href="/mesafeli-satis-sozlesmesi" target="_blank">Mesafeli Satış Sözleşmesini</Link> ve ön bilgilendirme metinlerini kabul ediyorum.</span>
+                    </label>
+                    <label>
+                      <input type="checkbox" checked={form.personalizationAccepted} onChange={(event) => update("personalizationAccepted", event.target.checked)} />
+                      <span>Kişiselleştirilmiş ürün koşullarını ve <Link href="/kvkk" target="_blank">KVKK</Link> Aydınlatma Metnini kabul ediyorum.</span>
+                    </label>
                     <button type="submit" className="checkout-pay" disabled={busy}>{busy ? "Ödeme hazırlanıyor…" : `${formatTryFromKurus(total)} ile ödemeye geç`}</button>
                   </div>}
                 </section>
               </div>
+
+              <aside className="checkout-summary-panel">
+                <div className="checkout-summary-head">
+                  <span>SİPARİŞ ÖZETİ</span>
+                </div>
+                <div className="checkout-summary-items">
+                  {items.map((item) => (
+                    <div key={item.cartItemId} className="checkout-summary-row">
+                      <div>
+                        <strong>{item.name}</strong>
+                        <span>{item.quantity} adet · {formatTryFromKurus(item.unitPriceKurus)}</span>
+                      </div>
+                      <b>{formatTryFromKurus(item.unitPriceKurus * item.quantity)}</b>
+                    </div>
+                  ))}
+                </div>
+                <div className="checkout-summary-total">
+                  <span>Toplam Sipariş Tutarı</span>
+                  <strong>{formatTryFromKurus(total)}</strong>
+                </div>
+                <div className="checkout-summary-benefits">
+                  <span><Icon name="check" /> iyzico ile güvenle öde</span>
+                  <span><Icon name="check" /> 1 yıl platform üyeliği dahil</span>
+                  {!digitalOnlyCart && <span><Icon name="check" /> Türkiye içi kargo dahil</span>}
+                  <span><Icon name="check" /> Kart numarası Yenomi’de saklanmaz</span>
+                </div>
+              </aside>
             </form>
           )}
           {message ? <div className="checkout-message" role="alert">{message}</div> : null}

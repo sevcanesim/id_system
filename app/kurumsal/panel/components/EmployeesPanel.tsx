@@ -139,9 +139,15 @@ export default function EmployeesPanel(props: Props) {
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkDepartment, setBulkDepartment] = useState("");
   const [pendingInviteEmail, setPendingInviteEmail] = useState<string | null>(null);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const seatLimit = subscription?.seat_limit ?? "—";
   const bulkMailFailed = bulkInviteResults?.results.filter(isBulkInviteMailFailed) ?? [];
   const suspendedSeats = Math.max(0, usedSeats - activeMembers - invitedMembers);
+  const showP0Capacity = availableSeats === 0;
+  const showP0Pending = invitedMembers > 0;
+  const showP0Suspended = suspendedSeats > 0;
+  const hasP0Attention = showP0Capacity || showP0Pending || showP0Suspended;
+  const hasActiveFilters = departmentFilter !== "ALL" || statusFilter !== "ALL" || sortKey !== "name" || sortDirection !== "asc";
   const bulkDepartmentChoices = useMemo(() => {
     const fromMembers = departmentOptions.filter((department) => department !== "Belirtilmemiş");
     return Array.from(new Set([...DEPARTMENT_OPTIONS, ...fromMembers])).sort((a, b) => compareText(a, b));
@@ -297,6 +303,54 @@ export default function EmployeesPanel(props: Props) {
         </div>
       </header>
 
+      {hasP0Attention && (
+        <section className="p11-operational-attention" aria-label="Operasyonel dikkat bildirimleri">
+          {showP0Capacity && (
+            <article key="p0-capacity" className="p11-attention-item p11-attention-item--urgent">
+              <div className="p11-attention-content">
+                <Icon name="box" />
+                <div>
+                  <strong>Lisans kapasitesi doldu</strong>
+                  <p>Yeni çalışan eklemek için lisans kapasitesini artırın veya kullanılmayan bir lisansı boşaltın.</p>
+                </div>
+              </div>
+              {canManageLicenses && (
+                <button type="button" className="p11-attention-cta" onClick={() => setActiveTab("licenses")}>
+                  Lisansları Yönet
+                </button>
+              )}
+            </article>
+          )}
+          {showP0Pending && (
+            <article key="p0-pending" className="p11-attention-item p11-attention-item--warning">
+              <div className="p11-attention-content">
+                <Icon name="mail" />
+                <div>
+                  <strong>{invitedMembers} davet yanıt bekliyor</strong>
+                </div>
+              </div>
+              <button type="button" className="p11-attention-cta" onClick={() => setStatusFilter("INVITED")}>
+                Bekleyen Davetleri Göster
+              </button>
+            </article>
+          )}
+          {showP0Suspended && (
+            <article key="p0-suspended" className="p11-attention-item p11-attention-item--info">
+              <div className="p11-attention-content">
+                <Icon name="users" />
+                <div>
+                  <strong>{suspendedSeats} pasif çalışan lisans kullanıyor</strong>
+                  <p>Pasif çalışanlar lisans tüketmeye devam eder. Lisansı boşaltmak için çalışanı şirketten ayırın.</p>
+                </div>
+              </div>
+              <button type="button" className="p11-attention-cta" onClick={() => setStatusFilter("SUSPENDED")}>
+                Pasif Çalışanları Göster
+              </button>
+            </article>
+          )}
+        </section>
+      )}
+
       <div className="p11-kpis">
         <article><small>Aktif çalışan</small><strong>{activeMembers}</strong><span>Şu anda erişimi açık</span></article>
         <article><small>Bekleyen davet</small><strong>{invitedMembers}</strong><span>Henüz kabul edilmedi</span></article>
@@ -306,22 +360,40 @@ export default function EmployeesPanel(props: Props) {
 
       <section className="p11-employee-card">
         <div className="p11-toolbar">
-          <label className="p11-search"><Icon name="search" /><input aria-label="Çalışan ara" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Ad, e-posta, ünvan ara" /></label>
-          <select aria-label="Departman filtresi" className="p11-filter-control" value={departmentFilter} onChange={(event) => setDepartmentFilter(event.target.value)}>
-            <option value="ALL">Tüm departmanlar</option>{departmentOptions.map((department) => <option key={department} value={department}>{department}</option>)}
-          </select>
-          <select aria-label="Durum filtresi" className="p11-filter-control" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-            <option value="ALL">Tüm durumlar</option><option value="ACTIVE">Aktif</option><option value="INVITED">Davet bekliyor</option><option value="SUSPENDED">Pasif</option><option value="LEFT">Ayrıldı</option>
-          </select>
-          <select aria-label="Sıralama" className="p11-filter-control" value={`${sortKey}:${sortDirection}`} onChange={(event) => { const [key, direction] = event.target.value.split(":") as [SortKey, SortDirection]; setSortKey(key); setSortDirection(direction); }}>
-            <option value="name:asc">Ad A–Z</option><option value="name:desc">Ad Z–A</option><option value="created:desc">En yeni</option><option value="created:asc">En eski</option><option value="department:asc">Departman</option><option value="status:asc">Durum</option>
-          </select>
-          {canInvite && (
-            <>
+          <div className="p11-toolbar-main">
+            <label className="p11-search"><Icon name="search" /><input aria-label="Çalışan ara" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Ad, e-posta, ünvan ara" /></label>
+            <div className="p11-toolbar-actions-main">
+              <button
+                type="button"
+                className="p11-mobile-filter-toggle"
+                aria-expanded={mobileFiltersOpen}
+                aria-label="Filtreler ve ek işlemler"
+                onClick={() => setMobileFiltersOpen((value) => !value)}
+              >
+                <Icon name="adjustments" />
+                <span>Filtreler</span>
+                {hasActiveFilters && <span className="p11-filter-active-dot" aria-hidden="true" />}
+              </button>
+              {canInvite && (
+                <button type="button" className="p11-primary p11-primary-mobile-sticky" onClick={() => setShowInviteForm((value) => !value)}><Icon name="users" /> Çalışan Ekle</button>
+              )}
+            </div>
+          </div>
+
+          <div className={`p11-toolbar-secondary${mobileFiltersOpen ? " is-open" : ""}`}>
+            <select aria-label="Departman filtresi" className="p11-filter-control" value={departmentFilter} onChange={(event) => setDepartmentFilter(event.target.value)}>
+              <option value="ALL">Tüm departmanlar</option>{departmentOptions.map((department) => <option key={department} value={department}>{department}</option>)}
+            </select>
+            <select aria-label="Durum filtresi" className="p11-filter-control" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+              <option value="ALL">Tüm durumlar</option><option value="ACTIVE">Aktif</option><option value="INVITED">Davet bekliyor</option><option value="SUSPENDED">Pasif</option><option value="LEFT">Ayrıldı</option>
+            </select>
+            <select aria-label="Sıralama" className="p11-filter-control" value={`${sortKey}:${sortDirection}`} onChange={(event) => { const [key, direction] = event.target.value.split(":") as [SortKey, SortDirection]; setSortKey(key); setSortDirection(direction); }}>
+              <option value="name:asc">Ad A–Z</option><option value="name:desc">Ad Z–A</option><option value="created:desc">En yeni</option><option value="created:asc">En eski</option><option value="department:asc">Departman</option><option value="status:asc">Durum</option>
+            </select>
+            {canInvite && (
               <button type="button" className="p11-secondary" onClick={onToggleBulkInvite}><Icon name="box" /> CSV ile Davet</button>
-              <button type="button" className="p11-primary" onClick={() => setShowInviteForm((value) => !value)}><Icon name="users" /> Çalışan Ekle</button>
-            </>
-          )}
+            )}
+          </div>
         </div>
 
         {showBulkInvite && canInvite && (
@@ -370,22 +442,6 @@ export default function EmployeesPanel(props: Props) {
           </form>
         )}
 
-        {!canInvite && availableSeats !== null && availableSeats <= 0 && (
-          <div className="p11-alert" role="status">
-            <span>
-              <strong>Lisans Kapasitesi Doldu ({totalMembers} / {seatLimit})</strong>
-              <span>
-                {canManageLicenses
-                  ? "Yeni çalışan eklemek için +1 lisans satın almanız gerekiyor."
-                  : "Yeni çalışan eklemek için yöneticinin +1 lisans satın alması gerekiyor."}
-                {suspendedSeats > 0 && ` (Dondurulmuş ${suspendedSeats} çalışan lisans kotasını işgal ediyor. Şirketten ayırarak yer açabilirsiniz.)`}
-              </span>
-            </span>
-            {canManageLicenses && (
-              <button type="button" className="p11-primary" onClick={() => setActiveTab("licenses")}>Lisansları Yönet</button>
-            )}
-          </div>
-        )}
 
         {selectedIds.size > 0 && (
           <div className="p11-bulk-bar" role="region" aria-label="Toplu çalışan işlemleri">

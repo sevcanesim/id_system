@@ -232,12 +232,13 @@ export default function EmployeeDrawer({
           ? "Sınırlı"
           : "Kapalı";
 
-  function statusJumpProps(tab: Props["drawerTab"]) {
+  function statusJumpProps(tab: Props["drawerTab"], label: string) {
+    const isActive = drawerTab === tab;
     return {
       role: "button" as const,
       tabIndex: 0,
-      className: "v25-status-jump",
-      "aria-pressed": drawerTab === tab,
+      className: `v25-status-jump${isActive ? " is-active" : ""}`,
+      "aria-label": `${label} sekmesine git`,
       onClick: () => setDrawerTab(tab),
       onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -266,27 +267,27 @@ export default function EmployeeDrawer({
           <small id="v25-status-summary-title">Durum özeti</small>
         </header>
         <dl>
-          <div {...statusJumpProps("lifecycle")}>
+          <div {...statusJumpProps("lifecycle", "Rol")}>
             <dt>Rol</dt>
             <dd>{roleSummary}</dd>
           </div>
-          <div {...statusJumpProps("lifecycle")}>
+          <div {...statusJumpProps("lifecycle", "Durum")}>
             <dt>Durum</dt>
             <dd>{memberStatusLabel(drawerMember.status)}</dd>
           </div>
-          <div {...statusJumpProps("card")}>
+          <div {...statusJumpProps("card", "Dijital kart")}>
             <dt>Dijital kart</dt>
             <dd>{digitalProfileLabel(cardState?.digitalProfileState ?? "NONE")}</dd>
           </div>
-          <div {...statusJumpProps("card")}>
+          <div {...statusJumpProps("card", "Fiziksel kart")}>
             <dt>Fiziksel kart</dt>
             <dd>{physicalCardLabel(cardState?.physicalCardState ?? (assignedCards.length ? "ASSIGNED" : "UNASSIGNED"))}</dd>
           </div>
-          <div {...statusJumpProps("invite")}>
+          <div {...statusJumpProps("invite", "Davet")}>
             <dt>Davet</dt>
             <dd>{inviteSummary}</dd>
           </div>
-          <div {...statusJumpProps("lifecycle")}>
+          <div {...statusJumpProps("lifecycle", "Erişim")}>
             <dt>Erişim</dt>
             <dd>{accessSummary}</dd>
           </div>

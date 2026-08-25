@@ -47,11 +47,13 @@ export function deriveSeatPackFulfillmentState(
 ): SeatPackFulfillmentState {
   if (!seatPack) return null;
   const logs = auditLogs ?? [];
-  if (logs.some((log) => log?.action === "SEAT_PACK_FULFILLED")) {
-    return "FULFILLED";
-  }
-  if (logs.some((log) => log?.action === "SEAT_PACK_FULFILLMENT_FAILED")) {
-    return "FAILED";
+  for (const log of logs) {
+    if (log?.action === "SEAT_PACK_FULFILLED") {
+      return "FULFILLED";
+    }
+    if (log?.action === "SEAT_PACK_FULFILLMENT_FAILED") {
+      return "FAILED";
+    }
   }
   return "PENDING";
 }
@@ -69,9 +71,10 @@ export async function loadCommerceOrderKind(
       .is("resolved_at", null),
     admin
       .from("admin_audit_log")
-      .select("action,after_value")
+      .select("action,after_value,created_at")
       .in("action", ["SEAT_PACK_FULFILLED", "SEAT_PACK_FULFILLMENT_FAILED"])
-      .eq("after_value->>order_id", orderId),
+      .eq("after_value->>order_id", orderId)
+      .order("created_at", { ascending: false }),
   ]);
 
   const rows = items ?? [];

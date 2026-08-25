@@ -50,20 +50,46 @@ describe("commerceOrderIsSeatPack", () => {
 });
 
 describe("deriveSeatPackFulfillmentState", () => {
-  it("returns FULFILLED when SEAT_PACK_FULFILLED audit log exists", () => {
-    expect(deriveSeatPackFulfillmentState(true, [{ action: "SEAT_PACK_FULFILLED" }])).toBe("FULFILLED");
+  it("A: evaluates FAILED -> FULFILLED as FULFILLED (newest event is FULFILLED)", () => {
+    expect(
+      deriveSeatPackFulfillmentState(true, [
+        { action: "SEAT_PACK_FULFILLED" },
+        { action: "SEAT_PACK_FULFILLMENT_FAILED" },
+      ]),
+    ).toBe("FULFILLED");
   });
 
-  it("returns FAILED when SEAT_PACK_FULFILLMENT_FAILED audit log exists", () => {
-    expect(deriveSeatPackFulfillmentState(true, [{ action: "SEAT_PACK_FULFILLMENT_FAILED" }])).toBe("FAILED");
+  it("B: evaluates FULFILLED -> FAILED as FAILED (newest event is FAILED)", () => {
+    expect(
+      deriveSeatPackFulfillmentState(true, [
+        { action: "SEAT_PACK_FULFILLMENT_FAILED" },
+        { action: "SEAT_PACK_FULFILLED" },
+      ]),
+    ).toBe("FAILED");
   });
 
-  it("returns PENDING when paid seat pack has no fulfillment audit record yet", () => {
+  it("C: returns PENDING when paid seat pack has no relevant fulfillment audit record yet", () => {
     expect(deriveSeatPackFulfillmentState(true, [])).toBe("PENDING");
     expect(deriveSeatPackFulfillmentState(true, null)).toBe("PENDING");
   });
 
-  it("returns null for non-seat-pack orders regardless of audit log", () => {
+  it("D: ignores unrelated audit actions and finds newest relevant event", () => {
+    expect(
+      deriveSeatPackFulfillmentState(true, [
+        { action: "UNRELATED_AUDIT_LOG" },
+        { action: "SEAT_PACK_FULFILLED" },
+      ]),
+    ).toBe("FULFILLED");
+
+    expect(
+      deriveSeatPackFulfillmentState(true, [
+        { action: "UNRELATED_AUDIT_LOG" },
+        { action: "SEAT_PACK_FULFILLMENT_FAILED" },
+      ]),
+    ).toBe("FAILED");
+  });
+
+  it("E: returns null for non-seat-pack orders regardless of audit log", () => {
     expect(deriveSeatPackFulfillmentState(false, [{ action: "SEAT_PACK_FULFILLED" }])).toBe(null);
     expect(deriveSeatPackFulfillmentState(false, [])).toBe(null);
   });

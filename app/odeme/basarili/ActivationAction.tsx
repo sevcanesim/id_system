@@ -148,10 +148,10 @@ export default function ActivationAction({
   if (seatPack && (seatPackFulfillment === "PENDING" || !seatPackFulfillment) && !reviewRequired) {
     return (
       <div className="activation-callout">
-        <h2>Ödemeniz başarıyla alındı</h2>
+        <h2>Ödemeniz başarıyla alındı.</h2>
         <p>Ek lisans kapasiteniz işleniyor. Kurumsal panelden güncel kapasitenizi kontrol edebilirsiniz.</p>
-        <Link href="/kurumsal/panel/calisanlar">
-          Kurumsal Panele Dön ve Çalışan Ekle
+        <Link href="/kurumsal/panel/lisans">
+          Kapasiteyi Kontrol Et
         </Link>
       </div>
     );
@@ -165,7 +165,7 @@ export default function ActivationAction({
         {message ? <div className="checkout-message">{message}</div> : null}
         {orderId ? (
           <button type="button" onClick={() => void retrySetup()} disabled={retrying}>
-            {retrying ? "Kontrolü tekrar dene…" : "Tanımlamayı tekrar dene"}
+            {retrying ? "Durum kontrol ediliyor…" : "Durumu Yeniden Kontrol Et"}
           </button>
         ) : null}
         <Link href="/siparislerim">Siparişimi takip et →</Link>
@@ -213,7 +213,7 @@ export default function ActivationAction({
         {message ? <div className="checkout-message">{message}</div> : null}
         {orderId ? (
           <button type="button" onClick={() => void retrySetup()} disabled={retrying}>
-            {retrying ? "Kontrolü tekrar dene…" : "Tanımlamayı tekrar dene"}
+            {retrying ? "Durum kontrol ediliyor…" : "Durumu Yeniden Kontrol Et"}
           </button>
         ) : null}
         <Link href="/siparislerim">Siparişimi takip et →</Link>

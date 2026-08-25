@@ -155,7 +155,9 @@ export default function OrderResultGate() {
     : setupIncomplete
       ? "Kurulumu tamamla"
       : seatPack
-        ? "Paneli aç ve çalışan ekle"
+        ? (seatPackFulfillment === "FULFILLED"
+          ? "Paneli aç ve çalışan ekle"
+          : "Kapasiteyi kontrol et")
         : corporate
           ? "Paneli aç"
           : "Profilini hazırla";

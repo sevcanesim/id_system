@@ -44,6 +44,8 @@ export default function CardsPanel({
   initials,
 }: Props) {
   const [search, setSearch] = useState("");
+  const [assigningCard, setAssigningCard] = useState<PhysicalCard | null>(null);
+  const [selectedMemberId, setSelectedMemberId] = useState<string>("");
   const inventory = physicalInventoryCounts(physicalCards);
   const unassignedCards = physicalCards.filter((card) => !card.ownerUserId);
   const inventoryBreakdown = [
@@ -64,6 +66,15 @@ export default function CardsPanel({
     const physicalState = cardState?.physicalCardState ?? getPhysicalCardState(assignedCards);
     return { cardState, assignedCards, currentCards, physicalState };
   }
+
+  const eligibleMembers = useMemo(
+    () =>
+      roster.filter((member) => {
+        const { physicalState } = cardTone(member);
+        return physicalState === "UNASSIGNED";
+      }),
+    [roster, memberCardStatuses, physicalCards],
+  );
 
   function attentionFor(member: MemberActionTarget): CardAttention {
     const { cardState, physicalState } = cardTone(member);
@@ -263,6 +274,18 @@ export default function CardsPanel({
                       <Button type="button" variant="secondary" disabled={cardBusy === card.id} onClick={() => void toggleCardStatus(card.id, "DISABLED")}>Pasife Al</Button>
                     ) : card.status === "DISABLED" ? (
                       <Button type="button" variant="primary" disabled={cardBusy === card.id} onClick={() => void toggleCardStatus(card.id, "ACTIVE")}>Aktifleştir</Button>
+                    ) : !card.ownerUserId && card.status === "UNASSIGNED" ? (
+                      <Button
+                        type="button"
+                        variant="primary"
+                        disabled={cardBusy === card.id}
+                        onClick={() => {
+                          setSelectedMemberId("");
+                          setAssigningCard(card);
+                        }}
+                      >
+                        Çalışana Ata
+                      </Button>
                     ) : null}
                   </div>
                 </article>
@@ -273,6 +296,92 @@ export default function CardsPanel({
           )}
         </section>
       </section>
+
+      {assigningCard && (
+        <div
+          className="v25-dialog-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="card-assign-dialog-title"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setAssigningCard(null);
+          }}
+        >
+          <div className="v25-dialog-card">
+            <header className="v25-dialog-header">
+              <small>FİZİKSEL KART ATAMASI</small>
+              <h3 id="card-assign-dialog-title">Fiziksel Kart Ataması</h3>
+              <p>Seçili kart: <strong>{assigningCard.cardCodeMasked}</strong></p>
+            </header>
+            {eligibleMembers.length > 0 ? (
+              <div className="v25-dialog-body">
+                <label className="ds-field" htmlFor="target-employee-select">
+                  <span className="ds-label">Çalışan</span>
+                  <select
+                    id="target-employee-select"
+                    className="ds-input"
+                    value={selectedMemberId}
+                    onChange={(e) => setSelectedMemberId(e.target.value)}
+                  >
+                    <option value="">Çalışan seçin</option>
+                    {eligibleMembers.map((member) => (
+                      <option key={member.id} value={member.id}>
+                        {member.full_name || member.email} ({member.department || "Departman yok"})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <p className="v25-dialog-help">
+                  Çalışan seçildikten sonra kart yönetimi ekranından atama işlemi tamamlanır.
+                </p>
+                <div className="v25-dialog-actions">
+                  <Button type="button" variant="secondary" onClick={() => setAssigningCard(null)}>
+                    Vazgeç
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="primary"
+                    disabled={!selectedMemberId}
+                    onClick={() => {
+                      const chosen = eligibleMembers.find((m) => m.id === selectedMemberId);
+                      if (chosen) {
+                        setAssigningCard(null);
+                        openMemberDrawer(chosen, "card");
+                      }
+                    }}
+                  >
+                    Kartı Yönet
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="v25-dialog-body">
+                <EmptyState
+                  compact
+                  icon="contact"
+                  title="Atanabilir çalışan bulunamadı"
+                  description="Önce uygun bir çalışan oluşturun veya mevcut kart atamalarını kontrol edin."
+                />
+                <div className="v25-dialog-actions">
+                  <Button type="button" variant="secondary" onClick={() => setAssigningCard(null)}>
+                    Vazgeç
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="primary"
+                    onClick={() => {
+                      setAssigningCard(null);
+                      openEmployees();
+                    }}
+                  >
+                    Çalışanları Gör
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

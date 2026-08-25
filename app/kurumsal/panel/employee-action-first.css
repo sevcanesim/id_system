@@ -865,3 +865,89 @@
     width: 100%;
   }
 }
+
+.v25-immutability-note {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-tertiary, #8a8377);
+  font-weight: 500;
+}
+
+/* Card Assignment Employee Chooser Dialog */
+.v25-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(17, 13, 9, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.v25-dialog-card {
+  width: min(440px, 100%);
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(36, 29, 23, 0.15);
+  background: #ffffff;
+  box-shadow: 0 20px 40px rgba(50, 43, 33, 0.18);
+}
+
+.v25-dialog-header small {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--gold-hi, #a37b2c);
+}
+
+.v25-dialog-header h3 {
+  margin: 4px 0 6px;
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: #17120c;
+}
+
+.v25-dialog-header p {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--text-secondary, #5c554a);
+}
+
+.v25-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.v25-dialog-help {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-tertiary, #8a8377);
+}
+
+.v25-dialog-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+@media (max-width: 480px) {
+  .v25-dialog-card {
+    padding: 18px;
+  }
+  .v25-dialog-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  .v25-dialog-actions button {
+    min-height: 44px;
+    width: 100%;
+  }
+}

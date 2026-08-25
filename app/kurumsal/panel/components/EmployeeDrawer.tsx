@@ -428,7 +428,10 @@ export default function EmployeeDrawer({
                   <div>
                     <small>FİZİKSEL KARTLAR</small>
                     <h3>{assignedCards.length ? `${assignedCards.length} kart bağlı` : "Fiziksel kart atanmadı"}</h3>
-                    <p>Kayıp kart çalışan tarafından bildirilir; yönetici aktif kartı devre dışı bırakabilir veya yeniden etkinleştirebilir.</p>
+                    <p>
+                      Kayıp kart çalışan tarafından bildirilir; yönetici aktif kartı devre dışı bırakabilir veya yeniden etkinleştirebilir.
+                      <span className="v25-immutability-note">Fiziksel kart aktive edildikten sonra başka bir çalışana devredilemez.</span>
+                    </p>
                   </div>
                   <Icon name="nfc" />
                 </div>
@@ -469,7 +472,7 @@ export default function EmployeeDrawer({
                         ) : (
                           <small>
                             {card.replacedByCardId
-                              ? "Eski kart tekrar etkinleştirilemez"
+                              ? "Bu kart değiştirildi. Eski kart tekrar etkinleştirilemez; çalışanın dijital profili değişmeden devam eder."
                               : card.status === "LOST"
                                 ? "Yeni kart aktive edildiğinde replacement olarak eşleştirilebilir"
                                 : "Yönetim aksiyonu yok"}

@@ -1026,6 +1026,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     subscription?.seat_limit == null
       ? null
       : Math.max(0, subscription.seat_limit - usedSeats);
+  const suspendedSeats = Math.max(0, usedSeats - activeMembers - invitedMembers);
   const canInvite = availableSeats == null || availableSeats > 0;
   const cardStatusCounts = useMemo(
     () =>
@@ -1494,12 +1495,19 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                     className={`business-seat-packs${availableSeats === 0 ? " is-urgent" : ""}`}
                     aria-labelledby="seat-pack-title"
                   >
-                    <div className="license-reference-hero" aria-label="Yenomi Business kapasite avantajları">
+                    <div className="license-reference-hero" aria-label="Yenomi Business kapasite durumu">
                       <div>
-                        <span>{availableSeats === 0 ? "KAPASİTE DOLDU" : "KAPASİTEYİ BÜYÜT"}</span>
-                        <h2 id="seat-pack-title">Ekibiniz büyüdükçe Yenomi sizinle büyür.</h2>
-                        <p>Her paket kişiye özel NFC + QR kartı, merkezi yönetimi ve mevcut abonelik döneminiz boyunca ek çalışan kapasitesini birlikte sunar.</p>
-                        {availableSeats === 0 && <b className="license-reference-alert"><Icon name="plus" /> Yeni çalışan için ek lisans gerekli</b>}
+                        <span>{availableSeats === 0 ? "KAPASİTE DOLDU" : "KAPASİTE YÖNETİMİ"}</span>
+                        <h2 id="seat-pack-title">
+                          {availableSeats === 0
+                            ? "Lisans kapasitesi doldu"
+                            : "Ekibiniz büyüdükçe Yenomi sizinle büyür."}
+                        </h2>
+                        <p>
+                          {availableSeats === 0
+                            ? "Yeni çalışan eklemek için ek lisans satın alın veya kullanılmayan bir lisansı boşaltın."
+                            : "Her paket kişiye özel NFC + QR kartı, merkezi yönetimi ve mevcut abonelik döneminiz boyunca ek çalışan kapasitesini birlikte sunar."}
+                        </p>
                       </div>
                       <div className="license-reference-art" aria-hidden="true">
                         <div className="license-reference-product-glow" />
@@ -1507,6 +1515,52 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                         <span><i /> NFC + QR hazır</span>
                       </div>
                     </div>
+
+                    <div className="license-metrics-grid" aria-label="Lisans kullanım özeti">
+                      <article className="license-metric-card">
+                        <small>Aktif Çalışan</small>
+                        <strong>{activeMembers}</strong>
+                        <span>Erişimi açık</span>
+                      </article>
+                      <article className="license-metric-card">
+                        <small>Bekleyen Davet</small>
+                        <strong>{invitedMembers}</strong>
+                        <span>Yanıt bekliyor</span>
+                      </article>
+                      <article className="license-metric-card">
+                        <small>Pasif Çalışan</small>
+                        <strong>{suspendedSeats}</strong>
+                        <span>Lisans tüketiyor</span>
+                      </article>
+                      <article className="license-metric-card">
+                        <small>Boş Lisans</small>
+                        <strong>{availableSeats == null ? "—" : availableSeats}</strong>
+                        <span>Kullanıma hazır</span>
+                      </article>
+                    </div>
+
+                    {suspendedSeats > 0 && (
+                      <div className="license-suspended-notice" role="note">
+                        <div className="license-suspended-content">
+                          <Icon name="users" />
+                          <div>
+                            <strong>Pasif çalışanlar lisans kullanıyor</strong>
+                            <p>Pasif çalışanlar lisans tüketmeye devam eder. Lisansı boşaltmak için çalışanı şirketten ayırın.</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="license-suspended-cta"
+                          onClick={() => {
+                            setStatusFilter("SUSPENDED");
+                            openTab("employees");
+                          }}
+                        >
+                          Pasif Çalışanları Gör
+                        </button>
+                      </div>
+                    )}
+
                     <p className="seat-pack-guide">
                       1–3 lisans küçük eklemeler, 5 lisans büyüyen ekipler, 10 lisans daha geniş dağıtım içindir.
                       5’li paket en çok tercih edilen seçimdir. Şu anda {usedSeats} lisans kullanılıyor.

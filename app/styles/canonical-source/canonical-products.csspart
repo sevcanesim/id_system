@@ -1730,17 +1730,83 @@ body:has(.how-it-works-page) {
 
 .how-steps-board {
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(280px, .82fr);
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
   align-items: stretch;
-  gap: 18px;
+  gap: 20px;
 }/* @canonical-block:004353 */
+.how-step-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.how-step-nav__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid rgba(30, 25, 19, .10);
+  border-radius: 20px;
+  background: #FFFFFF;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+.how-step-nav__item:hover {
+  border-color: rgba(163, 123, 44, .30);
+  background: #FDFBF7;
+}
+.how-step-nav__item:focus-visible {
+  outline: 2px solid #A37B2C;
+  outline-offset: 2px;
+}
+.how-step-nav__number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: #F2EFE9;
+  color: #6B655D;
+  font: 700 13px/1 var(--font-ui);
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+.how-step-nav__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.how-step-nav__text strong {
+  font: 650 15px/1.3 var(--font-ui);
+  color: #1A1918;
+}
+.how-step-nav__text span {
+  font: 400 13px/1.4 var(--font-ui);
+  color: #6B655D;
+}
+#how-step-01:checked ~ .how-step-nav label[for="how-step-01"],
+#how-step-02:checked ~ .how-step-nav label[for="how-step-02"],
+#how-step-03:checked ~ .how-step-nav label[for="how-step-03"],
+#how-step-04:checked ~ .how-step-nav label[for="how-step-04"] {
+  border-color: rgba(163, 123, 44, .45);
+  background: #FFFCF6;
+  box-shadow: 0 4px 14px rgba(163, 123, 44, .10);
+}
+#how-step-01:checked ~ .how-step-nav label[for="how-step-01"] .how-step-nav__number,
+#how-step-02:checked ~ .how-step-nav label[for="how-step-02"] .how-step-nav__number,
+#how-step-03:checked ~ .how-step-nav label[for="how-step-03"] .how-step-nav__number,
+#how-step-04:checked ~ .how-step-nav label[for="how-step-04"] .how-step-nav__number {
+  background: #A37B2C;
+  color: #FFFFFF;
+}
+
 .how-steps-board__stage {
   position: relative;
   min-width: 0;
+  min-height: 480px;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  padding: 22px 24px 24px;
+  padding: 24px 28px;
   border: 1px solid rgba(30, 25, 19, .10);
   border-radius: 28px;
   background: #fff;
@@ -1758,37 +1824,21 @@ body:has(.how-it-works-page) {
   background: transparent;
   box-shadow: none;
 }/* @canonical-block:004355 */
-.how-scene-tabs {
-  display: flex;
-  gap: 8px;
-  margin: 0 0 18px;
-}/* @canonical-block:004356 */
-.how-scene-tabs label {
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 14px;
-  border: 1px solid rgba(30, 25, 19, .12);
-  border-radius: 999px;
-  background: #fbfaf7;
-  color: #6B655D;
-  cursor: pointer;
-  font: 650 13px/1 var(--font-ui);
-}/* @canonical-block:004357 */
-#how-scene-select:checked ~ .how-scene-tabs label[for="how-scene-select"],
-#how-scene-live:checked ~ .how-scene-tabs label[for="how-scene-live"] {
-  border-color: rgba(163, 123, 44, .42);
-  background: #FFFCF6;
-  color: #1A1918;
-}/* @canonical-block:004358 */
 .how-scene {
   display: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 180ms ease, transform 180ms ease;
 }/* @canonical-block:004359 */
-#how-scene-select:checked ~ .how-scene--select,
-#how-scene-live:checked ~ .how-scene--live {
+#how-step-01:checked ~ .how-steps-board__stage .how-scene--01,
+#how-step-02:checked ~ .how-steps-board__stage .how-scene--02,
+#how-step-03:checked ~ .how-steps-board__stage .how-scene--03,
+#how-step-04:checked ~ .how-steps-board__stage .how-scene--04 {
   display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
-  min-height: 0;
+  opacity: 1;
+  transform: translateY(0);
 }/* @canonical-block:004360 */
 .how-steps-board .how-step-feature h3 {
   max-width: 22ch;
@@ -1821,39 +1871,13 @@ body:has(.how-it-works-page) {
   background: #FFFCF6;
   color: #8b6835;
 }/* @canonical-block:004365 */
-.how-it-works-page .how-steps-board__aside.how-step-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr 1fr;
-  align-items: stretch;
-  gap: 18px;
-  min-width: 0;
-  height: 100%;
-}/* @canonical-block:004366 */
-.how-steps-board__aside .how-step-card {
-  height: 100%;
-  min-height: 0;
-}/* @canonical-block:004367 */
-.how-steps-board__aside .how-step-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}/* @canonical-block:004368 */
-.how-steps-board__aside .how-step-card > p {
-  min-height: 4.4em;
-}/* @canonical-block:004369 */
-.how-steps-board__aside .how-step-visual,
-.how-steps-board__aside .how-dashboard {
-  margin-top: auto;
-}/* @canonical-block:004370 */
 .how-it-works-page .how-dashboard {
   flex: 1 1 auto;
-  width: calc(100% + 44px);
-  min-height: 168px;
+  width: 100%;
+  min-height: 200px;
   height: auto;
-  margin: 16px -22px 0;
-  border-radius: 12px;
+  margin: 16px 0 0;
+  border-radius: 16px;
   box-shadow: 0 16px 32px rgba(0, 0, 0, .18);
 }/* @canonical-block:004371 */
 .how-it-works-page .how-benefits-grid h3 {
@@ -1863,26 +1887,46 @@ body:has(.how-it-works-page) {
   text-align: center;
 }/* @canonical-block:004373 */
 
-@media (max-width: 1100px) {
+@media (prefers-reduced-motion: reduce) {
+  .how-scene {
+    transition: none;
+  }
+}
+
+@media (max-width: 1024px) {
   .how-steps-board {
     grid-template-columns: 1fr;
   }
-  .how-it-works-page .how-steps-board__aside.how-step-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: none;
-    height: auto;
+  .how-step-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .how-step-nav__item {
+    flex: 1 0 200px;
+    padding: 12px 14px;
+  }
+  .how-steps-board__stage {
+    min-height: 440px;
+    padding: 22px 20px;
   }
 }/* @canonical-block:004374 */
 
 @media (max-width: 760px) {
   .how-steps-board__stage {
     padding: 18px 16px 16px;
-  }
-  .how-it-works-page .how-steps-board__aside.how-step-grid {
-    grid-template-columns: 1fr;
+    min-height: 380px;
   }
   .how-steps-board .how-live-sync__stage {
     grid-template-columns: 1fr;
+  }
+  .how-step-nav__item {
+    flex: 0 0 160px;
+    padding: 10px 12px;
+  }
+  .how-step-nav__text span {
+    display: none;
   }
 }/* @canonical-block:004375 */
 

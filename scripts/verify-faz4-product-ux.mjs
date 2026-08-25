@@ -8,7 +8,7 @@ function check(condition, message) {
 }
 
 const home = read("app/page.tsx");
-const how = read("app/nasil-calisir/page.tsx");
+const how = read("app/nasil-calisir/page.tsx") + (fs.existsSync("app/nasil-calisir/HowItWorksBoard.tsx") ? read("app/nasil-calisir/HowItWorksBoard.tsx") : "");
 const corporate = read("app/kurumsal/page.tsx");
 const panel = read("app/kurumsal/panel/CorporatePanelClient.tsx") + read("app/kurumsal/panel/components/OverviewPanel.tsx");
 const product = read("app/urunler/nfc-kart/page.tsx");

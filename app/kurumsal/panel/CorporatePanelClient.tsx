@@ -1503,12 +1503,12 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                         <h2 id="seat-pack-title">
                           {availableSeats === 0
                             ? "Lisans kapasitesi doldu"
-                            : "Ekibiniz büyüdükçe Yenomi sizinle büyür."}
+                            : "Lisans kapasitesi ekleyin"}
                         </h2>
                         <p>
                           {availableSeats === 0
                             ? "Yeni çalışan eklemek için ek lisans satın alın veya kullanılmayan bir lisansı boşaltın."
-                            : "Her paket kişiye özel NFC + QR kartı, merkezi yönetimi ve mevcut abonelik döneminiz boyunca ek çalışan kapasitesini birlikte sunar."}
+                            : "Yeni çalışan eklemek için ek lisans satın alın. Her lisansa 1 adet fiziksel NFC kart dahildir."}
                         </p>
                       </div>
                       <div className="license-reference-art" aria-hidden="true">
@@ -1563,30 +1563,36 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                       </div>
                     )}
 
-                    <p className="seat-pack-guide">
-                      1–3 lisans küçük eklemeler, 5 lisans büyüyen ekipler, 10 lisans daha geniş dağıtım içindir.
-                      5’li paket en çok tercih edilen seçimdir. Şu anda {usedSeats} lisans kullanılıyor.
-                    </p>
+                    <div className="seat-pack-section-header">
+                      <h3>KURUMSAL LİSANS PAKETLERİ</h3>
+                      <p className="seat-pack-guide">
+                        İhtiyacınıza göre 1, 5 veya 10 kişilik ek kapasite seçin. Her lisansa bir fiziksel NFC kart dahildir.
+                      </p>
+                    </div>
                     <div id="seat-pack-grid" className="business-seat-pack-grid">
                       {seatPacks.map((pack) => (
                         <article
                           key={pack.sku}
                           className={pack.seats === 5 ? "recommended" : ""}
                         >
-                          {pack.seats === 5 && <span className="seat-pack-badge">En çok tercih edilen</span>}
+                          {pack.seats === 5 && <span className="seat-pack-badge">EN ÇOK TERCİH EDİLEN</span>}
                           <div className="seat-pack-count">
                             <strong>+{pack.seats}</strong>
                             <span>kullanıcı</span>
                           </div>
                           <h3>
-                            {pack.seats} lisans + {pack.seats} kart
+                            {pack.seats} Lisans + {pack.seats} Kart
                           </h3>
                           <p className="seat-pack-fit">
-                            {pack.seats <= 1 ? "Tek ekleme" : pack.seats <= 3 ? "Küçük ekip" : pack.seats === 5 ? "Büyüyen ekip" : "Geniş dağıtım"}
+                            {pack.seats === 1
+                              ? "Küçük ekipler için ideal"
+                              : pack.seats === 5
+                              ? "Büyüyen ekipler için en popüler seçenek"
+                              : "Daha büyük ekipler için avantajlı"}
                           </p>
                           <ul>
                             <li>
-                              <Icon name="check" /> Mevcut abonelik dönemi sonuna kadar
+                              <Icon name="check" /> Mevcut abonelik dönemi sonuna kadar geçerli
                             </li>
                             <li>
                               <Icon name="check" /> NFC + kişisel QR

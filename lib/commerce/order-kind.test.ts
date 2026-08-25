@@ -35,7 +35,10 @@ describe("commerceOrderCorporateReady", () => {
 describe("commerceOrderIsSeatPack", () => {
   it("detects a seat pack from SKU or configuration", () => {
     expect(isSeatPackSku("YENOMI-BUSINESS-SEATS-1")).toBe(true);
+    expect(isSeatPackSku("YENOMI-BUSINESS-SEATS-2")).toBe(true);
+    expect(isSeatPackSku("YENOMI-BUSINESS-SEATS-3")).toBe(true);
     expect(isSeatPackSku("YENOMI-BUSINESS-SEATS-5")).toBe(true);
+    expect(isSeatPackSku("YENOMI-BUSINESS-SEATS-10")).toBe(true);
     expect(isSeatPackSku("YENOMI-NFC-CARD-ANNUAL")).toBe(false);
 
     expect(commerceOrderIsSeatPack([{ configuration: { sku: "YENOMI-BUSINESS-SEATS-1" } }])).toBe(true);

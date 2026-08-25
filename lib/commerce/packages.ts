@@ -137,11 +137,9 @@ export const CAMPAIGN_MAIL_STAGE = "COMING_SOON" as const;
 
 /** Mid-cycle seat top-ups. Priced so buying the next official pack stays cheaper. */
 export const BUSINESS_SEAT_PACKS = [
-  { sku: "YENOMI-BUSINESS-SEATS-1", seats: 1, priceKurus: 159_000, name: "Ek 1 Kullanıcı + Kart" },
-  { sku: "YENOMI-BUSINESS-SEATS-2", seats: 2, priceKurus: 279_000, name: "Ek 2 Kullanıcı + Kart" },
-  { sku: "YENOMI-BUSINESS-SEATS-3", seats: 3, priceKurus: 409_000, name: "Ek 3 Kullanıcı + Kart" },
-  { sku: "YENOMI-BUSINESS-SEATS-5", seats: 5, priceKurus: 549_000, name: "Ek 5 Kullanıcı + Kart" },
-  { sku: "YENOMI-BUSINESS-SEATS-10", seats: 10, priceKurus: 1_049_000, name: "Ek 10 Kullanıcı + Kart" },
+  { sku: "YENOMI-BUSINESS-SEATS-1", seats: 1, priceKurus: 229_000, name: "Ek 1 Kullanıcı + Kart" },
+  { sku: "YENOMI-BUSINESS-SEATS-5", seats: 5, priceKurus: 949_000, name: "Ek 5 Kullanıcı + Kart" },
+  { sku: "YENOMI-BUSINESS-SEATS-10", seats: 10, priceKurus: 1_699_000, name: "Ek 10 Kullanıcı + Kart" },
 ] as const;
 
 export function isSeatPackSku(sku: string | null | undefined): boolean {

@@ -266,6 +266,12 @@ describe("credit packs", () => {
 });
 
 describe("seat top-ups vs official packs", () => {
+  it("defines active sellable corporate seat packs as exactly 1, 5, 10 ladder", () => {
+    expect(BUSINESS_SEAT_PACKS.map((pack) => pack.seats)).toEqual([1, 5, 10]);
+    expect(BUSINESS_SEAT_PACKS.some((pack: { seats: number }) => pack.seats === 2)).toBe(false);
+    expect(BUSINESS_SEAT_PACKS.some((pack: { seats: number }) => pack.seats === 3)).toBe(false);
+  });
+
   it("keeps a 5-seat top-up from undercutting 5 → 10 pack upgrade", () => {
     const delta = upgradeDeltaKurus(5, 10);
     const fivePack = BUSINESS_SEAT_PACKS.find((row) => row.seats === 5)!;

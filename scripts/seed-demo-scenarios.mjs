@@ -177,15 +177,14 @@ await supabase.from("business_plans").update({ is_active: false }).in("code", ["
 await supabase.from("business_plans").update({ annual_price_kurus: 1290000 }).eq("code", "STARTER").throwOnError();
 await supabase.from("business_plans").update({ annual_price_kurus: 2990000 }).eq("code", "GROWTH").throwOnError();
 await supabase.from("business_plans").update({ annual_price_kurus: 5490000 }).eq("code", "BUSINESS").throwOnError();
+await supabase.from("product_variants").update({ is_active: false }).in("sku", ["YENOMI-BUSINESS-SEATS-2", "YENOMI-BUSINESS-SEATS-3"]).throwOnError();
 const seatPacks = [
-  { sku: "YENOMI-BUSINESS-SEATS-1", price: 159000 },
-  { sku: "YENOMI-BUSINESS-SEATS-2", price: 279000 },
-  { sku: "YENOMI-BUSINESS-SEATS-3", price: 409000 },
-  { sku: "YENOMI-BUSINESS-SEATS-5", price: 549000 },
-  { sku: "YENOMI-BUSINESS-SEATS-10", price: 1049000 },
+  { sku: "YENOMI-BUSINESS-SEATS-1", price: 229000 },
+  { sku: "YENOMI-BUSINESS-SEATS-5", price: 949000 },
+  { sku: "YENOMI-BUSINESS-SEATS-10", price: 1699000 },
 ];
 for (const pack of seatPacks) {
-  await supabase.from("product_variants").update({ price_kurus: pack.price }).eq("sku", pack.sku).throwOnError();
+  await supabase.from("product_variants").update({ price_kurus: pack.price, is_active: true }).eq("sku", pack.sku).throwOnError();
 }
 
 const { data: product, error: productError } = await supabase.from("products").select("id,slug,name,kind").eq("slug", "nfc-business-card").single();

@@ -106,6 +106,63 @@ export default function HomePage() {
           <div className="home-mockup__actions"><Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">NFC Kartımı Al <span aria-hidden>→</span></Link></div>
         </section>
       </main>
+
+      <style>{`
+        .home-sales-mobile-cta { display: none; }
+        @media (max-width: 640px) {
+          .home-mockup { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+          .home-sales-mobile-cta {
+            position: fixed;
+            z-index: 70;
+            left: 12px;
+            right: 12px;
+            bottom: calc(10px + env(safe-area-inset-bottom));
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            align-items: center;
+            gap: 12px;
+            padding: 10px 10px 10px 14px;
+            border: 1px solid var(--border-subdued);
+            border-radius: var(--radius-md);
+            background: var(--surface-card);
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+          }
+          .home-sales-mobile-cta__offer {
+            min-width: 0;
+            display: grid;
+            gap: 2px;
+          }
+          .home-sales-mobile-cta__offer strong {
+            color: var(--text-primary);
+            font-size: var(--type-body);
+            line-height: 1.1;
+            letter-spacing: -.02em;
+          }
+          .home-sales-mobile-cta__offer span {
+            color: var(--text-secondary);
+            font-size: var(--type-xs);
+          }
+          .home-sales-mobile-cta .home-mockup__button {
+            min-height: 48px;
+            width: 100%;
+            padding-inline: 14px;
+            white-space: nowrap;
+          }
+          .home-sales-mobile-cta .home-mockup__button:focus-visible {
+            outline: 2px solid var(--brand-gold-deep);
+            outline-offset: 3px;
+          }
+        }
+      `}</style>
+      <aside className="home-sales-mobile-cta" aria-label="NFC kart hızlı satın alma">
+        <div className="home-sales-mobile-cta__offer">
+          <strong>{initialPrice}</strong>
+          <span>1 yıl dahil</span>
+        </div>
+        <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">NFC Kartımı Al <span aria-hidden>→</span></Link>
+      </aside>
     </div>
   );
 }

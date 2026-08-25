@@ -16,6 +16,8 @@ type OrderStatusPayload = {
   activationRequired?: boolean;
   corporate?: boolean;
   corporateReady?: boolean;
+  seatPack?: boolean;
+  seatPackFulfillment?: "FULFILLED" | "FAILED" | "PENDING" | null;
   reviewRequired?: boolean;
 };
 
@@ -37,6 +39,8 @@ export default function OrderResultGate() {
   const [activationRequired, setActivationRequired] = useState(false);
   const [corporate, setCorporate] = useState(false);
   const [corporateReady, setCorporateReady] = useState(false);
+  const [seatPack, setSeatPack] = useState(false);
+  const [seatPackFulfillment, setSeatPackFulfillment] = useState<"FULFILLED" | "FAILED" | "PENDING" | null>(null);
   const [reviewRequired, setReviewRequired] = useState(searchParams.get("review") === "1");
   const tracked = useRef(false);
 
@@ -78,6 +82,8 @@ export default function OrderResultGate() {
         setActivationRequired(Boolean(data?.activationRequired));
         setCorporate(Boolean(data?.corporate));
         setCorporateReady(Boolean(data?.corporateReady));
+        setSeatPack(Boolean(data?.seatPack));
+        setSeatPackFulfillment(data?.seatPackFulfillment ?? null);
         setReviewRequired(Boolean(data?.reviewRequired) || searchParams.get("review") === "1");
       } catch {
         if (active) setState("invalid");
@@ -133,6 +139,8 @@ export default function OrderResultGate() {
     const data = await (statusResponse.ok ? statusResponse.json() : {}) as OrderStatusPayload;
     setCorporate(Boolean(data.corporate));
     setCorporateReady(Boolean(data.corporateReady));
+    setSeatPack(Boolean(data.seatPack));
+    setSeatPackFulfillment(data.seatPackFulfillment ?? null);
     setReviewRequired(Boolean(data.reviewRequired));
     if (data.corporate && !data.corporateReady) {
       throw new Error("Kurulum hâlâ tamamlanmadı. Ödeme tekrar alınmaz; destek ile iletişime geçebilirsin.");
@@ -142,30 +150,62 @@ export default function OrderResultGate() {
     }
   }
 
+  const step2Title = activationRequired
+    ? "Hesabını bağla"
+    : setupIncomplete
+      ? "Kurulumu tamamla"
+      : seatPack
+        ? "Paneli aç ve çalışan ekle"
+        : corporate
+          ? "Paneli aç"
+          : "Profilini hazırla";
+
+  const step2Subtitle = activationRequired
+    ? "Maildeki bağlantı ile hesap oluştur veya giriş yap."
+    : setupIncomplete
+      ? "Şirket kaydı oluşunca panel açılır."
+      : seatPack
+        ? (seatPackFulfillment === "FULFILLED"
+          ? "Yeni çalışanlarınızı ekleyin veya kart taleplerini başlatın."
+          : "Ek lisans işlendikten sonra çalışan ekleyebilirsiniz.")
+        : corporate
+          ? "Çalışan lisanslarını ve kart üretimini yönet."
+          : "İletişim bilgilerini ve bağlantılarını ekle.";
+
   return (
     <section className="order-success p5-order-success">
       <span className="p5-result-icon"><Icon name="check" /></span>
       <span className="section-kicker">SİPARİŞ ALINDI</span>
-      <h1>Ödemen alındı. Sırada profilin var.</h1>
+      <h1>{seatPack
+        ? (seatPackFulfillment === "FULFILLED"
+          ? "Ek lisans kapasiteniz tanımlandı."
+          : "Ödemeniz başarıyla alındı.")
+        : "Ödemen alındı. Sırada profilin var."}</h1>
       <p>{activationRequired
-        ? (corporate
+        ? (corporate || seatPack
           ? "Siparişin henüz bir hesaba bağlı değil. E-postandaki bağlantı ile hesabını oluştur; şirket panelin orada açılır."
           : "Siparişin henüz bir hesaba bağlı değil. E-postandaki bağlantı ile hesabını oluştur; dijital kullanım hakkın orada açılır.")
         : setupIncomplete
           ? "Ödemen alındı. Şirket paneli, kurulum bitmeden açılmaz. Aşağıdan kurulumu yeniden dene."
-          : (corporate
-          ? "Siparişin hesabına bağlandı. Şirket panelinden lisansları, çalışanları ve kart üretimini yönetebilirsin."
-          : "Siparişin hesabına bağlandı. Kartın hazırlanırken dijital kartvizitini tamamlayabilir ve profilini kullanıma hazır hale getirebilirsin.")}</p>
+          : seatPack
+            ? (seatPackFulfillment === "FULFILLED"
+              ? "Ek lisans kapasiteniz hesabınıza tanımlandı. Şimdi yeni çalışan ekleyebilirsiniz."
+              : "Ek lisans kapasiteniz işleniyor. Kurumsal panelden güncel kapasitenizi kontrol edebilirsiniz.")
+            : (corporate
+              ? "Siparişin hesabına bağlandı. Şirket panelinden lisansları, çalışanları ve kart üretimini yönetebilirsin."
+              : "Siparişin hesabına bağlandı. Kartın hazırlanırken dijital kartvizitini tamamlayabilir ve profilini kullanıma hazır hale getirebilirsin.")}</p>
       <FulfillmentReviewNotice reviewRequired={reviewRequired} setupIncomplete={setupIncomplete} />
       <div className="p5-next-steps" aria-label="Sipariş sonrası adımlar">
         <div className="done"><b>1</b><span><strong>Ödeme tamamlandı</strong><small>{activationRequired ? "Ödemen alındı; sipariş e-postana kaydedildi." : "Siparişin hesabına kaydedildi."}</small></span></div>
-        <div><b>2</b><span><strong>{activationRequired ? "Hesabını bağla" : (setupIncomplete ? "Kurulumu tamamla" : (corporate ? "Paneli aç" : "Profilini hazırla"))}</strong><small>{activationRequired ? "Maildeki bağlantı ile hesap oluştur veya giriş yap." : (setupIncomplete ? "Şirket kaydı oluşunca panel açılır." : (corporate ? "Çalışan lisanslarını ve kart üretimini yönet." : "İletişim bilgilerini ve bağlantılarını ekle."))}</small></span></div>
-        <div><b>3</b><span><strong>{corporate ? "Kartlar hazırlanır" : "Kart hazırlanır"}</strong><small>Fiziksel kart üretim ve kargo sürecine alınır.</small></span></div>
+        <div><b>2</b><span><strong>{step2Title}</strong><small>{step2Subtitle}</small></span></div>
+        <div><b>3</b><span><strong>{corporate || seatPack ? "Kartlar hazırlanır" : "Kart hazırlanır"}</strong><small>Fiziksel kart üretim ve kargo sürecine alınır.</small></span></div>
       </div>
       <ActivationAction
         activationRequired={activationRequired}
         corporate={corporate}
         corporateReady={corporateReady}
+        seatPack={seatPack}
+        seatPackFulfillment={seatPackFulfillment}
         reviewRequired={reviewRequired}
         orderId={orderId}
         onSetupRetry={retryFulfillment}
@@ -176,7 +216,7 @@ export default function OrderResultGate() {
             <Link href="/aktivasyon">Hesabımı Bağla</Link>
             <Link className="secondary" href="/urunler">Ürünlere Dön</Link>
           </>
-        ) : corporate ? (
+        ) : (corporate || seatPack) ? (
           setupIncomplete ? null : <Link className="secondary" href="/siparislerim">Siparişimi Takip Et</Link>
         ) : (
           <Link className="secondary" href="/siparislerim">Siparişimi Takip Et</Link>

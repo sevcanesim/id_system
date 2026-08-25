@@ -12,6 +12,8 @@ type Props = {
   activationRequired: boolean;
   corporate?: boolean;
   corporateReady?: boolean;
+  seatPack?: boolean;
+  seatPackFulfillment?: "FULFILLED" | "FAILED" | "PENDING" | null;
   reviewRequired?: boolean;
   orderId?: string | null;
   onSetupRetry?: () => Promise<void>;
@@ -21,6 +23,8 @@ export default function ActivationAction({
   activationRequired,
   corporate = false,
   corporateReady = false,
+  seatPack = false,
+  seatPackFulfillment = null,
   reviewRequired = false,
   orderId = null,
   onSetupRetry,
@@ -35,7 +39,7 @@ export default function ActivationAction({
     writeCart([]);
     clearPendingCheckoutOrderId();
     rotateCheckoutIdempotencyKey();
-    if (activationRequired || corporate) {
+    if (activationRequired || corporate || seatPack) {
       setReady(null);
       return;
     }
@@ -53,7 +57,7 @@ export default function ActivationAction({
       const response = await fetch("/api/commerce/entitlements", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" });
       setReady(response.ok && Boolean((await response.json()).active));
     });
-  }, [activationRequired, corporate, reviewRequired]);
+  }, [activationRequired, corporate, seatPack, reviewRequired]);
 
   async function resend(event: FormEvent) {
     event.preventDefault();
@@ -81,7 +85,7 @@ export default function ActivationAction({
     setMessage("");
     try {
       await onSetupRetry();
-      if (corporate) return;
+      if (corporate || seatPack) return;
       const supabase = getSupabaseBrowserClient();
       const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
       const token = data.session?.access_token;
@@ -101,8 +105,8 @@ export default function ActivationAction({
   if (activationRequired) {
     return (
       <div className="activation-callout">
-        <h2>{corporate ? "Şirket panelini e-postadaki bağlantı ile aç" : "Hesabını e-postadaki bağlantı ile aç"}</h2>
-        <p>{corporate
+        <h2>{corporate || seatPack ? "Şirket panelini e-postadaki bağlantı ile aç" : "Hesabını e-postadaki bağlantı ile aç"}</h2>
+        <p>{corporate || seatPack
           ? "Aktivasyon bağlantısı sipariş e-postana gönderildi. Bağlantı 7 gün geçerlidir. Hesabını bağladığında şirket panelin açılır."
           : "Aktivasyon bağlantısı sipariş e-postana gönderildi. Bağlantı 7 gün geçerlidir. Mail gelmediyse aynı adresi yazarak yeniden gönderebilirsin."}</p>
         <form onSubmit={resend}>
@@ -129,6 +133,46 @@ export default function ActivationAction({
     );
   }
 
+  if (seatPack && seatPackFulfillment === "FULFILLED" && !reviewRequired) {
+    return (
+      <div className="activation-callout">
+        <h2>Ek lisans kapasiteniz tanımlandı</h2>
+        <p>Ek lisans kapasiteniz hesabınıza tanımlandı. Şimdi yeni çalışan ekleyebilirsiniz.</p>
+        <Link href="/kurumsal/panel/calisanlar">
+          Kurumsal Panele Dön ve Çalışan Ekle
+        </Link>
+      </div>
+    );
+  }
+
+  if (seatPack && (seatPackFulfillment === "PENDING" || !seatPackFulfillment) && !reviewRequired) {
+    return (
+      <div className="activation-callout">
+        <h2>Ödemeniz başarıyla alındı</h2>
+        <p>Ek lisans kapasiteniz işleniyor. Kurumsal panelden güncel kapasitenizi kontrol edebilirsiniz.</p>
+        <Link href="/kurumsal/panel/calisanlar">
+          Kurumsal Panele Dön ve Çalışan Ekle
+        </Link>
+      </div>
+    );
+  }
+
+  if (seatPack && (seatPackFulfillment === "FAILED" || reviewRequired)) {
+    return (
+      <div className="activation-callout">
+        <h2>Ek lisans tanımlaması kontrol ediliyor</h2>
+        <p>Ödemen alındı; yeni bir çekim yapılmaz. Ek lisansınız hesabınıza aktarılırken bir kontrol gerekiyor.</p>
+        {message ? <div className="checkout-message">{message}</div> : null}
+        {orderId ? (
+          <button type="button" onClick={() => void retrySetup()} disabled={retrying}>
+            {retrying ? "Kontrolü tekrar dene…" : "Tanımlamayı tekrar dene"}
+          </button>
+        ) : null}
+        <Link href="/siparislerim">Siparişimi takip et →</Link>
+      </div>
+    );
+  }
+
   if (corporate && !corporateReady) {
     return (
       <div className="activation-callout">
@@ -145,7 +189,7 @@ export default function ActivationAction({
     );
   }
 
-  if (!corporate && (reviewRequired || ready === false)) {
+  if (!corporate && !seatPack && (reviewRequired || ready === false)) {
     return (
       <div className="activation-callout">
         <h2>{reviewRequired ? "Siparişin hesabına bağlanırken kontrol gerekiyor" : "Dijital hakkın henüz hesabına yazılmadı"}</h2>
@@ -161,7 +205,23 @@ export default function ActivationAction({
     );
   }
 
-  if (!corporate && ready !== true) {
+  if (seatPack && reviewRequired) {
+    return (
+      <div className="activation-callout">
+        <h2>Ek lisans tanımlaması kontrol ediliyor</h2>
+        <p>Ödemen alındı; yeni bir çekim yapılmaz. Ek lisansınız hesabınıza aktarılırken bir kontrol gerekiyor.</p>
+        {message ? <div className="checkout-message">{message}</div> : null}
+        {orderId ? (
+          <button type="button" onClick={() => void retrySetup()} disabled={retrying}>
+            {retrying ? "Kontrolü tekrar dene…" : "Tanımlamayı tekrar dene"}
+          </button>
+        ) : null}
+        <Link href="/siparislerim">Siparişimi takip et →</Link>
+      </div>
+    );
+  }
+
+  if (!corporate && !seatPack && ready !== true) {
     return (
       <div className="activation-callout">
         <h2>Hizmetin hesabına yazılıyor</h2>

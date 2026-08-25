@@ -231,7 +231,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     if (!auth) return;
     const response = await fetchWithPanelTimeout(
       `/api/organizations/members?organizationId=${id}`,
-      { headers: { authorization: `Bearer ${auth}` } },
+      { headers: { authorization: `Bearer ${auth}` }, cache: "no-store" },
     );
     const data = await response.json();
     if (response.ok) {
@@ -527,6 +527,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       }
       const response = await fetchWithPanelTimeout("/api/organizations/mine?management=true", {
         headers: { authorization: `Bearer ${access}` },
+        cache: "no-store",
       });
       const data = await response.json();
       if (!response.ok) {
@@ -586,6 +587,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
         }
         const response = await fetchWithPanelTimeout("/api/organizations/mine?management=true", {
           headers: { authorization: `Bearer ${access}` },
+          cache: "no-store",
         });
         const data = await response.json();
         if (!response.ok) {

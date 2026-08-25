@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     const paid = PAID_STATUSES.has(String(data.status));
     const flags = paid
       ? await loadCommerceOrderKind(admin, orderId)
-      : { corporate: false, corporateReady: false, reviewRequired: false };
+      : { corporate: false, corporateReady: false, seatPack: false, seatPackFulfillment: null, reviewRequired: false };
 
     return NextResponse.json({
       found: true,
@@ -56,6 +56,8 @@ export async function GET(request: NextRequest) {
       activationRequired: paid && !data.user_id && !data.activation_claimed_at,
       corporate: flags.corporate,
       corporateReady: Boolean(flags.corporateReady),
+      seatPack: Boolean(flags.seatPack),
+      seatPackFulfillment: flags.seatPackFulfillment ?? null,
       reviewRequired: flags.reviewRequired,
     });
   } catch (error) {

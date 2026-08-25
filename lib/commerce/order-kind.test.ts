@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { corporatePackageSku } from "./packages";
-import { commerceOrderCorporateReady, commerceOrderIsCorporate } from "./order-kind";
+import { corporatePackageSku, isSeatPackSku } from "./packages";
+import {
+  commerceOrderCorporateReady,
+  commerceOrderIsCorporate,
+  commerceOrderIsSeatPack,
+  deriveSeatPackFulfillmentState,
+} from "./order-kind";
 import { COMMERCIAL_SKUS } from "../config/commercial";
 
 describe("commerceOrderIsCorporate", () => {
@@ -24,5 +29,42 @@ describe("commerceOrderCorporateReady", () => {
 
   it("is false for individual orders", () => {
     expect(commerceOrderCorporateReady([{ configuration: { sku: COMMERCIAL_SKUS.INITIAL } }])).toBe(false);
+  });
+});
+
+describe("commerceOrderIsSeatPack", () => {
+  it("detects a seat pack from SKU or configuration", () => {
+    expect(isSeatPackSku("YENOMI-BUSINESS-SEATS-1")).toBe(true);
+    expect(isSeatPackSku("YENOMI-BUSINESS-SEATS-5")).toBe(true);
+    expect(isSeatPackSku("YENOMI-NFC-CARD-ANNUAL")).toBe(false);
+
+    expect(commerceOrderIsSeatPack([{ configuration: { sku: "YENOMI-BUSINESS-SEATS-1" } }])).toBe(true);
+    expect(commerceOrderIsSeatPack([{ configuration: { organizationId: "123e4567-e89b-12d3-a456-426614174000", seatCount: 3 } }])).toBe(true);
+  });
+
+  it("returns false for non-seat-pack orders", () => {
+    expect(commerceOrderIsSeatPack([{ configuration: { sku: COMMERCIAL_SKUS.INITIAL } }])).toBe(false);
+    expect(commerceOrderIsSeatPack([{ configuration: { sku: corporatePackageSku("CORP-10") } }])).toBe(false);
+    expect(commerceOrderIsSeatPack([])).toBe(false);
+  });
+});
+
+describe("deriveSeatPackFulfillmentState", () => {
+  it("returns FULFILLED when SEAT_PACK_FULFILLED audit log exists", () => {
+    expect(deriveSeatPackFulfillmentState(true, [{ action: "SEAT_PACK_FULFILLED" }])).toBe("FULFILLED");
+  });
+
+  it("returns FAILED when SEAT_PACK_FULFILLMENT_FAILED audit log exists", () => {
+    expect(deriveSeatPackFulfillmentState(true, [{ action: "SEAT_PACK_FULFILLMENT_FAILED" }])).toBe("FAILED");
+  });
+
+  it("returns PENDING when paid seat pack has no fulfillment audit record yet", () => {
+    expect(deriveSeatPackFulfillmentState(true, [])).toBe("PENDING");
+    expect(deriveSeatPackFulfillmentState(true, null)).toBe("PENDING");
+  });
+
+  it("returns null for non-seat-pack orders regardless of audit log", () => {
+    expect(deriveSeatPackFulfillmentState(false, [{ action: "SEAT_PACK_FULFILLED" }])).toBe(null);
+    expect(deriveSeatPackFulfillmentState(false, [])).toBe(null);
   });
 });

@@ -144,6 +144,11 @@ export const BUSINESS_SEAT_PACKS = [
   { sku: "YENOMI-BUSINESS-SEATS-10", seats: 10, priceKurus: 1_049_000, name: "Ek 10 Kullanıcı + Kart" },
 ] as const;
 
+export function isSeatPackSku(sku: string | null | undefined): boolean {
+  if (!sku) return false;
+  return BUSINESS_SEAT_PACKS.some((pack) => pack.sku === sku) || sku.startsWith("YENOMI-BUSINESS-SEATS-");
+}
+
 export const ADMIN_PROVISION_PLAN_CODES = [
   "DEMO-2",
   "DEMO-5",

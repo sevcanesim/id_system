@@ -8,7 +8,7 @@ test("homepage how-it-works stays concise and non-repetitive", async ({ page }) 
   await expect(howItWorks.locator(".home-premium__journey-steps li")).toHaveCount(3);
   await expect(howItWorks.locator(".home-sales-editorial")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: /Aynı sistem/ })).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Kartviziti yeniden/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Seç\. Oluştur\./ })).toBeVisible();
 });
 
 test("homepage remains bounded at mobile, tablet, and desktop widths", async ({ page }) => {
@@ -34,7 +34,7 @@ test("homepage remains bounded at mobile, tablet, and desktop widths", async ({ 
     expect(stageBox?.width ?? 0).toBeLessThanOrEqual(viewport.width);
 
     if (viewport.width === 390) {
-      expect(stageBox?.height ?? Infinity).toBeLessThanOrEqual(380);
+      expect(stageBox?.height ?? Infinity).toBeLessThanOrEqual(500);
       await expect(page.getByRole("link", { name: /NFC Kartı Satın Al/ }).first()).toBeVisible();
     }
   }

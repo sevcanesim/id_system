@@ -132,9 +132,9 @@ test("product catalog exposes the primary purchase above the fold and keeps thre
 
   await expect(page.getByRole("heading", { name: /Tek kart\.\s*Değişmeyen bağlantın\./ })).toBeVisible();
   await expect(page.getByText("₺1.490").first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Yenomi ID’mi Al" }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "NFC Kartı Satın Al" }).first()).toBeVisible();
 
-  const plans = page.locator(".products-premium-v2__plan-card");
+  const plans = page.locator(".products-commerce-v3__plan-card, .products-plan-card, .products-premium-v2__plan-card");
   await expect(plans).toHaveCount(3);
   await expect(page.getByRole("heading", { name: /Tek kimlik\.\s*İhtiyacına göre üç seviye\./ })).toBeVisible();
   await expect(page.getByText("Standart seçim", { exact: true })).toBeVisible();
@@ -193,7 +193,7 @@ test("how it works page renders 4-step single board, changes steps on click, and
   await expect(page.getByRole("heading", { name: "Kaybolursa Kapat ve Yönet" })).toBeVisible();
 
   // Master purchase CTA
-  await expect(page.getByRole("link", { name: "NFC Kartı Satın Al" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "NFC Kartı Satın Al" }).first()).toBeVisible();
 
   // No horizontal page overflow
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

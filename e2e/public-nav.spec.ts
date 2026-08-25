@@ -165,3 +165,37 @@ test("corporate pricing keeps three decisions, equal desktop tier geometry, and 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+test("how it works page renders 4-step single board, changes steps on click, and has no horizontal overflow", async ({ page }) => {
+  await page.goto("/nasil-calisir", { waitUntil: "load" });
+
+  await expect(page.locator("#how-title")).toBeVisible();
+  const tabs = page.getByRole("tab");
+  await expect(tabs).toHaveCount(4);
+
+  // Tab 01 active by default
+  await expect(tabs.nth(0)).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("heading", { name: "Tarzını ve Kartını Seç" })).toBeVisible();
+
+  // Click Tab 02 -> Profilini oluştur
+  await tabs.nth(1).click();
+  await expect(tabs.nth(1)).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("heading", { name: "Profilini Oluştur ve Güncelle" })).toBeVisible();
+
+  // Click Tab 03 -> Dokundur veya QR okut
+  await tabs.nth(2).click();
+  await expect(tabs.nth(2)).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("heading", { name: "Dokundur veya QR Okut" })).toBeVisible();
+
+  // Click Tab 04 -> Kaybolursa kapat
+  await tabs.nth(3).click();
+  await expect(tabs.nth(3)).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("heading", { name: "Kaybolursa Kapat ve Yönet" })).toBeVisible();
+
+  // Master purchase CTA
+  await expect(page.getByRole("link", { name: "NFC Kartı Satın Al" })).toBeVisible();
+
+  // No horizontal page overflow
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+});

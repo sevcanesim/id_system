@@ -473,7 +473,10 @@
 }
 
 .home-sales-faq-item summary:focus-visible,
-.home-sales-support a:focus-visible {
+.home-sales-support a:focus-visible,
+.home-sales-actions .home-mockup__button:focus-visible,
+.home-sales-actions .home-premium__hero-secondary:focus-visible,
+.home-premium__journey-action a:focus-visible {
   outline: 2px solid var(--brand-gold);
   outline-offset: 4px;
   border-radius: var(--radius-xs);
@@ -582,8 +585,8 @@
   }
 
   .home-sales-copy h1 {
-    font-size: clamp(42px, 12vw, 56px);
-    line-height: .98;
+    font-size: clamp(30px, 8.5vw, 48px);
+    line-height: 1.05;
     letter-spacing: -.03em;
   }
 

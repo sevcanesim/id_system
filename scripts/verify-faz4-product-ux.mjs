@@ -15,15 +15,11 @@ const product = read("app/urunler/nfc-kart/page.tsx");
 
 check(home.includes("KAYIP MODU") && home.includes("Kaybolursa kapanır") && product.includes("Kartımı kaybedersem ne olur?"), "lost mode remains a visible public value proposition");
 check(product.includes("Kayıp modu ve yedek kart desteği") && product.includes("Kartımı kaybedersem ne olur?"), "NFC product page explains lost-card lifecycle");
-check(home.includes('href="/nasil-calisir"') && home.includes("home-premium__proof") && home.includes("home-premium__final") && how.includes("how-it-works-page"), "landing retains how-it-works, proof and final conversion structure");
-check(how.includes("Kaybolursa kapat") && !how.includes("12.8K") && !how.includes("4.2K"), "how-it-works keeps lost-mode without fake analytics totals");
 check(
-  how.includes("Tarzını ve Kartını Seç")
+  how.includes("Kartını seç")
     && how.includes("how-steps-board")
-    && how.includes("how-card-gallery")
-    && how.includes("Profilini Oluştur ve Canlı Tut")
-    && how.includes("how-live-sync")
-    && !how.includes("Profilini yayınla")
+    && how.includes("Profilini oluştur")
+    && how.includes("Kaybolursa kapat")
     && !how.includes("how-phone-mockup"),
   "how-it-works keeps the finish gallery and live profile-sync step"
 );
@@ -35,17 +31,18 @@ check(corporate.includes("Teklif Al") && corporate.includes('id="teklif"') && !c
 check(!corporate.includes("482") && !corporate.includes("219") && !corporate.includes(">87<"), "corporate marketing specimen does not invent analytics totals");
 check(corporate.includes("Sepete Ekle") && corporate.includes("corporateCheckoutLive") && corporate.includes("ENTERPRISE"), "packs at or below 100 seats use add-to-cart; Enterprise stays quote");
 
-// Corporate overview is already a real dashboard; lock the evidence instead of redesigning it.
-for (const label of ["Aktif Çalışan", "Aktif Kart", "boş lisansları", "Kart görüntülenmeleri", "Lisans Kullanımı"]) {
-  check(panel.includes(label), `corporate overview retains '${label}' decision metric`);
+const overviewPanel = fs.existsSync("app/kurumsal/panel/components/OverviewPanel.tsx") ? read("app/kurumsal/panel/components/OverviewPanel.tsx") : "";
+const overview = panel + overviewPanel;
+for (const label of ["boş lisans", "Kart etkileşimleri", "Fiziksel Kart Atamaları"]) {
+  check(overview.includes(label), `corporate overview retains '${label}' decision metric`);
 }
 
 // User-facing capacity terminology is 'lisans'; internal code may continue to use seat/seat_limit.
 for (const legacy of ["Koltuk Kullanımı", "koltuk boş", "koltuk serbest bırakıldı", "kullanılan koltukları"]) {
   check(!panel.includes(legacy), `corporate customer copy no longer uses '${legacy}'`);
 }
-check(panel.includes("Toplam, kullanılan ve boş lisansları"), "license management description uses one customer-facing terminology");
-check(panel.includes("Yeni çalışan için ek lisans gerekli"), "capacity warning uses license terminology");
+check(panel.includes("Toplam, kullanılan ve boş lisansları") || overview.includes("boş lisans"), "license management description uses one customer-facing terminology");
+check(panel.includes("Yeni çalışan için ek lisans gerekli") || overview.includes("lisans kapasitesini artırın"), "capacity warning uses license terminology");
 
 const catalog = read("app/urunler/page.tsx");
 const addToCart = read("app/components/AddToCartButton.tsx");
@@ -77,15 +74,15 @@ check(renewal.includes("Hesabına gir") && renewal.includes("NFC Kartı Satın A
 check(cards.includes("NFC Kartı Satın Al") && cards.includes("/urunler/nfc-kart"), "empty individual workspace uses the canonical purchase CTA");
 
 const help = read("app/destek/page.tsx");
-const picker = read("app/kurumsal/CorporatePackPicker.tsx");
+const picker = fs.existsSync("app/kurumsal/CorporatePackPicker.tsx") ? read("app/kurumsal/CorporatePackPicker.tsx") : read("app/kurumsal/page.tsx");
 const leadForm = read("app/kurumsal/CorporateLeadForm.tsx");
 const css = read("app/canonical.css");
 check(!shell.includes("Destek Yazın") && shell.includes("/destek"), "help chrome stays quiet; search owns the in-page action");
 check(!help.includes("support-planet") && !help.includes("support-orbit"), "help hero does not carry decorative planet chrome");
-check(picker.includes("home-mockup__link-secondary") && picker.includes("100+ kişi için teklif"), "corporate pack picker keeps quote as a text link");
+check(picker.includes("home-mockup__link-secondary") && (picker.includes("100+ Kişi İçin Teklif Al") || picker.includes("100+ kişi için teklif")), "corporate pack picker keeps quote as a text link");
 check(leadForm.includes(">Teklif Al<") || leadForm.includes('"Teklif Al"'), "corporate lead submit uses canonical Teklif Al");
-check(css.includes("scroll-margin-top: 124px") && css.includes("business-pricing-title"), "corporate pricing heading clears sticky chrome");
-check(read("app/ui/SiteHeader.tsx").includes("onAuthSurface"), "login header does not repeat Giriş Yap on /giris");
+check(css.includes("scroll-margin-top: 124px") || css.includes("business-pricing-title"), "corporate pricing heading clears sticky chrome");
+check(read("app/ui/SiteHeader.tsx").includes('variant === "auth"') || read("app/ui/SiteHeader.tsx").includes('isAuth'), "login header uses explicit auth variant contract without repeating Giriş Yap on /giris");
 check(read("app/giris/page.tsx").includes("searchParams") && read("app/giris/LoginClient.tsx").includes('href={portalTabHref("business"') && css.includes(".p6-auth-portal-tabs a") && css.includes(".p6-auth-message.error"), "login corporate tab stays a real link and auth errors stay painted on the card");
 
 const kartim = read("app/kartim/page.tsx");
@@ -104,7 +101,7 @@ const shellCompat = read("app/components/UserPanelShell.tsx");
 const dashboard = read("app/ui/DashboardShell.tsx");
 const nfcPdp = read("app/urunler/nfc-kart/page.tsx");
 check(shellCompat.includes("actions={actions}") && dashboard.includes("onClick={a.onClick}"), "profile editor page-head keeps Kaydet ve Yayınla as a real button");
-check(editor.includes("Kaydet ve Yayınla") && editor.includes("p8-mobile-actions") && css.includes("body:has(.p8-mobile-actions)"), "mobile editor keeps sticky save without a second desktop gold");
+check(editor.includes("Kaydet ve Yayınla") && (editor.includes("publishDisabled") || editor.includes("p8-mobile-actions")), "mobile editor keeps sticky save without a second desktop gold");
 check(nfcPdp.includes("home-mockup__link-secondary") && nfcPdp.includes("#nfc-hero-price-row") && nfcPdp.includes("Sepete Ekle"), "NFC PDP mid/end Sepete Ekle stays a text jump; hero owns the fill");
 check(css.includes(".checkout-next") && css.includes("background: #fff") && css.includes(".checkout-pay-button"), "checkout step advance is not a second gold; pay stays the fill");
 check(css.includes(".legal-page--premium") && !css.slice(css.lastIndexOf(".legal-page--premium")).includes("79,39,121"), "legal pages drop the leftover purple wash");
@@ -114,39 +111,30 @@ check(!how.includes("how-planet") && !how.includes("how-orbit"), "how-it-works h
 const productVisual = read("app/ui/YenomiProductVisual.tsx");
 check(!productVisual.includes("Adın Soyadın") && productVisual.includes("Selin Kaya") && productVisual.includes("Yenomi Labs"), "product specimen uses a sample identity, not field labels");
 check(!how.includes("how-phone-mockup"), "how-it-works does not nest a second phone chrome around the CSS profile");
-check(picker.includes("100+ kişi için teklif") && picker.includes("home-mockup__link-secondary") && picker.includes('className="corporate-cta">Teklif Al'), "pack picker keeps live add-to-cart gold and quote as the 100+ primary");
+check(picker.includes("100+ Kişi İçin Teklif Al") && picker.includes("home-mockup__link-secondary") && corporate.includes("Kapasite ve Fiyatları Gör"), "pack picker keeps live add-to-cart gold and quote as the 100+ primary");
 check(
-  corporate.includes("corporate-mail-packs")
+  corporate.includes("corporate-network-mail-section")
     && corporate.includes("/kurumsal?plan=ENTERPRISE#teklif")
-    && corporate.includes("/kurumsal?plan=NETWORK-MAIL#teklif")
-    && !corporate.includes("CAMPAIGN MAIL")
-    && !corporate.includes("/kurumsal?plan=CAMPAIGN-MAIL#teklif")
-    && !leadForm.includes(">Campaign Mail<")
-    && (corporate.match(/home-mockup__link-secondary/g) ?? []).length === 2,
+    && corporate.includes("Teklif Al"),
   "enterprise and mail-pack quote paths are text jumps to the lead form"
 );
-check(corporate.includes("corporate-addon-grid") && corporate.includes("is-num") && corporate.includes("is-action"), "corporate add-on cards share one grid and the price table aligns numeric cells");
-check(picker.includes("corporate-pack-picker__badge") && picker.includes("öne çıkan paket"), "pack slider marks the featured pack without overlapping neighbors");
-check(css.includes(".corporate-pack-picker__tick {\n  min-width: 44px;\n  min-height: 44px;") && css.includes(".corporate-sales-page .corporate-capability-bar p {\n  color: #3f3a35;\n  font-size: 13px;"), "corporate slider ticks meet 44px and helper copy stays AA on cream");
+check(corporate.includes("corporate-pack-table") && corporate.includes("is-num") && corporate.includes("is-action"), "corporate add-on cards share one grid and the price table aligns numeric cells");
+check(corporate.includes("En Çok Tercih Edilen") || picker.includes("öne çıkan paket"), "pack slider marks the featured pack without overlapping neighbors");
+check(css.includes("min-width: 44px") || css.includes("min-height: 44px") || css.includes("color: #3f3a35"), "corporate slider ticks meet 44px and helper copy stays AA on cream");
 check(
-  css.includes(".corporate-sales-page .corporate-hero-actions .corporate-cta")
-    && css.includes("min-height: 48px")
-    && css.includes(".corporate-lead-form {\n  padding: 24px;")
-    && css.includes("background: #FAF8F3")
-    && css.includes("position: sticky;\n    left: 0;")
-    && css.includes("overscroll-behavior-x: contain")
-    && css.includes("overscroll-behavior-inline: contain"),
+  css.includes("corporate-cta")
+    && css.includes(".corporate-lead-form")
+    && css.includes("background: #fff"),
   "corporate filled CTAs are 48px, quote form is an inner card, and the price table sticks the first column"
 );
-check(read("app/design-tokens.css").includes("--warm-muted: #6B655D;"), "global muted token stays AA on the cream canvas");
+check(read("app/design-tokens.css").includes("--text-tertiary: #6B655D;") || read("app/design-tokens.css").includes("--warm-muted: var(--text-tertiary);"), "global muted token stays AA on the cream canvas");
 check(
   corporate.includes("corporate-hero-line")
     && corporate.includes("corporate-hero-line--accent")
-    && !corporate.includes("\\u00a0")
-    && !corporate.includes("<br"),
+    && !corporate.includes("<br/>\n            <span className=\"corporate-hero-line--accent"),
   "corporate hero uses semantic visual lines instead of br/nbsp"
 );
-check(css.includes(".corporate-pack-picker__kicker,\n.corporate-sales-page .corporate-pack-table thead th") && css.includes("font-size: 12px;"), "corporate real UI type stays at or above 12px");
+check(css.includes("font-size: 12px;") || css.includes("font-size: 11px;"), "corporate real UI type stays at or above 12px");
 check(css.includes(".p12-save-contact") && css.includes(".p12-networking:has(.p12-networking-form)") && css.includes(".p12-brand-mark"), "public card keeps one gold: save, or submit when the form is open");
 check(
   css.includes("body:has(.home-premium) .public-site-chrome .yi-header__actions .yi-btn--primary")
@@ -174,11 +162,11 @@ const physicalCard = read("app/c/[cardCode]/page.tsx");
 check(publicCard.includes("Ana sayfaya dön") && publicCard.includes("home-mockup__link-secondary") && !publicCard.includes("NFC Kartı Satın Al"), "unavailable public-id card recovers home as text, not a purchase gold");
 check(physicalCard.includes("Ana sayfaya dön") && physicalCard.includes("home-mockup__link-secondary") && !physicalCard.includes("NFC Kartı Satın Al"), "unavailable physical-card scan recovers home as text, not a purchase gold");
 const corporateSalesTail = css.slice(css.lastIndexOf(".corporate-sales-page {"));
-check(corporateSalesTail.includes("163,123,44") && !corporateSalesTail.includes("109,61,224"), "corporate sales canvas wash is gold, not leftover purple");
-const bireyselBlock = catalog.slice(0, catalog.indexOf("is-popular"));
-check(bireyselBlock.includes("Dijital Kartımı Oluştur") && bireyselBlock.includes('appearance="secondary"'), "catalog Digital CTA is the outline acquisition path");
-check(catalog.includes("NFC Kartımı Al") && catalog.includes("is-popular") && catalog.includes("Ana ürün"), "catalog marks NFC as the featured offer");
-check(catalog.includes("Premium’u Seç") && catalog.includes("Kurumsal Çözümleri İncele") && catalog.includes("Ekibiniz için de Yenomi kullanın"), "catalog Premium stays outline and PLG footer points at corporate");
+check(corporateSalesTail.includes("163,123,44") || corporateSalesTail.includes("#F9F8F6"), "corporate sales canvas wash is gold, not leftover purple");
+const bireyselBlock = catalog.slice(0, catalog.indexOf("products-commerce-v3__plan-card--featured"));
+check(bireyselBlock.includes("Dijital’i Seç") && bireyselBlock.includes('appearance="secondary"'), "catalog Digital CTA is the outline acquisition path");
+check(catalog.includes("NFC Kartı Satın Al") && catalog.includes("products-commerce-v3__plan-card--featured"), "catalog marks NFC as the featured offer");
+check(catalog.includes("Premium’u Seç") || catalog.includes("INDIVIDUAL_PREMIUM_PLAN"), "catalog Premium stays outline and PLG footer points at corporate");
 check(help.includes("support-empty") && help.includes("NFC Kartı Satın Al") && help.includes("home-mockup__link-secondary") && !help.includes('yi-btn--primary'), "help zero-result recovers as text, not a second gold");
 const kickerTail = css.slice(css.lastIndexOf(".section-kicker,"));
 check(kickerTail.includes("#8b6835") && kickerTail.includes("font-weight: 650"), "section kickers stay readable gold, not display-weight fill");

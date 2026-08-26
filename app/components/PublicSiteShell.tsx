@@ -5,6 +5,33 @@ import AppHeader from "./AppHeader";
 import AnnouncementBar from "./AnnouncementBar";
 import AppFooter from "./AppFooter";
 
+export type HeaderVariant = "marketing" | "commerce" | "support-legal" | "auth" | "checkout";
+
+function resolveHeaderVariant(pathname: string): HeaderVariant {
+  if (pathname === "/checkout" || pathname.startsWith("/checkout/") || pathname === "/nfc-siparis") {
+    return "checkout";
+  }
+  if (pathname === "/giris" || pathname.startsWith("/giris/")) {
+    return "auth";
+  }
+  if (
+    [
+      /^\/destek(?:\/|$)/,
+      /^\/gizlilik(?:\/|$)/,
+      /^\/kvkk(?:\/|$)/,
+      /^\/iade-iptal(?:\/|$)/,
+      /^\/mesafeli-satis-sozlesmesi(?:\/|$)/,
+      /^\/hizmet-sartlari(?:\/|$)/,
+    ].some((pattern) => pattern.test(pathname))
+  ) {
+    return "support-legal";
+  }
+  if (pathname === "/urunler" || pathname.startsWith("/urunler/") || pathname === "/sepet") {
+    return "commerce";
+  }
+  return "marketing";
+}
+
 function isPublicSiteSurface(pathname: string) {
   const excluded = [
     /^\/admin(?:\/|$)/,
@@ -30,21 +57,6 @@ function isPublicSiteSurface(pathname: string) {
   return !excluded.some((pattern) => pattern.test(pathname));
 }
 
-function isQuietPublicChrome(pathname: string) {
-  return [
-    /^\/giris(?:\/|$)/,
-    /^\/sepet(?:\/|$)/,
-    /^\/checkout(?:\/|$)/,
-    /^\/nfc-siparis(?:\/|$)/,
-    /^\/destek(?:\/|$)/,
-    /^\/gizlilik(?:\/|$)/,
-    /^\/kvkk(?:\/|$)/,
-    /^\/iade-iptal(?:\/|$)/,
-    /^\/mesafeli-satis-sozlesmesi(?:\/|$)/,
-    /^\/hizmet-sartlari(?:\/|$)/,
-  ].some((pattern) => pattern.test(pathname));
-}
-
 function publicHeaderActions(pathname: string) {
   if (pathname === "/kurumsal") return [{ href: "#business-pricing-title", label: "Paketleri İncele", primary: true }];
   if (pathname.startsWith("/urunler/nfc-kart")) return [{ href: "#nfc-hero-price-row", label: "Sepete Ekle", primary: true }];
@@ -57,14 +69,20 @@ export default function PublicSiteShell({ children }: { children: React.ReactNod
 
   if (!isPublic) return <>{children}</>;
 
-  const quiet = isQuietPublicChrome(pathname);
-  const compactFooter = quiet || pathname === "/urunler" || pathname.startsWith("/urunler/") || pathname === "/kurumsal";
+  const variant = resolveHeaderVariant(pathname);
+  const showAnnouncement = variant === "marketing" || variant === "commerce";
+  const compactFooter = variant !== "marketing";
 
   return (
     <>
       <div className="public-site-chrome">
-        {!quiet && <AnnouncementBar />}
-        <AppHeader landing actions={quiet ? [] : publicHeaderActions(pathname)} showDefaultCta={!quiet} />
+        {showAnnouncement && <AnnouncementBar />}
+        <AppHeader
+          landing
+          variant={variant}
+          actions={publicHeaderActions(pathname)}
+          showDefaultCta={variant === "marketing" || variant === "commerce"}
+        />
       </div>
       {children}
       <AppFooter variant={compactFooter ? "compact" : "default"} />

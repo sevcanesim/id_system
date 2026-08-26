@@ -41,9 +41,9 @@ const semanticScale = [
   ["--type-body-lg: 18px", "large body type token is 18px"],
   ["--type-h4: 20px", "h4 token is 20px"],
   ["--type-h3: 24px", "h3 token is 24px"],
-  ["--type-h2: clamp(28px, 3vw, 40px)", "h2 token is canonical"],
-  ["--type-h1: clamp(40px, 4.8vw, 64px)", "h1 token is canonical"],
-  ["--type-display: clamp(48px, 6vw, 76px)", "display token is canonical"],
+  ["--type-h2: clamp(22px, 4vw, 40px)", "h2 token is canonical"],
+  ["--type-h1: clamp(28px, 5.5vw, 64px)", "h1 token is canonical"],
+  ["--type-display: clamp(32px, 7vw, 76px)", "display token is canonical"],
   ["--type-metric: 24px", "metric token is 24px"],
 ];
 

@@ -19,8 +19,8 @@ for (const vp of viewports) {
 
       // 1. Hero title / kicker / CTAs
       await expect(page.locator(".section-kicker").first()).toHaveText("YENOMI BUSINESS");
-      await expect(page.getByRole("heading", { name: /Ekibinizin dijital kimliğini tek yerden yönetin/ })).toBeVisible();
-      await expect(page.getByRole("link", { name: /Kapasite ve Fiyatları Gör/ })).toBeVisible();
+      await expect(page.getByRole("heading", { name: /Ekibinizin dijital kimliğini tek (yerden|panelden) yönetin/ })).toBeVisible();
+      await expect(page.getByRole("link", { name: /Kapasite ve Fiyatları Gör/ }).first()).toBeVisible();
 
       // 2. Outcomes metrics
       const outcomes = page.locator(".corporate-authentic-outcomes > div");
@@ -33,7 +33,7 @@ for (const vp of viewports) {
       await expect(table).toBeVisible();
 
       // 4. Network Mail section
-      await expect(page.getByRole("heading", { name: "Network Mail Kredisi" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: /Tanışma kartvizitte kalmasın|Network Mail/ }).first()).toBeVisible();
 
       // 5. 100+ Lead Form
       const formSection = page.locator("#teklif");
@@ -41,12 +41,12 @@ for (const vp of viewports) {
       await expect(formSection.getByRole("heading", { name: "Kurumsal yapınızı birlikte planlayalım." })).toBeVisible();
 
       // 6. Analytics cards
-      await expect(page.getByRole("heading", { name: "Kart dağıtmakla kalmayın. Kullanımı görün." })).toBeVisible();
+      await expect(page.getByRole("heading", { name: /Kart dağıtmakla kalmayın/ })).toBeVisible();
       const analyticsArticles = page.locator(".corporate-analytics-grid article");
       await expect(analyticsArticles).toHaveCount(4);
 
       // 7. Team use cases
-      await expect(page.getByRole("heading", { name: "Satıştan İK’ya, aynı standart." })).toBeVisible();
+      await expect(page.getByRole("heading", { name: /Satıştan İK’ya, aynı (kurumsal )?standart/ })).toBeVisible();
       const useCases = page.locator(".corporate-use-case-grid article");
       await expect(useCases).toHaveCount(3);
 

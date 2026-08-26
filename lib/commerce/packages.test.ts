@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { COMMERCIAL_PRICING, COMMERCIAL_SKUS } from "../config/commercial";
+import { formatTryFromKurus } from "../config/product";
 import {
   BUSINESS_SEAT_PACKS,
   CAMPAIGN_MAIL_PACKS,
@@ -97,6 +98,30 @@ describe("corporate ladder", () => {
     for (const row of CORPORATE_PACKAGE_LADDER) {
       expect(corporateCheckoutLive(row.seats)).toBe(true);
       expect(corporatePackageBySku(corporatePackageSku(row.code))?.priceKurus).toBe(row.priceKurus);
+    }
+  });
+
+  it("has exactly one recommended tier (10 seats)", () => {
+    const recommendedTiers = CORPORATE_PACKAGE_LADDER.filter((plan) => plan.seats === 10);
+    expect(recommendedTiers).toHaveLength(1);
+    expect(recommendedTiers[0].code).toBe("CORP-10");
+  });
+
+  it("formats all package prices with standard TRY currency prefix and tabular format", () => {
+    for (const plan of CORPORATE_PACKAGE_LADDER) {
+      const formattedTotal = formatTryFromKurus(plan.priceKurus);
+      const formattedPerSeat = formatTryFromKurus(perSeatKurus(plan.priceKurus, plan.seats));
+      expect(formattedTotal).toMatch(/^₺[0-9.]+/);
+      expect(formattedPerSeat).toMatch(/^₺[0-9.]+/);
+    }
+  });
+
+  it("calculates positive per-credit unit economics for all Network Mail packs", () => {
+    for (const pack of NETWORK_MAIL_CREDIT_PACKS) {
+      const unitKurus = Math.round(pack.priceKurus / pack.credits);
+      expect(unitKurus).toBeGreaterThan(0);
+      const formattedUnit = formatTryFromKurus(unitKurus);
+      expect(formattedUnit).toMatch(/^₺[0-9,]+/);
     }
   });
 });

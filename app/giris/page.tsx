@@ -1,6 +1,5 @@
 import { headers } from "next/headers";
 import LoginClient from "./LoginClient";
-import "./login-experience.css";
 import {
   firstSearchParam,
   loginErrorMessage,

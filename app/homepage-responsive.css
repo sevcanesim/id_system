@@ -1,0 +1,209 @@
+/* Homepage responsive hardening.
+ * Loaded after homepage.css so current homepage rules remain the source of truth,
+ * while legacy canonical homepage generations cannot re-introduce spacing or sizing drift.
+ */
+
+.home-premium__proof,
+.home-premium__journey,
+.home-sales-paths,
+.home-sales-comparison,
+.home-sales-faq {
+  min-height: 0;
+}
+
+.home-premium__proof,
+.home-premium__journey {
+  width: min(calc(100% - 48px), var(--container-content));
+  margin-inline: auto;
+  padding: var(--space-20) 0;
+}
+
+.home-premium__proof-head,
+.home-premium__principles,
+.home-premium__journey-head,
+.home-premium__journey-steps,
+.home-premium__journey-action {
+  width: 100%;
+  max-width: none;
+}
+
+.home-premium__proof-head,
+.home-premium__journey-head {
+  display: block;
+  margin-bottom: var(--space-10);
+}
+
+.home-premium__proof-head h2,
+.home-premium__journey-head h2,
+.home-premium__paths-head h2,
+.home-sales-comparison-head h2,
+.home-sales-faq-intro h2,
+.home-sales-final h2 {
+  text-wrap: balance;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+.home-premium__proof-head h2,
+.home-premium__journey-head h2 {
+  max-width: 760px;
+  margin: var(--space-2) 0 var(--space-3);
+  font-size: clamp(42px, 4vw, 60px);
+  line-height: .98;
+  letter-spacing: -.035em;
+  font-weight: 620;
+}
+
+.home-premium__proof-head > p,
+.home-premium__journey-head > p {
+  max-width: 620px;
+  margin: 0;
+  font-size: var(--type-body);
+  line-height: 1.6;
+}
+
+.home-premium__principles,
+.home-premium__journey-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+}
+
+.home-premium__principles article,
+.home-premium__journey-steps li {
+  min-width: 0;
+  min-height: 0;
+}
+
+.home-premium__journey-steps li {
+  padding: var(--space-6);
+}
+
+.home-premium__journey-action {
+  margin-top: var(--space-6);
+}
+
+.home-sales-paths .home-premium__path-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.home-sales-paths article .home-mockup__button {
+  align-self: flex-start;
+  min-height: 48px;
+}
+
+.home-sales-faq-item summary {
+  min-height: 68px;
+}
+
+.home-sales-faq-item summary i {
+  width: 44px;
+  height: 44px;
+  flex-basis: 44px;
+}
+
+.home-sales-final .home-mockup__button {
+  min-height: 48px;
+}
+
+@media (max-width: 980px) {
+  .home-premium__proof,
+  .home-premium__journey {
+    padding-top: var(--space-16);
+    padding-bottom: var(--space-16);
+  }
+
+  .home-premium__principles,
+  .home-premium__journey-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .home-sales-paths .home-premium__path-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-sales-paths article {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-premium__proof,
+  .home-premium__journey {
+    width: 100%;
+    padding: var(--space-14) var(--space-5);
+  }
+
+  .home-premium__proof-head,
+  .home-premium__journey-head {
+    margin-bottom: var(--space-6);
+  }
+
+  .home-premium__proof-head h2,
+  .home-premium__journey-head h2,
+  .home-premium__paths-head h2,
+  .home-sales-comparison-head h2,
+  .home-sales-faq-intro h2,
+  .home-sales-final h2 {
+    font-size: clamp(34px, 10vw, 44px);
+    line-height: 1.02;
+    letter-spacing: -.032em;
+  }
+
+  .home-premium__paths-head h2 br,
+  .home-sales-comparison-head h2 br,
+  .home-sales-faq-intro h2 br,
+  .home-sales-final h2 br {
+    display: none;
+  }
+
+  .home-premium__principles article,
+  .home-premium__journey-steps li {
+    padding: var(--space-5);
+  }
+
+  .home-sales-paths article {
+    padding: var(--space-5);
+  }
+
+  .home-sales-paths article .home-mockup__button,
+  .home-sales-final .home-mockup__button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .home-sales-faq-item summary {
+    min-height: 64px;
+    gap: var(--space-3);
+  }
+
+  .home-sales-faq-item summary span {
+    min-width: 0;
+  }
+
+  .home-sales-final-offer {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    text-align: center;
+  }
+}
+
+@media (max-width: 360px) {
+  .home-sales-hero,
+  .home-premium__proof,
+  .home-premium__journey,
+  .home-sales-paths,
+  .home-sales-comparison,
+  .home-sales-faq {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+
+  .home-sales-copy h1 {
+    font-size: clamp(30px, 10vw, 38px);
+  }
+}

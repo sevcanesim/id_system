@@ -1,245 +1,35 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { NFC_PRODUCT, formatTryFromKurus } from "../lib/config/product";
-import { CORPORATE_PACKAGE_LADDER, INDIVIDUAL_PREMIUM_PLAN } from "../lib/commerce/packages";
+import { formatTryFromKurus } from "../lib/config/product";
+import { CORPORATE_PACKAGE_LADDER, INDIVIDUAL_PLAN, INDIVIDUAL_PREMIUM_PLAN } from "../lib/commerce/packages";
 import { Icon } from "./icons";
 import { YenomiProductVisual } from "./ui/YenomiProductVisual";
 
-export const metadata: Metadata = {
-  title: "Yenomi ID | Kartvizitin güncel kalsın",
-  description: "NFC + QR dijital kartvizit, networking araçları ve Network Mail. Kartın aynı kalır; profilin güncellenir, tanışmalarını takip edersin.",
-  alternates: { canonical: "/" },
-};
-
-const initialPrice = formatTryFromKurus(NFC_PRODUCT.unitPriceKurus);
+export const metadata: Metadata = { title: "Yenomi ID | Kartvizitin güncel kalsın", description: "NFC + QR dijital kartvizit, networking araçları ve Network Mail. Kartın aynı kalır; profilin güncellenir, tanışmalarını takip edersin.", alternates: { canonical: "/" } };
+const individualPrice = formatTryFromKurus(INDIVIDUAL_PLAN.priceKurus);
 const premiumPrice = formatTryFromKurus(INDIVIDUAL_PREMIUM_PLAN.priceKurus);
 const corporateEntryPrice = formatTryFromKurus(CORPORATE_PACKAGE_LADDER[0].priceKurus);
-
 const heroTrust = ["Türkiye içi kargo dahil", "2 iş gününde hazırlanır", "Uygulama gerekmez"];
-
 const packageComparisonRows = [
-  ["Fiyat", initialPrice, premiumPrice, `${corporateEntryPrice}’dan başlar`],
-  ["Ana amaç", "Dijital kartvizit", "Networking / satış", "Çalışan yönetimi"],
-  ["NFC + QR", "✓", "✓", "✓"],
-  ["Gelişmiş kişisel özellikler", "—", "✓", "Kurumsal araçlar"],
-  ["Lead toplama", "—", "✓", "Kurumsal akış"],
+  ["Fiyat", individualPrice, premiumPrice, `${corporateEntryPrice}’dan başlar`],
+  ["En uygun kullanım", "Dijital kartvizit paylaşımı", "Networking ve satış takibi", "Çalışan ve kart yönetimi"],
+  ["NFC + QR kart", "✓", "✓", "Kişi sayısı kadar"],
+  ["Kişi / lead toplama", "—", "✓", "✓"],
+  ["Toplantı ve sunum", "—", "✓", "✓"],
+  ["Follow-up e-posta", "—", "500 Network Mail", "Kişi başı 100 Network Mail"],
   ["Merkezi çalışan yönetimi", "—", "—", "✓"],
-  ["Rol / departman / çalışan durumu", "—", "—", "✓"],
+  ["Rol, departman ve durum", "—", "—", "✓"],
   ["Kurumsal marka standardı", "—", "—", "✓"],
-  ["Toplu yönetim", "—", "—", "✓"],
 ] as const;
+const comparisonRows = [["Bilgilerin değişti", "Yeniden baskı gerekir", "Profili anında güncellersin"],["Paylaşım", "Basılı bilgilerle sınırlı", "NFC + QR + canlı profil"],["Kart kayboldu", "Kontrol sende değildir", "Kayıp moduyla erişimi kapatırsın"],["İletişim kaydı", "Manuel giriş gerekir", "Tek dokunuşla rehbere kaydet"]] as const;
+const faqItems = [["Premium ne ekliyor?", "Premium; NFC + QR kart ve canlı profile ek olarak toplantı, sunum, kişi yönetimi ve 500 Network Mail kredisi içerir. Tanışma sonrasındaki takip akışını tek üründe toplar."],["Uygulama indirmek gerekiyor mu?", "Hayır. NFC veya QR ile profil tarayıcıda doğrudan açılır."],["Bilgilerim değişirse kartı yeniden bastırır mıyım?", "Hayır. Fiziksel kart aynı kalır; profilindeki bilgileri güncellersin."],["Kartımı kaybedersem ne olur?", "Kart erişimini panelden kapatabilir, kayıp moduyla kontrolü koruyabilirsin."],["NFC kullanılmazsa ne olur?", "Kart üzerindeki QR kod aynı profile bağlıdır; QR ile de profil açılır."],["Ödeme kartı bilgilerim Yenomi’de tutuluyor mu?", "Hayır. Kart bilgileri Yenomi’de saklanmaz; ödeme iyzico altyapısı üzerinden gerçekleşir."]] as const;
 
-const comparisonRows = [
-  ["Bilgilerin değişti", "Yeniden baskı gerekir", "Profili anında güncellersin"],
-  ["Paylaşım", "Basılı bilgilerle sınırlı", "NFC + QR + canlı profil"],
-  ["Kart kayboldu", "Kontrol sende değildir", "Kayıp moduyla erişimi kapatırsın"],
-  ["İletişim kaydı", "Manuel giriş gerekir", "Tek dokunuşla rehbere kaydet"],
-] as const;
-
-const faqItems = [
-  ["Premium ne ekliyor?", "Premium; NFC + QR kart ve canlı profile ek olarak toplantı, sunum, kişi yönetimi ve 500 Network Mail kredisi içerir. Tanışma sonrasındaki takip akışını tek üründe toplar."],
-  ["Uygulama indirmek gerekiyor mu?", "Hayır. Kartı alan kişi NFC ile dokundurduğunda veya QR kodu okuttuğunda profil modern tarayıcıda doğrudan açılır."],
-  ["Telefonum veya ünvanım değişirse kartı yeniden bastırır mıyım?", "Hayır. Fiziksel kart aynı kalır; canlı profilindeki bilgileri güncellersin. NFC ve QR aynı profile açılmaya devam eder."],
-  ["Kartımı kaybedersem ne olur?", "Fiziksel kart erişimini panelden kapatabilirsin. KAYIP MODU ile kart kaybolduğunda kontrol sende kalır."],
-  ["NFC kullanılmazsa paylaşım nasıl yapılır?", "Kart üzerindeki QR kod aynı canlı profile bağlıdır. NFC yerine QR ile de profil açılabilir."],
-  ["Ödeme kartı bilgilerim Yenomi’de tutuluyor mu?", "Hayır. Ödeme kartı bilgileri Yenomi’de saklanmaz ve ödeme iyzico altyapısı üzerinden gerçekleşir."],
-] as const;
-
-export default function HomePage() {
-  return (
-    <div className="home-mockup home-premium home-premium--hero-v2">
-      <main id="main-content">
-        <section className="home-mockup__hero home-premium__hero-v2 home-sales-hero" aria-labelledby="home-title">
-          <div className="home-mockup__copy home-sales-copy">
-            <span className="home-premium__hero-pill"><i aria-hidden="true" /> YENOMI ID PREMIUM · NFC + QR</span>
-            <h1 id="home-title">Bir kez basılır.<br /><span>Tanışma orada bitmez.</span></h1>
-            <p>Kartını paylaş, karşı tarafı kaydet, toplantı ve sunumlarını yönet, Network Mail ile tanışma sonrasını profesyonel şekilde takip et.</p>
-            <div className="home-mockup__actions home-premium__hero-actions home-sales-actions">
-              <Link className="home-mockup__button home-mockup__button--gold home-mockup__button--primary" href="/urunler/nfc-kart?paket=premium">
-                Premium’u İncele <span aria-hidden>→</span>
-              </Link>
-              <Link className="home-premium__hero-secondary" href="#paths-title">
-                Paketleri karşılaştır <span aria-hidden>↓</span>
-              </Link>
-            </div>
-            <div className="home-sales-offer" aria-label="Premium teklif kapsamı">
-              <strong>{premiumPrice} · 1 yıl dahil</strong>
-              <span>NFC + QR kart · 500 Network Mail · networking araçları</span>
-            </div>
-            <div className="home-premium__hero-trust home-sales-trust" aria-label="Satın alma güvenceleri">
-              {heroTrust.map((item) => <span key={item}><Icon name="check" />{item}</span>)}
-            </div>
-          </div>
-          <div className="home-sales-stage" aria-label="Yenomi ID Premium NFC + QR kart ürün görseli">
-            <div className="home-sales-stage-label" aria-hidden="true">PREMIUM · NFC + QR · CANLI PROFİL</div>
-            <div className="home-sales-stage-glow" aria-hidden="true" />
-            <div className="home-hero-specimens">
-              <YenomiProductVisual variant="card" finish="matte" />
-              <YenomiProductVisual variant="profile" compact />
-            </div>
-            <div className="home-sales-capabilities" aria-hidden="true"><span>NFC</span><span>QR</span><span>Network Mail</span></div>
-          </div>
-        </section>
-
-        <section className="home-premium__proof" aria-labelledby="proof-title">
-          <div className="home-premium__proof-head">
-            <span className="home-mockup__kicker">GÜVENİLİR VE GİZLİ</span>
-            <h2 id="proof-title">Yenomi ID Güvencesi</h2>
-            <p>Hesap açmadan ödeyebilirsin. Kart numarası Yenomi’de saklanmaz. Ödeme 256-bit SSL ve iyzico güvencesindedir.</p>
-          </div>
-          <div className="home-premium__principles">
-            <article>
-              <span>01</span>
-              <div>
-                <strong>Hızlı Kargo</strong>
-                <p>Kartın 2 iş günü içinde özel ambalajında kargolanır.</p>
-              </div>
-            </article>
-            <article>
-              <span>02</span>
-              <div>
-                <strong>Uygulamasız Kullanım</strong>
-                <p>NFC veya QR ile dokundurulduğunda profil anında tarayıcıda açılır.</p>
-              </div>
-            </article>
-            <article>
-              <span>03</span>
-              <div>
-                <strong>Tanışma Sonrası Takip</strong>
-                <p>Premium ile kişilerini yönet, toplantı ve sunumlarını bağla, Network Mail ile takip et.</p>
-              </div>
-            </article>
-          </div>
-        </section>
-
-        <section className="home-package-matrix" aria-labelledby="paths-title">
-          <div className="home-package-matrix__head">
-            <span className="home-mockup__kicker">BİREYSEL · PREMIUM · KURUMSAL</span>
-            <h2 id="paths-title">İhtiyacına göre doğru Yenomi ID.</h2>
-            <p>Standart paket kartvizit ihtiyacını çözer. Premium, networking ve satış takibini ekler. Kurumsal ise ekip yönetimine geçer.</p>
-          </div>
-          <div className="home-package-matrix__scroll">
-            <div className="home-package-matrix__table" role="table" aria-label="Bireysel, Bireysel Premium ve Kurumsal paket karşılaştırması">
-              <div className="home-package-matrix__row home-package-matrix__header" role="row">
-                <span role="columnheader" aria-label="Özellik" />
-                <strong role="columnheader">Bireysel</strong>
-                <strong role="columnheader">Bireysel Premium</strong>
-                <strong role="columnheader">Kurumsal</strong>
-              </div>
-              {packageComparisonRows.map(([label, individual, premium, corporate]) => (
-                <div className="home-package-matrix__row" role="row" key={label}>
-                  <strong role="rowheader">{label}</strong>
-                  <span role="cell">{individual}</span>
-                  <span role="cell">{premium}</span>
-                  <span role="cell">{corporate}</span>
-                </div>
-              ))}
-              <div className="home-package-matrix__row home-package-matrix__actions" role="row">
-                <span role="rowheader">İncele</span>
-                <span role="cell"><Link href="/urunler/nfc-kart?paket=individual">Bireysel’i İncele →</Link></span>
-                <span role="cell"><Link href="/urunler/nfc-kart?paket=premium">Premium’u İncele →</Link></span>
-                <span role="cell"><Link href="/kurumsal">Kurumsal Paketler →</Link></span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="nasil-calisir" className="home-premium__journey" aria-labelledby="how-it-works-title">
-          <div className="home-premium__journey-head">
-            <span className="home-mockup__kicker">NASIL ÇALIŞIR</span>
-            <h2 id="how-it-works-title">Seç. Oluştur.<br />Paylaş. Takip et.</h2>
-            <p>Kartını seçtiğin andan tanışma sonrasındaki profesyonel takibe kadar tek akış.</p>
-          </div>
-          <ol className="home-premium__journey-steps">
-            <li>
-              <span>01</span>
-              <div>
-                <h3>Kartını seç</h3>
-                <p>Fiziksel NFC + QR kartın tek bir kalıcı dijital profile bağlanır.</p>
-              </div>
-            </li>
-            <li>
-              <span>02</span>
-              <div>
-                <h3>Profilini oluştur</h3>
-                <p>İletişim bilgilerini, ünvanını ve bağlantılarını tek profilde topla.</p>
-              </div>
-            </li>
-            <li>
-              <span>03</span>
-              <div>
-                <h3>Tanışmayı takip et</h3>
-                <p>Premium ile kişiyi kaydet, toplantı ve sunumlarını yönet, Network Mail ile iletişimi sürdür.</p>
-              </div>
-            </li>
-          </ol>
-          <div className="home-premium__journey-action">
-            <p>Tüm adımları ve özellikleri incelemek için: <strong><Link href="/nasil-calisir">Nasıl Çalışır sayfasını ziyaret et →</Link></strong></p>
-          </div>
-        </section>
-
-        <section className="home-sales-comparison" aria-labelledby="comparison-title">
-          <div className="home-sales-comparison-head">
-            <span className="home-mockup__kicker">NEDEN YENOMI ID?</span>
-            <h2 id="comparison-title">Kartviziti yeniden<br />bastırmayı bırak.</h2>
-            <p>Fiziksel kart aynı kalır. Değişen bilgiyi canlı profilden yönetirsin.</p>
-          </div>
-          <div className="home-sales-comparison-table" role="table" aria-label="Klasik kartvizit ve Yenomi ID karşılaştırması">
-            <div className="home-sales-comparison-header" role="row"><span role="columnheader">Durum</span><span role="columnheader">Klasik kartvizit</span><span role="columnheader">Yenomi ID</span></div>
-            {comparisonRows.map(([label, classic, yenomi]) => (
-              <div className="home-sales-comparison-row" role="row" key={label}>
-                <strong role="rowheader">{label}</strong>
-                <span role="cell">{classic}</span>
-                <span role="cell"><Icon name="check" />{yenomi}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="home-sales-faq" aria-labelledby="faq-title">
-          <div className="home-sales-faq-intro">
-            <span className="home-mockup__kicker">SIK SORULANLAR</span>
-            <h2 id="faq-title">Satın almadan önce<br />bilmen gerekenler.</h2>
-          </div>
-          <div className="home-sales-faq-list">
-            {faqItems.map(([question, answer], index) => (
-              <details className="home-sales-faq-item" key={question} open={index === 0}>
-                <summary><span>{question}</span><i aria-hidden="true">+</i></summary>
-                <p>{answer}</p>
-              </details>
-            ))}
-          </div>
-          <div className="home-sales-support">
-            <span>Başka bir sorun mu var?</span>
-            <Link href="/destek">Yardım merkezine git <span aria-hidden>→</span></Link>
-          </div>
-        </section>
-
-        <section className="home-premium__final home-sales-final" aria-labelledby="final-title">
-          <span className="home-mockup__kicker">YENOMI ID PREMIUM</span>
-          <h2 id="final-title">Kartını paylaş.<br />Tanışmayı takip et.</h2>
-          <p>NFC + QR kartın ve canlı profilin hazır olsun. Premium ile kişi yönetimi, toplantı, sunum ve 500 Network Mail kredisi aynı pakette gelsin.</p>
-          <div className="home-sales-final-offer">
-            <strong>{premiumPrice}</strong>
-            <span>1 kart · 1 yıl platform üyeliği · 500 Network Mail · Türkiye içi kargo</span>
-          </div>
-          <div className="home-mockup__actions">
-            <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart?paket=premium">
-              Premium’u Seç <span aria-hidden>→</span>
-            </Link>
-          </div>
-        </section>
-      </main>
-
-      <aside className="home-sales-mobile-cta" aria-label="Premium hızlı satın alma">
-        <div className="home-sales-mobile-cta__offer">
-          <strong>{premiumPrice}</strong>
-          <span>Premium · 1 yıl dahil</span>
-        </div>
-        <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart?paket=premium">
-          Premium’u Seç <span aria-hidden>→</span>
-        </Link>
-      </aside>
-    </div>
-  );
-}
+export default function HomePage() { return <div className="home-mockup home-premium home-premium--hero-v2"><main id="main-content">
+<section className="home-mockup__hero home-premium__hero-v2 home-sales-hero" aria-labelledby="home-title"><div className="home-mockup__copy home-sales-copy"><span className="home-premium__hero-pill"><i aria-hidden="true" /> YENOMI ID PREMIUM · NFC + QR</span><h1 id="home-title">Bir kez basılır.<br /><span>Tanışma orada bitmez.</span></h1><p>Kartını paylaş, yeni bağlantını kaydet ve tanışma sonrasındaki takibi tek yerden sürdür.</p><div className="home-mockup__actions home-premium__hero-actions home-sales-actions"><Link className="home-mockup__button home-mockup__button--gold home-mockup__button--primary" href="/urunler/nfc-kart?paket=premium">Premium’u İncele <span aria-hidden>→</span></Link><Link className="home-premium__hero-secondary" href="#paths-title">Paketleri karşılaştır <span aria-hidden>↓</span></Link></div><div className="home-sales-offer"><strong>{premiumPrice} · ilk yıl dahil</strong><span>NFC + QR kart · kişi yönetimi · 500 Network Mail</span></div><div className="home-premium__hero-trust home-sales-trust">{heroTrust.map((item)=><span key={item}><Icon name="check" />{item}</span>)}</div></div><div className="home-sales-stage" aria-label="Yenomi ID Premium ürün görseli"><div className="home-sales-stage-label" aria-hidden="true">PREMIUM · NFC + QR · CANLI PROFİL</div><div className="home-sales-stage-glow" aria-hidden="true" /><div className="home-hero-specimens"><YenomiProductVisual variant="card" finish="matte" /><YenomiProductVisual variant="profile" compact /></div><div className="home-sales-capabilities" aria-hidden="true"><span>NFC</span><span>QR</span><span>Network Mail</span></div></div></section>
+<section className="home-premium__proof" aria-labelledby="proof-title"><div className="home-premium__proof-head"><span className="home-mockup__kicker">GÜVENİLİR VE KOLAY</span><h2 id="proof-title">Paylaşmak için uygulama gerekmez.</h2><p>NFC veya QR ile profil doğrudan açılır. Kartın 2 iş gününde hazırlanır ve ödeme iyzico üzerinden güvenle tamamlanır.</p></div><div className="home-premium__principles"><article><span>01</span><div><strong>Hızlı hazırlık</strong><p>Kartın 2 iş günü içinde kargoya hazırlanır.</p></div></article><article><span>02</span><div><strong>Uygulamasız paylaşım</strong><p>NFC veya QR ile dijital kartvizitin tarayıcıda açılır.</p></div></article><article><span>03</span><div><strong>Premium takip</strong><p>Tanıştığın kişiyi kaydet ve Network Mail ile iletişimi sürdür.</p></div></article></div></section>
+<section className="home-package-matrix" aria-labelledby="paths-title"><div className="home-package-matrix__head"><span className="home-mockup__kicker">BİREYSEL · PREMIUM · KURUMSAL</span><h2 id="paths-title">Hangisi sana uygun?</h2><p>Bireysel kartvizit paylaşımı için; Premium networking ve takip için; Kurumsal ekip yönetimi için.</p></div><div className="home-package-matrix__scroll"><div className="home-package-matrix__table" role="table" aria-label="Paket karşılaştırması"><div className="home-package-matrix__row home-package-matrix__header" role="row"><span role="columnheader" aria-label="Özellik" /><strong role="columnheader">Bireysel</strong><strong role="columnheader">Premium</strong><strong role="columnheader">Kurumsal</strong></div>{packageComparisonRows.map(([label,a,b,c])=><div className="home-package-matrix__row" role="row" key={label}><strong role="rowheader">{label}</strong><span role="cell">{a}</span><span role="cell">{b}</span><span role="cell">{c}</span></div>)}<div className="home-package-matrix__row home-package-matrix__actions" role="row"><span role="rowheader">Seç</span><span role="cell"><Link href="/urunler/nfc-kart?paket=individual">Bireysel’i İncele →</Link></span><span role="cell"><Link href="/urunler/nfc-kart?paket=premium">Premium’u Seç →</Link></span><span role="cell"><Link href="/kurumsal">Kurumsal Paketler →</Link></span></div></div></div></section>
+<section id="nasil-calisir" className="home-premium__journey" aria-labelledby="how-it-works-title"><div className="home-premium__journey-head"><span className="home-mockup__kicker">NASIL ÇALIŞIR</span><h2 id="how-it-works-title">Paylaş. Kaydet. Takip et.</h2><p>Premium, kartvizit paylaşımından tanışma sonrasındaki profesyonel takibe kadar tek akış sunar.</p></div><ol className="home-premium__journey-steps"><li><span>01</span><div><h3>Paylaş</h3><p>NFC veya QR ile güncel dijital kartvizitini aç.</p></div></li><li><span>02</span><div><h3>Bağlantıyı kaydet</h3><p>Tanıştığın kişileri ve görüşmelerini tek yerde tut.</p></div></li><li><span>03</span><div><h3>Takip et</h3><p>Network Mail ile görüşme sonrası iletişimi sürdür.</p></div></li></ol><div className="home-premium__journey-action"><p><strong><Link href="/nasil-calisir">Nasıl çalıştığını detaylı gör →</Link></strong></p></div></section>
+<section className="home-sales-comparison" aria-labelledby="comparison-title"><div className="home-sales-comparison-head"><span className="home-mockup__kicker">NEDEN YENOMI ID?</span><h2 id="comparison-title">Kart aynı kalır.<br />Profil güncel kalır.</h2></div><div className="home-sales-comparison-table" role="table"> <div className="home-sales-comparison-header" role="row"><span>Durum</span><span>Klasik kartvizit</span><span>Yenomi ID</span></div>{comparisonRows.map(([a,b,c])=><div className="home-sales-comparison-row" role="row" key={a}><strong>{a}</strong><span>{b}</span><span><Icon name="check" />{c}</span></div>)}</div></section>
+<section className="home-sales-faq" aria-labelledby="faq-title"><div className="home-sales-faq-intro"><span className="home-mockup__kicker">SIK SORULANLAR</span><h2 id="faq-title">Satın almadan önce bilmen gerekenler.</h2></div><div className="home-sales-faq-list">{faqItems.map(([q,a],i)=><details className="home-sales-faq-item" key={q} open={i===0}><summary><span>{q}</span><i aria-hidden="true">+</i></summary><p>{a}</p></details>)}</div><div className="home-sales-support"><Link href="/destek">Yardım merkezine git →</Link></div></section>
+<section className="home-premium__final home-sales-final" aria-labelledby="final-title"><span className="home-mockup__kicker">ÖNERİLEN · PREMIUM</span><h2 id="final-title">Tanışma kartvizitte bitmesin.</h2><p>NFC + QR kartvizit, kişi yönetimi ve 500 Network Mail tek pakette.</p><div className="home-sales-final-offer"><strong>{premiumPrice}</strong><span>1 kart · ilk yıl platform erişimi · 500 Network Mail · kargo dahil</span></div><div className="home-mockup__actions"><Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart?paket=premium">Premium’u Seç <span aria-hidden>→</span></Link></div></section>
+</main></div>; }

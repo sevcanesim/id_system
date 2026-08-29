@@ -103,8 +103,8 @@ export default function CartPage() {
                   <ProductCard
                     badge={<Badge>Kurumsal</Badge>}
                     title="Ekip Paketi"
-                    description="10–100 kişi için merkezi kart, lisans ve çalışan yönetimi. Kapasiteye göre fiyatı anında gör."
-                    price={<span>Kişi sayına göre hesaplanır</span>}
+                    description="2–100 kişi için merkezi kart, lisans ve çalışan yönetimi. Kapasiteye göre toplam yıllık fiyatı anında gör."
+                    price={<span>Ekip kapasitesine göre fiyatlandırılır</span>}
                     action={<ButtonLink href={audience === "corporate" ? "/kurumsal/panel/lisans" : "/kurumsal"} variant="secondary-strong">Ekip paketini incele</ButtonLink>}
                   />
                 </Grid>

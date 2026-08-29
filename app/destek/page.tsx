@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon, type IconName } from "../icons";
+import "./support-layout.css";
 
 export const metadata: Metadata = {
   title: "Yardım Merkezi — Yenomi ID",
@@ -10,12 +11,12 @@ export const metadata: Metadata = {
 type TopicId = "kart" | "profil" | "guvenlik" | "siparis" | "kurumsal" | "teknik";
 
 const topics: Array<{ id: TopicId; title: string; text: string; icon: IconName }> = [
-  { id: "kart", title: "Kart & Kurulum", text: "NFC’yi etkinleştir, QR’ı kullan, ilk profili yayınla.", icon: "nfc" },
-  { id: "profil", title: "Profil Yönetimi", text: "Unvan, telefon, bağlantı. Kart aynı kalır; sayfa güncellenir.", icon: "id" },
-  { id: "guvenlik", title: "Güvenlik & Gizlilik", text: "Kart numarası iyzico’da kalır. Kayıp modu profili kapatır.", icon: "shield" },
-  { id: "siparis", title: "Sipariş & Faturalandırma", text: "Ödeme, kargo, yenileme ve iade. Fiyat sunucuda doğrulanır.", icon: "box" },
-  { id: "kurumsal", title: "Kurumsal Çözümler", text: "Çalışan, şablon, lisans ve kart tek panelde.", icon: "building" },
-  { id: "teknik", title: "Teknik Destek", text: "NFC çalışmazsa QR. Hesap ve sipariş için doğru kanal.", icon: "headset" },
+  { id: "kart", title: "Kart & Kurulum", text: "NFC, QR ve ilk kullanım", icon: "nfc" },
+  { id: "profil", title: "Profil Yönetimi", text: "Bilgi ve bağlantı güncelleme", icon: "id" },
+  { id: "guvenlik", title: "Güvenlik & Gizlilik", text: "Kayıp modu ve ödeme güvenliği", icon: "shield" },
+  { id: "siparis", title: "Sipariş & Fatura", text: "Ödeme, kargo ve yenileme", icon: "box" },
+  { id: "kurumsal", title: "Kurumsal", text: "Çalışan, lisans ve ekip yönetimi", icon: "building" },
+  { id: "teknik", title: "Teknik Destek", text: "NFC, hesap ve erişim sorunları", icon: "headset" },
 ];
 
 const faqs: Array<{ topic: TopicId; question: string; answer: string }> = [
@@ -59,27 +60,28 @@ export default async function SupportPage({
 
   return (
     <main id="main-content" className="support-page">
-
       <section className="support-hero" aria-labelledby="support-title">
         <div className="support-hero-inner">
           <span className="section-kicker">YARDIM MERKEZİ</span>
-          <h1 id="support-title">Kart, hesap, sipariş.<br />Net cevaplar.</h1>
-          <p>Kayıp modu, kargo, iyzico ve panel. Kart numarası Yenomi’de saklanmaz.</p>
+          <h1 id="support-title">Aradığın cevaba<br />hızlıca ulaş.</h1>
+          <p>Kart, profil, sipariş, güvenlik ve kurumsal kullanım hakkında kısa ve net cevaplar.</p>
           <form className="support-search" role="search" action="/destek" method="get">
             <span className="support-search__icon" aria-hidden="true"><Icon name="search" /></span>
-            <input name="q" type="search" defaultValue={query} placeholder="Kayıp kart, kargo, ödeme…" aria-label="Yardım merkezinde ara" />
-            <button type="submit">Cevabı getir</button>
+            <input name="q" type="search" defaultValue={query} placeholder="Örn. kayıp kart, kargo, ödeme…" aria-label="Yardım merkezinde ara" />
+            <button type="submit">Ara</button>
           </form>
         </div>
       </section>
 
       <section className="support-main" aria-labelledby="support-topics-title">
         <div className="support-topics">
-          <div className="support-section-head">
-            <div><span className="section-kicker">KONULAR</span><h2 id="support-topics-title">Kart, ödeme, kayıp. Doğru kapı.</h2></div>
-            <p>Satın alma öncesi ve sonrası aynı netlikte: kargo, iyzico, kayıp modu, panel.</p>
+          <div className="support-section-head support-section-head--compact">
+            <div>
+              <span className="section-kicker">KONULAR</span>
+              <h2 id="support-topics-title">Hangi konuda yardıma ihtiyacın var?</h2>
+            </div>
           </div>
-          <div className="support-topic-grid">
+          <nav className="support-topic-grid" aria-label="Yardım konuları">
             {topics.map((topic) => (
               <Link className="support-topic-card" key={topic.id} href={`#konu-${topic.id}`}>
                 <TopicIcon value={topic.icon} />
@@ -87,15 +89,16 @@ export default async function SupportPage({
                 <span className="support-topic-arrow" aria-hidden="true">→</span>
               </Link>
             ))}
-          </div>
+          </nav>
         </div>
 
-        <aside className="support-faq" id="popular-questions" aria-labelledby="support-faq-title">
+        <div className="support-faq" id="popular-questions" aria-labelledby="support-faq-title">
           <div className="support-section-head support-section-head--faq">
             <div>
-              <span className="section-kicker">POPÜLER SORULAR</span>
-              <h2 id="support-faq-title">{query ? `“${query}” için sonuçlar` : "Karar vermeden önce bunlar net olsun."}</h2>
+              <span className="section-kicker">SIK SORULANLAR</span>
+              <h2 id="support-faq-title">{query ? `“${query}” için sonuçlar` : "En çok merak edilenler."}</h2>
             </div>
+            {!query && <p>Konuyu seçebilir veya aşağıdaki sorulardan doğrudan cevaba ulaşabilirsin.</p>}
           </div>
           {visibleFaqs.length === 0 ? (
             <div className="support-empty" role="status">
@@ -122,18 +125,17 @@ export default async function SupportPage({
               })}
             </div>
           )}
-        </aside>
+        </div>
       </section>
 
       <section className="support-contact" aria-label="Doğrudan destek">
-        <div><span className="section-kicker">DOĞRUDAN DESTEK</span><h2>Cevap burada yoksa doğrudan yazın.</h2></div>
-        <p>Sipariş veya kart kodunuzla yazın. Hesabınız varsa panele dönün; kart numarası bu ekranda da istenmez.</p>
+        <div><span className="section-kicker">DOĞRUDAN DESTEK</span><h2>Cevabı bulamadın mı?</h2></div>
+        <p>Sipariş veya kart kodunla bize yaz. Hesabın varsa paneline de doğrudan dönebilirsin.</p>
         <div className="support-contact-actions">
           <a href="mailto:hello@yenomilabs.com">Destek ekibine yaz <span aria-hidden="true">→</span></a>
           <Link href="/giris">Hesabıma dön</Link>
         </div>
       </section>
-
     </main>
   );
 }

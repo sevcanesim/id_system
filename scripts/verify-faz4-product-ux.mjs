@@ -6,8 +6,8 @@ check(header.includes('"Premium’u İncele"')&&header.includes('paket=premium')
 check(!header.includes('"NFC Kartı Satın Al"'),"retired NFC-first header CTA stays removed");
 check(home.includes("BİREYSEL · PREMIUM · KURUMSAL")&&home.includes("Premium’u Seç"),"homepage uses current three-way package IA");
 check(product.includes("Kartımı kaybedersem ne olur?")||product.includes("Kayıp modu"),"NFC PDP retains lost-card lifecycle copy");
-check(corporate.includes("corporate-pack-table")&&corporate.includes("Yenileme"),"corporate pricing keeps first-year and renewal columns");
-check(corporate.includes("Yenileme 1 yılın sonunda başlar")||corporate.includes("1 yıllık kullanım süresi sona erdiğinde"),"corporate renewal timing is explicit");
+check(corporate.includes("corporate-pack-table")&&corporate.includes("2. yıl ve sonrası"),"corporate pricing keeps first-year and renewal columns");
+check(corporate.includes("ilk 12 aylık kullanım tamamlandıktan sonra")&&corporate.includes("12 ay tamamlandıktan sonra"),"corporate renewal timing is explicit");
 check(how.includes("Kayıp")||how.includes("kayıp"),"how-it-works retains loss-control value");
 check(layout.includes('import "./styles/canonical-public.css";'),"public route composition is root-owned");
 check(!read("app/destek/page.tsx").includes(".css")&&!read("app/nasil-calisir/page.tsx").includes(".css"),"public routes do not import route-level CSS");

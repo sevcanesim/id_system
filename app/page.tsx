@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { NFC_PRODUCT, formatTryFromKurus } from "../lib/config/product";
+import { CORPORATE_PACKAGE_LADDER, INDIVIDUAL_PREMIUM_PLAN } from "../lib/commerce/packages";
 import { Icon } from "./icons";
 import { YenomiProductVisual } from "./ui/YenomiProductVisual";
 
@@ -11,8 +12,22 @@ export const metadata: Metadata = {
 };
 
 const initialPrice = formatTryFromKurus(NFC_PRODUCT.unitPriceKurus);
+const premiumPrice = formatTryFromKurus(INDIVIDUAL_PREMIUM_PLAN.priceKurus);
+const corporateEntryPrice = formatTryFromKurus(CORPORATE_PACKAGE_LADDER[0].priceKurus);
 
 const heroTrust = ["Türkiye içi kargo dahil", "2 iş gününde hazırlanır", "Uygulama gerekmez"];
+
+const packageComparisonRows = [
+  ["Fiyat", initialPrice, premiumPrice, `${corporateEntryPrice}’dan başlar`],
+  ["Ana amaç", "Dijital kartvizit", "Networking / satış", "Çalışan yönetimi"],
+  ["NFC + QR", "✓", "✓", "✓"],
+  ["Gelişmiş kişisel özellikler", "—", "✓", "Kurumsal araçlar"],
+  ["Lead toplama", "—", "✓", "Kurumsal akış"],
+  ["Merkezi çalışan yönetimi", "—", "—", "✓"],
+  ["Rol / departman / çalışan durumu", "—", "—", "✓"],
+  ["Kurumsal marka standardı", "—", "—", "✓"],
+  ["Toplu yönetim", "—", "—", "✓"],
+] as const;
 
 const comparisonRows = [
   ["Bilgilerin değişti", "Yeniden baskı gerekir", "Profili anında güncellersin"],
@@ -97,30 +112,35 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="home-premium__paths home-sales-paths" aria-labelledby="paths-title">
-          <div className="home-premium__paths-head">
-            <span className="home-mockup__kicker">BİREYSEL · KURUMSAL</span>
-            <h2 id="paths-title">Aynı sistem.<br />İki ölçek.</h2>
+        <section className="home-package-matrix" aria-labelledby="paths-title">
+          <div className="home-package-matrix__head">
+            <span className="home-mockup__kicker">BİREYSEL · PREMIUM · KURUMSAL</span>
+            <h2 id="paths-title">İhtiyacına göre doğru Yenomi ID.</h2>
+            <p>Üç paket aynı temel kimlik sistemini kullanır. Fark; kişisel networking araçları ile ekip yönetimi seviyesindedir.</p>
           </div>
-          <div className="home-premium__path-grid">
-            <article>
-              <span>BİREYSEL</span>
-              <h3>Tek kart. Her tanışmada güncel.</h3>
-              <p>Fiziksel NFC + QR kartın, canlı profilin ve KAYIP MODU. Kartın fiziksel bilgisi değişse bile yeniden baskı yok. Kaybolursa kapanır.</p>
-              <div className="home-sales-path-meta"><strong>{initialPrice}</strong><small>1 kart · 1 yıl dahil</small></div>
-              <Link className="home-mockup__button home-mockup__button--gold" href="/urunler/nfc-kart">
-                NFC Kartı Satın Al <span aria-hidden>→</span>
-              </Link>
-            </article>
-            <article>
-              <span>KURUMSAL</span>
-              <h3>Ekibin dijital kimliğini tek yerden yönet.</h3>
-              <p>Yeni çalışanı yayınla, bilgileri güncelle, ayrılan personelin kartını kapat. Kurumsal standardı ekip genelinde koru.</p>
-              <div className="home-sales-path-meta"><strong>Ekip paketleri</strong><small>Merkezi yönetim · rol ve yetki</small></div>
-              <Link className="home-mockup__button home-premium__path-secondary" href="/kurumsal">
-                Kurumsal Çözümleri Gör <span aria-hidden>→</span>
-              </Link>
-            </article>
+          <div className="home-package-matrix__scroll">
+            <div className="home-package-matrix__table" role="table" aria-label="Bireysel, Bireysel Premium ve Kurumsal paket karşılaştırması">
+              <div className="home-package-matrix__row home-package-matrix__header" role="row">
+                <span role="columnheader" aria-label="Özellik" />
+                <strong role="columnheader">Bireysel</strong>
+                <strong role="columnheader">Bireysel Premium</strong>
+                <strong role="columnheader">Kurumsal</strong>
+              </div>
+              {packageComparisonRows.map(([label, individual, premium, corporate]) => (
+                <div className="home-package-matrix__row" role="row" key={label}>
+                  <strong role="rowheader">{label}</strong>
+                  <span role="cell">{individual}</span>
+                  <span role="cell">{premium}</span>
+                  <span role="cell">{corporate}</span>
+                </div>
+              ))}
+              <div className="home-package-matrix__row home-package-matrix__actions" role="row">
+                <span role="rowheader">İncele</span>
+                <span role="cell"><Link href="/urunler/nfc-kart">Bireysel’i İncele →</Link></span>
+                <span role="cell"><Link href="/urunler/nfc-kart">Premium’u İncele →</Link></span>
+                <span role="cell"><Link href="/kurumsal">Kurumsal Paketler →</Link></span>
+              </div>
+            </div>
           </div>
         </section>
 

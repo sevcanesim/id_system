@@ -15,6 +15,7 @@ import "./ui-contract-v25.css";
 import "./kurumsal/panel/employee-action-first.css";
 import "./public-header-unified.css";
 import "./public-system.css";
+import "./styles/canonical-public.css";
 import HashScrollHandler from "./components/HashScrollHandler";
 import AuthSessionBridge from "./components/AuthSessionBridge";
 import MobilePurchaseDockController from "./components/MobilePurchaseDockController";

@@ -1,10 +1,10 @@
-/* Homepage — single visual contract.
- * This file loads last and owns homepage alignment, typography, rhythm and hero presentation.
+/* Homepage visual system reset.
+ * Loaded last: owns homepage alignment, typography, rhythm and presentation.
  */
 
 .home-mockup,
 .home-mockup main {
-  background: var(--surface-card);
+  background: #f8f7f4;
   color: var(--text-primary);
   font-family: var(--font-ui);
 }
@@ -44,7 +44,7 @@
 .home-sales-comparison,
 .home-sales-faq,
 .home-sales-final {
-  padding: var(--space-16) 0;
+  padding: 72px 0;
   border-top: 1px solid var(--border-subdued);
 }
 
@@ -71,10 +71,10 @@
 .home-sales-comparison-head h2,
 .home-sales-faq-intro h2,
 .home-sales-final h2 {
-  max-width: 680px;
+  max-width: 700px;
   margin: var(--space-2) 0 var(--space-3);
   color: var(--text-primary);
-  font-size: clamp(38px, 3.4vw, 48px);
+  font-size: clamp(38px, 3.2vw, 48px);
   font-weight: 650;
   line-height: 1.02;
   letter-spacing: -.035em;
@@ -107,13 +107,12 @@
   text-transform: uppercase;
 }
 
-/* Hero — same left rail as every section. */
 .home-mockup .home-sales-hero {
-  padding: var(--space-12) 0 var(--space-16);
+  padding: 64px 0 80px;
   display: grid;
-  grid-template-columns: minmax(0, .95fr) minmax(430px, 1.05fr);
+  grid-template-columns: minmax(0, .92fr) minmax(460px, 1.08fr);
   align-items: center;
-  gap: var(--space-12);
+  gap: 64px;
 }
 
 .home-mockup .home-sales-copy {
@@ -148,31 +147,28 @@
   margin-top: var(--space-5);
 }
 
-/* Product hero — one premium specimen, no fake phone composition. */
+/* Product specimen: the physical card is the hero, not the stage. */
 .home-mockup .home-sales-stage {
   position: relative;
-  min-height: 390px;
+  min-height: 360px;
   display: grid;
   place-items: center;
-  padding: 64px var(--space-8) 56px;
+  padding: 68px var(--space-8) 58px;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--brand-gold) 28%, transparent);
-  border-radius: var(--radius-xl);
-  background: var(--surface-dark-product);
-  box-shadow: var(--shadow-lg);
+  border: 1px solid color-mix(in srgb, var(--brand-gold) 24%, var(--border-subdued));
+  border-radius: 26px;
+  background:
+    radial-gradient(420px 240px at 82% 78%, color-mix(in srgb, var(--brand-gold) 12%, transparent), transparent 72%),
+    #f1eee8;
+  box-shadow: 0 24px 54px rgba(28, 23, 16, .08);
 }
 
 .home-mockup .home-sales-stage::after {
   content: "";
   position: absolute;
-  right: -18%;
-  bottom: -54%;
-  width: 70%;
-  aspect-ratio: 1;
-  border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--brand-gold) 20%, transparent);
-  filter: blur(72px);
-  opacity: .55;
+  inset: 16px;
+  border: 1px solid color-mix(in srgb, var(--brand-gold) 18%, transparent);
+  border-radius: 20px;
   pointer-events: none;
 }
 
@@ -183,14 +179,14 @@
 .home-sales-stage-label {
   top: var(--space-6);
   left: var(--space-6);
-  color: color-mix(in srgb, var(--text-inverse) 72%, var(--brand-gold));
+  color: var(--brand-gold-deep);
 }
 
 .home-hero-specimens {
   position: relative;
   z-index: 2;
-  width: min(100%, 500px);
-  height: 250px;
+  width: min(100%, 560px);
+  height: 230px;
   display: grid;
   place-items: center;
   margin-inline: auto;
@@ -199,9 +195,10 @@
 .home-hero-specimens > .yi-product-ui--card {
   position: relative;
   inset: auto;
-  width: min(88%, 440px);
-  transform: none;
-  box-shadow: var(--shadow-product);
+  width: min(96%, 520px);
+  transform: rotate(-2.5deg);
+  transform-origin: center;
+  box-shadow: 0 30px 50px rgba(12, 10, 8, .26), 0 8px 18px rgba(12, 10, 8, .16);
 }
 
 .home-hero-specimens > .yi-product-ui--profile {
@@ -215,37 +212,41 @@
 }
 
 .home-sales-capabilities span {
-  border-color: color-mix(in srgb, var(--text-inverse) 18%, transparent);
-  background: color-mix(in srgb, var(--surface-dark-product) 78%, transparent);
-  color: color-mix(in srgb, var(--text-inverse) 84%, var(--brand-gold));
+  border-color: color-mix(in srgb, var(--brand-gold) 20%, var(--border-subdued));
+  background: rgba(255, 255, 255, .82);
+  color: var(--text-primary);
   backdrop-filter: blur(10px);
 }
 
-/* Reusable card grammar. */
-.home-premium__principles,
-.home-premium__journey-steps {
+/* Trust proof: benefit strip, not three floating SaaS cards. */
+.home-premium__principles {
   width: 100%;
   max-width: none;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-4);
+  gap: 0;
   margin: 0;
   padding: 0;
+  border-top: 1px solid var(--border-subdued);
+  border-bottom: 1px solid var(--border-subdued);
 }
 
-.home-premium__principles article,
-.home-premium__journey-steps li {
+.home-premium__principles article {
   min-width: 0;
   min-height: 0;
-  padding: var(--space-6);
-  border: 1px solid var(--border-subdued);
-  border-radius: var(--radius-lg);
-  background: var(--surface-card);
+  padding: var(--space-6) var(--space-7);
+  border: 0;
+  border-right: 1px solid var(--border-subdued);
+  border-radius: 0;
+  background: transparent;
   box-shadow: none;
 }
 
-.home-premium__principles article strong,
-.home-premium__journey-steps h3 {
+.home-premium__principles article:last-child {
+  border-right: 0;
+}
+
+.home-premium__principles article strong {
   color: var(--text-primary);
   font-size: 20px;
   font-weight: 650;
@@ -253,47 +254,38 @@
   letter-spacing: -.025em;
 }
 
-.home-premium__principles article p,
-.home-premium__journey-steps p {
+.home-premium__principles article p {
   margin-bottom: 0;
   color: var(--text-secondary);
   font-size: var(--type-body-sm);
   line-height: 1.55;
 }
 
-.home-premium__journey-action {
-  width: 100%;
-  max-width: none;
-  margin-top: var(--space-5);
-  padding-top: var(--space-5);
-  border-top: 1px solid var(--border-subdued);
-}
-
-/* Individual / corporate. */
+/* Individual / corporate choice architecture. */
 .home-sales-paths .home-premium__path-grid {
   width: 100%;
   max-width: none;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
-  gap: var(--space-4);
+  gap: var(--space-5);
 }
 
 .home-sales-paths article {
   height: 100%;
-  min-height: 300px;
+  min-height: 280px;
   display: flex;
   flex-direction: column;
   padding: var(--space-8);
   border: 1px solid var(--border-subdued);
-  border-radius: var(--radius-lg);
+  border-radius: 22px;
   background: var(--surface-card);
-  box-shadow: none;
+  box-shadow: 0 14px 32px rgba(28, 23, 16, .04);
 }
 
 .home-sales-paths article:first-child {
-  border-color: color-mix(in srgb, var(--brand-gold) 34%, var(--border-subdued));
-  background: var(--surface-accent);
+  border-color: color-mix(in srgb, var(--brand-gold) 36%, var(--border-subdued));
+  background: #f3efe8;
 }
 
 .home-sales-paths article h3 {
@@ -322,7 +314,52 @@
   margin-top: 0;
 }
 
-/* Comparison. */
+/* Journey: lighter step rail, less card repetition. */
+.home-premium__journey-steps {
+  width: 100%;
+  max-width: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+}
+
+.home-premium__journey-steps li {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  padding: var(--space-6) 0 0;
+  border: 0;
+  border-top: 2px solid color-mix(in srgb, var(--brand-gold) 34%, var(--border-subdued));
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.home-premium__journey-steps h3 {
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -.025em;
+}
+
+.home-premium__journey-steps p {
+  margin-bottom: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-body-sm);
+  line-height: 1.55;
+}
+
+.home-premium__journey-action {
+  width: 100%;
+  max-width: none;
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border-subdued);
+}
+
 .home-sales-comparison-head {
   display: block;
 }
@@ -337,8 +374,9 @@
 .home-sales-comparison-table {
   overflow: hidden;
   border: 1px solid var(--border-subdued);
-  border-radius: var(--radius-lg);
+  border-radius: 22px;
   background: var(--surface-card);
+  box-shadow: 0 14px 32px rgba(28, 23, 16, .04);
 }
 
 .home-sales-comparison-header,
@@ -346,11 +384,10 @@
   grid-template-columns: .82fr 1fr 1.12fr;
 }
 
-/* FAQ keeps the same left rail but no giant dead zone. */
 .home-sales-faq {
   display: grid;
-  grid-template-columns: minmax(300px, .78fr) minmax(0, 1.22fr);
-  column-gap: var(--space-12);
+  grid-template-columns: minmax(300px, .82fr) minmax(0, 1.18fr);
+  column-gap: 72px;
   align-items: start;
 }
 
@@ -364,7 +401,7 @@
 }
 
 .home-sales-faq-item summary {
-  min-height: 68px;
+  min-height: 66px;
 }
 
 .home-sales-faq-item summary i {
@@ -377,8 +414,13 @@
   grid-column: 2;
 }
 
-/* Final conversion block follows the same grid. */
+/* Final CTA is a deliberate conversion surface. */
 .home-sales-final {
+  margin-bottom: 72px;
+  padding: 56px;
+  border: 1px solid color-mix(in srgb, var(--brand-gold) 24%, var(--border-subdued));
+  border-radius: 24px;
+  background: #f1eee8;
   text-align: left;
 }
 
@@ -428,27 +470,32 @@
 
   .home-mockup .home-sales-stage {
     width: 100%;
-    max-width: 680px;
-    min-height: 360px;
+    max-width: 720px;
+    min-height: 340px;
   }
 
   .home-premium__proof,
   .home-sales-paths,
   .home-premium__journey,
   .home-sales-comparison,
-  .home-sales-faq,
-  .home-sales-final {
+  .home-sales-faq {
     padding-top: var(--space-12);
     padding-bottom: var(--space-12);
   }
 
   .home-premium__principles,
-  .home-premium__journey-steps {
+  .home-premium__journey-steps,
+  .home-sales-paths .home-premium__path-grid {
     grid-template-columns: 1fr;
   }
 
-  .home-sales-paths .home-premium__path-grid {
-    grid-template-columns: 1fr;
+  .home-premium__principles article {
+    border-right: 0;
+    border-bottom: 1px solid var(--border-subdued);
+  }
+
+  .home-premium__principles article:last-child {
+    border-bottom: 0;
   }
 
   .home-sales-paths article {
@@ -460,12 +507,12 @@
     row-gap: var(--space-6);
   }
 
-  .home-sales-faq-intro {
-    margin-bottom: 0;
-  }
-
   .home-sales-support {
     grid-column: 1;
+  }
+
+  .home-sales-final {
+    padding: var(--space-10);
   }
 }
 
@@ -520,23 +567,27 @@
   }
 
   .home-mockup .home-sales-stage {
-    min-height: 300px;
-    padding: 56px var(--space-4) 48px;
-    border-radius: var(--radius-lg);
+    min-height: 280px;
+    padding: 54px var(--space-4) 44px;
+    border-radius: 20px;
   }
 
   .home-hero-specimens {
-    height: 190px;
+    height: 180px;
   }
 
   .home-hero-specimens > .yi-product-ui--card {
-    width: 92%;
+    width: 96%;
+    transform: rotate(-1.5deg);
   }
 
   .home-premium__principles article,
-  .home-premium__journey-steps li,
   .home-sales-paths article {
     padding: var(--space-5);
+  }
+
+  .home-premium__journey-steps li {
+    padding-top: var(--space-5);
   }
 
   .home-sales-paths article .home-mockup__button,
@@ -556,6 +607,13 @@
     gap: var(--space-3);
   }
 
+  .home-sales-final {
+    width: calc(100% - 32px);
+    margin-bottom: var(--space-8);
+    padding: var(--space-8) var(--space-5);
+    border-radius: 20px;
+  }
+
   .home-sales-final-offer {
     flex-direction: column;
     align-items: flex-start;
@@ -570,8 +628,7 @@
   .home-sales-paths,
   .home-premium__journey,
   .home-sales-comparison,
-  .home-sales-faq,
-  .home-sales-final {
+  .home-sales-faq {
     padding-left: var(--space-4);
     padding-right: var(--space-4);
   }

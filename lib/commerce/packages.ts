@@ -76,13 +76,13 @@ export const INDIVIDUAL_PREMIUM_UPGRADE_PLAN = {
 } as const;
 
 export const CORPORATE_PACKAGE_LADDER = [
-  { code: "CORP-2", name: "Kurumsal 2", seats: 2, priceKurus: 349_000 },
-  { code: "CORP-3", name: "Kurumsal 3", seats: 3, priceKurus: 499_000 },
-  { code: "CORP-5", name: "Kurumsal 5", seats: 5, priceKurus: 749_000 },
-  { code: "CORP-10", name: "Kurumsal 10", seats: 10, priceKurus: 1_290_000 },
-  { code: "CORP-25", name: "Kurumsal 25", seats: 25, priceKurus: 2_990_000, popular: true },
-  { code: "CORP-50", name: "Kurumsal 50", seats: 50, priceKurus: 5_490_000 },
-  { code: "CORP-100", name: "Kurumsal 100", seats: 100, priceKurus: 9_990_000 },
+  { code: "CORP-2", name: "Kurumsal 2", seats: 2, priceKurus: 549_000 },
+  { code: "CORP-3", name: "Kurumsal 3", seats: 3, priceKurus: 749_000 },
+  { code: "CORP-5", name: "Kurumsal 5", seats: 5, priceKurus: 1_199_000 },
+  { code: "CORP-10", name: "Kurumsal 10", seats: 10, priceKurus: 2_190_000, popular: true },
+  { code: "CORP-25", name: "Kurumsal 25", seats: 25, priceKurus: 4_990_000 },
+  { code: "CORP-50", name: "Kurumsal 50", seats: 50, priceKurus: 8_990_000 },
+  { code: "CORP-100", name: "Kurumsal 100", seats: 100, priceKurus: 15_990_000 },
 ] as const;
 
 /** Left the public ladder. Existing tenants keep the plan code; new sales are off. */
@@ -137,9 +137,9 @@ export const CAMPAIGN_MAIL_STAGE = "COMING_SOON" as const;
 
 /** Mid-cycle seat top-ups. Priced so buying the next official pack stays cheaper. */
 export const BUSINESS_SEAT_PACKS = [
-  { sku: "YENOMI-BUSINESS-SEATS-1", seats: 1, priceKurus: 229_000, name: "Ek 1 Kullanıcı + Kart" },
-  { sku: "YENOMI-BUSINESS-SEATS-5", seats: 5, priceKurus: 949_000, name: "Ek 5 Kullanıcı + Kart" },
-  { sku: "YENOMI-BUSINESS-SEATS-10", seats: 10, priceKurus: 1_699_000, name: "Ek 10 Kullanıcı + Kart" },
+  { sku: "YENOMI-BUSINESS-SEATS-1", seats: 1, priceKurus: 279_000, name: "Ek 1 Kullanıcı + Kart" },
+  { sku: "YENOMI-BUSINESS-SEATS-5", seats: 5, priceKurus: 1_099_000, name: "Ek 5 Kullanıcı + Kart" },
+  { sku: "YENOMI-BUSINESS-SEATS-10", seats: 10, priceKurus: 1_999_000, name: "Ek 10 Kullanıcı + Kart" },
 ] as const;
 
 export function isSeatPackSku(sku: string | null | undefined): boolean {

@@ -1,10 +1,7 @@
 import fs from "node:fs";
 
-if (fs.existsSync("app/globals.css")) {
-  throw new Error("Retired app/globals.css must stay deleted; contrast lives in canonical.css.");
-}
-
-const css = fs.readFileSync("app/canonical.css", "utf8");
+if (fs.existsSync("app/globals.css")) throw new Error("Retired app/globals.css must stay deleted.");
+const css = ["app/canonical.css", "app/styles/canonical-public.css"].filter(fs.existsSync).map((file) => fs.readFileSync(file, "utf8")).join("\n");
 const checks = [
   ["home footer copy contrast", ".yi-footer-brand p"],
   ["global CTA contrast", ".global-header-cta {"],
@@ -15,12 +12,9 @@ const checks = [
 ];
 let failed = false;
 for (const [label, needle] of checks) {
-  if (!css.includes(needle)) {
-    console.error(`FAIL  ${label}`);
-    failed = true;
-  } else {
-    console.log(`PASS  ${label}`);
-  }
+  const ok = css.includes(needle);
+  console.log(`${ok ? "PASS" : "FAIL"}  ${label}`);
+  if (!ok) failed = true;
 }
 if (failed) process.exit(1);
 console.log("\nFAZ 3 final contrast contract passed.");

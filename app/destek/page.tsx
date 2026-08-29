@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon, type IconName } from "../icons";
-import "./support-layout.css";
 
 export const metadata: Metadata = {
   title: "Yardım Merkezi — Yenomi ID",
@@ -34,108 +33,22 @@ const faqs: Array<{ topic: TopicId; question: string; answer: string }> = [
   { topic: "teknik", question: "Hesabıma nasıl girerim?", answer: "Giriş sayfasından bireysel veya kurumsal / ekip bağlamını seçerek e-posta ve şifrenizle oturum açın. Şifrenizi unuttuysanız aynı ekrandan güvenli yenileme bağlantısı isteyebilirsiniz." },
 ];
 
-function TopicIcon({ value }: { value: IconName }) {
-  return <span className="support-topic-icon" aria-hidden="true"><Icon name={value} variant="line" /></span>;
-}
+function TopicIcon({ value }: { value: IconName }) { return <span className="support-topic-icon" aria-hidden="true"><Icon name={value} variant="line" /></span>; }
+function matchesQuery(query: string, topicTitle: string, question: string, answer: string) { if (!query) return true; return `${topicTitle} ${question} ${answer}`.toLocaleLowerCase("tr").includes(query); }
 
-function matchesQuery(query: string, topicTitle: string, question: string, answer: string) {
-  if (!query) return true;
-  const haystack = `${topicTitle} ${question} ${answer}`.toLocaleLowerCase("tr");
-  return haystack.includes(query);
-}
-
-export default async function SupportPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string | string[] }>;
-}) {
+export default async function SupportPage({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {
   const params = await searchParams;
   const rawQuery = Array.isArray(params.q) ? params.q[0] : params.q;
   const query = (rawQuery ?? "").trim();
   const normalized = query.toLocaleLowerCase("tr");
-  const visibleFaqs = faqs.filter((item) => {
-    const topic = topics.find((entry) => entry.id === item.topic);
-    return matchesQuery(normalized, topic?.title ?? "", item.question, item.answer);
-  });
-
+  const visibleFaqs = faqs.filter((item) => { const topic = topics.find((entry) => entry.id === item.topic); return matchesQuery(normalized, topic?.title ?? "", item.question, item.answer); });
   return (
     <main id="main-content" className="support-page">
-      <section className="support-hero" aria-labelledby="support-title">
-        <div className="support-hero-inner">
-          <span className="section-kicker">YARDIM MERKEZİ</span>
-          <h1 id="support-title">Aradığın cevaba<br />hızlıca ulaş.</h1>
-          <p>Kart, profil, sipariş, güvenlik ve kurumsal kullanım hakkında kısa ve net cevaplar.</p>
-          <form className="support-search" role="search" action="/destek" method="get">
-            <span className="support-search__icon" aria-hidden="true"><Icon name="search" /></span>
-            <input name="q" type="search" defaultValue={query} placeholder="Örn. kayıp kart, kargo, ödeme…" aria-label="Yardım merkezinde ara" />
-            <button type="submit">Ara</button>
-          </form>
-        </div>
+      <section className="support-hero" aria-labelledby="support-title"><div className="support-hero-inner"><span className="section-kicker">YARDIM MERKEZİ</span><h1 id="support-title">Aradığın cevaba<br />hızlıca ulaş.</h1><p>Kart, profil, sipariş, güvenlik ve kurumsal kullanım hakkında kısa ve net cevaplar.</p><form className="support-search" role="search" action="/destek" method="get"><span className="support-search__icon" aria-hidden="true"><Icon name="search" /></span><input name="q" type="search" defaultValue={query} placeholder="Örn. kayıp kart, kargo, ödeme…" aria-label="Yardım merkezinde ara" /><button type="submit">Ara</button></form></div></section>
+      <section className="support-main" aria-labelledby="support-topics-title"><div className="support-topics"><div className="support-section-head support-section-head--compact"><div><span className="section-kicker">KONULAR</span><h2 id="support-topics-title">Hangi konuda yardıma ihtiyacın var?</h2></div></div><nav className="support-topic-grid" aria-label="Yardım konuları">{topics.map((topic) => <Link className="support-topic-card" key={topic.id} href={`#konu-${topic.id}`}><TopicIcon value={topic.icon} /><div><h3>{topic.title}</h3><p>{topic.text}</p></div><span className="support-topic-arrow" aria-hidden="true">→</span></Link>)}</nav></div>
+        <div className="support-faq" id="popular-questions" aria-labelledby="support-faq-title"><div className="support-section-head support-section-head--faq"><div><span className="section-kicker">SIK SORULANLAR</span><h2 id="support-faq-title">{query ? `“${query}” için sonuçlar` : "En çok merak edilenler."}</h2></div>{!query && <p>Konuyu seçebilir veya aşağıdaki sorulardan doğrudan cevaba ulaşabilirsin.</p>}</div>{visibleFaqs.length === 0 ? <div className="support-empty" role="status"><p>“{query}” için kayıtlı bir yardım maddesi yok.</p><a className="home-mockup__link-secondary" href="mailto:hello@yenomilabs.com">Destek ekibine yaz</a><Link className="home-mockup__link-secondary" href="/urunler/nfc-kart?paket=premium">Premium’u İncele</Link></div> : <div className="support-faq-list">{topics.map((topic) => { const items = visibleFaqs.filter((item) => item.topic === topic.id); if (!items.length) return null; return <section className="support-faq-group" key={topic.id} id={`konu-${topic.id}`} aria-labelledby={`konu-${topic.id}-title`}><h3 id={`konu-${topic.id}-title`}>{topic.title}</h3>{items.map((item) => <details key={item.question} open={Boolean(query)}><summary>{item.question}<span aria-hidden="true">+</span></summary><p>{item.answer}</p></details>)}</section>; })}</div>}</div>
       </section>
-
-      <section className="support-main" aria-labelledby="support-topics-title">
-        <div className="support-topics">
-          <div className="support-section-head support-section-head--compact">
-            <div>
-              <span className="section-kicker">KONULAR</span>
-              <h2 id="support-topics-title">Hangi konuda yardıma ihtiyacın var?</h2>
-            </div>
-          </div>
-          <nav className="support-topic-grid" aria-label="Yardım konuları">
-            {topics.map((topic) => (
-              <Link className="support-topic-card" key={topic.id} href={`#konu-${topic.id}`}>
-                <TopicIcon value={topic.icon} />
-                <div><h3>{topic.title}</h3><p>{topic.text}</p></div>
-                <span className="support-topic-arrow" aria-hidden="true">→</span>
-              </Link>
-            ))}
-          </nav>
-        </div>
-
-        <div className="support-faq" id="popular-questions" aria-labelledby="support-faq-title">
-          <div className="support-section-head support-section-head--faq">
-            <div>
-              <span className="section-kicker">SIK SORULANLAR</span>
-              <h2 id="support-faq-title">{query ? `“${query}” için sonuçlar` : "En çok merak edilenler."}</h2>
-            </div>
-            {!query && <p>Konuyu seçebilir veya aşağıdaki sorulardan doğrudan cevaba ulaşabilirsin.</p>}
-          </div>
-          {visibleFaqs.length === 0 ? (
-            <div className="support-empty" role="status">
-              <p>“{query}” için kayıtlı bir yardım maddesi yok.</p>
-              <a className="home-mockup__link-secondary" href="mailto:hello@yenomilabs.com">Destek ekibine yaz</a>
-              <Link className="home-mockup__link-secondary" href="/urunler/nfc-kart">NFC Kartı Satın Al</Link>
-            </div>
-          ) : (
-            <div className="support-faq-list">
-              {topics.map((topic) => {
-                const items = visibleFaqs.filter((item) => item.topic === topic.id);
-                if (!items.length) return null;
-                return (
-                  <section className="support-faq-group" key={topic.id} id={`konu-${topic.id}`} aria-labelledby={`konu-${topic.id}-title`}>
-                    <h3 id={`konu-${topic.id}-title`}>{topic.title}</h3>
-                    {items.map((item) => (
-                      <details key={item.question} open={Boolean(query)}>
-                        <summary>{item.question}<span aria-hidden="true">+</span></summary>
-                        <p>{item.answer}</p>
-                      </details>
-                    ))}
-                  </section>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>
-
-      <section className="support-contact" aria-label="Doğrudan destek">
-        <div><span className="section-kicker">DOĞRUDAN DESTEK</span><h2>Cevabı bulamadın mı?</h2></div>
-        <p>Sipariş veya kart kodunla bize yaz. Hesabın varsa paneline de doğrudan dönebilirsin.</p>
-        <div className="support-contact-actions">
-          <a href="mailto:hello@yenomilabs.com">Destek ekibine yaz <span aria-hidden="true">→</span></a>
-          <Link href="/giris">Hesabıma dön</Link>
-        </div>
-      </section>
+      <section className="support-contact" aria-label="Doğrudan destek"><div><span className="section-kicker">DOĞRUDAN DESTEK</span><h2>Cevabı bulamadın mı?</h2></div><p>Sipariş veya kart kodunla bize yaz. Hesabın varsa paneline de doğrudan dönebilirsin.</p><div className="support-contact-actions"><a href="mailto:hello@yenomilabs.com">Destek ekibine yaz <span aria-hidden="true">→</span></a><Link href="/giris">Hesabıma dön</Link></div></section>
     </main>
   );
 }

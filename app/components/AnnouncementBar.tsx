@@ -1,21 +1,19 @@
-/**
- * Quiet, static purchase-confidence strip for public browsing chrome.
- * Checkout and other quiet routes hide this strip via PublicSiteShell.
- */
-const ITEMS = [
-  "Türkiye içi kargo dahil",
-  "2 iş gününde hazırlanır",
-  "Güvenli iyzico ödeme",
-] as const;
+import { Icon, type IconName } from "../icons";
+
+const ITEMS: ReadonlyArray<{ label: string; icon: IconName }> = [
+  { label: "Türkiye içi kargo dahil", icon: "box" },
+  { label: "2 iş gününde hazırlanır", icon: "clock" },
+  { label: "Güvenli iyzico ödeme", icon: "lock" },
+];
 
 export default function AnnouncementBar() {
   return (
     <div className="yi-brand-marquee yi-brand-marquee--static" role="note" aria-label="Kargo, hazırlık süresi ve güvenli ödeme bilgileri">
       <div className="yi-brand-marquee__static-inner">
-        {ITEMS.map((item, index) => (
-          <span className="yi-brand-marquee__static-item" key={item}>
-            {index > 0 ? <i aria-hidden="true" /> : null}
-            <strong>{item}</strong>
+        {ITEMS.map((item) => (
+          <span className="yi-brand-marquee__static-item" key={item.label}>
+            <Icon name={item.icon} />
+            <strong>{item.label}</strong>
           </span>
         ))}
       </div>

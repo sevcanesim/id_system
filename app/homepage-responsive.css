@@ -1,36 +1,50 @@
-/* Homepage responsive hardening.
- * Loaded after homepage.css so current homepage rules remain the source of truth,
- * while legacy canonical homepage generations cannot re-introduce spacing or sizing drift.
+/* Homepage responsive hardening + visual coherence layer.
+ * Loaded last so legacy homepage generations cannot re-introduce drift.
  */
 
+.home-mockup,
+.home-mockup main {
+  background: var(--background);
+  color: var(--text-primary);
+}
+
+.home-sales-hero,
 .home-premium__proof,
-.home-premium__journey,
 .home-sales-paths,
+.home-premium__journey,
 .home-sales-comparison,
-.home-sales-faq {
+.home-sales-faq,
+.home-sales-final {
+  width: min(calc(100% - 48px), var(--container-content));
+  margin-inline: auto;
   min-height: 0;
 }
 
 .home-premium__proof,
-.home-premium__journey {
-  width: min(calc(100% - 48px), var(--container-content));
-  margin-inline: auto;
+.home-sales-paths,
+.home-premium__journey,
+.home-sales-comparison,
+.home-sales-faq,
+.home-sales-final {
   padding: var(--space-20) 0;
+  background: transparent;
+  border-top: 1px solid var(--border-subdued);
 }
 
 .home-premium__proof-head,
-.home-premium__principles,
+.home-premium__paths-head,
 .home-premium__journey-head,
-.home-premium__journey-steps,
-.home-premium__journey-action {
+.home-sales-comparison-head,
+.home-sales-faq-intro {
   width: 100%;
-  max-width: none;
+  max-width: 760px;
+  margin: 0 0 var(--space-10);
+  text-align: left;
 }
 
 .home-premium__proof-head,
 .home-premium__journey-head {
   display: block;
-  margin-bottom: var(--space-10);
 }
 
 .home-premium__proof-head h2,
@@ -39,32 +53,153 @@
 .home-sales-comparison-head h2,
 .home-sales-faq-intro h2,
 .home-sales-final h2 {
+  max-width: 720px;
+  margin: var(--space-2) 0 var(--space-3);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: clamp(36px, 3.8vw, 52px);
+  font-weight: 620;
+  line-height: 1;
+  letter-spacing: -.035em;
   text-wrap: balance;
   overflow-wrap: normal;
   word-break: normal;
   hyphens: none;
 }
 
-.home-premium__proof-head h2,
-.home-premium__journey-head h2 {
-  max-width: 760px;
-  margin: var(--space-2) 0 var(--space-3);
-  font-size: clamp(42px, 4vw, 60px);
-  line-height: .98;
-  letter-spacing: -.035em;
-  font-weight: 620;
-}
-
 .home-premium__proof-head > p,
-.home-premium__journey-head > p {
+.home-premium__journey-head > p,
+.home-sales-comparison-head > p,
+.home-sales-final > p {
   max-width: 620px;
   margin: 0;
+  color: var(--text-secondary);
   font-size: var(--type-body);
   line-height: 1.6;
 }
 
+.home-mockup__kicker,
+.home-premium__hero-pill,
+.home-sales-stage-label,
+.home-sales-paths article > span:first-child {
+  color: var(--brand-gold-deep);
+  font-family: var(--font-ui);
+  font-size: var(--type-xs);
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+/* Hero: one visual language, no washed-out specimen panel. */
+.home-sales-hero {
+  padding: var(--space-16) 0 var(--space-20);
+  display: grid;
+  grid-template-columns: minmax(0, .92fr) minmax(460px, 1.08fr);
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.home-sales-copy {
+  max-width: 580px;
+}
+
+.home-sales-copy h1 {
+  max-width: 600px;
+  margin: var(--space-4) 0 var(--space-5);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: clamp(52px, 5vw, 72px);
+  font-weight: 620;
+  line-height: .96;
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+
+.home-sales-stage {
+  position: relative;
+  min-height: 460px;
+  padding: 58px var(--space-8) var(--space-10);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--brand-gold) 26%, transparent);
+  border-radius: var(--radius-xl);
+  background: var(--surface-dark-product);
+  box-shadow: var(--shadow-lg);
+}
+
+.home-sales-stage::after {
+  content: "";
+  position: absolute;
+  inset: auto -12% -38% 24%;
+  width: 72%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--brand-gold) 22%, transparent);
+  filter: blur(78px);
+  opacity: .62;
+  pointer-events: none;
+}
+
+.home-sales-stage-label {
+  top: var(--space-6);
+  left: var(--space-6);
+  color: color-mix(in srgb, var(--text-inverse) 66%, var(--brand-gold));
+}
+
+.home-sales-stage-glow {
+  display: none;
+}
+
+.home-hero-specimens {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 520px);
+  height: 340px;
+  margin-inline: auto;
+}
+
+.home-hero-specimens > .yi-product-ui--card {
+  position: absolute;
+  top: 18px;
+  left: 0;
+  width: min(74%, 380px);
+  transform: rotate(-2deg);
+  transform-origin: center;
+  box-shadow: var(--shadow-product);
+}
+
+.home-hero-specimens > .yi-product-ui--profile {
+  position: absolute;
+  right: 0;
+  bottom: -8px;
+  width: min(48%, 245px);
+  max-height: 310px;
+  overflow: hidden;
+  border: 6px solid color-mix(in srgb, var(--surface-dark-product) 88%, var(--text-inverse));
+  border-radius: 28px;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-product);
+  transform: rotate(1.5deg);
+}
+
+.home-sales-capabilities {
+  z-index: 4;
+  left: var(--space-6);
+  bottom: var(--space-5);
+}
+
+.home-sales-capabilities span {
+  border-color: color-mix(in srgb, var(--text-inverse) 18%, transparent);
+  background: color-mix(in srgb, var(--surface-dark-product) 76%, transparent);
+  color: color-mix(in srgb, var(--text-inverse) 82%, var(--brand-gold));
+  backdrop-filter: blur(12px);
+}
+
+/* Proof and steps use the same card grammar. */
 .home-premium__principles,
 .home-premium__journey-steps {
+  width: 100%;
+  max-width: none;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-4);
@@ -76,27 +211,107 @@
 .home-premium__journey-steps li {
   min-width: 0;
   min-height: 0;
-}
-
-.home-premium__journey-steps li {
   padding: var(--space-6);
+  border: 1px solid var(--border-subdued);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-xs);
 }
 
 .home-premium__journey-action {
+  width: 100%;
+  max-width: none;
   margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border-subdued);
 }
 
+/* Individual / corporate: aligned header, equal cards, aligned actions. */
 .home-sales-paths .home-premium__path-grid {
+  width: 100%;
+  max-width: none;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: var(--space-4);
+}
+
+.home-sales-paths article {
+  height: 100%;
+  min-height: 360px;
+  padding: var(--space-8);
+  border: 1px solid var(--border-subdued);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-xs);
+}
+
+.home-sales-paths article:first-child {
+  border-color: color-mix(in srgb, var(--brand-gold) 32%, var(--border-subdued));
+  background: var(--surface-accent);
+}
+
+.home-sales-paths article h3 {
+  margin: var(--space-5) 0 var(--space-4);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: var(--type-h3);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -.02em;
+}
+
+.home-sales-path-meta {
+  margin-top: auto;
 }
 
 .home-sales-paths article .home-mockup__button {
   align-self: flex-start;
   min-height: 48px;
+  margin-top: var(--space-2);
+}
+
+/* Comparison: keep the title and descriptor in one left-aligned hierarchy. */
+.home-sales-comparison-head {
+  display: block;
+}
+
+.home-sales-comparison-head > span,
+.home-sales-comparison-head h2,
+.home-sales-comparison-head p {
+  grid-column: auto;
+  grid-row: auto;
+}
+
+.home-sales-comparison-table {
+  border: 1px solid var(--border-subdued);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+}
+
+.home-sales-comparison-header,
+.home-sales-comparison-row {
+  grid-template-columns: .82fr 1fr 1.12fr;
+}
+
+/* FAQ: consistent left rail and less empty dead space. */
+.home-sales-faq {
+  display: grid;
+  grid-template-columns: minmax(280px, .72fr) minmax(0, 1.28fr);
+  column-gap: var(--space-16);
+  align-items: start;
+}
+
+.home-sales-faq-intro {
+  position: static;
+  margin-bottom: 0;
+}
+
+.home-sales-faq-list {
+  border-top: 1px solid var(--border-subdued);
 }
 
 .home-sales-faq-item summary {
-  min-height: 68px;
+  min-height: 72px;
 }
 
 .home-sales-faq-item summary i {
@@ -105,13 +320,61 @@
   flex-basis: 44px;
 }
 
+.home-sales-support {
+  grid-column: 2;
+}
+
+/* Final conversion block deliberately stays on the same canvas. */
+.home-sales-final {
+  text-align: left;
+}
+
+.home-sales-final > .home-mockup__kicker,
+.home-sales-final h2,
+.home-sales-final > p,
+.home-sales-final-offer,
+.home-sales-final > .home-mockup__actions {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.home-sales-final-offer {
+  justify-content: flex-start;
+  margin: var(--space-5) 0 var(--space-6);
+}
+
+.home-sales-final .home-mockup__actions {
+  justify-content: flex-start;
+}
+
 .home-sales-final .home-mockup__button {
   min-height: 48px;
 }
 
 @media (max-width: 980px) {
+  .home-sales-hero {
+    grid-template-columns: 1fr;
+    gap: var(--space-10);
+    padding-top: var(--space-12);
+    padding-bottom: var(--space-16);
+  }
+
+  .home-sales-copy {
+    max-width: 680px;
+  }
+
+  .home-sales-stage {
+    width: 100%;
+    max-width: 720px;
+    min-height: 430px;
+  }
+
   .home-premium__proof,
-  .home-premium__journey {
+  .home-sales-paths,
+  .home-premium__journey,
+  .home-sales-comparison,
+  .home-sales-faq,
+  .home-sales-final {
     padding-top: var(--space-16);
     padding-bottom: var(--space-16);
   }
@@ -128,17 +391,46 @@
   .home-sales-paths article {
     min-height: 0;
   }
+
+  .home-sales-faq {
+    grid-template-columns: 1fr;
+    row-gap: var(--space-8);
+  }
+
+  .home-sales-support {
+    grid-column: 1;
+  }
 }
 
 @media (max-width: 640px) {
+  .home-sales-hero,
   .home-premium__proof,
-  .home-premium__journey {
+  .home-sales-paths,
+  .home-premium__journey,
+  .home-sales-comparison,
+  .home-sales-faq,
+  .home-sales-final {
     width: 100%;
-    padding: var(--space-12) var(--space-5);
+    padding-left: var(--space-5);
+    padding-right: var(--space-5);
+  }
+
+  .home-sales-hero {
+    padding-top: var(--space-10);
+    padding-bottom: var(--space-12);
+    row-gap: var(--space-8);
+  }
+
+  .home-sales-copy h1 {
+    font-size: clamp(36px, 11vw, 48px);
+    line-height: 1;
   }
 
   .home-premium__proof-head,
-  .home-premium__journey-head {
+  .home-premium__paths-head,
+  .home-premium__journey-head,
+  .home-sales-comparison-head,
+  .home-sales-faq-intro {
     margin-bottom: var(--space-6);
   }
 
@@ -148,9 +440,9 @@
   .home-sales-comparison-head h2,
   .home-sales-faq-intro h2,
   .home-sales-final h2 {
-    font-size: clamp(34px, 10vw, 44px);
+    font-size: clamp(32px, 9.6vw, 42px);
     line-height: 1.02;
-    letter-spacing: -.032em;
+    letter-spacing: -.03em;
   }
 
   .home-premium__paths-head h2 br,
@@ -160,11 +452,30 @@
     display: none;
   }
 
-  .home-premium__principles article,
-  .home-premium__journey-steps li {
-    padding: var(--space-5);
+  .home-sales-stage {
+    min-height: 350px;
+    padding: 54px var(--space-4) var(--space-8);
+    border-radius: var(--radius-lg);
   }
 
+  .home-hero-specimens {
+    height: 260px;
+  }
+
+  .home-hero-specimens > .yi-product-ui--card {
+    top: 12px;
+    width: 78%;
+  }
+
+  .home-hero-specimens > .yi-product-ui--profile {
+    width: 49%;
+    max-height: 230px;
+    border-width: 4px;
+    border-radius: 22px;
+  }
+
+  .home-premium__principles article,
+  .home-premium__journey-steps li,
   .home-sales-paths article {
     padding: var(--space-5);
   }
@@ -173,6 +484,13 @@
   .home-sales-final .home-mockup__button {
     width: 100%;
     justify-content: center;
+  }
+
+  .home-sales-comparison-table {
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+    background: transparent;
   }
 
   .home-sales-faq-item summary {
@@ -186,24 +504,33 @@
 
   .home-sales-final-offer {
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--space-1);
-    text-align: center;
+    text-align: left;
   }
 }
 
 @media (max-width: 360px) {
   .home-sales-hero,
   .home-premium__proof,
-  .home-premium__journey,
   .home-sales-paths,
+  .home-premium__journey,
   .home-sales-comparison,
-  .home-sales-faq {
+  .home-sales-faq,
+  .home-sales-final {
     padding-left: var(--space-4);
     padding-right: var(--space-4);
   }
 
   .home-sales-copy h1 {
-    font-size: clamp(30px, 10vw, 38px);
+    font-size: clamp(34px, 10vw, 40px);
+  }
+
+  .home-sales-stage {
+    min-height: 320px;
+  }
+
+  .home-hero-specimens {
+    height: 230px;
   }
 }

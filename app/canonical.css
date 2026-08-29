@@ -5834,13 +5834,16 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 
 .home-sales-mobile-cta { display: none; }
 @media (max-width: 640px) {
-  .home-mockup { padding-bottom: calc(84px + var(--safe-bottom)); }
+  /* Sticky (not fixed) so the bar rides the bottom of the viewport while
+     scrolling through the page, then docks in its normal flow position —
+     right after the final CTA section, before the footer — instead of
+     permanently overlapping the FAQ/footer. No JS, no magic-number
+     padding-bottom needed to "reserve" room for a fixed overlay. */
   .home-sales-mobile-cta {
-    position: fixed;
+    position: sticky;
     z-index: 70;
-    left: 12px;
-    right: 12px;
     bottom: calc(10px + var(--safe-bottom));
+    margin: 16px 12px calc(16px + var(--safe-bottom));
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;

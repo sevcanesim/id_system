@@ -13,6 +13,13 @@ import type { CatalogProduct, ProductVariant } from "../../../lib/config/product
  * that pushed people toward checkout before they'd read the product value.
  * It now only appears once the hero's price row (#nfc-hero-price-row) has
  * actually scrolled out of view above the viewport.
+ *
+ * P0 QA finding: because the bar is position:fixed (it spans a hero panel
+ * near the top of the DOM, so it can't use the "sticky, last child" trick),
+ * it used to stay pinned over the FAQ and footer for the rest of the page
+ * once shown — permanently covering footer links and the last FAQ rows.
+ * It now also hides itself once #nfc-page-end-sentinel (placed right
+ * before the footer) scrolls into view.
  */
 export default function MobileBuyBar({
   price,
@@ -33,7 +40,8 @@ export default function MobileBuyBar({
   variantSku?: string;
   label?: string;
 }) {
-  const [visible, setVisible] = useState(false);
+  const [pastHero, setPastHero] = useState(false);
+  const [nearPageEnd, setNearPageEnd] = useState(false);
 
   useEffect(() => {
     const anchor = document.getElementById("nfc-hero-price-row");
@@ -41,13 +49,29 @@ export default function MobileBuyBar({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setVisible(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+        setPastHero(!entry.isIntersecting && entry.boundingClientRect.top < 0);
       },
       { threshold: 0 },
     );
     observer.observe(anchor);
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    const sentinel = document.getElementById("nfc-page-end-sentinel");
+    if (!sentinel || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setNearPageEnd(entry.isIntersecting);
+      },
+      { rootMargin: "0px 0px -10% 0px", threshold: 0 },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
+
+  const visible = pastHero && !nearPageEnd;
 
   return (
     <div

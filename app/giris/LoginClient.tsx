@@ -455,21 +455,21 @@ export default function LoginClient({
           </div>
           <div className="p6-auth-features-bento" aria-label="Yenomi ID avantajları">
             <div className="p6-bento-card">
-              <div className="p6-bento-icon">⚡</div>
+              <div className="p6-bento-icon"><Icon name="share" /></div>
               <div className="p6-bento-content">
                 <strong>Tek dokunuşla paylaş</strong>
                 <small>NFC veya QR ile uygulama gerektirmeden.</small>
               </div>
             </div>
             <div className="p6-bento-card">
-              <div className="p6-bento-icon">🔄</div>
+              <div className="p6-bento-icon"><Icon name="refresh" /></div>
               <div className="p6-bento-content">
                 <strong>Bilgilerin hep güncel</strong>
                 <small>Kartı yeniden bastırmadan profilini değiştir.</small>
               </div>
             </div>
             <div className="p6-bento-card">
-              <div className="p6-bento-icon">🛡️</div>
+              <div className="p6-bento-icon"><Icon name="shield" /></div>
               <div className="p6-bento-content">
                 <strong>Güvenli erişim</strong>
                 <small>Bireysel ve kurumsal yetkiler korunur.</small>

@@ -126,6 +126,11 @@ export default async function NfcKartPage({
           </div>
         </div>
       </section>
+
+      {/* Sentinel: MobileBuyBar watches this to hide itself once the page's
+          own end (and the footer just past it) is in view, instead of
+          staying fixed over the footer for the rest of the scroll. */}
+      <div id="nfc-page-end-sentinel" aria-hidden="true" />
     </main>
   );
 }

@@ -6,21 +6,17 @@ import { COMMERCIAL_PRICING } from "../../../lib/config/commercial";
 import { useNfcPackage } from "./NfcPackageContext";
 
 const individualItems = [
-  "1 adet kişisel NFC kart",
-  "Değişmeyen kişisel QR kod",
-  "1 yıl platform üyeliği dahil",
-  "Aktif dönemde sınırsız bilgi güncelleme",
+  "1 adet kişisel NFC + QR kart",
+  "1 yıl platform erişimi",
+  "Sınırsız profil güncelleme",
   "Kayıp modu ve yedek kart desteği",
-  "Türkiye içi standart kargo dahil",
 ];
 
 const premiumItems = [
-  "NFC paketteki tüm özellikler",
+  "Bireysel paketteki tüm özellikler",
   "500 Network Mail kredisi",
   "Lead ve kişi yönetimi",
   "Toplantı ve sunum araçları",
-  "Gelişmiş networking özellikleri",
-  "Türkiye içi standart kargo dahil",
 ];
 
 export default function NfcIncludesPanel() {
@@ -35,18 +31,18 @@ export default function NfcIncludesPanel() {
     <section className={`nfc-includes${premium ? " nfc-includes--premium" : ""}`}>
       <div className="yi-container nfc-includes__grid">
         <div>
-          <span className="nfc-kicker">{premium ? "PREMIUM PAKET" : "NE ALIYORSUN?"}</span>
-          <h2>{premium ? <>Daha fazla bağlantı.<br />Daha güçlü takip.</> : <>Karttan fazlası.<br />Kimliğin sende kalır.</>}</h2>
+          <span className="nfc-kicker">{premium ? "PREMIUM’DA AYRICA" : "PAKETE DAHİL"}</span>
+          <h2>{premium ? <>Kartvizitten sonra<br />takibi sürdür.</> : <>Kartın ve profilin.<br />İlk yıl birlikte.</>}</h2>
         </div>
         <ul>
           {items.map((item) => <li key={item}>{item}</li>)}
         </ul>
         <div className="nfc-includes__cta">
-          <span>{premium ? "Premium · tek seferlik" : "Tek seferlik, kargo dahil"}</span>
+          <span>{premium ? "Premium · ilk yıl" : "Bireysel · ilk yıl"}</span>
           <strong>{formatTryFromKurus(priceKurus)}</strong>
-          <small>{premium ? "NFC kart • 1 yıl • 500 Network Mail" : "1 kart • 1 yıl dahil • Türkiye içi teslimat"}</small>
+          <small>{premium ? `2. yıldan itibaren ${formatTryFromKurus(COMMERCIAL_PRICING.YENOMI_ID_PREMIUM_RENEWAL.priceKurus)}/yıl · yeni kart gerekmez` : `2. yıldan itibaren ${formatTryFromKurus(COMMERCIAL_PRICING.YENOMI_ID_RENEWAL.priceKurus)}/yıl · yeni kart gerekmez`}</small>
           <Link className="home-mockup__link-secondary" href="#nfc-hero-price-row">
-            {premium ? "Premium’u Seç" : "Sepete Ekle"}
+            {premium ? "Premium’u Seç" : "Bireysel’i Seç"}
           </Link>
         </div>
       </div>

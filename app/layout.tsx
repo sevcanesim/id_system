@@ -10,6 +10,7 @@ import "./theme-policy.css";
 import "./public-chrome-premium.css";
 import "./authentic-enterprise.css";
 import "./homepage.css";
+import "./homepage-responsive.css";
 import "./kurumsal/panel/employee-action-first.css";
 import HashScrollHandler from "./components/HashScrollHandler";
 import AuthSessionBridge from "./components/AuthSessionBridge";

@@ -1,0 +1,131 @@
+/* Canonical auth composition. Root-owned by app/layout.tsx. */
+.public-site--auth .p6-auth-page{
+  min-height:auto;
+  padding:48px 0 56px;
+  background:linear-gradient(180deg,#fbfaf7 0%,#f7f4ed 100%);
+}
+.public-site--auth .p6-auth-shell{
+  width:min(calc(100% - 40px),560px);
+  min-height:0;
+  margin-inline:auto;
+  display:block;
+  overflow:hidden;
+  border:1px solid var(--public-border);
+  border-radius:26px;
+  background:#fff;
+  box-shadow:0 24px 64px rgba(36,29,20,.08);
+}
+.public-site--auth .p6-auth-story{
+  display:none;
+}
+.public-site--auth .p6-auth-form-side{
+  min-height:0;
+  display:block;
+  padding:42px 44px 38px;
+  background:#fff;
+}
+.public-site--auth .p6-auth-form-card{
+  width:100%;
+  max-width:none;
+  margin:0;
+}
+.public-site--auth .p6-auth-portal-tabs{
+  margin:0 0 26px;
+  padding:4px;
+  min-height:48px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  border:1px solid #e4dfd5;
+  border-radius:14px;
+  background:#f5f2ec;
+}
+.public-site--auth .p6-auth-portal-tabs a{
+  min-height:38px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:10px;
+  color:#625c52;
+  font-size:13px;
+  font-weight:720;
+  text-decoration:none;
+}
+.public-site--auth .p6-auth-portal-tabs a.active{
+  background:#fff;
+  color:#1d1914;
+  box-shadow:0 2px 8px rgba(38,31,22,.08);
+}
+.public-site--auth .p6-auth-heading{
+  margin-bottom:22px;
+}
+.public-site--auth .p6-auth-heading>span{
+  color:var(--brand-gold-deep);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.public-site--auth .p6-auth-heading h2{
+  margin:8px 0 8px;
+  font-size:36px;
+  line-height:1;
+  letter-spacing:-.045em;
+}
+.public-site--auth .p6-auth-heading p{
+  max-width:430px;
+  margin:0;
+  color:var(--public-muted);
+  font-size:14px;
+  line-height:1.55;
+}
+.public-site--auth .p6-auth-socials{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.public-site--auth .p6-auth-socials button{
+  min-height:46px;
+  border-radius:13px;
+  background:#fff;
+}
+.public-site--auth .p6-auth-divider{
+  margin:18px 0;
+}
+.public-site--auth .p6-auth-form{
+  gap:15px;
+}
+.public-site--auth .p6-auth-input{
+  min-height:50px;
+  border-radius:13px;
+  background:#fff;
+}
+.public-site--auth .p6-auth-login-options{
+  margin-top:0;
+}
+.public-site--auth .p6-auth-submit{
+  width:100%;
+  margin-top:3px;
+}
+.public-site--auth .p6-auth-switch{
+  margin-top:15px;
+}
+.public-site--auth .p6-auth-security{
+  margin-top:22px;
+  padding-top:17px;
+  border-top:1px solid #ece8df;
+}
+.public-site--auth .p6-auth-security small{
+  color:#777066;
+}
+.public-site--auth .p6-checkout-context,
+.public-site--auth .p6-auth-business-note,
+.public-site--auth .p6-auth-message{
+  border-radius:13px;
+}
+@media(max-width:640px){
+  .public-site--auth .p6-auth-page{padding:24px 0 32px}
+  .public-site--auth .p6-auth-shell{width:calc(100% - 24px);border-radius:20px}
+  .public-site--auth .p6-auth-form-side{padding:28px 22px 26px}
+  .public-site--auth .p6-auth-heading h2{font-size:31px}
+  .public-site--auth .p6-auth-socials{grid-template-columns:1fr}
+}

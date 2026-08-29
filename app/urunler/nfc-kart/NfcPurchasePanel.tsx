@@ -9,19 +9,18 @@ import { COMMERCIAL_PRICING, COMMERCIAL_SKUS } from "../../../lib/config/commerc
 import { INDIVIDUAL_PLAN, INDIVIDUAL_PREMIUM_PLAN } from "../../../lib/commerce/packages";
 import { Icon } from "../../icons";
 import MobileBuyBar from "./MobileBuyBar";
+import { useNfcPackage } from "./NfcPackageContext";
 
 export default function NfcPurchasePanel({
   product,
-  initialPackage = "individual",
   accessRequired = false,
 }: {
   product: CatalogProduct;
-  initialPackage?: "individual" | "premium";
   accessRequired?: boolean;
 }) {
   const variants = product.variants.filter((variant) => variant.active);
   const [selectedVariantId, setSelectedVariantId] = useState(variants[0]?.id ?? "");
-  const [packageId, setPackageId] = useState<"individual" | "premium">(initialPackage);
+  const { packageId, setPackageId } = useNfcPackage();
   const selectedVariant = variants.find((variant) => variant.id === selectedVariantId) ?? variants[0];
   const offerSku = packageId === "premium" ? COMMERCIAL_SKUS.PREMIUM : product.defaultOfferSku;
   const offerPriceKurus = packageId === "premium"

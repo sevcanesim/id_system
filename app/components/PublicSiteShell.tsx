@@ -70,7 +70,7 @@ export default function PublicSiteShell({ children }: { children: React.ReactNod
   if (!isPublic) return <>{children}</>;
 
   const variant = resolveHeaderVariant(pathname);
-  const showAnnouncement = variant === "marketing" || variant === "commerce";
+  const showAnnouncement = variant !== "checkout";
   const compactFooter = variant !== "marketing";
 
   return (

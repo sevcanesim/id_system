@@ -54,7 +54,7 @@ export default function RolesPanel({ members }: { members: RoleMember[] }) {
           );
         })}
       </div>
-      <div className="business-role-matrix">
+      <div className="business-role-matrix" role="region" aria-label="Rol ve yetki matrisi" tabIndex={0}>
         <table>
           <thead>
             <tr>
@@ -68,7 +68,11 @@ export default function RolesPanel({ members }: { members: RoleMember[] }) {
                 <td>{capability.label}</td>
                 {ROLE_MATRIX_COLUMNS.map((matrixRole) => {
                   const allowed = capability.allows(matrixRole);
-                  return <td key={matrixRole} className={allowed ? "allowed" : "denied"}>{allowed ? "✓" : "—"}</td>;
+                  return (
+                    <td key={matrixRole} className={allowed ? "allowed" : "denied"}>
+                      {allowed ? <><Icon name="check" /><span className="sr-only">İzin var</span></> : <><span aria-hidden="true">—</span><span className="sr-only">İzin yok</span></>}
+                    </td>
+                  );
                 })}
               </tr>
             ))}

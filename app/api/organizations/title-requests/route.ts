@@ -5,7 +5,7 @@ import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/s
 
 // Çalışanın, şirketin pozisyon kataloğunda olmayan bir ünvan istediği
 // durumlar için onay akışı (yetki matrisindeki Ünvan satırında
-// çalışan için "❌ / talep" karşılığı). Talep İK/Yönetici/Departman
+// çalışan için "reddet / talep" karşılığı). Talep İK/Yönetici/Departman
 // Yöneticisi tarafından onaylanınca hem çalışanın kaydı hem de
 // kataloğu güncellenir — bkz. `resolve_member_title_request` RPC'si.
 

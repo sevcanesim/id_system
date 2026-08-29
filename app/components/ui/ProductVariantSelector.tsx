@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Icon } from "../../icons";
 
 export type ProductVariantOption = {
   id: string;
@@ -52,7 +53,7 @@ export function ProductVariantSelector({
                 <strong>{variant.name}</strong>
                 {renderPrice && <small>{renderPrice(variant)}</small>}
               </span>
-              <span className="ds-product-option__check" aria-hidden="true">✓</span>
+              <span className="ds-product-option__check" aria-hidden="true"><Icon name="check" /></span>
             </label>
           );
         })}

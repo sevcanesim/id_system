@@ -1,6 +1,6 @@
 /**
- * Proje genelindeki tek ikon kaynağı. Önceden sayfalarda `⌁ ↗ ＋ ✉ ⌑ ◇ ✓ ☎ ▦`
- * gibi unicode karakterler "ikon" olarak kullanılıyordu — bu karakterler
+ * Proje genelindeki tek ikon kaynağı. Önceden sayfalarda Unicode karakterler
+ * ikon olarak kullanılıyordu; bu karakterler
  * platforma/fonta göre farklı görünüyor, hizalanmıyor ve marka diliyle
  * uyuşmuyordu. Bu dosya, tutarlı çizgi ağırlığına (strokeWidth 1.75) ve
  * 24x24 grid'e sahip tek bir SVG ikon setidir; tüm sayfalar buradan besleniyor.

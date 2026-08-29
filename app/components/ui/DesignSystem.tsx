@@ -121,7 +121,7 @@ export function PricingCard({ name, description, price, period = "yıl", feature
     <div className="ds-pricing-card__head"><h3>{name}</h3>{featured && <Badge tone="warning">Öne Çıkan</Badge>}</div>
     {description && <p className="ds-pricing-card__description">{description}</p>}
     <div className="ds-pricing-card__price"><strong>{price}</strong><span>/ {period}</span></div>
-    {features.length > 0 && <ul>{features.map((feature, index) => <li key={index}><span aria-hidden="true">✓</span>{feature}</li>)}</ul>}
+    {features.length > 0 && <ul>{features.map((feature, index) => <li key={index}><span aria-hidden="true"><Icon name="check" /></span>{feature}</li>)}</ul>}
     {action && <div className="ds-pricing-card__action">{action}</div>}
   </article>;
 }

@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Yenomi ID | Kartvizitin güncel kals
 const individualPrice = formatTryFromKurus(INDIVIDUAL_PLAN.priceKurus);
 const premiumPrice = formatTryFromKurus(INDIVIDUAL_PREMIUM_PLAN.priceKurus);
 const corporateEntryPrice = formatTryFromKurus(CORPORATE_PACKAGE_LADDER[0].priceKurus);
-const heroTrust = ["Türkiye içi kargo dahil", "2 iş gününde hazırlanır", "Uygulama gerekmez"];
+const heroTrust = ["Türkiye içi kargo dahil", "2 iş gününde hazırlanır", "Uygulama gerekmez", "KAYIP MODU · Kaybolursa erişimi kapat"];
 const packageComparisonRows = [
   ["Fiyat", individualPrice, premiumPrice, `${corporateEntryPrice}’dan başlar`],
   ["En uygun kullanım", "Dijital kartvizit paylaşımı", "Networking ve satış takibi", "Çalışan ve kart yönetimi"],

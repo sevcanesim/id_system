@@ -18,6 +18,7 @@ import "./public-system.css";
 import "./styles/canonical-public.css";
 import "./styles/canonical-auth.css";
 import "./styles/canonical-motion.css";
+import "./styles/canonical-footer.css";
 import HashScrollHandler from "./components/HashScrollHandler";
 import AuthSessionBridge from "./components/AuthSessionBridge";
 import MobilePurchaseDockController from "./components/MobilePurchaseDockController";

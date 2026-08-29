@@ -1,7 +1,6 @@
 /* Yenomi ID — canonical public design system.
- * This is the final public-surface contract. Route styles may define composition,
- * but typography, canvas, containers, section rhythm, cards and CTA geometry
- * resolve from the tokens below instead of route-specific visual values.
+ * Route styles may own composition. This file is loaded last and owns the
+ * visual contract shared by every logged-out/public surface.
  */
 
 :root {
@@ -27,6 +26,10 @@
   --public-section-y-tight: clamp(40px, 5vw, 60px);
   --public-title-gap: 14px;
   --public-copy-gap: 18px;
+  --public-radius-sm: 14px;
+  --public-radius: 20px;
+  --public-radius-lg: 28px;
+  --public-shadow: 0 18px 50px rgba(45,37,26,.07);
 }
 
 .public-site {
@@ -37,9 +40,7 @@
 }
 
 .public-site main,
-.public-site section {
-  color: var(--public-ink);
-}
+.public-site section { color: var(--public-ink); }
 
 .public-site :where(h1,h2,h3,h4) {
   margin-top: 0;
@@ -72,21 +73,20 @@
   font-family: var(--font-ui);
 }
 
-/* Shared content rail: route composition can opt into wide layouts, but normal
- * public content always starts and ends on this exact rail. */
 .public-site :where(.yi-container,.home-container,.products-commerce-v3__container,.business-container,.support-container) {
   width: min(calc(100% - (var(--public-gutter) * 2)), var(--public-container));
   max-width: var(--public-container);
   margin-inline: auto;
 }
 
-/* Eyebrows are one component visually, regardless of route naming. */
 .public-site :where(
   .home-section__eyebrow,
   .home-hero__eyebrow,
   .products-commerce-v3__eyebrow,
   .business-eyebrow,
   .support-eyebrow,
+  .section-kicker,
+  .nfc-kicker,
   [class*="__eyebrow"]
 ) {
   color: var(--brand-gold-deep);
@@ -98,13 +98,11 @@
   text-transform: uppercase;
 }
 
-/* Canonical surface language. */
 .public-site :where(.ds-product-card,.ds-pricing-card,[class*="__card"]):not([class*="card--dark"]):not([class*="card--premium"]) {
   border-color: var(--public-border);
 }
 
-/* Purchase/primary actions: one geometry and one gold treatment everywhere. */
-.public-site :where(.yi-btn--primary,.add-to-cart-button,.home-mockup__button--gold) {
+.public-site :where(.yi-btn--primary,.add-to-cart-button,.home-mockup__button--gold,.ds-button--primary,.p6-auth-submit) {
   min-height: 48px;
   padding-inline: 24px;
   border: 1px solid color-mix(in srgb,var(--brand-gold-deep) 48%,transparent);
@@ -119,14 +117,17 @@
   box-shadow: 0 10px 22px rgba(148,105,25,.18);
 }
 
-.public-site :where(.yi-btn--primary,.add-to-cart-button,.home-mockup__button--gold):hover {
+.public-site :where(.yi-btn--primary,.add-to-cart-button,.home-mockup__button--gold,.ds-button--primary,.p6-auth-submit):hover {
   background: linear-gradient(180deg,#d8b45e 0%,#c49739 100%);
   transform: translateY(-1px);
   box-shadow: 0 14px 28px rgba(148,105,25,.22);
 }
 
-/* Route-specific hero sizes are normalized here. Deliberately high specificity
- * is avoided; this layer is loaded last and owns the public visual contract. */
+.public-site :where(a,button,input,summary):focus-visible {
+  outline: 2px solid var(--brand-gold-deep);
+  outline-offset: 3px;
+}
+
 .public-site .products-commerce-v3__hero h1,
 .public-site [class*="hero"] h1 {
   font-size: var(--public-h1);
@@ -141,128 +142,268 @@
   letter-spacing: -.04em;
 }
 
-/* Home package decision matrix: one clear visual comparison replaces the old
- * two-card split and keeps all package hierarchy on the same baseline. */
-.public-site .home-package-matrix {
+.public-site > main,
+.public-site > div:first-child,
+.public-site [class$="-page"] { background-color: var(--public-canvas); }
+
+/* Canonical public page introductions. */
+.public-site :where(.public-page-title,.yi-page-head,.support-hero-inner,.corporate-section-heading) {
+  max-width: 780px;
+}
+
+.public-site .public-page-title,
+.public-site .support-hero-inner {
   width: min(calc(100% - (var(--public-gutter) * 2)), var(--public-container));
-  margin: 0 auto;
+  margin-inline: auto;
+}
+
+.public-site :where(.public-page-title,.support-hero) {
+  padding-block: var(--public-section-y-tight);
+}
+
+.public-site :where(.public-page-title,.yi-page-head,.support-hero-inner,.corporate-section-heading) p {
+  max-width: 680px;
+  font-size: var(--public-body-lg);
+  line-height: 1.65;
+}
+
+/* Homepage package matrix: replaces unrelated split cards with one decision surface. */
+.public-site .home-plan-comparison {
+  width: min(calc(100% - (var(--public-gutter) * 2)), var(--public-container));
+  margin-inline: auto;
   padding-block: var(--public-section-y);
 }
 
-.public-site .home-package-matrix__head {
-  max-width: 720px;
-  margin-bottom: 30px;
+.public-site .home-plan-comparison__head {
+  max-width: 760px;
+  margin-bottom: 32px;
 }
 
-.public-site .home-package-matrix__head h2 {
-  margin: 10px 0 14px;
-}
+.public-site .home-plan-comparison__head p { max-width: 660px; font-size: 17px; line-height: 1.65; }
 
-.public-site .home-package-matrix__head p {
-  max-width: 660px;
-  margin: 0;
-  font-size: var(--public-body-lg);
-  line-height: 1.6;
-}
-
-.public-site .home-package-matrix__scroll {
+.public-site .home-plan-comparison__table-wrap {
   overflow-x: auto;
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 22px;
-  background: #1d1d1d;
-  box-shadow: 0 22px 56px rgba(21,18,13,.12);
-  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-inline: contain;
+  border: 1px solid var(--public-border);
+  border-radius: var(--public-radius-lg);
+  background: var(--public-surface);
+  box-shadow: var(--public-shadow);
 }
 
-.public-site .home-package-matrix__table {
-  min-width: 900px;
-  color: #f7f4ee;
+.public-site .home-plan-comparison__table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
 }
 
-.public-site .home-package-matrix__row {
+.public-site .home-plan-comparison__table th,
+.public-site .home-plan-comparison__table td {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--public-border);
+  vertical-align: middle;
+}
+
+.public-site .home-plan-comparison__table thead th { padding-block: 24px; background: #fbfaf7; }
+.public-site .home-plan-comparison__table thead th:first-child { width: 28%; }
+.public-site .home-plan-comparison__table thead th:nth-child(3) { background: #f4ead1; }
+.public-site .home-plan-comparison__table tbody td:nth-child(3) { background: rgba(244,234,209,.46); }
+.public-site .home-plan-comparison__table tbody tr:last-child > * { border-bottom: 0; }
+.public-site .home-plan-comparison__plan { display: grid; gap: 7px; }
+.public-site .home-plan-comparison__plan strong { font-size: 18px; color: var(--public-ink); }
+.public-site .home-plan-comparison__plan span { font-size: 13px; color: var(--public-muted); line-height: 1.45; }
+.public-site .home-plan-comparison__premium { display: inline-flex; width: max-content; padding: 5px 8px; border-radius: 999px; background: #1c1710; color: #fff; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.public-site .home-plan-comparison__table tbody th { color: var(--public-ink); font-size: 14px; text-align: left; }
+.public-site .home-plan-comparison__table td { color: var(--public-muted); font-size: 14px; text-align: center; }
+.public-site .home-plan-comparison__table td svg { width: 18px; height: 18px; color: var(--brand-gold-deep); }
+.public-site .home-plan-comparison__price { color: var(--public-ink); font-size: 17px; font-weight: 760; font-variant-numeric: tabular-nums; }
+.public-site .home-plan-comparison__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+
+/* Corporate pricing: one clear total price, no public per-seat arbitrage cue. */
+.public-site .corporate-pricing-section {
+  width: min(calc(100% - (var(--public-gutter) * 2)), var(--public-container));
+  margin-inline: auto;
+  padding-block: var(--public-section-y);
+}
+
+.public-site .corporate-pack-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--public-border);
+  border-radius: var(--public-radius-lg);
+  background: var(--public-surface);
+  box-shadow: var(--public-shadow);
+}
+
+.public-site .corporate-pack-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.public-site .corporate-pack-table th,
+.public-site .corporate-pack-table td {
+  padding: 17px 18px;
+  border-bottom: 1px solid var(--public-border);
+  background: transparent;
+}
+
+.public-site .corporate-pack-table thead th {
+  padding-block: 16px;
+  color: var(--public-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  background: #fbfaf7;
+}
+
+.public-site .corporate-pack-table tbody tr:last-child > * { border-bottom: 0; }
+.public-site .corporate-pack-table tbody tr.is-recommended > * { background: #f5ecd8; }
+.public-site .corporate-pack-table .corporate-price-primary strong { color: var(--public-ink); font-size: 17px; font-variant-numeric: tabular-nums; }
+.public-site .corporate-pack-table .corporate-price-period { color: var(--public-muted); font-size: 12px; }
+.public-site .corporate-tier-badge { background: #1c1710; color: #fff; }
+
+/* Hide the per-seat comparison column visually. Total team cost is the buying unit. */
+.public-site .corporate-pack-table th:nth-child(5),
+.public-site .corporate-pack-table td:nth-child(5) { display: none; }
+
+.public-site .corporate-pack-note { max-width: 820px; margin-top: 18px; line-height: 1.65; }
+
+/* Network Mail is an included capability on the sales page; top-up economics live in-panel. */
+.public-site .corporate-mail-credits-box { display: none; }
+.public-site .corporate-network-mail-section {
+  width: min(calc(100% - (var(--public-gutter) * 2)), var(--public-container));
+  margin-inline: auto;
+  padding-block: var(--public-section-y);
+}
+.public-site .corporate-network-mail-grid { grid-template-columns: minmax(0,1fr) minmax(320px,.8fr); gap: 28px; }
+.public-site .corporate-mail-bullets,
+.public-site .corporate-mail-cro-quote,
+.public-site .corporate-mail-use-cases { border-radius: var(--public-radius); }
+
+/* Support: lighter hierarchy, consistent cards and readable FAQ width. */
+.public-site .support-hero { border-bottom: 1px solid var(--public-border); background: linear-gradient(180deg,#fbfaf8 0%,#f7f3eb 100%); }
+.public-site .support-hero-inner { text-align: center; }
+.public-site .support-hero-inner p { margin-inline: auto; }
+.public-site .support-search {
+  max-width: 720px;
+  margin: 26px auto 0;
+  padding: 6px;
+  border: 1px solid var(--public-border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(45,37,26,.07);
+}
+.public-site .support-search input { min-height: 48px; font-size: 16px; }
+.public-site .support-search button { min-height: 46px; border-radius: 13px; }
+.public-site .support-main {
+  width: min(calc(100% - (var(--public-gutter) * 2)), var(--public-container));
+  margin-inline: auto;
+  padding-block: var(--public-section-y);
+}
+.public-site .support-section-head { align-items: end; gap: 28px; margin-bottom: 24px; }
+.public-site .support-topic-grid { gap: 14px; }
+.public-site .support-topic-card {
+  min-height: 148px;
+  padding: 22px;
+  border: 1px solid var(--public-border);
+  border-radius: var(--public-radius);
+  background: #fff;
+  box-shadow: none;
+  transition: transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.public-site .support-topic-card:hover { transform: translateY(-2px); border-color: rgba(141,105,36,.35); box-shadow: var(--public-shadow); }
+.public-site .support-faq { max-width: 900px; margin: var(--public-section-y) auto 0; }
+.public-site .support-faq-group { padding: 0; border: 0; background: transparent; }
+.public-site .support-faq-group details { border-bottom: 1px solid var(--public-border); }
+.public-site .support-faq-group summary { min-height: 62px; padding-block: 18px; color: var(--public-ink); font-weight: 680; }
+.public-site .support-contact {
+  width: min(calc(100% - (var(--public-gutter) * 2)), var(--public-container));
+  margin: 0 auto var(--public-section-y);
+  padding: 32px;
+  border: 1px solid var(--public-border);
+  border-radius: var(--public-radius-lg);
+  background: #1d1914;
+  color: #fff;
+}
+.public-site .support-contact h2,
+.public-site .support-contact p { color: #fff; }
+.public-site .support-contact p { opacity: .74; }
+
+/* Product page: reduce oversized blocks and make the product specimen the focal point. */
+.public-site .nfc-product-hero { padding-block: var(--public-section-y-tight); }
+.public-site .nfc-product-hero__grid { gap: clamp(28px,5vw,72px); align-items: center; }
+.public-site .nfc-product-hero__visual {
+  min-height: 480px;
   display: grid;
-  grid-template-columns: minmax(260px,1.45fr) repeat(3,minmax(180px,1fr));
-  align-items: center;
-  min-height: 76px;
-  border-bottom: 1px solid rgba(255,255,255,.1);
+  place-items: center;
+  border-radius: var(--public-radius-lg);
+  background: #1c1915;
+  overflow: hidden;
 }
+.public-site .nfc-benefits,
+.public-site .nfc-story,
+.public-site .nfc-includes,
+.public-site .nfc-faq { padding-block: var(--public-section-y); }
+.public-site .nfc-benefits__grid { gap: 12px; }
+.public-site .nfc-benefits__grid article { padding: 22px; border: 1px solid var(--public-border); border-radius: var(--public-radius); background: #fff; }
+.public-site .nfc-benefits__grid article h2 { font-size: 22px; }
+.public-site .nfc-steps { gap: 14px; }
+.public-site .nfc-steps article { padding: 24px; border-radius: var(--public-radius); background: #fff; border: 1px solid var(--public-border); }
+.public-site .nfc-includes__grid { padding: 32px; border: 1px solid var(--public-border); border-radius: var(--public-radius-lg); background: #fff; }
+.public-site .nfc-faq__list { max-width: 900px; }
+.public-site .nfc-faq__list details { border-bottom: 1px solid var(--public-border); }
+.public-site .nfc-faq__list summary { min-height: 62px; padding-block: 18px; }
 
-.public-site .home-package-matrix__row:last-child {
-  border-bottom: 0;
-}
+/* Cart: remove the floating-component feel and keep purchase hierarchy obvious. */
+.public-site .yi-cart-page { padding-block: var(--public-section-y-tight) var(--public-section-y); }
+.public-site .yi-cart-page .yi-page-head { margin-bottom: 28px; }
+.public-site .yi-cart-page .yi-page-head > span { color: var(--brand-gold-deep); font-size: var(--public-eyebrow); font-weight: 800; letter-spacing: .14em; }
+.public-site .yi-cart-layout { gap: 24px; align-items: start; }
+.public-site .yi-cart-item,
+.public-site .yi-cart-summary,
+.public-site .ds-product-card { border: 1px solid var(--public-border); border-radius: var(--public-radius); background: #fff; box-shadow: none; }
+.public-site .yi-cart-item { padding: 22px; }
+.public-site .yi-cart-summary { padding: 24px; box-shadow: var(--public-shadow); }
+.public-site .yi-cart-summary .total { padding-top: 16px; border-top: 1px solid var(--public-border); }
+.public-site .yi-cart-summary .total b { font-size: 24px; color: var(--public-ink); }
 
-.public-site .home-package-matrix__row > * {
-  min-width: 0;
-  padding: 20px 28px;
-  color: #f5f2ec;
-  font-family: var(--font-ui);
-  font-size: 16px;
-  line-height: 1.35;
+/* Login: one balanced auth composition instead of competing card systems. */
+.public-site .p6-auth-page { padding-block: var(--public-section-y-tight); }
+.public-site .p6-auth-shell {
+  width: min(calc(100% - (var(--public-gutter) * 2)), 1120px);
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: minmax(0,1.05fr) minmax(420px,.95fr);
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--public-border);
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: var(--public-shadow);
 }
-
-.public-site .home-package-matrix__row > :first-child {
-  color: #f9f7f2;
-  font-weight: 650;
-}
-
-.public-site .home-package-matrix__header {
-  min-height: 88px;
-  background: rgba(255,255,255,.015);
-}
-
-.public-site .home-package-matrix__header > strong {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 720;
-  letter-spacing: -.025em;
-}
-
-.public-site .home-package-matrix__row:not(.home-package-matrix__header) > :nth-child(3) {
-  background: rgba(197,160,89,.065);
-}
-
-.public-site .home-package-matrix__header > :nth-child(3) {
-  color: #e0bd70;
-}
-
-.public-site .home-package-matrix__row > :nth-child(2),
-.public-site .home-package-matrix__row > :nth-child(3),
-.public-site .home-package-matrix__row > :nth-child(4) {
-  border-left: 1px solid rgba(255,255,255,.07);
-}
-
-.public-site .home-package-matrix__actions {
-  min-height: 84px;
-}
-
-.public-site .home-package-matrix__actions a {
-  color: #e0bd70;
-  font-weight: 760;
-  text-decoration: none;
-}
-
-.public-site .home-package-matrix__actions a:hover {
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-/* Prevent route CSS from introducing arbitrary page background shades. */
-.public-site > main,
-.public-site > div:first-child,
-.public-site [class$="-page"] {
-  background-color: var(--public-canvas);
-}
+.public-site .p6-auth-story { min-height: 680px; padding: clamp(34px,5vw,60px); background: #1c1915; color: #fff; }
+.public-site .p6-auth-story h1,
+.public-site .p6-auth-story p { color: #fff; }
+.public-site .p6-auth-story > p { max-width: 540px; opacity: .72; font-size: 17px; line-height: 1.65; }
+.public-site .p6-auth-form-side { display: grid; place-items: center; padding: clamp(26px,4vw,48px); background: #fff; }
+.public-site .p6-auth-form-card { width: min(100%,460px); padding: 0; border: 0; box-shadow: none; background: transparent; }
+.public-site .p6-auth-heading h2 { font-size: clamp(30px,3vw,38px); }
+.public-site .p6-auth-portal-tabs { padding: 4px; border: 1px solid var(--public-border); border-radius: 14px; background: #f6f3ed; }
+.public-site .p6-auth-portal-tabs a { min-height: 42px; border-radius: 10px; }
+.public-site .p6-auth-portal-tabs a.active { background: #fff; box-shadow: 0 3px 10px rgba(45,37,26,.08); }
+.public-site .p6-auth-form input { min-height: 48px; border-radius: 13px; }
+.public-site .p6-auth-socials button { min-height: 48px; border-radius: 13px; }
 
 @media (max-width: 980px) {
   :root { --public-gutter: var(--gutter-tablet); }
-
-  .public-site .home-package-matrix__row {
-    grid-template-columns: minmax(220px,1.3fr) repeat(3,minmax(170px,1fr));
-  }
-
-  .public-site .home-package-matrix__row > * {
-    padding-inline: 22px;
-  }
+  .public-site .corporate-network-mail-grid { grid-template-columns: 1fr; }
+  .public-site .p6-auth-shell { grid-template-columns: 1fr; max-width: 680px; }
+  .public-site .p6-auth-story { min-height: auto; }
+  .public-site .p6-auth-product-flow,
+  .public-site .p6-auth-features-bento { display: none; }
 }
 
 @media (max-width: 760px) {
@@ -278,30 +419,27 @@
 
   .public-site h1,
   .public-site .products-commerce-v3__hero h1,
-  .public-site [class*="hero"] h1 {
-    line-height: 1;
-  }
+  .public-site [class*="hero"] h1 { line-height: 1; }
 
-  .public-site .home-package-matrix__head {
-    margin-bottom: 22px;
-  }
-
-  .public-site .home-package-matrix__head p {
-    font-size: 16px;
-  }
-
-  .public-site .home-package-matrix__scroll {
-    border-radius: 18px;
-  }
-
-  .public-site .home-package-matrix__row > * {
-    padding: 18px 20px;
-    font-size: 15px;
-  }
-
-  .public-site .home-package-matrix__header > strong {
-    font-size: 20px;
-  }
+  .public-site .home-plan-comparison__table-wrap,
+  .public-site .corporate-pack-table-wrap { margin-inline: calc(var(--public-gutter) * -1); border-left: 0; border-right: 0; border-radius: 0; }
+  .public-site .home-plan-comparison__actions { display: grid; }
+  .public-site .home-plan-comparison__actions a { width: 100%; justify-content: center; }
+  .public-site .support-hero-inner { text-align: left; }
+  .public-site .support-hero-inner p { margin-inline: 0; }
+  .public-site .support-search { display: grid; grid-template-columns: 1fr; padding: 8px; }
+  .public-site .support-search__icon { display: none; }
+  .public-site .support-search button { width: 100%; }
+  .public-site .support-section-head { display: block; }
+  .public-site .support-topic-card { min-height: 0; padding: 18px; }
+  .public-site .support-contact { padding: 24px; }
+  .public-site .nfc-product-hero__visual { min-height: 360px; }
+  .public-site .nfc-includes__grid { padding: 22px; }
+  .public-site .p6-auth-page { padding-block: 20px; }
+  .public-site .p6-auth-shell { width: min(calc(100% - 24px),680px); border-radius: 22px; }
+  .public-site .p6-auth-story { padding: 28px 24px; }
+  .public-site .p6-auth-story h1 { font-size: clamp(34px,10vw,44px); }
+  .public-site .p6-auth-form-side { padding: 28px 20px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChangeEvent, useDeferredValue, useEffect, useState } from "react";
+import { ChangeEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import CardTemplate from "../CardTemplate";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
@@ -15,6 +15,7 @@ import { unusedEntitlementId } from "../../lib/commerce/entitlement-bind";
 import { fetchOwnProfile, fetchOwnProfileById, fetchOwnProfileByOrganizationId, fetchOwnProfiles } from "../../lib/repositories/profiles";
 import { track } from "../../lib/analytics";
 import { PageLoadingView } from "../components/ui/States";
+import { useUnsavedChanges } from "../components/UnsavedChangesContext";
 import {
   CORPORATE_PANEL_TAB_ROUTE,
   corporatePanelNavItems,
@@ -84,12 +85,57 @@ export default function CardWizard() {
   const [phoneTestOpen, setPhoneTestOpen] = useState(false);
   const [phoneTestQrDataUrl, setPhoneTestQrDataUrl] = useState("");
   const [saveFeedback, setSaveFeedback] = useState("");
+  const [isPublished, setIsPublished] = useState<boolean>(false);
+  const [activePreviewTarget, setActivePreviewTarget] = useState<string | null>(null);
+  const bindTarget = (target: string) => ({
+    onFocus: () => setActivePreviewTarget(target),
+    onBlur: () => setActivePreviewTarget(null),
+  });
+  const [baseline, setBaseline] = useState<{
+    data: CardData;
+    englishRole: string;
+    englishAbout: string;
+    slug: string;
+  } | null>(null);
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedProfileId = searchParams.get("id");
   const isNewCard = searchParams.get("new") === "1";
   const businessOrganizationId = searchParams.get("organizationId");
   const isBusinessCard = searchParams.get("business") === "1" && Boolean(businessOrganizationId);
+
+  const isDirty = useMemo(() => {
+    if (!baseline) return false;
+    return (
+      data.name !== baseline.data.name ||
+      data.role !== baseline.data.role ||
+      data.company !== baseline.data.company ||
+      data.phone !== baseline.data.phone ||
+      data.whatsapp !== baseline.data.whatsapp ||
+      data.email !== baseline.data.email ||
+      data.website !== baseline.data.website ||
+      data.linkedin !== baseline.data.linkedin ||
+      data.instagram !== baseline.data.instagram ||
+      data.location !== baseline.data.location ||
+      data.image !== baseline.data.image ||
+      data.bio !== baseline.data.bio ||
+      englishRole !== baseline.englishRole ||
+      englishAbout !== baseline.englishAbout ||
+      profileSlug !== baseline.slug
+    );
+  }, [data, englishRole, englishAbout, profileSlug, baseline]);
+
+  const { setIsDirty: setContextDirty, guardLinkClick } = useUnsavedChanges();
+
+  useEffect(() => {
+    setContextDirty(isDirty);
+    return () => setContextDirty(false);
+  }, [isDirty, setContextDirty]);
+
+  const handleCancelClick = (e: React.MouseEvent) => {
+    guardLinkClick(e, cancelHref);
+  };
 
   useEffect(() => {
     if (accessState !== "allowed") return;
@@ -113,6 +159,15 @@ export default function CardWizard() {
     elements.forEach((el) => el && observer.observe(el));
     return () => observer.disconnect();
   }, [accessState]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const activeTab = document.querySelector(`.p8-section-nav a[aria-current="true"]`);
+    if (activeTab) {
+      const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      activeTab.scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth", block: "nearest", inline: "center" });
+    }
+  }, [activeSection]);
 
   const handleSectionClick = (event: React.MouseEvent<HTMLAnchorElement>, id: (typeof CARD_SECTIONS)[number]["id"]) => {
     event.preventDefault();
@@ -162,152 +217,195 @@ export default function CardWizard() {
       return;
     }
     supabase.auth.getUser().then(async ({ data: authData }) => {
-      const user = authData.user;
-      if (!user) {
-        setAccessState("denied");
-        router.replace("/giris?next=%2Folustur");
-        return;
-      }
-      setUserId(user.id);
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData.session?.access_token;
-      if (!accessToken) {
-        setAccessState("denied");
-        router.replace("/giris?next=%2Folustur");
-        return;
-      }
+      try {
+        const user = authData.user;
+        if (!user) {
+          setAccessState("denied");
+          router.replace("/giris?next=%2Folustur");
+          return;
+        }
+        setUserId(user.id);
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData.session?.access_token;
+        if (!accessToken) {
+          setAccessState("denied");
+          router.replace("/giris?next=%2Folustur");
+          return;
+        }
 
-      // Eski veya eksik bir bağlantı kurumsal profil kimliğini yalnızca
-      // `?id=...` ile açabilir. Bu durumda bireysel sidebar'ı bir an bile
-      // göstermeden profili ait olduğu kurumsal editör rotasına taşı.
-      if (requestedProfileId && !isBusinessCard && !isNewCard) {
-        const [{ data: requestedProfile }, mineResponse] = await Promise.all([
-          fetchOwnProfileById(supabase, user.id, requestedProfileId),
-          fetch("/api/organizations/mine", {
+        // Eski veya eksik bir bağlantı kurumsal profil kimliğini yalnızca
+        // `?id=...` ile açabilir. Bu durumda bireysel sidebar'ı bir an bile
+        // göstermeden profili ait olduğu kurumsal editör rotasına taşı.
+        if (requestedProfileId && !isBusinessCard && !isNewCard) {
+          const [{ data: requestedProfile }, mineResponse] = await Promise.all([
+            fetchOwnProfileById(supabase, user.id, requestedProfileId),
+            fetch("/api/organizations/mine", {
+              headers: { authorization: `Bearer ${accessToken}` },
+              cache: "no-store",
+            }),
+          ]);
+          if (requestedProfile && mineResponse.ok) {
+            const minePayload = await mineResponse.json() as {
+              organizations?: Array<{
+                organization_id: string;
+                organizations?: { name?: string | null } | null;
+              }>;
+            };
+            const profileCompany = (requestedProfile.company || "").trim().toLocaleLowerCase("tr");
+            const memberships = minePayload.organizations ?? [];
+            const corporateMembership = memberships.find((item) =>
+              profileCompany &&
+              (item.organizations?.name || "").trim().toLocaleLowerCase("tr") === profileCompany
+            ) || (memberships.length === 1 ? memberships[0] : null);
+            if (corporateMembership) {
+              router.replace(`/olustur?business=1&organizationId=${encodeURIComponent(corporateMembership.organization_id)}&id=${encodeURIComponent(requestedProfile.id)}`);
+              return;
+            }
+          }
+        }
+        const organizationIdentityPromise = fetchOrganizationIdentity(accessToken, businessOrganizationId);
+
+        let entitlementPayload: { active?: boolean; next?: string; entitlements?: { id: string }[] } = {};
+        if (isBusinessCard && businessOrganizationId) {
+          const mineResponse = await fetch("/api/organizations/mine", { headers: { authorization: `Bearer ${accessToken}` }, cache: "no-store" });
+          const minePayload = await mineResponse.json() as { organizations?: Array<{ organization_id: string }> };
+          const hasMembership = mineResponse.ok && Boolean(minePayload.organizations?.some((item) => item.organization_id === businessOrganizationId));
+          if (!hasMembership) {
+            setAccessState("denied");
+            router.replace("/kurumsal/panel");
+            return;
+          }
+        } else {
+          const entitlementResponse = await fetch("/api/commerce/entitlements", {
             headers: { authorization: `Bearer ${accessToken}` },
             cache: "no-store",
-          }),
-        ]);
-        if (requestedProfile && mineResponse.ok) {
-          const minePayload = await mineResponse.json() as {
-            organizations?: Array<{
-              organization_id: string;
-              organizations?: { name?: string | null } | null;
-            }>;
-          };
-          const profileCompany = (requestedProfile.company || "").trim().toLocaleLowerCase("tr");
-          const memberships = minePayload.organizations ?? [];
-          const corporateMembership = memberships.find((item) =>
-            profileCompany &&
-            (item.organizations?.name || "").trim().toLocaleLowerCase("tr") === profileCompany
-          ) || (memberships.length === 1 ? memberships[0] : null);
-          if (corporateMembership) {
-            router.replace(`/olustur?business=1&organizationId=${encodeURIComponent(corporateMembership.organization_id)}&id=${encodeURIComponent(requestedProfile.id)}`);
+          });
+          entitlementPayload = await entitlementResponse.json() as { active?: boolean; next?: string; entitlements?: { id: string }[] };
+          if (!entitlementResponse.ok || !entitlementPayload.active) {
+            setAccessState("denied");
+            router.replace(entitlementPayload.next || "/urunler?reason=access-required");
             return;
           }
         }
-      }
-      const organizationIdentityPromise = fetchOrganizationIdentity(accessToken, businessOrganizationId);
+        // `?new=1` -> boş formla yeni bir kart oluştur (mevcut kartları etkilemez).
+        // `?id=...` -> o belirli kartı düzenle.
+        // Kurumsal Kartım ekranında `id` henüz URL'ye eklenmemiş olsa bile
+        // kullanıcının kişisel ilk kartına düşme. Organizasyon adına bağlı
+        // kurumsal profili bul; böylece sidebar'daki Kartım her zaman aynı
+        // kurumsal karta açılır.
+        let profile = null;
+        if (!isNewCard && requestedProfileId) {
+          profile = (await fetchOwnProfileById(supabase, user.id, requestedProfileId)).data;
+        } else if (!isNewCard && isBusinessCard) {
+          const identityForProfile = await organizationIdentityPromise;
+          const organizationId = identityForProfile?.lock.organizationId || businessOrganizationId;
+          if (organizationId) {
+            profile = (await fetchOwnProfileByOrganizationId(supabase, user.id, organizationId)).data;
+          }
+        } else if (!isNewCard) {
+          profile = (await fetchOwnProfile(supabase, user.id)).data;
+        }
+        if (!isBusinessCard && (isNewCard || !profile)) {
+          const { data: existingProfiles } = await fetchOwnProfiles(supabase, user.id);
+          const spareEntitlementId = unusedEntitlementId(entitlementPayload.entitlements ?? [], existingProfiles);
+          if (!spareEntitlementId) {
+            setAccessState("denied");
+            router.replace(isNewCard ? "/urunler?reason=no-spare-card" : (entitlementPayload.next || "/urunler?reason=access-required"));
+            return;
+          }
+          setNewCardEntitlementId(spareEntitlementId);
+        }
+        setAccessState("allowed");
+        track("creation_start", { hasExistingProfile: Boolean(profile), isNewCard });
+        if (profile) {
+          setProfileId(profile.id);
+          setPublicId(profile.public_id || "");
+          setIsPublished(Boolean(profile.is_published));
+          const imageUrl = profile.image_url ?? "";
+          setOriginalImageUrl(imageUrl);
+          setProfileSlug(profile.slug ?? "");
+          setSlugTouched(true);
+          setData({
+            name: profile.name ?? "", role: profile.role ?? "", company: profile.company ?? "",
+            phone: profile.phone ?? "", whatsapp: profile.whatsapp ?? "", email: profile.email ?? "",
+            website: profile.website ?? "", linkedin: profile.linkedin ?? "", instagram: profile.instagram ?? "",
+            location: profile.location ?? "", image: imageUrl, bio: profile.bio ?? ""
+          });
+          const { data: localeRows } = await supabase.from("card_profile_locales").select("locale,role,about").eq("profile_id", profile.id).eq("locale", "en").maybeSingle();
+          const localeRole = localeRows?.role || "";
+          const localeAbout = localeRows?.about || "";
+          setEnglishRole(localeRole);
+          setEnglishAbout(localeAbout);
 
-      let entitlementPayload: { active?: boolean; next?: string; entitlements?: { id: string }[] } = {};
-      if (isBusinessCard && businessOrganizationId) {
-        const mineResponse = await fetch("/api/organizations/mine", { headers: { authorization: `Bearer ${accessToken}` }, cache: "no-store" });
-        const minePayload = await mineResponse.json() as { organizations?: Array<{ organization_id: string }> };
-        const hasMembership = mineResponse.ok && Boolean(minePayload.organizations?.some((item) => item.organization_id === businessOrganizationId));
-        if (!hasMembership) {
-          setAccessState("denied");
-          router.replace("/kurumsal/panel");
-          return;
+          const initialProfileData: CardData = {
+            name: profile.name ?? "", role: profile.role ?? "", company: profile.company ?? "",
+            phone: profile.phone ?? "", whatsapp: profile.whatsapp ?? "", email: profile.email ?? "",
+            website: profile.website ?? "", linkedin: profile.linkedin ?? "", instagram: profile.instagram ?? "",
+            location: profile.location ?? "", image: imageUrl, bio: profile.bio ?? ""
+          };
+          setBaseline({
+            data: initialProfileData,
+            englishRole: localeRole,
+            englishAbout: localeAbout,
+            slug: profile.slug ?? "",
+          });
+        } else {
+          const metadata = user.user_metadata ?? {};
+          const linkedInName = metadata.full_name ?? metadata.name ?? [metadata.given_name, metadata.family_name].filter(Boolean).join(" ");
+          const linkedInImage = metadata.avatar_url ?? metadata.picture ?? "";
+          const linkedInHeadline = metadata.headline ?? "";
+          setOriginalImageUrl(linkedInImage || "");
+          const initialDraftData: CardData = {
+            name: linkedInName || "",
+            role: linkedInHeadline || "",
+            company: "", phone: "", whatsapp: "",
+            email: user.email || "",
+            website: "", linkedin: "", instagram: "", location: "",
+            image: linkedInImage || "", bio: ""
+          };
+          setData(initialDraftData);
+          setBaseline({
+            data: initialDraftData,
+            englishRole: "",
+            englishAbout: "",
+            slug: "",
+          });
         }
-      } else {
-        const entitlementResponse = await fetch("/api/commerce/entitlements", {
-          headers: { authorization: `Bearer ${accessToken}` },
-          cache: "no-store",
-        });
-        entitlementPayload = await entitlementResponse.json() as { active?: boolean; next?: string; entitlements?: { id: string }[] };
-        if (!entitlementResponse.ok || !entitlementPayload.active) {
-          setAccessState("denied");
-          router.replace(entitlementPayload.next || "/urunler?reason=access-required");
-          return;
-        }
-      }
-      // `?new=1` -> boş formla yeni bir kart oluştur (mevcut kartları etkilemez).
-      // `?id=...` -> o belirli kartı düzenle.
-      // Kurumsal Kartım ekranında `id` henüz URL'ye eklenmemiş olsa bile
-      // kullanıcının kişisel ilk kartına düşme. Organizasyon adına bağlı
-      // kurumsal profili bul; böylece sidebar'daki Kartım her zaman aynı
-      // kurumsal karta açılır.
-      let profile = null;
-      if (!isNewCard && requestedProfileId) {
-        profile = (await fetchOwnProfileById(supabase, user.id, requestedProfileId)).data;
-      } else if (!isNewCard && isBusinessCard) {
-        const identityForProfile = await organizationIdentityPromise;
-        const organizationId = identityForProfile?.lock.organizationId || businessOrganizationId;
-        if (organizationId) {
-          profile = (await fetchOwnProfileByOrganizationId(supabase, user.id, organizationId)).data;
-        }
-      } else if (!isNewCard) {
-        profile = (await fetchOwnProfile(supabase, user.id)).data;
-      }
-      if (!isBusinessCard && (isNewCard || !profile)) {
-        const { data: existingProfiles } = await fetchOwnProfiles(supabase, user.id);
-        const spareEntitlementId = unusedEntitlementId(entitlementPayload.entitlements ?? [], existingProfiles);
-        if (!spareEntitlementId) {
-          setAccessState("denied");
-          router.replace(isNewCard ? "/urunler?reason=no-spare-card" : (entitlementPayload.next || "/urunler?reason=access-required"));
-          return;
-        }
-        setNewCardEntitlementId(spareEntitlementId);
-      }
-      setAccessState("allowed");
-      track("creation_start", { hasExistingProfile: Boolean(profile), isNewCard });
-      if (profile) {
-        setProfileId(profile.id);
-        setPublicId(profile.public_id || "");
-        const imageUrl = profile.image_url ?? "";
-        setOriginalImageUrl(imageUrl);
-        setProfileSlug(profile.slug ?? "");
-        setSlugTouched(true);
-        setData({
-          name: profile.name ?? "", role: profile.role ?? "", company: profile.company ?? "",
-          phone: profile.phone ?? "", whatsapp: profile.whatsapp ?? "", email: profile.email ?? "",
-          website: profile.website ?? "", linkedin: profile.linkedin ?? "", instagram: profile.instagram ?? "",
-          location: profile.location ?? "", image: imageUrl, bio: profile.bio ?? ""
-        });
-        const { data: localeRows } = await supabase.from("card_profile_locales").select("locale,role,about").eq("profile_id", profile.id).eq("locale", "en").maybeSingle();
-        setEnglishRole(localeRows?.role || "");
-        setEnglishAbout(localeRows?.about || "");
-      } else {
-        const metadata = user.user_metadata ?? {};
-        const linkedInName = metadata.full_name ?? metadata.name ?? [metadata.given_name, metadata.family_name].filter(Boolean).join(" ");
-        const linkedInImage = metadata.avatar_url ?? metadata.picture ?? "";
-        const linkedInHeadline = metadata.headline ?? "";
-        setOriginalImageUrl(linkedInImage || "");
-        setData((current) => ({
-          ...current,
-          name: current.name || linkedInName || "",
-          role: current.role || linkedInHeadline || "",
-          email: current.email || user.email || "",
-          image: current.image || linkedInImage || ""
-        }));
-      }
 
-      // Applied last so a company's centrally managed identity always wins
-      // over both a saved profile's old values and LinkedIn prefill — this is
-      // what makes locked fields actually stay in sync with company Ayarlar.
-      const identity = await organizationIdentityPromise;
-      if (identity) {
-        setOrgLock(identity.lock);
-        setOrgBranding(identity.branding);
-        setData((current) => {
-          const filledGaps = Object.fromEntries(
-            Object.entries(identity.suggestedValues).filter(
-              ([key, value]) => value && !current[key as keyof CardData],
-            ),
-          );
-          return { ...current, ...filledGaps, ...identity.lockedValues };
-        });
+        // Applied last so a company's centrally managed identity always wins
+        // over both a saved profile's old values and LinkedIn prefill — this is
+        // what makes locked fields actually stay in sync with company Ayarlar.
+        const identity = await organizationIdentityPromise;
+        if (identity) {
+          setOrgLock(identity.lock);
+          setOrgBranding(identity.branding);
+          setData((current) => {
+            const filledGaps = Object.fromEntries(
+              Object.entries(identity.suggestedValues).filter(
+                ([key, value]) => value && !current[key as keyof CardData],
+              ),
+            );
+            const finalData = { ...current, ...filledGaps, ...identity.lockedValues };
+            setBaseline((prev) => prev ? { ...prev, data: finalData } : {
+              data: finalData,
+              englishRole: "",
+              englishAbout: "",
+              slug: "",
+            });
+            return finalData;
+          });
+        }
+      } catch (err) {
+        console.error("CardWizard authorization error:", err);
+        setContextDirty(false);
+        setAccessState("denied");
+        router.replace("/giris?portal=business");
       }
+    }).catch((err) => {
+      console.error("CardWizard auth promise rejected:", err);
+      setContextDirty(false);
+      setAccessState("denied");
+      router.replace("/giris?portal=business");
     });
   }, [router, businessOrganizationId, isBusinessCard, isNewCard, requestedProfileId]);
 
@@ -507,6 +605,7 @@ export default function CardWizard() {
   }
 
   async function publish() {
+    if (saving) return;
     const formError = validateForm();
     if (formError) {
       setMessage(formError);
@@ -625,9 +724,16 @@ export default function CardWizard() {
           });
           if (localeError) setMessage("Kart kaydedildi; İngilizce içerik katmanı ayrıca kaydedilemedi.");
         }
-        if (!isBusinessCard) localStorage.setItem("yenomi-card-draft", JSON.stringify(sanitizeCardDraft({ ...data, image: uploaded.url })));
+        if (!isBusinessCard) localStorage.setItem("yenomi-card-draft", JSON.stringify(sanitizeCardDraft({ ...data, image: uploaded?.url ?? data.image })));
         localStorage.setItem("yenomi-card-slug", slug);
         setProfileSlug(slug);
+        setIsPublished(true);
+        setBaseline({
+          data: { ...data, image: uploaded?.url ?? data.image },
+          englishRole: englishRole.trim(),
+          englishAbout: englishAbout.trim(),
+          slug,
+        });
       } else if (isSupabaseConfigured) {
         setMessage("Kalıcı yayın için önce giriş yapmalısın. Taslağın bu tarayıcıya kaydedildi.");
         setSaving(false);
@@ -668,8 +774,35 @@ export default function CardWizard() {
   if (accessState === "denied") return null;
 
   const cancelHref = isBusinessCard ? "/kurumsal/panel" : (profileId ? "/kartlarim" : "/");
-  const publishDisabled = saving || slugStatus === "checking" || slugStatus === "unavailable" || slugStatus === "invalid";
-  const preview = <div className="p8-preview-stage"><CardTemplate data={deferredData} preview branding={orgBranding} /></div>;
+
+  const isAlreadyPublished = Boolean(profileId) && isPublished;
+
+  const primaryCtaLabel = saving
+    ? "Kaydediliyor..."
+    : isAlreadyPublished
+    ? "Değişiklikleri Kaydet"
+    : "Kaydet ve Yayınla";
+
+  const publishDisabled =
+    saving ||
+    (isAlreadyPublished && !isDirty) ||
+    slugStatus === "checking" ||
+    slugStatus === "unavailable" ||
+    slugStatus === "invalid";
+
+  const saveStatusBadge = (
+    <span className={`p8-save-status p8-save-status--${saving ? "saving" : isDirty ? "dirty" : "saved"}`} role="status">
+      {saving ? (
+        <><Icon name="clock" /> Kaydediliyor...</>
+      ) : isDirty ? (
+        "Kaydedilmemiş değişiklikler var"
+      ) : (
+        <><Icon name="check" /> Tüm değişiklikler kaydedildi</>
+      )}
+    </span>
+  );
+
+  const preview = <div className="p8-preview-stage"><CardTemplate data={deferredData} preview branding={orgBranding} activePreviewTarget={activePreviewTarget} /></div>;
 
   const canManageLicenses = orgLock?.membershipRole === "OWNER" || orgLock?.membershipRole === "ADMIN";
   const ownCardHref = `/kurumsal/panel/kartim?business=1&organizationId=${encodeURIComponent(businessOrganizationId || "")}${profileId ? `&id=${encodeURIComponent(profileId)}` : "&new=1"}`;
@@ -702,8 +835,8 @@ export default function CardWizard() {
         <section id="p8-basic" className="p8-section-card">
           <div className="p8-section-heading"><span>01</span><div><h2>Temel Bilgiler</h2><p>Tanışma anında ilk görülecek kimlik bilgilerini düzenleyin.</p></div></div>
           <div className="p8-field-grid">
-            <Field label="Ad Soyad" required help={orgLock?.lockName === "locked" ? "Şirket tarafından yönetiliyor" : "Kartınızda görünen adınız."}>
-              <Input value={data.name} onChange={(e) => update("name", e.target.value)} placeholder="Ad Soyad" autoComplete="name" required disabled={orgLock?.lockName === "locked"}/>
+            <Field label="Ad Soyad" required help={orgLock?.lockName === "locked" ? <span className="p8-governance-help"><Icon name="lock" /> Şirket tarafından yönetiliyor</span> : orgLock?.lockName === "suggested" ? "Şirket önerisi (düzenleyebilirsiniz)" : "Kartınızda görünen adınız."}>
+              <Input value={data.name} onChange={(e) => update("name", e.target.value)} placeholder="Ad Soyad" autoComplete="name" required disabled={orgLock?.lockName === "locked"} {...bindTarget("identity")}/>
             </Field>
           </div>
         </section>
@@ -711,17 +844,17 @@ export default function CardWizard() {
         <section id="p8-contact" className="p8-section-card">
           <div className="p8-section-heading"><span>02</span><div><h2>İletişim</h2><p>Size ulaşmak için kullanılacak temel iletişim kanallarını belirleyin.</p></div></div>
           <div className="p8-field-grid">
-            <Field label="Telefon" help={orgLock?.lockPhone === "locked" ? "Şirket tarafından yönetiliyor" : undefined}>
-              <Input type="tel" inputMode="tel" autoComplete="tel" value={data.phone} onChange={(e) => update("phone", normalizeTrPhone(e.target.value))} placeholder="+90 5xx xxx xx xx" disabled={orgLock?.lockPhone === "locked"}/>
+            <Field label="Telefon" help={orgLock?.lockPhone === "locked" ? <span className="p8-governance-help"><Icon name="lock" /> Şirket tarafından yönetiliyor</span> : orgLock?.lockPhone === "suggested" ? "Şirket önerisi (düzenleyebilirsiniz)" : undefined}>
+              <Input type="tel" inputMode="tel" autoComplete="tel" value={data.phone} onChange={(e) => update("phone", normalizeTrPhone(e.target.value))} placeholder="+90 5xx xxx xx xx" disabled={orgLock?.lockPhone === "locked"} {...bindTarget("phone")}/>
             </Field>
             <Field label="WhatsApp" help="Telefon numaranızdan farklıysa doldurun.">
-              <Input type="tel" inputMode="tel" autoComplete="tel" value={data.whatsapp} onChange={(e) => update("whatsapp", normalizeTrPhone(e.target.value))} placeholder="+90 5xx xxx xx xx"/>
+              <Input type="tel" inputMode="tel" autoComplete="tel" value={data.whatsapp} onChange={(e) => update("whatsapp", normalizeTrPhone(e.target.value))} placeholder="+90 5xx xxx xx xx" {...bindTarget("phone")}/>
             </Field>
-            <Field label="E-posta" className="p8-field-wide" help={orgLock?.lockEmail === "locked" ? "Şirket tarafından yönetiliyor" : undefined}>
-              <Input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} value={data.email} onChange={(e) => update("email", e.target.value)} onBlur={() => update("email", normalizeEmailField(data.email))} placeholder="ad@firma.com" disabled={orgLock?.lockEmail === "locked"}/>
+            <Field label="E-posta" className="p8-field-wide" help={orgLock?.lockEmail === "locked" ? <span className="p8-governance-help"><Icon name="lock" /> Şirket tarafından yönetiliyor</span> : orgLock?.lockEmail === "suggested" ? "Şirket önerisi (düzenleyebilirsiniz)" : undefined}>
+              <Input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} value={data.email} onChange={(e) => update("email", e.target.value)} onBlur={() => { update("email", normalizeEmailField(data.email)); setActivePreviewTarget(null); }} onFocus={() => setActivePreviewTarget("email")} placeholder="ad@firma.com" disabled={orgLock?.lockEmail === "locked"}/>
             </Field>
             <Field label="Konum" className="p8-field-wide" help={locationMessage || "Şehir veya bölge bilgisi yeterlidir."}>
-              <div className="p8-inline-field"><Input value={data.location} onChange={(e) => update("location", e.target.value)} placeholder="İzmir, Türkiye"/><Button variant="secondary" onClick={() => void detectCity()} disabled={locationLoading}><Icon name="map" />{locationLoading ? "Bulunuyor" : "Konumumu Bul"}</Button></div>
+              <div className="p8-inline-field"><Input value={data.location} onChange={(e) => update("location", e.target.value)} placeholder="İzmir, Türkiye" {...bindTarget("social")}/><Button variant="secondary" onClick={() => void detectCity()} disabled={locationLoading}><Icon name="map" />{locationLoading ? "Bulunuyor" : "Konumumu Bul"}</Button></div>
             </Field>
           </div>
         </section>
@@ -729,37 +862,37 @@ export default function CardWizard() {
         <section id="p8-company" className="p8-section-card">
           <div className="p8-section-heading"><span>03</span><div><h2>Şirket</h2><p>Profesyonel kimliğinizi şirket ve pozisyon bilgileriyle tamamlayın.</p></div></div>
           <div className="p8-field-grid">
-            <Field label="Ünvan / Pozisyon" required help={orgLock?.lockTitle === "locked" ? "Şirket tarafından yönetiliyor" : undefined}>
+            <Field label="Ünvan / Pozisyon" required help={orgLock?.lockTitle === "locked" ? <span className="p8-governance-help"><Icon name="lock" /> Şirket tarafından yönetiliyor</span> : orgLock?.lockTitle === "suggested" ? "Şirket önerisi (düzenleyebilirsiniz)" : undefined}>
               {orgLock && orgLock.jobTitles.length > 0 ? (
-                <Select value={data.role} onChange={(e) => update("role", e.target.value)} required disabled={orgLock.lockTitle === "locked"}>
+                <Select value={data.role} onChange={(e) => update("role", e.target.value)} required disabled={orgLock.lockTitle === "locked"} {...bindTarget("identity")}>
                   <option value="">Ünvan seç</option>
                   {orgLock.jobTitles.map((title) => <option key={title} value={title}>{title}</option>)}
                   {data.role && !orgLock.jobTitles.includes(data.role) && <option value={data.role}>{data.role}</option>}
                 </Select>
               ) : (
-                <Input list="yenomi-title-options" value={data.role} onChange={(e) => update("role", e.target.value)} placeholder="Ünvan / Pozisyon" required disabled={orgLock?.lockTitle === "locked"}/>
+                <Input list="yenomi-title-options" value={data.role} onChange={(e) => update("role", e.target.value)} placeholder="Ünvan / Pozisyon" required disabled={orgLock?.lockTitle === "locked"} {...bindTarget("identity")}/>
               )}
             </Field>
             {!(orgLock && orgLock.jobTitles.length > 0) ? <datalist id="yenomi-title-options">{TITLE_OPTIONS.map((title)=><option key={title} value={title}/>)}</datalist> : null}
-            <Field label="Şirket" help={orgLock?.lockCompany === "locked" ? "Şirket tarafından yönetiliyor" : "İsteğe bağlı"}>
-              <Input value={data.company} onChange={(e) => update("company", e.target.value)} placeholder="Şirket adı" disabled={orgLock?.lockCompany === "locked"}/>
+            <Field label="Şirket" help={orgLock?.lockCompany === "locked" ? <span className="p8-governance-help"><Icon name="lock" /> Şirket tarafından yönetiliyor</span> : orgLock?.lockCompany === "suggested" ? "Şirket önerisi (düzenleyebilirsiniz)" : "İsteğe bağlı"}>
+              <Input value={data.company} onChange={(e) => update("company", e.target.value)} placeholder="Şirket adı" disabled={orgLock?.lockCompany === "locked"} {...bindTarget("identity")}/>
             </Field>
           </div>
-          {orgLock && orgLock.lockTitle !== "locked" && <div className="p8-title-request">{orgLock.titleRequest?.status === "PENDING" ? <p className="p8-message p8-message--info">“{orgLock.titleRequest.requestedTitle}” ünvan talebiniz İK onayında.</p> : orgLock.titleRequest?.status === "REJECTED" ? <p className="p8-message p8-message--error">Ünvan talebiniz reddedildi.{orgLock.titleRequest.note ? ` Not: ${orgLock.titleRequest.note}` : ""}</p> : titleRequestOpen ? <div className="p8-inline-field"><Input value={titleRequestValue} onChange={(e) => setTitleRequestValue(e.target.value)} placeholder="Listede olmayan ünvanınızı yazın" maxLength={120}/><Button variant="ghost" onClick={() => { setTitleRequestOpen(false); setTitleRequestValue(""); }}>Vazgeç</Button><Button variant="primary" disabled={titleRequestBusy || titleRequestValue.trim().length<2} onClick={() => void submitTitleRequest()}>{titleRequestBusy ? "Gönderiliyor..." : "İK'ya Gönder"}</Button></div> : <Button variant="ghost" onClick={() => setTitleRequestOpen(true)}>Listede yok mu? Yeni ünvan talep et</Button>}{titleRequestMessage && <p className="p8-message p8-message--info">{titleRequestMessage}</p>}</div>}
+          {orgLock && orgLock.lockTitle !== "locked" && <div className="p8-title-request">{orgLock.titleRequest?.status === "PENDING" ? <p className="p8-message p8-message--info"><Icon name="clock" /> “{orgLock.titleRequest.requestedTitle}” ünvan talebiniz İK onayında.</p> : orgLock.titleRequest?.status === "REJECTED" ? <p className="p8-message p8-message--error"><Icon name="alert" /> Ünvan talebiniz reddedildi.{orgLock.titleRequest.note ? ` Not: ${orgLock.titleRequest.note}` : ""}</p> : titleRequestOpen ? <div className="p8-inline-field"><Input value={titleRequestValue} onChange={(e) => setTitleRequestValue(e.target.value)} placeholder="Listede olmayan ünvanınızı yazın" maxLength={120}/><Button variant="ghost" onClick={() => { setTitleRequestOpen(false); setTitleRequestValue(""); }}>Vazgeç</Button><Button variant="primary" disabled={titleRequestBusy || titleRequestValue.trim().length<2} onClick={() => void submitTitleRequest()}>{titleRequestBusy ? "Gönderiliyor..." : "İK'ya Gönder"}</Button></div> : <Button variant="ghost" onClick={() => setTitleRequestOpen(true)}><Icon name="sparkles" /> Listede yok mu? Yeni ünvan talep et</Button>}{titleRequestMessage && <p className="p8-message p8-message--info">{titleRequestMessage}</p>}</div>}
         </section>
 
         <section id="p8-social" className="p8-section-card">
           <div className="p8-section-heading"><span>04</span><div><h2>Sosyal Medya</h2><p>Profesyonel ağlarınızı yalnız kullanmak istediğiniz kanallarla sınırlayın.</p></div></div>
           <div className="p8-field-grid">
-            <Field label="LinkedIn"><Input type="url" value={data.linkedin} onChange={(e) => update("linkedin", e.target.value)} placeholder="https://linkedin.com/in/kullanici" inputMode="url" autoCapitalize="none" spellCheck={false}/></Field>
-            <Field label="Instagram"><Input type="url" value={data.instagram} onChange={(e) => update("instagram", e.target.value)} placeholder="https://instagram.com/kullanici" inputMode="url" autoCapitalize="none" spellCheck={false}/></Field>
+            <Field label="LinkedIn"><Input type="url" value={data.linkedin} onChange={(e) => update("linkedin", e.target.value)} placeholder="https://linkedin.com/in/kullanici" inputMode="url" autoCapitalize="none" spellCheck={false} {...bindTarget("social")}/></Field>
+            <Field label="Instagram"><Input type="url" value={data.instagram} onChange={(e) => update("instagram", e.target.value)} placeholder="https://instagram.com/kullanici" inputMode="url" autoCapitalize="none" spellCheck={false} {...bindTarget("social")}/></Field>
           </div>
         </section>
 
         <section id="p8-links" className="p8-section-card">
           <div className="p8-section-heading"><span>05</span><div><h2>Bağlantılar</h2><p>Web sitenizi ve kalıcı Yenomi ID adresinizi yönetin.</p></div></div>
           <div className="p8-field-grid">
-            <Field label="Web Sitesi"><Input type="url" value={data.website} onChange={(e) => update("website", e.target.value)} placeholder="https://firma.com" inputMode="url" autoCapitalize="none" spellCheck={false}/></Field>
+            <Field label="Web Sitesi"><Input type="url" value={data.website} onChange={(e) => update("website", e.target.value)} placeholder="https://firma.com" inputMode="url" autoCapitalize="none" spellCheck={false} {...bindTarget("social")}/></Field>
             <Field label="Yenomi ID" help="Paylaşım adresi /p/{slug} şeklindedir. QR kimliği ayrı ve sabittir; slug değişince QR yeniden basılmaz.">
               <div className="p8-slug-field"><span>{publicCardHost()}/p/</span><Input value={profileSlug} onChange={(e) => updateSlug(e.target.value)} onBlur={() => setProfileSlug(normalizeProfileSlug(profileSlug))} placeholder="adsoyad" minLength={3} maxLength={40}/></div>
             </Field>
@@ -772,10 +905,10 @@ export default function CardWizard() {
           <div className="p8-section-heading"><span>06</span><div><h2>Profil Görünümü</h2><p>Fotoğraf ve kısa biyografi ile kartınızın ilk izlenimini tamamlayın.</p></div></div>
           <div className="p8-photo-row">
             <div className="p8-photo-preview" aria-hidden="true">{data.image ? <img src={data.image} alt="" /> : <span>{data.name.trim().split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "Y"}</span>}</div>
-            <div className="p8-photo-actions"><strong>Profil fotoğrafı</strong><p>JPG, PNG veya WebP · en fazla 5 MB · en az 240 × 240 px.</p><label className="ds-button ds-button--secondary p8-file-button">Fotoğraf Seç<input type="file" accept="image/jpeg,image/png,image/webp" onChange={imageChange}/></label>{data.image && <Button size="sm" variant="ghost" onClick={() => { update("image", ""); setImageMessage(""); }}>Fotoğrafı Kaldır</Button>}{imageMessage && <span className="p8-field-error" role="alert">{imageMessage}</span>}</div>
+            <div className="p8-photo-actions"><strong>Profil fotoğrafı</strong><p>JPG, PNG veya WebP · en fazla 5 MB · en az 240 × 240 px.</p><label className="ds-button ds-button--secondary p8-file-button">Fotoğraf Seç<input type="file" accept="image/jpeg,image/png,image/webp" onChange={imageChange} onFocus={() => setActivePreviewTarget("photo")} onBlur={() => setActivePreviewTarget(null)}/></label>{data.image && <Button size="sm" variant="ghost" onClick={() => { update("image", ""); setImageMessage(""); }}>Fotoğrafı Kaldır</Button>}{imageMessage && <span className="p8-field-error" role="alert">{imageMessage}</span>}</div>
           </div>
           <Field label="Kısa Biyografi" help={`${(data.bio || "").length}/280 karakter`}>
-            <Textarea value={data.bio || ""} onChange={(e) => update("bio", e.target.value)} maxLength={280} rows={5} placeholder="Kısa ve profesyonel bir tanıtım yazın..." />
+            <Textarea value={data.bio || ""} onChange={(e) => update("bio", e.target.value)} maxLength={280} rows={5} placeholder="Kısa ve profesyonel bir tanıtım yazın..." {...bindTarget("bio")}/>
           </Field>
           <Field label="İngilizce ünvan" help="Uluslararası networking katmanı. Boş bırakılırsa İngilizce görünümde Türkçe ünvan kullanılır.">
             <Input value={englishRole} onChange={(e) => setEnglishRole(e.target.value)} placeholder="Head of Partnerships" />
@@ -790,7 +923,7 @@ export default function CardWizard() {
 
         <div className="p8-mob-act" aria-label="Profil düzenleme işlemleri">
           <Button variant="secondary" onClick={() => setMobilePreviewOpen(true)}><Icon name="id" />Önizle</Button>
-          <Button variant="primary" disabled={publishDisabled} onClick={() => void publish()}>{saving ? "Kaydediliyor..." : "Kaydet ve Yayınla"}</Button>
+          <Button variant="primary" disabled={publishDisabled} onClick={() => void publish()}>{primaryCtaLabel}</Button>
         </div>
       </form>
 
@@ -818,14 +951,27 @@ export default function CardWizard() {
         <section className="p8-preview-card">
           <div className="p8-preview-hd">
             <div>
-              <h2>Canlı Kart Önizlemesi</h2>
-              <p>Kaydetmeden önce profilinizin nasıl görüneceğini kontrol edin.</p>
+              <h3 className="p8-preview-title">Canlı Kart Önizlemesi</h3>
+              <div className="p8-preview-sub-row">
+                <span className={`p8-preview-badge p8-preview-badge--${isDirty ? "local" : isPublished ? "live" : "draft"}`}>
+                  {isDirty ? (
+                    isPublished ? (
+                      <><Icon name="edit" /> Önizleme — kaydedilmemiş değişiklikler var</>
+                    ) : (
+                      <><Icon name="edit" /> Önizleme — henüz yayınlanmadı (kaydedilmemiş değişiklikler var)</>
+                    )
+                  ) : isPublished ? (
+                    <><Icon name="check" /> Canlı profil ile aynı</>
+                  ) : (
+                    <><Icon name="clock" /> Henüz yayınlanmadı</>
+                  )}
+                </span>
+              </div>
             </div>
             <div className="p8-preview-acts">
               <Button size="sm" variant="secondary" onClick={() => setPhoneTestOpen(true)}>
                 <Icon name="qr" /> Telefonda Test Et
               </Button>
-              <Badge>Önizleme</Badge>
             </div>
           </div>
           {preview}
@@ -862,6 +1008,11 @@ export default function CardWizard() {
         {profileId ? (
           <>
             <p>Mobil cihazınızın kamerası ile aşağıdaki QR kodu okutarak canlı kart profilinizi telefonunuzda hemen görüntüleyin.</p>
+            {isDirty && isPublished && (
+              <p className="p8-phone-test-dirty-note" role="status">
+                <Icon name="info" /> Kaydedilmemiş değişiklikler telefon testinde henüz görünmez. Değişiklikleri görmek için önce kaydetmelisiniz.
+              </p>
+            )}
             {phoneTestQrDataUrl ? (
               <img src={phoneTestQrDataUrl} alt="Mobil test QR kodu" className="p8-pqr" />
             ) : (
@@ -886,8 +1037,8 @@ export default function CardWizard() {
       eyebrow="Kart"
       activeKey="edit"
       actions={[
-        { href: cancelHref, label: "İptal" },
-        { label: saving ? "Kaydediliyor..." : "Kaydet ve Yayınla", onClick: () => void publish(), primary: true, disabled: publishDisabled },
+        { href: cancelHref, label: "İptal", onClick: () => { handleCancelClick({ preventDefault: () => {} } as React.MouseEvent); } },
+        { label: primaryCtaLabel, onClick: () => void publish(), primary: true, disabled: publishDisabled },
       ]}
     >{editorBody}</UserPanelShell>;
   }
@@ -900,9 +1051,9 @@ export default function CardWizard() {
         <p>Şirket politikasına açık alanları düzenleyin; kilitli alanlar merkezi olarak yönetilir.</p>
       </div>
       <div className="p8-header-actions">
-        {saveFeedback && <span className="p8-save-feedback-badge" role="status">{saveFeedback}</span>}
-        <Link className="ds-button ds-button--secondary" href={cancelHref}>İptal</Link>
-        <Button variant="primary" disabled={publishDisabled} onClick={() => void publish()}>{saving ? "Kaydediliyor..." : "Kaydet ve Yayınla"}</Button>
+        {saveStatusBadge}
+        <Link className="ds-button ds-button--secondary" href={cancelHref} onClick={handleCancelClick}>İptal</Link>
+        <Button variant="primary" disabled={publishDisabled} onClick={() => void publish()}>{primaryCtaLabel}</Button>
       </div>
     </header>
     <div className="p8-corporate-content">{editorBody}</div>

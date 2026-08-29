@@ -524,6 +524,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       const access = await token();
       if (!access) {
         setMessage("Kurumsal panel için giriş yapmalısın.");
+        setLoading(false);
         return;
       }
       const response = await fetchWithPanelTimeout("/api/organizations/mine?management=true", {
@@ -546,7 +547,9 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       }
       const nextOrgs = data.organizations || [];
       setOrgs(nextOrgs);
-      const id = nextOrgs[0]?.organization_id || "";
+      const preferredOrgId = searchParams.get("organizationId");
+      const matchedOrg = preferredOrgId ? (nextOrgs.find((item: Org) => item.organization_id === preferredOrgId) || nextOrgs[0]) : nextOrgs[0];
+      const id = matchedOrg?.organization_id || "";
       setSelected(id);
       if (!id) {
         setLoading(false);
@@ -584,6 +587,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
         const access = await token();
         if (!access) {
           setMessage("Kurumsal panel için giriş yapmalısın.");
+          setLoading(false);
           return;
         }
         const response = await fetchWithPanelTimeout("/api/organizations/mine?management=true", {
@@ -596,7 +600,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
           // EMPLOYEE'yi boş-şirket ekranında bırakmak yerine Kartım'a götür.
           if (response.status === 403) {
             redirecting = true;
-            router.replace("/kartim");
+            router.replace("/kurumsal/panel/kartim");
             return;
           }
           if (response.status === 401) {
@@ -606,17 +610,20 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
           }
           setLoadingError(data.error || "Şirket bilgileri yüklenemedi.");
           setMessage("");
+          setLoading(false);
           return;
         }
         const nextOrgs = data.organizations || [];
         setOrgs(nextOrgs);
-        const id = nextOrgs[0]?.organization_id || "";
+        const preferredOrgId = searchParams.get("organizationId");
+        const matchedOrg = preferredOrgId ? (nextOrgs.find((item: Org) => item.organization_id === preferredOrgId) || nextOrgs[0]) : nextOrgs[0];
+        const id = matchedOrg?.organization_id || "";
         setSelected(id);
-        if (id && nextOrgs[0]?.role === "DEPARTMENT_MANAGER") {
+        if (id && matchedOrg?.role === "DEPARTMENT_MANAGER") {
           setActiveTab("employees");
           setForm((current) => ({
             ...current,
-            department: nextOrgs[0]?.department || "",
+            department: matchedOrg?.department || "",
             role: "EMPLOYEE",
           }));
           setLoading(false);

@@ -49,6 +49,7 @@ type Props = {
   imagePosition?: string;
   branding?: CardBranding | null;
   corporateRole?: OrganizationRole | null;
+  activePreviewTarget?: string | null;
 };
 
 function safeHexColor(value: string | null | undefined): string | null {
@@ -86,7 +87,7 @@ function displayIdentity(data: EditableCardData, preview: boolean) {
   };
 }
 
-export default function CardTemplate({ data, preview = false, slug, publicId, extras, saveLabel, imagePosition, branding, corporateRole }: Props) {
+export default function CardTemplate({ data, preview = false, slug, publicId, extras, saveLabel, imagePosition, branding, corporateRole, activePreviewTarget }: Props) {
   const identity = displayIdentity(data, preview);
   const phone = cleanPhone(data.phone);
   const whatsapp = cleanPhone(data.whatsapp || data.phone).replace(/^\+/, "");
@@ -138,8 +139,8 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
   }, [brandVariant, isCorporate, publicHref, preview]);
 
   const identityPhoto = (className: string) => (data.image && !imgError)
-    ? <img className={className} src={data.image} alt={`${identity.name || "Profil"} görseli`} onError={() => setImgError(true)} style={{ objectPosition: imagePosition ?? "50% 50%" }} />
-    : <span className={`${className} corporate-avatar-fallback`}>{initials}</span>;
+    ? <img className={`${className} ${activePreviewTarget === "photo" ? "p8-preview-target--active" : ""}`} src={data.image} alt={`${identity.name || "Profil"} görseli`} onError={() => setImgError(true)} style={{ objectPosition: imagePosition ?? "50% 50%" }} />
+    : <span className={`${className} corporate-avatar-fallback ${activePreviewTarget === "photo" ? "p8-preview-target--active" : ""}`}>{initials}</span>;
 
   const corporateBrand = (
     <div className="corp-logo-lockup">
@@ -236,7 +237,7 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
               <span className="corp-menu-dot">•••</span>
             </header>
 
-            <section className="corp-essential-identity">
+            <section className={`corp-essential-identity ${activePreviewTarget === "identity" ? "p8-preview-target--active" : ""}`}>
               {identityPhoto("corp-essential-avatar")}
               <div>
                 <TitleTag>{identity.name}</TitleTag>
@@ -251,27 +252,27 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
               </div>
             </section>
 
-            <nav className="corp-main-actions corp-main-actions-dark" aria-label="Hızlı iletişim">
+            <nav className={`corp-main-actions corp-main-actions-dark ${activePreviewTarget === "phone" || activePreviewTarget === "email" ? "p8-preview-target--active" : ""}`} aria-label="Hızlı iletişim">
               {phone && <a href={`tel:${phone}`} {...clickProps}><Icon name="phone" /><span>Ara</span></a>}
               {data.email && <a href={`mailto:${data.email}`} {...clickProps}><Icon name="mail" /><span>E-posta</span></a>}
               <a href={saveHref} {...clickProps}><Icon name="save" /><span>Kişiye Ekle</span></a>
             </nav>
 
-            <nav className="corp-social-strip" aria-label="Sosyal bağlantılar">
+            <nav className={`corp-social-strip ${activePreviewTarget === "social" || activePreviewTarget === "website" || activePreviewTarget === "linkedin" || activePreviewTarget === "location" ? "p8-preview-target--active" : ""}`} aria-label="Sosyal bağlantılar">
               {data.linkedin && <a href={external(data.linkedin)} target="_blank" rel="noopener" {...clickProps}><Icon name="social" /> LinkedIn</a>}
               {data.website && <a href={external(data.website)} target="_blank" rel="noopener" {...clickProps}><Icon name="external" /> Web Sitesi</a>}
               {data.location && <a href={toGoogleMapsUrl(data.location)} target="_blank" rel="noopener" {...clickProps}><Icon name="map" /> Konum</a>}
               {whatsappHref && <a href={whatsappHref} target="_blank" rel="noopener" {...clickProps}><Icon name="whatsapp" /> WhatsApp</a>}
             </nav>
 
-            <section className="corp-info-section">
+            <section className={`corp-info-section ${activePreviewTarget === "phone" || activePreviewTarget === "email" ? "p8-preview-target--active" : ""}`}>
               <h2>İLETİŞİM BİLGİLERİ</h2>
               <div className="corp-contact-table">
                 {contactLinks.slice(0, 4).map((link) => <a href={link.href} key={`${link.title}-${link.href}`} {...clickProps}><Icon name={link.kind} /><span><b>{link.subtitle}</b><small>{link.title}</small></span></a>)}
               </div>
             </section>
 
-            {data.bio && <section className="corp-info-section corp-about-section">
+            {data.bio && <section className={`corp-info-section corp-about-section ${activePreviewTarget === "bio" ? "p8-preview-target--active" : ""}`}>
               <h2>HAKKINDA</h2>
               <p>{data.bio}</p>
             </section>}

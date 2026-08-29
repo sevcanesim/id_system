@@ -8,6 +8,7 @@ import { corporatePanelNavItems, getCorporateSidebarActiveKey, type CorporateNav
 import { groupSidebarItems } from "../../components/ui/sidebar-config";
 import { ROLE_LABELS } from "../../../lib/organizations/role-matrix";
 import { normalizeOrganizationRole } from "../../../lib/organizations/permissions";
+import { useUnsavedChanges } from "../../components/UnsavedChangesContext";
 
 export type IDSidebarProps = {
   role?: string;
@@ -53,6 +54,7 @@ export default function IDSidebar({
   const previouslyFocused = useRef<HTMLElement | null>(null);
   const [collapsed, setCollapsed] = useState(false);
 
+  const { guardLinkClick } = useUnsavedChanges();
   const activeKey = getCorporateSidebarActiveKey(pathname);
   const items: CorporateNavItem[] = corporatePanelNavItems(role, ownCardHref);
   const itemGroups = groupSidebarItems(items);
@@ -167,7 +169,14 @@ export default function IDSidebar({
         </button>
 
         <div className="id-sidebar__brand">
-          <Link href="/kurumsal/panel" className="id-sidebar__brand-link" onClick={onClose}>
+          <Link
+            href="/kurumsal/panel"
+            className="id-sidebar__brand-link"
+            onClick={(e) => {
+              onClose?.();
+              guardLinkClick(e, "/kurumsal/panel");
+            }}
+          >
             <span className="id-sidebar__brand-mark" aria-hidden="true">
               <img src="/images/yenomilabs-mark-transparent.png" alt="" />
             </span>
@@ -204,7 +213,10 @@ export default function IDSidebar({
                         href={item.href}
                         className={`id-sidebar__link ${isActive ? "id-sidebar__link--active" : ""}`}
                         aria-current={isActive ? "page" : undefined}
-                        onClick={onClose}
+                        onClick={(e) => {
+                          onClose?.();
+                          guardLinkClick(e, item.href);
+                        }}
                         title={collapsed ? item.label : undefined}
                       >
                         <span className="id-sidebar__icon" aria-hidden="true">

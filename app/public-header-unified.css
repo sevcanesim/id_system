@@ -236,6 +236,56 @@
   background: var(--surface-soft);
 }
 
+/* Canonical public purchase CTA. All primary purchase actions share one visual contract. */
+.public-site-chrome .yi-header__actions .yi-btn--primary,
+.home-mockup__button--gold,
+.products-commerce-v3 .add-to-cart-button {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 24px;
+  border: 1px solid color-mix(in srgb, var(--brand-gold-deep) 48%, transparent);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #d0aa55 0%, #be9134 100%);
+  color: #17120b;
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 760;
+  line-height: 1;
+  letter-spacing: -.015em;
+  box-shadow: 0 10px 22px rgba(148, 105, 25, .20);
+  transition:
+    transform var(--motion-fast) var(--ease-standard),
+    background var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+.public-site-chrome .yi-header__actions .yi-btn--primary:hover,
+.home-mockup__button--gold:hover,
+.products-commerce-v3 .add-to-cart-button:hover {
+  background: linear-gradient(180deg, #d8b45e 0%, #c49739 100%);
+  border-color: color-mix(in srgb, var(--brand-gold-deep) 62%, transparent);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(148, 105, 25, .24);
+}
+
+.public-site-chrome .yi-header__actions .yi-btn--primary:active,
+.home-mockup__button--gold:active,
+.products-commerce-v3 .add-to-cart-button:active {
+  transform: scale(.985);
+  box-shadow: 0 6px 14px rgba(148, 105, 25, .18);
+}
+
+.public-site-chrome .yi-header__actions .yi-btn--primary:focus-visible,
+.home-mockup__button--gold:focus-visible,
+.products-commerce-v3 .add-to-cart-button:focus-visible {
+  outline: 2px solid var(--brand-gold);
+  outline-offset: 4px;
+}
+
 @media (max-width: 1100px) {
   .public-site-chrome .yi-header__inner {
     grid-template-columns: 190px minmax(0, 1fr) auto;

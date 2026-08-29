@@ -134,7 +134,7 @@
   .home-premium__proof,
   .home-premium__journey {
     width: 100%;
-    padding: var(--space-14) var(--space-5);
+    padding: var(--space-12) var(--space-5);
   }
 
   .home-premium__proof-head,

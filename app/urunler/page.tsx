@@ -17,8 +17,8 @@ import { COMMERCIAL_PRICING, COMMERCIAL_SKUS } from "../../lib/config/commercial
 import { formatTryFromKurus, NFC_PRODUCT } from "../../lib/config/product";
 
 export const metadata: Metadata = {
-  title: "Yenomi ID — NFC Dijital Kartvizit",
-  description: "Yenomi ID ile NFC + QR kartınızı tek bir canlı dijital profile bağlayın. 1 yıl platform erişimi ve Türkiye içi kargo dahil.",
+  title: "Yenomi ID — Dijital Kartvizit ve Premium Networking",
+  description: "Yenomi ID Premium ile NFC + QR kartvizitinizi kişi yönetimi, toplantı, sunum ve Network Mail araçlarıyla birlikte kullanın.",
 };
 
 const commerceTrust = [
@@ -34,39 +34,34 @@ export default function ProductsPage() {
         <section className="products-commerce-v3__hero" aria-labelledby="products-hero-title">
           <div className="yi-container products-commerce-v3__hero-grid">
             <div className="products-commerce-v3__hero-copy">
-              <span className="products-commerce-v3__eyebrow">YENOMI ID · NFC DİJİTAL KARTVİZİT</span>
-              <h1 id="products-hero-title">Tek kart.<br />Değişmeyen bağlantın.</h1>
-              <p>
-                Kartın bir kez basılır. İsim, unvan, telefon veya bağlantıların değiştiğinde kartı değil,
-                dijital profilini güncellersin.
-              </p>
+              <span className="products-commerce-v3__eyebrow">YENOMI ID PREMIUM</span>
+              <h1 id="products-hero-title">Tanış.<br />Bağlantıyı kaydet. Takibini yap.</h1>
+              <p>NFC + QR kartvizitini yalnızca paylaşmakla kalma. Yeni bağlantılarını yönet, toplantı ve sunumlarını paylaş, Network Mail ile takibini sürdür.</p>
               <div className="products-commerce-v3__hero-price">
-                <span>Yenomi ID · NFC + QR + dijital profil</span>
-                <strong>{formatTryFromKurus(INDIVIDUAL_PLAN.priceKurus)}</strong>
+                <span>Premium · NFC + QR + networking araçları</span>
+                <strong>{formatTryFromKurus(INDIVIDUAL_PREMIUM_PLAN.priceKurus)}</strong>
               </div>
               <div className="products-commerce-v3__hero-actions">
                 <AddToCartButton
                   productId={NFC_PRODUCT.slug}
-                  variantSku={COMMERCIAL_SKUS.INITIAL}
+                  variantSku={COMMERCIAL_SKUS.PREMIUM}
                   kind="NFC_PHYSICAL_CARD"
-                  name="Yenomi ID NFC Kart"
-                  unitPriceKurus={COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus}
-                  label="NFC Kartı Satın Al"
+                  name="Yenomi ID Premium — NFC + 500 Network Mail"
+                  unitPriceKurus={COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.priceKurus}
+                  label="Premium’u Seç"
                 />
-                <a href="#nasil-calisir" className="products-commerce-v3__text-link">
-                  Nasıl çalışır? <span aria-hidden="true">→</span>
-                </a>
+                <Link href="/urunler/nfc-kart?paket=premium" className="products-commerce-v3__text-link">Premium’u incele <span aria-hidden="true">→</span></Link>
               </div>
             </div>
 
-            <div className="products-commerce-v3__stage" aria-label="Yenomi ID NFC kart ürün görseli">
+            <div className="products-commerce-v3__stage" aria-label="Yenomi ID Premium ürün görseli">
               <div className="home-hero-specimens">
                 <YenomiProductVisual variant="card" finish="matte" />
                 <YenomiProductVisual variant="profile" compact />
               </div>
               <div className="products-commerce-v3__stage-caption">
-                <span>NFC + QR</span>
-                <strong>Tek profil. Her zaman güncel.</strong>
+                <span>PREMIUM</span>
+                <strong>Paylaş. Kaydet. Takibini sürdür.</strong>
               </div>
             </div>
           </div>
@@ -75,13 +70,13 @@ export default function ProductsPage() {
         <section id="nasil-calisir" className="products-commerce-v4__how" aria-labelledby="how-title">
           <div className="yi-container">
             <header className="products-commerce-v4__how-head">
-              <span className="products-commerce-v3__eyebrow">NASIL ÇALIŞIR?</span>
-              <h2 id="how-title">Üç adım. Uygulama gerekmez.</h2>
+              <span className="products-commerce-v3__eyebrow">NEDEN PREMIUM?</span>
+              <h2 id="how-title">Kartvizit paylaşımından sonra da devam et.</h2>
             </header>
             <div className="products-commerce-v4__steps">
-              <article><span>01</span><strong>Yaklaştır</strong><p>NFC kartını telefona yaklaştır veya QR kodu okut.</p></article>
-              <article><span>02</span><strong>Profil açılır</strong><p>Dijital kartvizitin doğrudan tarayıcıda açılır.</p></article>
-              <article><span>03</span><strong>Kaydet</strong><p>Karşı taraf bilgilerini tek dokunuşla rehberine ekler.</p></article>
+              <article><span>01</span><strong>Paylaş</strong><p>NFC veya QR ile güncel dijital kartvizitini aç.</p></article>
+              <article><span>02</span><strong>Bağlantıyı yönet</strong><p>Tanıştığın kişileri, toplantıları ve sunumları tek yerde tut.</p></article>
+              <article><span>03</span><strong>Takip et</strong><p>500 Network Mail kredisiyle görüşme sonrası iletişimi sürdür.</p></article>
             </div>
           </div>
         </section>
@@ -91,161 +86,52 @@ export default function ProductsPage() {
             <div className="products-commerce-v3__section-head">
               <div>
                 <span className="products-commerce-v3__eyebrow">PAKETİNİ SEÇ</span>
-                <h2 id="offer-title">Tek kimlik. İhtiyacına göre üç seviye.</h2>
-                <p>Dijital ile başla, fiziksel NFC karta geç veya networking araçlarını Premium ile ekle.</p>
+                <h2 id="offer-title">Premium önerimiz. Daha sade seçenekler de var.</h2>
+                <p>Networking ve takip araçlarını kullanacaksan Premium; yalnızca kartvizit paylaşacaksan NFC veya Dijital seç.</p>
               </div>
               <div className="products-commerce-v3__hero-trust" aria-label="Satın alma güvenceleri">
-                {commerceTrust.map(([icon, label]) => (
-                  <span key={label}>
-                    <Icon name={icon} />
-                    {label}
-                  </span>
-                ))}
+                {commerceTrust.map(([icon, label]) => <span key={label}><Icon name={icon} />{label}</span>)}
               </div>
             </div>
 
             <div className="products-commerce-v3__plan-grid">
-              <article className="products-commerce-v3__plan-card">
-                <div className="products-commerce-v3__plan-topline">
-                  <span>DİJİTAL</span>
-                  <strong>{formatTryFromKurus(INDIVIDUAL_DIGITAL_PLAN.priceKurus)}</strong>
-                </div>
-                <h3>{INDIVIDUAL_DIGITAL_PLAN.name}</h3>
-                <p className="products-commerce-v3__plan-summary">
-                  Fiziksel kart istemiyorsan dijital kartvizitini oluştur ve QR ile paylaş.
-                </p>
-                <ul aria-label="Dijital paket içeriği">
-                  {INDIVIDUAL_DIGITAL_CATALOG_POINTS.slice(0, 3).map((item) => (
-                    <li key={item}>
-                      <Icon name="check" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="products-commerce-v3__plan-action">
-                  <AddToCartButton
-                    productId={NFC_PRODUCT.slug}
-                    variantSku={COMMERCIAL_SKUS.DIGITAL}
-                    kind="NFC_PHYSICAL_CARD"
-                    name="Yenomi ID Dijital Kartvizit"
-                    unitPriceKurus={COMMERCIAL_PRICING.YENOMI_ID_DIGITAL.priceKurus}
-                    label="Dijital’i Seç"
-                    appearance="secondary"
-                  />
-                </div>
-              </article>
-
-              <article className="products-commerce-v3__plan-card products-commerce-v3__plan-card--featured">
-                <div className="products-commerce-v3__featured-badge">Standart seçim</div>
-                <div className="products-commerce-v3__plan-topline">
-                  <span>NFC</span>
-                  <strong>{formatTryFromKurus(INDIVIDUAL_PLAN.priceKurus)}</strong>
-                </div>
-                <h3>{INDIVIDUAL_PLAN.name}</h3>
-                <p className="products-commerce-v3__plan-summary">
-                  Canlı dijital profilini tek fiziksel NFC + QR kartla taşı. Yaklaştır; profil anında açılsın.
-                </p>
-                <ul aria-label="NFC paket içeriği">
-                  {INDIVIDUAL_CATALOG_POINTS.slice(0, 3).map((item) => (
-                    <li key={item}>
-                      <Icon name="check" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="products-commerce-v3__plan-action">
-                  <AddToCartButton
-                    productId={NFC_PRODUCT.slug}
-                    variantSku={COMMERCIAL_SKUS.INITIAL}
-                    kind="NFC_PHYSICAL_CARD"
-                    name="Yenomi ID NFC Kart"
-                    unitPriceKurus={COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus}
-                    label="NFC Kartı Satın Al"
-                  />
-                </div>
-              </article>
-
-              <article className="products-commerce-v3__plan-card products-commerce-v3__plan-card--dark">
-                <div className="products-commerce-v3__plan-topline">
-                  <span>PREMIUM</span>
-                  <strong>{formatTryFromKurus(INDIVIDUAL_PREMIUM_PLAN.priceKurus)}</strong>
-                </div>
+              <article className="products-commerce-v3__plan-card products-commerce-v3__plan-card--dark products-commerce-v3__plan-card--featured">
+                <div className="products-commerce-v3__featured-badge">Önerilen</div>
+                <div className="products-commerce-v3__plan-topline"><span>PREMIUM</span><strong>{formatTryFromKurus(INDIVIDUAL_PREMIUM_PLAN.priceKurus)}</strong></div>
                 <h3>{INDIVIDUAL_PREMIUM_PLAN.name}</h3>
-                <p className="products-commerce-v3__plan-summary">
-                  NFC paketine toplantı, sunum, kişi yönetimi ve 500 Network Mail kredisi ekle.
-                </p>
-                <ul aria-label="Premium paket içeriği">
-                  {INDIVIDUAL_PREMIUM_CATALOG_POINTS.slice(0, 3).map((item) => (
-                    <li key={item}>
-                      <Icon name="check" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="products-commerce-v3__plan-action">
-                  <AddToCartButton
-                    productId={NFC_PRODUCT.slug}
-                    variantSku={COMMERCIAL_SKUS.PREMIUM}
-                    kind="NFC_PHYSICAL_CARD"
-                    name="Yenomi ID Premium — NFC + 500 Network Mail"
-                    unitPriceKurus={COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.priceKurus}
-                    label="Premium’u Seç"
-                    appearance="secondary"
-                  />
-                </div>
+                <p className="products-commerce-v3__plan-summary">NFC kartvizit + kişi yönetimi + toplantı ve sunum + 500 Network Mail. Aktif networking yapanlar için.</p>
+                <ul aria-label="Premium paket içeriği">{INDIVIDUAL_PREMIUM_CATALOG_POINTS.slice(0, 4).map((item) => <li key={item}><Icon name="check" /><span>{item}</span></li>)}</ul>
+                <div className="products-commerce-v3__plan-action"><AddToCartButton productId={NFC_PRODUCT.slug} variantSku={COMMERCIAL_SKUS.PREMIUM} kind="NFC_PHYSICAL_CARD" name="Yenomi ID Premium — NFC + 500 Network Mail" unitPriceKurus={COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.priceKurus} label="Premium’u Seç" /></div>
+              </article>
+
+              <article className="products-commerce-v3__plan-card">
+                <div className="products-commerce-v3__plan-topline"><span>NFC</span><strong>{formatTryFromKurus(INDIVIDUAL_PLAN.priceKurus)}</strong></div>
+                <h3>Bireysel NFC</h3>
+                <p className="products-commerce-v3__plan-summary">Fiziksel NFC + QR kart ve canlı dijital profil. Networking araçlarına ihtiyacın yoksa yeterli.</p>
+                <ul aria-label="NFC paket içeriği">{INDIVIDUAL_CATALOG_POINTS.slice(0, 3).map((item) => <li key={item}><Icon name="check" /><span>{item}</span></li>)}</ul>
+                <div className="products-commerce-v3__plan-action"><AddToCartButton productId={NFC_PRODUCT.slug} variantSku={COMMERCIAL_SKUS.INITIAL} kind="NFC_PHYSICAL_CARD" name="Yenomi ID NFC Kart" unitPriceKurus={COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus} label="NFC’yi Seç" appearance="secondary" /></div>
+              </article>
+
+              <article className="products-commerce-v3__plan-card">
+                <div className="products-commerce-v3__plan-topline"><span>DİJİTAL</span><strong>{formatTryFromKurus(INDIVIDUAL_DIGITAL_PLAN.priceKurus)}</strong></div>
+                <h3>{INDIVIDUAL_DIGITAL_PLAN.name}</h3>
+                <p className="products-commerce-v3__plan-summary">Fiziksel kart istemiyorsan dijital kartvizitini oluştur ve QR ile paylaş.</p>
+                <ul aria-label="Dijital paket içeriği">{INDIVIDUAL_DIGITAL_CATALOG_POINTS.slice(0, 3).map((item) => <li key={item}><Icon name="check" /><span>{item}</span></li>)}</ul>
+                <div className="products-commerce-v3__plan-action"><AddToCartButton productId={NFC_PRODUCT.slug} variantSku={COMMERCIAL_SKUS.DIGITAL} kind="NFC_PHYSICAL_CARD" name="Yenomi ID Dijital Kartvizit" unitPriceKurus={COMMERCIAL_PRICING.YENOMI_ID_DIGITAL.priceKurus} label="Dijital’i Seç" appearance="secondary" /></div>
               </article>
             </div>
           </div>
         </section>
 
         <section className="products-commerce-v3__existing" aria-labelledby="existing-customer-title">
-          <div className="yi-container">
-            <div className="products-commerce-v3__existing-inner">
-              <div className="products-commerce-v3__existing-copy">
-                <span className="products-commerce-v3__eyebrow">YEDEK KART</span>
-                <h2 id="existing-customer-title">Aynı profile ikinci kart ekleyin.</h2>
-                <p>
-                  Yedek Kart yeni bir dijital kimlik veya yeni kullanım yılı açmaz. Aktif hizmet gerekir. Mevcut aktif profilinize bağlı ikinci NFC + QR karttır.
-                </p>
-                <div className="products-commerce-v3__existing-features">
-                  {ADDITIONAL_CARD_FEATURES.slice(0, 3).map((item) => (
-                    <span key={item}>
-                      <Icon name="check" />
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div className="products-commerce-v3__existing-buy">
-                <span>{ADDITIONAL_CARD_PLAN.name}</span>
-                <strong>{formatTryFromKurus(ADDITIONAL_CARD_PLAN.priceKurus)}</strong>
-                <AddToCartButton
-                  productId={NFC_PRODUCT.slug}
-                  variantSku={COMMERCIAL_SKUS.ADDITIONAL_CARD}
-                  kind="NFC_PHYSICAL_CARD"
-                  name="Yenomi ID Yedek Kart"
-                  unitPriceKurus={COMMERCIAL_PRICING.ADDITIONAL_CARD.priceKurus}
-                  label="Yedek Kart Ekle"
-                  appearance="secondary"
-                />
-              </div>
-            </div>
-          </div>
+          <div className="yi-container"><div className="products-commerce-v3__existing-inner">
+            <div className="products-commerce-v3__existing-copy"><span className="products-commerce-v3__eyebrow">MEVCUT KULLANICI</span><h2 id="existing-customer-title">Aynı profile yedek kart ekle.</h2><p>Yeni profil veya yeni kullanım yılı açmaz. Mevcut aktif profilinize bağlı ikinci NFC + QR karttır.</p><div className="products-commerce-v3__existing-features">{ADDITIONAL_CARD_FEATURES.slice(0, 3).map((item) => <span key={item}><Icon name="check" />{item}</span>)}</div></div>
+            <div className="products-commerce-v3__existing-buy"><span>{ADDITIONAL_CARD_PLAN.name}</span><strong>{formatTryFromKurus(ADDITIONAL_CARD_PLAN.priceKurus)}</strong><AddToCartButton productId={NFC_PRODUCT.slug} variantSku={COMMERCIAL_SKUS.ADDITIONAL_CARD} kind="NFC_PHYSICAL_CARD" name="Yenomi ID Yedek Kart" unitPriceKurus={COMMERCIAL_PRICING.ADDITIONAL_CARD.priceKurus} label="Yedek Kart Ekle" appearance="secondary" /></div>
+          </div></div>
         </section>
 
         <section className="products-commerce-v3__corporate" aria-labelledby="plg-corporate-title">
-          <div className="yi-container">
-            <div className="products-commerce-v3__corporate-inner">
-              <div>
-                <span className="products-commerce-v3__eyebrow">EKİBİNİZ İÇİN DE YENOMİ KULLANIN</span>
-                <h2 id="plg-corporate-title">Aynı standardı tüm ekibe taşıyın.</h2>
-                <p>Çalışan kartları, marka kontrolü ve yetkiler tek panelde yönetilsin. Ekibiniz için de Yenomi kullanın.</p>
-              </div>
-              <Link className="products-commerce-v3__corporate-link" href="/kurumsal">
-                Kurumsal Çözümleri İncele <span aria-hidden="true">→</span>
-              </Link>
-            </div>
-          </div>
+          <div className="yi-container"><div className="products-commerce-v3__corporate-inner"><div><span className="products-commerce-v3__eyebrow">EKİPLER İÇİN</span><h2 id="plg-corporate-title">Çalışan kartlarını tek panelden yönet.</h2><p>Marka standardı, çalışan durumu, yetkiler ve kartlar merkezi olarak yönetilsin.</p></div><Link className="products-commerce-v3__corporate-link" href="/kurumsal">Kurumsal Paketleri İncele <span aria-hidden="true">→</span></Link></div></div>
         </section>
       </main>
     </div>

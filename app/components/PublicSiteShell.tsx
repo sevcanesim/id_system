@@ -84,7 +84,7 @@ export default function PublicSiteShell({ children }: { children: React.ReactNod
           showDefaultCta={variant === "marketing" || variant === "commerce"}
         />
       </div>
-      {children}
+      <div className={`public-site public-site--${variant}`}>{children}</div>
       <AppFooter variant={compactFooter ? "compact" : "default"} />
     </>
   );

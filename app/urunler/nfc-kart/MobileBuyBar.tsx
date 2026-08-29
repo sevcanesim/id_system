@@ -42,6 +42,7 @@ export default function MobileBuyBar({
 }) {
   const [pastHero, setPastHero] = useState(false);
   const [nearPageEnd, setNearPageEnd] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   useEffect(() => {
     const anchor = document.getElementById("nfc-hero-price-row");
@@ -71,7 +72,25 @@ export default function MobileBuyBar({
     return () => observer.disconnect();
   }, []);
 
-  const visible = pastHero && !nearPageEnd;
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+
+    const syncKeyboardState = () => {
+      const viewportLoss = window.innerHeight - viewport.height;
+      setKeyboardOpen(viewportLoss > 140);
+    };
+
+    syncKeyboardState();
+    viewport.addEventListener("resize", syncKeyboardState);
+    viewport.addEventListener("scroll", syncKeyboardState);
+    return () => {
+      viewport.removeEventListener("resize", syncKeyboardState);
+      viewport.removeEventListener("scroll", syncKeyboardState);
+    };
+  }, []);
+
+  const visible = pastHero && !nearPageEnd && !keyboardOpen;
 
   return (
     <div

@@ -62,14 +62,32 @@ export default function SiteHeader({
 
   useEffect(() => {
     if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    const previousPaddingRight = document.body.style.paddingRight;
+    const body = document.body;
+    const previousOverflow = body.style.overflow;
+    const previousPaddingRight = body.style.paddingRight;
+    const previousPosition = body.style.position;
+    const previousTop = body.style.top;
+    const previousWidth = body.style.width;
+    const scrollY = window.scrollY;
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const lockWithFixedBody = window.matchMedia("(max-width: 980px)").matches;
 
-    document.body.style.overflow = "hidden";
+    body.style.overflow = "hidden";
     if (scrollbarWidth > 0) {
-      document.body.style.paddingRight = `${scrollbarWidth}px`;
+      body.style.paddingRight = `${scrollbarWidth}px`;
     }
+    if (lockWithFixedBody) {
+      body.style.position = "fixed";
+      body.style.top = `-${scrollY}px`;
+      body.style.width = "100%";
+    }
+
+    requestAnimationFrame(() => {
+      const firstFocusable = navRef.current?.querySelector<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      firstFocusable?.focus();
+    });
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -98,8 +116,14 @@ export default function SiteHeader({
 
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = previousOverflow;
-      document.body.style.paddingRight = previousPaddingRight;
+      body.style.overflow = previousOverflow;
+      body.style.paddingRight = previousPaddingRight;
+      body.style.position = previousPosition;
+      body.style.top = previousTop;
+      body.style.width = previousWidth;
+      if (lockWithFixedBody) {
+        window.scrollTo(0, scrollY);
+      }
       window.removeEventListener("keydown", onKey);
     };
   }, [open]);

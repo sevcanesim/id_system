@@ -1,0 +1,80 @@
+.public-site--auth .p6-auth-page {
+  padding: 38px 0 46px;
+  background: linear-gradient(180deg,#fbfaf7 0%,#f7f4ed 100%);
+}
+
+.public-site--auth .p6-auth-shell {
+  width: min(calc(100% - 40px),1120px);
+  min-height: 650px;
+  grid-template-columns: minmax(0,1fr) minmax(430px,.92fr);
+  border-radius: 26px;
+  box-shadow: 0 24px 70px rgba(36,29,20,.09);
+}
+
+.public-site--auth .p6-auth-story {
+  position: relative;
+  padding: 54px 48px 42px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 76% 78%,rgba(197,160,89,.14),transparent 30%),
+    linear-gradient(145deg,#171612 0%,#211e18 100%);
+}
+
+.public-site--auth .p6-auth-story::after {
+  content:"";
+  position:absolute;
+  inset:auto -90px -150px auto;
+  width:360px;
+  height:360px;
+  border:1px solid rgba(197,160,89,.12);
+  border-radius:50%;
+  pointer-events:none;
+}
+
+.public-site--auth .p6-auth-story .p6-auth-kicker { color:#d4ae5d; }
+.public-site--auth .p6-auth-story h1 { max-width:470px; margin:14px 0 18px; color:#fff; font-size:clamp(44px,4vw,58px); line-height:.98; letter-spacing:-.05em; }
+.public-site--auth .p6-auth-story > p { max-width:430px; margin:0; color:rgba(255,255,255,.7); font-size:16px; line-height:1.65; }
+.public-site--auth .p6-gold-text { color:#d0a852; }
+.public-site--auth .p6-auth-product-flow { margin-top:auto; padding-top:38px; }
+.public-site--auth .p6-auth-features-bento { margin-top:28px; gap:8px; }
+.public-site--auth .p6-bento-card { border-color:rgba(255,255,255,.09); background:rgba(255,255,255,.035); }
+.public-site--auth .p6-bento-card strong { color:#fff; }
+.public-site--auth .p6-bento-card small { color:rgba(255,255,255,.58); }
+
+.public-site--auth .p6-auth-form-side { display:grid; place-items:center; padding:44px 46px; background:#fff; }
+.public-site--auth .p6-auth-form-card { width:100%; max-width:440px; margin:0 auto; }
+.public-site--auth .p6-auth-portal-tabs { margin:0 0 26px; padding:4px; min-height:50px; border:1px solid #e4dfd5; border-radius:14px; background:#f5f2ec; }
+.public-site--auth .p6-auth-portal-tabs a { min-height:40px; display:flex; align-items:center; justify-content:center; border-radius:10px; color:#625c52; font-weight:700; text-decoration:none; }
+.public-site--auth .p6-auth-portal-tabs a.active { background:#fff; color:#1d1914; box-shadow:0 2px 8px rgba(38,31,22,.08); }
+.public-site--auth .p6-auth-heading { margin-bottom:22px; }
+.public-site--auth .p6-auth-heading > span { color:#9a742c; font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+.public-site--auth .p6-auth-heading h2 { margin:8px 0 8px; font-size:36px; line-height:1; letter-spacing:-.045em; }
+.public-site--auth .p6-auth-heading p { margin:0; line-height:1.55; }
+.public-site--auth .p6-auth-socials { gap:10px; }
+.public-site--auth .p6-auth-socials button { min-height:48px; border-radius:13px; background:#fff; }
+.public-site--auth .p6-auth-input { min-height:50px; border-radius:13px; background:#fff; }
+.public-site--auth .p6-auth-submit { width:100%; margin-top:4px; }
+.public-site--auth .p6-auth-switch { margin-top:16px; }
+.public-site--auth .p6-auth-security { margin-top:24px; padding-top:18px; border-top:1px solid #ece8df; }
+.public-site--auth .p6-auth-security small { color:#777066; }
+.public-site--auth .p6-auth-business-note { margin-top:16px; border-radius:13px; }
+
+@media (max-width:900px) {
+  .public-site--auth .p6-auth-shell { width:min(calc(100% - 32px),680px); grid-template-columns:1fr; }
+  .public-site--auth .p6-auth-story { min-height:auto; padding:34px 32px; }
+  .public-site--auth .p6-auth-story h1 { font-size:38px; }
+  .public-site--auth .p6-auth-product-flow,.public-site--auth .p6-auth-features-bento { display:none; }
+  .public-site--auth .p6-auth-form-side { padding:36px 32px; }
+}
+
+@media (max-width:560px) {
+  .public-site--auth .p6-auth-page { padding:18px 0 28px; }
+  .public-site--auth .p6-auth-shell { width:calc(100% - 24px); border-radius:20px; }
+  .public-site--auth .p6-auth-story { padding:26px 24px; }
+  .public-site--auth .p6-auth-story h1 { margin-bottom:12px; font-size:32px; }
+  .public-site--auth .p6-auth-story > p { font-size:14px; }
+  .public-site--auth .p6-auth-form-side { padding:28px 20px; }
+  .public-site--auth .p6-auth-heading h2 { font-size:31px; }
+}

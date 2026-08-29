@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { HowItWorksBoard } from "./HowItWorksBoard";
-import "./how-it-works.css";
 
 export const metadata: Metadata = {
   title: "Nasıl Çalışır — Yenomi ID Premium",

@@ -1,34 +1,41 @@
 /* Yenomi ID — semantic design tokens.
- * This file is the single source of truth for palette, typography, spacing,
- * radius, elevation, motion and layout. New UI consumes semantic tokens only.
- * Legacy names below are compatibility bridges and must never introduce
- * additional values.
+ * Single source of truth for palette, typography, spacing, radius, elevation,
+ * motion and layout. Warm-light is the page default; dark luxury is reserved
+ * for product specimens and intentional dark surfaces.
  */
 :root {
   /* Canonical palette */
-  --background: #F9F8F6;
-  --surface: #FFFFFF;
-  --surface-secondary: #F4F1EB;
-  --surface-elevated: var(--surface);
-  --surface-dark: #171512;
+  --surface-canvas: #F9F8F6;
+  --surface-card: #FFFFFF;
+  --surface-accent: #F3EFEA;
+  --surface-dark: #0B0B0B;
 
-  --text-primary: #1A1918;
-  --text-secondary: #68645D;
-  --text-tertiary: #6B655D;
+  --text-primary: #1C1710;
+  --text-secondary: #595248;
+  --text-tertiary: #6B6258;
   --text-inverse: #FFFFFF;
 
-  --border: #E9E4DA;
-  --border-strong: #D8D1C5;
+  --brand-gold: #C5A059;
+  --brand-gold-hover: #7E5E20;
+  --brand-gold-deep: #8D6924;
+  --brand-gold-soft: #F6F1E5;
 
-  /* Brand: one accent family only */
-  --primary: #A37B2C;
-  --primary-hover: #7E5E20;
-  --primary-active: #8D6924;
-  --primary-subtle: #F6F1E5;
+  --border: #E6E0D6;
+  --border-strong: #D4CBBD;
+
+  /* Core aliases used by existing surfaces */
+  --background: var(--surface-canvas);
+  --surface: var(--surface-card);
+  --surface-secondary: var(--surface-accent);
+  --surface-elevated: var(--surface-card);
+  --primary: var(--brand-gold);
+  --primary-hover: var(--brand-gold-hover);
+  --primary-active: var(--brand-gold-deep);
+  --primary-subtle: var(--brand-gold-soft);
   --secondary: var(--text-primary);
-  --secondary-subtle: var(--surface-secondary);
+  --secondary-subtle: var(--surface-accent);
 
-  /* Semantic colors are reserved for status/feedback, never decoration. */
+  /* Semantic feedback colors */
   --success: #059669;
   --success-subtle: rgba(5,150,105,.10);
   --warning: #D97706;
@@ -36,7 +43,7 @@
   --error: #DC2626;
   --error-subtle: rgba(220,38,38,.09);
   --info: var(--text-secondary);
-  --info-subtle: var(--surface-secondary);
+  --info-subtle: var(--surface-accent);
 
   /* Typography */
   --font-ui: "Yenomi Inter", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -49,9 +56,9 @@
   --type-body-lg: 18px;
   --type-h4: 20px;
   --type-h3: 24px;
-  --type-h2: clamp(22px, 4vw, 40px);
-  --type-h1: clamp(28px, 5.5vw, 64px);
-  --type-display: clamp(32px, 7vw, 76px);
+  --type-h2: clamp(34px, 3.2vw, 48px);
+  --type-h1: clamp(42px, 4vw, 60px);
+  --type-display: clamp(52px, 5vw, 72px);
   --type-metric: 24px;
 
   /* Radius */
@@ -85,7 +92,7 @@
   --space-24: 96px;
   --space-30: 120px;
 
-  /* Section Rhythm */
+  /* Section rhythm */
   --section-space-sm: clamp(24px, 4vw, 40px);
   --section-space-md: clamp(36px, 6vw, 64px);
   --section-space-lg: clamp(48px, 8vw, 96px);
@@ -100,7 +107,7 @@
   --ease-standard: cubic-bezier(.4,0,.2,1);
   --ease-emphasis: cubic-bezier(.2,.8,.2,1);
 
-  /* Layout & Breakpoint Primitives */
+  /* Layout & breakpoint primitives */
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
@@ -112,24 +119,18 @@
   --content: 1180px;
   --wide: 1320px;
 
-  /* Safe Areas */
+  /* Safe areas */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
 
-  /* Compatibility aliases: aliases only, no parallel palette or scale. */
-  --surface-base: var(--background);
-  --surface-card: var(--surface);
-  --surface-soft: var(--surface-secondary);
-  --surface-accent: var(--primary-subtle);
+  /* Compatibility aliases: aliases only, no parallel palette. */
+  --surface-base: var(--surface-canvas);
+  --surface-soft: var(--surface-accent);
   --surface-dark-product: var(--surface-dark);
   --border-subdued: var(--border);
   --border-interactive: var(--border-strong);
-  --brand-gold: var(--primary);
-  --brand-gold-deep: var(--primary-active);
-  --brand-gold-hover: var(--primary-hover);
-  --brand-gold-soft: var(--primary-subtle);
   --warm-text-primary: var(--text-primary);
   --warm-text-secondary: var(--text-secondary);
   --warm-success: var(--success);
@@ -138,24 +139,24 @@
   --warm-danger: var(--error);
 
   /* Legacy canonical.css color names. Frozen for compatibility only. */
-  --void: var(--background);
-  --deep: var(--surface-secondary);
-  --surface-2: var(--background);
-  --surface-3: var(--surface-secondary);
+  --void: var(--surface-canvas);
+  --deep: var(--surface-accent);
+  --surface-2: var(--surface-canvas);
+  --surface-3: var(--surface-accent);
   --ink: var(--text-primary);
   --ink-2: var(--text-secondary);
   --ink-3: var(--text-tertiary);
-  --gold: var(--primary);
-  --gold-hi: var(--primary-hover);
-  --gold-dim: var(--primary-subtle);
-  --violet: var(--primary);
-  --violet-hi: var(--primary-hover);
+  --gold: var(--brand-gold);
+  --gold-hi: var(--brand-gold-hover);
+  --gold-dim: var(--brand-gold-soft);
+  --violet: var(--brand-gold);
+  --violet-hi: var(--brand-gold-hover);
   --green: var(--success);
   --red: var(--error);
   --amber: var(--warning);
   --blue: var(--text-secondary);
-  --border-gold: color-mix(in srgb,var(--primary) 34%,transparent);
-  --glow: 0 0 48px color-mix(in srgb,var(--primary) 14%,transparent);
+  --border-gold: color-mix(in srgb,var(--brand-gold) 34%,transparent);
+  --glow: 0 0 48px color-mix(in srgb,var(--brand-gold) 14%,transparent);
 
   /* Legacy component aliases */
   --font-family-ui: var(--font-ui);
@@ -168,50 +169,47 @@
   --font-size-display: var(--type-display);
   --container-content: var(--content);
   --container-wide: var(--wide);
-  --yi-bg: var(--background);
-  --brand-void: var(--background);
-  --store-bg: var(--background);
-  --ui-bg: var(--background);
+  --yi-bg: var(--surface-canvas);
+  --brand-void: var(--surface-canvas);
+  --store-bg: var(--surface-canvas);
+  --ui-bg: var(--surface-canvas);
   --y-ink: var(--text-primary);
 }
 
-/* canonical.css theme selectors have higher specificity than :root. Re-apply
- * frozen aliases inside those scopes so wrappers cannot revive old palettes. */
 .theme-light,
 .theme-light *,
 .theme-dark,
 .theme-dark * {
-  --void: var(--background);
-  --deep: var(--surface-secondary);
-  --surface-2: var(--background);
-  --surface-3: var(--surface-secondary);
+  --void: var(--surface-canvas);
+  --deep: var(--surface-accent);
+  --surface-2: var(--surface-canvas);
+  --surface-3: var(--surface-accent);
   --ink: var(--text-primary);
   --ink-2: var(--text-secondary);
   --ink-3: var(--text-tertiary);
-  --gold: var(--primary);
-  --gold-hi: var(--primary-hover);
-  --gold-dim: var(--primary-subtle);
-  --violet: var(--primary);
-  --violet-hi: var(--primary-hover);
+  --gold: var(--brand-gold);
+  --gold-hi: var(--brand-gold-hover);
+  --gold-dim: var(--brand-gold-soft);
+  --violet: var(--brand-gold);
+  --violet-hi: var(--brand-gold-hover);
   --green: var(--success);
   --red: var(--error);
   --amber: var(--warning);
   --blue: var(--text-secondary);
-  --border-gold: color-mix(in srgb,var(--primary) 34%,transparent);
-  --glow: 0 0 48px color-mix(in srgb,var(--primary) 14%,transparent);
+  --border-gold: color-mix(in srgb,var(--brand-gold) 34%,transparent);
+  --glow: 0 0 48px color-mix(in srgb,var(--brand-gold) 14%,transparent);
 }
 
-/* Tailwind / atomic contract. Values resolve back to the canonical palette. */
 :root {
-  --color-surface-base: var(--background);
-  --color-surface-card: var(--surface);
-  --color-surface-soft: var(--surface-secondary);
+  --color-surface-base: var(--surface-canvas);
+  --color-surface-card: var(--surface-card);
+  --color-surface-soft: var(--surface-accent);
   --color-border-subdued: var(--border);
   --color-border-interactive: var(--border-strong);
-  --color-brand-gold: var(--primary);
-  --color-brand-gold-deep: var(--primary-active);
-  --color-brand-gold-hover: var(--primary-hover);
-  --color-brand-gold-soft: var(--primary-subtle);
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-gold-deep: var(--brand-gold-deep);
+  --color-brand-gold-hover: var(--brand-gold-hover);
+  --color-brand-gold-soft: var(--brand-gold-soft);
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-success: var(--success);

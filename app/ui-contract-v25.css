@@ -1,0 +1,249 @@
+/* Yenomi ID v25.9.4 mobile-first UI contract.
+ * Loaded after route/public styles to enforce the canonical warm-light system,
+ * accessible controls, equal-height commercial cards and mobile purchase docking.
+ */
+
+html,
+body {
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: balance;
+  word-spacing: normal;
+}
+
+/* Canonical interactive controls */
+.ds-button,
+.home-mockup__button {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  transition:
+    transform 150ms var(--ease-standard),
+    background-color 150ms var(--ease-standard),
+    border-color 150ms var(--ease-standard),
+    color 150ms var(--ease-standard),
+    opacity 150ms var(--ease-standard);
+}
+
+.ds-button:focus-visible,
+.home-mockup__button:focus-visible {
+  outline: 2px solid var(--brand-gold);
+  outline-offset: 4px;
+}
+
+.ds-button:active:not(:disabled),
+.home-mockup__button:active:not([aria-disabled="true"]) {
+  transform: scale(.985);
+}
+
+.ds-button:disabled,
+.ds-button[aria-disabled="true"],
+.home-mockup__button[aria-disabled="true"] {
+  pointer-events: none;
+  cursor: not-allowed;
+  opacity: .65;
+}
+
+.home-mockup__button--gold,
+.ds-button[data-variant="primary"] {
+  border-color: var(--brand-gold);
+  background: var(--brand-gold);
+  color: var(--text-primary);
+}
+
+.home-mockup__button--gold:hover,
+.ds-button[data-variant="primary"]:hover {
+  border-color: var(--brand-gold-hover);
+  background: var(--brand-gold-hover);
+  color: var(--surface-card);
+  transform: translateY(-1px);
+}
+
+.home-mockup__button--gold:active,
+.ds-button[data-variant="primary"]:active {
+  border-color: var(--brand-gold-deep);
+  background: var(--brand-gold-deep);
+  color: var(--surface-card);
+}
+
+/* Thumb-zone contract for native and design-system form controls. */
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea,
+button,
+[role="button"] {
+  min-height: 44px;
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px var(--error-subtle);
+}
+
+/* Homepage typography follows the product specification without forcing
+ * desktop display sizing onto small screens. */
+.home-sales-copy h1 {
+  font-size: clamp(52px, 5vw, 72px);
+  line-height: .96;
+  letter-spacing: -.035em;
+  font-weight: 620;
+}
+
+.home-premium__proof-head h2,
+.home-premium__journey-head h2,
+.home-premium__paths-head h2,
+.home-sales-comparison-head h2,
+.home-sales-faq-intro h2,
+.home-sales-final h2 {
+  font-size: clamp(34px, 3.2vw, 48px);
+  line-height: 1.02;
+  letter-spacing: -.03em;
+  font-weight: 620;
+}
+
+.home-sales-paths article h3,
+.home-premium__journey-steps h3 {
+  font-size: var(--type-h3);
+  line-height: 1.2;
+  letter-spacing: -.02em;
+  font-weight: 600;
+}
+
+/* Individual / corporate cards remain equal-height on split layouts and keep
+ * their actions on a shared baseline. */
+.home-sales-paths .home-premium__path-grid {
+  align-items: stretch;
+}
+
+.home-sales-paths article {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.home-sales-paths article > .home-mockup__button {
+  margin-top: auto;
+}
+
+.home-sales-path-meta {
+  margin-top: auto;
+}
+
+/* Fixed mobile purchase dock. It is removed from the interaction tree while
+ * the final purchase section or footer is visible via IntersectionObserver. */
+.home-sales-mobile-cta {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .home-sales-copy h1 {
+    font-size: clamp(36px, 10.5vw, 46px);
+    line-height: 1.02;
+  }
+
+  .home-premium__proof-head h2,
+  .home-premium__journey-head h2,
+  .home-premium__paths-head h2,
+  .home-sales-comparison-head h2,
+  .home-sales-faq-intro h2,
+  .home-sales-final h2 {
+    font-size: clamp(32px, 9vw, 40px);
+    line-height: 1.04;
+  }
+
+  .home-sales-faq {
+    padding-bottom: calc(var(--space-16) + var(--control-height-lg));
+  }
+
+  .home-sales-mobile-cta {
+    position: fixed;
+    left: max(var(--space-3), var(--safe-left));
+    right: max(var(--space-3), var(--safe-right));
+    bottom: max(var(--space-3), var(--safe-bottom));
+    z-index: 70;
+    display: grid;
+    grid-template-columns: minmax(72px, .38fr) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2);
+    border: 1px solid var(--border-subdued);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--surface-card) 94%, transparent);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    transition:
+      opacity var(--motion-standard) var(--ease-standard),
+      transform var(--motion-standard) var(--ease-standard),
+      visibility var(--motion-standard) var(--ease-standard);
+  }
+
+  .home-sales-mobile-cta.is-docked-away {
+    visibility: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(calc(100% + var(--space-5)));
+  }
+
+  .home-sales-mobile-cta__offer {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+    padding-left: var(--space-2);
+  }
+
+  .home-sales-mobile-cta__offer strong {
+    color: var(--text-primary);
+    font-size: var(--type-body);
+    line-height: 1.1;
+  }
+
+  .home-sales-mobile-cta__offer span {
+    color: var(--text-secondary);
+    font-size: var(--type-xs);
+  }
+
+  .home-sales-mobile-cta .home-mockup__button {
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    padding-inline: var(--space-3);
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 360px) {
+  .home-sales-mobile-cta {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .home-sales-mobile-cta .home-mockup__button {
+    font-size: var(--type-body-sm);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-button,
+  .home-mockup__button,
+  .home-sales-mobile-cta {
+    transition: none;
+  }
+
+  .ds-button:hover,
+  .home-mockup__button:hover,
+  .ds-button:active,
+  .home-mockup__button:active {
+    transform: none;
+  }
+}

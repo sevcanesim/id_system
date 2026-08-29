@@ -6,6 +6,7 @@ import {
   ADDITIONAL_CARD_PLAN,
   INDIVIDUAL_DIGITAL_PLAN,
   INDIVIDUAL_PLAN,
+  INDIVIDUAL_RENEWAL_PLAN,
   INDIVIDUAL_PREMIUM_PLAN,
   INDIVIDUAL_PREMIUM_RENEWAL_PLAN,
   INDIVIDUAL_PREMIUM_UPGRADE_PLAN,
@@ -17,13 +18,13 @@ const corp25 = CORPORATE_PACKAGE_LADDER.find((row) => row.code === "CORP-25")!;
 const corp50 = CORPORATE_PACKAGE_LADDER.find((row) => row.code === "CORP-50")!;
 
 export const COMMERCIAL_PRICING = {
-  YENOMI_ID_DIGITAL: { sku: "YENOMI-DIGITAL-ANNUAL", priceKurus: 79_900, billing: "ONE_TIME_WITH_INCLUDED_TERM" },
-  YENOMI_ID_INITIAL: { sku: "YENOMI-NFC-CARD-ANNUAL", priceKurus: 149_000, billing: "ONE_TIME_WITH_INCLUDED_TERM" },
-  YENOMI_ID_PREMIUM: { sku: "YENOMI-NFC-PREMIUM-ANNUAL", priceKurus: 249_000, billing: "ONE_TIME_WITH_INCLUDED_TERM" },
-  YENOMI_ID_RENEWAL: { sku: "YENOMI-DIGITAL-RENEWAL-ANNUAL", priceKurus: 29_900, billing: "YEARLY_RENEWAL" },
-  YENOMI_ID_PREMIUM_RENEWAL: { sku: "YENOMI-PREMIUM-RENEWAL-ANNUAL", priceKurus: 59_900, billing: "YEARLY_RENEWAL" },
-  YENOMI_ID_PREMIUM_UPGRADE: { sku: "YENOMI-PREMIUM-UPGRADE", priceKurus: 100_000, billing: "ONE_TIME" },
-  ADDITIONAL_CARD: { sku: "YENOMI-NFC-EXTRA", priceKurus: 39_900, billing: "ONE_TIME" },
+  YENOMI_ID_DIGITAL: { sku: "YENOMI-DIGITAL-ANNUAL", priceKurus: INDIVIDUAL_DIGITAL_PLAN.priceKurus, billing: "ONE_TIME_WITH_INCLUDED_TERM" },
+  YENOMI_ID_INITIAL: { sku: "YENOMI-NFC-CARD-ANNUAL", priceKurus: INDIVIDUAL_PLAN.priceKurus, billing: "ONE_TIME_WITH_INCLUDED_TERM" },
+  YENOMI_ID_PREMIUM: { sku: "YENOMI-NFC-PREMIUM-ANNUAL", priceKurus: INDIVIDUAL_PREMIUM_PLAN.priceKurus, billing: "ONE_TIME_WITH_INCLUDED_TERM" },
+  YENOMI_ID_RENEWAL: { sku: "YENOMI-DIGITAL-RENEWAL-ANNUAL", priceKurus: INDIVIDUAL_RENEWAL_PLAN.priceKurus, billing: "YEARLY_RENEWAL" },
+  YENOMI_ID_PREMIUM_RENEWAL: { sku: "YENOMI-PREMIUM-RENEWAL-ANNUAL", priceKurus: INDIVIDUAL_PREMIUM_RENEWAL_PLAN.priceKurus, billing: "YEARLY_RENEWAL" },
+  YENOMI_ID_PREMIUM_UPGRADE: { sku: "YENOMI-PREMIUM-UPGRADE", priceKurus: INDIVIDUAL_PREMIUM_UPGRADE_PLAN.priceKurus, billing: "ONE_TIME" },
+  ADDITIONAL_CARD: { sku: "YENOMI-NFC-EXTRA", priceKurus: ADDITIONAL_CARD_PLAN.priceKurus, billing: "ONE_TIME" },
   REPLACEMENT_CARD: { sku: "YENOMI-NFC-REPLACEMENT", priceKurus: 34_900, billing: "ONE_TIME" },
   BUSINESS_STARTER: { code: corp10.code, seats: corp10.seats, priceKurus: corp10.priceKurus },
   BUSINESS_GROWTH: { code: corp25.code, seats: corp25.seats, priceKurus: corp25.priceKurus },
@@ -45,46 +46,23 @@ export const COMMERCIAL_SKUS = {
   REPLACEMENT_CARD: COMMERCIAL_PRICING.REPLACEMENT_CARD.sku,
 } as const;
 
-export function isPhysicalBundleSku(sku: string | undefined): boolean {
-  return sku === COMMERCIAL_SKUS.INITIAL || sku === COMMERCIAL_SKUS.PREMIUM;
-}
-
-export function isRenewalSku(sku: string | undefined): boolean {
-  return sku === COMMERCIAL_SKUS.RENEWAL || sku === COMMERCIAL_SKUS.PREMIUM_RENEWAL;
-}
-
-export function isPremiumUpgradeSku(sku: string | undefined): boolean {
-  return sku === COMMERCIAL_SKUS.PREMIUM_UPGRADE;
-}
-
-export function isDigitalOnlySku(sku: string | undefined): boolean {
-  return sku === COMMERCIAL_SKUS.DIGITAL || isRenewalSku(sku) || isPremiumUpgradeSku(sku);
-}
-
+export function isPhysicalBundleSku(sku: string | undefined): boolean { return sku === COMMERCIAL_SKUS.INITIAL || sku === COMMERCIAL_SKUS.PREMIUM; }
+export function isRenewalSku(sku: string | undefined): boolean { return sku === COMMERCIAL_SKUS.RENEWAL || sku === COMMERCIAL_SKUS.PREMIUM_RENEWAL; }
+export function isPremiumUpgradeSku(sku: string | undefined): boolean { return sku === COMMERCIAL_SKUS.PREMIUM_UPGRADE; }
+export function isDigitalOnlySku(sku: string | undefined): boolean { return sku === COMMERCIAL_SKUS.DIGITAL || isRenewalSku(sku) || isPremiumUpgradeSku(sku); }
 export { CORPORATE_PACKAGE_PRODUCT_SLUG, corporatePackageSku, isCorporatePackageSku };
+export const CORPORATE_PACKAGE_OFFERS = CORPORATE_PACKAGE_LADDER.map((row) => ({ code: row.code, sku: corporatePackageSku(row.code), priceKurus: row.priceKurus, seats: row.seats }));
 
-export const CORPORATE_PACKAGE_OFFERS = CORPORATE_PACKAGE_LADDER.map((row) => ({
-  code: row.code,
-  sku: corporatePackageSku(row.code),
-  priceKurus: row.priceKurus,
-  seats: row.seats,
-}));
-
-/** iyzico still requires a billing street; digital carts never collect one. */
 export function digitalServiceBillingAddress(city: string, existingAddress = ""): string {
   const trimmed = existingAddress.trim();
   if (trimmed.length >= 8) return trimmed;
   return `Dijital hizmet faturası — ${city.trim() || "Türkiye"}`;
 }
 
-export const INDIVIDUAL_RENEWAL_MESSAGE = "Kartınız sizin. Yenilemede yeni kart almanız gerekmez.";
+export const INDIVIDUAL_RENEWAL_MESSAGE = "Kartınız sizin. Yenilemede yeni kart gönderilmez; yalnızca platform hizmeti yenilenir.";
 export const INDIVIDUAL_PREMIUM_RENEWAL_MESSAGE = "Kartınız sizin. Premium yenilemede yeni kart gönderilmez. Kullanılmayan Network Mail krediniz bir sonraki yıla taşınır.";
 export const INDIVIDUAL_PREMIUM_UPGRADE_MESSAGE = "Mevcut süreniz korunur. 500 Network Mail bu dönem için eklenir; ikinci kart gönderilmez.";
-
-export function formatCommercialTry(amountKurus: number): string {
-  return new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY", minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(amountKurus / 100);
-}
-
+export function formatCommercialTry(amountKurus: number): string { return new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY", minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(amountKurus / 100); }
 export const COMMERCIAL_COPY = {
   digitalPrice: formatCommercialTry(COMMERCIAL_PRICING.YENOMI_ID_DIGITAL.priceKurus),
   initialPrice: formatCommercialTry(COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus),
@@ -96,22 +74,10 @@ export const COMMERCIAL_COPY = {
   replacementCardPrice: formatCommercialTry(COMMERCIAL_PRICING.REPLACEMENT_CARD.priceKurus),
 } as const;
 
-if (COMMERCIAL_PRICING.YENOMI_ID_DIGITAL.priceKurus !== INDIVIDUAL_DIGITAL_PLAN.priceKurus) {
-  throw new Error("Digital listing price drifted from the package ladder.");
-}
-
-if (COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus !== INDIVIDUAL_PLAN.priceKurus) {
-  throw new Error("Individual listing price drifted from the package ladder.");
-}
-if (COMMERCIAL_PRICING.ADDITIONAL_CARD.priceKurus !== ADDITIONAL_CARD_PLAN.priceKurus) {
-  throw new Error("Spare-card listing price drifted from the package ladder.");
-}
-if (COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.priceKurus !== INDIVIDUAL_PREMIUM_PLAN.priceKurus) {
-  throw new Error("Premium listing price drifted from the package ladder.");
-}
-if (COMMERCIAL_PRICING.YENOMI_ID_PREMIUM_RENEWAL.priceKurus !== INDIVIDUAL_PREMIUM_RENEWAL_PLAN.priceKurus) {
-  throw new Error("Premium renewal price drifted from the package ladder.");
-}
-if (COMMERCIAL_PRICING.YENOMI_ID_PREMIUM_UPGRADE.priceKurus !== INDIVIDUAL_PREMIUM_UPGRADE_PLAN.priceKurus) {
-  throw new Error("Premium upgrade price drifted from the package ladder.");
-}
+if (COMMERCIAL_PRICING.YENOMI_ID_DIGITAL.priceKurus !== INDIVIDUAL_DIGITAL_PLAN.priceKurus) throw new Error("Digital listing price drifted from the package ladder.");
+if (COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus !== INDIVIDUAL_PLAN.priceKurus) throw new Error("Individual listing price drifted from the package ladder.");
+if (COMMERCIAL_PRICING.YENOMI_ID_RENEWAL.priceKurus !== INDIVIDUAL_RENEWAL_PLAN.priceKurus) throw new Error("Individual renewal price drifted from the package ladder.");
+if (COMMERCIAL_PRICING.ADDITIONAL_CARD.priceKurus !== ADDITIONAL_CARD_PLAN.priceKurus) throw new Error("Spare-card listing price drifted from the package ladder.");
+if (COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.priceKurus !== INDIVIDUAL_PREMIUM_PLAN.priceKurus) throw new Error("Premium listing price drifted from the package ladder.");
+if (COMMERCIAL_PRICING.YENOMI_ID_PREMIUM_RENEWAL.priceKurus !== INDIVIDUAL_PREMIUM_RENEWAL_PLAN.priceKurus) throw new Error("Premium renewal price drifted from the package ladder.");
+if (COMMERCIAL_PRICING.YENOMI_ID_PREMIUM_UPGRADE.priceKurus !== INDIVIDUAL_PREMIUM_UPGRADE_PLAN.priceKurus) throw new Error("Premium upgrade price drifted from the package ladder.");

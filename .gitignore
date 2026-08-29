@@ -19,3 +19,5 @@ release/
 scripts/_qa-*.local.mjs
 supabase/config.toml
 supabase/.gitignore
+# Supabase local temp
+supabase/.temp/

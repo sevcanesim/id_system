@@ -130,6 +130,7 @@ export default async function CorporatePage({
           <h2 id="business-pricing-title">Tek panel, ekip büyüklüğüne göre kapasite.</h2>
           <p>Tüm kurumsal hesaplarda aynı yönetim deneyimi kullanılır. Aşağıdaki seçenekler özellik seviyesi değil; yalnızca kullanıcı, NFC kart ve yıllık kapasite farkını gösterir.</p>
         </div>
+        <p className="corporate-pack-scroll-hint" aria-hidden="true">Tüm paketleri görmek için kaydırın →</p>
         <div className="corporate-pack-table-wrap">
           <table className="corporate-pack-table">
             <caption className="sr-only">Kurumsal kapasite ve fiyat listesi</caption>

@@ -386,6 +386,21 @@
   letter-spacing: 0.02em;
 }
 
+.corporate-pack-scroll-hint {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .corporate-pack-scroll-hint {
+    display: block;
+    margin: 0 0 8px;
+    color: var(--ink-3);
+    font-size: 12px;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+  }
+}
+
 .corporate-pack-table .is-num {
   font-variant-numeric: tabular-nums;
   font-family: var(--font-mono);

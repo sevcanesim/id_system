@@ -10,10 +10,15 @@ const canonicalPath = path.join(app, "canonical.css");
 const css = fs.existsSync(canonicalPath) ? fs.readFileSync(canonicalPath, "utf8") : "";
 
 const OWNED_GLOBAL_CSS = [
+  "app/authentic-enterprise.css",
   "app/canonical.css",
   "app/design-system.css",
   "app/design-tokens.css",
   "app/employee-management.css",
+  "app/homepage.css",
+  "app/kurumsal/panel/employee-action-first.css",
+  "app/public-chrome-premium.css",
+  "app/styles/canonical-corporate.css",
   "app/theme-policy.css",
 ];
 

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { COMMERCIAL_COPY } from "../../../lib/config/commercial";
-import { NFC_PRODUCT, formatTryFromKurus } from "../../../lib/config/product";
+import { NFC_PRODUCT } from "../../../lib/config/product";
 import NfcPurchasePanel from "./NfcPurchasePanel";
+import NfcIncludesPanel from "./NfcIncludesPanel";
+import { NfcPackageProvider } from "./NfcPackageContext";
 import { PublicPageTitle } from "../../components/PublicPageTitle";
 import { YenomiProductVisual } from "../../ui/YenomiProductVisual";
 
@@ -50,87 +51,68 @@ export default async function NfcKartPage({
   const accessRequired = rawReason === "access-required";
 
   return (
-    <main id="main-content" className="nfc-product-page">
-      <PublicPageTitle
-        kicker="YENOMI ID · NFC + QR KART"
-        title={<>Kart bir kez basılır.<br />Kimliğin her gün güncel kalır.</>}
-        description="NFC veya QR ile paylaş. Unvanın değişince kartı yenileme. Kaybolursa kayıp modu. Ödeme iyzico güvencesinde; kart numarası Yenomi’de saklanmaz."
-        className="public-page-title--product"
-      />
+    <NfcPackageProvider initialPackage={initialPackage}>
+      <main id="main-content" className="nfc-product-page">
+        <PublicPageTitle
+          kicker="YENOMI ID · NFC + QR KART"
+          title={<>Kart bir kez basılır.<br />Kimliğin her gün güncel kalır.</>}
+          description="NFC veya QR ile paylaş. Unvanın değişince kartı yenileme. Kaybolursa kayıp modu. Ödeme iyzico güvencesinde; kart numarası Yenomi’de saklanmaz."
+          className="public-page-title--product"
+        />
 
-      <section className="nfc-product-hero">
-        <div className="yi-container nfc-product-hero__grid">
-          <div className="nfc-product-hero__copy">
-            <span className="nfc-kicker">KARTINI SEÇ</span>
-            <p className="nfc-product-hero__body">Kartı telefona yaklaştır veya QR’ı okut. Profil tarayıcıda açılır. Bilgin değişince baskı yok; kart kaybolursa panelden kapatırsın.</p>
-            <NfcPurchasePanel product={NFC_PRODUCT} initialPackage={initialPackage} accessRequired={accessRequired} />
-          </div>
-          <div className="nfc-product-hero__visual">
-            <div className="home-hero-specimens">
-              <YenomiProductVisual variant="card" finish="matte" />
-              <YenomiProductVisual variant="profile" compact />
+        <section className="nfc-product-hero">
+          <div className="yi-container nfc-product-hero__grid">
+            <div className="nfc-product-hero__copy">
+              <span className="nfc-kicker">KARTINI SEÇ</span>
+              <p className="nfc-product-hero__body">Kartı telefona yaklaştır veya QR’ı okut. Profil tarayıcıda açılır. Bilgin değişince baskı yok; kart kaybolursa panelden kapatırsın.</p>
+              <NfcPurchasePanel product={NFC_PRODUCT} accessRequired={accessRequired} />
+            </div>
+            <div className="nfc-product-hero__visual">
+              <div className="home-hero-specimens">
+                <YenomiProductVisual variant="card" finish="matte" />
+                <YenomiProductVisual variant="profile" compact />
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="nfc-benefits" aria-label="Ürün özellikleri">
-        <div className="yi-container nfc-benefits__grid">
-          {benefits.map(([number, title, text]) => (
-            <article key={number}><span>{number}</span><h2>{title}</h2><p>{text}</p></article>
-          ))}
-        </div>
-      </section>
-
-      <section className="nfc-story">
-        <div className="yi-container nfc-story__inner">
-          <div><span className="nfc-kicker">SEÇ, BAĞLA, PAYLAŞ</span><h2>Önce kartını al.<br />Sonra profilin açılır.</h2></div>
-          <p>Sepete ekle, Türkiye içi adresi yaz, öde. Hesabın varsa sipariş bağlanır; yoksa hesap açmadan tamamlarsın. NFC ve QR aynı kalıcı profile gider.</p>
-        </div>
-        <div className="yi-container nfc-steps">
-          {steps.map(([number, title, text]) => (
-            <article key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></article>
-          ))}
-        </div>
-      </section>
-
-      <section className="nfc-includes">
-        <div className="yi-container nfc-includes__grid">
-          <div><span className="nfc-kicker">NE ALIYORSUN?</span><h2>Karttan fazlası.<br />Kimliğin sende kalır.</h2></div>
-          <ul>
-            <li>1 adet kişisel NFC kart</li>
-            <li>Değişmeyen kişisel QR kod</li>
-            <li>1 yıl platform üyeliği dahil</li>
-            <li>Aktif dönemde sınırsız bilgi güncelleme</li>
-            <li>Kayıp modu ve yedek kart desteği</li>
-            <li>Türkiye içi standart kargo dahil</li>
-          </ul>
-          <div className="nfc-includes__cta">
-            <span>Tek seferlik, kargo dahil</span>
-            <strong>{formatTryFromKurus(NFC_PRODUCT.unitPriceKurus)}</strong>
-            <small>1 kart • 1 yıl dahil • Türkiye içi teslimat</small>
-            <Link className="home-mockup__link-secondary" href="#nfc-hero-price-row">Sepete Ekle</Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="nfc-faq">
-        <div className="yi-container">
-          <span className="nfc-kicker">SIK SORULAN SORULAR</span>
-          <h2>Satın almadan önce<br />bilmen gerekenler.</h2>
-          <p className="nfc-faq__intro">Fiyat, kargo, yıllık kullanım, NFC uyumu ve kayıp kart.</p>
-          <div className="nfc-faq__list">
-            {faq.map(([question, answer]) => (
-              <details key={question}><summary>{question}</summary><p>{answer}</p></details>
+        <section className="nfc-benefits" aria-label="Ürün özellikleri">
+          <div className="yi-container nfc-benefits__grid">
+            {benefits.map(([number, title, text]) => (
+              <article key={number}><span>{number}</span><h2>{title}</h2><p>{text}</p></article>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Sentinel: MobileBuyBar watches this to hide itself once the page's
-          own end (and the footer just past it) is in view, instead of
-          staying fixed over the footer for the rest of the scroll. */}
-      <div id="nfc-page-end-sentinel" aria-hidden="true" />
-    </main>
+        <section className="nfc-story">
+          <div className="yi-container nfc-story__inner">
+            <div><span className="nfc-kicker">SEÇ, BAĞLA, PAYLAŞ</span><h2>Önce kartını al.<br />Sonra profilin açılır.</h2></div>
+            <p>Sepete ekle, Türkiye içi adresi yaz, öde. Hesabın varsa sipariş bağlanır; yoksa hesap açmadan tamamlarsın. NFC ve QR aynı kalıcı profile gider.</p>
+          </div>
+          <div className="yi-container nfc-steps">
+            {steps.map(([number, title, text]) => (
+              <article key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></article>
+            ))}
+          </div>
+        </section>
+
+        <NfcIncludesPanel />
+
+        <section className="nfc-faq">
+          <div className="yi-container">
+            <span className="nfc-kicker">SIK SORULAN SORULAR</span>
+            <h2>Satın almadan önce<br />bilmen gerekenler.</h2>
+            <p className="nfc-faq__intro">Fiyat, kargo, yıllık kullanım, NFC uyumu ve kayıp kart.</p>
+            <div className="nfc-faq__list">
+              {faq.map(([question, answer]) => (
+                <details key={question}><summary>{question}</summary><p>{answer}</p></details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <div id="nfc-page-end-sentinel" aria-hidden="true" />
+      </main>
+    </NfcPackageProvider>
   );
 }

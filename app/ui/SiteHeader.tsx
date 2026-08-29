@@ -44,7 +44,7 @@ export default function SiteHeader({
   const showCtaButtons = !isCheckout && !isAuth;
 
   const primaryCta = actions.filter((a) => a.primary).slice(0, 1)[0]
-    ?? (showDefaultCta && showCtaButtons ? { href: "/urunler/nfc-kart", label: "NFC Kartı Satın Al", primary: true } : null);
+    ?? (showDefaultCta && showCtaButtons ? { href: "/urunler/nfc-kart?paket=premium", label: "Premium’u İncele", primary: true } : null);
   const showAccountLink = (signedIn || !isAuth) && showCtaButtons;
 
   useEffect(() => {

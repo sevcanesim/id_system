@@ -1,0 +1,57 @@
+/* Canonical public footer rhythm. */
+.public-site .yi-footer--premium {
+  padding-block: 0;
+}
+
+.public-site .yi-footer--premium .yi-container {
+  padding-top: 52px;
+  padding-bottom: 0;
+}
+
+.public-site .yi-footer__premium-grid {
+  gap: clamp(28px, 4vw, 56px);
+  padding-bottom: 42px;
+}
+
+.public-site .yi-footer__premium-brand p {
+  margin-top: 20px;
+  max-width: 390px;
+  line-height: 1.55;
+}
+
+.public-site .yi-footer__premium-column {
+  gap: 18px;
+}
+
+.public-site .yi-footer__premium-column strong {
+  margin-bottom: 4px;
+}
+
+.public-site .yi-footer__premium-base {
+  min-height: 72px;
+  padding-block: 22px;
+}
+
+@media (max-width: 760px) {
+  .public-site .yi-footer--premium .yi-container {
+    padding-top: 38px;
+  }
+
+  .public-site .yi-footer__premium-grid {
+    gap: 30px 22px;
+    padding-bottom: 34px;
+  }
+
+  .public-site .yi-footer__premium-brand p {
+    margin-top: 16px;
+  }
+
+  .public-site .yi-footer__premium-column {
+    gap: 14px;
+  }
+
+  .public-site .yi-footer__premium-base {
+    min-height: 64px;
+    padding-block: 18px;
+  }
+}

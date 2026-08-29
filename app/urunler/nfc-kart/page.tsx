@@ -9,34 +9,24 @@ import { YenomiProductVisual } from "../../ui/YenomiProductVisual";
 
 export const metadata: Metadata = {
   title: "NFC + QR Kart",
-  description: "Premium NFC + QR kart. Unvanın değişince baskı yok; kaybolursa kapatırsın. Tek seferlik ödeme, 1 yıl platform üyeliği ve Türkiye içi kargo dahil. Kart numarası iyzico’da kalır.",
+  description: "Yenomi ID Premium NFC + QR kart, canlı dijital profil ve networking araçları. İlk yıl platform erişimi ve Türkiye içi kargo dahil.",
 };
 
 const benefits = [
-  ["01", "NFC", "NFC destekli telefonlarda tek dokunuşla profilini aç."],
-  ["02", "QR", "NFC kullanılamadığında aynı kalıcı profile QR ile ulaş."],
-  ["03", "Sabit bağlantı", "Kartı yeniden bastırmadan profilindeki bilgileri güncelle."],
-  ["04", "1 yıl dahil", "Tek seferlik ödemeye 1 yıl platform üyeliği dahildir."],
-];
-
-const steps = [
-  ["01", "Kartını seç", "Siyah mat NFC + QR kart."],
-  ["02", "Teslimat ve ödemeyi tamamla", "Kargo dahil fiyatla Türkiye içi sipariş ver."],
-  ["03", "Profilini etkinleştir", "Bilgilerini ekle; NFC ve QR aynı sayfaya bağlansın."],
+  ["NFC", "Tek dokunuşla aç"],
+  ["QR", "Her telefonda alternatif"],
+  ["Sabit bağlantı", "Bilgin değişir, kartın kalır"],
+  ["İlk yıl", "Platform erişimi dahil"],
 ];
 
 const faq = [
-  [`${COMMERCIAL_COPY.initialPrice}’ye tam olarak ne dahil?`, "1 adet kişiselleştirilmiş NFC + QR kart, aynı karta bağlı dijital kartvizit, 1 yıl platform üyeliği ve Türkiye içi ücretsiz kargo dahildir. Tek seferlik ödeme."],
-  [`Premium ${COMMERCIAL_COPY.premiumPrice} neden farklı?`, "Premium, NFC paketteki her şeyi içerir; ayrıca toplantı, sunum, kişi yönetimi ve 500 Network Mail kredisi verir. Kredi ödeme sonrası hesabına yazılır."],
-  ["Kart kaç günde hazırlanır?", "Profil ve sipariş bilgileriniz tamamlandıktan sonra kartınız 2 iş günü içinde hazırlanıp kargoya teslim edilir. Kargo firmasının teslim süresi bu süreye dahil değildir."],
-  ["Kargo dahil mi?", "Evet. Türkiye içi standart kargo ürün fiyatına dahildir. Şimdilik Türkiye dışına sipariş alınmamaktadır."],
-  ["İlk yıl platform üyeliği fiyata dahil mi?", "Evet. Tek seferlik satın alma bedeli dijital kartvizit sayfasının 1 yıllık kullanımını kapsar. Aylık abonelik yoktur."],
-  ["Süre dolunca ne olur?", `NFC hizmet ${COMMERCIAL_COPY.renewalPrice}, Premium ${COMMERCIAL_COPY.premiumRenewalPrice} ile yenilenir. Yeni kart gönderilmez. Premium’da kullanılmayan Network Mail bir sonraki yıla taşınır.`],
-  ["Bilgilerimi kaç kez değiştirebilirim?", "Aktif kullanım süreniz boyunca telefon, unvan, şirket, sosyal medya, web sitesi ve diğer profil bilgilerinizi istediğiniz kadar güncelleyebilirsiniz."],
-  ["NFC her telefonda çalışır mı?", "NFC destekli çoğu modern telefonda kartı yaklaştırarak profil açılır. NFC kapalıysa veya cihaz NFC desteklemiyorsa kart üzerindeki QR kod kullanılabilir."],
-  ["QR kodum değişir mi?", "Hayır. Kart üzerindeki QR kod ve profil bağlantısı sabit kalır. Sayfadaki bilgiler değişse bile kartı yeniden bastırmanız gerekmez."],
-  ["Kartımı kaybedersem ne olur?", "Hesabınızdan kartı kayıp moduna alabilirsiniz. Kayıp kart güvenli bir bilgilendirme sayfasına yönlenir; bulunmazsa aynı profile bağlı yedek kart sipariş edilebilir."],
-  ["İkinci veya yedek kart ne kadar?", `Aynı dijital profile bağlı 1 fiziksel NFC + QR ek/yedek kart ${COMMERCIAL_COPY.additionalCardPrice}’dir. Türkiye içi kargo dahildir; yeni profil veya yeni yıllık dijital hizmet süresi başlatmaz.`],
+  [`Premium ${COMMERCIAL_COPY.premiumPrice}’ye ne dahil?`, "1 kişiselleştirilmiş NFC + QR kart, canlı dijital profil, kişi yönetimi, toplantı ve sunum araçları, 500 Network Mail kredisi, ilk yıl Premium erişimi ve Türkiye içi standart kargo dahildir."],
+  ["2. yılda ne öderim?", `Premium erişimi ${COMMERCIAL_COPY.premiumRenewalPrice}/yıl, Bireysel erişimi ${COMMERCIAL_COPY.renewalPrice}/yıl üzerinden yenilenir. Yenilemede yeni fiziksel kart gönderilmez; mevcut kartın ve QR bağlantın kullanılmaya devam eder.`],
+  ["Kart kaç günde hazırlanır?", "Sipariş ve profil bilgileriniz tamamlandıktan sonra kartınız 2 iş günü içinde hazırlanıp kargoya teslim edilir."],
+  ["Bilgilerimi değiştirebilir miyim?", "Evet. Aktif kullanım süren boyunca telefon, unvan, şirket, bağlantılar ve diğer profil bilgilerini istediğin kadar güncelleyebilirsin."],
+  ["NFC her telefonda çalışır mı?", "NFC destekli çoğu modern telefonda çalışır. NFC kapalıysa veya desteklenmiyorsa kart üzerindeki sabit QR kod kullanılabilir."],
+  ["Kartımı kaybedersem ne olur?", "Panelden kartı kayıp moduna alabilirsin. Gerekirse aynı profile bağlı yedek kart sipariş edebilirsin."],
+  ["Yedek kart ne kadar?", `Aynı profile bağlı fiziksel NFC + QR yedek kart ${COMMERCIAL_COPY.additionalCardPrice}’dir. Yeni profil veya yeni yıllık hizmet süresi başlatmaz.`],
 ];
 
 export default async function NfcKartPage({
@@ -46,7 +36,7 @@ export default async function NfcKartPage({
 }) {
   const params = await searchParams;
   const rawPackage = Array.isArray(params.paket) ? params.paket[0] : params.paket;
-  const initialPackage = rawPackage === "premium" ? "premium" : "individual";
+  const initialPackage = rawPackage === "individual" ? "individual" : "premium";
   const rawReason = Array.isArray(params.reason) ? params.reason[0] : params.reason;
   const accessRequired = rawReason === "access-required";
 
@@ -56,15 +46,15 @@ export default async function NfcKartPage({
         <PublicPageTitle
           kicker="YENOMI ID · NFC + QR KART"
           title={<>Kart bir kez basılır.<br />Kimliğin her gün güncel kalır.</>}
-          description="NFC veya QR ile paylaş. Unvanın değişince kartı yenileme. Kaybolursa kayıp modu. Ödeme iyzico güvencesinde; kart numarası Yenomi’de saklanmaz."
+          description="NFC veya QR ile paylaş. Bilgilerin değişince kartı yenileme; kaybolursa panelden kapat. Premium ile tanıştığın kişileri ve takibini de tek yerde yönet."
           className="public-page-title--product"
         />
 
         <section className="nfc-product-hero">
           <div className="yi-container nfc-product-hero__grid">
             <div className="nfc-product-hero__copy">
-              <span className="nfc-kicker">KARTINI SEÇ</span>
-              <p className="nfc-product-hero__body">Kartı telefona yaklaştır veya QR’ı okut. Profil tarayıcıda açılır. Bilgin değişince baskı yok; kart kaybolursa panelden kapatırsın.</p>
+              <span className="nfc-kicker">PAKETİNİ SEÇ</span>
+              <p className="nfc-product-hero__body">Premium önerilen paket. Yalnızca güncellenebilir NFC + QR kartvizit istiyorsan Bireysel’i seçebilirsin.</p>
               <NfcPurchasePanel product={NFC_PRODUCT} accessRequired={accessRequired} />
             </div>
             <div className="nfc-product-hero__visual">
@@ -78,21 +68,7 @@ export default async function NfcKartPage({
 
         <section className="nfc-benefits" aria-label="Ürün özellikleri">
           <div className="yi-container nfc-benefits__grid">
-            {benefits.map(([number, title, text]) => (
-              <article key={number}><span>{number}</span><h2>{title}</h2><p>{text}</p></article>
-            ))}
-          </div>
-        </section>
-
-        <section className="nfc-story">
-          <div className="yi-container nfc-story__inner">
-            <div><span className="nfc-kicker">SEÇ, BAĞLA, PAYLAŞ</span><h2>Önce kartını al.<br />Sonra profilin açılır.</h2></div>
-            <p>Sepete ekle, Türkiye içi adresi yaz, öde. Hesabın varsa sipariş bağlanır; yoksa hesap açmadan tamamlarsın. NFC ve QR aynı kalıcı profile gider.</p>
-          </div>
-          <div className="yi-container nfc-steps">
-            {steps.map(([number, title, text]) => (
-              <article key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></article>
-            ))}
+            {benefits.map(([title, text]) => <article key={title}><h2>{title}</h2><p>{text}</p></article>)}
           </div>
         </section>
 
@@ -100,13 +76,10 @@ export default async function NfcKartPage({
 
         <section className="nfc-faq">
           <div className="yi-container">
-            <span className="nfc-kicker">SIK SORULAN SORULAR</span>
-            <h2>Satın almadan önce<br />bilmen gerekenler.</h2>
-            <p className="nfc-faq__intro">Fiyat, kargo, yıllık kullanım, NFC uyumu ve kayıp kart.</p>
+            <span className="nfc-kicker">SATIN ALMADAN ÖNCE</span>
+            <h2>Kısa cevaplar.</h2>
             <div className="nfc-faq__list">
-              {faq.map(([question, answer]) => (
-                <details key={question}><summary>{question}</summary><p>{answer}</p></details>
-              ))}
+              {faq.map(([question, answer]) => <details key={question}><summary>{question}</summary><p>{answer}</p></details>)}
             </div>
           </div>
         </section>

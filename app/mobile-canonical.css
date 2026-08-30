@@ -1,0 +1,676 @@
+/* Yenomi ID — mobile canonical contract
+ * Final public/mobile override loaded last by app/layout.tsx.
+ * Scope: 320–760px. Fixes horizontal overflow, public navigation,
+ * homepage comparison density, cart hierarchy and footer rhythm.
+ */
+
+@media (max-width: 760px) {
+  :root {
+    --mobile-gutter: 20px;
+    --mobile-section-gap: 72px;
+    --mobile-card-pad: 20px;
+    --mobile-card-radius: 20px;
+  }
+
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  body {
+    min-width: 320px;
+  }
+
+  .public-site,
+  .public-site main,
+  .public-site section,
+  .public-site article,
+  .public-site div,
+  .public-site nav,
+  .public-site aside,
+  .public-site header,
+  .public-site footer {
+    min-width: 0;
+  }
+
+  /* Public chrome ------------------------------------------------------- */
+  .public-site-chrome .yi-brand-marquee--static,
+  .public-site-chrome .yi-brand-marquee__static-inner {
+    min-height: 36px;
+  }
+
+  .public-site-chrome .yi-brand-marquee__static-inner {
+    padding-inline: 14px;
+    gap: 18px;
+    justify-content: space-between;
+  }
+
+  .public-site-chrome .yi-brand-marquee__static-item {
+    min-width: 0;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .public-site-chrome .yi-header__inner {
+    width: 100%;
+    min-height: 68px;
+    padding-inline: var(--mobile-gutter);
+  }
+
+  .public-site-chrome .yi-brand {
+    gap: 10px;
+  }
+
+  .public-site-chrome .yi-brand__mark,
+  .public-site-chrome .yi-brand__mark img {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+  }
+
+  .public-site-chrome .yi-brand__lockup strong {
+    font-size: 14px;
+    letter-spacing: .06em;
+  }
+
+  .public-site-chrome .yi-brand__lockup small {
+    display: none;
+  }
+
+  .public-site-chrome .yi-header__actions {
+    gap: 8px;
+  }
+
+  .public-site-chrome .yi-cart,
+  .public-site-chrome .yi-menu {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+
+  .public-site-chrome .yi-cart__label {
+    display: none;
+  }
+
+  /* The old mobile nav behaved like a centered desktop modal. The mobile
+     contract is a real top sheet with a bounded height and edge alignment. */
+  .public-site-chrome .yi-nav {
+    display: none;
+  }
+
+  .public-site-chrome .yi-nav.is-open {
+    position: fixed;
+    z-index: 101;
+    top: calc(36px + env(safe-area-inset-top, 0px));
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: none;
+    max-height: calc(100svh - 60px - env(safe-area-inset-top, 0px));
+    padding: 12px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    align-content: start;
+    gap: 4px;
+    border: 1px solid var(--border-subdued);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, .98);
+    box-shadow: 0 24px 64px rgba(20, 17, 13, .20);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .public-site-chrome .yi-nav__header {
+    min-height: 48px;
+    padding: 0 4px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-subdued);
+  }
+
+  .public-site-chrome .yi-nav-close {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 12px;
+    background: var(--surface-soft);
+  }
+
+  .public-site-chrome .yi-nav > a:not(.yi-nav__funnel),
+  .public-site-chrome .yi-nav__funnel {
+    width: 100%;
+    min-height: 50px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    border: 0;
+    border-radius: 12px;
+    font-size: 15px;
+    line-height: 1.2;
+  }
+
+  .public-site-chrome .yi-nav > a:not(.yi-nav__funnel)::after {
+    display: none;
+  }
+
+  .public-site-chrome .yi-nav__funnel--primary {
+    margin-top: 8px;
+    justify-content: center;
+    background: linear-gradient(180deg, #d0aa55 0%, #be9134 100%);
+    color: #17120b;
+    font-weight: 760;
+  }
+
+  .public-site-chrome .yi-nav__funnel:not(.yi-nav__funnel--primary) {
+    justify-content: center;
+    border: 1px solid var(--border-subdued);
+    background: #fff;
+  }
+
+  .public-site-chrome .yi-nav-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    border: 0;
+    background: rgba(18, 16, 13, .42);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  /* Homepage ----------------------------------------------------------- */
+  .home-mockup,
+  .home-mockup main {
+    width: 100%;
+    overflow-x: clip;
+  }
+
+  .home-sales-hero,
+  .home-premium__proof,
+  .home-premium__journey,
+  .home-sales-comparison,
+  .home-sales-faq {
+    width: 100%;
+    padding: 48px var(--mobile-gutter);
+  }
+
+  .home-package-matrix {
+    width: 100%;
+    margin-inline: auto;
+    padding: 48px var(--mobile-gutter);
+    overflow: hidden;
+    border-top: 1px solid var(--border-subdued);
+  }
+
+  .home-package-matrix__head,
+  .home-premium__proof-head,
+  .home-premium__journey-head,
+  .home-sales-comparison-head,
+  .home-sales-faq-intro {
+    width: 100%;
+    max-width: none;
+    margin: 0 0 24px;
+  }
+
+  .home-package-matrix__head h2,
+  .home-premium__proof-head h2,
+  .home-premium__journey-head h2,
+  .home-sales-comparison-head h2,
+  .home-sales-faq-intro h2,
+  .home-sales-final h2 {
+    max-width: 100%;
+    margin: 10px 0 14px;
+    font-size: clamp(36px, 10vw, 46px);
+    line-height: 1.01;
+    letter-spacing: -.04em;
+    text-wrap: balance;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .home-package-matrix__head p,
+  .home-premium__proof-head > p,
+  .home-premium__journey-head > p,
+  .home-sales-comparison-head > p,
+  .home-sales-faq-intro > p,
+  .home-sales-final > p {
+    max-width: 100%;
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.58;
+  }
+
+  .home-mockup .home-sales-copy h1 {
+    max-width: 100%;
+    font-size: clamp(40px, 11vw, 50px);
+    line-height: .98;
+    letter-spacing: -.045em;
+  }
+
+  /* Package matrix: no 900px desktop canvas on a phone. Each feature becomes
+     a readable label plus three equal package cells, preserving comparison. */
+  .public-site .home-package-matrix__scroll {
+    width: 100%;
+    overflow: visible;
+    border-radius: var(--mobile-card-radius);
+    box-shadow: 0 10px 28px rgba(28, 23, 16, .045);
+  }
+
+  .public-site .home-package-matrix__table {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .public-site .home-package-matrix__row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .public-site .home-package-matrix__header > :first-child {
+    display: none;
+  }
+
+  .public-site .home-package-matrix__header > strong {
+    min-width: 0;
+    padding: 14px 8px;
+    font-size: 13px;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+
+  .public-site .home-package-matrix__row:not(.home-package-matrix__header) > :first-child {
+    grid-column: 1 / -1;
+    min-height: 0;
+    padding: 14px 14px 8px;
+    border-left: 0;
+    background: #fff;
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
+  .public-site .home-package-matrix__row:not(.home-package-matrix__header) > :nth-child(n + 2) {
+    min-width: 0;
+    min-height: 54px;
+    padding: 10px 8px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-left: 0;
+    font-size: 12px;
+    line-height: 1.35;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+
+  .public-site .home-package-matrix__row:not(.home-package-matrix__header) > :nth-child(3) {
+    background: #f7eedb;
+  }
+
+  .public-site .home-package-matrix__actions > :first-child {
+    display: none;
+  }
+
+  .public-site .home-package-matrix__actions > span {
+    min-height: 68px;
+    padding: 10px 6px;
+  }
+
+  .public-site .home-package-matrix__actions a {
+    display: block;
+    font-size: 11px;
+    font-weight: 760;
+    line-height: 1.35;
+  }
+
+  /* Journey and classic-vs-Yenomi comparison */
+  .home-premium__journey-steps {
+    gap: 0;
+  }
+
+  .home-premium__journey-steps li {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 14px;
+    padding: 18px 0;
+    border-top: 1px solid var(--border-subdued);
+  }
+
+  .home-premium__journey-steps li > span {
+    width: 42px;
+    height: 42px;
+  }
+
+  .home-premium__journey-steps h3 {
+    font-size: 21px;
+  }
+
+  .home-premium__journey-steps p {
+    margin-top: 6px;
+    font-size: 15px;
+  }
+
+  .home-premium__journey-action {
+    margin-top: 14px;
+    padding-top: 16px;
+  }
+
+  .home-premium__journey-action a {
+    font-size: 15px;
+  }
+
+  .home-sales-comparison-table {
+    border-radius: var(--mobile-card-radius);
+  }
+
+  .home-sales-comparison-header {
+    display: none;
+  }
+
+  .home-sales-comparison-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 18px 0;
+  }
+
+  .home-sales-comparison-row > strong,
+  .home-sales-comparison-row > span {
+    min-width: 0;
+    padding-inline: 16px;
+  }
+
+  .home-sales-comparison-row > strong {
+    font-size: 18px;
+  }
+
+  .home-sales-comparison-row > span {
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  .home-sales-comparison-row > span:nth-child(2)::before {
+    content: "Klasik: ";
+    color: var(--text-secondary);
+    font-weight: 700;
+  }
+
+  .home-sales-comparison-row > span:nth-child(3)::before {
+    content: "Yenomi: ";
+    color: var(--brand-gold-deep);
+    font-weight: 760;
+  }
+
+  /* FAQ */
+  .home-sales-faq {
+    display: block;
+  }
+
+  .home-sales-faq-list {
+    width: 100%;
+  }
+
+  .home-sales-faq-item summary {
+    min-height: 58px;
+    gap: 12px;
+    padding-block: 12px;
+    font-size: 16px;
+    line-height: 1.35;
+  }
+
+  .home-sales-faq-item summary i {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+  }
+
+  .home-sales-faq-item > p {
+    margin-bottom: 18px;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .home-sales-support {
+    margin-top: 18px;
+  }
+
+  /* Final premium conversion card */
+  .home-sales-final {
+    width: calc(100% - 32px);
+    margin: 0 16px 32px;
+    padding: 26px var(--mobile-card-pad);
+    border-radius: var(--mobile-card-radius);
+  }
+
+  .home-sales-final-offer {
+    margin: 18px 0 20px;
+  }
+
+  .home-sales-final-offer strong {
+    font-size: 30px;
+  }
+
+  .home-sales-final .home-mockup__button {
+    min-height: 54px;
+  }
+
+  /* Cart --------------------------------------------------------------- */
+  .cart-page .yi-container {
+    width: 100%;
+    max-width: none;
+    padding-inline: var(--mobile-gutter);
+  }
+
+  .cart-page .yi-page-head {
+    padding: 38px 0 24px;
+  }
+
+  .cart-page .yi-page-head h1 {
+    max-width: 100%;
+    margin: 10px 0 14px;
+    font-size: clamp(40px, 11vw, 50px);
+    line-height: .98;
+    letter-spacing: -.045em;
+  }
+
+  .cart-page .yi-page-head p {
+    max-width: 100%;
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.58;
+  }
+
+  .yi-cart-layout {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    padding-bottom: 32px;
+  }
+
+  .yi-cart-items {
+    min-width: 0;
+  }
+
+  .yi-cart-item {
+    min-width: 0;
+    min-height: 0;
+    padding: 20px;
+    display: grid;
+    gap: 20px;
+    border-radius: var(--mobile-card-radius);
+  }
+
+  .yi-cart-item h2,
+  .yi-cart-item-title b {
+    max-width: 100%;
+    font-size: clamp(27px, 8vw, 34px);
+    line-height: 1.02;
+    letter-spacing: -.04em;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .yi-cart-item__controls {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 14px 16px;
+  }
+
+  .yi-stepper {
+    min-width: 0;
+  }
+
+  .yi-stepper button,
+  .yi-stepper span {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .yi-cart-item__controls > strong {
+    justify-self: end;
+    font-size: 22px;
+  }
+
+  .yi-remove {
+    grid-column: 2;
+    justify-self: end;
+    min-height: 44px;
+    padding-inline: 14px;
+  }
+
+  .yi-cart-summary {
+    min-width: 0;
+    padding: 20px;
+    border-radius: var(--mobile-card-radius);
+  }
+
+  .yi-cart-summary-rows {
+    margin-top: 14px;
+  }
+
+  .yi-cart-summary-rows > div {
+    min-height: 38px;
+    gap: 16px;
+  }
+
+  .yi-cart-summary-rows .total {
+    margin-top: 8px;
+    padding-top: 16px;
+  }
+
+  .yi-cart-summary-rows .total b {
+    font-size: 30px;
+  }
+
+  .yi-cart-summary > p {
+    margin: 14px 0 18px;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .yi-cart-summary .ds-button {
+    width: 100%;
+    min-height: 54px;
+  }
+
+  .yi-cart-summary .ds-button + .ds-button {
+    margin-top: 10px;
+  }
+
+  /* Footer ------------------------------------------------------------- */
+  .yi-footer.yi-footer--premium .yi-container {
+    width: 100%;
+    padding: 32px var(--mobile-gutter) calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .yi-footer .yi-footer__premium-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 26px 24px;
+    padding-bottom: 26px;
+  }
+
+  .yi-footer .yi-footer__premium-brand {
+    grid-column: 1 / -1;
+  }
+
+  .yi-footer .yi-footer__premium-brand p {
+    max-width: 34ch;
+    margin: 14px 0 0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .yi-footer .yi-footer__premium-column {
+    gap: 10px;
+  }
+
+  .yi-footer .yi-footer__premium-column strong {
+    margin-bottom: 2px;
+    font-size: 12px;
+  }
+
+  .yi-footer .yi-footer__premium-column a {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .yi-footer .yi-footer__premium-column[aria-label="Yasal"] {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .yi-footer .yi-footer__premium-column[aria-label="Yasal"] strong {
+    grid-column: 1 / -1;
+  }
+
+  .yi-footer .yi-footer__premium-base {
+    min-height: 0;
+    padding: 18px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  :root {
+    --mobile-gutter: 16px;
+  }
+
+  .public-site-chrome .yi-brand-marquee__static-item:nth-child(2) {
+    display: none;
+  }
+
+  .home-package-matrix__head h2,
+  .home-premium__proof-head h2,
+  .home-premium__journey-head h2,
+  .home-sales-comparison-head h2,
+  .home-sales-faq-intro h2,
+  .home-sales-final h2 {
+    font-size: 35px;
+  }
+
+  .public-site .home-package-matrix__header > strong {
+    font-size: 12px;
+    padding-inline: 5px;
+  }
+
+  .public-site .home-package-matrix__row:not(.home-package-matrix__header) > :nth-child(n + 2) {
+    font-size: 11px;
+    padding-inline: 5px;
+  }
+
+  .yi-footer .yi-footer__premium-grid {
+    gap: 24px 18px;
+  }
+}

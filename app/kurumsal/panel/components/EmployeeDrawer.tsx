@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type Dispatch, type FormEvent, type KeyboardEvent, type SetStateAction } from "react";
+import { useEffect, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { Icon } from "../../../icons";
 import { EmptyState, LoadingState } from "../../../components/ui/States";
 import { Button } from "../../../components/ui/DesignSystem";
@@ -8,12 +8,7 @@ import { Drawer, Tabs } from "../../../components/ui/Interactive";
 import CardTemplate, { type CardBranding } from "../../../CardTemplate";
 import { DEPARTMENT_OPTIONS, TITLE_OPTIONS, normalizeEmailField } from "../../../../lib/form-standards";
 import type { MemberActionTarget, MemberCardStatus } from "../domain/types";
-import {
-  digitalProfileLabel,
-  invitationStatusLabel,
-  memberStatusLabel,
-  physicalCardLabel,
-} from "../../../../lib/organizations/lifecycle";
+import { memberStatusLabel, physicalCardLabel } from "../../../../lib/organizations/lifecycle";
 import type { MemberStatus, PhysicalCardStatus } from "../../../../lib/organizations/lifecycle";
 import { isOrganizationRole } from "../../../../lib/organizations/permissions";
 
@@ -166,9 +161,9 @@ export default function EmployeeDrawer({
   roleLabel,
 }: Props) {
   const memberPublicId = `YI-M-${drawerMember.id.replace(/-/g, "").slice(0, 8).toUpperCase()}`;
-  const cardState = memberCardStatuses.find((item) => item.memberId === drawerMember.id);
+  const cardState = memberCardStatuses.find((cardStatus) => cardStatus.memberId === drawerMember.id);
   const assignedCards = physicalCards.filter(
-    (card) => Boolean(drawerMember.user_id) && card.ownerUserId === drawerMember.user_id,
+    (physicalCard) => Boolean(drawerMember.user_id) && physicalCard.ownerUserId === drawerMember.user_id,
   );
   const lifecycle = [
     {
@@ -218,36 +213,8 @@ export default function EmployeeDrawer({
   const previewTitle =
     viewLoading === drawerMember.id ? "Kart önizlemesi" : previewReady ? "Kart hazır" : "Kart henüz oluşturulmadı";
   const roleSummary = drawerMember.role === "OWNER" ? "Şirket Sahibi" : roleLabel(drawerMember.role);
-  const inviteSummary = cardState?.invitationState
-    ? invitationStatusLabel(cardState.invitationState)
-    : drawerMember.status === "INVITED"
-      ? "Davet bekliyor"
-      : "Tamamlandı";
-  const accessSummary =
-    drawerMember.status === "ACTIVE"
-      ? "Açık"
-      : drawerMember.status === "INVITED"
-        ? "Davet bekliyor"
-        : drawerMember.status === "SUSPENDED"
-          ? "Sınırlı"
-          : "Kapalı";
-
-  function statusJumpProps(tab: Props["drawerTab"], label: string) {
-    const isActive = drawerTab === tab;
-    return {
-      role: "button" as const,
-      tabIndex: 0,
-      className: `v25-status-jump${isActive ? " is-active" : ""}`,
-      "aria-label": `${label} sekmesine git`,
-      onClick: () => setDrawerTab(tab),
-      onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          setDrawerTab(tab);
-        }
-      },
-    };
-  }
+  const statusSummary = memberStatusLabel(drawerMember.status);
+  const digitalCardSummary = cardState?.published ? "Dijital kart yayında" : cardState?.hasDigitalCard ? "Dijital kart taslak" : null;
 
   return (
     <Drawer open title="Çalışan Detay" className="v25-employee-drawer" onClose={closeDrawer}>
@@ -257,42 +224,18 @@ export default function EmployeeDrawer({
           <strong>{drawerMember.full_name || drawerMember.email}</strong>
           <small>{drawerMember.email}</small>
           <span>
-            {drawerMember.title || roleSummary}
-            {drawerMember.department ? ` · ${drawerMember.department}` : ""}
+            {roleSummary} · {statusSummary}
+            {digitalCardSummary ? ` · ${digitalCardSummary}` : ""}
           </span>
+          {(drawerMember.title || drawerMember.department) && (
+            <span>
+              {drawerMember.title || ""}
+              {drawerMember.title && drawerMember.department ? " · " : ""}
+              {drawerMember.department || ""}
+            </span>
+          )}
         </div>
       </div>
-      <section className="v25-status-summary" aria-labelledby="v25-status-summary-title">
-        <header>
-          <small id="v25-status-summary-title">Durum özeti</small>
-        </header>
-        <dl>
-          <div {...statusJumpProps("lifecycle", "Rol")}>
-            <dt>Rol</dt>
-            <dd>{roleSummary}</dd>
-          </div>
-          <div {...statusJumpProps("lifecycle", "Durum")}>
-            <dt>Durum</dt>
-            <dd>{memberStatusLabel(drawerMember.status)}</dd>
-          </div>
-          <div {...statusJumpProps("card", "Dijital kart")}>
-            <dt>Dijital kart</dt>
-            <dd>{digitalProfileLabel(cardState?.digitalProfileState ?? "NONE")}</dd>
-          </div>
-          <div {...statusJumpProps("card", "Fiziksel kart")}>
-            <dt>Fiziksel kart</dt>
-            <dd>{physicalCardLabel(cardState?.physicalCardState ?? (assignedCards.length ? "ASSIGNED" : "UNASSIGNED"))}</dd>
-          </div>
-          <div {...statusJumpProps("invite", "Davet")}>
-            <dt>Davet</dt>
-            <dd>{inviteSummary}</dd>
-          </div>
-          <div {...statusJumpProps("lifecycle", "Erişim")}>
-            <dt>Erişim</dt>
-            <dd>{accessSummary}</dd>
-          </div>
-        </dl>
-      </section>
 
       <div className="v25-drawer-workspace">
         <div className="v25-drawer-main">
@@ -363,8 +306,8 @@ export default function EmployeeDrawer({
                   <small className="ds-help">Rol değişiklikleri yetki matrisi üzerinden ayrı olarak yönetilir.</small>
                 </div>
               </div>
-              <datalist id="corporate-title-options">{TITLE_OPTIONS.map((item) => <option key={item} value={item} />)}</datalist>
-              <datalist id="corporate-department-options">{DEPARTMENT_OPTIONS.map((item) => <option key={item} value={item} />)}</datalist>
+              <datalist id="corporate-title-options">{TITLE_OPTIONS.map((option) => <option key={option} value={option} />)}</datalist>
+              <datalist id="corporate-department-options">{DEPARTMENT_OPTIONS.map((option) => <option key={option} value={option} />)}</datalist>
               {drawerMember.status === "INVITED" && memberEdit.email.toLowerCase() !== drawerMember.email.toLowerCase() && (
                 <div className="v25-inline-warning">
                   <Icon name="mail" />

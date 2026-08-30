@@ -1,1 +1,92 @@
-/* placeholder */
+/* Corporate premium UI pass 2.
+ * Focus: Employees, physical card inventory and template studio.
+ * Visual-only; no API, permission or data behavior changes.
+ */
+
+.p10-corporate-platform .p11-employees-header{align-items:flex-start;gap:24px;padding-bottom:18px}
+.p10-corporate-platform .p11-employees-header>div:first-child{max-width:720px}
+.p10-corporate-platform .p11-employees-header>div:first-child>span,.p10-corporate-platform .action-first-header>div:first-child>span,.p10-corporate-platform .card-inventory-embedded-header>div:first-child>span{display:block;margin-bottom:6px;color:#8a6825;font-size:10px;font-weight:800;line-height:1.2;letter-spacing:.12em}
+.p10-corporate-platform .p11-employees-header h2,.p10-corporate-platform .action-first-header h2{margin:0;font-size:clamp(27px,2.2vw,34px);line-height:1.08;letter-spacing:-.035em}
+.p10-corporate-platform .p11-employees-header p,.p10-corporate-platform .action-first-header p,.p10-corporate-platform .card-inventory-embedded-header p{max-width:650px;margin:8px 0 0;color:#706961;font-size:13px;line-height:1.55}
+
+.p10-corporate-platform .p11-org-capacity{min-width:176px;padding:12px 14px;border:1px solid #e7e2d8;border-radius:12px;background:#fbfaf7;box-shadow:none}
+.p10-corporate-platform .p11-org-capacity small{color:#746e66;font-size:10px;font-weight:700}
+.p10-corporate-platform .p11-org-capacity strong{display:block;margin:3px 0 2px;font-size:21px;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.p10-corporate-platform .p11-org-capacity>span{color:#716a62;font-size:10.5px}
+.p10-corporate-platform .p11-seat-policy{max-width:220px;margin-top:8px;line-height:1.4}
+
+.p10-corporate-platform .p11-operational-attention{display:grid;gap:8px;margin-bottom:14px}
+.p10-corporate-platform .p11-attention-item{min-height:58px;padding:10px 12px;border-radius:12px;box-shadow:none}
+.p10-corporate-platform .p11-attention-content{gap:10px}
+.p10-corporate-platform .p11-attention-content .yi-icon{width:17px;height:17px}
+.p10-corporate-platform .p11-attention-content strong{font-size:12.5px}
+.p10-corporate-platform .p11-attention-content p{margin-top:2px;font-size:11.5px;line-height:1.45}
+.p10-corporate-platform .p11-attention-cta{min-height:36px;padding-inline:12px;border-radius:9px;font-size:11.5px;white-space:nowrap}
+
+.p10-corporate-platform .p11-toolbar,.p10-corporate-platform .action-first-toolbar{gap:10px;padding:12px 14px;border-bottom:1px solid #ece7de;background:#fcfbf8}
+.p10-corporate-platform .p11-search{min-height:42px;border-radius:10px;background:#fff}
+.p10-corporate-platform .p11-search input{font-size:12.5px}
+.p10-corporate-platform .p11-table-wrap{border-radius:0 0 14px 14px}
+.p10-corporate-platform .p11-table th{padding-block:10px;color:#756f67;font-size:10.5px;font-weight:750;letter-spacing:.025em}
+.p10-corporate-platform .p11-table td{padding-block:11px;vertical-align:middle}
+.p10-corporate-platform .p11-sort{min-height:30px;padding:0}
+.p10-corporate-platform .p11-status{min-height:24px;padding:3px 8px;border-radius:7px;font-size:10.5px;line-height:1.2}
+
+.p10-corporate-platform .card-inventory-page{gap:14px}
+.p10-corporate-platform .action-first-summary{min-height:0;padding:15px 17px;border-radius:14px;box-shadow:none}
+.p10-corporate-platform .action-first-summary>div:first-child>span{font-size:10px;letter-spacing:.11em}
+.p10-corporate-platform .action-first-summary>div:first-child>strong{margin-top:3px;font-size:15px;line-height:1.3}
+.p10-corporate-platform .action-first-summary>div:first-child>p{margin-top:3px;max-width:640px;font-size:11.5px;line-height:1.45}
+.p10-corporate-platform .action-first-summary__stats{gap:0;overflow:hidden;border:1px solid #e8e3da;border-radius:10px;background:#fff}
+.p10-corporate-platform .action-first-summary__stats>span{min-width:96px;padding:9px 12px;border-right:1px solid #eee9e0}
+.p10-corporate-platform .action-first-summary__stats>span:last-child{border-right:0}
+.p10-corporate-platform .action-first-summary__stats small{font-size:9.5px}
+.p10-corporate-platform .action-first-summary__stats b{margin-top:2px;font-size:18px;line-height:1;font-variant-numeric:tabular-nums}
+.p10-corporate-platform .card-inventory-surface{overflow:hidden;border-radius:14px;box-shadow:none}
+.p10-corporate-platform .card-inventory-id{gap:2px}
+.p10-corporate-platform .card-inventory-id strong{font-family:var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace);font-size:12px;letter-spacing:.015em}
+.p10-corporate-platform .card-inventory-id small,.p10-corporate-platform .card-inventory-empty,.p10-corporate-platform .action-first-inventory-note{color:#817a71;font-size:10.5px}
+.p10-corporate-platform .card-inventory-owner{padding:0;border:0;background:transparent;color:#6f531e;font-size:12px;font-weight:700;text-decoration:none}
+.p10-corporate-platform .card-inventory-owner:hover{text-decoration:underline;text-underline-offset:3px}
+
+.p10-corporate-platform .v25-dialog-card{width:min(calc(100vw - 32px),480px);border-radius:16px;box-shadow:0 24px 70px rgba(25,20,14,.16)}
+.p10-corporate-platform .v25-dialog-header{padding:20px 20px 14px}
+.p10-corporate-platform .v25-dialog-header h3{margin:4px 0 5px;font-size:20px;letter-spacing:-.025em}
+.p10-corporate-platform .v25-dialog-body{padding:16px 20px 20px}
+.p10-corporate-platform .v25-dialog-help{margin:8px 0 0;color:#777067;font-size:11.5px;line-height:1.45}
+.p10-corporate-platform .v25-dialog-actions{margin-top:16px;gap:8px}
+
+.p10-corporate-platform .corporate-template-studio{gap:16px}
+.p10-corporate-platform .corporate-template-studio__header{gap:22px;padding:0 0 2px}
+.p10-corporate-platform .corporate-template-studio__heading>span{margin-bottom:5px;font-size:10px;letter-spacing:.12em}
+.p10-corporate-platform .corporate-template-studio__heading h2{max-width:620px;font-size:clamp(27px,2.4vw,34px);line-height:1.08;letter-spacing:-.035em}
+.p10-corporate-platform .corporate-template-studio__heading p{max-width:640px;margin-top:8px;font-size:13px;line-height:1.55}
+.p10-corporate-platform .corporate-template-studio__status{min-width:180px;padding:11px 13px;border-radius:12px;box-shadow:none}
+.p10-corporate-platform .corporate-template-studio__workspace{grid-template-columns:minmax(0,1fr) minmax(310px,370px);gap:16px}
+.p10-corporate-platform .corporate-template-studio__editor{gap:12px}
+.p10-corporate-platform .corporate-template-section{padding:18px;border-radius:14px;box-shadow:none}
+.p10-corporate-platform .corporate-template-section__header{gap:10px;margin-bottom:14px}
+.p10-corporate-platform .corporate-template-section__index{width:30px;height:30px;flex-basis:30px;border-radius:9px}
+.p10-corporate-platform .corporate-template-section__header h3{font-size:16px}
+.p10-corporate-platform .corporate-template-studio .business-template-options{gap:8px}
+.p10-corporate-platform .corporate-template-studio .business-template-options>button{min-height:126px;grid-template-rows:56px auto;gap:9px;padding:10px;border-radius:11px;background:#fcfbf8}
+.p10-corporate-platform .corporate-template-studio .business-template-options>button:hover{transform:none;box-shadow:inset 0 0 0 1px rgba(163,123,44,.1)}
+.p10-corporate-platform .corporate-template-studio .business-template-options>button.active{border-color:#a37b2c;background:#fffdf8;box-shadow:inset 0 0 0 1px rgba(163,123,44,.13)}
+.p10-corporate-platform .corporate-template-studio .business-template-options>button mark{top:8px;right:8px;padding:3px 6px;border-radius:6px;font-size:8.5px}
+.p10-corporate-platform .corporate-template-studio .template-mini{height:56px;border-radius:8px;background:#f6f3ed}
+.p10-corporate-platform .corporate-template-studio .template-executive{background:#201b24}
+.p10-corporate-platform .corporate-template-studio .business-template-option-copy strong{font-size:12.5px}
+.p10-corporate-platform .corporate-template-studio .business-template-option-copy small{font-size:9.5px;line-height:1.35}
+.p10-corporate-platform .corporate-template-fields{gap:12px}
+.p10-corporate-platform .corporate-template-field>input,.p10-corporate-platform .corporate-template-color-control>input:not([type="color"]){min-height:42px}
+.p10-corporate-platform .corporate-template-savebar{padding:11px 13px;border-radius:12px;box-shadow:none}
+.p10-corporate-platform .corporate-template-savebar button{min-height:40px;box-shadow:none}
+.p10-corporate-platform .corporate-template-savebar button:hover{transform:none;box-shadow:none}
+.p10-corporate-platform .corporate-template-preview{top:14px;border-radius:15px;box-shadow:0 10px 28px rgba(50,43,33,.045)}
+.p10-corporate-platform .corporate-template-preview__header,.p10-corporate-platform .corporate-template-preview__footer{padding:11px 13px}
+.p10-corporate-platform .corporate-template-preview__stage{min-height:540px;padding:18px 14px;background:#f5f2ec}
+.p10-corporate-platform .corporate-template-preview__phone{width:min(100%,305px)}
+
+@media(max-width:1100px){.p10-corporate-platform .corporate-template-studio__workspace{grid-template-columns:minmax(0,1fr) 310px}}
+@media(max-width:900px){.p10-corporate-platform .p11-employees-header{flex-direction:column;gap:12px}.p10-corporate-platform .p11-org-capacity{width:100%;min-width:0}.p10-corporate-platform .action-first-summary{display:grid;gap:12px}.p10-corporate-platform .action-first-summary__stats{width:100%}.p10-corporate-platform .corporate-template-studio__workspace{grid-template-columns:1fr}.p10-corporate-platform .corporate-template-preview{position:relative;top:auto}.p10-corporate-platform .corporate-template-preview__stage{min-height:0;padding-block:16px}}
+@media(max-width:640px){.p10-corporate-platform .p11-employees-header h2,.p10-corporate-platform .action-first-header h2,.p10-corporate-platform .corporate-template-studio__heading h2{font-size:26px}.p10-corporate-platform .p11-operational-attention{gap:7px}.p10-corporate-platform .p11-attention-item{align-items:stretch}.p10-corporate-platform .p11-attention-cta{width:100%;justify-content:center}.p10-corporate-platform .action-first-summary__stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.p10-corporate-platform .action-first-summary__stats>span{min-width:0;border-bottom:1px solid #eee9e0}.p10-corporate-platform .action-first-summary__stats>span:nth-child(2n){border-right:0}.p10-corporate-platform .action-first-summary__stats>span:nth-last-child(-n+2){border-bottom:0}.p10-corporate-platform .corporate-template-studio__header{flex-direction:column;gap:10px}.p10-corporate-platform .corporate-template-studio__status{width:100%}.p10-corporate-platform .corporate-template-studio .business-template-options{grid-template-columns:1fr}.p10-corporate-platform .corporate-template-studio .business-template-options>button{min-height:0;grid-template-columns:92px minmax(0,1fr);grid-template-rows:auto;align-items:center}.p10-corporate-platform .corporate-template-studio .template-mini{width:92px;height:54px}.p10-corporate-platform .corporate-template-fields{grid-template-columns:1fr}.p10-corporate-platform .corporate-template-field--full{grid-column:auto}.p10-corporate-platform .corporate-template-savebar{align-items:stretch;flex-direction:column}.p10-corporate-platform .corporate-template-savebar button{width:100%}}

@@ -20,6 +20,7 @@ import "./styles/canonical-auth.css";
 import "./styles/canonical-motion.css";
 import "./styles/canonical-footer.css";
 import "./styles/canonical-responsive-final.css";
+import "./kurumsal/panel/overview-polish.css";
 import HashScrollHandler from "./components/HashScrollHandler";
 import AuthSessionBridge from "./components/AuthSessionBridge";
 import MobilePurchaseDockController from "./components/MobilePurchaseDockController";

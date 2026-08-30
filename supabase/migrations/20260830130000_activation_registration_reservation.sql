@@ -106,6 +106,10 @@ begin
   where id = v_token.order_id
   for update;
 
+  if not found then
+    return jsonb_build_object('ok', false, 'code', 'ORDER_NOT_PAID');
+  end if;
+
   -- A retry after a successful commit is a success, not an instruction to
   -- delete the Auth user. This covers the common "DB committed, response lost"
   -- failure mode.
@@ -128,7 +132,7 @@ begin
     return jsonb_build_object('ok', false, 'code', 'ACTIVATION_RESERVATION_EXPIRED');
   end if;
 
-  if not found or v_order.status <> 'PAID' then
+  if v_order.status <> 'PAID' then
     return jsonb_build_object('ok', false, 'code', 'ORDER_NOT_PAID');
   end if;
 
@@ -179,7 +183,7 @@ security definer
 set search_path = public, pg_temp
 as $$
 declare
-  v_released boolean;
+  v_row_count bigint;
 begin
   update public.activation_tokens
   set registration_reservation_id = null,
@@ -189,8 +193,8 @@ begin
     and registration_reservation_id = p_reservation_id
     and used_at is null;
 
-  get diagnostics v_released = row_count;
-  return v_released;
+  get diagnostics v_row_count = row_count;
+  return v_row_count > 0;
 end;
 $$;
 

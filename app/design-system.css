@@ -112,7 +112,7 @@
 .products-commerce-v3__hero-copy { min-width:0; max-width:650px; }
 .products-commerce-v3__hero h1 { margin:18px 0 22px; max-width:680px; font-family:var(--font-family-display); font-size:clamp(54px,6vw,82px); line-height:.98; letter-spacing:-.055em; }
 .products-commerce-v3__hero-copy>p { max-width:590px; margin:0; color:var(--text-secondary); font-size:17px; line-height:1.72; }
-.products-commerce-v3__hero-price { display:flex; align-items:end; gap:14px; margin-top:28px; padding-top:24px; border-top:1px solid var(--border-subdued); }
+.products-commerce-v3__hero-price { display:flex; align-items:flex-end; gap:14px; margin-top:28px; padding-top:24px; border-top:1px solid var(--border-subdued); }
 .products-commerce-v3__hero-price span { color:var(--text-tertiary); font-size:12px; font-weight:700; }
 .products-commerce-v3__hero-price strong { margin-left:auto; font-size:38px; letter-spacing:-.045em; line-height:1; font-variant-numeric:tabular-nums; }
 .products-commerce-v3__hero-actions { display:flex; align-items:center; gap:18px; margin-top:20px; }
@@ -129,7 +129,7 @@
 .products-commerce-v3__stage-caption span { color:#d8ba7c; font-size:10px; font-weight:800; letter-spacing:.12em; }
 .products-commerce-v3__stage-caption strong { color:#f8f2e7; font-size:12px; }
 .products-commerce-v3__plans { padding:92px 0 96px; background:#fff; }
-.products-commerce-v3__section-head { display:grid; grid-template-columns:minmax(0,.9fr) minmax(360px,.7fr); gap:60px; align-items:end; margin-bottom:34px; }
+.products-commerce-v3__section-head { display:grid; grid-template-columns:minmax(0,.9fr) minmax(360px,.7fr); gap:60px; align-items:flex-end; margin-bottom:34px; }
 .products-commerce-v3__section-head h2 { margin:10px 0 0; font-size:clamp(36px,4vw,54px); letter-spacing:-.045em; }
 .products-commerce-v3__section-head>p { margin:0; color:var(--text-secondary); font-size:15px; line-height:1.65; }
 .products-commerce-v3__plan-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:stretch; gap:16px; }
@@ -137,7 +137,7 @@
 .products-commerce-v3__plan-card--featured { border-color:rgba(169,129,47,.48); background:linear-gradient(180deg,#fffdf8 0%,#faf4e6 100%); box-shadow:0 24px 54px rgba(108,78,25,.12); transform:translateY(-8px); }
 .products-commerce-v3__featured-badge { position:absolute; top:16px; right:16px; padding:6px 9px; border-radius:999px; background:rgba(169,129,47,.12); color:var(--brand-gold-deep); font-size:9px; font-weight:900; letter-spacing:.1em; }
 .products-commerce-v3__plan-card--dark { border-color:rgba(212,180,131,.23); background:linear-gradient(180deg,#191714 0%,#11100e 100%); color:#f8f2e7; box-shadow:0 22px 52px rgba(19,16,12,.16); }
-.products-commerce-v3__plan-topline { display:flex; justify-content:space-between; align-items:end; gap:16px; min-height:40px; }
+.products-commerce-v3__plan-topline { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; min-height:40px; }
 .products-commerce-v3__plan-topline>span { color:var(--brand-gold-deep); font-size:10px; font-weight:900; letter-spacing:.13em; }
 .products-commerce-v3__plan-topline>strong { font-size:30px; letter-spacing:-.045em; font-variant-numeric:tabular-nums; }
 .products-commerce-v3__plan-card h3 { margin:20px 0 8px; font-size:27px; letter-spacing:-.035em; }
@@ -167,7 +167,7 @@
 .products-commerce-v3__trust-strip span { display:flex; align-items:center; justify-content:center; gap:8px; color:var(--text-tertiary); font-size:11px; font-weight:650; }
 .products-commerce-v3__trust-strip .yi-icon { width:14px; height:14px; min-width:14px; color:var(--brand-gold); }
 .products-commerce-v3__corporate { padding:76px 0 84px; background:#0d0c0b; color:#f8f2e7; }
-.products-commerce-v3__corporate-inner { display:flex; justify-content:space-between; align-items:end; gap:50px; }
+.products-commerce-v3__corporate-inner { display:flex; justify-content:space-between; align-items:flex-end; gap:50px; }
 .products-commerce-v3__corporate h2 { margin:12px 0 12px; color:#fffaf0; font-size:clamp(40px,4.5vw,62px); line-height:1.02; letter-spacing:-.05em; }
 .products-commerce-v3__corporate p { max-width:620px; margin:0; color:#bdb3a5; font-size:14px; }
 .products-commerce-v3__corporate .products-commerce-v3__eyebrow { color:#d8ba7c; }

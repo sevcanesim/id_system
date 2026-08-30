@@ -116,7 +116,7 @@ export default function OverviewPanel({
       title: "Yeni çalışan eklemek için kart kapasitesini artırın.",
       copy: `${usedSeats} / ${subscription?.seat_limit ?? "—"} kart kapasitesi kullanımda. Yeni davetler ek kapasite açılana kadar durdurulur.`,
       action: canManageLicenses ? "Kapasiteyi artır" : "Ekibi görüntüle",
-      tab: canManageLicenses ? "cards" : "employees",
+      tab: "employees",
       tone: "critical",
       icon: "lock",
     };
@@ -162,6 +162,8 @@ export default function OverviewPanel({
     };
   }
 
+  const capacityUpgradeRequired = availableSeats === 0 && canManageLicenses;
+
   return (
     <div className="cp-overview-v2" data-overview-version="2">
       <header className="cp-overview-v2__workspace">
@@ -180,11 +182,15 @@ export default function OverviewPanel({
           <p>{priority.copy}</p>
         </div>
         <div className="cp-overview-v2__priority-actions">
-          {canOpen(priority.tab) && (
+          {capacityUpgradeRequired ? (
+            <a className="cp-overview-v2__primary" href="/kurumsal#kapasite">
+              Kapasiteyi artır <span aria-hidden="true">→</span>
+            </a>
+          ) : canOpen(priority.tab) ? (
             <button type="button" className="cp-overview-v2__primary" onClick={() => openTab(priority.tab)}>
               {priority.action} <span aria-hidden="true">→</span>
             </button>
-          )}
+          ) : null}
         </div>
       </section>
 
@@ -193,10 +199,10 @@ export default function OverviewPanel({
           <span>Kart Kapasitesi</span>
           <strong>{usedSeats}<small> / {subscription?.seat_limit ?? "—"}</small></strong>
           <p>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} boş kart`}</p>
-          {availableSeats === 0 && canManageLicenses && canOpen("cards") && (
-            <button type="button" className="cp-overview-v2__metric-action" onClick={() => openTab("cards")}>
+          {capacityUpgradeRequired && (
+            <a className="cp-overview-v2__metric-action" href="/kurumsal#kapasite">
               Kapasite artır →
-            </button>
+            </a>
           )}
         </article>
         <article>

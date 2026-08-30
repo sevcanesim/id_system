@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { detectNetworkingLocale, type NetworkingLocale } from "../../../lib/networking/catalog";
 
 type Copy = {
-  stayInTouch: string;
-  stayBody: string;
+  title: string;
+  body: string;
   share: string;
   language: string;
   name: string;
@@ -13,53 +13,50 @@ type Copy = {
   phone: string;
   company: string;
   position: string;
-  addProDetails: string;
-  hideProDetails: string;
+  professional: string;
   submit: string;
-  cancel: string;
-  privacy: string;
   successTitle: string;
-  successBody: (name: string) => string;
+  successBody: string;
+  privacy: string;
+  cancel: string;
   done: string;
 };
 
 const COPY: Record<NetworkingLocale, Copy> = {
   tr: {
-    stayInTouch: "BAĞLANTI KUR",
-    stayBody: "Tanıştıysak iletişimde kalalım.",
+    title: "Bağlantı Kur",
+    body: "Tanıştıysak iletişimde kalalım.",
     share: "Bilgilerimi Paylaş",
     language: "Dil",
-    name: "Ad Soyad *",
-    email: "E-posta *",
+    name: "Ad Soyad",
+    email: "E-posta",
     phone: "Telefon",
     company: "Şirket",
     position: "Pozisyon",
-    addProDetails: "+ Profesyonel bilgi ekle",
-    hideProDetails: "- Profesyonel bilgiyi gizle",
+    professional: "+ Profesyonel bilgi ekle",
     submit: "Bilgilerimi Paylaş",
-    cancel: "Vazgeç",
+    successTitle: "Bağlantı kuruldu",
+    successBody: "Bilgileriniz {name} ile paylaşıldı.",
     privacy: "Bilgileriniz yalnızca bağlantı kurduğunuz kart sahibiyle paylaşılır.",
-    successTitle: "✓ Bağlantı kuruldu",
-    successBody: (name: string) => `Bilgileriniz ${name} ile paylaşıldı.`,
+    cancel: "Vazgeç",
     done: "Tamam",
   },
   en: {
-    stayInTouch: "CONNECT",
-    stayBody: "Let's stay in touch.",
+    title: "Connect",
+    body: "If we met, let’s stay in touch.",
     share: "Share My Details",
     language: "Language",
-    name: "Full Name *",
-    email: "Email *",
+    name: "Full name",
+    email: "Email",
     phone: "Phone",
     company: "Company",
     position: "Position",
-    addProDetails: "+ Add professional details",
-    hideProDetails: "- Hide professional details",
+    professional: "+ Add professional details",
     submit: "Share My Details",
-    cancel: "Cancel",
+    successTitle: "Connected",
+    successBody: "Your details were shared with {name}.",
     privacy: "Your details are shared only with the card owner you connected with.",
-    successTitle: "✓ Connected",
-    successBody: (name: string) => `Details shared with ${name}.`,
+    cancel: "Cancel",
     done: "Done",
   },
 };
@@ -99,31 +96,23 @@ export default function NetworkingCapture({
   const [internalLocale, setInternalLocale] = useState<NetworkingLocale>(localeProp || "tr");
   const locale = localeProp || internalLocale;
   const setLocale = onLocaleChange || setInternalLocale;
-  const [mode, setMode] = useState<"idle" | "form" | "success">("idle");
-  const [showProDetails, setShowProDetails] = useState(false);
+  const [mode, setMode] = useState<"idle" | "share" | "success">("idle");
+  const [showProfessional, setShowProfessional] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [message, setMessage] = useState("");
-  const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    company: "",
-    position: "",
-  });
+  const [error, setError] = useState("");
+  const [form, setForm] = useState({ fullName: "", email: "", phone: "", company: "", position: "" });
 
   useEffect(() => {
-    if (localeProp) return;
-    setInternalLocale(detectNetworkingLocale(navigator.language));
+    if (!localeProp) setInternalLocale(detectNetworkingLocale(navigator.language));
   }, [localeProp]);
 
   const copy = COPY[locale];
-  const recipientName = profileName || organizationName || "Kart Sahibi";
+  const ownerName = profileName || organizationName || "Yenomi";
 
   async function submit() {
-    if (submitted || busy) return;
+    if (busy) return;
     setBusy(true);
-    setMessage("");
+    setError("");
     try {
       const response = await fetch("/api/networking/leads", {
         method: "POST",
@@ -135,35 +124,41 @@ export default function NetworkingCapture({
           source: eventId ? "EVENT" : source,
           locale,
           requestMeeting: false,
-          fullName: form.fullName,
-          email: form.email,
-          phone: form.phone,
-          company: form.company,
-          position: form.position,
-          city: "",
-          country: "",
+          fullName: form.fullName.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          company: form.company.trim(),
+          position: form.position.trim(),
           interests: [],
           introduction: "",
         }),
       });
-      const payload = (await response.json()) as { error?: string };
+      const payload = await response.json() as { error?: string };
       if (!response.ok) {
-        setMessage(payload.error || "İşlem gerçekleştirilemedi.");
+        setError(payload.error || copy.submit);
         return;
       }
-      setSubmitted(true);
       setMode("success");
     } catch {
-      setMessage("Bağlantı hatası oluştu.");
+      setError(locale === "tr" ? "Bilgiler kaydedilemedi. Lütfen tekrar deneyin." : "Your details could not be saved. Please try again.");
     } finally {
       setBusy(false);
     }
   }
 
+  function reset() {
+    setMode("idle");
+    setShowProfessional(false);
+    setError("");
+  }
+
   return (
     <section className="p12-section p12-networking" aria-labelledby="p12-networking-title">
       <div className="p12-section-heading">
-        <h2 id="p12-networking-title">{copy.stayInTouch}</h2>
+        <div>
+          <h2 id="p12-networking-title">{copy.title}</h2>
+          <p>{copy.body}</p>
+        </div>
         <div className="p12-locale-switch" role="group" aria-label={copy.language}>
           <button type="button" className={locale === "tr" ? "is-active" : ""} onClick={() => setLocale("tr")}>TR</button>
           <button type="button" className={locale === "en" ? "is-active" : ""} onClick={() => setLocale("en")}>EN</button>
@@ -171,134 +166,47 @@ export default function NetworkingCapture({
       </div>
 
       {eventName && <p className="p12-event-badge">{eventName}</p>}
-      <p className="p12-networking-subtitle">{copy.stayBody}</p>
 
-      {/* IDLE MODE */}
       {mode === "idle" && (
-        <div className="p12-networking-actions">
-          <button
-            type="button"
-            className="p12-networking-cta p12-networking-cta-primary"
-            onClick={() => setMode("form")}
-          >
-            <strong>{copy.share}</strong>
-          </button>
-        </div>
+        <button type="button" className="p12-networking-cta" onClick={() => setMode("share")}>
+          {copy.share}
+        </button>
       )}
 
-      {/* FORM MODE */}
-      {mode === "form" && (
-        <form
-          className="p12-networking-form"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void submit();
-          }}
-        >
-          {/* Initial 3 Primary Fields */}
-          <label className="p12-field">
-            <span>{copy.name}</span>
-            <input
-              required
-              autoComplete="name"
-              placeholder={locale === "tr" ? "Örn: Selin Kaya" : "e.g. Jane Doe"}
-              value={form.fullName}
-              onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))}
-            />
-          </label>
+      {mode === "share" && (
+        <form className="p12-networking-form" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
+          <div className="p12-networking-fields">
+            <label>{copy.name}<input required maxLength={120} autoComplete="name" value={form.fullName} onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))} /></label>
+            <label>{copy.email}<input required maxLength={254} type="email" autoComplete="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} /></label>
+            <label>{copy.phone}<input maxLength={40} type="tel" autoComplete="tel" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} /></label>
+          </div>
 
-          <label className="p12-field">
-            <span>{copy.email}</span>
-            <input
-              required
-              type="email"
-              autoComplete="email"
-              placeholder="ornek@sirket.com"
-              value={form.email}
-              onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
-            />
-          </label>
-
-          <label className="p12-field">
-            <span>{copy.phone}</span>
-            <input
-              type="tel"
-              autoComplete="tel"
-              placeholder="+90 5XX XXX XX XX"
-              value={form.phone}
-              onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))}
-            />
-          </label>
-
-          {/* Optional Disclosure Toggle */}
-          <button
-            type="button"
-            className="p12-networking-pro-toggle"
-            onClick={() => setShowProDetails((current) => !current)}
-          >
-            {showProDetails ? copy.hideProDetails : copy.addProDetails}
-          </button>
-
-          {/* Revealed Optional Professional Fields */}
-          {showProDetails && (
-            <div className="p12-networking-pro-fields">
-              <label className="p12-field">
-                <span>{copy.company}</span>
-                <input
-                  autoComplete="organization"
-                  placeholder={locale === "tr" ? "Şirket Adı" : "Company Name"}
-                  value={form.company}
-                  onChange={(event) => setForm((current) => ({ ...current, company: event.target.value }))}
-                />
-              </label>
-
-              <label className="p12-field">
-                <span>{copy.position}</span>
-                <input
-                  autoComplete="organization-title"
-                  placeholder={locale === "tr" ? "Unvan / Pozisyon" : "Job Title"}
-                  value={form.position}
-                  onChange={(event) => setForm((current) => ({ ...current, position: event.target.value }))}
-                />
-              </label>
+          {!showProfessional ? (
+            <button type="button" className="p12-networking-disclosure" onClick={() => setShowProfessional(true)}>{copy.professional}</button>
+          ) : (
+            <div className="p12-networking-fields p12-networking-professional">
+              <label>{copy.company}<input maxLength={160} autoComplete="organization" value={form.company} onChange={(event) => setForm((current) => ({ ...current, company: event.target.value }))} /></label>
+              <label>{copy.position}<input maxLength={120} autoComplete="organization-title" value={form.position} onChange={(event) => setForm((current) => ({ ...current, position: event.target.value }))} /></label>
             </div>
           )}
 
-          {/* Privacy Microcopy */}
           <p className="p12-networking-privacy">{copy.privacy}</p>
-
-          {message && <p className="p12-networking-error" role="alert">{message}</p>}
-
-          {/* Form Actions */}
+          {error && <p className="p12-networking-message" role="alert">{error}</p>}
           <div className="p12-networking-form-actions">
-            <button type="submit" className="p12-networking-submit-btn" disabled={busy || submitted}>
-              {busy ? "…" : copy.submit}
-            </button>
-            <button
-              type="button"
-              className="p12-networking-cancel-btn"
-              onClick={() => setMode("idle")}
-              disabled={busy}
-            >
-              {copy.cancel}
-            </button>
+            <button type="submit" disabled={busy}>{busy ? "…" : copy.submit}</button>
+            <button type="button" className="p12-networking-back" onClick={reset}>{copy.cancel}</button>
           </div>
         </form>
       )}
 
-      {/* SUCCESS MODE */}
       {mode === "success" && (
-        <div className="p12-networking-success-card" role="status">
-          <div className="p12-success-icon">✓</div>
-          <h3>{copy.successTitle}</h3>
-          <p>{copy.successBody(recipientName)}</p>
-          <button
-            type="button"
-            className="p12-networking-done-btn"
-            onClick={() => setMode("idle")}
-          >
-            {copy.done}
-          </button>
+        <div className="p12-networking-success" role="status">
+          <span aria-hidden="true">✓</span>
+          <div>
+            <strong>{copy.successTitle}</strong>
+            <p>{copy.successBody.replace("{name}", ownerName)}</p>
+          </div>
+          <button type="button" onClick={reset}>{copy.done}</button>
         </div>
       )}
     </section>

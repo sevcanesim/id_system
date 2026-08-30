@@ -26,6 +26,7 @@ import "./kurumsal/panel/card-editor-scroll.css";
 import "./mobile-canonical.css";
 import "./kurumsal/panel/card-editor-polish.css";
 import "./styles/public-profile-canonical.css";
+import "./styles/canonical-networking.css";
 import "./kurumsal/panel/card-inventory-separation.css";
 import "./kurumsal/panel/networking-inbox.css";
 import "./kurumsal/panel/corporate-consistency-pass.css";

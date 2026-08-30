@@ -71,7 +71,7 @@ function toDatetimeLocalValue(value: string) {
 }
 
 function publicationLabel(link: CorporateLink) {
-  if (!link.configured) return "Yok";
+  if (!link.configured) return "Boş";
   if (link.isPublished && link.publishAt && new Date(link.publishAt).getTime() > Date.now()) {
     return `Planlandı · ${dateTime.format(new Date(link.publishAt))}`;
   }
@@ -79,8 +79,8 @@ function publicationLabel(link: CorporateLink) {
 }
 
 function sourceLabel(link: CorporateLink) {
-  if (!link.configured) return "Varsayılan";
-  return link.linkType === "FILE" ? "PDF aktif" : "URL aktif";
+  if (!link.configured) return "İçerik eklenmedi";
+  return link.linkType === "FILE" ? "PDF" : "URL";
 }
 
 function compactFileName(name: string, max = 36) {
@@ -99,10 +99,6 @@ function formatFileSize(bytes: number) {
   return `${bytes} B`;
 }
 
-// Çalışan kartındaki "Kurumsal Bağlantılar" bölümünün dört sabit slotu
-// (bkz. supabase/migrations/*_organization_links.sql — organization_links
-// tablosu). Her slot ya URL ya da yüklenmiş bir PDF; taslak/yayında durumu,
-// ileri tarihli yayın planlaması ve sürüm geçmişi burada yönetiliyor.
 export default function CorporateLinksPanel({
   links,
   linkVersions,
@@ -123,178 +119,92 @@ export default function CorporateLinksPanel({
         <div>
           <span>İÇERİK</span>
           <h2>Kurumsal Bağlantılar</h2>
-          <p>
-            Çalışan kartındaki &quot;Kurumsal Bağlantılar&quot; bölümünde
-            görünecek dört sabit alan. Her biri bir PDF (ör. ürün kataloğu)
-            ya da bir URL (ör. randevu bağlantısı) olabilir. Boş bırakılan
-            alan şirket web sitesi/e-postasına düşen varsayılan davranışta
-            kalır.
-          </p>
+          <p>Çalışan kartlarında gösterilecek sabit içerik alanlarını yönetin. Her alan URL veya PDF olabilir; yalnız düzenlemek istediğiniz alanı açın.</p>
         </div>
       </header>
-      <ul className="corp-links-list">
-        {links.map((link) => {
+
+      <div className="corp-links-list" role="list">
+        {links.map((link, index) => {
           const busy = linkBusyKind === link.kind;
           const scheduled = Boolean(link.isPublished && link.publishAt && new Date(link.publishAt).getTime() > Date.now());
+          const versions = linkVersions.filter((version) => version.kind === link.kind);
           return (
-            <li key={link.kind}>
-              <div className="corp-link-info">
-                <strong>{link.label}</strong>
-                <small>{link.subtitle}</small>
-              </div>
-              <dl className="corp-link-status" aria-label={`${link.label} yayın durumu`}>
-                <div>
-                  <dt>Kayıt</dt>
-                  <dd>{link.configured ? "Yapılandırıldı" : "Boş"}</dd>
+            <details className="corp-link-card" key={link.kind} open={index === 0}>
+              <summary className="corp-link-card__summary">
+                <div className="corp-link-info">
+                  <strong>{link.label}</strong>
+                  <small>{link.subtitle}</small>
                 </div>
-                <div>
-                  <dt>Yayın</dt>
-                  <dd className={link.isPublished ? (scheduled ? "scheduled" : "published") : link.configured ? "draft" : "empty"}>
-                    {publicationLabel(link)}
-                  </dd>
+                <div className="corp-link-card__meta" aria-label={`${link.label} özeti`}>
+                  <span className={`corp-link-state ${link.isPublished ? (scheduled ? "scheduled" : "published") : link.configured ? "draft" : "empty"}`}>{publicationLabel(link)}</span>
+                  <span>{sourceLabel(link)}</span>
+                  {versions.length > 0 && <span>{versions.length} sürüm</span>}
                 </div>
-                <div>
-                  <dt>Kaynak</dt>
-                  <dd>{sourceLabel(link)}</dd>
-                </div>
-                <div className="corp-link-status-current">
-                  <dt>Aktif içerik</dt>
-                  <dd>
-                    {link.configured ? (
-                      link.linkType === "FILE" ? (
-                        <article className="corp-file">
-                          <span className="corp-file-badge">PDF</span>
-                          <div className="corp-file-copy">
-                            <strong title={link.fileName || "PDF"}>{compactFileName(link.fileName || "dosya.pdf")}</strong>
-                            <small>{link.fileSize ? formatFileSize(link.fileSize) : "Boyut yok"}</small>
-                          </div>
-                          <div className="corp-file-actions">
-                            {link.fileUrl ? (
-                              <a className="ds-button ds-button--secondary ds-button--sm" href={link.fileUrl} target="_blank" rel="noopener noreferrer">Görüntüle</a>
-                            ) : (
-                              <Button type="button" variant="secondary" size="sm" disabled>Görüntüle</Button>
-                            )}
-                            <label className="corp-link-upload corp-file-replace" htmlFor={`corp-link-replace-${link.kind}`}>
-                              {busy ? "Yükleniyor..." : "Değiştir"}
-                            </label>
-                          </div>
-                        </article>
-                      ) : (
-                        <span className="corp-link-current">
-                          <Icon name="external" /> {link.url}
-                        </span>
-                      )
+                <span className="corp-link-card__chevron" aria-hidden="true"><Icon name="chevronDown" /></span>
+              </summary>
+
+              <div className="corp-link-card__body">
+                <div className="corp-link-current-block">
+                  <span>Aktif içerik</span>
+                  {link.configured ? (
+                    link.linkType === "FILE" ? (
+                      <article className="corp-file">
+                        <span className="corp-file-badge">PDF</span>
+                        <div className="corp-file-copy">
+                          <strong title={link.fileName || "PDF"}>{compactFileName(link.fileName || "dosya.pdf")}</strong>
+                          <small>{link.fileSize ? formatFileSize(link.fileSize) : "Boyut yok"}</small>
+                        </div>
+                        <div className="corp-file-actions">
+                          {link.fileUrl ? <a className="ds-button ds-button--secondary ds-button--sm" href={link.fileUrl} target="_blank" rel="noopener noreferrer">Görüntüle</a> : <Button type="button" variant="secondary" size="sm" disabled>Görüntüle</Button>}
+                          <label className="corp-link-upload corp-file-replace" htmlFor={`corp-link-replace-${link.kind}`}>{busy ? "Yükleniyor..." : "Değiştir"}</label>
+                        </div>
+                      </article>
                     ) : (
-                      <span className="corp-link-current empty">
-                        Kartta varsayılan gösterilir. URL kaydedin veya PDF yükleyin.
-                      </span>
-                    )}
-                  </dd>
-                </div>
-              </dl>
-              <div className="corp-link-editor">
-                <Field label="URL">
-                  <Input
-                    placeholder="https://..."
-                    value={linkUrlDraft[link.kind] || ""}
-                    onChange={(e) => onUrlDraftChange(link.kind, e.target.value)}
-                  />
-                </Field>
-                <div className="corp-link-source-actions">
-                  <Button
-                    type="button"
-                    variant="primary"
-                    disabled={busy || !(linkUrlDraft[link.kind] || "").trim()}
-                    onClick={() => void onSaveUrl(link.kind)}
-                  >
-                    URL Kaydet
-                  </Button>
-                  {link.linkType !== "FILE" && (
-                    <label className="corp-link-upload" htmlFor={`corp-link-replace-${link.kind}`}>
-                      {busy ? "Yükleniyor..." : "PDF Yükle"}
-                    </label>
+                      <span className="corp-link-current"><Icon name="external" /> {link.url}</span>
+                    )
+                  ) : (
+                    <span className="corp-link-current empty">URL kaydedin veya PDF yükleyin.</span>
                   )}
-                  <input
-                    id={`corp-link-replace-${link.kind}`}
-                    type="file"
-                    accept="application/pdf"
-                    disabled={busy}
-                    hidden
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) void onUploadFile(link.kind, file);
-                      e.target.value = "";
-                    }}
-                  />
                 </div>
-                <Field label="Yayın zamanı" help="Türkiye saati">
-                  <Input
-                    type="datetime-local"
-                    lang="tr-TR"
-                    value={toDatetimeLocalValue(linkScheduleDraft[link.kind] || "")}
-                    onChange={(event) => onScheduleDraftChange(link.kind, event.target.value)}
-                  />
-                </Field>
-                {link.configured && (
-                  <div className="corp-link-toolbar">
-                    <Button
-                      type="button"
-                      variant={link.isPublished ? "secondary" : "primary"}
-                      disabled={busy}
-                      onClick={() => void onTogglePublication(link.kind, !link.isPublished)}
-                    >
-                      {link.isPublished ? "Taslağa Al" : "Yayınla"}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      disabled={busy}
-                      onClick={() => {
-                        if (!window.confirm(`${link.label} içeriğini silmek bu alanı karttan kaldırır. Devam edilsin mi?`)) return;
-                        void onRemove(link.kind);
-                      }}
-                    >
-                      Sil
-                    </Button>
+
+                <div className="corp-link-editor">
+                  <Field label="URL">
+                    <Input placeholder="https://..." value={linkUrlDraft[link.kind] || ""} onChange={(e) => onUrlDraftChange(link.kind, e.target.value)} />
+                  </Field>
+                  <div className="corp-link-source-actions">
+                    <Button type="button" variant="primary" disabled={busy || !(linkUrlDraft[link.kind] || "").trim()} onClick={() => void onSaveUrl(link.kind)}>URL Kaydet</Button>
+                    {link.linkType !== "FILE" && <label className="corp-link-upload" htmlFor={`corp-link-replace-${link.kind}`}>{busy ? "Yükleniyor..." : "PDF Yükle"}</label>}
+                    <input id={`corp-link-replace-${link.kind}`} type="file" accept="application/pdf" disabled={busy} hidden onChange={(e) => { const file = e.target.files?.[0]; if (file) void onUploadFile(link.kind, file); e.target.value = ""; }} />
                   </div>
-                )}
-              </div>
-              {linkVersions.some((version) => version.kind === link.kind) && (
-                <details className="corp-link-history">
-                  <summary>
-                    <span>
-                      <Icon name="clock" />
-                      <strong>Sürüm geçmişi</strong>
-                      <small>{linkVersions.filter((version) => version.kind === link.kind).length} kayıt</small>
-                    </span>
-                    <Icon name="chevronDown" />
-                  </summary>
-                  <ol>
-                    {linkVersions
-                      .filter((version) => version.kind === link.kind)
-                      .slice(0, 6)
-                      .map((version) => (
+                  <Field label="Yayın zamanı" help="Türkiye saati">
+                    <Input type="datetime-local" lang="tr-TR" value={toDatetimeLocalValue(linkScheduleDraft[link.kind] || "")} onChange={(event) => onScheduleDraftChange(link.kind, event.target.value)} />
+                  </Field>
+                  {link.configured && (
+                    <div className="corp-link-toolbar">
+                      <Button type="button" variant={link.isPublished ? "secondary" : "primary"} disabled={busy} onClick={() => void onTogglePublication(link.kind, !link.isPublished)}>{link.isPublished ? "Taslağa Al" : "Yayınla"}</Button>
+                      <Button type="button" variant="destructive" disabled={busy} onClick={() => { if (!window.confirm(`${link.label} içeriğini silmek bu alanı karttan kaldırır. Devam edilsin mi?`)) return; void onRemove(link.kind); }}>Sil</Button>
+                    </div>
+                  )}
+                </div>
+
+                {versions.length > 0 && (
+                  <details className="corp-link-history">
+                    <summary><span><Icon name="clock" /><strong>Sürüm geçmişi</strong><small>{versions.length} kayıt</small></span><Icon name="chevronDown" /></summary>
+                    <ol>
+                      {versions.slice(0, 6).map((version) => (
                         <li key={version.id}>
-                          <div>
-                            <strong title={version.file_name || version.url || "Boş sürüm"}>
-                              {version.file_name ? compactFileName(version.file_name) : version.url || "Boş sürüm"}
-                            </strong>
-                            <small>
-                              {dateTimeMedium.format(new Date(version.created_at))} · {version.change_reason}
-                            </small>
-                          </div>
-                          <Button type="button" variant="secondary" size="sm" disabled={busy} onClick={() => void onRollback(version.id, link.kind)}>
-                            Geri al
-                          </Button>
+                          <div><strong title={version.file_name || version.url || "Boş sürüm"}>{version.file_name ? compactFileName(version.file_name) : version.url || "Boş sürüm"}</strong><small>{dateTimeMedium.format(new Date(version.created_at))} · {version.change_reason}</small></div>
+                          <Button type="button" variant="secondary" size="sm" disabled={busy} onClick={() => void onRollback(version.id, link.kind)}>Geri al</Button>
                         </li>
                       ))}
-                  </ol>
-                </details>
-              )}
-            </li>
+                    </ol>
+                  </details>
+                )}
+              </div>
+            </details>
           );
         })}
-      </ul>
+      </div>
     </section>
   );
 }

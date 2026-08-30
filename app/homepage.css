@@ -34,7 +34,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-5);
-  margin-top: var(--space-6);
 }
 
 .home-sales-actions .home-mockup__button {
@@ -67,7 +66,6 @@
   display: flex;
   align-items: baseline;
   gap: var(--space-3);
-  margin-top: var(--space-5);
   color: var(--text-primary);
 }
 
@@ -120,10 +118,7 @@
 
 .home-sales-stage-label {
   position: absolute;
-  top: var(--space-5);
-  left: var(--space-6);
   z-index: 3;
-  color: var(--text-tertiary);
   font-size: var(--type-xs);
   font-weight: 650;
   letter-spacing: .1em;
@@ -151,9 +146,6 @@
 
 .home-sales-capabilities {
   position: absolute;
-  left: var(--space-6);
-  bottom: var(--space-5);
-  z-index: 3;
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
@@ -166,8 +158,6 @@
   padding: 0 var(--space-3);
   border: 1px solid var(--border-subdued);
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, .84);
-  color: var(--text-secondary);
   font-size: var(--type-xs);
   font-weight: 650;
   letter-spacing: .03em;
@@ -217,24 +207,10 @@
   margin-bottom: var(--space-10);
 }
 
-.home-sales-paths .home-premium__path-grid {
-  gap: var(--space-4);
-}
-
 .home-sales-paths article {
   display: flex;
   flex-direction: column;
-  min-height: 380px;
-  padding: var(--space-8);
   border: 1px solid var(--border-subdued);
-  border-radius: var(--radius-md);
-  background: var(--surface-card);
-  box-shadow: none;
-}
-
-.home-sales-paths article:first-child {
-  border-color: var(--border-interactive);
-  background: var(--surface-accent);
 }
 
 .home-sales-paths article > span:first-child {
@@ -253,7 +229,6 @@
 .home-sales-paths article p {
   max-width: 540px;
   color: var(--text-secondary);
-  line-height: 1.6;
 }
 
 .home-sales-path-meta {
@@ -276,7 +251,6 @@
 }
 
 .home-sales-comparison-head {
-  display: grid;
   grid-template-columns: minmax(0, .92fr) minmax(320px, .7fr);
   column-gap: var(--space-16);
   align-items: end;
@@ -299,13 +273,11 @@
   overflow: hidden;
   border-top: 1px solid var(--border-subdued);
   border-bottom: 1px solid var(--border-subdued);
-  background: transparent;
 }
 
 .home-sales-comparison-header,
 .home-sales-comparison-row {
   display: grid;
-  grid-template-columns: .8fr 1fr 1.08fr;
 }
 
 .home-sales-comparison-header {
@@ -376,13 +348,10 @@
 
 .home-sales-faq {
   display: grid;
-  grid-template-columns: minmax(0, .68fr) minmax(500px, 1fr);
-  column-gap: var(--space-16);
   align-items: start;
 }
 
 .home-sales-faq-intro {
-  position: sticky;
   top: 104px;
 }
 
@@ -405,7 +374,6 @@
 }
 
 .home-sales-faq-item summary {
-  min-height: 68px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -428,8 +396,6 @@
 
 .home-sales-faq-item summary i {
   display: inline-flex;
-  width: 32px;
-  height: 32px;
   flex: 0 0 32px;
   align-items: center;
   justify-content: center;
@@ -489,11 +455,9 @@
 
 .home-sales-final-offer {
   display: flex;
-  justify-content: center;
   align-items: baseline;
   flex-wrap: wrap;
   gap: var(--space-3);
-  margin: var(--space-5) 0 var(--space-6);
 }
 
 @media (max-width: 1180px) {
@@ -522,10 +486,6 @@
     grid-template-columns: 1fr;
     padding: var(--space-12) var(--space-6) var(--space-10);
     row-gap: var(--space-8);
-  }
-
-  .home-sales-copy {
-    max-width: 720px;
   }
 
   .home-sales-copy h1 {
@@ -565,7 +525,6 @@
 
   .home-sales-faq {
     grid-template-columns: 1fr;
-    row-gap: var(--space-8);
   }
 
   .home-sales-faq-intro {
@@ -724,11 +683,6 @@
 
   .home-sales-faq {
     row-gap: var(--space-6);
-  }
-
-  .home-sales-faq-item summary {
-    min-height: 64px;
-    gap: var(--space-4);
   }
 
   .home-sales-faq-item p {

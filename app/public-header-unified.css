@@ -1,6 +1,5 @@
 .public-site-chrome {
   position: relative;
-  z-index: 20;
   background: var(--surface-card);
   border-bottom: 1px solid var(--border-subdued);
 }
@@ -211,11 +210,9 @@
 }
 
 @media (max-width: 760px) {
-  .public-site-chrome .yi-brand-marquee--static,
-  .public-site-chrome .yi-brand-marquee__static-inner { min-height: 34px; }
-  .public-site-chrome .yi-brand-marquee__static-inner { width: 100%; padding-inline: var(--space-4); gap: var(--space-4); }
+  .public-site-chrome .yi-brand-marquee__static-inner { width: 100%; }
   .public-site-chrome .yi-brand-marquee__static-item:nth-child(3) { display: none; }
-  .public-site-chrome .yi-header__inner { width: 100%; min-height: 64px; padding-inline: var(--space-4); }
+  .public-site-chrome .yi-header__inner { width: 100%; }
   .public-site-chrome .yi-cart { min-width: 44px; min-height: 44px; }
   .public-site-chrome .yi-header__actions .yi-btn--primary,
   .public-site-chrome .yi-header__actions .yi-btn--ghost { display: none; }

@@ -73,10 +73,8 @@
   max-width: 680px;
   margin: 8px 0 12px;
   color: var(--text-primary);
-  font-size: clamp(36px, 3vw, 46px);
   font-weight: 620;
   line-height: 1.02;
-  letter-spacing: -.035em;
   text-wrap: balance;
   overflow-wrap: normal;
   word-break: normal;
@@ -550,7 +548,6 @@
   .home-sales-comparison-head h2,
   .home-sales-faq-intro h2,
   .home-sales-final h2 {
-    font-size: clamp(30px, 9vw, 38px);
     line-height: 1.04;
     letter-spacing: -.03em;
   }

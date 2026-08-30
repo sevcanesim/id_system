@@ -166,14 +166,40 @@ export default function OverviewPanel({
 
   return (
     <div className="cp-overview-v2" data-overview-version="2">
+      {/* A. PAGE HEADER */}
       <header className="cp-overview-v2__workspace">
         <div>
           <span className="cp-overview-v2__eyebrow">YENOMI BUSINESS</span>
           <h2>Genel Bakış</h2>
-          <p>Bugün müdahale gerektiren işleri ve ekip sağlığını tek ekranda görün.</p>
+          <p>Ekibinizin, kartlarınızın ve kullanım durumunun güncel görünümü.</p>
         </div>
       </header>
 
+      {/* B. KPI SUMMARY */}
+      <section className="cp-overview-v2__metrics" aria-label="Kurumsal hesap özeti">
+        <article>
+          <strong>{usedSeats}<small> / {subscription?.seat_limit ?? "—"}</small></strong>
+          <span>Kart Kapasitesi</span>
+          <p>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} boş kart`}</p>
+        </article>
+        <article>
+          <strong>{invitedMembers}</strong>
+          <span>Bekleyen Davetler</span>
+          <p>{invitedMembers > 0 ? "Yanıt bekliyor" : "Davet yok"}</p>
+        </article>
+        <article>
+          <strong>%{cardActivationPercent}</strong>
+          <span>Profil Kurulumu</span>
+          <p>{cardActivationPercent === 100 ? "Tamamlandı" : `${digitalCardsReady} / ${usedSeats || 0} kuruldu`}</p>
+        </article>
+        <article>
+          <strong>{unassignedPhysical}</strong>
+          <span>Atama Bekleyen Kartlar</span>
+          <p>{unassignedPhysical > 0 ? "Aksiyon gerekli" : "Tüm kartlar eşleşti"}</p>
+        </article>
+      </section>
+
+      {/* C. ACTION REQUIRED CARD */}
       <section className={`cp-overview-v2__priority is-${priority.tone}`} aria-labelledby="corporate-priority-title">
         <div className="cp-overview-v2__priority-icon"><Icon name={priority.icon} /></div>
         <div className="cp-overview-v2__priority-copy">
@@ -182,64 +208,24 @@ export default function OverviewPanel({
           <p>{priority.copy}</p>
         </div>
         <div className="cp-overview-v2__priority-actions">
-          {capacityUpgradeRequired ? (
-            <a className="cp-overview-v2__primary" href="/kurumsal#kapasite">
-              Kapasiteyi artır <span aria-hidden="true">→</span>
-            </a>
-          ) : canOpen(priority.tab) ? (
+          {canOpen(priority.tab) ? (
             <button type="button" className="cp-overview-v2__primary" onClick={() => openTab(priority.tab)}>
               {priority.action} <span aria-hidden="true">→</span>
             </button>
+          ) : capacityUpgradeRequired ? (
+            <a className="cp-overview-v2__primary" href="/kurumsal#kapasite">
+              Kapasiteyi artır <span aria-hidden="true">→</span>
+            </a>
           ) : null}
+          {priority.tab !== "employees" && capacityUpgradeRequired && (
+            <a className="cp-overview-v2__secondary-link" href="/kurumsal#kapasite">
+              Kapasiteyi artır
+            </a>
+          )}
         </div>
       </section>
 
-      <section className="cp-overview-v2__metrics" aria-label="Kurumsal hesap özeti">
-        <article>
-          <span>Kart Kapasitesi</span>
-          <strong>{usedSeats}<small> / {subscription?.seat_limit ?? "—"}</small></strong>
-          <p>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} boş kart`}</p>
-          {capacityUpgradeRequired && (
-            <a className="cp-overview-v2__metric-action" href="/kurumsal#kapasite">
-              Kapasite artır →
-            </a>
-          )}
-        </article>
-        <article>
-          <span>Bekleyen Davetler</span>
-          <strong>{invitedMembers}</strong>
-          <p>{invitedMembers > 0 ? "Yanıt bekliyor" : "Tüm davetler kabul edildi"}</p>
-        </article>
-        <article>
-          <span>Dijital Profil Kurulumu</span>
-          <strong>{digitalCardsReady}<small> / {usedSeats || 0}</small></strong>
-          <p>%{cardActivationPercent} kurulum tamamlandı</p>
-        </article>
-        <article>
-          <span>Atama Bekleyen Kartlar</span>
-          <strong>{unassignedPhysical}</strong>
-          <p>{unassignedPhysical > 0 ? `${unassignedPhysical} çalışan için aksiyon gerekiyor` : "Tüm kartlar eşleşti"}</p>
-        </article>
-      </section>
-
-      <div className="cp-overview-v2__quick-actions" aria-label="Hızlı işlemler">
-        {canOpen("employees") && (
-          <button type="button" onClick={() => openTab("employees")}>
-            <Icon name="users" /> Ekibi Yönet
-          </button>
-        )}
-        {canOpen("cards") && (
-          <button type="button" onClick={() => openTab("cards")}>
-            <Icon name="contact" /> Kartları Eşleştir
-          </button>
-        )}
-        {canOpen("cards") && canManageLicenses && availableSeats !== 0 && (
-          <button type="button" onClick={() => openTab("cards")}>
-            <Icon name="contact" /> Kart Kapasitesi
-          </button>
-        )}
-      </div>
-
+      {/* D. PERFORMANCE + ACTIVITY MAIN GRID */}
       <div className="cp-overview-v2__main-grid">
         <section className="cp-overview-v2__performance" aria-labelledby="corporate-performance-title">
           <header>
@@ -283,7 +269,7 @@ export default function OverviewPanel({
               <div className="cp-overview-v2__empty">
                 <Icon name="analytics" />
                 <strong>Henüz görüntülenme yok</strong>
-                <span>İlk QR veya NFC etkileşimi geldiğinde performans burada görünür.</span>
+                <span>İlk QR veya NFC etkileşiminden sonra performans verileri burada görünür.</span>
               </div>
             )}
           </div>

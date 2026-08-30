@@ -1,10 +1,79 @@
-/* Physical card inventory is intentionally distinct from the employee roster. */
+/* Physical card inventory is intentionally distinct from the employee roster,
+ * but both surfaces live in the same Ekip & Kartlar workspace. */
+.card-inventory-page {
+  scroll-margin-top: 88px;
+}
+
+.card-inventory-page--embedded {
+  margin-top: 28px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border-subdued);
+}
+
+.card-inventory-embedded-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+}
+
+.card-inventory-embedded-header > div {
+  min-width: 0;
+}
+
+.card-inventory-embedded-header span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--brand-gold-deep);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.card-inventory-embedded-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: clamp(24px, 2.4vw, 34px);
+  line-height: 1.05;
+  letter-spacing: -.035em;
+}
+
+.card-inventory-embedded-header p {
+  max-width: 720px;
+  margin: 7px 0 0;
+  color: var(--text-secondary);
+}
+
+.card-inventory-embedded-header > a {
+  flex: 0 0 auto;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  border: 1px solid var(--border-subdued);
+  border-radius: 12px;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
 .card-inventory-page .action-first-summary__stats.card-inventory-stats {
   grid-template-columns: repeat(4, minmax(92px, 1fr));
 }
 
+.card-inventory-page--embedded .action-first-summary {
+  margin-bottom: 16px;
+}
+
 .card-inventory-surface {
   padding: 18px;
+}
+
+.card-inventory-page--embedded .card-inventory-surface {
+  margin-bottom: 0;
 }
 
 .card-inventory-toolbar {
@@ -71,6 +140,21 @@
 }
 
 @media (max-width: 760px) {
+  .card-inventory-page--embedded {
+    margin-top: 22px;
+    padding-top: 22px;
+  }
+
+  .card-inventory-embedded-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .card-inventory-embedded-header > a {
+    display: none;
+  }
+
   .card-inventory-surface {
     padding: 14px;
   }

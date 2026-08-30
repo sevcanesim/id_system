@@ -1646,3 +1646,341 @@
     min-width: 580px;
   }
 }
+
+/* YENOMI_PHASE4_MOBILE_SYSTEM_RECONSTRUCTION */
+@media (max-width: 760px) {
+  .public-site,
+  .public-site main,
+  .home-mockup,
+  .home-premium {
+    min-width: 0;
+  }
+
+  .public-site main {
+    overflow-x: clip;
+  }
+
+  .yi-container {
+    width: min(100% - 32px, 100%);
+    max-width: 100%;
+  }
+
+  .yi-header__inner {
+    min-height: 72px;
+    gap: 12px;
+  }
+
+  .yi-header__actions {
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+
+  .yi-header__actions > .yi-button,
+  .yi-header__actions > a.yi-button {
+    display: none;
+  }
+
+  .yi-cart,
+  .yi-menu,
+  .yi-nav-close {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .yi-cart__label {
+    display: none;
+  }
+
+  .yi-menu {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .yi-nav-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1090;
+    background: rgb(16 14 12 / 54%);
+    backdrop-filter: blur(2px);
+  }
+
+  .yi-nav.is-open {
+    position: fixed;
+    z-index: 1100;
+    inset:
+      max(12px, env(safe-area-inset-top))
+      12px
+      auto
+      12px;
+    width: auto;
+    max-width: none;
+    max-height: calc(100dvh - max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+    margin: 0;
+    padding: 18px;
+    border: 1px solid rgb(33 29 24 / 12%);
+    border-radius: 24px;
+    background: rgb(255 255 255 / 98%);
+    box-shadow: 0 24px 80px rgb(22 17 10 / 24%);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .yi-nav__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 52px;
+    margin: -2px 0 8px;
+    padding: 0 2px 12px;
+    border-bottom: 1px solid rgb(33 29 24 / 10%);
+  }
+
+  .yi-nav__title {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  .yi-nav.is-open > a {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 52px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    font-size: 16px;
+    line-height: 1.25;
+    text-decoration: none;
+  }
+
+  .yi-nav.is-open > a[aria-current="page"] {
+    background: rgb(174 132 48 / 10%);
+  }
+
+  .yi-nav.is-open .yi-nav__funnel {
+    justify-content: center;
+    margin-top: 6px;
+    border: 1px solid rgb(33 29 24 / 14%);
+  }
+
+  .yi-nav.is-open .yi-nav__funnel--primary {
+    background: var(--brand-gold);
+    color: #17130e;
+    border-color: transparent;
+    font-weight: 800;
+  }
+
+  .home-premium h1,
+  .home-sales h1,
+  .public-site--marketing h1 {
+    font-size: clamp(42px, 13vw, 58px);
+    line-height: .98;
+    letter-spacing: -.045em;
+    text-wrap: balance;
+  }
+
+  .home-premium h2,
+  .home-sales h2,
+  .public-site--marketing h2 {
+    font-size: clamp(34px, 10vw, 46px);
+    line-height: 1.02;
+    letter-spacing: -.035em;
+    text-wrap: balance;
+  }
+
+  .home-premium p,
+  .home-sales p {
+    max-width: 100%;
+  }
+
+  .home-premium section,
+  .home-sales section {
+    scroll-margin-top: 112px;
+  }
+
+  .home-package-matrix {
+    margin-inline: 16px;
+  }
+
+  .home-package-matrix__scroll {
+    border-radius: 18px;
+    scrollbar-width: thin;
+  }
+
+  .home-package-matrix__table {
+    width: 820px;
+    min-width: 820px;
+  }
+
+  .home-package-matrix__row {
+    grid-template-columns: 200px repeat(3, minmax(190px, 1fr));
+  }
+
+  .home-package-matrix__row > :first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--surface-card);
+    box-shadow: 1px 0 0 rgb(33 29 24 / 10%);
+  }
+
+  .home-package-matrix__header > :first-child {
+    z-index: 3;
+  }
+
+  .home-sales-comparison {
+    display: block;
+    padding-inline: 20px;
+  }
+
+  .home-sales-comparison-table {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .home-sales-comparison-header {
+    display: none;
+  }
+
+  .home-sales-comparison-row {
+    min-width: 0;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 18px 0;
+    border-bottom: 1px solid rgb(33 29 24 / 12%);
+  }
+
+  .home-sales-comparison-row > * {
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+  }
+
+  .home-sales-comparison-row > :first-child {
+    font-size: 18px;
+    font-weight: 800;
+    color: #17130e;
+  }
+
+  .home-sales-comparison-row > :not(:first-child) {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .home-sales-faq {
+    display: block;
+    padding-inline: 20px;
+  }
+
+  .home-sales-faq > * {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .home-sales-faq h2 {
+    max-width: 12ch;
+    margin-bottom: 28px;
+    font-size: clamp(38px, 11vw, 50px);
+  }
+
+  .home-sales-faq-list {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .home-sales-faq-item {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .home-sales-faq-item summary {
+    width: 100%;
+    min-width: 0;
+    min-height: 64px;
+    gap: 16px;
+    padding-block: 14px;
+    font-size: 18px;
+    line-height: 1.25;
+  }
+
+  .home-sales-faq-item summary > *:first-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .home-sales-faq-item[open] {
+    padding-bottom: 18px;
+  }
+
+  .home-sales-faq-item[open] > :not(summary) {
+    max-width: none;
+    padding-right: 0;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .cart-page,
+  .checkout-page,
+  .commerce-page,
+  .yi-commerce-page {
+    min-width: 0;
+  }
+
+  .cart-page h1,
+  .checkout-page h1,
+  .commerce-page h1,
+  .yi-commerce-page h1 {
+    font-size: clamp(40px, 12vw, 54px);
+    line-height: 1;
+  }
+
+  .yi-footer {
+    padding-top: 48px;
+    padding-bottom: max(40px, env(safe-area-inset-bottom));
+  }
+
+  .yi-footer__grid {
+    row-gap: 32px;
+  }
+}
+
+@media (max-width: 360px) {
+  .yi-container {
+    width: min(100% - 24px, 100%);
+  }
+
+  .home-premium h1,
+  .home-sales h1,
+  .public-site--marketing h1 {
+    font-size: clamp(38px, 13vw, 48px);
+  }
+
+  .home-premium h2,
+  .home-sales h2,
+  .public-site--marketing h2 {
+    font-size: clamp(32px, 10vw, 40px);
+  }
+
+  .home-sales-comparison,
+  .home-sales-faq {
+    padding-inline: 16px;
+  }
+
+  .home-package-matrix {
+    margin-inline: 12px;
+  }
+}

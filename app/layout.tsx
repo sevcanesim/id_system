@@ -25,6 +25,7 @@ import "./kurumsal/panel/template-studio.css";
 import "./kurumsal/panel/card-editor-scroll.css";
 import "./mobile-canonical.css";
 import "./kurumsal/panel/card-editor-polish.css";
+import "./styles/public-profile-canonical.css";
 import HashScrollHandler from "./components/HashScrollHandler";
 import AuthSessionBridge from "./components/AuthSessionBridge";
 import MobilePurchaseDockController from "./components/MobilePurchaseDockController";

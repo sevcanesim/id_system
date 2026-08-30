@@ -157,14 +157,11 @@
 
 .public-site-chrome .yi-nav > a:not(.yi-nav__funnel):hover,
 .public-site-chrome .yi-nav > a:not(.yi-nav__funnel)[aria-current="page"] { color: var(--text-primary); }
-.public-site-chrome .yi-nav > a:not(.yi-nav__funnel):hover::after,
-.public-site-chrome .yi-nav > a:not(.yi-nav__funnel)[aria-current="page"]::after { left: 0; right: 0; }
 .public-site-chrome .yi-nav > a:not(.yi-nav__funnel):focus-visible { outline: 2px solid var(--brand-gold); outline-offset: 4px; border-radius: var(--radius-xs); }
 
 .public-site-chrome .yi-header__actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); }
 .public-site-chrome .yi-cart { position: relative; min-width: 48px; min-height: 48px; padding: 0; border: 1px solid var(--border-subdued); border-radius: 14px; background: var(--surface-card); color: var(--text-primary); box-shadow: none; }
 .public-site-chrome .yi-cart .yi-icon { width: 20px; height: 20px; }
-.public-site-chrome .yi-cart__label { display: none; }
 
 .public-site-chrome .yi-header__actions .yi-btn--primary,
 .home-mockup__button--gold,
@@ -204,7 +201,6 @@
   .public-site-chrome .yi-header__inner { grid-template-columns: 190px minmax(0, 1fr) auto; gap: var(--space-4); }
   .public-site-chrome .yi-brand__lockup strong { font-size: 15px; }
   .public-site-chrome .yi-brand__lockup small { font-size: 7px; }
-  .public-site-chrome .yi-nav { gap: var(--space-4); }
   .public-site-chrome .yi-header__actions .yi-btn--ghost { display: none; }
 }
 
@@ -220,7 +216,6 @@
   .public-site-chrome .yi-brand-marquee__static-inner { width: 100%; padding-inline: var(--space-4); gap: var(--space-4); }
   .public-site-chrome .yi-brand-marquee__static-item:nth-child(3) { display: none; }
   .public-site-chrome .yi-header__inner { width: 100%; min-height: 64px; padding-inline: var(--space-4); }
-  .public-site-chrome .yi-brand__lockup small { display: none; }
   .public-site-chrome .yi-cart { min-width: 44px; min-height: 44px; }
   .public-site-chrome .yi-header__actions .yi-btn--primary,
   .public-site-chrome .yi-header__actions .yi-btn--ghost { display: none; }

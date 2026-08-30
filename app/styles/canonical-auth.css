@@ -50,11 +50,6 @@
   font-weight:720;
   text-decoration:none;
 }
-.public-site--auth .p6-auth-portal-tabs a.active{
-  background:#fff;
-  color:#1d1914;
-  box-shadow:0 2px 8px rgba(38,31,22,.08);
-}
 .public-site--auth .p6-auth-heading{
   margin-bottom:22px;
 }
@@ -114,9 +109,6 @@
   padding-top:17px;
   border-top:1px solid #ece8df;
 }
-.public-site--auth .p6-auth-security small{
-  color:#777066;
-}
 .public-site--auth .p6-checkout-context,
 .public-site--auth .p6-auth-business-note,
 .public-site--auth .p6-auth-message{
@@ -124,7 +116,6 @@
 }
 @media(max-width:640px){
   .public-site--auth .p6-auth-page{padding:24px 0 32px}
-  .public-site--auth .p6-auth-shell{width:calc(100% - 24px);border-radius:20px}
   .public-site--auth .p6-auth-form-side{padding:28px 22px 26px}
   .public-site--auth .p6-auth-heading h2{font-size:31px}
   .public-site--auth .p6-auth-socials{grid-template-columns:1fr}

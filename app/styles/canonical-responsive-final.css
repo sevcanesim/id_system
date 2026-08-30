@@ -177,10 +177,6 @@
     font-size: 11px;
   }
 
-  .public-site-chrome .yi-brand-marquee__static-item:nth-child(3) {
-    display: none;
-  }
-
   .public-site-chrome .yi-header__inner {
     min-height: 62px;
     padding-inline: max(var(--responsive-page-gutter-mobile), env(safe-area-inset-left));
@@ -200,9 +196,6 @@
 }
 
 @media (max-width: 360px) {
-  .public-site-chrome .yi-brand-marquee__static-item:nth-child(2) {
-    display: none;
-  }
 
   .public-site-chrome .yi-brand-marquee__static-inner {
     justify-content: flex-start;

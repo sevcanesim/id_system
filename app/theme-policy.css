@@ -50,34 +50,17 @@ html, body { background: var(--surface-base, #F9F8F6); color: var(--warm-text-pr
 .products-commerce-v4 .products-commerce-v3__trust-strip .yi-container{grid-template-columns:repeat(3,minmax(0,1fr))}
 
 @media(max-width:960px){
-  .cp-overview-v2__workspace{flex-direction:column}
   .cp-overview-v2__workspace-meta{width:100%}
   .cp-overview-v2__workspace-meta label{flex:1}
-  .cp-overview-v2__main-grid{grid-template-columns:1fr}
   .products-commerce-v4__decision-grid{grid-template-columns:1fr}
   .products-commerce-v4__primary-offer{grid-template-columns:1fr}
   .products-commerce-v4__offer-buy{padding:24px 0 0;border-left:0;border-top:1px solid var(--border-subdued)}
 }
 @media(max-width:720px){
-  .cp-overview-v2{gap:14px;padding:18px 16px 32px}
-  .cp-overview-v2__workspace{gap:16px}
-  .cp-overview-v2__workspace h2{font-size:32px}
   .cp-overview-v2__workspace-meta{display:grid;grid-template-columns:1fr}
   .cp-overview-v2__workspace-meta label{min-width:0}
-  .cp-overview-v2__priority{grid-template-columns:auto minmax(0,1fr);min-height:0;padding:18px}
-  .cp-overview-v2__priority-actions{grid-column:1/-1;grid-template-columns:minmax(0,1fr) auto;width:100%}
-  .cp-overview-v2__primary{width:100%}
-  .cp-overview-v2__secondary{padding-inline:10px}
   .cp-overview-v2__metrics{grid-template-columns:repeat(3,minmax(0,1fr));overflow-x:auto}
   .cp-overview-v2__metrics article{min-width:0;min-height:82px;padding:14px 12px}
-  .cp-overview-v2__metrics article>span{font-size:11px;white-space:nowrap}
-  .cp-overview-v2__metrics strong{margin:7px 0 3px;font-size:23px}
-  .cp-overview-v2__metrics strong small{font-size:13px}
-  .cp-overview-v2__metrics p{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
-  .cp-overview-v2__performance{padding:16px}
-  .cp-overview-v2__performance>header{flex-direction:column}
-  .cp-overview-v2__chart{min-height:190px}
-  .cp-overview-v2__chart svg,.cp-overview-v2__empty{height:190px;min-height:190px}
   .products-commerce-v4__how{padding:52px 0}
   .products-commerce-v4__steps{grid-template-columns:1fr}
   .products-commerce-v4__steps article{min-height:0;padding:22px 0;border-right:0;border-bottom:1px solid var(--border-subdued)}
@@ -90,10 +73,6 @@ html, body { background: var(--surface-base, #F9F8F6); color: var(--warm-text-pr
   .products-commerce-v4 .products-commerce-v3__trust-strip .yi-container{grid-template-columns:1fr}
 }
 @media(max-width:430px){
-  .cp-overview-v2__metrics article{padding-inline:10px}
   .cp-overview-v2__metrics article>span{font-size:10px}
-  .cp-overview-v2__metrics strong{font-size:21px}
   .cp-overview-v2__metrics p{font-size:10px}
-  .cp-overview-v2__priority-icon{width:38px;height:38px}
-  .cp-overview-v2__priority-copy h3{font-size:22px}
 }

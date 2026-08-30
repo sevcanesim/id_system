@@ -142,9 +142,6 @@ textarea[aria-invalid="true"] {
 
 /* Fixed mobile purchase dock. It is removed from the interaction tree while
  * the final purchase section or footer is visible via IntersectionObserver. */
-.home-sales-mobile-cta {
-  display: none;
-}
 
 @media (max-width: 640px) {
   .home-sales-copy h1 {
@@ -207,11 +204,6 @@ textarea[aria-invalid="true"] {
     color: var(--text-primary);
     font-size: var(--type-body);
     line-height: 1.1;
-  }
-
-  .home-sales-mobile-cta__offer span {
-    color: var(--text-secondary);
-    font-size: var(--type-xs);
   }
 
   .home-sales-mobile-cta .home-mockup__button {

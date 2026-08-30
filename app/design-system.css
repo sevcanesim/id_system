@@ -188,7 +188,6 @@
   .products-commerce-v3__trust-strip .yi-container { grid-template-columns:repeat(2,1fr); }
 }
 @media (max-width: 720px) {
-  .ds-form-grid { grid-template-columns:1fr; }
   .ds-page-header,.ds-admin-page-header { align-items:flex-start; flex-direction:column; }
   .ds-container,.ds-container--dashboard { width:min(calc(100% - 32px),var(--container-wide)); }
   .corporate-pack-picker__tiers { grid-template-columns:1fr; gap:var(--space-2); }

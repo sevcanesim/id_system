@@ -246,10 +246,6 @@
   box-shadow: none;
 }
 
-.home-premium__principles article:last-child {
-  border-right: 0;
-}
-
 .home-premium__principles article strong {
   color: var(--text-primary);
   font-size: 19px;
@@ -403,10 +399,6 @@
   margin-bottom: 0;
 }
 
-.home-sales-faq-list {
-  border-top: 1px solid var(--border-subdued);
-}
-
 .home-sales-faq-item summary {
   min-height: 62px;
 }
@@ -513,10 +505,6 @@
   .home-sales-faq {
     grid-template-columns: 1fr;
     row-gap: 22px;
-  }
-
-  .home-sales-support {
-    grid-column: 1;
   }
 
   .home-sales-final {

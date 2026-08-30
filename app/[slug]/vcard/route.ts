@@ -48,7 +48,8 @@ function vcardResponse(profile: CardProfileRow) {
     headers: {
       "Content-Type": "text/vcard; charset=utf-8",
       "Content-Disposition": `attachment; filename="${safeFileName(profile.name)}.vcf"`,
-      "Cache-Control": "public, max-age=300, stale-while-revalidate=3600"
+      "Cache-Control": "private, no-store",
+      "X-Robots-Tag": "noindex, nofollow, noarchive"
     }
   });
 }

@@ -53,19 +53,18 @@
 .public-site .home-package-matrix__head { max-width: 760px; margin-bottom: 30px; }
 .public-site .home-package-matrix__head h2 { margin: 9px 0 13px; }
 .public-site .home-package-matrix__head p { max-width: 660px; margin: 0; font-size: 16px; line-height: 1.6; }
-.public-site .home-package-matrix__scroll { overflow-x: auto; overscroll-behavior-inline: contain; border: 1px solid rgba(255,255,255,.08); border-radius: 22px; background: #1d1d1d; box-shadow: 0 22px 56px rgba(21,18,13,.12); -webkit-overflow-scrolling: touch; }
-.public-site .home-package-matrix__table { min-width: 900px; color: #f7f4ee; }
-.public-site .home-package-matrix__row { display: grid; grid-template-columns: minmax(250px,1.4fr) repeat(3,minmax(180px,1fr)); align-items: stretch; min-height: 68px; border-bottom: 1px solid rgba(255,255,255,.1); }
+.public-site .home-package-matrix__scroll { overflow-x: auto; overscroll-behavior-inline: contain; border-radius: 22px; -webkit-overflow-scrolling: touch; }
+.public-site .home-package-matrix__table { min-width: 900px; }
+.public-site .home-package-matrix__row { display: grid; grid-template-columns: minmax(250px,1.4fr) repeat(3,minmax(180px,1fr)); align-items: stretch; min-height: 68px; }
 .public-site .home-package-matrix__row:last-child { border-bottom: 0; }
 .public-site .home-package-matrix__row > * { min-width: 0; display: flex; align-items: center; padding: 18px 24px; color: #eeeae2; font-family: var(--font-ui); font-size: 15px; line-height: 1.35; }
 .public-site .home-package-matrix__row > :first-child { color: #fff; font-weight: 680; }
 .public-site .home-package-matrix__row > :nth-child(n+2) { border-left: 1px solid rgba(255,255,255,.07); }
 .public-site .home-package-matrix__row > :nth-child(3) { background: rgba(197,160,89,.065); }
-.public-site .home-package-matrix__header { min-height: 82px; background: rgba(255,255,255,.02); }
+.public-site .home-package-matrix__header { min-height: 82px; }
 .public-site .home-package-matrix__header > strong { font-family: var(--font-display); font-size: 21px; font-weight: 720; letter-spacing: -.025em; }
 .public-site .home-package-matrix__header > :nth-child(3) { color: #e0bd70; }
-.public-site .home-package-matrix__actions { min-height: 76px; }
-.public-site .home-package-matrix__actions a { color: #e0bd70; font-weight: 760; text-decoration: none; }
+.public-site .home-package-matrix__actions a { font-weight: 760; text-decoration: none; }
 .public-site .home-package-matrix__actions a:hover { text-decoration: underline; text-underline-offset: 4px; }
 
 /* Corporate pricing */

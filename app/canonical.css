@@ -65,19 +65,12 @@
   --gold: #a9812f;
   --gold-hi: #8a6a26;
   --gold-dim: rgba(169,129,47,.12);
-  --violet: #6d3de0;
-  --violet-hi: #5b2fc7;
-  --green: #2f9e5f;
-  --red: #d1453b;
-  --amber: #b3821f;
-  --blue: #3a6bc4;
   --border: rgba(24,19,13,.12);
   --border-gold: rgba(153,117,57,.34);
   --glass: rgba(255,255,255,.72);
   --glass-strong: rgba(255,255,255,.92);
   --shadow: 0 24px 60px rgba(40,34,28,.13);
   --shadow-soft: 0 10px 28px rgba(40,34,28,.09);
-  --glow: 0 0 48px rgba(169,129,47,.14);
   --space-unit: 8px;
   /* Motion system — every transition on the site references one of these
      three durations + two easings. Movement communicates state, hierarchy
@@ -106,8 +99,6 @@
   --type-body-lg: 18px;
   --type-h4: 20px;
   --type-h3: 24px;
-  --type-h2: clamp(28px, 3vw, 40px);
-  --type-h1: clamp(40px, 4.8vw, 64px);
   --type-display: clamp(48px, 6vw, 76px);
   --type-metric: 24px;
 }
@@ -583,7 +574,6 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .corporate-conversion-art strong { margin-top:14px; font-size:32px; line-height:1.05; }
 .corporate-conversion h2,.corporate-lead-copy h2 { margin:10px 0 12px; color:#1b1819; font-size:clamp(30px,3.5vw,44px); line-height:1.03; }
 .corporate-conversion p,.corporate-lead-copy p { color:#625c55; }
-.corporate-lead-section { grid-template-columns:.9fr 1.1fr; }
 .corporate-lead-copy ul { padding-left:20px; color:#625c55; }
 
 /* auth — public light surface; form is the primary action, story explains the product. */
@@ -1298,7 +1288,7 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
   align-items:center;
 }
 .corporate-single-copy { max-width:650px; }
-.corporate-single-copy h1 { max-width:650px; margin:13px 0 15px; color:#17151a; font-size:clamp(42px,4.7vw,68px); line-height:.97; letter-spacing:-.045em; }
+.corporate-single-copy h1 { max-width:650px; font-size:clamp(42px,4.7vw,68px); line-height:.97; letter-spacing:-.045em; }
 .corporate-single-copy h1 em { color:#1A1918; font-style:normal; }
 .corporate-single-copy > p { max-width:590px; margin:0 0 20px; color:#625c55; font-size:15px; line-height:1.6; }
 .corporate-single-proof { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:18px; max-width:590px; }
@@ -5917,12 +5907,8 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
   --space-7: 48px;
-  --space-8: 64px;
   --space-9: 96px;
-  --space-10: 128px;
   --space-section: clamp(64px, 8vw, 96px);
   --space-section-lg: clamp(80px, 10vw, 128px);
   --content-readable: 62ch;
@@ -6756,8 +6742,6 @@ body:has(.support-page) {
 .corporate-single-details { padding-top: 88px; }
 
 /* Accessibility: motion is never required to understand the product */
-@media (prefers-reduced-motion: reduce) {
-}
 
 /* Tablet */
 @media (max-width: 1100px) {
@@ -6922,10 +6906,8 @@ body:has(.support-page) {
 :root {
   --font-ui: "Yenomi Inter", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-display: "Yenomi Inter Display", "Yenomi Inter", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "Yenomi Inter", Inter, ui-monospace, SFMono-Regular, Menlo, monospace;
   --type-body: 16px;
   --type-body-lg: 18px;
-  --type-display: clamp(46px, 5.4vw, 72px);
   --content: 1180px;
   --wide: 1320px;
 }
@@ -6962,8 +6944,6 @@ h1, h2, h3, h4, h5, h6 {
 .public-site-chrome {
   position: sticky;
   top: 0;
-  z-index: 1000;
-  background: rgba(251,250,247,.96);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
@@ -7386,8 +7366,6 @@ article[id] {
 .corporate-single-hero {
   width: min(calc(100% - 48px), var(--wide));
   min-height: clamp(480px, calc(100svh - 190px), 610px);
-  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
-  gap: clamp(28px, 4vw, 56px);
   padding: 42px 0 28px;
 }
 
@@ -7398,9 +7376,6 @@ article[id] {
 .corporate-single-copy h1 {
   max-width: 12ch;
   font-family: var(--font-display);
-  font-size: clamp(44px, 4.6vw, 66px);
-  line-height: .98;
-  letter-spacing: -.052em;
   text-wrap: balance;
 }
 
@@ -7841,9 +7816,6 @@ article[id] {
     display: block;
     overflow: visible;
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
 }
 
 /* LEGAL-SURFACE-V1: public legal pages use the same warm Yenomi ID canvas as the commerce pages. */
@@ -8458,19 +8430,6 @@ article[id] {
 /* -------------------------------------------------------------------------- */
 
 :root {
-  --void: #F9F8F6;
-  --deep: #F5F4F0;
-  --surface: #FFFFFF;
-  --surface-2: #F2EFE9;
-  --surface-3: #F6F4EF;
-  --ink: #1A1918;
-  --ink-2: #68645D;
-  --ink-3: #8A857D;
-  --gold: #A37B2C;
-  --gold-hi: #9E7728;
-  --gold-dim: #F6F1E5;
-  --border: #E6E2D8;
-  --border-gold: #D8D2C4;
   --glass: rgba(255,255,255,.72);
   --glass-strong: rgba(255,255,255,.94);
   --shadow: 0 14px 38px rgba(40,34,28,.08);
@@ -10000,15 +9959,11 @@ body:has(.p8-corporate-editor) {
   border-bottom: 0;
 }
 .public-site-chrome .yi-header__inner {
-  min-height: 76px;
   height: auto;
-  padding: 8px 0;
   align-items: center;
-  gap: 20px;
 }
 .public-site-chrome .yi-brand {
   align-items: center;
-  gap: 10px;
 }
 .public-site-chrome .yi-brand__mark,
 .public-site-chrome .yi-brand__mark span {
@@ -10031,14 +9986,10 @@ body:has(.p8-corporate-editor) {
   justify-content: center;
 }
 .public-site-chrome .yi-cart {
-  min-width: 44px;
-  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 0 12px;
-  border-radius: 12px;
   background: transparent;
   color: inherit;
   border: 1px solid rgba(26, 25, 24, .16);
@@ -10051,17 +10002,8 @@ body:has(.p8-corporate-editor) {
   opacity: 1;
 }
 .public-site-chrome .yi-cart .yi-icon {
-  width: 18px;
-  height: 18px;
   min-width: 18px;
   color: #1A1918;
-}
-.public-site-chrome .yi-cart b {
-  position: static;
-  min-width: 18px;
-  height: 18px;
-  background: #1A1918;
-  color: #F6F1E5;
 }
 
 .home-premium__paths {
@@ -10524,9 +10466,6 @@ article[id] {
 .corporate-pack-table-wrap {
   overflow-x: auto;
   margin: 0 0 16px;
-  border: 1px solid rgba(36, 29, 23, .11);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, .78);
 }
 .corporate-pack-table {
   width: 100%;
@@ -10538,7 +10477,6 @@ article[id] {
   padding: 12px 14px;
   text-align: left;
   font-size: 13px;
-  border-bottom: 1px solid rgba(36, 29, 23, .08);
 }
 .corporate-pack-table thead th {
   font: 700 10px var(--font-mono);
@@ -10568,8 +10506,6 @@ article[id] {
 .corporate-pack-note {
   margin: 0 0 18px;
   color: #625c56;
-  font-size: 14px;
-  line-height: 1.6;
 }
 .corporate-pricing-grid--compact {
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -11390,10 +11326,6 @@ article[id] {
 .yi-brand-marquee__stars i + i {
   display: none;
 }
-
-.public-site-chrome .yi-nav {
-  gap: 8px;
-}
 .public-site-chrome .yi-nav a {
   padding: 8px 12px;
   border: 1px solid transparent;
@@ -11413,14 +11345,7 @@ article[id] {
   opacity: 1;
   font-weight: 700;
 }
-
-.public-site-chrome .yi-header__actions {
-  gap: 10px;
-}
 .public-site-chrome .yi-cart {
-  background: transparent;
-  color: #1A1918;
-  border: 0;
   font-weight: 650;
 }
 .public-site-chrome .yi-cart:hover {
@@ -12756,14 +12681,9 @@ html[data-sensitive-obscured] body {
 
 /* Public CRO: one primary, pinned catalog CTAs, sticky chrome, no fake KPIs. */
 .public-site-chrome .yi-header__actions .yi-btn--ghost {
-  min-height: 44px;
   padding: 0 12px;
   border-color: transparent;
   background: transparent;
-  font-weight: 650;
-}
-.public-site-chrome .yi-header__actions .yi-btn--ghost:hover {
-  background: rgba(26, 25, 24, .04);
 }
 .products-single-hero {
   flex: 0 0 auto;
@@ -13003,7 +12923,6 @@ body:has(.how-it-works-page) {
   color: #1A1918;
 }
 .corporate-cta {
-  background: #A37B2C;
   color: #17120c;
   border-color: #A37B2C;
   box-shadow: none;
@@ -13823,13 +13742,8 @@ body:has(.legal-page) .yi-footer__trust .yi-icon {
       already collide around 1100px.
    3) Catalog CRO capped the pair visual at 280px and clipped the cards.
    4) Ticker used 3 copies with a -50% loop, so the strip jumped. */
-.public-site-chrome {
-  position: sticky;
-}
 .yi-brand-marquee__track {
   animation-name: yi-brand-marquee;
-}
-@keyframes yi-brand-marquee {
 }
 @media (prefers-reduced-motion: reduce) {
   .yi-brand-marquee__track {
@@ -14724,9 +14638,6 @@ h1, h2, h3, h4 {
 .corporate-capability-icon {
   color: #8b6835;
 }
-.corporate-cta {
-  color: #17120c;
-}
 
 /* Corporate sales page: type scale, AA chrome, pack slider, table, cards. */
 .corporate-sales-page {
@@ -14966,7 +14877,6 @@ h1, h2, h3, h4 {
 }
 .corporate-pack-table th,
 .corporate-pack-table td {
-  padding: 14px 16px;
   font-size: 14px;
   color: #1A1918;
   vertical-align: middle;
@@ -14989,9 +14899,6 @@ h1, h2, h3, h4 {
 .corporate-pack-badge {
   font-size: 12px;
   padding: 4px 8px;
-}
-.corporate-pack-note {
-  color: #3f3a35;
 }
 
 .corporate-addon-grid {
@@ -15281,7 +15188,6 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
   --corp-gold-label: #765B2E;
   --corp-border: #E6E2D8;
   --corp-border-strong: #D8D2C4;
-  overflow-x: clip;
   color: var(--corp-text);
   background:
     radial-gradient(circle at 12% -8%, rgba(163,123,44,0.09), transparent 34%),
@@ -15309,9 +15215,6 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
   display: block;
   max-width: min(18ch, 100%);
   text-wrap: balance;
-}
-.corporate-hero-line--accent {
-  color: var(--corp-text);
 }
 .corporate-sales-page .corporate-single-cta h2,
 .corporate-sales-page .corporate-section-heading h2,

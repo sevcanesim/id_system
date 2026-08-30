@@ -52,11 +52,7 @@ function chartPoints(series: Array<{ date: string; count: number }>) {
 
 export default function OverviewPanel({
   org,
-  orgs,
-  selected,
-  onSelectOrganization,
   subscription,
-  loading,
   usedSeats,
   availableSeats,
   invitedMembers,
@@ -66,13 +62,11 @@ export default function OverviewPanel({
   analytics,
   analyticsDays,
   onPeriodChange,
-  currentUserId,
   canManageLicenses,
   visibleTabs,
   openTab,
   openMemberDrawer,
   relativeTime,
-  onEditOwnCard,
   onExportCsv,
 }: Props) {
   const acceptedMembers = members.filter((member) => member.status !== "LEFT" && member.status !== "INVITED");
@@ -84,7 +78,6 @@ export default function OverviewPanel({
   const cardActivationPercent = usedSeats ? Math.round((digitalCardsReady / usedSeats) * 100) : 0;
   const organizationRole = normalizeOrganizationRole(org?.role);
   const organizationRoleLabel = organizationRole ? ROLE_LABELS[organizationRole] : "—";
-  const ownMember = members.find((member) => member.user_id === currentUserId);
   const recentActivity = [...members]
     .sort((a, b) => new Date(b.last_activity_at || b.created_at).getTime() - new Date(a.last_activity_at || a.created_at).getTime())
     .slice(0, 5);
@@ -122,7 +115,7 @@ export default function OverviewPanel({
       eyebrow: "KAPASİTE DOLU",
       title: "Yeni çalışan eklemek için kart kapasitesini artırın.",
       copy: `${usedSeats} / ${subscription?.seat_limit ?? "—"} kart kapasitesi kullanımda. Yeni davetler ek kapasite açılana kadar durdurulur.`,
-      action: canManageLicenses ? "Kartları yönet" : "Ekibi görüntüle",
+      action: canManageLicenses ? "Kapasiteyi artır" : "Ekibi görüntüle",
       tab: canManageLicenses ? "cards" : "employees",
       tone: "critical",
       icon: "lock",
@@ -192,9 +185,6 @@ export default function OverviewPanel({
               {priority.action} <span aria-hidden="true">→</span>
             </button>
           )}
-          <button type="button" className="cp-overview-v2__secondary" onClick={onEditOwnCard}>
-            Kartımı düzenle
-          </button>
         </div>
       </section>
 
@@ -203,6 +193,11 @@ export default function OverviewPanel({
           <span>Kart Kapasitesi</span>
           <strong>{usedSeats}<small> / {subscription?.seat_limit ?? "—"}</small></strong>
           <p>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} boş kart`}</p>
+          {availableSeats === 0 && canManageLicenses && canOpen("cards") && (
+            <button type="button" className="cp-overview-v2__metric-action" onClick={() => openTab("cards")}>
+              Kapasite artır →
+            </button>
+          )}
         </article>
         <article>
           <span>Bekleyen Davetler</span>
@@ -215,9 +210,9 @@ export default function OverviewPanel({
           <p>%{cardActivationPercent} kurulum tamamlandı</p>
         </article>
         <article>
-          <span>Fiziksel Kart Atamaları</span>
+          <span>Atama Bekleyen Kartlar</span>
           <strong>{unassignedPhysical}</strong>
-          <p>{unassignedPhysical > 0 ? "Kart atanmayı bekliyor" : "Tüm kartlar eşleşti"}</p>
+          <p>{unassignedPhysical > 0 ? `${unassignedPhysical} çalışan için aksiyon gerekiyor` : "Tüm kartlar eşleşti"}</p>
         </article>
       </section>
 
@@ -232,7 +227,7 @@ export default function OverviewPanel({
             <Icon name="contact" /> Kartları Eşleştir
           </button>
         )}
-        {canOpen("cards") && canManageLicenses && (
+        {canOpen("cards") && canManageLicenses && availableSeats !== 0 && (
           <button type="button" onClick={() => openTab("cards")}>
             <Icon name="contact" /> Kart Kapasitesi
           </button>
@@ -304,7 +299,9 @@ export default function OverviewPanel({
                   ? "Hesap pasife alındı"
                   : member.status === "LEFT"
                     ? "Şirketten ayrıldı"
-                    : "Çalışan hesabı aktif";
+                    : member.last_activity_at
+                      ? "Son hesap etkinliği"
+                      : "Çalışan hesabı oluşturuldu";
               return (
                 <button type="button" key={member.id} onClick={() => { openTab("employees"); openMemberDrawer(member); }}>
                   <span className="cp-overview-v2__avatar" aria-hidden="true">
@@ -324,14 +321,8 @@ export default function OverviewPanel({
         </aside>
       </div>
 
-      <footer className="cp-overview-v2__quick-actions" aria-label="Hızlı işlemler">
-        {canOpen("employees") && <button type="button" onClick={() => openTab("employees")}><Icon name="users" /> Ekibi yönet</button>}
-        {canOpen("cards") && <button type="button" onClick={() => openTab("cards")}><Icon name="contact" /> Kartları yönet</button>}
-        {canManageLicenses && canOpen("cards") && <button type="button" onClick={() => openTab("cards")}><Icon name="contact" /> Kart kapasitesi</button>}
-      </footer>
-
       <span className="cp-overview-v2__sr-summary" aria-live="polite">
-        {org?.organizations?.name || "Kurumsal hesap"}: {usedSeats} kullanılan kart kapasitesi, {digitalCardsReady} aktif kart, {unassignedPhysical} fiziksel kart ataması bekliyor.
+        {org?.organizations?.name || "Kurumsal hesap"}: {organizationRoleLabel}, {usedSeats} kullanılan kart kapasitesi, {digitalCardsReady} aktif kart, {unassignedPhysical} fiziksel kart ataması bekliyor.
       </span>
     </div>
   );

@@ -237,7 +237,7 @@ export default function IDSidebar({
             <div className="id-sidebar__plan-info">
               <small className="id-sidebar__plan-name">{planDisplayName}</small>
               <strong className="id-sidebar__plan-capacity">
-                {seatLimitCount !== null ? `${usedSeatsCount} / ${seatLimitCount} Lisans` : "Kurumsal Lisans"}
+                {seatLimitCount !== null ? `${usedSeatsCount} / ${seatLimitCount} Kart` : "Kurumsal Kart"}
               </strong>
             </div>
             {seatLimitCount ? (
@@ -245,7 +245,7 @@ export default function IDSidebar({
                 <span style={{ width: `${usagePercentage}%` }} />
               </div>
             ) : null}
-            {canManageLicenses && activeKey !== "licenses" && onManageLicenses ? (
+            {canManageLicenses && activeKey !== "cards" && onManageLicenses ? (
               <button
                 type="button"
                 className="id-sidebar__plan-action"

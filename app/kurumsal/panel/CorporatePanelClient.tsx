@@ -149,7 +149,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
         setSeatPacks(data.seatPacks || []);
         setTemplateOptions(data.templateOptions || []);
       })
-      .catch(() => setMessage("Lisans paketleri DB’den yüklenemedi."));
+      .catch(() => setMessage("Kart paketleri DB’den yüklenemedi."));
   }, [pathname, searchParams]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -1243,12 +1243,11 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     leads: "/kurumsal/panel/leadler",
     events: "/kurumsal/panel/etkinlikler",
     meetings: "/kurumsal/panel/gorusmeler",
-    licenses: "/kurumsal/panel/lisans",
     organization: "/kurumsal/panel/organizasyon",
     settings: "/kurumsal/panel/ayarlar",
   };
   const tabMeta: Record<CorporatePanelTab, { title: string; description: string; icon: Parameters<typeof Icon>[0]["name"] }> = {
-    overview: { title: "Genel Bakış", description: "Şirket sağlığını, lisansları ve kart operasyonlarını tek ekrandan izle.", icon: "building" },
+    overview: { title: "Genel Bakış", description: "Şirket sağlığını, kart kapasitesini ve kart operasyonlarını tek ekrandan izle.", icon: "building" },
     employees: { title: "Çalışanlar", description: "Ekibini, davetleri ve kart yaşam döngüsünü buradan yönet.", icon: "users" },
     cards: { title: "Kartlar", description: "Fiziksel ve dijital kart durumlarını tek yerde yönet.", icon: "id" },
     roles: { title: "Roller & Yetkiler", description: "Kurumsal yetki sınırlarını ve rol dağılımını kontrol et.", icon: "lock" },
@@ -1258,7 +1257,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     leads: { title: "Leadler", description: "Karttan düşen networking lead’lerini, mail ve görüşme takibini yönet.", icon: "mail" },
     events: { title: "Etkinlikler", description: "Etkinlik QR attribution katmanını kişi kartından ayrı tut.", icon: "clock" },
     meetings: { title: "Görüşmeler", description: "Online ve yüz yüze görüşme taleplerini kabul et, alternatif öner veya reddet.", icon: "headset" },
-    licenses: { title: "Lisanslar", description: "Toplam, kullanılan ve boş lisansları; ek kullanıcı paketleriyle birlikte yönet.", icon: "box" },
     organization: { title: "Organizasyon", description: "Şirket kimliği, alan politikaları ve ünvan standardını yönet.", icon: "building" },
     settings: { title: "Ayarlar", description: "Sık değişmeyen kurumsal yönetim alanlarına ulaş.", icon: "adjustments" },
   };
@@ -1276,7 +1274,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     setMobileNavOpen(false);
     router.push(tabRoutes[tab]);
   };
-  const goToLicenses = () => openTab("licenses");
 
   useEffect(() => {
     if (!org) return;
@@ -1367,7 +1364,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
             seatLimit: subscription.seat_limit,
           } : null}
           canManageLicenses={canManageLicenses}
-          onManageLicenses={() => openTab("licenses")}
+          onManageLicenses={() => openTab("cards")}
           onSignOut={signOut}
           open={mobileNavOpen}
           onClose={() => setMobileNavOpen(false)}
@@ -1400,15 +1397,9 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
               {canManageLicenses && <button
                 type="button"
                 className="enterprise-quick-link"
-                onClick={() => {
-                  if (currentTab === "licenses") {
-                    document.getElementById("seat-pack-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                    return;
-                  }
-                  goToLicenses();
-                }}
+                onClick={() => openTab("cards")}
               >
-                Lisans Ekle
+                Kartlar
               </button>}
               <div className="enterprise-topbar-account">
                 <span className="enterprise-org-icon">
@@ -1435,7 +1426,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                   )}
                   <small>
                     {subscription?.business_plans?.name || "Business"} ·{" "}
-                    {loading ? "—" : usedSeats} / {subscription?.seat_limit ?? "—"} lisans
+                    {loading ? "—" : usedSeats} / {subscription?.seat_limit ?? "—"} kart
                   </small>
                 </div>
               </div>
@@ -1499,145 +1490,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                     onEditOwnCard={() => router.push(ownCardEditorHref)}
                     onExportCsv={exportAnalyticsCsv}
                   />
-                )}
-                {currentTab === "licenses" && canManageLicenses && (
-                  <section
-                    className={`business-seat-packs${availableSeats === 0 ? " is-urgent" : ""}`}
-                    aria-labelledby="seat-pack-title"
-                  >
-                    <div className="license-reference-hero" aria-label="Yenomi Business kapasite durumu">
-                      <div>
-                        <span>{availableSeats === 0 ? "KAPASİTE DOLDU" : "KAPASİTE YÖNETİMİ"}</span>
-                        <h2 id="seat-pack-title">
-                          {availableSeats === 0
-                            ? "Lisans kapasitesi doldu"
-                            : "Lisans kapasitesi ekleyin"}
-                        </h2>
-                        <p>
-                          {availableSeats === 0
-                            ? "Yeni çalışan eklemek için ek lisans satın alın veya kullanılmayan bir lisansı boşaltın."
-                            : "Yeni çalışan eklemek için ek lisans satın alın. Her lisansa 1 adet fiziksel NFC kart dahildir."}
-                        </p>
-                      </div>
-                      <div className="license-reference-art" aria-hidden="true">
-                        <div className="license-reference-product-glow" />
-                        <YenomiProductVisual variant="card" compact />
-                        <span><i /> NFC + QR hazır</span>
-                      </div>
-                    </div>
-
-                    <div className="license-metrics-grid" aria-label="Lisans kullanım özeti">
-                      <article className="license-metric-card">
-                        <small>Aktif Çalışan</small>
-                        <strong>{activeMembers}</strong>
-                        <span>Erişimi açık</span>
-                      </article>
-                      <article className="license-metric-card">
-                        <small>Bekleyen Davet</small>
-                        <strong>{invitedMembers}</strong>
-                        <span>Yanıt bekliyor</span>
-                      </article>
-                      <article className="license-metric-card">
-                        <small>Pasif Çalışan</small>
-                        <strong>{suspendedSeats}</strong>
-                        <span>Lisans tüketiyor</span>
-                      </article>
-                      <article className="license-metric-card">
-                        <small>Boş Lisans</small>
-                        <strong>{availableSeats == null ? "—" : availableSeats}</strong>
-                        <span>Kullanıma hazır</span>
-                      </article>
-                    </div>
-
-                    {suspendedSeats > 0 && (
-                      <div className="license-suspended-notice" role="note">
-                        <div className="license-suspended-content">
-                          <Icon name="users" />
-                          <div>
-                            <strong>Pasif çalışanlar lisans kullanıyor</strong>
-                            <p>Pasif çalışanlar lisans tüketmeye devam eder. Lisansı boşaltmak için çalışanı şirketten ayırın.</p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          className="license-suspended-cta"
-                          onClick={() => {
-                            setStatusFilter("SUSPENDED");
-                            openTab("employees");
-                          }}
-                        >
-                          Pasif Çalışanları Gör
-                        </button>
-                      </div>
-                    )}
-
-                    <div className="seat-pack-section-header">
-                      <h3>KURUMSAL LİSANS PAKETLERİ</h3>
-                      <p className="seat-pack-guide">
-                        İhtiyacınıza göre 1, 5 veya 10 kişilik ek kapasite seçin. Her lisansa bir fiziksel NFC kart dahildir.
-                      </p>
-                    </div>
-                    <div id="seat-pack-grid" className="business-seat-pack-grid">
-                      {seatPacks.map((pack) => (
-                        <article
-                          key={pack.sku}
-                          className={pack.seats === 5 ? "recommended" : ""}
-                        >
-                          {pack.seats === 5 && <span className="seat-pack-badge">EN ÇOK TERCİH EDİLEN</span>}
-                          <div className="seat-pack-count">
-                            <strong>+{pack.seats}</strong>
-                            <span>kullanıcı</span>
-                          </div>
-                          <h3>
-                            {pack.seats} Lisans + {pack.seats} Kart
-                          </h3>
-                          <p className="seat-pack-fit">
-                            {pack.seats === 1
-                              ? "Küçük ekipler için ideal"
-                              : pack.seats === 5
-                              ? "Büyüyen ekipler için en popüler seçenek"
-                              : "Daha büyük ekipler için avantajlı"}
-                          </p>
-                          <ul>
-                            <li>
-                              <Icon name="check" /> Mevcut abonelik dönemi sonuna kadar geçerli
-                            </li>
-                            <li>
-                              <Icon name="check" /> NFC + kişisel QR
-                            </li>
-                            <li>
-                              <Icon name="check" /> Kargo dahil
-                            </li>
-                          </ul>
-                          <div className="seat-pack-price">
-                            <strong>
-                              {formatTryFromKurus(pack.priceKurus)}
-                            </strong>
-                            <span>/ paket</span>
-                            <small>KDV dahil</small>
-                          </div>
-                          <button
-                            type="button"
-                            className="ds-button ds-button--primary seat-pack-cta"
-                            onClick={() => buySeatPack(pack)}
-                          >
-                            Paketi Seç
-                          </button>
-                        </article>
-                      ))}
-                    </div>
-                    <small className="business-seat-note">
-                      Ek limit mevcut aktif kurumsal aboneliğin bitiş tarihine kadar tanımlanır; satın alma abonelik süresini uzatmaz.
-                      Fiziksel kart aktive edildikten sonra başka çalışana
-                      devredilemez.
-                    </small>
-                    <div className="license-reference-features">
-                      <span><i><Icon name="shield" /></i><b>Güvenli ve Kişiye Özel</b><small>Her kart tek çalışan için üretilir</small></span>
-                      <span><i><Icon name="contact" /></i><b>NFC + Kişisel QR</b><small>Temassız ve hızlı paylaşım</small></span>
-                      <span><i><Icon name="box" /></i><b>Kargo Dahil</b><small>Türkiye içi standart teslimat</small></span>
-                      <span><i><Icon name="analytics" /></i><b>Panelden Kontrol</b><small>Kapasite ve kart takibi</small></span>
-                    </div>
-                  </section>
                 )}
                 {message && (
                   <div className="business-message" role="status">

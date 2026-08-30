@@ -13,7 +13,6 @@ export const CORPORATE_PANEL_TABS = [
   "leads",
   "events",
   "meetings",
-  "licenses",
   "organization",
   "settings",
 ] as const;
@@ -31,7 +30,6 @@ export const CORPORATE_PANEL_ROUTE_TO_TAB: Record<string, CorporatePanelTab> = {
   "/kurumsal/panel/leadler": "leads",
   "/kurumsal/panel/etkinlikler": "events",
   "/kurumsal/panel/gorusmeler": "meetings",
-  "/kurumsal/panel/lisans": "licenses",
   "/kurumsal/panel/organizasyon": "organization",
   "/kurumsal/panel/ayarlar": "settings",
 };
@@ -53,7 +51,6 @@ export const CORPORATE_PANEL_TAB_ORDER: readonly CorporatePanelTab[] = [
   "templates",
   "content",
   "analytics",
-  "licenses",
   "organization",
   "roles",
   "settings",
@@ -77,7 +74,6 @@ export const CORPORATE_PANEL_TAB_META: Record<CorporatePanelTab, { label: string
   templates: { label: "Marka & Şablon", icon: "id", group: "MARKA & İÇERİK", loadingLabel: "Kurumsal şablonlar yükleniyor" },
   content: { label: "İçerik", icon: "link", group: "MARKA & İÇERİK", loadingLabel: "İçerik yükleniyor" },
   analytics: { label: "İstatistikler", icon: "analytics", group: "YÖNETİM", loadingLabel: "İstatistikler yükleniyor" },
-  licenses: { label: "Lisanslar", icon: "box", group: "YÖNETİM", loadingLabel: "Lisanslar yükleniyor" },
   organization: { label: "Organizasyon", icon: "building", group: "YÖNETİM", loadingLabel: "Organizasyon yükleniyor" },
   roles: { label: "Roller & Yetkiler", icon: "lock", group: "YÖNETİM", loadingLabel: "Roller ve yetkiler yükleniyor" },
   settings: { label: "Ayarlar", icon: "adjustments", group: "YÖNETİM", loadingLabel: "Şirket ayarları yükleniyor" },
@@ -94,7 +90,7 @@ export function corporateSidebarTabs(role?: string): readonly CorporatePanelTab[
   if (normalizedRole === "EMPLOYEE") return [];
   const canManageLicenses = normalizedRole === "OWNER" || normalizedRole === "ADMIN";
   return CORPORATE_PANEL_TAB_ORDER.filter((tab) => {
-    if (tab === "licenses" || tab === "leads" || tab === "events" || tab === "meetings") return canManageLicenses;
+    if (tab === "leads" || tab === "events" || tab === "meetings") return canManageLicenses;
     return true;
   });
 }

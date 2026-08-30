@@ -51,7 +51,7 @@ type InviteForm = {
   role: string;
 };
 
-type CorporateTab = "overview" | "employees" | "cards" | "roles" | "templates" | "content" | "analytics" | "licenses" | "organization" | "settings";
+type CorporateTab = "overview" | "employees" | "cards" | "roles" | "templates" | "content" | "analytics" | "organization" | "settings" | "leads" | "events" | "meetings";
 type SortKey = "name" | "department" | "role" | "status" | "created";
 type SortDirection = "asc" | "desc";
 type BulkStatus = "ACTIVE" | "SUSPENDED" | "LEFT";
@@ -294,10 +294,10 @@ export default function EmployeesPanel(props: Props) {
         <div className="p11-org-capacity" aria-label="Organizasyon kapasitesi">
           <small>{org?.organizations?.name || "Şirket"}</small>
           <strong>{usedSeats} / {seatLimit}</strong>
-          <span>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} lisans boş`}</span>
+          <span>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} kart boş`}</span>
           {suspendedSeats > 0 && (
             <small className="p11-seat-policy">
-              {suspendedSeats} pasif çalışan lisans tüketmeye devam eder. Lisansı boşaltmak için çalışanı şirketten ayırın.
+              {suspendedSeats} pasif çalışan kart kapasitesini kullanmaya devam eder. Kapasiteyi boşaltmak için çalışanı şirketten ayırın.
             </small>
           )}
         </div>
@@ -310,13 +310,13 @@ export default function EmployeesPanel(props: Props) {
               <div className="p11-attention-content">
                 <Icon name="box" />
                 <div>
-                  <strong>Lisans kapasitesi doldu</strong>
-                  <p>Yeni çalışan eklemek için lisans kapasitesini artırın veya kullanılmayan bir lisansı boşaltın.</p>
+                  <strong>Kart kapasitesi doldu</strong>
+                  <p>Yeni çalışan eklemek için kart kapasitesini artırın veya kullanılmayan bir kart hakkını boşaltın.</p>
                 </div>
               </div>
               {canManageLicenses && (
-                <button type="button" className="p11-attention-cta" onClick={() => setActiveTab("licenses")}>
-                  Lisansları Yönet
+                <button type="button" className="p11-attention-cta" onClick={() => setActiveTab("cards")}>
+                  Kartları Yönet
                 </button>
               )}
             </article>
@@ -438,7 +438,7 @@ export default function EmployeesPanel(props: Props) {
               <datalist id="p11-title-options">{TITLE_OPTIONS.map((item) => <option key={item} value={item} />)}</datalist>
               <datalist id="p11-department-options">{DEPARTMENT_OPTIONS.map((item) => <option key={item} value={item} />)}</datalist>
             </div>
-            <footer><span>{availableSeats === 0 ? "Yeni çalışan için ek lisans gerekli." : `${availableSeats ?? "—"} lisans boş`}</span><button type="submit" className="p11-primary" disabled={availableSeats === 0}><Icon name="mail" /> Daveti Gönder</button></footer>
+            <footer><span>{availableSeats === 0 ? "Yeni çalışan için ek lisans gerekli." : `${availableSeats ?? "—"} kart boş`}</span><button type="submit" className="p11-primary" disabled={availableSeats === 0}><Icon name="mail" /> Daveti Gönder</button></footer>
           </form>
         )}
 

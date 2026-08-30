@@ -23,7 +23,7 @@ export default function PaymentSuccessHeader({ fallbackActions }: { fallbackActi
           return;
         }
         if (data.seatPack) {
-          const href = data.seatPackFulfillment === "FULFILLED" ? "/kurumsal/panel/calisanlar" : "/kurumsal/panel/lisans";
+          const href = data.seatPackFulfillment === "FULFILLED" ? "/kurumsal/panel/calisanlar" : "/kurumsal/panel/kartlar";
           setActions([{ href, label: "Kurumsal Panel", primary: true }]);
           return;
         }

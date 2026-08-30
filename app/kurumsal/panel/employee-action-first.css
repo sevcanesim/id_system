@@ -752,7 +752,7 @@
   box-shadow: inset 0 -2px 0 var(--gold, #a37b2c);
 }
 
-/* Lisanslar paneli operasyonel kapasite özeti */
+/* Kurumsal kart kapasitesi operasyonel özeti */
 .p10-corporate-platform .business-seat-packs .license-metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

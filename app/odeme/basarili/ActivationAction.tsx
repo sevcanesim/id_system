@@ -150,7 +150,7 @@ export default function ActivationAction({
       <div className="activation-callout">
         <h2>Ödemeniz başarıyla alındı.</h2>
         <p>Ek lisans kapasiteniz işleniyor. Kurumsal panelden güncel kapasitenizi kontrol edebilirsiniz.</p>
-        <Link href="/kurumsal/panel/lisans">
+        <Link href="/kurumsal/panel/kartlar">
           Kapasiteyi Kontrol Et
         </Link>
       </div>

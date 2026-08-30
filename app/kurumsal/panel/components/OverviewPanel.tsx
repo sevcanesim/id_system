@@ -120,10 +120,10 @@ export default function OverviewPanel({
   } else if (availableSeats === 0) {
     priority = {
       eyebrow: "KAPASİTE DOLU",
-      title: "Yeni çalışan eklemek için lisans kapasitesini artırın.",
-      copy: `${usedSeats} / ${subscription?.seat_limit ?? "—"} lisans kullanımda. Yeni davetler ek kapasite açılana kadar durdurulur.`,
-      action: canManageLicenses ? "Lisansları yönet" : "Ekibi görüntüle",
-      tab: canManageLicenses ? "licenses" : "employees",
+      title: "Yeni çalışan eklemek için kart kapasitesini artırın.",
+      copy: `${usedSeats} / ${subscription?.seat_limit ?? "—"} kart kapasitesi kullanımda. Yeni davetler ek kapasite açılana kadar durdurulur.`,
+      action: canManageLicenses ? "Kartları yönet" : "Ekibi görüntüle",
+      tab: canManageLicenses ? "cards" : "employees",
       tone: "critical",
       icon: "lock",
     };
@@ -152,8 +152,8 @@ export default function OverviewPanel({
       eyebrow: "YENİLEME",
       title: `Aboneliğiniz ${daysUntilExpiry} gün içinde yenilenmeli.`,
       copy: "Hizmet kesintisi yaşamamak için yenileme planınızı kontrol edin.",
-      action: canManageLicenses ? "Lisansları yönet" : "Ekibi görüntüle",
-      tab: canManageLicenses ? "licenses" : "employees",
+      action: canManageLicenses ? "Kartları yönet" : "Ekibi görüntüle",
+      tab: canManageLicenses ? "cards" : "employees",
       tone: "attention",
       icon: "lock",
     };
@@ -161,7 +161,7 @@ export default function OverviewPanel({
     priority = {
       eyebrow: "SİSTEM DURUMU",
       title: "Kurumsal kart operasyonunuz güncel.",
-      copy: "Ekip, lisans ve dijital kart kurulumlarında şu anda kritik bir iş bulunmuyor.",
+      copy: "Ekip, kart kapasitesi ve dijital kart kurulumlarında şu anda kritik bir iş bulunmuyor.",
       action: "Ekibi yönet",
       tab: "employees",
       tone: "healthy",
@@ -200,9 +200,9 @@ export default function OverviewPanel({
 
       <section className="cp-overview-v2__metrics" aria-label="Kurumsal hesap özeti">
         <article>
-          <span>Lisans Kapasitesi</span>
+          <span>Kart Kapasitesi</span>
           <strong>{usedSeats}<small> / {subscription?.seat_limit ?? "—"}</small></strong>
-          <p>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} boş lisans`}</p>
+          <p>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} boş kart`}</p>
         </article>
         <article>
           <span>Bekleyen Davetler</span>
@@ -232,9 +232,9 @@ export default function OverviewPanel({
             <Icon name="contact" /> Kartları Eşleştir
           </button>
         )}
-        {canOpen("licenses") && canManageLicenses && (
-          <button type="button" onClick={() => openTab("licenses")}>
-            <Icon name="lock" /> Lisans Ekle
+        {canOpen("cards") && canManageLicenses && (
+          <button type="button" onClick={() => openTab("cards")}>
+            <Icon name="contact" /> Kart Kapasitesi
           </button>
         )}
       </div>
@@ -327,11 +327,11 @@ export default function OverviewPanel({
       <footer className="cp-overview-v2__quick-actions" aria-label="Hızlı işlemler">
         {canOpen("employees") && <button type="button" onClick={() => openTab("employees")}><Icon name="users" /> Ekibi yönet</button>}
         {canOpen("cards") && <button type="button" onClick={() => openTab("cards")}><Icon name="contact" /> Kartları yönet</button>}
-        {canManageLicenses && canOpen("licenses") && <button type="button" onClick={() => openTab("licenses")}><Icon name="lock" /> Lisanslar</button>}
+        {canManageLicenses && canOpen("cards") && <button type="button" onClick={() => openTab("cards")}><Icon name="contact" /> Kart kapasitesi</button>}
       </footer>
 
       <span className="cp-overview-v2__sr-summary" aria-live="polite">
-        {org?.organizations?.name || "Kurumsal hesap"}: {usedSeats} aktif lisans, {digitalCardsReady} aktif kart, {unassignedPhysical} fiziksel kart ataması bekliyor.
+        {org?.organizations?.name || "Kurumsal hesap"}: {usedSeats} kullanılan kart kapasitesi, {digitalCardsReady} aktif kart, {unassignedPhysical} fiziksel kart ataması bekliyor.
       </span>
     </div>
   );

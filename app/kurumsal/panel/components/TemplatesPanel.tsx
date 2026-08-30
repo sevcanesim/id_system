@@ -25,9 +25,6 @@ function variantLabel(templateVariant: string) {
   return "Executive";
 }
 
-// Şirketin varsayılan olarak yayınladığı kurumsal kart görünümü: üç hazır
-// varyanttan biri (bkz. CorporateTemplateSelector) + ana renk/logo, sağda
-// gerçek CardTemplate bileşeniyle canlı önizleme.
 export default function TemplatesPanel({
   templateVariant,
   onTemplateVariantChange,
@@ -39,69 +36,139 @@ export default function TemplatesPanel({
   onSubmit,
   templateOptions,
 }: Props) {
+  const currentVariant = variantLabel(templateVariant);
+
   return (
-    <form className="business-settings-card business-template-editor" onSubmit={onSubmit}>
-        <header className="template-reference-heading">
-          <div><span>ŞABLON YÖNETİMİ · Kurumsal kart şablonları</span><h2>Kurumsal kart görünümünü yönet</h2><p>Kurumsal görünümü seçin; renk, logo ve alanları canlı önizleme üzerinde yönetin.</p></div>
-          <strong>{variantLabel(templateVariant)}</strong>
-        </header>
-        <CorporateTemplateSelector value={templateVariant} onChange={onTemplateVariantChange} options={templateOptions} />
-        <div className="business-template-workbench">
-          <div className="business-template-fields">
-            <label>
-              Şablon adı
-              <input
-                value={template.name}
-                onChange={(event) => setTemplate((value) => ({ ...value, name: event.target.value }))}
-              />
-            </label>
-            <label>
-              Ana renk <small className="optional-label">#RRGGBB</small>
-              <span className="template-color-control">
-                <input
-                  type="color"
-                  aria-label="Ana renk seç"
-                  value={/^#[0-9a-f]{6}$/i.test(template.primaryColor) ? template.primaryColor : "#17121f"}
-                  onChange={(event) => setTemplate((value) => ({ ...value, primaryColor: event.target.value }))}
-                />
-                <input
-                  value={template.primaryColor}
-                  onChange={(event) => setTemplate((value) => ({ ...value, primaryColor: event.target.value }))}
-                />
-              </span>
-            </label>
-            <label>
-              Logo URL <small className="optional-label">https:// ile başlamalı</small>
-              <input
-                placeholder="https://firma.com/logo.png"
-                value={template.logoUrl}
-                onChange={(event) => setTemplate((value) => ({ ...value, logoUrl: event.target.value }))}
-              />
-            </label>
-            <div className="template-preview-note">
-              <Icon name="eye" />
-              <span>Değişiklikler sağdaki önizlemeye anında uygulanır. Kaydetmeden tasarımı deneyebilirsin.</span>
-            </div>
-          </div>
-          <section className="business-template-live-preview" aria-label="Kurumsal kart canlı önizleme">
-            <header>
+    <form className="corporate-template-studio" onSubmit={onSubmit}>
+      <header className="corporate-template-studio__header">
+        <div className="corporate-template-studio__heading">
+          <span>ŞABLON YÖNETİMİ</span>
+          <h2>Ekibinin kart görünümünü tek yerden yönet</h2>
+          <p>
+            Kart stilini ve marka kimliğini belirle. Yaptığın değişiklikleri yayına almadan önce canlı önizlemede kontrol et.
+          </p>
+        </div>
+        <div className="corporate-template-studio__status" aria-label="Aktif şablon durumu">
+          <small>AKTİF ŞABLON</small>
+          <strong>{activeTemplateName || template.name || "Kurumsal Standart"}</strong>
+          <span>{currentVariant}</span>
+        </div>
+      </header>
+
+      <div className="corporate-template-studio__workspace">
+        <div className="corporate-template-studio__editor">
+          <section className="corporate-template-section" aria-labelledby="template-style-title">
+            <header className="corporate-template-section__header">
+              <div className="corporate-template-section__index">01</div>
               <div>
-                <small>CANLI ÖNİZLEME</small>
-                <strong>{template.name || "Kurumsal Şablon"}</strong>
+                <h3 id="template-style-title">Kart stilini seç</h3>
+                <p>Kurumsal kimliğine en uygun temel yerleşimi belirle.</p>
               </div>
-              <span>{variantLabel(templateVariant)}</span>
             </header>
-            <div className="business-template-phone">
-              <CardTemplate preview branding={previewBranding} data={previewData} />
+            <CorporateTemplateSelector
+              value={templateVariant}
+              onChange={onTemplateVariantChange}
+              options={templateOptions}
+            />
+          </section>
+
+          <section className="corporate-template-section" aria-labelledby="template-brand-title">
+            <header className="corporate-template-section__header">
+              <div className="corporate-template-section__index">02</div>
+              <div>
+                <h3 id="template-brand-title">Marka kimliğini düzenle</h3>
+                <p>Şablon adı, ana renk ve şirket logosu tüm ekip kartlarına uygulanır.</p>
+              </div>
+            </header>
+
+            <div className="corporate-template-fields">
+              <label className="corporate-template-field corporate-template-field--full">
+                <span>Şablon adı</span>
+                <input
+                  value={template.name}
+                  onChange={(event) => setTemplate((value) => ({ ...value, name: event.target.value }))}
+                  placeholder="Örn. Satış Ekibi 2026"
+                />
+                <small>Yönetim panelinde bu adla görünür.</small>
+              </label>
+
+              <label className="corporate-template-field">
+                <span>Ana renk</span>
+                <span className="corporate-template-color-control">
+                  <input
+                    type="color"
+                    aria-label="Ana renk seç"
+                    value={/^#[0-9a-f]{6}$/i.test(template.primaryColor) ? template.primaryColor : "#17121f"}
+                    onChange={(event) => setTemplate((value) => ({ ...value, primaryColor: event.target.value }))}
+                  />
+                  <input
+                    aria-label="Ana renk HEX değeri"
+                    value={template.primaryColor}
+                    onChange={(event) => setTemplate((value) => ({ ...value, primaryColor: event.target.value }))}
+                    placeholder="#17121F"
+                  />
+                </span>
+                <small>HEX formatında marka rengini kullan.</small>
+              </label>
+
+              <label className="corporate-template-field">
+                <span>Logo URL <em>Opsiyonel</em></span>
+                <input
+                  type="url"
+                  placeholder="https://firma.com/logo.png"
+                  value={template.logoUrl}
+                  onChange={(event) => setTemplate((value) => ({ ...value, logoUrl: event.target.value }))}
+                />
+                <small>HTTPS adresi kullan. Şeffaf PNG veya SVG önerilir.</small>
+              </label>
+            </div>
+
+            <div className="corporate-template-preview-note">
+              <Icon name="eye" />
+              <div>
+                <strong>Değişiklikler henüz yayınlanmaz</strong>
+                <span>Sağdaki önizleme anlık güncellenir. Hazır olduğunda kaydet.</span>
+              </div>
             </div>
           </section>
+
+          <footer className="corporate-template-savebar">
+            <div>
+              <small>YAYINA ALINACAK GÖRÜNÜM</small>
+              <strong>{template.name || "Kurumsal Şablon"} · {currentVariant}</strong>
+            </div>
+            <button type="submit">Şablonu kaydet</button>
+          </footer>
         </div>
-        <button>Kurumsal Şablonu Kaydet</button>
-        {activeTemplateName && (
-          <small>
-            Aktif şablon: {activeTemplateName} · {variantLabel(templateVariant)}
-          </small>
-        )}
+
+        <aside className="corporate-template-preview" aria-label="Kurumsal kart canlı önizleme">
+          <header className="corporate-template-preview__header">
+            <div>
+              <small>CANLI ÖNİZLEME</small>
+              <strong>{template.name || "Kurumsal Şablon"}</strong>
+            </div>
+            <span>{currentVariant}</span>
+          </header>
+
+          <div className="corporate-template-preview__stage">
+            <div className="corporate-template-preview__phone">
+              <CardTemplate preview branding={previewBranding} data={previewData} />
+            </div>
+          </div>
+
+          <footer className="corporate-template-preview__footer">
+            <span
+              className="corporate-template-preview__swatch"
+              style={{ background: template.primaryColor }}
+              aria-hidden="true"
+            />
+            <div>
+              <small>MARKA RENGİ</small>
+              <strong>{template.primaryColor || "#17121F"}</strong>
+            </div>
+          </footer>
+        </aside>
+      </div>
     </form>
   );
 }

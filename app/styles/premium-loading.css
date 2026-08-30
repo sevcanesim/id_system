@@ -13,6 +13,7 @@
 
 .ds-loading-mark > span {
   position: absolute;
+  bottom: 11px;
   width: 5px;
   border-radius: 999px;
   background: #9b7427;
@@ -21,18 +22,19 @@
 }
 
 .ds-loading-mark > span:nth-child(1) {
+  left: 9px;
   height: 9px;
-  transform: translateX(-8px);
 }
 
 .ds-loading-mark > span:nth-child(2) {
+  left: 16px;
   height: 15px;
   animation-delay: .12s;
 }
 
 .ds-loading-mark > span:nth-child(3) {
+  left: 24px;
   height: 11px;
-  transform: translateX(8px);
   animation-delay: .24s;
 }
 
@@ -123,7 +125,6 @@
 .ds-view-loading__workspace {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(240px, .75fr);
-  gap: 0;
 }
 
 .ds-view-loading__primary,
@@ -205,6 +206,11 @@
   border-radius: inherit;
   background: #9b7427;
   animation: yi-loading-track 1.5s cubic-bezier(.4, 0, .2, 1) infinite;
+}
+
+.corporate-route-loading {
+  width: 100%;
+  padding: 8px 0 24px;
 }
 
 .enterprise-loading-shell {
@@ -296,6 +302,10 @@
     padding: 28px 22px 24px;
     border-radius: 16px;
   }
+
+  .corporate-route-loading {
+    padding-top: 2px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -306,6 +316,7 @@
 
   .ds-loading-mark > span {
     opacity: .72;
+    transform: none;
   }
 
   .ds-page-loading__progress > span {

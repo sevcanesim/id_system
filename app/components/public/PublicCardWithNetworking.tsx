@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import CardTemplate, { type CardBranding, type EditableCardData } from "../../CardTemplate";
-import { detectNetworkingLocale, type NetworkingLocale } from "../../../lib/networking/catalog";
+import { type NetworkingLocale } from "../../../lib/networking/catalog";
 import type { CardLocaleOverlay } from "../../../lib/public-card/locales";
 import NetworkingCapture from "./NetworkingCapture";
 
@@ -32,10 +32,6 @@ export default function PublicCardWithNetworking({
   locales?: CardLocaleOverlay[];
 }) {
   const [locale, setLocale] = useState<NetworkingLocale>("tr");
-
-  useEffect(() => {
-    setLocale(detectNetworkingLocale(navigator.language));
-  }, []);
 
   const overlay = locales.find((item) => item.locale === locale);
   const display = {

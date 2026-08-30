@@ -202,13 +202,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Capacity add-on lines must target an
-    // organization the buyer actually manages, and that organization must
-    // already have an active subscription. Rejecting this at checkout time
-    // avoids taking payment for a seat pack that can never be fulfilled.
-    // The seat count itself is always re-derived from the server-side variant
-    // metadata below (never trusted from client-supplied configuration), so a
-    // buyer cannot inflate the number of seats granted for a given price.
+    // Capacity add-on lines must target an organization the buyer actually
+    // manages, and only a fully ACTIVE subscription may expand capacity.
+    // GRACE_PERIOD is intentionally excluded: overdue accounts must restore
+    // their base subscription before purchasing additional seats.
     for (const item of calculated) {
       const metadata = (item.variant.metadata as Record<string, unknown> | null) || {};
       const isCapacityAddon = metadata.fulfillment_kind === "BUSINESS_CAPACITY_ADDON"
@@ -231,11 +228,11 @@ export async function POST(request: NextRequest) {
         .from("organization_subscriptions")
         .select("id")
         .eq("organization_id", organizationId)
-        .in("status", ["ACTIVE", "GRACE_PERIOD"])
+        .eq("status", "ACTIVE")
         .limit(1)
         .maybeSingle();
       if (!activeSubscription) {
-        return NextResponse.json({ error: "Ek kullanıcı paketi yalnız aktif kurumsal aboneliği olan şirketlere satılabilir." }, { status: 409 });
+        return NextResponse.json({ error: "Ek kullanıcı paketi için kurumsal aboneliğin ACTIVE durumda olmalı. Ödeme gecikmesi veya askı varsa önce aboneliği yeniden aktif hale getir." }, { status: 409 });
       }
       const seatCount = Number(metadata.seat_count);
       if (!Number.isFinite(seatCount) || seatCount <= 0) {

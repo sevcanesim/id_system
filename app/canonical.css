@@ -6425,13 +6425,11 @@ small,.text-caption,.caption { font-size: 12px; }
 }
 .home-premium__principles article {
   min-height: 142px;
-  padding: 26px 24px;
 }
 .home-premium__principles strong { font-size: 18px; }
 .home-premium__principles p { font-size: 15px; }
 .home-premium__journey-steps li {
   min-height: 170px;
-  padding: 24px;
 }
 .home-premium__journey-steps h3 { font-size: 20px; }
 .home-premium__journey-action p { font-size: 15px; }

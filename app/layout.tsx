@@ -20,6 +20,7 @@ import "./styles/canonical-auth.css";
 import "./styles/canonical-motion.css";
 import "./styles/canonical-footer.css";
 import "./styles/canonical-responsive-final.css";
+import "./styles/premium-loading.css";
 import "./kurumsal/panel/overview-polish.css";
 import "./kurumsal/panel/template-studio.css";
 import "./kurumsal/panel/card-editor-scroll.css";

@@ -1,8 +1,13 @@
-/**
- * The corporate shell owns its loading state. Keeping this route fallback empty
- * prevents Next's segment loader from mounting a second sidebar/header while
- * the persistent /kurumsal/panel layout remains mounted.
- */
+import { LoadingState } from "../../components/ui/States";
+
 export default function Loading() {
-  return null;
+  return (
+    <div className="corporate-route-loading">
+      <LoadingState
+        variant="panel"
+        label="Panel görünümü hazırlanıyor"
+        hint="Güncel kurumsal bilgiler yükleniyor."
+      />
+    </div>
+  );
 }

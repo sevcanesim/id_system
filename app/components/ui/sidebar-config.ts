@@ -21,8 +21,7 @@ const CORPORATE_ADMIN_OR_HR: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR", "
 
 export const CORPORATE_SIDEBAR_CONFIG = [
   { key: "overview", href: "/kurumsal/panel", label: "Genel Bakış", icon: "building", group: "GENEL" },
-  { key: "employees", href: "/kurumsal/panel/calisanlar", label: "Çalışanlar", icon: "users", group: "EKİP & KARTLAR", roles: CORPORATE_MANAGEMENT },
-  { key: "cards", href: "/kurumsal/panel/kartlar", label: "Kartlar", icon: "id", group: "EKİP & KARTLAR", roles: CORPORATE_MANAGEMENT },
+  { key: "employees", href: "/kurumsal/panel/calisanlar", label: "Ekip & Kartlar", icon: "users", group: "EKİP & KARTLAR", roles: CORPORATE_MANAGEMENT },
   { key: "templates", href: "/kurumsal/panel/sablon", label: "Marka & Şablon", icon: "id", group: "MARKA & İÇERİK", roles: CORPORATE_ADMIN },
   { key: "content", href: "/kurumsal/panel/icerik", label: "İçerik", icon: "link", group: "MARKA & İÇERİK", roles: CORPORATE_ADMIN },
   { key: "analytics", href: "/kurumsal/panel/istatistikler", label: "İstatistikler", icon: "analytics", group: "YÖNETİM", roles: CORPORATE_ADMIN_OR_HR },

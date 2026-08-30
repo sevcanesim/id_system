@@ -38,16 +38,15 @@ export function isCorporatePanelTab(value: string | null): value is CorporatePan
   return Boolean(value && (CORPORATE_PANEL_TABS as readonly string[]).includes(value));
 }
 
-// Sekme anahtarından rotaya — CORPORATE_PANEL_ROUTE_TO_TAB'ın tersi.
+// Sekme anahtarından rotaya — cards eski link uyumluluğu için korunur;
+// ürün navigasyonunda canonical hedef employees/Ekip & Kartlar'dır.
 export const CORPORATE_PANEL_TAB_ROUTE: Record<CorporatePanelTab, string> = Object.fromEntries(
   Object.entries(CORPORATE_PANEL_ROUTE_TO_TAB).map(([route, tab]) => [tab, route]),
 ) as Record<CorporatePanelTab, string>;
 
-// Sidebar'da görünme sırası (CorporatePanelClient'taki mevcut sırayla birebir).
 export const CORPORATE_PANEL_TAB_ORDER: readonly CorporatePanelTab[] = [
   "overview",
   "employees",
-  "cards",
   "templates",
   "content",
   "analytics",
@@ -59,18 +58,10 @@ export const CORPORATE_PANEL_TAB_ORDER: readonly CorporatePanelTab[] = [
   "meetings",
 ];
 
-/**
- * Kurumsal panel sekmelerinin etiketi, ikonu ve (varsa) sidebar grup başlığı.
- * Kurumsal panel (CorporatePanelClient) ve kurumsal kart editörü (CardWizard,
- * /olustur?business=1) aynı PanelSidebar/SidebarNav bileşenini kullanır; bu
- * sabitler ikisinin de beslendiği ortak kaynaktır — sekmeler değiştiğinde tek
- * yerden güncellenir ve iki yüzey birbirinden bağımsız kopyalar tutup zamanla
- * birbirinden uzaklaşamaz.
- */
 export const CORPORATE_PANEL_TAB_META: Record<CorporatePanelTab, { label: string; icon: IconName; group?: string; loadingLabel: string }> = {
   overview: { label: "Genel Bakış", icon: "building", group: "GENEL", loadingLabel: "Genel Bakış yükleniyor" },
-  employees: { label: "Çalışanlar", icon: "users", group: "EKİP & KARTLAR", loadingLabel: "Çalışanlar yükleniyor" },
-  cards: { label: "Kartlar", icon: "id", group: "EKİP & KARTLAR", loadingLabel: "Kartlar yükleniyor" },
+  employees: { label: "Ekip & Kartlar", icon: "users", group: "EKİP & KARTLAR", loadingLabel: "Ekip ve kartlar yükleniyor" },
+  cards: { label: "Kart Envanteri", icon: "id", group: "EKİP & KARTLAR", loadingLabel: "Kart envanteri yükleniyor" },
   templates: { label: "Marka & Şablon", icon: "id", group: "MARKA & İÇERİK", loadingLabel: "Kurumsal şablonlar yükleniyor" },
   content: { label: "İçerik", icon: "link", group: "MARKA & İÇERİK", loadingLabel: "İçerik yükleniyor" },
   analytics: { label: "İstatistikler", icon: "analytics", group: "YÖNETİM", loadingLabel: "İstatistikler yükleniyor" },
@@ -141,6 +132,9 @@ export function getCorporateSidebarActiveKey(pathname: string): CorporatePanelTa
   if (pathname === "/kurumsal/panel/kartim" || pathname.startsWith("/kurumsal/panel/kartim/")) {
     return "kartim";
   }
+  if (pathname === "/kurumsal/panel/kartlar" || pathname.startsWith("/kurumsal/panel/kartlar/")) {
+    return "employees";
+  }
   const routeTab = CORPORATE_PANEL_ROUTE_TO_TAB[pathname];
   if (routeTab) return routeTab;
   for (const [route, tab] of Object.entries(CORPORATE_PANEL_ROUTE_TO_TAB)) {
@@ -148,4 +142,3 @@ export function getCorporateSidebarActiveKey(pathname: string): CorporatePanelTa
   }
   return "overview";
 }
-

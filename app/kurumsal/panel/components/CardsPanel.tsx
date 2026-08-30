@@ -17,6 +17,7 @@ type Props = {
   openMemberDrawer: (member: MemberActionTarget, tab?: "profile" | "card" | "invite" | "lifecycle") => void;
   openEmployees: () => void;
   initials: (member: MemberActionTarget) => string;
+  embedded?: boolean;
 };
 
 function formatCardDate(value: string | null) {
@@ -44,6 +45,7 @@ export default function CardsPanel({
   toggleCardStatus,
   openMemberDrawer,
   openEmployees,
+  embedded = false,
 }: Props) {
   const [search, setSearch] = useState("");
   const [assigningCard, setAssigningCard] = useState<PhysicalCard | null>(null);
@@ -75,15 +77,26 @@ export default function CardsPanel({
     card.ownerUserId ? roster.find((member) => member.user_id === card.ownerUserId) || null : null;
 
   return (
-    <section className="p11-employees p11-cards card-inventory-page" aria-labelledby="p11-cards-title">
-      <header className="p11-employees-header action-first-header">
-        <div>
-          <span>KART YÖNETİMİ</span>
-          <h2 id="p11-cards-title">Kartlar</h2>
-          <p>Fiziksel kart envanterini, atamaları ve kart yaşam döngüsünü tek yerden yönetin.</p>
-        </div>
-        <Button type="button" variant="secondary" onClick={openEmployees}>Çalışanlara Git</Button>
-      </header>
+    <section id="kart-envanteri" className={`p11-employees p11-cards card-inventory-page${embedded ? " card-inventory-page--embedded" : ""}`} aria-labelledby="p11-cards-title">
+      {embedded ? (
+        <header className="card-inventory-embedded-header">
+          <div>
+            <span>FİZİKSEL VARLIKLAR</span>
+            <h3 id="p11-cards-title">Kart Envanteri</h3>
+            <p>Fiziksel kartları, atamaları ve kart yaşam döngüsünü çalışan yönetiminden ayrılmadan yönetin.</p>
+          </div>
+          <a href="#p11-employees-title">Çalışanlara dön ↑</a>
+        </header>
+      ) : (
+        <header className="p11-employees-header action-first-header">
+          <div>
+            <span>KART YÖNETİMİ</span>
+            <h2 id="p11-cards-title">Kartlar</h2>
+            <p>Fiziksel kart envanterini, atamaları ve kart yaşam döngüsünü tek yerden yönetin.</p>
+          </div>
+          <Button type="button" variant="secondary" onClick={openEmployees}>Çalışanlara Git</Button>
+        </header>
+      )}
 
       <section className={`action-first-summary${attentionCount > 0 ? " has-attention" : " is-clear"}`} aria-label="Fiziksel kart özeti">
         <div>

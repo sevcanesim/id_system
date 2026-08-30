@@ -1,4 +1,6 @@
-/** Route marker: the persistent corporate panel is rendered by ../layout.tsx. */
+import { redirect } from "next/navigation";
+
+/** Legacy compatibility route. Kart envanteri artık Ekip & Kartlar çalışma alanının parçası. */
 export default function Page() {
-  return null;
+  redirect("/kurumsal/panel/calisanlar#kart-envanteri");
 }

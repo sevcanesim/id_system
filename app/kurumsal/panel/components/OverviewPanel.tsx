@@ -217,11 +217,6 @@ export default function OverviewPanel({
               Kapasiteyi artır <span aria-hidden="true">→</span>
             </a>
           ) : null}
-          {priority.tab !== "employees" && capacityUpgradeRequired && (
-            <a className="cp-overview-v2__secondary-link" href="/kurumsal#kapasite">
-              Kapasiteyi artır
-            </a>
-          )}
         </div>
       </section>
 

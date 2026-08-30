@@ -27,6 +27,7 @@ import "./mobile-canonical.css";
 import "./kurumsal/panel/card-editor-polish.css";
 import "./styles/public-profile-canonical.css";
 import "./kurumsal/panel/card-inventory-separation.css";
+import "./kurumsal/panel/networking-inbox.css";
 import HashScrollHandler from "./components/HashScrollHandler";
 import AuthSessionBridge from "./components/AuthSessionBridge";
 import MobilePurchaseDockController from "./components/MobilePurchaseDockController";

@@ -13,7 +13,9 @@ type Lead = {
   id: string;
   full_name: string;
   email: string;
+  phone?: string | null;
   company: string | null;
+  position?: string | null;
   city: string;
   country: string;
   source: string;
@@ -51,6 +53,45 @@ type EventLink = {
 };
 
 type Timeline = { lead_id: string; kind: string; created_at: string };
+
+const STATUS_LABELS: Record<string, string> = {
+  NEW: "Yeni",
+  CONTACTED: "İletişime geçildi",
+  QUALIFIED: "Nitelikli",
+  MEETING_REQUESTED: "Görüşme bekliyor",
+  MEETING_SCHEDULED: "Görüşme planlandı",
+  WON: "Kazanıldı",
+  CLOSED: "Kapandı",
+};
+
+const TIMELINE_LABELS: Record<string, string> = {
+  QR_SCAN: "QR ile geldi",
+  NFC_TAP: "NFC ile geldi",
+  CONTACT_SHARED: "İletişim bilgilerini paylaştı",
+  LEAD_CREATED: "Bağlantı oluşturuldu",
+  FOLLOWUP_SENT: "E-posta gönderildi",
+  MEETING_ACCEPTED: "Görüşme kabul edildi",
+  MEETING_ALTERNATIVE: "Alternatif görüşme önerildi",
+  MEETING_DECLINED: "Görüşme reddedildi",
+  MEETING_COMPLETED: "Görüşme tamamlandı",
+};
+
+function cleanPhone(value?: string | null) {
+  return (value || "").replace(/[^\d]/g, "");
+}
+
+function sourceLabel(source: string) {
+  const value = source.toUpperCase();
+  if (value.includes("QR")) return "Yenomi ID · QR";
+  if (value.includes("NFC")) return "Yenomi ID · NFC";
+  return "Yenomi ID kartı";
+}
+
+function relativeDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(date);
+}
 
 export default function NetworkingPanel({
   view,
@@ -154,18 +195,16 @@ export default function NetworkingPanel({
 
   return (
     <section className="p11-employees p11-networking" aria-labelledby="p11-networking-title">
-      <header className="p11-employees-header">
+      <header className="p11-employees-header p11-networking-header">
         <div>
           <span>NETWORKING</span>
           <h2 id="p11-networking-title">{view === "leads" ? "Leadler" : view === "events" ? "Etkinlikler" : "Görüşmeler"}</h2>
           <p>
             {view === "leads"
-              ? variant === "individual"
-                ? "NFC/QR sonrası kişi kartının sonundaki ‘İletişimde Kalalım’ formundan buraya düşer. Gönderen Yenomi ID’dir; yanıtlar doğrulanmış e-postana gelir. ‘Tanıştığımıza memnun oldum’ 1 Network Mail kredisi harcar."
-                : "NFC/QR sonrası kişi kartın sonundaki ‘İletişimde Kalalım’ formundan buraya düşer. Gönderen Yenomi ID’dir; yanıtlar doğrulanmış e-postanıza gelir. ‘Tanıştığımıza memnun oldum’ 1 Network Mail kredisi harcar; Campaign Mail bu bakiyeden düşmez."
+              ? "Kartınız üzerinden iletişim bilgilerini paylaşan kişileri burada takip edin ve sonraki adımı siz yönetin."
               : view === "events"
-                ? "Etkinlik QR’si kişi URL’sini değiştirmez. /e/{id} aynı dijital kartı açar."
-                : "Yüz yüze talepler lokasyon ve ekip uygunluğuna göre planlanır. GPS kullanılmaz."}
+                ? "Etkinliklerinizi ve kartlarınıza bağlı etkinlik QR’lerini yönetin."
+                : "Networking bağlantılarınız için planlanan görüşmeleri yönetin."}
           </p>
         </div>
         <div className="p11-org-capacity p11-mail-credits">
@@ -178,7 +217,7 @@ export default function NetworkingPanel({
       {loaded && view === "leads" && credits < 1 && (
         <p className="p11-networking-message" role="status">
           {variant === "individual"
-            ? "Mail göndermek için Bireysel Premium Network Mail kredisi gerekir. Kredi /yenile ekranından kontrol edilir."
+            ? "E-posta göndermek için Network Mail kredisi gerekir."
             : "Network Mail bakiyesi yok. Yeni kredi şirket lisansından tanımlanır."}
         </p>
       )}
@@ -186,35 +225,63 @@ export default function NetworkingPanel({
 
       {loaded && view === "leads" && (
         leads.length === 0 ? (
-          <EmptyState compact icon="users" title="Henüz networking lead’i yok" description={variant === "individual" ? "QR veya NFC ile açılan kartının sonundaki paylaş / görüşme talebi buraya düşer." : "QR veya NFC ile açılan kartın sonundaki paylaş / görüşme talebi buraya düşer. /kurumsal satış formu bu listeye yazılmaz."} action={variant === "individual" ? { href: "/kartim", label: "Kartımı aç" } : { href: "/kurumsal/panel/etkinlikler", label: "Etkinlik QR’si oluştur" }} />
+          <EmptyState compact icon="users" title="Henüz bağlantı yok" description="Kartınız üzerinden bilgilerini paylaşan kişiler burada görünür." action={variant === "individual" ? { href: "/kartim", label: "Kartımı aç" } : { href: "/kurumsal/panel/etkinlikler", label: "Etkinlikleri aç" }} />
         ) : (
-          <div className="p11-networking-list">
+          <div className="p11-networking-list p11-networking-inbox">
             {leads.map((lead) => {
               const eventsForLead = timeline.filter((item) => item.lead_id === lead.id);
+              const phone = cleanPhone(lead.phone);
               return (
-                <article key={lead.id}>
-                  <div>
-                    <strong>{lead.full_name}</strong>
-                    <span>{[lead.company, lead.city, lead.country].filter(Boolean).join(" · ")}</span>
-                    <small>{lead.source} · {lead.scoreLabel} · {lead.score}</small>
+                <article className="p11-networking-lead" key={lead.id}>
+                  <div className="p11-networking-lead__top">
+                    <div className="p11-networking-lead__identity">
+                      <span className="p11-networking-lead__avatar" aria-hidden="true">{lead.full_name.trim().charAt(0).toUpperCase()}</span>
+                      <div>
+                        <strong>{lead.full_name}</strong>
+                        <span>{[lead.position, lead.company].filter(Boolean).join(" · ") || "Profesyonel bilgi paylaşılmadı"}</span>
+                        <small>{sourceLabel(lead.source)} · {relativeDate(lead.created_at)}</small>
+                      </div>
+                    </div>
+                    <span className="p11-networking-lead__status">{STATUS_LABELS[lead.status] || lead.status}</span>
                   </div>
-                  <p>{lead.email}</p>
-                  {lead.interests.length > 0 && <p>{lead.interests.join(", ")}</p>}
-                  <ol>
-                    {eventsForLead.map((item) => <li key={`${item.kind}-${item.created_at}`}>{item.kind}</li>)}
-                  </ol>
-                  <div className="p11-networking-actions">
-                    <select aria-label="Lead durumu" value={lead.status} onChange={(event) => void post({ action: "update_lead", leadId: lead.id, status: event.target.value })}>
-                      {LEAD_STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}
-                    </select>
-                    <select
-                      aria-label="Follow-up senaryosu"
-                      value={templates[lead.id] || "EVENT_MET"}
-                      onChange={(event) => setTemplates((current) => ({ ...current, [lead.id]: event.target.value }))}
-                    >
-                      {FOLLOW_UP_SCENARIOS.map((scenario) => <option key={scenario.code} value={scenario.code}>{scenario.label}</option>)}
-                    </select>
-                    <button type="button" disabled={busy || credits < 1} onClick={() => void post({ action: "send_followup", leadId: lead.id, template: templates[lead.id] || "EVENT_MET" })}>Mail Gönder</button>
+
+                  <div className="p11-networking-lead__contact">
+                    <a href={`mailto:${lead.email}`}>{lead.email}</a>
+                    {lead.phone && <a href={`tel:${lead.phone}`}>{lead.phone}</a>}
+                  </div>
+
+                  {eventsForLead.length > 0 && (
+                    <div className="p11-networking-lead__timeline" aria-label="Bağlantı geçmişi">
+                      {eventsForLead.slice(-3).map((item) => (
+                        <span key={`${item.kind}-${item.created_at}`}>{TIMELINE_LABELS[item.kind] || "Bağlantı güncellendi"}</span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="p11-networking-lead__footer">
+                    <label className="p11-networking-field">
+                      <span>Durum</span>
+                      <select aria-label="Lead durumu" value={lead.status} onChange={(event) => void post({ action: "update_lead", leadId: lead.id, status: event.target.value })}>
+                        {LEAD_STATUSES.map((status) => <option key={status} value={status}>{STATUS_LABELS[status] || status}</option>)}
+                      </select>
+                    </label>
+                    <label className="p11-networking-field p11-networking-field--grow">
+                      <span>E-posta</span>
+                      <select
+                        aria-label="Follow-up senaryosu"
+                        value={templates[lead.id] || "EVENT_MET"}
+                        onChange={(event) => setTemplates((current) => ({ ...current, [lead.id]: event.target.value }))}
+                      >
+                        {FOLLOW_UP_SCENARIOS.map((scenario) => <option key={scenario.code} value={scenario.code}>{scenario.label}</option>)}
+                      </select>
+                    </label>
+                    <div className="p11-networking-quick-actions">
+                      <button className="p11-networking-action p11-networking-action--primary" type="button" disabled={busy || credits < 1} onClick={() => void post({ action: "send_followup", leadId: lead.id, template: templates[lead.id] || "EVENT_MET" })}>E-posta Gönder</button>
+                      {phone && (
+                        <a className="p11-networking-action" href={`https://wa.me/${phone}?text=${encodeURIComponent(`Merhaba ${lead.full_name}, bugün tanıştığımıza memnun oldum. İletişimde kalmak istedim.`)}`} target="_blank" rel="noreferrer">WhatsApp</a>
+                      )}
+                      <a className="p11-networking-action" href="/kurumsal/panel/gorusmeler">Görüşmeler</a>
+                    </div>
                   </div>
                 </article>
               );
@@ -225,7 +292,7 @@ export default function NetworkingPanel({
 
       {loaded && view === "meetings" && (
         meetings.length === 0 ? (
-          <EmptyState compact icon="contact" title="Görüşme talebi yok" description="Karttaki Görüşme Talep Et formu buraya düşer." action={{ href: "/kurumsal/panel/leadler", label: "Leadlere git" }} />
+          <EmptyState compact icon="contact" title="Planlanmış görüşme yok" description="Networking bağlantılarından oluşturulan görüşmeler burada görünür." action={{ href: "/kurumsal/panel/leadler", label: "Leadlere git" }} />
         ) : (
           <div className="p11-networking-list">
             {meetings.map((meeting) => (

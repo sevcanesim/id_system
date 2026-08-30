@@ -8,28 +8,31 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: clamp(40px, 6vh, 72px) 24px 64px;
+  padding: clamp(48px, 7vh, 76px) 28px 72px;
   overflow-x: clip;
   background:
-    radial-gradient(720px 420px at 50% 0%, rgba(169,129,47,.06), transparent 72%),
-    #f5f2ec;
+    radial-gradient(760px 440px at 50% -4%, rgba(169,129,47,.075), transparent 72%),
+    linear-gradient(180deg,#f7f4ef 0%,#f3f0ea 100%);
 }
 
 .p12-public-card-page::before {
-  opacity: .18;
+  opacity: .07;
 }
 
 .p12-public-card-page .p12-public-card {
   position: relative;
-  width: min(100%, 540px);
-  max-width: 540px;
+  width: min(100%, 548px);
+  max-width: 548px;
   margin: 0 auto;
-  padding: 28px 30px 24px;
+  padding: 30px 32px 25px;
   overflow: visible;
-  border: 1px solid #e4dfd5;
-  border-radius: 28px;
-  background: rgba(255,255,255,.94);
-  box-shadow: 0 28px 70px rgba(42,34,24,.09);
+  border: 1px solid rgba(210,201,188,.78);
+  border-radius: 30px;
+  background: rgba(255,255,255,.975);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.9) inset,
+    0 30px 80px rgba(42,34,24,.10),
+    0 8px 24px rgba(42,34,24,.045);
 }
 
 .p12-public-card-page .p12-card-brand {
@@ -40,6 +43,21 @@
 
 .p12-public-card-page .p12-card-brand > a {
   min-height: 40px;
+  gap: 10px;
+}
+
+.p12-public-card-page .p12-card-brand strong {
+  font-size: 14px;
+  letter-spacing: -.015em;
+}
+
+.p12-public-card-page .p12-card-brand small {
+  margin-top: 2px;
+  color: #98752f;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
 }
 
 .p12-public-card-page .p12-brand-mark,
@@ -52,52 +70,52 @@
 }
 
 .p12-public-card-page .p12-identity {
-  padding: 24px 0 22px;
+  padding: 26px 0 24px;
   text-align: center;
 }
 
 .p12-public-card-page .p12-avatar {
-  width: 82px;
-  height: 82px;
-  margin: 0 auto 16px;
-  border: 1px solid #ded8cd;
-  box-shadow: 0 10px 24px rgba(39,31,22,.08);
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 17px;
+  border: 1px solid #ddd5c8;
+  box-shadow: 0 12px 28px rgba(39,31,22,.09);
 }
 
 .p12-public-card-page .corporate-avatar-fallback.p12-avatar {
   display: grid;
   place-items: center;
-  background: #efe8d8;
-  color: #7c5c21;
+  background: linear-gradient(145deg,#f1eadb,#e8dcc4);
+  color: #76571c;
   font-size: 20px;
   font-weight: 800;
   letter-spacing: -.02em;
 }
 
 .p12-public-card-page .p12-identity-copy h1 {
-  max-width: 13ch;
+  max-width: 15ch;
   margin: 0 auto;
-  color: #181511;
-  font-size: clamp(34px, 3vw, 42px);
-  font-weight: 700;
-  line-height: 1.02;
+  color: #17130f;
+  font-size: clamp(34px, 3vw, 40px);
+  font-weight: 720;
+  line-height: 1.03;
   letter-spacing: -.045em;
   text-wrap: balance;
 }
 
 .p12-public-card-page .p12-identity-copy p {
-  margin: 8px 0 0;
-  color: #4f4942;
-  font-size: 15px;
+  margin: 9px 0 0;
+  color: #3f3933;
+  font-size: 14px;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .p12-public-card-page .p12-identity-copy > span {
   display: block;
   margin-top: 5px;
   color: #817970;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.4;
 }
 
@@ -107,144 +125,188 @@
 
 .p12-public-card-page .p12-save-contact {
   min-height: 58px;
-  margin-top: 6px;
-  padding: 9px 14px;
-  border: 1px solid #a77b22;
-  border-radius: 16px;
-  background: linear-gradient(180deg,#bd8f2d,#a97920);
-  color: #18130a;
-  box-shadow: 0 10px 22px rgba(151,108,28,.14);
+  margin-top: 4px;
+  padding: 8px 13px;
+  border: 1px solid #9d711d;
+  border-radius: 15px;
+  background: linear-gradient(180deg,#c1912e 0%,#ad7d22 100%);
+  color: #171208;
+  box-shadow: 0 9px 20px rgba(151,108,28,.15);
+  transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+}
+
+@media (hover:hover) {
+  .p12-public-card-page .p12-save-contact:hover {
+    transform: translateY(-1px);
+    filter: saturate(1.04);
+    box-shadow: 0 12px 26px rgba(151,108,28,.19);
+  }
 }
 
 .p12-public-card-page .p12-save-contact strong {
   font-size: 14px;
+  letter-spacing: -.01em;
 }
 
 .p12-public-card-page .p12-save-contact small {
   margin-top: 2px;
-  font-size: 11px;
-  opacity: .7;
+  font-size: 10.5px;
+  opacity: .72;
 }
 
 .p12-public-card-page .p12-save-icon {
   width: 40px;
   height: 40px;
-  border-radius: 12px;
+  border-radius: 11px;
+  background: rgba(255,255,255,.24);
 }
 
 .p12-public-card-page .p12-quick-actions {
   display: grid;
   grid-template-columns: repeat(4,minmax(0,1fr));
-  gap: 8px;
+  gap: 7px;
   margin-top: 10px;
+  padding: 3px;
+  border: 1px solid #e6dfd4;
+  border-radius: 15px;
+  background: #faf8f4;
 }
 
 .p12-public-card-page .p12-quick-actions a {
   min-width: 0;
-  min-height: 50px;
-  padding: 8px 4px;
-  border-radius: 13px;
+  min-height: 48px;
+  padding: 7px 4px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+}
+
+.p12-public-card-page .p12-quick-actions a + a {
+  border-left: 1px solid #e8e1d7;
+  border-radius: 0;
 }
 
 .p12-public-card-page .p12-quick-actions span {
-  font-size: 10px;
+  font-size: 9.5px;
+  font-weight: 700;
 }
 
 .p12-public-card-page .p12-section {
-  margin-top: 20px;
+  margin-top: 21px;
   padding-top: 0;
 }
 
 .p12-public-card-page .p12-section-heading {
-  min-height: 22px;
+  min-height: 20px;
   margin-bottom: 8px;
 }
 
 .p12-public-card-page .p12-section-heading h2 {
   margin: 0;
   color: #8a6727;
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 10.5px;
+  font-weight: 850;
   line-height: 1.2;
-  letter-spacing: .11em;
+  letter-spacing: .13em;
   text-transform: uppercase;
 }
 
 .p12-public-card-page .p12-contact-list {
   display: grid;
-  gap: 8px;
+  gap: 7px;
 }
 
 .p12-public-card-page .p12-contact-list > a,
 .p12-public-card-page .p12-managed-links > a {
-  min-height: 58px;
-  padding: 9px 12px;
+  min-height: 57px;
+  padding: 8px 11px;
   border: 1px solid #e3ddd3;
-  border-radius: 14px;
+  border-radius: 13px;
   background: #fff;
-  box-shadow: none;
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset;
+  transition: border-color .15s ease, background .15s ease, transform .15s ease;
+}
+
+@media (hover:hover) {
+  .p12-public-card-page .p12-contact-list > a:hover,
+  .p12-public-card-page .p12-managed-links > a:hover {
+    transform: translateY(-1px);
+    border-color: #d3c7b4;
+    background: #fdfcf9;
+  }
 }
 
 .p12-public-card-page .p12-row-icon {
-  width: 36px;
-  height: 36px;
+  width: 35px;
+  height: 35px;
   border-radius: 10px;
+  background: #f5efe2;
+  color: #8c6828;
 }
 
 .p12-public-card-page .p12-contact-list strong,
 .p12-public-card-page .p12-managed-links strong {
-  font-size: 12px;
+  font-size: 11.5px;
 }
 
 .p12-public-card-page .p12-contact-list small,
 .p12-public-card-page .p12-managed-links small {
-  font-size: 11px;
+  margin-top: 1px;
+  color: #80786f;
+  font-size: 10.5px;
 }
 
-/* Locale remains user-controlled but Turkish is the product default. The switch
- * is lifted into the card header so language no longer interrupts networking. */
+/* The switch belongs visually to the profile chrome, not the networking body.
+ * Making the networking section static lets its absolutely-positioned switch
+ * resolve against the card, which is the positioned ancestor. */
+.p12-public-card-page .p12-networking {
+  position: static;
+  margin-top: 23px;
+  padding: 19px 0 0;
+  border-top: 1px solid #e8e2d8;
+}
+
 .p12-public-card-page .p12-networking .p12-locale-switch {
   position: absolute;
   top: 28px;
   right: 30px;
   z-index: 5;
   display: inline-flex;
-  gap: 4px;
+  gap: 3px;
   margin: 0;
+  padding: 3px;
+  border: 1px solid #e1d9cd;
+  border-radius: 12px;
+  background: #faf8f4;
 }
 
 .p12-public-card-page .p12-locale-switch button {
-  min-width: 34px;
-  min-height: 34px;
-  padding: 0 8px;
-  border: 1px solid #ddd6ca;
-  border-radius: 10px;
-  background: #fff;
-  color: #6d665e;
-  font-size: 10px;
-  font-weight: 800;
+  min-width: 31px;
+  min-height: 29px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #746c63;
+  font-size: 9px;
+  font-weight: 850;
 }
 
 .p12-public-card-page .p12-locale-switch button.is-active {
-  border-color: #c6a45f;
-  background: #f4ecda;
+  background: #fff;
   color: #5d4417;
-}
-
-.p12-public-card-page .p12-networking {
-  margin-top: 22px;
-  padding: 18px 0 0;
-  border-top: 1px solid #e8e2d8;
+  box-shadow: 0 1px 4px rgba(42,34,24,.10);
 }
 
 .p12-public-card-page .p12-networking .p12-section-heading {
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 }
 
 .p12-public-card-page .p12-networking > p:not(.p12-event-badge):not(.p12-networking-message) {
+  max-width: 42ch;
   margin: 0;
-  color: #6d665e;
-  font-size: 13px;
+  color: #6a635b;
+  font-size: 12.5px;
   line-height: 1.5;
 }
 
@@ -261,19 +323,25 @@
 
 .p12-public-card-page .p12-networking-cta {
   width: 100%;
-  min-height: 48px;
-  padding: 0 12px;
-  border: 1px solid #dfd9cf;
-  border-radius: 13px;
+  min-height: 46px;
+  padding: 0 11px;
+  border: 1px solid #ded7cc;
+  border-radius: 12px;
   background: #fff;
   color: #1d1915;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 800;
+  letter-spacing: -.01em;
 }
 
 .p12-public-card-page .p12-networking-cta:first-of-type {
-  border-color: #c8a45d;
-  background: #f6efdf;
+  border-color: #aa7d27;
+  background: #ae7e25;
+  color: #fffaf0;
+}
+
+.p12-public-card-page .p12-networking-cta:last-of-type {
+  background: #faf8f4;
 }
 
 .p12-public-card-page .p12-networking-form {
@@ -285,9 +353,16 @@
 }
 
 .p12-public-card-page .p12-card-footer {
-  margin-top: 24px;
-  padding-top: 16px;
+  margin-top: 25px;
+  padding-top: 15px;
   border-top: 1px solid #e8e2d8;
+  color: #82796f;
+  font-size: 10px;
+}
+
+.p12-public-card-page .p12-card-footer a {
+  color: #8a6727;
+  font-weight: 800;
 }
 
 @media (min-width: 761px) {
@@ -303,6 +378,10 @@
     background: #fff;
   }
 
+  .p12-public-card-page::before {
+    display: none;
+  }
+
   .p12-public-card-page .p12-public-card {
     width: 100%;
     max-width: none;
@@ -315,16 +394,16 @@
   }
 
   .p12-public-card-page .p12-card-brand {
-    padding-right: 82px;
+    padding-right: 78px;
   }
 
   .p12-public-card-page .p12-networking .p12-locale-switch {
-    top: 22px;
+    top: 20px;
     right: 20px;
   }
 
   .p12-public-card-page .p12-identity {
-    padding-top: 20px;
+    padding-top: 21px;
   }
 
   .p12-public-card-page .p12-avatar {
@@ -333,12 +412,16 @@
   }
 
   .p12-public-card-page .p12-identity-copy h1 {
-    font-size: clamp(32px, 10vw, 40px);
+    font-size: clamp(31px, 9.5vw, 39px);
   }
 
   .p12-public-card-page .p12-contact-list > a,
   .p12-public-card-page .p12-managed-links > a {
-    min-height: 56px;
+    min-height: 55px;
+  }
+
+  .p12-public-card-page .p12-quick-actions {
+    gap: 3px;
   }
 }
 

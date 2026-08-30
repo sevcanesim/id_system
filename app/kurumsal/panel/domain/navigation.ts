@@ -52,7 +52,6 @@ export const CORPORATE_PANEL_TAB_ORDER: readonly CorporatePanelTab[] = [
   "analytics",
   "organization",
   "roles",
-  "settings",
   "leads",
   "events",
   "meetings",

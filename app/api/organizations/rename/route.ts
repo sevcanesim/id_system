@@ -3,12 +3,13 @@ import { z } from "zod";
 import { canRenameOrganization, isOrganizationRole } from "../../../../lib/organizations/permissions";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 
-// Şirketin görünen adını (organizations.name) değiştirir. Bu isim; kurumsal
-// panel başlığında, genel kart sayfalarında ve — "Şirket adı" alan kilidi
-// locked/suggested olduğunda — her çalışanın kart profilindeki Şirket
-// alanında görünür (bkz. save_own_card_profile RPC'sindeki
-// card_field_lock_mode kullanımı). Şablon rengi/logosundan farklı olarak
-// yalnızca OWNER değiştirebilir.
+// Şirketin görünen adını (organizations.name) değiştirir. Kurumsal kartların
+// VCF çıktısı `card_profiles.company` alanından üretildiği için, organizasyon
+// adı değiştiğinde organizasyon adını kullanan mevcut kart profilleri de aynı
+// işlem içinde senkronize edilir. Özel bir şirket adı yazılmış profiller
+// korunur; yalnızca eski organizasyon adını kullanan veya şirket alanı boş olan
+// profiller güncellenir. Şablon rengi/logosundan farklı olarak bu işlemi
+// yalnızca OWNER yapabilir.
 
 const schema = z.object({
   organizationId: z.string().uuid(),
@@ -49,9 +50,47 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Şirket adını yalnızca şirket sahibi değiştirebilir." }, { status: 403 });
   }
 
+  const { data: currentOrganization, error: currentOrganizationError } = await ctx.admin
+    .from("organizations")
+    .select("id,name")
+    .eq("id", parsed.data.organizationId)
+    .maybeSingle();
+
+  if (currentOrganizationError || !currentOrganization) {
+    return NextResponse.json({ error: "Şirket bilgisi okunamadı." }, { status: 404 });
+  }
+
+  const previousName = String(currentOrganization.name || "").trim();
+  const nextName = parsed.data.name.trim();
+
+  if (previousName === nextName) {
+    const { data: unchanged } = await ctx.admin
+      .from("organizations")
+      .select("id,name,slug,status")
+      .eq("id", parsed.data.organizationId)
+      .single();
+    return NextResponse.json({ organization: unchanged, syncedProfiles: 0 });
+  }
+
+  const { data: profiles, error: profilesError } = await ctx.admin
+    .from("card_profiles")
+    .select("id,company")
+    .eq("organization_id", parsed.data.organizationId);
+
+  if (profilesError) {
+    return NextResponse.json({ error: "Kurumsal kartlar okunamadı." }, { status: 500 });
+  }
+
+  const profileIdsToSync = (profiles || [])
+    .filter((profile) => {
+      const company = typeof profile.company === "string" ? profile.company.trim() : "";
+      return !company || company === previousName;
+    })
+    .map((profile) => profile.id);
+
   const { data, error } = await ctx.admin
     .from("organizations")
-    .update({ name: parsed.data.name })
+    .update({ name: nextName })
     .eq("id", parsed.data.organizationId)
     .select("id,name,slug,status")
     .single();
@@ -60,5 +99,21 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Şirket adı güncellenemedi." }, { status: 500 });
   }
 
-  return NextResponse.json({ organization: data });
+  if (profileIdsToSync.length > 0) {
+    const { error: profileSyncError } = await ctx.admin
+      .from("card_profiles")
+      .update({ company: nextName })
+      .in("id", profileIdsToSync)
+      .eq("organization_id", parsed.data.organizationId);
+
+    if (profileSyncError) {
+      await ctx.admin
+        .from("organizations")
+        .update({ name: previousName })
+        .eq("id", parsed.data.organizationId);
+      return NextResponse.json({ error: "Şirket adı kart profillerine yansıtılamadı. Değişiklik geri alındı." }, { status: 500 });
+    }
+  }
+
+  return NextResponse.json({ organization: data, syncedProfiles: profileIdsToSync.length });
 }

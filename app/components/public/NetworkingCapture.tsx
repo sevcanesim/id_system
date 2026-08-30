@@ -73,14 +73,7 @@ const initialForm: FormState = {
   position: "",
 };
 
-export default function NetworkingCapture({
-  profileId,
-  profileName,
-  visitorId,
-  eventId,
-  source,
-  locale,
-}: NetworkingCaptureProps) {
+export default function NetworkingCapture({ profileId, profileName, visitorId, eventId, source, locale }: NetworkingCaptureProps) {
   const resolvedLocale = locale ?? detectNetworkingLocale();
   const t = copy[resolvedLocale];
   const [mode, setMode] = useState<Mode>("idle");
@@ -94,14 +87,11 @@ export default function NetworkingCapture({
     [profileName, resolvedLocale],
   );
 
-  const update = (field: keyof FormState) => (value: string) => {
-    setForm((current) => ({ ...current, [field]: value }));
-  };
+  const update = (field: keyof FormState) => (value: string) => setForm((current) => ({ ...current, [field]: value }));
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy) return;
-
     setBusy(true);
     setError(null);
 
@@ -125,9 +115,7 @@ export default function NetworkingCapture({
           introduction: "",
         }),
       });
-
       if (!response.ok) throw new Error("lead_create_failed");
-
       setMode("success");
       setForm(initialForm);
       setShowProfessional(false);
@@ -160,50 +148,21 @@ export default function NetworkingCapture({
           <p className="p12-networking-kicker">{t.eyebrow}</p>
           <p className="p12-networking-copy">{t.intro}</p>
         </div>
-
         <form className="p12-networking-form" onSubmit={submit}>
-          <label className="p12-networking-field">
-            <span>{t.name} *</span>
-            <input autoComplete="name" maxLength={100} required value={form.fullName} onChange={(event) => update("fullName")(event.target.value)} />
-          </label>
-
-          <label className="p12-networking-field">
-            <span>{t.email} *</span>
-            <input autoComplete="email" inputMode="email" maxLength={160} required type="email" value={form.email} onChange={(event) => update("email")(event.target.value)} />
-          </label>
-
-          <label className="p12-networking-field">
-            <span>{t.phone}</span>
-            <input autoComplete="tel" inputMode="tel" maxLength={32} type="tel" value={form.phone} onChange={(event) => update("phone")(event.target.value)} />
-          </label>
-
-          <button className="p12-networking-disclosure" type="button" aria-expanded={showProfessional} onClick={() => setShowProfessional((value) => !value)}>
-            {showProfessional ? t.hideProfessional : t.addProfessional}
-          </button>
-
+          <label className="p12-networking-field"><span>{t.name} *</span><input autoComplete="name" maxLength={100} required value={form.fullName} onChange={(event) => update("fullName")(event.target.value)} /></label>
+          <label className="p12-networking-field"><span>{t.email} *</span><input autoComplete="email" inputMode="email" maxLength={160} required type="email" value={form.email} onChange={(event) => update("email")(event.target.value)} /></label>
+          <label className="p12-networking-field"><span>{t.phone}</span><input autoComplete="tel" inputMode="tel" maxLength={32} type="tel" value={form.phone} onChange={(event) => update("phone")(event.target.value)} /></label>
+          <button className="p12-networking-disclosure" type="button" aria-expanded={showProfessional} onClick={() => setShowProfessional((value) => !value)}>{showProfessional ? t.hideProfessional : t.addProfessional}</button>
           {showProfessional ? (
             <div className="p12-networking-professional">
-              <label className="p12-networking-field">
-                <span>{t.company}</span>
-                <input maxLength={120} value={form.company} onChange={(event) => update("company")(event.target.value)} />
-              </label>
-              <label className="p12-networking-field">
-                <span>{t.position}</span>
-                <input maxLength={120} value={form.position} onChange={(event) => update("position")(event.target.value)} />
-              </label>
+              <label className="p12-networking-field"><span>{t.company}</span><input maxLength={120} value={form.company} onChange={(event) => update("company")(event.target.value)} /></label>
+              <label className="p12-networking-field"><span>{t.position}</span><input maxLength={120} value={form.position} onChange={(event) => update("position")(event.target.value)} /></label>
             </div>
           ) : null}
-
           <p className="p12-networking-privacy">{t.privacy}</p>
           {error ? <p className="p12-networking-error" role="alert">{error}</p> : null}
-
           <button className="p12-networking-primary" type="submit" disabled={busy}>{busy ? t.submitting : t.submit}</button>
-          <button className="p12-networking-cancel" type="button" onClick={() => {
-            if (busy) return;
-            setMode("idle");
-            setError(null);
-            setShowProfessional(false);
-          }}>{t.cancel}</button>
+          <button className="p12-networking-cancel" type="button" onClick={() => { if (busy) return; setMode("idle"); setError(null); setShowProfessional(false); }}>{t.cancel}</button>
         </form>
       </section>
     );

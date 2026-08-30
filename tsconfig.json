@@ -30,11 +30,6 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "tugfer_refs_light",
-    "tugfer-demir-site",
-    "tests/e2e",
-    "playwright.config.ts",
-    "tests"
+    "node_modules"
   ]
 }

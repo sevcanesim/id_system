@@ -129,7 +129,10 @@
     "verify:typography": "node scripts/verify-typography-system.mjs",
     "verify:p0:corporate-resilience": "node scripts/verify-p0-corporate-resilience.mjs",
     "verify:premium-components": "node scripts/verify-premium-components-v45.mjs",
-    "verify:panel-master": "node scripts/verify-panel-master-contract.mjs"
+    "verify:panel-master": "node scripts/verify-panel-master-contract.mjs",
+    "test:e2e": "playwright test",
+    "test:critical": "npm run test:e2e",
+    "audit:maintainability": "node scripts/audit-maintainability.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.53.0",
@@ -141,6 +144,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/node": "^22.15.18",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^19.0.10",

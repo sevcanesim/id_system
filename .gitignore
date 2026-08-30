@@ -21,3 +21,8 @@ supabase/config.toml
 supabase/.gitignore
 # Supabase local temp
 supabase/.temp/
+
+# Playwright runtime artifacts
+/test-results/
+/playwright-report/
+/blob-report/

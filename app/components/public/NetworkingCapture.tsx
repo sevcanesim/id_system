@@ -1,214 +1,252 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { detectNetworkingLocale, type NetworkingLocale } from "../../../lib/networking/catalog";
+import { useMemo, useState } from "react";
+import { detectNetworkingLocale, type NetworkingLocale } from "@/app/lib/networking-i18n";
 
-type Copy = {
-  stayInTouch: string;
-  stayBody: string;
-  share: string;
-  shareHint: string;
-  qrOption: string;
-  qrHint: string;
-  qrExplanation: string;
-  qrYenomi: string;
-  qrOther: string;
-  language: string;
-  name: string;
+type NetworkingCaptureProps = {
+  profileId: string;
+  profileName?: string | null;
+  visitorId?: string | null;
+  eventId?: string | null;
+  source?: string | null;
+  locale?: NetworkingLocale;
+};
+
+type FormState = {
+  fullName: string;
   email: string;
+  phone: string;
   company: string;
   position: string;
-  phone: string;
-  submit: string;
-  success: string;
-  privacy: string;
-  back: string;
 };
 
-const COPY: Record<NetworkingLocale, Copy> = {
+type Mode = "idle" | "share" | "success";
+
+const copy = {
   tr: {
-    stayInTouch: "Bağlantı Kur",
-    stayBody: "Bilgilerinizi paylaşın. Tanışma sonrası iletişimi kart sahibi yönetsin.",
-    share: "İletişim Bilgilerimi Paylaş",
-    shareHint: "Ad, e-posta ve telefonunuzu kart sahibine iletin",
-    qrOption: "QR Kartımı Paylaş",
-    qrHint: "Dijital kartınız varsa bilgilerinizi form doldurmadan aktarın",
-    qrExplanation: "QR kartınızı kart sahibine gösterin. Yenomi kartları doğrudan eşleşir; vCard veya uyumlu dijital kartlar kişi kaydına dönüştürülebilir.",
-    qrYenomi: "Yenomi QR: doğrudan bağlantı",
-    qrOther: "vCard / uyumlu QR: kişi bilgilerini aktar",
-    language: "Dil",
+    eyebrow: "BAĞLANTI KUR",
+    intro: "Tanıştıysak iletişimde kalalım.",
+    share: "Bilgilerimi Paylaş",
     name: "Ad Soyad",
     email: "E-posta",
+    phone: "Telefon",
     company: "Şirket",
     position: "Pozisyon",
-    phone: "Telefon",
-    submit: "Bilgilerimi Paylaş",
-    success: "iletişim bilgilerinizi aldı. Bundan sonraki aksiyonu kart sahibi yönetecek.",
+    addProfessional: "+ Profesyonel bilgi ekle",
+    hideProfessional: "Profesyonel bilgileri gizle",
     privacy: "Bilgileriniz yalnızca bağlantı kurduğunuz kart sahibiyle paylaşılır.",
-    back: "Geri",
+    submit: "Bilgilerimi Paylaş",
+    cancel: "Vazgeç",
+    submitting: "Paylaşılıyor…",
+    successTitle: "Bağlantı kuruldu",
+    successBody: (name: string) => `Bilgileriniz ${name} ile paylaşıldı.`,
+    done: "Tamam",
+    error: "Bilgileriniz şu anda paylaşılamadı. Lütfen tekrar deneyin.",
   },
   en: {
-    stayInTouch: "Connect",
-    stayBody: "Share your details and let the card owner manage the follow-up.",
-    share: "Share My Contact",
-    shareHint: "Send your name, email and phone to the card owner",
-    qrOption: "Share My QR Card",
-    qrHint: "Use your digital card instead of filling out a form",
-    qrExplanation: "Show your QR card to the card owner. Yenomi cards connect directly; vCard or compatible digital cards can be converted into a contact record.",
-    qrYenomi: "Yenomi QR: direct connection",
-    qrOther: "vCard / compatible QR: import contact details",
-    language: "Language",
+    eyebrow: "CONNECT",
+    intro: "Let's stay in touch.",
+    share: "Share My Details",
     name: "Full name",
     email: "Email",
+    phone: "Phone",
     company: "Company",
     position: "Position",
-    phone: "Phone",
-    submit: "Share My Contact",
-    success: "received your contact details. The card owner will manage the next action.",
-    privacy: "Your details are shared only with the card owner you connected with.",
-    back: "Back",
+    addProfessional: "+ Add professional details",
+    hideProfessional: "Hide professional details",
+    privacy: "Your details are shared only with the card owner you are connecting with.",
+    submit: "Share My Details",
+    cancel: "Cancel",
+    submitting: "Sharing…",
+    successTitle: "Connected",
+    successBody: (name: string) => `Your details were shared with ${name}.`,
+    done: "Done",
+    error: "Your details could not be shared right now. Please try again.",
   },
-};
+} as const;
 
-function visitorId() {
-  const key = "yenomi_vid";
-  try {
-    const existing = window.localStorage.getItem(key);
-    if (existing) return existing;
-    const created = crypto.randomUUID();
-    window.localStorage.setItem(key, created);
-    return created;
-  } catch {
-    return crypto.randomUUID();
-  }
-}
+const initialForm: FormState = {
+  fullName: "",
+  email: "",
+  phone: "",
+  company: "",
+  position: "",
+};
 
 export default function NetworkingCapture({
   profileId,
   profileName,
-  organizationName,
+  visitorId,
   eventId,
-  eventName,
-  source = "QR",
-  locale: localeProp,
-  onLocaleChange,
-}: {
-  profileId: string;
-  profileName: string;
-  organizationName?: string | null;
-  eventId?: string | null;
-  eventName?: string | null;
-  source?: "QR" | "NFC" | "EVENT" | "SHARE";
-  locale?: NetworkingLocale;
-  onLocaleChange?: (locale: NetworkingLocale) => void;
-}) {
-  const [internalLocale, setInternalLocale] = useState<NetworkingLocale>(localeProp || "tr");
-  const locale = localeProp || internalLocale;
-  const setLocale = onLocaleChange || setInternalLocale;
-  const [mode, setMode] = useState<"idle" | "share" | "qr">("idle");
+  source,
+  locale,
+}: NetworkingCaptureProps) {
+  const resolvedLocale = locale ?? detectNetworkingLocale();
+  const t = copy[resolvedLocale];
+  const [mode, setMode] = useState<Mode>("idle");
+  const [form, setForm] = useState<FormState>(initialForm);
+  const [showProfessional, setShowProfessional] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState("");
-  const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    company: "",
-    position: "",
-    phone: "",
-  });
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (localeProp) return;
-    setInternalLocale(detectNetworkingLocale(navigator.language));
-  }, [localeProp]);
+  const ownerName = useMemo(() => profileName?.trim() || (resolvedLocale === "tr" ? "kart sahibi" : "the card owner"), [profileName, resolvedLocale]);
 
-  const copy = COPY[locale];
-  const company = organizationName || profileName;
+  const update = (field: keyof FormState) => (value: string) => {
+    setForm((current) => ({ ...current, [field]: value }));
+  };
 
-  async function submit() {
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy) return;
+
     setBusy(true);
-    setMessage("");
+    setError(null);
+
     try {
       const response = await fetch("/api/networking/leads", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           profileId,
-          visitorId: visitorId(),
-          eventId: eventId || undefined,
-          source: eventId ? "EVENT" : source,
-          locale,
+          visitorId,
+          eventId,
+          source,
+          locale: resolvedLocale,
           requestMeeting: false,
           fullName: form.fullName,
           email: form.email,
+          phone: form.phone,
           company: form.company,
           position: form.position,
-          phone: form.phone,
           interests: [],
           introduction: "",
         }),
       });
-      const payload = await response.json() as { error?: string };
-      if (!response.ok) {
-        setMessage(payload.error || copy.submit);
-        return;
-      }
-      setMode("idle");
-      setMessage(`${company} ${copy.success}`);
+
+      if (!response.ok) throw new Error("lead_create_failed");
+
+      setMode("success");
+      setForm(initialForm);
+      setShowProfessional(false);
+    } catch {
+      setError(t.error);
     } finally {
       setBusy(false);
     }
   }
 
-  return (
-    <section className="p12-section p12-networking" aria-labelledby="p12-networking-title">
-      <div className="p12-section-heading">
-        <h2 id="p12-networking-title">{copy.stayInTouch}</h2>
-        <div className="p12-locale-switch" role="group" aria-label={copy.language}>
-          <button type="button" className={locale === "tr" ? "is-active" : ""} onClick={() => setLocale("tr")}>TR</button>
-          <button type="button" className={locale === "en" ? "is-active" : ""} onClick={() => setLocale("en")}>EN</button>
-        </div>
-      </div>
-      {eventName && <p className="p12-event-badge">{eventName}</p>}
-      <p>{copy.stayBody}</p>
-
-      {mode === "idle" && (
-        <div className="p12-networking-actions">
-          <button type="button" className="p12-networking-cta" onClick={() => setMode("share")}>
-            <strong>{copy.share}</strong>
-            <span>{copy.shareHint}</span>
-          </button>
-          <button type="button" className="p12-networking-cta p12-networking-cta-secondary" onClick={() => setMode("qr")}>
-            <strong>{copy.qrOption}</strong>
-            <span>{copy.qrHint}</span>
-          </button>
-        </div>
-      )}
-
-      {mode === "share" && (
-        <form className="p12-networking-form" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
-          <label>{copy.name}<input required autoComplete="name" value={form.fullName} onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))} /></label>
-          <label>{copy.email}<input required type="email" autoComplete="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} /></label>
-          <label>{copy.phone}<input type="tel" autoComplete="tel" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} /></label>
-          <label>{copy.company}<input autoComplete="organization" value={form.company} onChange={(event) => setForm((current) => ({ ...current, company: event.target.value }))} /></label>
-          <label>{copy.position}<input autoComplete="organization-title" value={form.position} onChange={(event) => setForm((current) => ({ ...current, position: event.target.value }))} /></label>
-          <p className="p12-networking-privacy">{copy.privacy}</p>
-          <button type="submit" disabled={busy}>{busy ? "…" : copy.submit}</button>
-          <button type="button" className="p12-networking-back" onClick={() => setMode("idle")}>{copy.back}</button>
-        </form>
-      )}
-
-      {mode === "qr" && (
-        <div className="p12-networking-qr" role="region" aria-label={copy.qrOption}>
-          <p>{copy.qrExplanation}</p>
-          <div className="p12-networking-qr-options">
-            <span>{copy.qrYenomi}</span>
-            <span>{copy.qrOther}</span>
+  if (mode === "success") {
+    return (
+      <section className="p12-networking" aria-live="polite">
+        <div className="p12-networking-success">
+          <div className="p12-networking-success-mark" aria-hidden="true">✓</div>
+          <div>
+            <p className="p12-networking-kicker">{t.successTitle}</p>
+            <p className="p12-networking-copy">{t.successBody(ownerName)}</p>
           </div>
-          <button type="button" className="p12-networking-back" onClick={() => setMode("idle")}>{copy.back}</button>
         </div>
-      )}
+        <button className="p12-networking-primary" type="button" onClick={() => setMode("idle")}>{t.done}</button>
+      </section>
+    );
+  }
 
-      {message && <p className="p12-networking-message" role="status">{message}</p>}
+  if (mode === "share") {
+    return (
+      <section className="p12-networking">
+        <div className="p12-networking-heading">
+          <p className="p12-networking-kicker">{t.eyebrow}</p>
+          <p className="p12-networking-copy">{t.intro}</p>
+        </div>
+
+        <form className="p12-networking-form" onSubmit={submit}>
+          <label className="p12-networking-field">
+            <span>{t.name} *</span>
+            <input
+              autoComplete="name"
+              maxLength={100}
+              required
+              value={form.fullName}
+              onChange={(event) => update("fullName")(event.target.value)}
+            />
+          </label>
+
+          <label className="p12-networking-field">
+            <span>{t.email} *</span>
+            <input
+              autoComplete="email"
+              inputMode="email"
+              maxLength={160}
+              required
+              type="email"
+              value={form.email}
+              onChange={(event) => update("email")(event.target.value)}
+            />
+          </label>
+
+          <label className="p12-networking-field">
+            <span>{t.phone}</span>
+            <input
+              autoComplete="tel"
+              inputMode="tel"
+              maxLength={32}
+              type="tel"
+              value={form.phone}
+              onChange={(event) => update("phone")(event.target.value)}
+            />
+          </label>
+
+          <button
+            className="p12-networking-disclosure"
+            type="button"
+            aria-expanded={showProfessional}
+            onClick={() => setShowProfessional((value) => !value)}
+          >
+            {showProfessional ? t.hideProfessional : t.addProfessional}
+          </button>
+
+          {showProfessional ? (
+            <div className="p12-networking-professional">
+              <label className="p12-networking-field">
+                <span>{t.company}</span>
+                <input maxLength={120} value={form.company} onChange={(event) => update("company")(event.target.value)} />
+              </label>
+              <label className="p12-networking-field">
+                <span>{t.position}</span>
+                <input maxLength={120} value={form.position} onChange={(event) => update("position")(event.target.value)} />
+              </label>
+            </div>
+          ) : null}
+
+          <p className="p12-networking-privacy">{t.privacy}</p>
+          {error ? <p className="p12-networking-error" role="alert">{error}</p> : null}
+
+          <button className="p12-networking-primary" type="submit" disabled={busy}>
+            {busy ? t.submitting : t.submit}
+          </button>
+          <button
+            className="p12-networking-cancel"
+            type="button"
+            onClick={() => {
+              if (busy) return;
+              setMode("idle");
+              setError(null);
+              setShowProfessional(false);
+            }}
+          >
+            {t.cancel}
+          </button>
+        </form>
+      </section>
+    );
+  }
+
+  return (
+    <section className="p12-networking">
+      <div className="p12-networking-heading">
+        <p className="p12-networking-kicker">{t.eyebrow}</p>
+        <p className="p12-networking-copy">{t.intro}</p>
+      </div>
+      <button className="p12-networking-primary" type="button" onClick={() => setMode("share")}>{t.share}</button>
     </section>
   );
 }

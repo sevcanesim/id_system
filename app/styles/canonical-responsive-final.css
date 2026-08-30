@@ -1610,3 +1610,39 @@
     z-index: 3;
   }
 }
+
+@media (max-width: 760px) {
+  .home-package-matrix {
+    min-width: 0;
+  }
+
+  .home-package-matrix__scroll {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+    contain: paint;
+  }
+
+  .home-package-matrix__table {
+    width: 900px;
+    min-width: 900px;
+    max-width: none;
+  }
+
+  .home-sales-comparison-table {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .home-sales-comparison-header,
+  .home-sales-comparison-row {
+    min-width: 580px;
+  }
+}

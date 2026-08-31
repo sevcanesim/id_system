@@ -18,19 +18,83 @@ jobs:
         with:
           ref: refactor/master-responsive-zero-regression
           fetch-depth: 0
-      - name: Remove blank-only lines without changing CSS tokens or order
+      - name: Normalize formatting without changing CSS tokens or order
         run: |
           python - <<'PY'
           from pathlib import Path
+
           path = Path('app/styles/canonical-responsive-final.css')
           source = path.read_text()
-          lines = source.splitlines()
-          compact = '\n'.join(line for line in lines if line.strip()) + '\n'
+          out = []
+          quote = None
+          escaped = False
+          in_comment = False
+          pending_space = False
+          index = 0
+
+          while index < len(source):
+              char = source[index]
+              nxt = source[index + 1] if index + 1 < len(source) else ''
+
+              if in_comment:
+                  out.append(char)
+                  if char == '*' and nxt == '/':
+                      out.append('/')
+                      index += 2
+                      in_comment = False
+                      pending_space = True
+                      continue
+                  index += 1
+                  continue
+
+              if quote:
+                  out.append(char)
+                  if escaped:
+                      escaped = False
+                  elif char == '\\':
+                      escaped = True
+                  elif char == quote:
+                      quote = None
+                  index += 1
+                  continue
+
+              if char == '/' and nxt == '*':
+                  if pending_space and out and not out[-1].endswith((' ', '\n')):
+                      out.append(' ')
+                  pending_space = False
+                  out.extend(['/', '*'])
+                  index += 2
+                  in_comment = True
+                  continue
+
+              if char in ('"', "'"):
+                  if pending_space and out and not out[-1].endswith((' ', '\n')):
+                      out.append(' ')
+                  pending_space = False
+                  quote = char
+                  out.append(char)
+                  index += 1
+                  continue
+
+              if char.isspace():
+                  pending_space = True
+                  index += 1
+                  continue
+
+              if pending_space and out and not out[-1].endswith((' ', '\n')) and char not in ('}', ';', ',', ':'):
+                  out.append(' ')
+              pending_space = False
+              out.append(char)
+              if char == '}':
+                  out.append('\n')
+              index += 1
+
+          compact = ''.join(out).strip() + '\n'
           count = compact.count('\n')
           if count > 1500:
-              raise SystemExit(f'Formatting-only compaction is insufficient: {count} lines')
+              raise SystemExit(f'Parser-safe formatting compaction is insufficient: {count} lines')
           path.write_text(compact)
-          print(f'canonical-responsive-final.css: {len(lines)} -> {count} lines')
+          print(f'canonical-responsive-final.css: {len(source.splitlines())} -> {count} lines')
           PY
       - name: Commit formatting-only normalization
         run: |

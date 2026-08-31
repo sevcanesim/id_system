@@ -4,7 +4,6 @@ import { PageLoadingView } from "../../components/ui/States";
 import "./analytics-polish.css";
 import "./shell-chrome-fix.css";
 import "./organization-structure-polish.css";
-import "./sidebar-footer-fix.css";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (

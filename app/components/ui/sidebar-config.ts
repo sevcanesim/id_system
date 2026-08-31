@@ -1,10 +1,8 @@
 import type { IconName } from "../../icons";
 import { normalizeOrganizationRole, type OrganizationRole } from "../../../lib/organizations/permissions";
+import type { SidebarAvailability } from "./sidebar.types";
 
 export type SidebarRole = OrganizationRole | "HR_MANAGER";
-export type SidebarScope = "individual" | "corporate";
-export type SidebarAvailability = "enabled" | "disabled" | "hidden";
-export type SidebarSectionStatusMap = Partial<Record<string, SidebarAvailability>>;
 
 export type SidebarConfigItem = {
   key: string;
@@ -13,9 +11,10 @@ export type SidebarConfigItem = {
   icon: IconName;
   group?: string;
   activeWhen?: string[];
-  /** Özelliğin navigasyondaki kullanılabilirliği. Route aktifliğiyle karıştırılmamalıdır. */
-  status?: SidebarAvailability;
-  /** UI görünürlüğü; server authorization bunun yerine geçmez. */
+  /** Feature availability is presentation state only; current-route state is resolved separately. */
+  availability?: SidebarAvailability;
+  disabledReason?: string;
+  /** UI visibility; server/RLS/API authorization remains authoritative. */
   roles?: readonly SidebarRole[];
 };
 
@@ -37,7 +36,6 @@ export const CORPORATE_SIDEBAR_CONFIG = [
   { key: "meetings", href: "/kurumsal/panel/gorusmeler", label: "Görüşmeler", icon: "headset", group: "NETWORKING", roles: CORPORATE_ADMIN },
 ] satisfies readonly SidebarConfigItem[];
 
-/** Shared personal-workspace nav. Live DashboardShell and the AppShell PanelSidebar artifact both consume this. */
 export const INDIVIDUAL_SIDEBAR_CONFIG = [
   { key: "home", href: "/kartlarim", label: "Genel Bakış", icon: "analytics", group: "KİMLİK" },
   { key: "card", href: "/kartim", label: "Dijital Kart", icon: "id", group: "KİMLİK" },
@@ -73,7 +71,6 @@ export type SidebarItemGroup<T extends { group?: string }> = {
   items: T[];
 };
 
-/** Consecutive items that share a group label become one sidebar section. */
 export function groupSidebarItems<T extends { group?: string }>(items: readonly T[]): SidebarItemGroup<T>[] {
   const groups: SidebarItemGroup<T>[] = [];
   for (const item of items) {

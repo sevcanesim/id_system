@@ -6,8 +6,8 @@ import { ReactNode, useEffect, useId, useState } from "react";
 import { Icon } from "../../icons";
 import { AdminPageHeader, Button, ButtonLink } from "./DesignSystem";
 import PanelSidebar from "./PanelSidebar";
-import type { SidebarNavItem } from "./SidebarNav";
 import { INDIVIDUAL_SIDEBAR_CONFIG } from "./sidebar-config";
+import { resolveSidebarItems } from "./sidebar-state";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 
 export type AppShellNavKey = (typeof INDIVIDUAL_SIDEBAR_CONFIG)[number]["key"];
@@ -25,10 +25,8 @@ export default function AppShell({ title, description, eyebrow, actions = [], ch
   const menuButtonId = useId();
   const sidebarId = `${menuButtonId.replace(/:/g, "")}-sidebar`;
   const [mobileOpen, setMobileOpen] = useState(false);
-  // Kurumsal lisansla yönetilen bireysel hesaplarda yıllık yenileme kendi
-  // hesabından değil şirketin lisansından yürütülür; bu durumda "Abonelik"
-  // sekmesinin erişimi yoktur ve sidebar'da gizlenir.
   const [hasCorporateSubscription, setHasCorporateSubscription] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -43,12 +41,16 @@ export default function AppShell({ title, description, eyebrow, actions = [], ch
         const body = (await response.json()) as { organizations?: unknown[] };
         if (!cancelled) setHasCorporateSubscription(Boolean(body.organizations?.length));
       } catch {
-        // Sessizce yok say — erişim kontrolü başarısız olursa varsayılan
-        // olarak sekme gösterilmeye devam eder.
+        // Navigation remains available if organization lookup fails.
       }
     })();
     return () => { cancelled = true; };
   }, []);
+
+  const sidebarItems = resolveSidebarItems(INDIVIDUAL_SIDEBAR_CONFIG, {
+    scope: "individual",
+    hasCorporateSubscription,
+  });
 
   return <main id="main-content" className="p7-shell" data-surface="dashboard" data-ui-context="dashboard">
     <button id={menuButtonId} className="p7-menu-button" type="button" aria-label={mobileOpen ? "Menüyü kapat" : "Menüyü aç"} aria-controls={sidebarId} aria-expanded={mobileOpen} onClick={() => setMobileOpen((value) => !value)}>
@@ -64,12 +66,9 @@ export default function AppShell({ title, description, eyebrow, actions = [], ch
       brandHref="/kartlarim"
       open={mobileOpen}
       onClose={() => setMobileOpen(false)}
-      activeKey={activeKey ?? INDIVIDUAL_SIDEBAR_CONFIG.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))?.key}
+      activeKey={activeKey ?? sidebarItems.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))?.key}
       storageKey="yenomi:individual-sidebar:collapsed"
-      items={INDIVIDUAL_SIDEBAR_CONFIG.map<SidebarNavItem>((item) => ({
-          ...item,
-          hidden: item.key === "subscription" && hasCorporateSubscription,
-      }))}
+      items={sidebarItems}
     >
       <div className="enterprise-side-links enterprise-side-management canonical-personal-support">
         <a href="mailto:hello@yenomilabs.com"><Icon name="headset" /><span>Destek</span></a>

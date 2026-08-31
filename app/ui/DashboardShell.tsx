@@ -1,14 +1,22 @@
 "use client";
+
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useId, useEffect, useState, type ReactNode } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { validateCardWorkspace, validatePortal, type PortalCheckResult } from "../../lib/auth/portal-guard";
 import { clearLegacyCart, setCartOwner } from "../../lib/cart";
 import { writeSessionCookie } from "../components/AuthSessionBridge";
-import IndividualSidebar from "../components/IndividualSidebar";
+import PanelSidebar from "../components/ui/PanelSidebar";
+import { INDIVIDUAL_SIDEBAR_CONFIG } from "../components/ui/sidebar-config";
 
-type ShellAction = { href?: string; label: string; primary?: boolean; onClick?: () => void; disabled?: boolean };
+type ShellAction = {
+  href?: string;
+  label: string;
+  primary?: boolean;
+  onClick?: () => void;
+  disabled?: boolean;
+};
 
 export default function DashboardShell({
   title,
@@ -40,6 +48,7 @@ export default function DashboardShell({
       setPortalState("allowed");
       return;
     }
+
     void (async () => {
       const { data } = await sb.auth.getUser();
       if (!data.user) {
@@ -49,34 +58,38 @@ export default function DashboardShell({
         }
         return;
       }
-      const result: PortalCheckResult =
-        portal === "individual"
-          ? await validateCardWorkspace(sb, data.user.id)
-          : await validatePortal(sb, data.user.id, portal);
-      if (cancelled) return;
-      if (result.ok) {
-        setEmail(data.user.email || "");
-        setPortalState("allowed");
 
-        const sessionRes = await sb.auth.getSession();
-        const token = sessionRes.data.session?.access_token;
-        if (token) {
-          try {
-            const orgRes = await fetch("/api/organizations/mine", {
-              headers: { authorization: `Bearer ${token}` },
-              cache: "no-store",
-            });
-            if (orgRes.ok) {
-              const body = (await orgRes.json()) as { organizations?: unknown[] };
-              if (!cancelled) setHasCorporateSubscription(Boolean(body.organizations?.length));
-            }
-          } catch {}
-        }
-      } else {
+      const result: PortalCheckResult = portal === "individual"
+        ? await validateCardWorkspace(sb, data.user.id)
+        : await validatePortal(sb, data.user.id, portal);
+
+      if (cancelled) return;
+      if (!result.ok) {
         setPortalState("denied");
         window.location.replace(portal === "individual" ? "/kurumsal/panel" : "/kartlarim");
+        return;
+      }
+
+      setEmail(data.user.email || "");
+      setPortalState("allowed");
+
+      const sessionRes = await sb.auth.getSession();
+      const token = sessionRes.data.session?.access_token;
+      if (!token) return;
+
+      try {
+        const orgRes = await fetch("/api/organizations/mine", {
+          headers: { authorization: `Bearer ${token}` },
+          cache: "no-store",
+        });
+        if (!orgRes.ok || cancelled) return;
+        const body = (await orgRes.json()) as { organizations?: unknown[] };
+        setHasCorporateSubscription(Boolean(body.organizations?.length));
+      } catch {
+        // Organization lookup is advisory for navigation visibility only.
       }
     })();
+
     return () => {
       cancelled = true;
     };
@@ -104,6 +117,9 @@ export default function DashboardShell({
     );
   }
 
+  const accountMeta = email || "Bireysel Hesap";
+  const accountInitials = accountMeta.trim().charAt(0).toLocaleUpperCase("tr-TR") || "Y";
+
   return (
     <main className={`yi-app yi-app--${portal} enterprise-dashboard-shell p7-shell`}>
       <button
@@ -113,20 +129,26 @@ export default function DashboardShell({
         aria-label={mobileOpen ? "Menüyü kapat" : "Menüyü aç"}
         aria-controls={sidebarId}
         aria-expanded={mobileOpen}
-        onClick={() => setMobileOpen((val) => !val)}
+        onClick={() => setMobileOpen((value) => !value)}
       >
         <span />
         <span />
         <span />
       </button>
 
-      <IndividualSidebar
+      <PanelSidebar
         id={sidebarId}
-        email={email}
+        scope="individual"
+        ariaLabel="Bireysel hesap menüsü"
+        subtitle="Bireysel Panel"
+        brandHref="/kartlarim"
+        items={INDIVIDUAL_SIDEBAR_CONFIG}
         hasCorporateSubscription={hasCorporateSubscription}
+        account={{ name: "Bireysel Hesap", meta: accountMeta, initials: accountInitials }}
         onSignOut={signOut}
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
+        className="id-sidebar--individual"
       />
 
       <section className="yi-app__main p7-workspace">
@@ -147,27 +169,25 @@ export default function DashboardShell({
             {description && <p>{description}</p>}
             {actions.length > 0 && (
               <div className="yi-actions">
-                {actions.map((a, i) =>
-                  a.href ? (
-                    <Link
-                      key={`${a.href}-${i}`}
-                      className={`yi-btn ${a.primary ? "yi-btn--primary" : "yi-btn--secondary"}`}
-                      href={a.href}
-                    >
-                      {a.label}
-                    </Link>
-                  ) : (
-                    <button
-                      key={`${a.label}-${i}`}
-                      type="button"
-                      className={`yi-btn ${a.primary ? "yi-btn--primary" : "yi-btn--secondary"}`}
-                      onClick={a.onClick}
-                      disabled={a.disabled}
-                    >
-                      {a.label}
-                    </button>
-                  ),
-                )}
+                {actions.map((action, index) => action.href ? (
+                  <Link
+                    key={`${action.href}-${index}`}
+                    className={`yi-btn ${action.primary ? "yi-btn--primary" : "yi-btn--secondary"}`}
+                    href={action.href}
+                  >
+                    {action.label}
+                  </Link>
+                ) : (
+                  <button
+                    key={`${action.label}-${index}`}
+                    type="button"
+                    className={`yi-btn ${action.primary ? "yi-btn--primary" : "yi-btn--secondary"}`}
+                    onClick={action.onClick}
+                    disabled={action.disabled}
+                  >
+                    {action.label}
+                  </button>
+                ))}
               </div>
             )}
           </div>

@@ -1,13 +1,12 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useId, useEffect, useState, type ReactNode } from "react";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { validateCardWorkspace, validatePortal, type PortalCheckResult } from "../../lib/auth/portal-guard";
-import { INDIVIDUAL_SIDEBAR_CONFIG } from "../components/ui/sidebar-config";
-import PanelSidebar from "../components/ui/PanelSidebar";
-import type { SidebarNavItem } from "../components/ui/SidebarNav";
-import { Icon } from "../icons";
+import { clearLegacyCart, setCartOwner } from "../../lib/cart";
+import { writeSessionCookie } from "../components/AuthSessionBridge";
+import IndividualSidebar from "../components/IndividualSidebar";
 
 type ShellAction = { href?: string; label: string; primary?: boolean; onClick?: () => void; disabled?: boolean };
 
@@ -17,7 +16,6 @@ export default function DashboardShell({
   children,
   actions = [],
   portal = "individual",
-  activeKey,
 }: {
   title: string;
   description?: string;
@@ -27,6 +25,7 @@ export default function DashboardShell({
   activeKey?: string;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const menuButtonId = useId();
   const sidebarId = `${menuButtonId.replace(/:/g, "")}-sidebar`;
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -71,9 +70,7 @@ export default function DashboardShell({
               const body = (await orgRes.json()) as { organizations?: unknown[] };
               if (!cancelled) setHasCorporateSubscription(Boolean(body.organizations?.length));
             }
-          } catch {
-            // Sessizce yok say
-          }
+          } catch {}
         }
       } else {
         setPortalState("denied");
@@ -85,7 +82,18 @@ export default function DashboardShell({
     };
   }, [pathname, portal]);
 
-  if (portalState !== "allowed")
+  async function signOut() {
+    const supabase = getSupabaseBrowserClient();
+    if (supabase) await supabase.auth.signOut();
+    await writeSessionCookie(null);
+    clearLegacyCart();
+    setCartOwner(null, { claimGuest: false });
+    setMobileOpen(false);
+    router.replace(`/giris?portal=${portal}`);
+    router.refresh();
+  }
+
+  if (portalState !== "allowed") {
     return (
       <main className="yi-app yi-app--loading" aria-busy="true">
         <div className="yi-app__loading" role="status" aria-live="polite">
@@ -94,12 +102,7 @@ export default function DashboardShell({
         </div>
       </main>
     );
-
-  const calculatedActiveKey =
-    activeKey ??
-    INDIVIDUAL_SIDEBAR_CONFIG.find(
-      (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
-    )?.key;
+  }
 
   return (
     <main className={`yi-app yi-app--${portal} enterprise-dashboard-shell p7-shell`}>
@@ -116,43 +119,14 @@ export default function DashboardShell({
         <span />
         <span />
       </button>
-      {mobileOpen && (
-        <button
-          className="p7-backdrop"
-          type="button"
-          aria-label="Menüyü kapat"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
 
-      <PanelSidebar
-        ariaLabel="Kullanıcı paneli navigasyonu"
-        id={sidebarId}
-        labelledBy={menuButtonId}
-        subtitle="Kimlik Stüdyosu"
-        brandHref="/kartlarim"
-        className={portal === "individual" ? "canonical-panel-sidebar--individual" : undefined}
+      <IndividualSidebar
+        email={email}
+        hasCorporateSubscription={hasCorporateSubscription}
+        onSignOut={signOut}
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
-        activeKey={calculatedActiveKey}
-        collapsibleGroups={portal !== "individual"}
-        storageKey="yenomi:individual-sidebar:collapsed"
-        items={INDIVIDUAL_SIDEBAR_CONFIG.map<SidebarNavItem>((item) => ({
-          ...item,
-          hidden: item.key === "subscription" && hasCorporateSubscription,
-        }))}
-      >
-        <div className="enterprise-side-links enterprise-side-management canonical-personal-support">
-          <a href="mailto:hello@yenomilabs.com">
-            <Icon name="headset" />
-            <span>Destek</span>
-          </a>
-          <a href="https://www.yenomilabs.com" target="_blank" rel="noopener noreferrer">
-            <Icon name="external" />
-            <span>Yenomilabs</span>
-          </a>
-        </div>
-      </PanelSidebar>
+      />
 
       <section className="yi-app__main p7-workspace">
         <header className="yi-app__top p7-topbar">

@@ -1,0 +1,168 @@
+/* Corporate content editor — dense, readable publication history and action layout. */
+.p10-corporate-platform .corp-link-section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.p10-corporate-platform .corp-link-section-heading > span {
+  font-size: var(--type-sm);
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.p10-corporate-platform .corp-link-section-heading > small {
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+.p10-corporate-platform .corp-link-section-heading > small strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.p10-corporate-platform .corp-link-history > summary {
+  min-height: var(--control-height-md);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-secondary);
+}
+
+.p10-corporate-platform .corp-link-history > summary > span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.p10-corporate-platform .corp-link-history > summary small {
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.p10-corporate-platform .corp-link-history > ol {
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.p10-corporate-platform .corp-link-history__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(11rem, auto) auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.p10-corporate-platform .corp-link-history__item:last-child {
+  border-bottom: 0;
+}
+
+.p10-corporate-platform .corp-link-history__main,
+.p10-corporate-platform .corp-link-history__publication {
+  min-width: 0;
+}
+
+.p10-corporate-platform .corp-link-history__main > strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+
+.p10-corporate-platform .corp-link-history__main > small,
+.p10-corporate-platform .corp-link-history__publication > small {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--text-secondary);
+}
+
+.p10-corporate-platform .corp-link-history__publication {
+  text-align: right;
+}
+
+.p10-corporate-platform .corp-link-history__state {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--space-6);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  font-size: var(--type-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.p10-corporate-platform .corp-link-history__state.published {
+  color: var(--success);
+  background: var(--success-subtle);
+  border-color: color-mix(in srgb, var(--success) 24%, var(--border));
+}
+
+.p10-corporate-platform .corp-link-history__state.scheduled {
+  color: var(--brand-gold-deep);
+  background: var(--brand-gold-soft);
+  border-color: color-mix(in srgb, var(--brand-gold) 28%, var(--border));
+}
+
+.p10-corporate-platform .corp-link-history__state.draft {
+  color: var(--text-secondary);
+}
+
+@media (max-width: 68.75rem) {
+  .p10-corporate-platform .corp-link-history__item {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .p10-corporate-platform .corp-link-history__publication {
+    grid-column: 1;
+    grid-row: 2;
+    text-align: left;
+  }
+
+  .p10-corporate-platform .corp-link-history__item > .ds-button {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}
+
+@media (max-width: 47.5rem) {
+  .p10-corporate-platform .corp-link-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .p10-corporate-platform .corp-link-section-heading > small,
+  .p10-corporate-platform .corp-link-history__publication {
+    text-align: left;
+  }
+
+  .p10-corporate-platform .corp-link-history__item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .p10-corporate-platform .corp-link-history__publication,
+  .p10-corporate-platform .corp-link-history__item > .ds-button {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .p10-corporate-platform .corp-link-history__item > .ds-button {
+    width: 100%;
+  }
+}

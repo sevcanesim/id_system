@@ -7,10 +7,10 @@ async function resolveOrganizationId(admin: ReturnType<typeof getSupabaseAdminCl
 }
 
 const FALLBACK_SLOT_DEFINITIONS = [
-  { kind: "CATALOG", default_label: "Ürün Kataloğu", default_subtitle: "Kurumsal ürün ve hizmetler", icon: "external" },
-  { kind: "PRESENTATION", default_label: "Şirket Sunumu", default_subtitle: "Kurumsal sunum", icon: "external" },
-  { kind: "MEETING", default_label: "Toplantı Planla", default_subtitle: "Takvimden uygun zamanı seçin", icon: "external" },
-  { kind: "REFERENCES", default_label: "Referans Projeler", default_subtitle: "Projeleri incele", icon: "external" },
+  { kind: "CATALOG", default_label: "Ürün Kataloğu", default_subtitle: "Kurumsal ürün ve hizmetler" },
+  { kind: "PRESENTATION", default_label: "Şirket Sunumu", default_subtitle: "Kurumsal sunum" },
+  { kind: "MEETING", default_label: "Toplantı Planla", default_subtitle: "Takvimden uygun zamanı seçin" },
+  { kind: "REFERENCES", default_label: "Referans Projeler", default_subtitle: "Projeleri incele" },
 ] as const;
 
 export async function fetchOrganizationLinks(userId: string | null | undefined, profileId?: string | null): Promise<CardTemplateLink[]> {
@@ -31,7 +31,7 @@ export async function fetchOrganizationLinks(userId: string | null | undefined, 
 
     const { data: databaseDefinitions } = await admin
       .from("organization_link_slot_definitions")
-      .select("kind,default_label,default_subtitle,icon")
+      .select("kind,default_label,default_subtitle")
       .eq("is_active", true)
       .order("sort_order");
 
@@ -43,7 +43,7 @@ export async function fetchOrganizationLinks(userId: string | null | undefined, 
       const row = byKind.get(definition.kind);
       if (!row) return null;
 
-      // Toplantı Planla is a booking/calendar URL only. Never expose legacy PDF rows on public cards.
+      // Toplantı Planla yalnız takvim/randevu URL'sidir. Legacy PDF kayıtları public karta çıkmaz.
       if (definition.kind === "MEETING" && row.link_type === "FILE") return null;
 
       const hasTarget = row.link_type === "FILE" ? row.file_path : row.url;
@@ -55,7 +55,6 @@ export async function fetchOrganizationLinks(userId: string | null | undefined, 
         subtitle: row.subtitle || definition.default_subtitle,
         href: `/api/organization-links/${row.id}/open${query}`,
         kind: "external",
-        slot: definition.kind as CardTemplateLink["slot"],
       } satisfies CardTemplateLink;
     }).filter((link): link is CardTemplateLink => Boolean(link));
   } catch {

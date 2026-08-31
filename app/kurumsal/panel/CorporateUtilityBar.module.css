@@ -14,7 +14,7 @@
   background: var(--surface);
 }
 
-:global(.enterprise-dashboard-main) {
+.bar + :global(.business-console) :global(.enterprise-dashboard-main) {
   padding-top: 72px;
 }
 
@@ -70,7 +70,7 @@
     display: none;
   }
 
-  :global(.enterprise-dashboard-main) {
+  .bar + :global(.business-console) :global(.enterprise-dashboard-main) {
     padding-top: 0;
   }
 }

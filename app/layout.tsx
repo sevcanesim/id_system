@@ -40,6 +40,7 @@ import "./kurumsal/panel/team-management.css";
 import "./styles/canonical-responsive-production.css";
 import "./kurumsal/panel/content-history-polish.css";
 import "./kurumsal/panel/content-layout-v2.css";
+import "./kurumsal/panel/card-editor-production.css";
 import HashScrollHandler from "./components/HashScrollHandler";
 import AuthSessionBridge from "./components/AuthSessionBridge";
 import MobilePurchaseDockController from "./components/MobilePurchaseDockController";

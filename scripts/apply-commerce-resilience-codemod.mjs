@@ -16,7 +16,7 @@ function replaceOnce(source, needle, replacement, label) {
 
 update("app/api/commerce/checkout/route.ts", (source) => {
   let next = source;
-  const importAnchor = 'import { checkoutAttemptRateLimit } from "../../../../lib/security/rate-limit";';
+  const importAnchor = 'import { rejectCheckoutInitializeFlood } from "../../../../lib/security/route-rate-limits";';
   if (!next.includes('from "../../../../lib/commerce/checkout-resume"')) {
     next = replaceOnce(
       next,

@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   }
 
   const organizationIds = (memberships || []).map((membership) => membership.organization_id);
-  const [subscriptions, entitlements] = organizationIds.length
+  const [subscriptions, entitlements, capacityTerms] = organizationIds.length
     ? await Promise.all([
         admin
           .from("organization_subscriptions")
@@ -37,11 +37,22 @@ export async function GET(request: NextRequest) {
           .from("organization_entitlements")
           .select("organization_id,mail_credit_limit,mail_credits_remaining")
           .in("organization_id", organizationIds),
+        admin
+          .from("organization_capacity_terms")
+          .select("id,organization_id,card_count,starts_at,expires_at,renewal_price_kurus,currency,status")
+          .in("organization_id", organizationIds)
+          .in("status", ["ACTIVE", "GRACE_PERIOD"])
+          .order("expires_at", { ascending: true }),
       ])
-    : [{ data: [], error: null }, { data: [], error: null }];
+    : [
+        { data: [], error: null },
+        { data: [], error: null },
+        { data: [], error: null },
+      ];
 
   if (subscriptions.error) return NextResponse.json({ error: "Şirket aboneliği yüklenemedi." }, { status: 500 });
   if (entitlements.error) return NextResponse.json({ error: "Şirket kullanım hakları yüklenemedi." }, { status: 500 });
+  if (capacityTerms.error) return NextResponse.json({ error: "Kart yenileme dönemleri yüklenemedi." }, { status: 500 });
 
   return NextResponse.json({
     organizations: (memberships || []).map((membership) => ({
@@ -52,6 +63,9 @@ export async function GET(request: NextRequest) {
       organization_entitlements: (entitlements.data || []).find(
         (entitlement) => entitlement.organization_id === membership.organization_id,
       ) || null,
+      organization_capacity_terms: (capacityTerms.data || []).filter(
+        (term) => term.organization_id === membership.organization_id,
+      ),
     })),
   });
 }

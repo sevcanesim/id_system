@@ -98,6 +98,7 @@ export default function OverviewPanel({
     tab: CorporatePanelTab;
     tone: "critical" | "attention" | "healthy";
     icon: "lock" | "contact" | "users" | "check";
+    capacityUpgrade?: boolean;
   };
 
   if (unassignedPhysicalCards > 0) {
@@ -106,7 +107,7 @@ export default function OverviewPanel({
       title: `${unassignedPhysicalCards} fiziksel kart çalışanla eşleşmemiş.`,
       copy: "Kartları ilgili çalışanlarla eşleştirerek dağıtım sürecini tamamlayın.",
       action: "Atamaları tamamla",
-      tab: "cards",
+      tab: "employees",
       tone: "attention",
       icon: "contact",
     };
@@ -119,6 +120,7 @@ export default function OverviewPanel({
       tab: "employees",
       tone: "critical",
       icon: "lock",
+      capacityUpgrade: canManageLicenses,
     };
   } else if (invitedMembers > 0) {
     priority = {
@@ -136,7 +138,7 @@ export default function OverviewPanel({
       title: `${incompleteDigitalCards} çalışanın dijital kartı hazır değil.`,
       copy: "Eksik profilleri tamamlayarak tüm ekibin kartlarını yayına hazır hale getirin.",
       action: "Eksik kartları tamamla",
-      tab: "cards",
+      tab: "employees",
       tone: "attention",
       icon: "contact",
     };
@@ -145,8 +147,8 @@ export default function OverviewPanel({
       eyebrow: "YENİLEME YAKLAŞIYOR",
       title: `Aboneliğin yenilenmesine ${daysUntilExpiry} gün kaldı.`,
       copy: "Kart erişiminde kesinti oluşmaması için yenileme durumunu kontrol edin.",
-      action: canManageLicenses ? "Kartları kontrol et" : "Ekibi görüntüle",
-      tab: canManageLicenses ? "cards" : "employees",
+      action: "Ekibi ve kartları kontrol et",
+      tab: "employees",
       tone: "attention",
       icon: "lock",
     };
@@ -161,8 +163,6 @@ export default function OverviewPanel({
       icon: "check",
     };
   }
-
-  const capacityUpgradeRequired = availableSeats === 0 && canManageLicenses;
 
   return (
     <div className="cp-overview-v2" data-overview-version="3">
@@ -182,14 +182,14 @@ export default function OverviewPanel({
           <p>{priority.copy}</p>
         </div>
         <div className="cp-overview-v2__priority-actions">
-          {canOpen(priority.tab) ? (
+          {priority.capacityUpgrade ? (
+            <a className="cp-overview-v2__primary" href="/kurumsal#kapasite">
+              {priority.action} <span aria-hidden="true">→</span>
+            </a>
+          ) : canOpen(priority.tab) ? (
             <button type="button" className="cp-overview-v2__primary" onClick={() => openTab(priority.tab)}>
               {priority.action} <span aria-hidden="true">→</span>
             </button>
-          ) : capacityUpgradeRequired ? (
-            <a className="cp-overview-v2__primary" href="/kurumsal#kapasite">
-              Kapasiteyi artır <span aria-hidden="true">→</span>
-            </a>
           ) : null}
         </div>
       </section>

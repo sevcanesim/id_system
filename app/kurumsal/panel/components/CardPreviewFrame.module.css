@@ -1,0 +1,53 @@
+.frame {
+  --preview-width: 360px;
+  width: min(100%, var(--preview-width));
+  margin-inline: auto;
+}
+
+.viewport {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(23, 18, 31, 0.12);
+  border-radius: 28px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(23, 18, 31, 0.04),
+    0 18px 48px rgba(23, 18, 31, 0.1);
+}
+
+.viewport::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  z-index: 3;
+  width: 72px;
+  height: 5px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: rgba(23, 18, 31, 0.14);
+  pointer-events: none;
+}
+
+.content {
+  width: 100%;
+  min-width: 0;
+  padding-top: 18px;
+}
+
+.compact {
+  --preview-width: 320px;
+}
+
+@media (max-width: 760px) {
+  .frame {
+    --preview-width: 100%;
+  }
+
+  .viewport {
+    border-radius: 22px;
+    box-shadow: 0 10px 30px rgba(23, 18, 31, 0.08);
+  }
+}

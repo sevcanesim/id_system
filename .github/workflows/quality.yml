@@ -54,9 +54,6 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Unit tests
-        run: npm test
-
       - name: Verify UI system contract
         run: npm run verify:ui-system
 

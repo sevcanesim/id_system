@@ -78,6 +78,35 @@ function publicationLabel(link: CorporateLink) {
   return link.isPublished ? "Yayında" : "Taslak";
 }
 
+function publicationTiming(link: CorporateLink) {
+  if (!link.configured) return null;
+  if (link.publishAt && new Date(link.publishAt).getTime() > Date.now()) {
+    return { label: "Planlanan yayın", value: dateTimeMedium.format(new Date(link.publishAt)) };
+  }
+  if (link.isPublished && link.publishedAt) {
+    return { label: "Yayınlandı", value: dateTimeMedium.format(new Date(link.publishedAt)) };
+  }
+  if (link.isPublished) return { label: "Durum", value: "Yayında" };
+  return { label: "Durum", value: "Taslak" };
+}
+
+function versionPublication(version: LinkVersion) {
+  if (version.publish_at) {
+    const publishDate = new Date(version.publish_at);
+    const scheduled = publishDate.getTime() > new Date(version.created_at).getTime() + 60_000;
+    return {
+      tone: scheduled ? "scheduled" : version.is_published ? "published" : "draft",
+      label: scheduled ? "Planlanan yayın" : version.is_published ? "Yayın zamanı" : "Planlanan yayın",
+      value: dateTimeMedium.format(publishDate),
+    };
+  }
+  return {
+    tone: version.is_published ? "published" : "draft",
+    label: "Yayın durumu",
+    value: version.is_published ? "Yayında" : "Taslak",
+  };
+}
+
 function sourceLabel(link: CorporateLink) {
   if (!link.configured) return "İçerik eklenmedi";
   return link.linkType === "FILE" ? "PDF" : "URL";
@@ -128,6 +157,7 @@ export default function CorporateLinksPanel({
           const busy = linkBusyKind === link.kind;
           const scheduled = Boolean(link.isPublished && link.publishAt && new Date(link.publishAt).getTime() > Date.now());
           const versions = linkVersions.filter((version) => version.kind === link.kind);
+          const timing = publicationTiming(link);
           return (
             <details className="corp-link-card" key={link.kind} open={index === 0}>
               <summary className="corp-link-card__summary">
@@ -145,7 +175,10 @@ export default function CorporateLinksPanel({
 
               <div className="corp-link-card__body">
                 <div className="corp-link-current-block">
-                  <span>Aktif içerik</span>
+                  <div className="corp-link-section-heading">
+                    <span>Aktif içerik</span>
+                    {timing && <small><strong>{timing.label}:</strong> {timing.value}</small>}
+                  </div>
                   {link.configured ? (
                     link.linkType === "FILE" ? (
                       <article className="corp-file">
@@ -191,12 +224,22 @@ export default function CorporateLinksPanel({
                   <details className="corp-link-history">
                     <summary><span><Icon name="clock" /><strong>Sürüm geçmişi</strong><small>{versions.length} kayıt</small></span><Icon name="chevronDown" /></summary>
                     <ol>
-                      {versions.slice(0, 6).map((version) => (
-                        <li key={version.id}>
-                          <div><strong title={version.file_name || version.url || "Boş sürüm"}>{version.file_name ? compactFileName(version.file_name) : version.url || "Boş sürüm"}</strong><small>{dateTimeMedium.format(new Date(version.created_at))} · {version.change_reason}</small></div>
-                          <Button type="button" variant="secondary" size="sm" disabled={busy} onClick={() => void onRollback(version.id, link.kind)}>Geri al</Button>
-                        </li>
-                      ))}
+                      {versions.slice(0, 6).map((version) => {
+                        const publication = versionPublication(version);
+                        return (
+                          <li key={version.id} className="corp-link-history__item">
+                            <div className="corp-link-history__main">
+                              <strong title={version.file_name || version.url || "Boş sürüm"}>{version.file_name ? compactFileName(version.file_name) : version.url || "Boş sürüm"}</strong>
+                              <small>{dateTimeMedium.format(new Date(version.created_at))} · {version.change_reason}</small>
+                            </div>
+                            <div className="corp-link-history__publication">
+                              <span className={`corp-link-history__state ${publication.tone}`}>{publication.value}</span>
+                              <small>{publication.label}</small>
+                            </div>
+                            <Button type="button" variant="secondary" size="sm" disabled={busy} onClick={() => void onRollback(version.id, link.kind)}>Geri al</Button>
+                          </li>
+                        );
+                      })}
                     </ol>
                   </details>
                 )}

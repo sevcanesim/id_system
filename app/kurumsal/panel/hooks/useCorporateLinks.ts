@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { CorporateLink, LinkVersion } from "../domain/types";
 import { fetchWithPanelTimeout } from "../domain/runtime";
 
@@ -12,6 +12,7 @@ export function useCorporateLinks(
   const [linkUrlDraft, setLinkUrlDraft] = useState<Record<string, string>>({});
   const [linkScheduleDraft, setLinkScheduleDraft] = useState<Record<string, string>>({});
   const [linkBusyKind, setLinkBusyKind] = useState<string | null>(null);
+  const linksLoadId = useRef(0);
 
   function scheduledPublishAt(kind: string) {
     const value = linkScheduleDraft[kind];
@@ -21,19 +22,26 @@ export function useCorporateLinks(
   }
 
   async function loadCorporateLinks(organizationId: string, accessToken?: string) {
+    const loadId = ++linksLoadId.current;
     const bearer = accessToken || (await getAccessToken());
-    if (!bearer) return;
+    if (!bearer || loadId !== linksLoadId.current) return;
 
-    const response = await fetchWithPanelTimeout(
-      `/api/organizations/links?organizationId=${encodeURIComponent(organizationId)}`,
-      { headers: { authorization: `Bearer ${bearer}` }, cache: "no-store" },
-    );
-    const payload = await response.json();
-    if (response.ok) {
-      setCorporateLinks(payload.links || []);
-      setLinkVersions(payload.versions || []);
-    } else {
-      setMessage(payload.error || "Kurumsal içerikler yüklenemedi.");
+    try {
+      const response = await fetchWithPanelTimeout(
+        `/api/organizations/links?organizationId=${encodeURIComponent(organizationId)}`,
+        { headers: { authorization: `Bearer ${bearer}` }, cache: "no-store" },
+      );
+      const payload = await response.json();
+      if (loadId !== linksLoadId.current) return;
+
+      if (response.ok) {
+        setCorporateLinks(payload.links || []);
+        setLinkVersions(payload.versions || []);
+      } else {
+        setMessage(payload.error || "Kurumsal içerikler yüklenemedi.");
+      }
+    } catch {
+      if (loadId === linksLoadId.current) setMessage("Kurumsal içerikler yüklenemedi.");
     }
   }
 

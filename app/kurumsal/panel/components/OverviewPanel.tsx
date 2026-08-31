@@ -39,15 +39,35 @@ type Props = {
   onExportCsv: () => void;
 };
 
-function chartPoints(series: Array<{ date: string; count: number }>) {
+type AnalyticsEntry = { date: string; count: number };
+type AnalyticsChartPoint = AnalyticsEntry & { x: number; y: number };
+
+const shortDateFormatter = new Intl.DateTimeFormat("tr-TR", {
+  day: "2-digit",
+  month: "short",
+});
+
+function formatAnalyticsDate(value: string) {
+  const parsedDate = new Date(`${value}T00:00:00`);
+  return Number.isNaN(parsedDate.getTime()) ? value : shortDateFormatter.format(parsedDate);
+}
+
+function buildAnalyticsChart(series: AnalyticsEntry[]) {
   const maximumCount = Math.max(1, ...series.map((entry) => entry.count));
-  return series
-    .map((entry, index) => {
-      const x = series.length === 1 ? 50 : (index / (series.length - 1)) * 100;
-      const y = 92 - (entry.count / maximumCount) * 76;
-      return `${x},${y}`;
-    })
-    .join(" ");
+  let peakIndex = 0;
+
+  const points: AnalyticsChartPoint[] = series.map((entry, index) => {
+    if (entry.count > series[peakIndex].count) peakIndex = index;
+    const x = series.length === 1 ? 50 : (index / (series.length - 1)) * 100;
+    const y = 90 - (entry.count / maximumCount) * 72;
+    return { ...entry, x, y };
+  });
+
+  return {
+    points,
+    polyline: points.map(({ x, y }) => `${x},${y}`).join(" "),
+    peak: points[peakIndex],
+  };
 }
 
 export default function OverviewPanel({
@@ -83,10 +103,14 @@ export default function OverviewPanel({
     .slice(0, 5);
   const overviewSeries = analytics?.byDay?.length ? analytics.byDay : [{ date: new Date().toISOString().slice(0, 10), count: 0 }];
   const hasOverviewData = overviewSeries.some((entry) => entry.count > 0);
-  const overviewChartPoints = chartPoints(overviewSeries);
+  const analyticsChart = buildAnalyticsChart(overviewSeries);
+  const activeAnalyticsDays = overviewSeries.reduce((activeDays, entry) => activeDays + (entry.count > 0 ? 1 : 0), 0);
+  const periodStartLabel = formatAnalyticsDate(overviewSeries[0].date);
+  const periodEndLabel = formatAnalyticsDate(overviewSeries[overviewSeries.length - 1].date);
   const analyticsAvailable = analytics?.available !== false;
   const totalViews = analyticsAvailable ? analytics?.totalViews ?? 0 : null;
   const contentClicks = analytics?.content?.clicks ?? 0;
+  const chartAccessibilityLabel = `${analyticsDays} günlük kart görüntülenme eğrisi. ${activeAnalyticsDays} aktif gün, zirve ${analyticsChart.peak.count} görüntülenme.`;
 
   const canOpen = (tab: CorporatePanelTab) => visibleTabs.some(([visibleTab]) => visibleTab === tab);
 
@@ -242,13 +266,37 @@ export default function OverviewPanel({
           <div className="cp-overview-v2__chart-summary">
             <div><span>Görüntülenme</span><strong>{totalViews == null ? "—" : totalViews.toLocaleString("tr-TR")}</strong></div>
             <div><span>İçerik tıklaması</span><strong>{contentClicks.toLocaleString("tr-TR")}</strong></div>
+            {hasOverviewData && (
+              <div className="cp-overview-v2__chart-signal">
+                <span>Aktif gün</span>
+                <strong>{activeAnalyticsDays}</strong>
+              </div>
+            )}
           </div>
 
           <div className={`cp-overview-v2__chart${hasOverviewData ? " has-data" : " is-empty"}`}>
             {hasOverviewData ? (
-              <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Kart görüntülenme eğrisi">
-                <polyline points={overviewChartPoints} fill="none" stroke="currentColor" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-              </svg>
+              <>
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={chartAccessibilityLabel}>
+                  <line className="cp-overview-v2__chart-guide" x1="0" y1="28" x2="100" y2="28" />
+                  <line className="cp-overview-v2__chart-guide" x1="0" y1="54" x2="100" y2="54" />
+                  <line className="cp-overview-v2__chart-guide" x1="0" y1="80" x2="100" y2="80" />
+                  <polyline className="cp-overview-v2__chart-line" points={analyticsChart.polyline} fill="none" vectorEffect="non-scaling-stroke" />
+                  <line
+                    className="cp-overview-v2__chart-peak"
+                    x1={analyticsChart.peak.x}
+                    x2={analyticsChart.peak.x}
+                    y1={Math.max(12, analyticsChart.peak.y - 3)}
+                    y2={Math.min(94, analyticsChart.peak.y + 3)}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </svg>
+                <div className="cp-overview-v2__chart-context" aria-hidden="true">
+                  <span>{periodStartLabel}</span>
+                  <strong>{activeAnalyticsDays} aktif gün · Zirve {analyticsChart.peak.count}</strong>
+                  <span>{periodEndLabel}</span>
+                </div>
+              </>
             ) : (
               <div className="cp-overview-v2__empty">
                 <Icon name="analytics" />

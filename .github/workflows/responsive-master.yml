@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - "app/**"
-      - "tests/e2e/responsive-master.spec.ts"
+      - "tests/**"
       - "scripts/**"
       - "package.json"
       - ".github/workflows/responsive-master.yml"
@@ -37,6 +37,8 @@ jobs:
         run: npm run verify:typography
       - name: Typecheck
         run: npm run typecheck
+      - name: Repository tests
+        run: npm run test
       - name: Responsive browser matrix
         run: npx playwright test tests/e2e/responsive-master.spec.ts --project=chromium-desktop
       - name: Build

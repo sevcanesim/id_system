@@ -1,0 +1,111 @@
+/* Individual identity studio — scoped workspace contract.
+ * Keeps the shared editor markup while removing corporate-sized proportions
+ * from the personal editing surface.
+ */
+
+.yi-app--individual .p8-editor {
+  width: 100%;
+  min-width: 0;
+}
+
+.yi-app--individual .p8-section-nav {
+  margin-bottom: var(--space-3);
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
+  box-shadow: none;
+}
+
+.yi-app--individual .p8-section-nav a {
+  min-height: var(--control-height-sm);
+  padding-inline: var(--space-3);
+}
+
+.yi-app--individual .p8-required-hint {
+  margin: 0 0 var(--space-2);
+  color: var(--text-tertiary);
+}
+
+.yi-app--individual .p8-section-card {
+  padding-block: var(--space-5);
+}
+
+.yi-app--individual .p8-section-heading {
+  margin-bottom: var(--space-4);
+}
+
+.yi-app--individual .p8-preview-column {
+  gap: var(--space-3);
+}
+
+.yi-app--individual .p8-preview-card,
+.yi-app--individual .p8-ccard,
+.yi-app--individual .p8-url-card,
+.yi-app--individual .p8-note {
+  box-shadow: none;
+}
+
+.yi-app--individual .p8-preview-title {
+  font-size: var(--type-h4);
+  line-height: 1.2;
+}
+
+.yi-app--individual .p8-preview-stage {
+  overflow: hidden;
+  border-radius: var(--radius-md);
+}
+
+@media (min-width: 67.5625rem) {
+  .yi-app--individual .p8-editor-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 23rem);
+    gap: var(--space-5);
+  }
+
+  .yi-app--individual .p8-form {
+    width: 100%;
+    max-width: none;
+  }
+
+  .yi-app--individual .p8-preview-column {
+    width: 100%;
+    max-width: 23rem;
+  }
+
+  .yi-app--individual .p8-preview-card {
+    top: calc(var(--control-height-lg) + var(--space-4));
+  }
+}
+
+@media (max-width: 67.5rem) {
+  .yi-app--individual .p8-editor-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .yi-app--individual .p8-form {
+    width: 100%;
+    max-width: none;
+  }
+
+  .yi-app--individual .p8-preview-column {
+    width: min(100%, 34rem);
+    max-width: 34rem;
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 47.5rem) {
+  .yi-app--individual .p8-section-nav {
+    margin-inline: calc(-1 * var(--space-4));
+    padding-inline: var(--space-4);
+    border-inline: 0;
+    border-radius: 0;
+    scroll-padding-inline: var(--space-4);
+  }
+
+  .yi-app--individual .p8-section-nav a {
+    min-height: var(--control-height-md);
+  }
+
+  .yi-app--individual .p8-section-card {
+    padding-block: var(--space-4);
+  }
+}

@@ -1,38 +1,26 @@
-"use client";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { ACCOUNT_ROUTE_LOGIN } from "../../lib/auth/account-router";
+import { resolveServerAccountDestination } from "../../lib/auth/server-account-router";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
-import { resolveAccountDestination } from "../../lib/auth/account-router";
-import { LoadingState } from "../components/ui/States";
+export const dynamic = "force-dynamic";
 
-export default function AccountRouterPage() {
-  const router = useRouter();
-  const [failedSilently, setFailedSilently] = useState(false);
+export default async function AccountRouterPage() {
+  const result = await resolveServerAccountDestination();
 
-  useEffect(() => {
-    let cancelled = false;
-
-    void (async () => {
-      const supabase = getSupabaseBrowserClient();
-      const destination = await resolveAccountDestination(supabase, {
-        onOrganizationCheckError: (error) => {
-          console.error("hesabim: organizasyon üyeliği kontrolü başarısız oldu, bireysel alana düşülüyor", error instanceof Error ? error.message : "UNKNOWN");
-          if (!cancelled) setFailedSilently(true);
-        },
-      });
-
-      if (!cancelled) router.replace(destination);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [router]);
+  if (result.ok) redirect(result.destination);
+  if (result.reason === "SESSION_INVALID") redirect(ACCOUNT_ROUTE_LOGIN);
 
   return (
-    <div className="account-loading">
-      <LoadingState label={failedSilently ? "Hesabınıza yönlendiriliyorsunuz…" : "Hesabınız hazırlanıyor…"} />
-    </div>
+    <main className="account-loading" aria-labelledby="account-routing-title">
+      <div role="alert">
+        <h1 id="account-routing-title">Hesap alanı şu anda doğrulanamıyor.</h1>
+        <p>
+          Yetki bilgilerin değişmedi. Geçici bir bağlantı veya veri servisi hatası nedeniyle yanlış panele
+          yönlendirmek yerine işlemi durdurduk.
+        </p>
+        <Link href="/hesabim">Tekrar dene</Link>
+      </div>
+    </main>
   );
 }

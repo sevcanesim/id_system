@@ -1,57 +1,59 @@
-/* Canonical public footer rhythm. */
-.public-site .yi-footer--premium {
+/* Canonical public footer rhythm. PublicSiteShell renders the footer as a sibling
+ * of .public-site, so footer selectors are rooted on the footer itself. */
+.yi-footer--premium {
   padding-block: 0;
 }
 
-.public-site .yi-footer--premium .yi-container {
+.yi-footer--premium .yi-container {
   padding-top: 52px;
-  padding-bottom: 0;
+  padding-bottom: var(--safe-bottom);
 }
 
-.public-site .yi-footer__premium-grid {
+.yi-footer__premium-grid {
   gap: clamp(28px, 4vw, 56px);
   padding-bottom: 42px;
 }
 
-.public-site .yi-footer__premium-brand p {
+.yi-footer__premium-brand p {
   margin-top: 20px;
   max-width: 390px;
   line-height: 1.55;
 }
 
-.public-site .yi-footer__premium-column {
+.yi-footer__premium-column {
   gap: 18px;
 }
 
-.public-site .yi-footer__premium-column strong {
+.yi-footer__premium-column strong {
   margin-bottom: 4px;
 }
 
-.public-site .yi-footer__premium-base {
+.yi-footer__premium-base {
   min-height: 72px;
   padding-block: 22px;
 }
 
 @media (max-width: 760px) {
-  .public-site .yi-footer--premium .yi-container {
+  .yi-footer--premium .yi-container {
     padding-top: 38px;
   }
 
-  .public-site .yi-footer__premium-grid {
+  .yi-footer__premium-grid {
     gap: 30px 22px;
     padding-bottom: 34px;
   }
 
-  .public-site .yi-footer__premium-brand p {
+  .yi-footer__premium-brand p {
     margin-top: 16px;
   }
 
-  .public-site .yi-footer__premium-column {
+  .yi-footer__premium-column {
     gap: 14px;
   }
 
-  .public-site .yi-footer__premium-base {
+  .yi-footer__premium-base {
     min-height: 64px;
     padding-block: 18px;
+    padding-bottom: max(var(--space-4), var(--safe-bottom));
   }
 }

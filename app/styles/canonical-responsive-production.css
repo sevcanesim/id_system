@@ -7,17 +7,25 @@
   --rp-mobile-dock-height: 0rem;
 }
 
-html,
-body {
-  overflow-x: clip;
-}
-
+/* Structural elements may shrink inside flex/grid layouts. Horizontal overflow
+ * is intentionally not hidden globally; route/component defects must remain
+ * observable and be fixed at their source. */
 :where(main, section, article, header, footer, nav, aside, form, fieldset, div) {
   min-width: 0;
 }
 
 :where(button, a, input, select, textarea, summary) {
   max-width: 100%;
+}
+
+.public-site :where(h1, h2, h3) {
+  overflow-wrap: normal;
+  word-break: normal;
+  text-wrap: balance;
+}
+
+.public-site :where(p, li) {
+  overflow-wrap: break-word;
 }
 
 @media (max-width: 61.25rem) {
@@ -27,42 +35,12 @@ body {
   }
 }
 
-/* Announcement content is prioritized instead of horizontally scrolling. */
-@media (max-width: 47.5rem) {
-  .public-site-chrome .yi-brand-marquee--static,
-  .public-site-chrome .p4-announcement {
-    overflow: hidden;
-  }
-
-  .public-site-chrome .yi-brand-marquee__static-inner,
-  .public-site-chrome .p4-announcement {
-    min-width: 0;
-    flex-wrap: nowrap;
-  }
-
-  .public-site-chrome .yi-brand-marquee__static-item,
-  .public-site-chrome .p4-announcement__item {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-@media (max-width: 26.875rem) {
-  .public-site-chrome .yi-brand-marquee__static-item:nth-of-type(n+3),
-  .public-site-chrome .p4-announcement__item:nth-of-type(n+3),
-  .public-site-chrome .p4-announcement i:nth-of-type(n+2) {
-    display: none;
-  }
-}
-
-@media (max-width: 22.5rem) {
-  .public-site-chrome .yi-brand-marquee__static-item:nth-of-type(n+2),
-  .public-site-chrome .p4-announcement__item:nth-of-type(n+2),
-  .public-site-chrome .p4-announcement i {
-    display: none;
-  }
+/* Announcement content priority is handled by the shared header stylesheet.
+ * No marquee, clipping or ellipsis is allowed here. */
+.public-site-chrome .yi-brand-marquee--static,
+.public-site-chrome .yi-brand-marquee__static-inner,
+.public-site-chrome .yi-brand-marquee__static-item {
+  max-width: 100%;
 }
 
 /* The sticky purchase dock reserves its measured height + safe area. */

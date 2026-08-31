@@ -117,8 +117,20 @@
   --gutter: 16px;
   --gutter-tablet: 24px;
   --gutter-desktop: 32px;
+  --page-gutter: var(--gutter-desktop);
+  --public-header-height: 78px;
+  --public-header-height-mobile: 68px;
   --content: 1180px;
   --wide: 1320px;
+
+  /* Layer contract */
+  --z-base: 0;
+  --z-sticky: 30;
+  --z-header: 40;
+  --z-overlay: 70;
+  --z-drawer: 80;
+  --z-modal: 90;
+  --z-toast: 100;
 
   /* Safe areas */
   --safe-top: env(safe-area-inset-top, 0px);
@@ -175,6 +187,14 @@
   --store-bg: var(--surface-canvas);
   --ui-bg: var(--surface-canvas);
   --y-ink: var(--text-primary);
+}
+
+@media (max-width: 1023px) {
+  :root { --page-gutter: var(--gutter-tablet); }
+}
+
+@media (max-width: 639px) {
+  :root { --page-gutter: var(--gutter); }
 }
 
 .theme-light,

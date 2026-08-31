@@ -125,7 +125,6 @@ export default function CorporateLinksPanel({
           const isMeeting = link.kind === "MEETING";
           const scheduled = Boolean(link.isPublished && link.publishAt && new Date(link.publishAt).getTime() > Date.now());
           const versions = linkVersions.filter((version) => version.kind === link.kind);
-          const meetingHasLegacyFile = isMeeting && link.linkType === "FILE";
           return (
             <details className="corp-link-card" key={link.kind} open={index === 0}>
               <summary className="corp-link-card__summary">
@@ -144,8 +143,12 @@ export default function CorporateLinksPanel({
               <div className="corp-link-card__body">
                 <div className="corp-link-current-block">
                   <div className="corp-link-section-heading"><span>Aktif içerik</span></div>
-                  {meetingHasLegacyFile ? (
-                    <span className="corp-link-current empty">Bu alandaki eski PDF kullanımı artık desteklenmiyor. Bir takvim veya randevu bağlantısı ekleyerek güncelleyin.</span>
+                  {isMeeting ? (
+                    link.configured && link.linkType !== "FILE" ? (
+                      <span className="corp-link-current"><Icon name="clock" /> {link.url}</span>
+                    ) : (
+                      <span className="corp-link-current empty">Takvim veya randevu bağlantısı ekleyin.</span>
+                    )
                   ) : link.configured ? (
                     link.linkType === "FILE" ? (
                       <article className="corp-file">
@@ -160,10 +163,10 @@ export default function CorporateLinksPanel({
                         </div>
                       </article>
                     ) : (
-                      <span className="corp-link-current"><Icon name={isMeeting ? "clock" : "external"} /> {link.url}</span>
+                      <span className="corp-link-current"><Icon name="external" /> {link.url}</span>
                     )
                   ) : (
-                    <span className="corp-link-current empty">{isMeeting ? "Takvim veya randevu bağlantısı ekleyin." : "URL kaydedin veya PDF yükleyin."}</span>
+                    <span className="corp-link-current empty">URL kaydedin veya PDF yükleyin.</span>
                   )}
                 </div>
 

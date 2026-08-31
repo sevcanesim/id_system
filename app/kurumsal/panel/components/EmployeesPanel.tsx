@@ -3,6 +3,8 @@ import { Icon } from "../../../icons";
 import { EmptyState } from "../../../components/ui/States";
 import { DEPARTMENT_OPTIONS, TITLE_OPTIONS, normalizeEmailField } from "../../../../lib/form-standards";
 import { BULK_INVITE_CSV_TEMPLATE, isBulkInviteMailFailed } from "../../../../lib/organizations/bulk-invite";
+import { corporatePackageBySeats, corporateRenewalPriceKurus, NETWORK_MAIL_PER_SEAT_ANNUAL } from "../../../../lib/commerce/packages";
+import { formatTryFromKurus } from "../../../../lib/config/product";
 import type { MemberActionTarget, MemberCardStatus } from "../domain/types";
 import {
   digitalProfileLabel,
@@ -13,7 +15,7 @@ import {
   type PhysicalCardStatus,
 } from "../../../../lib/organizations/lifecycle";
 
-export type EmployeeListMember = MemberActionTarget;
+export type EmployeeListMember = MemberActionTarget & { last_activity_at?: string | null };
 
 type PhysicalCard = {
   id: string;
@@ -58,11 +60,13 @@ type BulkStatus = "ACTIVE" | "SUSPENDED" | "LEFT";
 type RenewalState = {
   daysRemaining: number;
   label: string;
+  dateLabel: string;
   urgent: boolean;
 };
 
 const PAGE_SIZE = 25;
 const DAY_MS = 86400000;
+const renewalDateFormatter = new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "long", year: "numeric" });
 
 type Props = {
   org: Org | null | undefined;
@@ -122,20 +126,23 @@ function isBulkSelectable(member: EmployeeListMember, currentUserId: string) {
   return member.user_id !== currentUserId && member.role !== "OWNER";
 }
 
-function compareText(a: string | null | undefined, b: string | null | undefined) {
-  return String(a || "").localeCompare(String(b || ""), "tr", { sensitivity: "base" });
+function compareText(firstValue: string | null | undefined, secondValue: string | null | undefined) {
+  return String(firstValue || "").localeCompare(String(secondValue || ""), "tr", { sensitivity: "base" });
 }
 
 function getRenewalState(expiresAt: string | null | undefined): RenewalState | null {
   if (!expiresAt) return null;
-  const expiresAtMs = new Date(expiresAt).getTime();
+  const expiryDate = new Date(expiresAt);
+  const expiresAtMs = expiryDate.getTime();
   if (!Number.isFinite(expiresAtMs)) return null;
   const daysRemaining = Math.ceil((expiresAtMs - Date.now()) / DAY_MS);
-  if (daysRemaining < 0) return { daysRemaining, label: "Yıllık kart sistemi yenileme tarihi geçti", urgent: true };
-  if (daysRemaining === 0) return { daysRemaining, label: "Yıllık kart sistemi bugün yenileniyor", urgent: true };
+  const dateLabel = renewalDateFormatter.format(expiryDate);
+  if (daysRemaining < 0) return { daysRemaining, dateLabel, label: "Yıllık sistem yenileme tarihi geçti", urgent: true };
+  if (daysRemaining === 0) return { daysRemaining, dateLabel, label: "Yıllık sistem bugün yenileniyor", urgent: true };
   return {
     daysRemaining,
-    label: `Yıllık kart sistemi yenilemesine ${daysRemaining} gün kaldı`,
+    dateLabel,
+    label: `Yenilemeye ${daysRemaining} gün kaldı`,
     urgent: daysRemaining <= 30,
   };
 }
@@ -160,8 +167,11 @@ export default function EmployeesPanel(props: Props) {
   const [bulkDepartment, setBulkDepartment] = useState("");
   const [pendingInviteEmail, setPendingInviteEmail] = useState<string | null>(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const seatLimit = subscription?.seat_limit ?? "—";
+  const seatLimit = subscription?.seat_limit ?? null;
   const renewalState = getRenewalState(subscription?.expires_at);
+  const renewalPackage = seatLimit ? corporatePackageBySeats(seatLimit) : null;
+  const renewalPriceKurus = renewalPackage ? corporateRenewalPriceKurus(renewalPackage.priceKurus, renewalPackage.seats) : null;
+  const annualNetworkMailCredits = seatLimit ? seatLimit * NETWORK_MAIL_PER_SEAT_ANNUAL : null;
   const bulkMailFailed = bulkInviteResults?.results.filter(isBulkInviteMailFailed) ?? [];
   const suspendedSeats = Math.max(0, usedSeats - activeMembers - invitedMembers);
   const showP0Capacity = availableSeats === 0;
@@ -171,21 +181,35 @@ export default function EmployeesPanel(props: Props) {
   const hasP0Attention = showP0Capacity || showP0Pending || showP0Suspended || showRenewalAttention;
   const hasActiveFilters = departmentFilter !== "ALL" || statusFilter !== "ALL" || sortKey !== "name" || sortDirection !== "asc";
   const bulkDepartmentChoices = useMemo(() => {
-    const fromMembers = departmentOptions.filter((department) => department !== "Belirtilmemiş");
-    return Array.from(new Set([...DEPARTMENT_OPTIONS, ...fromMembers])).sort((a, b) => compareText(a, b));
+    const memberDepartments = departmentOptions.filter((department) => department !== "Belirtilmemiş");
+    return Array.from(new Set([...DEPARTMENT_OPTIONS, ...memberDepartments])).sort((firstDepartment, secondDepartment) => compareText(firstDepartment, secondDepartment));
   }, [departmentOptions]);
+  const memberCardStatusByMemberId = useMemo(
+    () => new Map(memberCardStatuses.map((cardStatus) => [cardStatus.memberId, cardStatus])),
+    [memberCardStatuses],
+  );
+  const physicalCardsByOwnerUserId = useMemo(() => {
+    const cardsByOwner = new Map<string, PhysicalCard[]>();
+    physicalCards.forEach((card) => {
+      if (!card.ownerUserId) return;
+      const ownerCards = cardsByOwner.get(card.ownerUserId) ?? [];
+      ownerCards.push(card);
+      cardsByOwner.set(card.ownerUserId, ownerCards);
+    });
+    return cardsByOwner;
+  }, [physicalCards]);
 
   const sortedMembers = useMemo(() => {
-    const next = [...filteredMembers];
-    next.sort((a, b) => {
-      const result = sortKey === "name" ? compareText(a.full_name || a.email, b.full_name || b.email)
-        : sortKey === "department" ? compareText(a.department, b.department)
-          : sortKey === "role" ? compareText(roleLabel(a.role), roleLabel(b.role))
-            : sortKey === "status" ? compareText(memberStatusLabel(a.status), memberStatusLabel(b.status))
-              : new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      return sortDirection === "asc" ? result : -result;
+    const nextMembers = [...filteredMembers];
+    nextMembers.sort((firstMember, secondMember) => {
+      const comparison = sortKey === "name" ? compareText(firstMember.full_name || firstMember.email, secondMember.full_name || secondMember.email)
+        : sortKey === "department" ? compareText(firstMember.department, secondMember.department)
+          : sortKey === "role" ? compareText(roleLabel(firstMember.role), roleLabel(secondMember.role))
+            : sortKey === "status" ? compareText(memberStatusLabel(firstMember.status), memberStatusLabel(secondMember.status))
+              : new Date(firstMember.created_at).getTime() - new Date(secondMember.created_at).getTime();
+      return sortDirection === "asc" ? comparison : -comparison;
     });
-    return next;
+    return nextMembers;
   }, [filteredMembers, roleLabel, sortDirection, sortKey]);
 
   const pageCount = Math.max(1, Math.ceil(sortedMembers.length / PAGE_SIZE));
@@ -194,16 +218,16 @@ export default function EmployeesPanel(props: Props) {
 
   useEffect(() => { setPage(1); }, [search, departmentFilter, statusFilter, sortKey, sortDirection]);
   useEffect(() => {
-    setSelectedIds((current) => new Set([...current].filter((id) => filteredMembers.some((member) => member.id === id))));
+    setSelectedIds((currentSelection) => new Set([...currentSelection].filter((memberId) => filteredMembers.some((member) => member.id === memberId))));
   }, [filteredMembers]);
   useEffect(() => {
     if (!pendingInviteEmail) return;
-    const member = filteredMembers.find((item) =>
-      item.status === "INVITED"
-      && item.email.trim().toLocaleLowerCase("tr") === pendingInviteEmail.trim().toLocaleLowerCase("tr"),
+    const pendingMember = filteredMembers.find((member) =>
+      member.status === "INVITED"
+      && member.email.trim().toLocaleLowerCase("tr") === pendingInviteEmail.trim().toLocaleLowerCase("tr"),
     );
-    if (!member) return;
-    openMemberDrawer(member, "invite");
+    if (!pendingMember) return;
+    openMemberDrawer(pendingMember, "invite");
     setPendingInviteEmail(null);
   }, [pendingInviteEmail, filteredMembers, openMemberDrawer]);
 
@@ -214,19 +238,19 @@ export default function EmployeesPanel(props: Props) {
   const selectablePageMembers = pageMembers.filter((member) => isBulkSelectable(member, currentUserId));
   const pageAllSelected = selectablePageMembers.length > 0 && selectablePageMembers.every((member) => selectedIds.has(member.id));
 
-  function toggleMember(id: string) {
-    setSelectedIds((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
+  function toggleMember(memberId: string) {
+    setSelectedIds((currentSelection) => {
+      const nextSelection = new Set(currentSelection);
+      if (nextSelection.has(memberId)) nextSelection.delete(memberId); else nextSelection.add(memberId);
+      return nextSelection;
     });
   }
 
   function togglePage() {
-    setSelectedIds((current) => {
-      const next = new Set(current);
-      selectablePageMembers.forEach((member) => pageAllSelected ? next.delete(member.id) : next.add(member.id));
-      return next;
+    setSelectedIds((currentSelection) => {
+      const nextSelection = new Set(currentSelection);
+      selectablePageMembers.forEach((member) => pageAllSelected ? nextSelection.delete(member.id) : nextSelection.add(member.id));
+      return nextSelection;
     });
   }
 
@@ -235,13 +259,13 @@ export default function EmployeesPanel(props: Props) {
   }
 
   async function runBulkStatus(status: BulkStatus) {
-    const ids = selectedBulkIds();
-    if (!ids.length) return;
+    const memberIds = selectedBulkIds();
+    if (!memberIds.length) return;
     const action = status === "ACTIVE" ? "aktif hale getirmek" : status === "SUSPENDED" ? "pasife almak" : "şirketten ayırmak";
-    if (!window.confirm(`${ids.length} çalışanı ${action} istediğine emin misin?`)) return;
+    if (!window.confirm(`${memberIds.length} çalışanı ${action} istediğine emin misin?`)) return;
     setBulkBusy(true);
     try {
-      await onBulkStatus(ids, status);
+      await onBulkStatus(memberIds, status);
       setSelectedIds(new Set());
     } finally {
       setBulkBusy(false);
@@ -249,13 +273,13 @@ export default function EmployeesPanel(props: Props) {
   }
 
   async function runBulkDepartment() {
-    const ids = selectedBulkIds();
+    const memberIds = selectedBulkIds();
     const department = bulkDepartment.trim();
-    if (!ids.length || !department) return;
-    if (!window.confirm(`${ids.length} çalışanın departmanını “${department}” olarak güncellemek istediğine emin misin?`)) return;
+    if (!memberIds.length || !department) return;
+    if (!window.confirm(`${memberIds.length} çalışanın departmanını “${department}” olarak güncellemek istediğine emin misin?`)) return;
     setBulkBusy(true);
     try {
-      await onBulkDepartment(ids, department);
+      await onBulkDepartment(memberIds, department);
       setSelectedIds(new Set());
       setBulkDepartment("");
     } finally {
@@ -269,13 +293,13 @@ export default function EmployeesPanel(props: Props) {
   }
 
   function openFailedBulkInvite(email: string, memberId?: string) {
-    const member = filteredMembers.find((item) => {
-      if (item.status !== "INVITED") return false;
-      if (memberId && item.id === memberId) return true;
-      return item.email.trim().toLocaleLowerCase("tr") === email.trim().toLocaleLowerCase("tr");
+    const invitedMember = filteredMembers.find((member) => {
+      if (member.status !== "INVITED") return false;
+      if (memberId && member.id === memberId) return true;
+      return member.email.trim().toLocaleLowerCase("tr") === email.trim().toLocaleLowerCase("tr");
     });
-    if (member) {
-      openMemberDrawer(member, "invite");
+    if (invitedMember) {
+      openMemberDrawer(invitedMember, "invite");
       return;
     }
     setSearch(email);
@@ -283,9 +307,9 @@ export default function EmployeesPanel(props: Props) {
     setPendingInviteEmail(email);
   }
 
-  function sortBy(next: SortKey) {
-    if (sortKey === next) setSortDirection((value) => value === "asc" ? "desc" : "asc");
-    else { setSortKey(next); setSortDirection("asc"); }
+  function sortBy(nextSortKey: SortKey) {
+    if (sortKey === nextSortKey) setSortDirection((currentDirection) => currentDirection === "asc" ? "desc" : "asc");
+    else { setSortKey(nextSortKey); setSortDirection("asc"); }
   }
 
   function sortState(column: SortKey): "ascending" | "descending" | "none" {
@@ -313,15 +337,10 @@ export default function EmployeesPanel(props: Props) {
           <h2 id="p11-employees-title">Çalışanlar</h2>
           <p>Çalışan kimliğini, davet durumunu ve dijital/fiziksel kart yaşam döngüsünü tek ekrandan yönet.</p>
         </div>
-        <div className="p11-org-capacity" aria-label="Organizasyon kapasitesi ve yenileme durumu">
+        <div className="p11-org-capacity" aria-label="Organizasyon kapasitesi">
           <small>{org?.organizations?.name || "Şirket"}</small>
-          <strong>{usedSeats} / {seatLimit}</strong>
+          <strong>{usedSeats} / {seatLimit ?? "—"}</strong>
           <span>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} kart boş`}</span>
-          {renewalState && (
-            <small className={`p11-renewal-status${renewalState.urgent ? " is-urgent" : ""}`}>
-              <Icon name="clock" /> {renewalState.label}
-            </small>
-          )}
           {suspendedSeats > 0 && (
             <small className="p11-seat-policy">
               {suspendedSeats} pasif çalışan kart kapasitesini kullanmaya devam eder. Kapasiteyi boşaltmak için çalışanı şirketten ayırın.
@@ -329,6 +348,31 @@ export default function EmployeesPanel(props: Props) {
           )}
         </div>
       </header>
+
+      <section className="p11-commercial-lifecycle" aria-label="Plan, yenileme ve kullanım hakları">
+        <article className={renewalState?.urgent ? "is-urgent" : undefined}>
+          <small>Yıllık sistem yenileme</small>
+          <strong>{renewalState?.dateLabel ?? "Tarih tanımlı değil"}</strong>
+          <span>{renewalState?.label ?? "Yenileme tarihi hesapta görünmüyor"}</span>
+        </article>
+        <article>
+          <small>Yenileme ücreti</small>
+          <strong>{renewalPriceKurus != null ? formatTryFromKurus(renewalPriceKurus) : "Hesaplanacak"}</strong>
+          <span>{renewalPackage ? `${renewalPackage.seats} kartlık güncel yıllık kapasite` : "Ek kapasite kalemleri ödeme öncesi birlikte hesaplanır"}</span>
+        </article>
+        <article>
+          <small>Network Mail</small>
+          <strong>{annualNetworkMailCredits != null ? annualNetworkMailCredits.toLocaleString("tr-TR") : "—"}</strong>
+          <span>Yıllık pakete dahil kredi hakkı</span>
+        </article>
+        <div className="p11-commercial-actions">
+          {canManageLicenses && <a href="/kurumsal#kapasite">Kapasiteyi artır</a>}
+          <a href="/kurumsal#kapasite" className="is-secondary">Plan ve yenileme detayları</a>
+        </div>
+        <p className="p11-commercial-note">
+          Ek kapasite mevcut yıllık döneme bağlanır; ana yenileme tarihi değişmez. Yenilemede aktif toplam kapasite ve yıllık kullanım hakları birlikte değerlendirilir.
+        </p>
+      </section>
 
       {hasP0Attention && (
         <section className="p11-operational-attention" aria-label="Operasyonel dikkat bildirimleri">
@@ -386,7 +430,7 @@ export default function EmployeesPanel(props: Props) {
               </div>
               {canManageLicenses && (
                 <a className="p11-attention-cta" href="/kurumsal#kapasite">
-                  Yıllık planları gör
+                  Yenileme detaylarını gör
                 </a>
               )}
             </article>
@@ -431,7 +475,7 @@ export default function EmployeesPanel(props: Props) {
               <option value="ALL">Tüm durumlar</option><option value="ACTIVE">Aktif</option><option value="INVITED">Davet bekliyor</option><option value="SUSPENDED">Pasif</option><option value="LEFT">Ayrıldı</option>
             </select>
             <select aria-label="Sıralama" className="p11-filter-control" value={`${sortKey}:${sortDirection}`} onChange={(event) => { const [key, direction] = event.target.value.split(":") as [SortKey, SortDirection]; setSortKey(key); setSortDirection(direction); }}>
-              <option value="name:asc">Ad A–Z</option><option value="name:desc">Ad Z–A</option><option value="created:desc">En yeni</option><option value="created:asc">En eski</option><option value="department:asc">Departman</option><option value="status:asc">Durum</option>
+              <option value="name:asc">Ad A–Z</option><option value="name:desc">Ad Z–A</option><option value="created:desc">En yeni eklenen</option><option value="created:asc">En eski eklenen</option><option value="department:asc">Departman</option><option value="status:asc">Durum</option>
             </select>
             {canInvite && (
               <button type="button" className="p11-secondary" onClick={onToggleBulkInvite}><Icon name="box" /> CSV ile Davet</button>
@@ -514,11 +558,11 @@ export default function EmployeesPanel(props: Props) {
 
         <div className="p11-table-wrap">
           <table className="p11-table">
-            <thead><tr><th className="select"><input type="checkbox" aria-label="Bu sayfadaki çalışanları seç" checked={pageAllSelected} onChange={togglePage} /></th>{sortHeader("name", "Çalışan")}{sortHeader("department", "Departman")}{sortHeader("role", "Rol")}<th>Dijital Kart</th><th>Fiziksel Kart</th>{sortHeader("status", "Durum")}{sortHeader("created", "Eklenme")}<th className="actions">İşlem</th></tr></thead>
+            <thead><tr><th className="select"><input type="checkbox" aria-label="Bu sayfadaki çalışanları seç" checked={pageAllSelected} onChange={togglePage} /></th>{sortHeader("name", "Çalışan")}{sortHeader("department", "Departman")}{sortHeader("role", "Rol")}<th>Dijital Kart</th><th>Fiziksel Kart</th>{sortHeader("status", "Durum")}<th>Son Hareket</th><th className="actions">İşlem</th></tr></thead>
             <tbody>
               {pageMembers.map((member) => {
-                const cardState = memberCardStatuses.find((item) => item.memberId === member.id);
-                const assignedCards = physicalCards.filter((card) => Boolean(member.user_id) && card.ownerUserId === member.user_id);
+                const cardState = memberCardStatusByMemberId.get(member.id);
+                const assignedCards = member.user_id ? physicalCardsByOwnerUserId.get(member.user_id) ?? [] : [];
                 const physicalState = cardState?.physicalCardState ?? getPhysicalCardState(assignedCards);
                 const selectable = isBulkSelectable(member, currentUserId);
                 return <tr key={member.id} data-status={member.status}>
@@ -528,7 +572,7 @@ export default function EmployeesPanel(props: Props) {
                   <td><span className={`p11-status ${cardState?.digitalProfileState === "PUBLISHED" ? "success" : cardState?.digitalProfileState === "DISABLED" ? "error" : cardState?.digitalProfileState === "DRAFT" ? "warning" : "neutral"}`}>{digitalProfileLabel(cardState?.digitalProfileState ?? "NONE")}</span></td>
                   <td><span className={`p11-status ${physicalState === "ACTIVE" ? "success" : physicalState === "LOST" ? "warning" : physicalState === "DISABLED" ? "error" : "neutral"}`}>{physicalCardLabel(physicalState)}</span></td>
                   <td><span className={`p11-status status-${member.status.toLowerCase()}`}>{memberStatusLabel(member.status)}</span></td>
-                  <td><span className="p11-relative">{relativeTime(member.created_at)}</span></td>
+                  <td><span className="p11-relative">{member.last_activity_at ? relativeTime(member.last_activity_at) : "—"}</span></td>
                   <td className="actions">
                     <button type="button" onClick={() => openProfile(member)}>Detay</button>
                     <button type="button" onClick={() => openMemberDrawer(member, "card")}>Kartı Yönet</button>
@@ -547,8 +591,8 @@ export default function EmployeesPanel(props: Props) {
 
         <div className="p11-mobile-list">
           {pageMembers.map((member) => {
-            const cardState = memberCardStatuses.find((item) => item.memberId === member.id);
-            const assignedCards = physicalCards.filter((card) => Boolean(member.user_id) && card.ownerUserId === member.user_id);
+            const cardState = memberCardStatusByMemberId.get(member.id);
+            const assignedCards = member.user_id ? physicalCardsByOwnerUserId.get(member.user_id) ?? [] : [];
             const physicalState = cardState?.physicalCardState ?? getPhysicalCardState(assignedCards);
             const selectable = isBulkSelectable(member, currentUserId);
             return <article key={member.id}>
@@ -566,6 +610,7 @@ export default function EmployeesPanel(props: Props) {
               <div className="p11-mobile-meta">
                 <span><small>Dijital kart</small><b>{digitalProfileLabel(cardState?.digitalProfileState ?? "NONE")}</b></span>
                 <span><small>Fiziksel kart</small><b>{physicalCardLabel(physicalState)}</b></span>
+                <span><small>Son hareket</small><b>{member.last_activity_at ? relativeTime(member.last_activity_at) : "—"}</b></span>
               </div>
               <footer>
                 <button type="button" onClick={() => openProfile(member)}>Detay</button>

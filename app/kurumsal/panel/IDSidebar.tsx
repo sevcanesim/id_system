@@ -11,6 +11,11 @@ import { useUnsavedChanges } from "../../components/UnsavedChangesContext";
 export type IDSidebarProps = {
   role?: string;
   ownCardHref?: string;
+  user?: {
+    full_name?: string | null;
+    email?: string | null;
+    role?: string | null;
+  } | null;
   subscription?: {
     name?: string | null;
     usedSeats?: number | null;
@@ -24,9 +29,19 @@ export type IDSidebarProps = {
   loading?: boolean;
 };
 
+const ROLE_LABELS: Record<string, string> = {
+  OWNER: "Şirket Sahibi",
+  ADMIN: "Yönetici",
+  HR: "İnsan Kaynakları",
+  HR_MANAGER: "İnsan Kaynakları",
+  DEPARTMENT_MANAGER: "Departman Yöneticisi",
+  EMPLOYEE: "Çalışan",
+};
+
 export default function IDSidebar({
   role,
   ownCardHref,
+  user,
   subscription,
   canManageLicenses = false,
   onManageLicenses,
@@ -95,6 +110,16 @@ export default function IDSidebar({
   const usedSeatsCount = typeof subscription?.usedSeats === "number" ? subscription.usedSeats : 0;
   const seatLimitCount = subscription?.seatLimit ?? null;
   const usagePercentage = seatLimitCount ? Math.min(100, Math.round((usedSeatsCount / seatLimitCount) * 100)) : 0;
+
+  const accountName = user?.full_name?.trim() || user?.email?.trim() || "Kurumsal Hesap";
+  const accountRole = ROLE_LABELS[(user?.role || role || "EMPLOYEE").toUpperCase()] || "Kurumsal Kullanıcı";
+  const accountInitials = accountName
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toLocaleUpperCase("tr-TR") || "Y";
 
   return (
     <>
@@ -200,23 +225,40 @@ export default function IDSidebar({
               </button>
             ) : null}
           </div>
-        </div>
 
-        {onSignOut ? (
-          <button
-            type="button"
-            className="id-sidebar__header-logout"
-            aria-label="Çıkış Yap"
-            title="Çıkış Yap"
-            onClick={() => {
-              onSignOut();
-              onClose?.();
-            }}
-          >
-            <Icon name="logout" />
-            <span>Çıkış</span>
-          </button>
-        ) : null}
+          <div className="enterprise-side-links enterprise-side-management canonical-personal-support">
+            <a href="mailto:hello@yenomilabs.com" onClick={onClose}>
+              <Icon name="headset" />
+              <span>Destek</span>
+            </a>
+            <a href="https://www.yenomilabs.com" target="_blank" rel="noopener noreferrer">
+              <Icon name="external" />
+              <span>Yenomilabs</span>
+            </a>
+          </div>
+
+          <div className="id-sidebar__user">
+            <span className="id-sidebar__user-avatar" aria-hidden="true">{accountInitials}</span>
+            <span className="id-sidebar__user-info">
+              <strong className="id-sidebar__user-name">{accountName}</strong>
+              <small className="id-sidebar__user-role">{accountRole}</small>
+            </span>
+            {onSignOut ? (
+              <button
+                type="button"
+                className="id-sidebar__logout"
+                aria-label="Çıkış Yap"
+                title="Çıkış Yap"
+                onClick={() => {
+                  onSignOut();
+                  onClose?.();
+                }}
+              >
+                <Icon name="logout" />
+              </button>
+            ) : null}
+          </div>
+        </div>
       </aside>
     </>
   );

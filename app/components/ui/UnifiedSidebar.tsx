@@ -171,7 +171,6 @@ export default function UnifiedSidebar({
             nav: "id-sidebar__nav",
             section: "id-sidebar__section",
             sectionItems: "id-sidebar__section-items",
-            entry: "id-sidebar__entry",
             link: "id-sidebar__link",
             icon: "id-sidebar__icon",
             label: "id-sidebar__label",

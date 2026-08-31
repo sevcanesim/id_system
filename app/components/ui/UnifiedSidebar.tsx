@@ -42,17 +42,17 @@ export default function UnifiedSidebar({
   labelledBy,
   footer,
   loading = false,
-  collapsible = true,
-  collapsibleGroups = true,
+  collapsible = false,
+  collapsibleGroups = false,
   storageKey,
   sectionAvailability,
 }: UnifiedSidebarProps) {
   const generatedId = useId();
-  const sidebarId = id || `panel-sidebar-${generatedId.replace(/:/g, "")}`;
+  const sidebarId = id || `sidebar-${generatedId.replace(/:/g, "")}`;
   const sidebarRef = useRef<HTMLElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
   const [collapsed, setCollapsed] = useState(false);
-  const collapseStorageKey = storageKey || `yenomi:panel-sidebar:${subtitle.toLowerCase().replace(/\s+/g, "-")}:collapsed`;
+  const collapseStorageKey = storageKey || `yenomi:sidebar:${subtitle.toLowerCase().replace(/\s+/g, "-")}:collapsed`;
 
   useEffect(() => {
     if (!collapsible) return;
@@ -83,7 +83,6 @@ export default function UnifiedSidebar({
     ) || []).filter((element) => !element.hasAttribute("hidden"));
 
     focusable()[0]?.focus();
-
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -115,49 +114,44 @@ export default function UnifiedSidebar({
   }, [open]);
 
   const brand = <>
-    <span className="enterprise-yenomi-mark" aria-hidden="true">
+    <span className="id-sidebar__brand-mark" aria-hidden="true">
       <img src="/images/yenomilabs-mark-transparent.png" alt="" />
     </span>
-    <span className="enterprise-yenomi-copy">
+    <span className="id-sidebar__brand-copy">
       <strong>Yenomi ID</strong>
       <small>{subtitle}</small>
     </span>
   </>;
 
   return <>
-    {open && (
-      <button
-        type="button"
-        className="enterprise-mobile-drawer-backdrop canonical-sidebar-backdrop"
-        aria-label="Menüyü kapat"
-        onClick={onClose}
-      />
-    )}
+    {open ? (
+      <button type="button" className="id-sidebar__backdrop" aria-label="Menüyü kapat" onClick={onClose} />
+    ) : null}
+
     <aside
       ref={sidebarRef}
       id={sidebarId}
-      className={`enterprise-sidebar canonical-panel-sidebar unified-sidebar ${collapsed ? "is-collapsed" : ""} ${className || ""} ${open ? "is-mobile-open" : ""}`.trim().replace(/\s+/g, " ")}
+      className={`id-sidebar unified-sidebar ${className || ""} ${collapsed ? "is-collapsed" : ""} ${open ? "id-sidebar--mobile-open" : ""}`.trim().replace(/\s+/g, " ")}
       aria-label={ariaLabel}
       aria-labelledby={labelledBy}
       data-open={open || undefined}
       data-collapsed={collapsed || undefined}
     >
-      <button type="button" className="enterprise-sidebar-mobile-close" aria-label="Menüyü kapat" onClick={onClose}>
+      <button type="button" className="id-sidebar__mobile-close" aria-label="Menüyü kapat" onClick={onClose}>
         <Icon name="close" />
       </button>
 
-      {brandHref
-        ? <Link href={brandHref} className="enterprise-side-brand enterprise-yenomi-brand" onClick={onClose}>{brand}</Link>
-        : <button type="button" className="enterprise-side-brand enterprise-brand-button enterprise-yenomi-brand" onClick={onBrandClick}>{brand}</button>}
+      <div className="id-sidebar__brand">
+        {brandHref
+          ? <Link href={brandHref} className="id-sidebar__brand-link" onClick={onClose}>{brand}</Link>
+          : <button type="button" className="id-sidebar__brand-link unified-sidebar__brand-button" onClick={onBrandClick}>{brand}</button>}
+      </div>
 
       {loading ? (
-        <nav className="enterprise-canonical-nav enterprise-canonical-nav--loading" aria-label={ariaLabel} aria-busy="true">
-          <p className="enterprise-nav-loading-note">Menü yükleniyor…</p>
-          {Array.from({ length: 5 }).map((_, index) => (
-            <span key={index} className="enterprise-nav-loading-row" aria-hidden="true">
-              <i />
-              <span />
-            </span>
+        <nav className="id-sidebar__nav id-sidebar__nav--loading" aria-label={ariaLabel} aria-busy="true">
+          <p className="id-sidebar__loading-note">Menü yükleniyor.</p>
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="id-sidebar__loading-row" aria-hidden="true"><i /><span /></div>
           ))}
         </nav>
       ) : (
@@ -165,10 +159,15 @@ export default function UnifiedSidebar({
           ariaLabel={ariaLabel}
           activeKey={activeKey}
           classNames={{
-            nav: "enterprise-canonical-nav",
-            entry: "enterprise-nav-entry",
-            group: "enterprise-side-section-title",
-            active: "active",
+            nav: "id-sidebar__nav",
+            section: "id-sidebar__section",
+            sectionItems: "id-sidebar__section-items",
+            entry: "id-sidebar__entry",
+            link: "id-sidebar__link",
+            icon: "id-sidebar__icon",
+            label: "id-sidebar__label",
+            group: "id-sidebar__section-label",
+            active: "id-sidebar__link--active",
           }}
           onNavigate={(item, event) => {
             onNavigate?.(item, event);
@@ -184,7 +183,7 @@ export default function UnifiedSidebar({
 
       <div className="unified-sidebar__footer-region">
         {footer}
-        {collapsible && (
+        {collapsible ? (
           <button
             type="button"
             className="enterprise-sidebar-collapse"
@@ -196,7 +195,7 @@ export default function UnifiedSidebar({
             <Icon name={collapsed ? "chevronRight" : "chevronLeft"} />
             <span>{collapsed ? "Genişlet" : "Daralt"}</span>
           </button>
-        )}
+        ) : null}
       </div>
     </aside>
   </>;

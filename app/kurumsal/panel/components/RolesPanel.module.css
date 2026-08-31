@@ -6,7 +6,7 @@
   display: none;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 47.9375rem) {
   .desktopMatrix {
     display: none;
   }
@@ -36,8 +36,8 @@
   .roleHeader > span {
     display: grid;
     flex: 0 0 auto;
-    width: 40px;
-    height: 40px;
+    width: var(--space-10);
+    height: var(--space-10);
     place-items: center;
     border-radius: var(--radius-sm);
     background: var(--surface-accent);
@@ -70,7 +70,7 @@
     grid-template-columns: minmax(0, 1fr) auto;
     gap: var(--space-2);
     align-items: center;
-    min-height: 44px;
+    min-height: var(--control-height-md);
     padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-sm);
     background: var(--surface-accent);

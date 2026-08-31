@@ -1,7 +1,5 @@
-import type { SidebarConfigItem, SidebarScope } from "./sidebar-config";
-
-export type SidebarAvailability = "visible" | "disabled" | "hidden";
-export type SidebarSectionAvailabilityMap = Partial<Record<string, SidebarAvailability>>;
+import type { SidebarConfigItem } from "./sidebar-config";
+import type { SidebarAvailability, SidebarScope, SidebarSectionAvailabilityMap } from "./sidebar.types";
 
 export type SidebarStateContext = {
   scope: SidebarScope;
@@ -26,7 +24,7 @@ export function resolveSidebarItemState<T extends SidebarConfigItem>(
 ): ResolvedSidebarItem<T> {
   const override = context.itemAvailability?.[item.key];
   let availability = override ?? resolveConfiguredAvailability(item);
-  let disabledReason = item.disabledReason;
+  const disabledReason = item.disabledReason;
 
   if (
     context.scope === "individual" &&

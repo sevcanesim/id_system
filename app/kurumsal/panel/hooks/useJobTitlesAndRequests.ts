@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import type { JobTitleOption, TitleRequest } from "../domain/types";
 import { fetchWithPanelTimeout } from "../domain/runtime";
 
@@ -12,6 +12,8 @@ export function useJobTitlesAndRequests(
   const [jobTitleBusy, setJobTitleBusy] = useState(false);
   const [titleRequests, setTitleRequests] = useState<TitleRequest[]>([]);
   const [titleRequestBusyId, setTitleRequestBusyId] = useState<string | null>(null);
+  const jobTitlesLoadId = useRef(0);
+  const titleRequestsLoadId = useRef(0);
 
   async function requireAccessToken() {
     const accessToken = await getAccessToken();
@@ -20,8 +22,9 @@ export function useJobTitlesAndRequests(
   }
 
   async function loadJobTitles(organizationId: string, accessToken?: string) {
+    const loadId = ++jobTitlesLoadId.current;
     const bearer = accessToken || (await getAccessToken());
-    if (!bearer) return;
+    if (!bearer || loadId !== jobTitlesLoadId.current) return;
 
     try {
       const response = await fetchWithPanelTimeout(
@@ -29,16 +32,19 @@ export function useJobTitlesAndRequests(
         { headers: { authorization: `Bearer ${bearer}` }, cache: "no-store" },
       );
       const payload = await response.json();
+      if (loadId !== jobTitlesLoadId.current) return;
+
       if (response.ok) setJobTitles(payload.titles || []);
       else setMessage(payload.error || "Pozisyonlar yüklenemedi.");
     } catch {
-      setMessage("Pozisyonlar yüklenemedi.");
+      if (loadId === jobTitlesLoadId.current) setMessage("Pozisyonlar yüklenemedi.");
     }
   }
 
   async function loadTitleRequests(organizationId: string, accessToken?: string) {
+    const loadId = ++titleRequestsLoadId.current;
     const bearer = accessToken || (await getAccessToken());
-    if (!bearer) return;
+    if (!bearer || loadId !== titleRequestsLoadId.current) return;
 
     try {
       const response = await fetchWithPanelTimeout(
@@ -46,10 +52,12 @@ export function useJobTitlesAndRequests(
         { headers: { authorization: `Bearer ${bearer}` }, cache: "no-store" },
       );
       const payload = await response.json();
+      if (loadId !== titleRequestsLoadId.current) return;
+
       if (response.ok) setTitleRequests(payload.requests || []);
       else setMessage(payload.error || "Pozisyon talepleri yüklenemedi.");
     } catch {
-      setMessage("Pozisyon talepleri yüklenemedi.");
+      if (loadId === titleRequestsLoadId.current) setMessage("Pozisyon talepleri yüklenemedi.");
     }
   }
 

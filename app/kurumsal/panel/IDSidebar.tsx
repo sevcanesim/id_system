@@ -71,8 +71,6 @@ export default function IDSidebar({
     if (!open) return;
 
     previouslyFocused.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
 
     const sidebar = sidebarRef.current;
     const focusable = () =>
@@ -108,7 +106,6 @@ export default function IDSidebar({
 
     document.addEventListener("keydown", onKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", onKeyDown);
       previouslyFocused.current?.focus();
     };
@@ -169,8 +166,8 @@ export default function IDSidebar({
           </nav>
         ) : (
           <nav className="id-sidebar__nav" aria-label="Kurumsal yönetim menüsü">
-            {itemGroups.map((group, groupIndex) => (
-              <div key={group.name || `group-${groupIndex}`} className="id-sidebar__section">
+            {itemGroups.map((group) => (
+              <div key={group.name || group.items[0]?.key || "root"} className="id-sidebar__section">
                 {group.name ? <span className="id-sidebar__section-label">{group.name}</span> : null}
                 <div className="id-sidebar__section-items">
                   {group.items.map((item) => {

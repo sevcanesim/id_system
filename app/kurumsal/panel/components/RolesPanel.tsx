@@ -24,39 +24,45 @@ export default function RolesPanel({ members }: { members: RoleMember[] }) {
         <div>
           <span>ERİŞİM YÖNETİMİ</span>
           <h2>Roller ve yetkiler</h2>
-          <p>Şirket içindeki her rolün hangi işlemleri yapabildiğini ve ekipte kaç kişinin bu role sahip olduğunu görün.</p>
+          <p>Şirket içindeki rollerin sorumluluklarını ve ayrıntılı işlem yetkilerini tek ekranda karşılaştırın.</p>
         </div>
-        <span className="business-role-count">{ROLE_MATRIX_COLUMNS.length} rol</span>
       </header>
 
-      <div className="business-role-summary">
-        {ROLE_MATRIX_COLUMNS.map((role) => {
-          const count = members.filter((member) => member.role === role && member.status !== "LEFT").length;
-          const guide = ROLE_GUIDES[role];
-          return (
-            <article key={role} className={count === 0 ? "is-empty" : undefined}>
-              <div className="business-role-summary__head">
-                <i><Icon name={ROLE_ICONS[role]} /></i>
-                <div>
-                  <strong>{ROLE_LABELS[role]}</strong>
-                  <span>{count} kişi</span>
+      <section className="business-role-overview" aria-labelledby="business-role-overview-title">
+        <div className="business-role-section-heading">
+          <div>
+            <h3 id="business-role-overview-title">Rol özeti</h3>
+            <p>Her rolün ekipteki kişi sayısını ve temel sorumluluklarını görün.</p>
+          </div>
+        </div>
+        <div className="business-role-summary">
+          {ROLE_MATRIX_COLUMNS.map((role) => {
+            const count = members.filter((member) => member.role === role && member.status !== "LEFT").length;
+            return (
+              <article key={role} className={count === 0 ? "is-empty" : undefined}>
+                <div className="business-role-summary__head">
+                  <i><Icon name={ROLE_ICONS[role]} /></i>
+                  <div>
+                    <strong>{ROLE_LABELS[role]}</strong>
+                    <span>{count} kişi</span>
+                  </div>
                 </div>
-              </div>
-              <ul>
-                {guide.map((line) => <li key={line}>{line}</li>)}
-              </ul>
-            </article>
-          );
-        })}
-      </div>
+                <ul>
+                  {ROLE_GUIDES[role].map((line) => <li key={line}>{line}</li>)}
+                </ul>
+              </article>
+            );
+          })}
+        </div>
+      </section>
 
       <section className="business-role-matrix-section" aria-labelledby="business-role-matrix-title">
         <div className="business-role-matrix-heading">
           <div>
             <h3 id="business-role-matrix-title">Yetki karşılaştırması</h3>
-            <p>Detaylı izinleri rol bazında karşılaştırın.</p>
+            <p>İşlem bazındaki gerçek yetki sınırlarını rol rol karşılaştırın.</p>
           </div>
-          <span>Yatay kaydırılabilir</span>
+          <span className="business-role-scroll-hint">Tabloyu yatay kaydırın</span>
         </div>
         <div className="business-role-matrix" role="region" aria-label="Rol ve yetki matrisi" tabIndex={0}>
           <table>
@@ -74,7 +80,7 @@ export default function RolesPanel({ members }: { members: RoleMember[] }) {
                     const allowed = capability.allows(matrixRole);
                     return (
                       <td key={matrixRole} className={allowed ? "allowed" : "denied"}>
-                        {allowed ? <><Icon name="check" /><span className="sr-only">İzin var</span></> : <><span aria-hidden="true">—</span><span className="sr-only">İzin yok</span></>}
+                        {allowed ? <><span className="business-role-permission-mark"><Icon name="check" /></span><span className="sr-only">İzin var</span></> : <><span className="business-role-permission-denied" aria-hidden="true">—</span><span className="sr-only">İzin yok</span></>}
                       </td>
                     );
                   })}

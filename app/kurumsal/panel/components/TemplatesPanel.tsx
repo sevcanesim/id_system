@@ -4,7 +4,11 @@ import CardTemplate, { type CardBranding, type EditableCardData } from "../../..
 import CorporateTemplateSelector from "./CorporateTemplateSelector";
 import type { DatabaseTemplateOption } from "../../../../lib/config/database";
 
-type TemplateDraft = { name: string; primaryColor: string; logoUrl: string };
+type TemplateDraft = {
+  name: string;
+  primaryColor: string;
+  logoUrl: string;
+};
 
 type Props = {
   templateVariant: string;
@@ -17,6 +21,13 @@ type Props = {
   onSubmit: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
   templateOptions: DatabaseTemplateOption[];
 };
+
+const DEFAULT_BRAND_COLOR = "#17121F";
+const HEX_COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
+
+function normalizeBrandColor(value: string) {
+  return HEX_COLOR_PATTERN.test(value.trim()) ? value.trim().toUpperCase() : DEFAULT_BRAND_COLOR;
+}
 
 function variantLabel(templateVariant: string) {
   const normalized = templateVariant.replace("CLASSIC", "ESSENTIAL").replace("MINIMAL", "PROFESSIONAL");
@@ -37,6 +48,7 @@ export default function TemplatesPanel({
   templateOptions,
 }: Props) {
   const currentVariant = variantLabel(templateVariant);
+  const safeBrandColor = normalizeBrandColor(template.primaryColor);
 
   return (
     <form className="corporate-template-studio" onSubmit={onSubmit}>
@@ -85,8 +97,11 @@ export default function TemplatesPanel({
               <label className="corporate-template-field corporate-template-field--full">
                 <span>Şablon adı</span>
                 <input
+                  required
+                  minLength={2}
+                  maxLength={80}
                   value={template.name}
-                  onChange={(event) => setTemplate((value) => ({ ...value, name: event.target.value }))}
+                  onChange={(event) => setTemplate((current) => ({ ...current, name: event.target.value }))}
                   placeholder="Örn. Satış Ekibi 2026"
                 />
                 <small>Yönetim panelinde bu adla görünür.</small>
@@ -98,14 +113,20 @@ export default function TemplatesPanel({
                   <input
                     type="color"
                     aria-label="Ana renk seç"
-                    value={/^#[0-9a-f]{6}$/i.test(template.primaryColor) ? template.primaryColor : "#17121f"}
-                    onChange={(event) => setTemplate((value) => ({ ...value, primaryColor: event.target.value }))}
+                    value={safeBrandColor}
+                    onChange={(event) => setTemplate((current) => ({ ...current, primaryColor: event.target.value.toUpperCase() }))}
                   />
                   <input
                     aria-label="Ana renk HEX değeri"
                     value={template.primaryColor}
-                    onChange={(event) => setTemplate((value) => ({ ...value, primaryColor: event.target.value }))}
-                    placeholder="#17121F"
+                    maxLength={7}
+                    pattern="^#[0-9A-Fa-f]{6}$"
+                    onBlur={(event) => {
+                      const normalized = normalizeBrandColor(event.target.value);
+                      setTemplate((current) => ({ ...current, primaryColor: normalized }));
+                    }}
+                    onChange={(event) => setTemplate((current) => ({ ...current, primaryColor: event.target.value }))}
+                    placeholder={DEFAULT_BRAND_COLOR}
                   />
                 </span>
                 <small>HEX formatında marka rengini kullan.</small>
@@ -115,9 +136,11 @@ export default function TemplatesPanel({
                 <span>Logo URL <em>Opsiyonel</em></span>
                 <input
                   type="url"
+                  inputMode="url"
+                  maxLength={2048}
                   placeholder="https://firma.com/logo.png"
                   value={template.logoUrl}
-                  onChange={(event) => setTemplate((value) => ({ ...value, logoUrl: event.target.value }))}
+                  onChange={(event) => setTemplate((current) => ({ ...current, logoUrl: event.target.value.trimStart() }))}
                 />
                 <small>HTTPS adresi kullan. Şeffaf PNG veya SVG önerilir.</small>
               </label>
@@ -159,12 +182,12 @@ export default function TemplatesPanel({
           <footer className="corporate-template-preview__footer">
             <span
               className="corporate-template-preview__swatch"
-              style={{ background: template.primaryColor }}
+              style={{ background: safeBrandColor }}
               aria-hidden="true"
             />
             <div>
               <small>MARKA RENGİ</small>
-              <strong>{template.primaryColor || "#17121F"}</strong>
+              <strong>{safeBrandColor}</strong>
             </div>
           </footer>
         </aside>

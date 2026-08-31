@@ -1,0 +1,45 @@
+name: Normalize Responsive Canonical
+
+on:
+  push:
+    branches:
+      - refactor/master-responsive-zero-regression
+    paths:
+      - ".github/workflows/normalize-responsive-css.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  normalize:
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(styles): normalize responsive canonical formatting') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/master-responsive-zero-regression
+          fetch-depth: 0
+      - name: Remove blank-only lines without changing CSS tokens or order
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('app/styles/canonical-responsive-final.css')
+          source = path.read_text()
+          lines = source.splitlines()
+          compact = '\n'.join(line for line in lines if line.strip()) + '\n'
+          count = compact.count('\n')
+          if count > 1500:
+              raise SystemExit(f'Formatting-only compaction is insufficient: {count} lines')
+          path.write_text(compact)
+          print(f'canonical-responsive-final.css: {len(lines)} -> {count} lines')
+          PY
+      - name: Commit formatting-only normalization
+        run: |
+          if git diff --quiet -- app/styles/canonical-responsive-final.css; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/styles/canonical-responsive-final.css
+          git commit -m "chore(styles): normalize responsive canonical formatting"
+          git push origin HEAD:refactor/master-responsive-zero-regression

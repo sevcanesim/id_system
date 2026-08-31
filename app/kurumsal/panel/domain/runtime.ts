@@ -7,24 +7,35 @@ export async function fetchWithPanelTimeout(
   timeoutMs = PANEL_REQUEST_TIMEOUT_MS,
 ) {
   const controller = new AbortController();
-  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+  const upstreamSignal = init.signal;
+
+  if (upstreamSignal?.aborted) controller.abort(upstreamSignal.reason);
+  const abortFromUpstream = () => controller.abort(upstreamSignal?.reason);
+  upstreamSignal?.addEventListener("abort", abortFromUpstream, { once: true });
+
   try {
     return await fetch(input, { ...init, signal: controller.signal });
   } finally {
-    window.clearTimeout(timer);
+    window.clearTimeout(timeoutId);
+    upstreamSignal?.removeEventListener("abort", abortFromUpstream);
   }
 }
 
 export async function waitForInitialPanelLoads(loads: Promise<unknown>[]) {
-  let timedOut = false;
-  await Promise.race([
-    Promise.allSettled(loads),
-    new Promise<void>((resolve) =>
-      window.setTimeout(() => {
-        timedOut = true;
-        resolve();
-      }, INITIAL_PANEL_LOAD_TIMEOUT_MS),
-    ),
-  ]);
-  return { timedOut };
+  let timeoutId: number | undefined;
+
+  const timeout = new Promise<"timeout">((resolve) => {
+    timeoutId = window.setTimeout(() => resolve("timeout"), INITIAL_PANEL_LOAD_TIMEOUT_MS);
+  });
+
+  try {
+    const outcome = await Promise.race([
+      Promise.allSettled(loads).then(() => "settled" as const),
+      timeout,
+    ]);
+    return { timedOut: outcome === "timeout" };
+  } finally {
+    if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+  }
 }

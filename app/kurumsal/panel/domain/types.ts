@@ -1,3 +1,6 @@
+import type { DigitalProfileState, InvitationState, MemberStatus, PhysicalCardStatus } from "../../../../lib/organizations/lifecycle";
+import type { OrganizationCapacityTerm } from "../../../../lib/organizations/capacity-terms";
+
 export type Org = {
   organization_id: string;
   role: string;
@@ -17,9 +20,6 @@ export type Org = {
   organization_capacity_terms?: OrganizationCapacityTerm[];
 };
 
-import type { DigitalProfileState, InvitationState, MemberStatus, PhysicalCardStatus } from "../../../../lib/organizations/lifecycle";
-import type { OrganizationCapacityTerm } from "../../../../lib/organizations/capacity-terms";
-
 export type MemberActionTarget = {
   id: string;
   email: string;
@@ -33,7 +33,7 @@ export type MemberActionTarget = {
 };
 
 export type Member = MemberActionTarget & {
-  last_activity_at: string;
+  last_activity_at: string | null;
 };
 
 export type Template = {

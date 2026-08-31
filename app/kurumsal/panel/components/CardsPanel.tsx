@@ -20,6 +20,8 @@ type Props = {
   embedded?: boolean;
 };
 
+type InventoryFilter = "ALL" | "ATTENTION" | PhysicalCard["status"];
+
 function formatCardDate(value: string | null) {
   if (!value) return "—";
   const date = new Date(value);
@@ -38,9 +40,15 @@ function cardTone(status: PhysicalCard["status"]) {
   return "neutral";
 }
 
+function requiresAttention(card: PhysicalCard) {
+  return card.status === "UNASSIGNED" || card.status === "DISABLED" || card.status === "LOST";
+}
+
 export default function CardsPanel({
   members,
   physicalCards,
+  memberCardStatuses,
+  digitalCardsReady,
   cardBusy,
   toggleCardStatus,
   openMemberDrawer,
@@ -48,6 +56,7 @@ export default function CardsPanel({
   embedded = false,
 }: Props) {
   const [search, setSearch] = useState("");
+  const [inventoryFilter, setInventoryFilter] = useState<InventoryFilter>("ALL");
   const [assigningCard, setAssigningCard] = useState<PhysicalCard | null>(null);
   const [selectedMemberId, setSelectedMemberId] = useState("");
   const inventory = physicalInventoryCounts(physicalCards);
@@ -61,20 +70,42 @@ export default function CardsPanel({
     [roster, physicalCards],
   );
 
+  const digitalDraftCount = useMemo(
+    () => memberCardStatuses.filter((cardStatus) => cardStatus.hasDigitalCard && !cardStatus.published).length,
+    [memberCardStatuses],
+  );
+  const missingDigitalCardCount = useMemo(
+    () => memberCardStatuses.filter((cardStatus) => !cardStatus.hasDigitalCard && cardStatus.memberStatus !== "LEFT").length,
+    [memberCardStatuses],
+  );
+
   const visibleCards = useMemo(() => {
-    const term = search.trim().toLocaleLowerCase("tr");
-    if (!term) return physicalCards;
-    return physicalCards.filter((card) =>
-      [card.cardCodeMasked, card.ownerName, physicalCardLabel(card.status)].some((value) =>
-        String(value || "").toLocaleLowerCase("tr").includes(term),
-      ),
-    );
-  }, [physicalCards, search]);
+    const normalizedSearch = search.trim().toLocaleLowerCase("tr");
+    return physicalCards.filter((card) => {
+      const matchesFilter = inventoryFilter === "ALL"
+        || (inventoryFilter === "ATTENTION" ? requiresAttention(card) : card.status === inventoryFilter);
+      if (!matchesFilter) return false;
+      if (!normalizedSearch) return true;
+      return [card.cardCodeMasked, card.ownerName, physicalCardLabel(card.status)].some((value) =>
+        String(value || "").toLocaleLowerCase("tr").includes(normalizedSearch),
+      );
+    });
+  }, [inventoryFilter, physicalCards, search]);
 
   const attentionCount = inventory.awaitingAssignment + inventory.disabled + inventory.lost;
 
   const memberForCard = (card: PhysicalCard) =>
     card.ownerUserId ? roster.find((member) => member.user_id === card.ownerUserId) || null : null;
+
+  function openAssignmentFlow(card: PhysicalCard) {
+    setSelectedMemberId("");
+    setAssigningCard(card);
+  }
+
+  function resetInventoryFilters() {
+    setSearch("");
+    setInventoryFilter("ALL");
+  }
 
   return (
     <section id="kart-envanteri" className={`p11-employees p11-cards card-inventory-page${embedded ? " card-inventory-page--embedded" : ""}`} aria-labelledby="p11-cards-title">
@@ -92,7 +123,12 @@ export default function CardsPanel({
           <div>
             <span>KART YÖNETİMİ</span>
             <h2 id="p11-cards-title">Kartlar</h2>
-            <p>Fiziksel kart envanterini, atamaları ve kart yaşam döngüsünü tek yerden yönetin.</p>
+            <p>Dijital kart kapsamını izleyin; fiziksel kart atama, aktivasyon ve yaşam döngüsü işlemlerini tek envanterden yönetin.</p>
+            <div className="action-first-summary__stats card-management-overview" aria-label="Kart kapsamı">
+              <span><small>Yayında</small><b>{digitalCardsReady}</b></span>
+              <span><small>Taslak</small><b>{digitalDraftCount}</b></span>
+              <span><small>Profil bekliyor</small><b>{missingDigitalCardCount}</b></span>
+            </div>
           </div>
           <Button type="button" variant="secondary" onClick={openEmployees}>Çalışanlara Git</Button>
         </header>
@@ -100,14 +136,14 @@ export default function CardsPanel({
 
       <section className={`action-first-summary${attentionCount > 0 ? " has-attention" : " is-clear"}`} aria-label="Fiziksel kart özeti">
         <div>
-          <span>{attentionCount > 0 ? "İŞLEM GEREKEN" : "ENVANTER DURUMU"}</span>
-          <strong>{attentionCount > 0 ? `${attentionCount} fiziksel kart işlem bekliyor` : "Fiziksel kart envanteri güncel"}</strong>
-          <p>{attentionCount > 0 ? "Atama bekleyen, devre dışı veya kayıp kartları aşağıdaki envanterden tamamlayın." : "Şu anda fiziksel kart operasyonunda bekleyen kritik bir işlem bulunmuyor."}</p>
+          <span>{attentionCount > 0 ? "FİZİKSEL KART · İŞLEM GEREKEN" : "FİZİKSEL KART · ENVANTER"}</span>
+          <strong>{attentionCount > 0 ? `${attentionCount} kart yönetim bekliyor` : "Fiziksel kart operasyonu güncel"}</strong>
+          <p>{attentionCount > 0 ? "Atanmamış, devre dışı veya kayıp kartları filtreleyip gerekli aksiyona doğrudan geçin." : "Atama veya durum müdahalesi gerektiren fiziksel kart bulunmuyor."}</p>
         </div>
         <div className="action-first-summary__stats card-inventory-stats" aria-label="Kart envanteri özeti">
-          <span><small>Toplam kart</small><b>{physicalCards.length}</b></span>
+          <span><small>Toplam</small><b>{physicalCards.length}</b></span>
           <span><small>Aktif</small><b>{inventory.active}</b></span>
-          <span><small>Atama bekliyor</small><b>{inventory.awaitingAssignment}</b></span>
+          <span><small>Atanmamış</small><b>{inventory.awaitingAssignment}</b></span>
           <span><small>Devre dışı / kayıp</small><b>{inventory.disabled + inventory.lost}</b></span>
         </div>
       </section>
@@ -123,7 +159,20 @@ export default function CardsPanel({
               placeholder="Kart ID, çalışan veya durum ara"
             />
           </label>
-          <span className="action-first-inventory-note">{visibleCards.length} / {physicalCards.length} kart</span>
+          <select
+            className="p11-filter-control card-inventory-filter"
+            aria-label="Kart durum filtresi"
+            value={inventoryFilter}
+            onChange={(event) => setInventoryFilter(event.target.value as InventoryFilter)}
+          >
+            <option value="ALL">Tüm kartlar</option>
+            <option value="ATTENTION">İşlem gerekenler</option>
+            <option value="ACTIVE">Aktif</option>
+            <option value="UNASSIGNED">Atanmamış</option>
+            <option value="DISABLED">Devre dışı</option>
+            <option value="LOST">Kayıp</option>
+          </select>
+          <span className="action-first-inventory-note" aria-live="polite">{visibleCards.length} / {physicalCards.length} kart</span>
         </div>
 
         <div className="p11-table-wrap card-inventory-table-wrap">
@@ -140,8 +189,9 @@ export default function CardsPanel({
             <tbody>
               {visibleCards.map((card) => {
                 const member = memberForCard(card);
+                const isUpdating = cardBusy === card.id;
                 return (
-                  <tr key={card.id}>
+                  <tr key={card.id} data-card-attention={requiresAttention(card) ? "true" : undefined}>
                     <td>
                       <div className="card-inventory-id">
                         <strong>{card.cardCodeMasked}</strong>
@@ -165,22 +215,11 @@ export default function CardsPanel({
                     <td>{formatCardDate(card.activatedAt)}</td>
                     <td className="actions">
                       {card.status === "ACTIVE" ? (
-                        <Button type="button" size="sm" variant="secondary" disabled={cardBusy === card.id} onClick={() => void toggleCardStatus(card.id, "DISABLED")}>Pasife Al</Button>
+                        <Button type="button" size="sm" variant="secondary" disabled={isUpdating} onClick={() => void toggleCardStatus(card.id, "DISABLED")}>{isUpdating ? "Güncelleniyor…" : "Pasife Al"}</Button>
                       ) : card.status === "DISABLED" ? (
-                        <Button type="button" size="sm" variant="primary" disabled={cardBusy === card.id} onClick={() => void toggleCardStatus(card.id, "ACTIVE")}>Aktifleştir</Button>
+                        <Button type="button" size="sm" variant="primary" disabled={isUpdating} onClick={() => void toggleCardStatus(card.id, "ACTIVE")}>{isUpdating ? "Güncelleniyor…" : "Aktifleştir"}</Button>
                       ) : !card.ownerUserId && card.status === "UNASSIGNED" ? (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="primary"
-                          disabled={cardBusy === card.id}
-                          onClick={() => {
-                            setSelectedMemberId("");
-                            setAssigningCard(card);
-                          }}
-                        >
-                          Çalışana Ata
-                        </Button>
+                        <Button type="button" size="sm" variant="primary" disabled={isUpdating} onClick={() => openAssignmentFlow(card)}>Atamayı Başlat</Button>
                       ) : member ? (
                         <Button type="button" size="sm" variant="secondary" onClick={() => openMemberDrawer(member, "card")}>Kartı Yönet</Button>
                       ) : null}
@@ -195,8 +234,9 @@ export default function CardsPanel({
         <div className="p11-mobile-list card-inventory-mobile-list">
           {visibleCards.map((card) => {
             const member = memberForCard(card);
+            const isUpdating = cardBusy === card.id;
             return (
-              <article key={card.id}>
+              <article key={card.id} data-card-attention={requiresAttention(card) ? "true" : undefined}>
                 <header>
                   <div>
                     <strong>{card.cardCodeMasked}</strong>
@@ -210,11 +250,11 @@ export default function CardsPanel({
                 </div>
                 <footer>
                   {card.status === "ACTIVE" ? (
-                    <button type="button" disabled={cardBusy === card.id} onClick={() => void toggleCardStatus(card.id, "DISABLED")}>Pasife Al</button>
+                    <button type="button" disabled={isUpdating} onClick={() => void toggleCardStatus(card.id, "DISABLED")}>{isUpdating ? "Güncelleniyor…" : "Pasife Al"}</button>
                   ) : card.status === "DISABLED" ? (
-                    <button type="button" disabled={cardBusy === card.id} onClick={() => void toggleCardStatus(card.id, "ACTIVE")}>Aktifleştir</button>
+                    <button type="button" disabled={isUpdating} onClick={() => void toggleCardStatus(card.id, "ACTIVE")}>{isUpdating ? "Güncelleniyor…" : "Aktifleştir"}</button>
                   ) : !card.ownerUserId && card.status === "UNASSIGNED" ? (
-                    <button type="button" onClick={() => { setSelectedMemberId(""); setAssigningCard(card); }}>Çalışana Ata</button>
+                    <button type="button" disabled={isUpdating} onClick={() => openAssignmentFlow(card)}>Atamayı Başlat</button>
                   ) : member ? (
                     <button type="button" onClick={() => openMemberDrawer(member, "card")}>Kartı Yönet</button>
                   ) : null}
@@ -229,8 +269,8 @@ export default function CardsPanel({
             compact
             icon="contact"
             title={physicalCards.length === 0 ? "Henüz fiziksel kart yok" : "Kart bulunamadı"}
-            description={physicalCards.length === 0 ? "Fiziksel kart kayıtları oluşturulduğunda envanter burada görünür." : "Kart ID, çalışan adı veya durum ile yeniden arayın."}
-            action={physicalCards.length === 0 ? { label: "Çalışanlara Git", onClick: openEmployees } : { label: "Aramayı Temizle", onClick: () => setSearch("") }}
+            description={physicalCards.length === 0 ? "Fiziksel kart kayıtları oluşturulduğunda envanter burada görünür." : "Arama veya durum filtresini değiştirerek yeniden deneyin."}
+            action={physicalCards.length === 0 ? { label: "Çalışanlara Git", onClick: openEmployees } : { label: "Filtreleri Temizle", onClick: resetInventoryFilters }}
           />
         )}
       </section>
@@ -247,9 +287,9 @@ export default function CardsPanel({
         >
           <div className="v25-dialog-card">
             <header className="v25-dialog-header">
-              <small>FİZİKSEL KART ATAMASI</small>
-              <h3 id="card-assign-dialog-title">Fiziksel Kart Ataması</h3>
-              <p>Seçili kart: <strong>{assigningCard.cardCodeMasked}</strong></p>
+              <small>FİZİKSEL KART ATAMA AKIŞI</small>
+              <h3 id="card-assign-dialog-title">Atama için çalışan seçin</h3>
+              <p><strong>{assigningCard.cardCodeMasked}</strong> kartı için uygun çalışanı seçin. Gerçek atama işlemi çalışan kart yönetiminde tamamlanır.</p>
             </header>
             {eligibleMembers.length > 0 ? (
               <div className="v25-dialog-body">
@@ -269,7 +309,7 @@ export default function CardsPanel({
                     ))}
                   </select>
                 </label>
-                <p className="v25-dialog-help">Çalışanı seçin; kart atama işlemi çalışan kart yönetiminde tamamlanır.</p>
+                <p className="v25-dialog-help">Bu ekran kartı doğrudan atamaz; seçilen çalışanın fiziksel kart yönetimini açar.</p>
                 <div className="v25-dialog-actions">
                   <Button type="button" variant="secondary" onClick={() => setAssigningCard(null)}>Vazgeç</Button>
                   <Button
@@ -277,14 +317,14 @@ export default function CardsPanel({
                     variant="primary"
                     disabled={!selectedMemberId}
                     onClick={() => {
-                      const chosen = eligibleMembers.find((member) => member.id === selectedMemberId);
-                      if (chosen) {
+                      const selectedMember = eligibleMembers.find((member) => member.id === selectedMemberId);
+                      if (selectedMember) {
                         setAssigningCard(null);
-                        openMemberDrawer(chosen, "card");
+                        openMemberDrawer(selectedMember, "card");
                       }
                     }}
                   >
-                    Kartı Yönet
+                    Kart Yönetimini Aç
                   </Button>
                 </div>
               </div>

@@ -101,6 +101,11 @@ export default function DashboardShell({
       (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
     )?.key;
 
+  const sidebarItems = INDIVIDUAL_SIDEBAR_CONFIG.map<SidebarNavItem>((item) => ({
+    ...item,
+    status: item.key === "subscription" && hasCorporateSubscription ? "hidden" : item.status ?? "enabled",
+  }));
+
   return (
     <main className={`yi-app yi-app--${portal} enterprise-dashboard-shell p7-shell`}>
       <button
@@ -137,10 +142,7 @@ export default function DashboardShell({
         activeKey={calculatedActiveKey}
         collapsibleGroups={portal !== "individual"}
         storageKey="yenomi:individual-sidebar:collapsed"
-        items={INDIVIDUAL_SIDEBAR_CONFIG.map<SidebarNavItem>((item) => ({
-          ...item,
-          hidden: item.key === "subscription" && hasCorporateSubscription,
-        }))}
+        items={sidebarItems}
       >
         <div className="enterprise-side-links enterprise-side-management canonical-personal-support">
           <a href="mailto:hello@yenomilabs.com">

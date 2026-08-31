@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { Icon, type IconName } from "../../icons";
-import { groupSidebarItems } from "./sidebar-config";
+import { groupSidebarItems, type SidebarAvailability, type SidebarSectionStatusMap } from "./sidebar-config";
 
 /** Tek sidebar navigasyon bileşeni. */
 export type SidebarNavItem = {
@@ -13,6 +13,7 @@ export type SidebarNavItem = {
   icon: IconName;
   group?: string;
   hidden?: boolean;
+  status?: SidebarAvailability;
   activeWhen?: string[];
   roles?: readonly string[];
 };
@@ -50,20 +51,24 @@ export default function SidebarNav({
   groupStorageKey,
   railCollapsed = false,
   collapsibleGroups = true,
+  sectionStatuses = {},
 }: {
   items: SidebarNavItem[];
   activeKey?: string;
   classNames: SidebarNavClassNames;
   ariaLabel?: string;
-  onNavigate?: (key: string) => void;
+  onNavigate?: (item: SidebarNavItem, event: MouseEvent<HTMLAnchorElement>) => void;
   groupStorageKey?: string;
   railCollapsed?: boolean;
   collapsibleGroups?: boolean;
+  sectionStatuses?: SidebarSectionStatusMap;
 }) {
   const navId = useId();
-  const visibleItems = items.filter((item) => !item.hidden);
-  const groups = groupSidebarItems(visibleItems);
-  const groupSignature = visibleItems.map((item) => `${item.group ?? ""}:${item.key}`).join("|");
+  const visibleItems = items.filter((item) => !item.hidden && item.status !== "hidden");
+  const groups = groupSidebarItems(visibleItems).filter((group) => sectionStatuses[group.name] !== "hidden");
+  const groupSignature = groups
+    .flatMap((group) => group.items.map((item) => `${group.name}:${item.key}:${item.status ?? "enabled"}`))
+    .join("|");
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => defaultOpenGroups(groups, activeKey));
   const [hydrated, setHydrated] = useState(false);
 
@@ -125,10 +130,17 @@ export default function SidebarNav({
     >
       {groups.map((group, index) => {
         const named = Boolean(group.name);
+        const sectionStatus = sectionStatuses[group.name] ?? "enabled";
+        const sectionDisabled = sectionStatus === "disabled";
         const isOpen = !named || !collapsibleGroups || railCollapsed || Boolean(openGroups[group.name]);
         const groupDomId = `${navId.replace(/:/g, "")}-group-${index}`;
         return (
-          <div key={group.name || `ungrouped-${index}`} className="enterprise-nav-group">
+          <div
+            key={group.name || `ungrouped-${index}`}
+            className="enterprise-nav-group"
+            data-status={sectionStatus}
+            aria-disabled={sectionDisabled || undefined}
+          >
             {named ? (
               collapsibleGroups ? (
                 <button
@@ -139,11 +151,21 @@ export default function SidebarNav({
                   onClick={() => toggleGroup(group.name)}
                 >
                   <span>{group.name}</span>
+                  {sectionStatuses[group.name] ? (
+                    <small className="enterprise-nav-group-status" aria-label={sectionDisabled ? "Pasif bölüm" : "Aktif bölüm"}>
+                      {sectionDisabled ? "Pasif" : "Aktif"}
+                    </small>
+                  ) : null}
                   <Icon name="chevronDown" />
                 </button>
               ) : (
                 <div className={`${classNames.group} enterprise-nav-group-label`}>
                   <span>{group.name}</span>
+                  {sectionStatuses[group.name] ? (
+                    <small className="enterprise-nav-group-status" aria-label={sectionDisabled ? "Pasif bölüm" : "Aktif bölüm"}>
+                      {sectionDisabled ? "Pasif" : "Aktif"}
+                    </small>
+                  ) : null}
                 </div>
               )
             ) : null}
@@ -153,19 +175,33 @@ export default function SidebarNav({
               className="enterprise-nav-group-items"
             >
               {group.items.map((item) => {
-                const selected = item.key === activeKey;
+                const itemStatus = item.status ?? "enabled";
+                const disabled = sectionDisabled || itemStatus === "disabled";
+                const selected = !disabled && item.key === activeKey;
                 return (
                   <div
                     key={item.key}
-                    className={[classNames.entry, selected ? classNames.active : ""].filter(Boolean).join(" ") || undefined}
+                    className={[
+                      classNames.entry,
+                      selected ? classNames.active : "",
+                      disabled ? "is-disabled" : "",
+                    ].filter(Boolean).join(" ") || undefined}
+                    data-status={disabled ? "disabled" : itemStatus}
                   >
                     <Link
                       href={item.href}
                       aria-current={selected ? "page" : undefined}
-                      className={selected ? classNames.active : ""}
+                      aria-disabled={disabled || undefined}
+                      tabIndex={disabled ? -1 : undefined}
+                      className={[selected ? classNames.active : "", disabled ? "is-disabled" : ""].filter(Boolean).join(" ") || undefined}
                       onClick={(event) => {
-                        onNavigate?.(item.key);
-                        if (event.detail > 0) event.currentTarget.blur();
+                        if (disabled) {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          return;
+                        }
+                        onNavigate?.(item, event);
+                        if (!event.defaultPrevented && event.detail > 0) event.currentTarget.blur();
                       }}
                     >
                       <Icon name={item.icon} />

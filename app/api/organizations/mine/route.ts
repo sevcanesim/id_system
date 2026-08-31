@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { getOrganizationCapacityTerms } from "../../../../lib/organizations/capacity-terms";
 export async function GET(request:NextRequest){
  const token=request.headers.get("authorization")?.replace(/^Bearer\s+/i,"");if(!token)return NextResponse.json({error:"Oturum gerekli."},{status:401});
  const auth=getSupabaseAuthClient();const {data:authData}=await auth.auth.getUser(token);if(!authData.user)return NextResponse.json({error:"Oturum doğrulanamadı."},{status:401});
@@ -12,5 +13,6 @@ export async function GET(request:NextRequest){
  const organizationIds=(rows||[]).map((row)=>row.organization_id);
  const subscriptions=organizationIds.length?await admin.from("organization_subscriptions").select("organization_id,seat_limit,status,expires_at,business_plans(name,code)").in("organization_id",organizationIds).in("status",["ACTIVE","GRACE_PERIOD"]):{data:[],error:null};
  if(subscriptions.error)return NextResponse.json({error:"Şirket aboneliği yüklenemedi."},{status:500});
- return NextResponse.json({organizations:(rows||[]).map((row)=>({...row,organization_subscriptions:(subscriptions.data||[]).filter((subscription)=>subscription.organization_id===row.organization_id)}))});
+ const capacityTerms=await getOrganizationCapacityTerms(admin,organizationIds);
+ return NextResponse.json({organizations:(rows||[]).map((row)=>({...row,organization_subscriptions:(subscriptions.data||[]).filter((subscription)=>subscription.organization_id===row.organization_id),organization_capacity_terms:capacityTerms.error?[]:(capacityTerms.data||[]).filter((term)=>term.organization_id===row.organization_id)}))});
 }

@@ -9,7 +9,7 @@ type LoadingStateProps = {
   label?: string;
   hint?: string;
   className?: string;
-  variant?: "inline" | "panel";
+  variant?: "compact" | "inline" | "panel";
 };
 
 function ActivityMark() {
@@ -63,7 +63,7 @@ export function LoadingState({
 }: LoadingStateProps) {
   const classes = [
     "ds-view-loading",
-    variant === "panel" ? "ds-view-loading--panel" : "ds-view-loading--inline",
+    `ds-view-loading--${variant}`,
     className,
   ].filter(Boolean).join(" ");
 
@@ -73,18 +73,18 @@ export function LoadingState({
         <ActivityMark />
         <div className="ds-view-loading__copy">
           <strong>{label}</strong>
-          <span>{hint}</span>
+          {hint ? <span>{hint}</span> : null}
         </div>
       </div>
       {variant === "panel" ? (
         <PanelSkeleton />
-      ) : (
+      ) : variant === "inline" ? (
         <div className="ds-view-loading__lines" aria-hidden="true">
           <Skeleton height={11} />
           <Skeleton width="82%" height={11} />
           <Skeleton width="61%" height={11} />
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -68,7 +68,6 @@
   width: 100%;
   max-width: 100%;
   min-height: 100svh;
-  overflow-x: clip;
 }
 
 .p10-corporate-platform .enterprise-dashboard-shell {
@@ -92,7 +91,6 @@
   min-width: 0;
   max-width: none;
   padding-inline: clamp(var(--space-5), 2.25vw, var(--space-10));
-  overflow-x: clip;
 }
 
 .p10-corporate-platform .id-sidebar {

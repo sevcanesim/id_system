@@ -2,6 +2,8 @@
 
 Status values are evidence-only: `PASS`, `FAIL`, `BLOCKED`, `NOT TESTED`.
 
+This responsive QA contract is paired with `docs/product-engineering/18_ULTRA_PREMIUM_UX_CRO_AUDIT.md`. Engineering/responsive PASS and premium/CRO readiness are separate verdicts; neither may be inferred from the other.
+
 ## Scope inventory
 
 | Route | Domain | 390×844 | 768×1024 | 1440×900 | Document overflow | Status |
@@ -51,7 +53,10 @@ Protected routes are also exercised unauthenticated at the critical 390×844, 76
 - Canonical responsive source restored to the `main` baseline after a formatting-only normalization created false design-system diffs.
 - Typography tokens and typography verifier are aligned with the enforced Design System Standard before browser validation.
 - Final route statuses remain evidence-only and will be updated only from successful browser runs.
+- Premium/CRO scorecards remain `NOT SCORED` until the corresponding route has live-render evidence under the Ultra-Premium UX/CRO contract.
 
 ## Release rule
 
 No route may move from `NOT TESTED` or `BLOCKED` to `PASS` without browser evidence. Signed-in individual/corporate routes require an isolated local or staging Supabase fixture; production seeding is prohibited.
+
+A responsive `PASS` is necessary but not sufficient for a conversion-critical surface to be declared premium/CRO ready. Changed sales surfaces must also complete the evidence-based review in `18_ULTRA_PREMIUM_UX_CRO_AUDIT.md`.

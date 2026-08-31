@@ -1,0 +1,492 @@
+/* Yenomi ID — production responsive hardening.
+ * Root-owned final layer. Shared primitives only; no route-local patches.
+ */
+
+:root {
+  --rp-hit-target: 44px;
+  --rp-panel-sidebar: 250px;
+  --rp-panel-gutter: clamp(20px, 2.25vw, 36px);
+  --rp-panel-gutter-tablet: 24px;
+  --rp-panel-gutter-mobile: 14px;
+  --rp-section-xs: 24px;
+  --rp-section-sm: 40px;
+  --rp-section-md: 64px;
+  --rp-mobile-dock-height: 0px;
+}
+
+/* Global reflow safety. */
+html,
+body {
+  overflow-x: clip;
+}
+
+:where(main, section, article, header, footer, nav, aside, form, fieldset, div) {
+  min-width: 0;
+}
+
+:where(button, a, input, select, textarea, summary) {
+  max-width: 100%;
+}
+
+/* Public interaction targets never drop below accessible mobile sizing. */
+@media (max-width: 980px) {
+  .public-site :where(button, a[role="button"], summary),
+  .public-site-chrome :where(.yi-menu, .yi-cart, .yi-nav-close) {
+    min-height: var(--rp-hit-target);
+  }
+}
+
+/* Announcement bar: prioritize content instead of clipping or horizontal motion. */
+@media (max-width: 760px) {
+  .public-site-chrome .yi-brand-marquee--static,
+  .public-site-chrome .p4-announcement {
+    overflow: hidden;
+  }
+
+  .public-site-chrome .yi-brand-marquee__static-inner,
+  .public-site-chrome .p4-announcement {
+    min-width: 0;
+    flex-wrap: nowrap;
+  }
+
+  .public-site-chrome .yi-brand-marquee__static-item,
+  .public-site-chrome .p4-announcement__item {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 430px) {
+  .public-site-chrome .yi-brand-marquee__static-item:nth-of-type(n+3),
+  .public-site-chrome .p4-announcement__item:nth-of-type(n+3),
+  .public-site-chrome .p4-announcement i:nth-of-type(n+2) {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .public-site-chrome .yi-brand-marquee__static-item:nth-of-type(n+2),
+  .public-site-chrome .p4-announcement__item:nth-of-type(n+2),
+  .public-site-chrome .p4-announcement i {
+    display: none;
+  }
+}
+
+/* Mobile purchase dock: reserve its real measured height and respect safe area. */
+@media (max-width: 760px) {
+  body:has(.home-sales-mobile-cta) .public-site {
+    padding-bottom: calc(var(--rp-mobile-dock-height) + env(safe-area-inset-bottom));
+  }
+
+  .home-sales-mobile-cta {
+    min-height: var(--rp-hit-target);
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+
+  .home-sales-mobile-cta :where(a, button) {
+    min-height: var(--rp-hit-target);
+  }
+
+  .home-sales-mobile-cta.is-docked-away {
+    pointer-events: none;
+  }
+}
+
+/* =========================
+   Corporate panel shell
+   ========================= */
+.p10-corporate-platform {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100svh;
+  overflow-x: clip;
+}
+
+.p10-corporate-platform .enterprise-dashboard-shell {
+  width: 100%;
+  max-width: none;
+  min-height: 100svh;
+  margin: 0;
+  display: grid;
+  grid-template-columns: var(--rp-panel-sidebar) minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.p10-corporate-platform .enterprise-dashboard-main {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.p10-corporate-platform .business-shell {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  padding-inline: var(--rp-panel-gutter);
+  overflow-x: clip;
+}
+
+/* New canonical sidebar used by CorporatePanelClient. */
+.p10-corporate-platform .id-sidebar {
+  width: var(--rp-panel-sidebar);
+  max-width: var(--rp-panel-sidebar);
+  min-width: 0;
+  height: 100svh;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  background: #fff;
+  border-right: 1px solid var(--border);
+  z-index: 35;
+}
+
+.p10-corporate-platform .id-sidebar__link,
+.p10-corporate-platform .id-sidebar__plan-action,
+.p10-corporate-platform .id-sidebar__logout,
+.p10-corporate-platform .id-sidebar__collapse,
+.p10-corporate-platform .id-sidebar__mobile-close {
+  min-height: var(--rp-hit-target);
+}
+
+.p10-corporate-platform .id-sidebar__backdrop {
+  display: none;
+}
+
+/* Desktop topbar is allowed to shrink, never to force the canvas wider. */
+.p10-corporate-platform .enterprise-topbar {
+  min-width: 0;
+  max-width: 100%;
+  gap: 16px;
+}
+
+.p10-corporate-platform .enterprise-topbar-actions,
+.p10-corporate-platform .enterprise-topbar-account,
+.p10-corporate-platform .enterprise-topbar-account > div {
+  min-width: 0;
+}
+
+.p10-corporate-platform .enterprise-topbar-account strong,
+.p10-corporate-platform .enterprise-topbar-account small {
+  max-width: min(34vw, 360px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Corporate content/cards: never allow a child to create horizontal page overflow. */
+.p10-corporate-platform :where(
+  .v25-overview,
+  .v26-reference-dashboard,
+  .v25-panel,
+  .corp-links-panel,
+  .corp-links-list,
+  .corp-link-card,
+  .corp-link-card__body,
+  .corp-link-editor,
+  .corp-link-current-block,
+  .corp-file,
+  .corp-file-copy,
+  .corp-file-actions,
+  .business-role-panel,
+  .p11-org-workspace,
+  .p10-settings-hub
+) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.p10-corporate-platform :where(input, select, textarea) {
+  width: 100%;
+  min-width: 0;
+}
+
+.p10-corporate-platform :where(.ds-button, button, label.corp-link-upload, a.ds-button) {
+  min-height: var(--rp-hit-target);
+}
+
+/* Corporate links / İçerik route. Desktop keeps a readable editor grid;
+ * tablet/mobile stack before labels, dates and file actions become cramped. */
+.p10-corporate-platform .corp-link-card {
+  overflow: hidden;
+}
+
+.p10-corporate-platform .corp-link-card__summary {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(180px, .8fr) minmax(0, 1.2fr) auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.p10-corporate-platform .corp-link-info,
+.p10-corporate-platform .corp-link-card__meta {
+  min-width: 0;
+}
+
+.p10-corporate-platform .corp-link-info :where(strong, small),
+.p10-corporate-platform .corp-link-card__meta span {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.p10-corporate-platform .corp-link-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.p10-corporate-platform .corp-link-card__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, .9fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.p10-corporate-platform .corp-link-history {
+  grid-column: 1 / -1;
+}
+
+.p10-corporate-platform .corp-link-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(196px, .6fr);
+  gap: 14px 16px;
+  align-items: end;
+}
+
+.p10-corporate-platform .corp-link-editor > :first-child {
+  min-width: 0;
+}
+
+.p10-corporate-platform .corp-link-source-actions,
+.p10-corporate-platform .corp-link-toolbar,
+.p10-corporate-platform .corp-file-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.p10-corporate-platform .corp-link-toolbar {
+  grid-column: 1 / -1;
+}
+
+.p10-corporate-platform .corp-file {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.p10-corporate-platform .corp-file-copy strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Switch to commandbar/drawer while there is still enough space for content.
+ * 1100 matches the existing panel navigation contract and prevents the
+ * screenshot failure mode where a desktop sidebar leaves a squeezed editor. */
+@media (max-width: 1100px) {
+  .p10-corporate-platform .enterprise-dashboard-shell {
+    display: block;
+    min-height: 100svh;
+  }
+
+  .p10-corporate-platform .enterprise-dashboard-main {
+    min-height: 100svh;
+  }
+
+  .p10-corporate-platform .id-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(86vw, 320px);
+    max-width: 320px;
+    height: 100dvh;
+    transform: translateX(-105%);
+    transition: transform var(--motion-standard) var(--ease-standard);
+    box-shadow: 18px 0 48px rgba(40,34,28,.18);
+    z-index: 90;
+  }
+
+  .p10-corporate-platform .id-sidebar--mobile-open {
+    transform: translateX(0);
+  }
+
+  .p10-corporate-platform .id-sidebar__backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    border: 0;
+    background: rgba(26,25,24,.34);
+    z-index: 80;
+  }
+
+  .p10-corporate-platform .id-sidebar__mobile-close {
+    display: grid;
+    place-items: center;
+    width: var(--rp-hit-target);
+    min-width: var(--rp-hit-target);
+    height: var(--rp-hit-target);
+    position: sticky;
+    top: max(8px, env(safe-area-inset-top));
+    margin-left: auto;
+    z-index: 2;
+  }
+
+  .p10-corporate-platform .id-sidebar__collapse {
+    display: none;
+  }
+
+  .p10-corporate-platform .enterprise-mobile-commandbar {
+    position: sticky;
+    top: 0;
+    z-index: 45;
+    min-height: 64px;
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+
+  .p10-corporate-platform .enterprise-mobile-menu-button,
+  .p10-corporate-platform .enterprise-mobile-account-button {
+    min-width: var(--rp-hit-target);
+    min-height: var(--rp-hit-target);
+  }
+
+  .p10-corporate-platform .business-shell {
+    padding-inline: var(--rp-panel-gutter-tablet);
+  }
+
+  .p10-corporate-platform .corp-link-card__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 820px) {
+  .p10-corporate-platform .corp-link-card__summary {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 12px;
+  }
+
+  .p10-corporate-platform .corp-link-card__meta {
+    grid-column: 1;
+    justify-content: flex-start;
+  }
+
+  .p10-corporate-platform .corp-link-card__chevron {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  .p10-corporate-platform .corp-link-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .p10-corporate-platform .corp-link-toolbar {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .p10-corporate-platform .business-shell {
+    padding: 0 var(--rp-panel-gutter-mobile) calc(88px + env(safe-area-inset-bottom));
+    overflow: visible;
+  }
+
+  .p10-corporate-platform .enterprise-mobile-commandbar {
+    gap: 8px;
+  }
+
+  .p10-corporate-platform .enterprise-mobile-menu-button span {
+    display: none;
+  }
+
+  .p10-corporate-platform .enterprise-mobile-current {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .p10-corporate-platform .enterprise-mobile-current small,
+  .p10-corporate-platform .enterprise-mobile-current strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .p10-corporate-platform .corp-links-panel > header h2 {
+    font-size: clamp(26px, 8vw, 34px);
+  }
+
+  .p10-corporate-platform .corp-links-panel > header p {
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .p10-corporate-platform .corp-link-card__summary,
+  .p10-corporate-platform .corp-link-card__body {
+    padding-inline: 14px;
+  }
+
+  .p10-corporate-platform .corp-link-source-actions,
+  .p10-corporate-platform .corp-link-toolbar,
+  .p10-corporate-platform .corp-file-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .p10-corporate-platform .corp-link-source-actions > *,
+  .p10-corporate-platform .corp-link-toolbar > *,
+  .p10-corporate-platform .corp-file-actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .p10-corporate-platform .corp-file {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .p10-corporate-platform .corp-file-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 430px) {
+  .p10-corporate-platform .business-shell {
+    padding-inline: 12px;
+  }
+
+  .p10-corporate-platform .enterprise-mobile-commandbar {
+    min-height: 60px;
+    padding-inline: 12px;
+  }
+
+  .p10-corporate-platform .enterprise-mobile-current small {
+    display: none;
+  }
+
+  .p10-corporate-platform .corp-link-card__meta {
+    gap: 6px;
+  }
+
+  .p10-corporate-platform .corp-link-source-actions,
+  .p10-corporate-platform .corp-link-toolbar,
+  .p10-corporate-platform .corp-file-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p10-corporate-platform .id-sidebar {
+    transition: none;
+  }
+}

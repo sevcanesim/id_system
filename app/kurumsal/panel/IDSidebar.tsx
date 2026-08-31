@@ -1,8 +1,8 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Icon } from "../../icons";
 import PanelSidebar from "../../components/ui/PanelSidebar";
+import SidebarFooterActions from "../../components/ui/SidebarFooterActions";
 import type { SidebarNavItem } from "../../components/ui/SidebarNav";
 import { corporatePanelNavItems, getCorporateSidebarActiveKey } from "./domain/navigation";
 import { useUnsavedChanges } from "../../components/UnsavedChangesContext";
@@ -17,7 +17,7 @@ export type IDSidebarProps = {
   } | null;
   canManageLicenses?: boolean;
   onManageLicenses?: () => void;
-  onSignOut?: () => void;
+  onSignOut?: () => void | Promise<void>;
   open?: boolean;
   onClose?: () => void;
   loading?: boolean;
@@ -93,21 +93,10 @@ export default function IDSidebar({
           ) : null}
         </div>
 
-        {onSignOut ? (
-          <button
-            type="button"
-            className="id-sidebar__header-logout"
-            aria-label="Çıkış Yap"
-            title="Çıkış Yap"
-            onClick={() => {
-              onSignOut();
-              onClose?.();
-            }}
-          >
-            <Icon name="logout" />
-            <span>Çıkış</span>
-          </button>
-        ) : null}
+        <SidebarFooterActions
+          onSignOut={onSignOut}
+          onAfterAction={() => onClose?.()}
+        />
       </div>
     </PanelSidebar>
   );

@@ -37,6 +37,7 @@ import "./kurumsal/panel/premium-ui-pass-3.css";
 import "./kurumsal/panel/premium-ui-pass-4.css";
 import "./kurumsal/panel/premium-ui-pass-5.css";
 import "./kurumsal/panel/team-management.css";
+import "./styles/responsive-production.css";
 import HashScrollHandler from "./components/HashScrollHandler";
 import AuthSessionBridge from "./components/AuthSessionBridge";
 import MobilePurchaseDockController from "./components/MobilePurchaseDockController";

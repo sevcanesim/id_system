@@ -3,18 +3,10 @@
  */
 
 :root {
-  --rp-hit-target: 44px;
-  --rp-panel-sidebar: 250px;
-  --rp-panel-gutter: clamp(20px, 2.25vw, 36px);
-  --rp-panel-gutter-tablet: 24px;
-  --rp-panel-gutter-mobile: 14px;
-  --rp-section-xs: 24px;
-  --rp-section-sm: 40px;
-  --rp-section-md: 64px;
-  --rp-mobile-dock-height: 0px;
+  --rp-panel-sidebar: 15.625rem;
+  --rp-mobile-dock-height: 0rem;
 }
 
-/* Global reflow safety. */
 html,
 body {
   overflow-x: clip;
@@ -28,16 +20,15 @@ body {
   max-width: 100%;
 }
 
-/* Public interaction targets never drop below accessible mobile sizing. */
-@media (max-width: 980px) {
+@media (max-width: 61.25rem) {
   .public-site :where(button, a[role="button"], summary),
   .public-site-chrome :where(.yi-menu, .yi-cart, .yi-nav-close) {
-    min-height: var(--rp-hit-target);
+    min-height: var(--control-height-md);
   }
 }
 
-/* Announcement bar: prioritize content instead of clipping or horizontal motion. */
-@media (max-width: 760px) {
+/* Announcement content is prioritized instead of horizontally scrolling. */
+@media (max-width: 47.5rem) {
   .public-site-chrome .yi-brand-marquee--static,
   .public-site-chrome .p4-announcement {
     overflow: hidden;
@@ -58,7 +49,7 @@ body {
   }
 }
 
-@media (max-width: 430px) {
+@media (max-width: 26.875rem) {
   .public-site-chrome .yi-brand-marquee__static-item:nth-of-type(n+3),
   .public-site-chrome .p4-announcement__item:nth-of-type(n+3),
   .public-site-chrome .p4-announcement i:nth-of-type(n+2) {
@@ -66,7 +57,7 @@ body {
   }
 }
 
-@media (max-width: 360px) {
+@media (max-width: 22.5rem) {
   .public-site-chrome .yi-brand-marquee__static-item:nth-of-type(n+2),
   .public-site-chrome .p4-announcement__item:nth-of-type(n+2),
   .public-site-chrome .p4-announcement i {
@@ -74,19 +65,19 @@ body {
   }
 }
 
-/* Mobile purchase dock: reserve its real measured height and respect safe area. */
-@media (max-width: 760px) {
+/* The sticky purchase dock reserves its measured height + safe area. */
+@media (max-width: 47.5rem) {
   body:has(.home-sales-mobile-cta) .public-site {
-    padding-bottom: calc(var(--rp-mobile-dock-height) + env(safe-area-inset-bottom));
+    padding-bottom: calc(var(--rp-mobile-dock-height) + var(--safe-bottom));
   }
 
   .home-sales-mobile-cta {
-    min-height: var(--rp-hit-target);
-    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    min-height: var(--control-height-md);
+    padding-bottom: max(var(--space-3), var(--safe-bottom));
   }
 
   .home-sales-mobile-cta :where(a, button) {
-    min-height: var(--rp-hit-target);
+    min-height: var(--control-height-md);
   }
 
   .home-sales-mobile-cta.is-docked-away {
@@ -94,9 +85,7 @@ body {
   }
 }
 
-/* =========================
-   Corporate panel shell
-   ========================= */
+/* Corporate panel shell. */
 .p10-corporate-platform {
   width: 100%;
   max-width: 100%;
@@ -124,11 +113,10 @@ body {
   width: 100%;
   min-width: 0;
   max-width: none;
-  padding-inline: var(--rp-panel-gutter);
+  padding-inline: clamp(var(--space-5), 2.25vw, var(--space-10));
   overflow-x: clip;
 }
 
-/* New canonical sidebar used by CorporatePanelClient. */
 .p10-corporate-platform .id-sidebar {
   width: var(--rp-panel-sidebar);
   max-width: var(--rp-panel-sidebar);
@@ -140,8 +128,8 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
-  padding-bottom: max(16px, env(safe-area-inset-bottom));
-  background: #fff;
+  padding-bottom: max(var(--space-4), var(--safe-bottom));
+  background: var(--surface);
   border-right: 1px solid var(--border);
   z-index: 35;
 }
@@ -151,18 +139,17 @@ body {
 .p10-corporate-platform .id-sidebar__logout,
 .p10-corporate-platform .id-sidebar__collapse,
 .p10-corporate-platform .id-sidebar__mobile-close {
-  min-height: var(--rp-hit-target);
+  min-height: var(--control-height-md);
 }
 
 .p10-corporate-platform .id-sidebar__backdrop {
   display: none;
 }
 
-/* Desktop topbar is allowed to shrink, never to force the canvas wider. */
 .p10-corporate-platform .enterprise-topbar {
   min-width: 0;
   max-width: 100%;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .p10-corporate-platform .enterprise-topbar-actions,
@@ -173,13 +160,12 @@ body {
 
 .p10-corporate-platform .enterprise-topbar-account strong,
 .p10-corporate-platform .enterprise-topbar-account small {
-  max-width: min(34vw, 360px);
+  max-width: min(34vw, 22.5rem);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Corporate content/cards: never allow a child to create horizontal page overflow. */
 .p10-corporate-platform :where(
   .v25-overview,
   .v26-reference-dashboard,
@@ -207,11 +193,10 @@ body {
 }
 
 .p10-corporate-platform :where(.ds-button, button, label.corp-link-upload, a.ds-button) {
-  min-height: var(--rp-hit-target);
+  min-height: var(--control-height-md);
 }
 
-/* Corporate links / İçerik route. Desktop keeps a readable editor grid;
- * tablet/mobile stack before labels, dates and file actions become cramped. */
+/* Corporate links / İçerik route. */
 .p10-corporate-platform .corp-link-card {
   overflow: hidden;
 }
@@ -219,9 +204,9 @@ body {
 .p10-corporate-platform .corp-link-card__summary {
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(180px, .8fr) minmax(0, 1.2fr) auto;
+  grid-template-columns: minmax(11.25rem, .8fr) minmax(0, 1.2fr) auto;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .p10-corporate-platform .corp-link-info,
@@ -239,13 +224,13 @@ body {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .p10-corporate-platform .corp-link-card__body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, .9fr);
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(22.5rem, .9fr);
+  gap: var(--space-6);
   align-items: start;
 }
 
@@ -255,8 +240,8 @@ body {
 
 .p10-corporate-platform .corp-link-editor {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(196px, .6fr);
-  gap: 14px 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(12.25rem, .6fr);
+  gap: var(--space-4);
   align-items: end;
 }
 
@@ -270,7 +255,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .p10-corporate-platform .corp-link-toolbar {
@@ -280,7 +265,7 @@ body {
 .p10-corporate-platform .corp-file {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 12px;
+  gap: var(--space-3);
   align-items: center;
 }
 
@@ -291,10 +276,8 @@ body {
   white-space: nowrap;
 }
 
-/* Switch to commandbar/drawer while there is still enough space for content.
- * 1100 matches the existing panel navigation contract and prevents the
- * screenshot failure mode where a desktop sidebar leaves a squeezed editor. */
-@media (max-width: 1100px) {
+/* Existing panel navigation contract switches at 1100 CSS px. */
+@media (max-width: 68.75rem) {
   .p10-corporate-platform .enterprise-dashboard-shell {
     display: block;
     min-height: 100svh;
@@ -307,12 +290,12 @@ body {
   .p10-corporate-platform .id-sidebar {
     position: fixed;
     inset: 0 auto 0 0;
-    width: min(86vw, 320px);
-    max-width: 320px;
+    width: min(86vw, 20rem);
+    max-width: 20rem;
     height: 100dvh;
     transform: translateX(-105%);
     transition: transform var(--motion-standard) var(--ease-standard);
-    box-shadow: 18px 0 48px rgba(40,34,28,.18);
+    box-shadow: var(--shadow-lg);
     z-index: 90;
   }
 
@@ -327,18 +310,18 @@ body {
     width: 100%;
     height: 100dvh;
     border: 0;
-    background: rgba(26,25,24,.34);
+    background: color-mix(in srgb, var(--text-primary) 34%, transparent);
     z-index: 80;
   }
 
   .p10-corporate-platform .id-sidebar__mobile-close {
     display: grid;
     place-items: center;
-    width: var(--rp-hit-target);
-    min-width: var(--rp-hit-target);
-    height: var(--rp-hit-target);
+    width: var(--control-height-md);
+    min-width: var(--control-height-md);
+    height: var(--control-height-md);
     position: sticky;
-    top: max(8px, env(safe-area-inset-top));
+    top: max(var(--space-2), var(--safe-top));
     margin-left: auto;
     z-index: 2;
   }
@@ -351,19 +334,19 @@ body {
     position: sticky;
     top: 0;
     z-index: 45;
-    min-height: 64px;
-    padding-left: max(16px, env(safe-area-inset-left));
-    padding-right: max(16px, env(safe-area-inset-right));
+    min-height: var(--space-16);
+    padding-left: max(var(--space-4), var(--safe-left));
+    padding-right: max(var(--space-4), var(--safe-right));
   }
 
   .p10-corporate-platform .enterprise-mobile-menu-button,
   .p10-corporate-platform .enterprise-mobile-account-button {
-    min-width: var(--rp-hit-target);
-    min-height: var(--rp-hit-target);
+    min-width: var(--control-height-md);
+    min-height: var(--control-height-md);
   }
 
   .p10-corporate-platform .business-shell {
-    padding-inline: var(--rp-panel-gutter-tablet);
+    padding-inline: var(--gutter-tablet);
   }
 
   .p10-corporate-platform .corp-link-card__body {
@@ -371,10 +354,10 @@ body {
   }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 51.25rem) {
   .p10-corporate-platform .corp-link-card__summary {
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 10px 12px;
+    gap: var(--space-3);
   }
 
   .p10-corporate-platform .corp-link-card__meta {
@@ -396,14 +379,14 @@ body {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 47.5rem) {
   .p10-corporate-platform .business-shell {
-    padding: 0 var(--rp-panel-gutter-mobile) calc(88px + env(safe-area-inset-bottom));
+    padding: 0 var(--gutter) calc(var(--space-24) + var(--safe-bottom));
     overflow: visible;
   }
 
   .p10-corporate-platform .enterprise-mobile-commandbar {
-    gap: 8px;
+    gap: var(--space-2);
   }
 
   .p10-corporate-platform .enterprise-mobile-menu-button span {
@@ -423,17 +406,16 @@ body {
   }
 
   .p10-corporate-platform .corp-links-panel > header h2 {
-    font-size: clamp(26px, 8vw, 34px);
+    font-size: var(--type-h2);
   }
 
   .p10-corporate-platform .corp-links-panel > header p {
-    font-size: 14px;
-    line-height: 1.55;
+    font-size: var(--type-body-sm);
   }
 
   .p10-corporate-platform .corp-link-card__summary,
   .p10-corporate-platform .corp-link-card__body {
-    padding-inline: 14px;
+    padding-inline: var(--space-4);
   }
 
   .p10-corporate-platform .corp-link-source-actions,
@@ -460,14 +442,10 @@ body {
   }
 }
 
-@media (max-width: 430px) {
-  .p10-corporate-platform .business-shell {
-    padding-inline: 12px;
-  }
-
+@media (max-width: 26.875rem) {
+  .p10-corporate-platform .business-shell,
   .p10-corporate-platform .enterprise-mobile-commandbar {
-    min-height: 60px;
-    padding-inline: 12px;
+    padding-inline: var(--space-3);
   }
 
   .p10-corporate-platform .enterprise-mobile-current small {
@@ -475,7 +453,7 @@ body {
   }
 
   .p10-corporate-platform .corp-link-card__meta {
-    gap: 6px;
+    gap: var(--space-1);
   }
 
   .p10-corporate-platform .corp-link-source-actions,

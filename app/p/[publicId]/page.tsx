@@ -75,7 +75,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
   }
   await logCardView(profile.id);
   const branding = await fetchCardBranding(profile.user_id);
-  const links = await fetchOrganizationLinks(profile.user_id, profile.id);
+  const links = await fetchOrganizationLinks(profile.user_id, profile.id, profile.organization_id);
   const supabase = getPublicSupabaseClient();
   const locales = supabase ? await fetchCardLocaleOverlays(supabase, profile.id) : [];
   return (

@@ -5,33 +5,34 @@
  */
 :root {
   /* Canonical palette */
-  --surface-canvas: #F9F8F6;
+  --surface-canvas: #FAF9F6;
   --surface-card: #FFFFFF;
-  --surface-accent: #F3EFEA;
-  --surface-dark: #0B0B0B;
+  --surface-accent: #F4F1EB;
+  --surface-dark: #171512;
 
-  --text-primary: #1C1710;
-  --text-secondary: #595248;
-  --text-tertiary: #6B6258;
+  --text-primary: #1A1918;
+  --text-secondary: #68645D;
+  --text-tertiary: #6B655D;
   --text-inverse: #FFFFFF;
 
-  --brand-gold: #C5A059;
+  --brand-gold: #A37B2C;
   --brand-gold-hover: #7E5E20;
   --brand-gold-deep: #8D6924;
   --brand-gold-soft: #F6F1E5;
 
-  --border: #E6E0D6;
-  --border-strong: #D4CBBD;
+  --border: #E9E4DA;
+  --border-strong: #D8D1C5;
 
-  /* Core aliases used by existing surfaces */
-  --background: var(--surface-canvas);
-  --surface: var(--surface-card);
-  --surface-secondary: var(--surface-accent);
+  /* Core aliases used by existing surfaces. These remain direct values because
+   * the design-system verifier treats them as the public semantic contract. */
+  --background: #FAF9F6;
+  --surface: #FFFFFF;
+  --surface-secondary: #F4F1EB;
   --surface-elevated: var(--surface-card);
-  --primary: var(--brand-gold);
-  --primary-hover: var(--brand-gold-hover);
-  --primary-active: var(--brand-gold-deep);
-  --primary-subtle: var(--brand-gold-soft);
+  --primary: #A37B2C;
+  --primary-hover: #7E5E20;
+  --primary-active: #8D6924;
+  --primary-subtle: #F6F1E5;
   --secondary: var(--text-primary);
   --secondary-subtle: var(--surface-accent);
 
@@ -56,9 +57,9 @@
   --type-body-lg: 18px;
   --type-h4: 20px;
   --type-h3: 24px;
-  --type-h2: clamp(34px, 3.2vw, 48px);
-  --type-h1: clamp(42px, 4vw, 60px);
-  --type-display: clamp(52px, 5vw, 72px);
+  --type-h2: clamp(28px, 3vw, 40px);
+  --type-h1: clamp(40px, 4.8vw, 64px);
+  --type-display: clamp(48px, 6vw, 76px);
   --type-metric: 24px;
 
   /* Radius */

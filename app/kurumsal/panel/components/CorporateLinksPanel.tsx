@@ -50,44 +50,12 @@ type Props = {
 const dateTime = new Intl.DateTimeFormat("tr-TR", { dateStyle: "short", timeStyle: "short" });
 const dateTimeMedium = new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" });
 
-function turkishToIsoLocal(value: string) {
-  const match = value.trim().match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})(?:[ T,]*)(\d{1,2}):(\d{2})$/);
-  if (!match) return "";
-  return `${match[3]}-${match[2].padStart(2, "0")}-${match[1].padStart(2, "0")}T${match[4].padStart(2, "0")}:${match[5]}`;
-}
-
-function toDatetimeLocalValue(value: string) {
-  const trimmed = value.trim();
-  if (!trimmed) return "";
-  const iso = trimmed.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/);
-  if (iso) return iso[1];
-  const fromTurkish = turkishToIsoLocal(trimmed);
-  if (fromTurkish) return fromTurkish;
-  const parsed = Date.parse(trimmed);
-  if (Number.isNaN(parsed)) return "";
-  const date = new Date(parsed);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
 function publicationLabel(link: CorporateLink) {
   if (!link.configured) return "Boş";
   if (link.isPublished && link.publishAt && new Date(link.publishAt).getTime() > Date.now()) {
     return `Planlandı · ${dateTime.format(new Date(link.publishAt))}`;
   }
   return link.isPublished ? "Yayında" : "Taslak";
-}
-
-function publicationTiming(link: CorporateLink) {
-  if (!link.configured) return null;
-  if (link.publishAt && new Date(link.publishAt).getTime() > Date.now()) {
-    return { label: "Planlanan yayın", value: dateTimeMedium.format(new Date(link.publishAt)) };
-  }
-  if (link.isPublished && link.publishedAt) {
-    return { label: "Yayınlandı", value: dateTimeMedium.format(new Date(link.publishedAt)) };
-  }
-  if (link.isPublished) return { label: "Durum", value: "Yayında" };
-  return { label: "Durum", value: "Taslak" };
 }
 
 function versionPublication(version: LinkVersion) {
@@ -108,7 +76,8 @@ function versionPublication(version: LinkVersion) {
 }
 
 function sourceLabel(link: CorporateLink) {
-  if (!link.configured) return "İçerik eklenmedi";
+  if (!link.configured) return link.kind === "MEETING" ? "Takvim eklenmedi" : "İçerik eklenmedi";
+  if (link.kind === "MEETING") return "Takvim";
   return link.linkType === "FILE" ? "PDF" : "URL";
 }
 
@@ -133,8 +102,6 @@ export default function CorporateLinksPanel({
   linkVersions,
   linkUrlDraft,
   onUrlDraftChange,
-  linkScheduleDraft,
-  onScheduleDraftChange,
   linkBusyKind,
   onSaveUrl,
   onUploadFile,
@@ -148,22 +115,23 @@ export default function CorporateLinksPanel({
         <div>
           <span>İÇERİK</span>
           <h2>Kurumsal Bağlantılar</h2>
-          <p>Çalışan kartlarında gösterilecek sabit içerik alanlarını yönetin. Her alan URL veya PDF olabilir; yalnız düzenlemek istediğiniz alanı açın.</p>
+          <p>Katalog, sunum ve referans içeriklerini URL veya PDF olarak yönetin. Toplantı Planla alanı yalnız takvim veya randevu bağlantısı kullanır.</p>
         </div>
       </header>
 
       <div className="corp-links-list" role="list">
         {links.map((link, index) => {
           const busy = linkBusyKind === link.kind;
+          const isMeeting = link.kind === "MEETING";
           const scheduled = Boolean(link.isPublished && link.publishAt && new Date(link.publishAt).getTime() > Date.now());
           const versions = linkVersions.filter((version) => version.kind === link.kind);
-          const timing = publicationTiming(link);
+          const meetingHasLegacyFile = isMeeting && link.linkType === "FILE";
           return (
             <details className="corp-link-card" key={link.kind} open={index === 0}>
               <summary className="corp-link-card__summary">
                 <div className="corp-link-info">
                   <strong>{link.label}</strong>
-                  <small>{link.subtitle}</small>
+                  <small>{isMeeting ? "Google Calendar, Calendly veya Microsoft Bookings bağlantısı" : link.subtitle}</small>
                 </div>
                 <div className="corp-link-card__meta" aria-label={`${link.label} özeti`}>
                   <span className={`corp-link-state ${link.isPublished ? (scheduled ? "scheduled" : "published") : link.configured ? "draft" : "empty"}`}>{publicationLabel(link)}</span>
@@ -175,11 +143,10 @@ export default function CorporateLinksPanel({
 
               <div className="corp-link-card__body">
                 <div className="corp-link-current-block">
-                  <div className="corp-link-section-heading">
-                    <span>Aktif içerik</span>
-                    {timing && <small><strong>{timing.label}:</strong> {timing.value}</small>}
-                  </div>
-                  {link.configured ? (
+                  <div className="corp-link-section-heading"><span>Aktif içerik</span></div>
+                  {meetingHasLegacyFile ? (
+                    <span className="corp-link-current empty">Bu alandaki eski PDF kullanımı artık desteklenmiyor. Bir takvim veya randevu bağlantısı ekleyerek güncelleyin.</span>
+                  ) : link.configured ? (
                     link.linkType === "FILE" ? (
                       <article className="corp-file">
                         <span className="corp-file-badge">PDF</span>
@@ -193,25 +160,22 @@ export default function CorporateLinksPanel({
                         </div>
                       </article>
                     ) : (
-                      <span className="corp-link-current"><Icon name="external" /> {link.url}</span>
+                      <span className="corp-link-current"><Icon name={isMeeting ? "clock" : "external"} /> {link.url}</span>
                     )
                   ) : (
-                    <span className="corp-link-current empty">URL kaydedin veya PDF yükleyin.</span>
+                    <span className="corp-link-current empty">{isMeeting ? "Takvim veya randevu bağlantısı ekleyin." : "URL kaydedin veya PDF yükleyin."}</span>
                   )}
                 </div>
 
                 <div className="corp-link-editor">
-                  <Field label="URL">
-                    <Input placeholder="https://..." value={linkUrlDraft[link.kind] || ""} onChange={(e) => onUrlDraftChange(link.kind, e.target.value)} />
+                  <Field label={isMeeting ? "Takvim / randevu bağlantısı" : "URL"} help={isMeeting ? "Google Calendar, Calendly, Microsoft Bookings veya kullandığınız randevu servisinin bağlantısını ekleyin." : undefined}>
+                    <Input placeholder={isMeeting ? "https://calendar.google.com/... veya https://calendly.com/..." : "https://..."} value={linkUrlDraft[link.kind] || ""} onChange={(e) => onUrlDraftChange(link.kind, e.target.value)} />
                   </Field>
                   <div className="corp-link-source-actions">
-                    <Button type="button" variant="primary" disabled={busy || !(linkUrlDraft[link.kind] || "").trim()} onClick={() => void onSaveUrl(link.kind)}>URL Kaydet</Button>
-                    {link.linkType !== "FILE" && <label className="corp-link-upload" htmlFor={`corp-link-replace-${link.kind}`}>{busy ? "Yükleniyor..." : "PDF Yükle"}</label>}
-                    <input id={`corp-link-replace-${link.kind}`} type="file" accept="application/pdf" disabled={busy} hidden onChange={(e) => { const file = e.target.files?.[0]; if (file) void onUploadFile(link.kind, file); e.target.value = ""; }} />
+                    <Button type="button" variant="primary" disabled={busy || !(linkUrlDraft[link.kind] || "").trim()} onClick={() => void onSaveUrl(link.kind)}>{isMeeting ? "Takvimi Kaydet" : "URL Kaydet"}</Button>
+                    {!isMeeting && link.linkType !== "FILE" && <label className="corp-link-upload" htmlFor={`corp-link-replace-${link.kind}`}>{busy ? "Yükleniyor..." : "PDF Yükle"}</label>}
+                    {!isMeeting && <input id={`corp-link-replace-${link.kind}`} type="file" accept="application/pdf" disabled={busy} hidden onChange={(e) => { const file = e.target.files?.[0]; if (file) void onUploadFile(link.kind, file); e.target.value = ""; }} />}
                   </div>
-                  <Field label="Yayın zamanı" help="Türkiye saati">
-                    <Input type="datetime-local" lang="tr-TR" value={toDatetimeLocalValue(linkScheduleDraft[link.kind] || "")} onChange={(event) => onScheduleDraftChange(link.kind, event.target.value)} />
-                  </Field>
                   {link.configured && (
                     <div className="corp-link-toolbar">
                       <Button type="button" variant={link.isPublished ? "secondary" : "primary"} disabled={busy} onClick={() => void onTogglePublication(link.kind, !link.isPublished)}>{link.isPublished ? "Taslağa Al" : "Yayınla"}</Button>

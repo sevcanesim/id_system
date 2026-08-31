@@ -1,0 +1,42 @@
+.p10-corporate-platform .id-sidebar__footer {
+  flex: 0 0 auto;
+  max-height: 46vh;
+  overflow-y: auto;
+  padding-bottom: 12px;
+}
+
+.p10-corporate-platform .id-sidebar__footer .canonical-personal-support {
+  display: grid;
+  gap: 4px;
+  margin-top: 0;
+  padding-top: 4px;
+  border-top: 0;
+}
+
+.p10-corporate-platform .id-sidebar__footer .canonical-personal-support a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+}
+
+.p10-corporate-platform .id-sidebar__footer .id-sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.p10-corporate-platform .id-sidebar__footer .id-sidebar__user-info {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.p10-corporate-platform .id-sidebar__footer .id-sidebar__user-name,
+.p10-corporate-platform .id-sidebar__footer .id-sidebar__user-role {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

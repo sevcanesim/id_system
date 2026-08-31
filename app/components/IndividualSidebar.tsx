@@ -163,29 +163,27 @@ export default function IndividualSidebar({
               <span>Yenomilabs</span>
             </a>
           </div>
-        </div>
-
-        <div className="id-sidebar__account">
-          <span className="id-sidebar__account-avatar" aria-hidden="true">{initial}</span>
-          <span className="id-sidebar__account-copy">
-            <strong>Bireysel Hesap</strong>
-            <small>{accountLabel}</small>
-          </span>
-          {onSignOut ? (
-            <button
-              type="button"
-              className="id-sidebar__header-logout"
-              aria-label="Çıkış Yap"
-              title="Çıkış Yap"
-              onClick={() => {
-                onSignOut();
-                onClose?.();
-              }}
-            >
-              <Icon name="logout" />
-              <span>Çıkış</span>
-            </button>
-          ) : null}
+          <div className="id-sidebar__user">
+            <span className="id-sidebar__user-avatar" aria-hidden="true">{initial}</span>
+            <span className="id-sidebar__user-info">
+              <strong className="id-sidebar__user-name">Bireysel Hesap</strong>
+              <small className="id-sidebar__user-role">{accountLabel}</small>
+            </span>
+            {onSignOut ? (
+              <button
+                type="button"
+                className="id-sidebar__logout"
+                aria-label="Çıkış Yap"
+                title="Çıkış Yap"
+                onClick={() => {
+                  onSignOut();
+                  onClose?.();
+                }}
+              >
+                <Icon name="logout" />
+              </button>
+            ) : null}
+          </div>
         </div>
 
         {collapsible ? (

@@ -15,6 +15,8 @@ import "./kurumsal/panel/employee-action-first.css";
 import "./public-header-unified.css";
 import "./public-system.css";
 import "./styles/canonical-public.css";
+import "./styles/canonical-account.css";
+import "./styles/canonical-corporate.css";
 import "./styles/canonical-auth.css";
 import "./styles/canonical-motion.css";
 import "./styles/canonical-footer.css";

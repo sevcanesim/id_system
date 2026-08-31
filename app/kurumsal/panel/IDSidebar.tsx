@@ -6,8 +6,6 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Icon } from "../../icons";
 import { corporatePanelNavItems, getCorporateSidebarActiveKey, type CorporateNavItem } from "./domain/navigation";
 import { groupSidebarItems } from "../../components/ui/sidebar-config";
-import { ROLE_LABELS } from "../../../lib/organizations/role-matrix";
-import { normalizeOrganizationRole } from "../../../lib/organizations/permissions";
 import { useUnsavedChanges } from "../../components/UnsavedChangesContext";
 
 export type IDSidebarProps = {
@@ -36,7 +34,6 @@ export type IDSidebarProps = {
 export default function IDSidebar({
   role,
   ownCardHref,
-  user,
   subscription,
   canManageLicenses = false,
   onManageLicenses,
@@ -124,19 +121,8 @@ export default function IDSidebar({
     };
   }, [open, onClose]);
 
-  const initials = (user?.full_name || user?.email || "Y")
-    .split(/\s+/)
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
-  const normalizedRole = normalizeOrganizationRole(user?.role || role);
-  const displayRoleLabel = normalizedRole ? ROLE_LABELS[normalizedRole] : "Yönetici";
-
   const rawPlanName = (subscription?.name || "Business").replace(/BUSİNESS/gi, "BUSINESS");
   const planDisplayName = subscription?.seatLimit ? `${rawPlanName} ${subscription.seatLimit}` : rawPlanName;
-
   const usedSeatsCount = typeof subscription?.usedSeats === "number" ? subscription.usedSeats : 0;
   const seatLimitCount = subscription?.seatLimit ?? null;
   const usagePercentage = seatLimitCount ? Math.min(100, Math.round((usedSeatsCount / seatLimitCount) * 100)) : 0;
@@ -144,12 +130,7 @@ export default function IDSidebar({
   return (
     <>
       {open && (
-        <button
-          type="button"
-          className="id-sidebar__backdrop"
-          aria-label="Menüyü kapat"
-          onClick={onClose}
-        />
+        <button type="button" className="id-sidebar__backdrop" aria-label="Menüyü kapat" onClick={onClose} />
       )}
       <aside
         ref={sidebarRef}
@@ -159,12 +140,7 @@ export default function IDSidebar({
         data-collapsed={collapsed || undefined}
         data-open={open || undefined}
       >
-        <button
-          type="button"
-          className="id-sidebar__mobile-close"
-          aria-label="Menüyü kapat"
-          onClick={onClose}
-        >
+        <button type="button" className="id-sidebar__mobile-close" aria-label="Menüyü kapat" onClick={onClose}>
           <Icon name="close" />
         </button>
 
@@ -191,19 +167,14 @@ export default function IDSidebar({
           <nav className="id-sidebar__nav id-sidebar__nav--loading" aria-label="Kurumsal yönetim menüsü" aria-busy="true">
             <p className="id-sidebar__loading-note">Menü yükleniyor.</p>
             {Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="id-sidebar__loading-row" aria-hidden="true">
-                <i />
-                <span />
-              </div>
+              <div key={index} className="id-sidebar__loading-row" aria-hidden="true"><i /><span /></div>
             ))}
           </nav>
         ) : (
           <nav className="id-sidebar__nav" aria-label="Kurumsal yönetim menüsü">
             {itemGroups.map((group, groupIdx) => (
               <div key={groupIdx} className="id-sidebar__section">
-                {group.name ? (
-                  <span className="id-sidebar__section-label">{group.name}</span>
-                ) : null}
+                {group.name ? <span className="id-sidebar__section-label">{group.name}</span> : null}
                 <div className="id-sidebar__section-items">
                   {group.items.map((item) => {
                     const isActive = item.key === activeKey;
@@ -219,9 +190,7 @@ export default function IDSidebar({
                         }}
                         title={collapsed ? item.label : undefined}
                       >
-                        <span className="id-sidebar__icon" aria-hidden="true">
-                          <Icon name={item.icon} />
-                        </span>
+                        <span className="id-sidebar__icon" aria-hidden="true"><Icon name={item.icon} /></span>
                         <span className="id-sidebar__label">{item.label}</span>
                       </Link>
                     );
@@ -240,11 +209,7 @@ export default function IDSidebar({
                 {seatLimitCount !== null ? `${usedSeatsCount} / ${seatLimitCount} Kart` : "Kurumsal Kart"}
               </strong>
             </div>
-            {seatLimitCount ? (
-              <div className="id-sidebar__plan-meter" aria-hidden="true">
-                <span style={{ width: `${usagePercentage}%` }} />
-              </div>
-            ) : null}
+            {seatLimitCount ? <div className="id-sidebar__plan-meter" aria-hidden="true"><span style={{ width: `${usagePercentage}%` }} /></div> : null}
             {canManageLicenses && activeKey !== "cards" && onManageLicenses ? (
               <button
                 type="button"
@@ -258,29 +223,23 @@ export default function IDSidebar({
               </button>
             ) : null}
           </div>
-
-          <div className="id-sidebar__user">
-            <span className="id-sidebar__user-avatar">{initials}</span>
-            <div className="id-sidebar__user-info">
-              <strong className="id-sidebar__user-name">{user?.full_name || user?.email || "Yönetici"}</strong>
-              <small className="id-sidebar__user-role">{displayRoleLabel}</small>
-            </div>
-            {onSignOut ? (
-              <button
-                type="button"
-                className="id-sidebar__logout"
-                aria-label="Çıkış Yap"
-                title="Çıkış Yap"
-                onClick={() => {
-                  onSignOut();
-                  onClose?.();
-                }}
-              >
-                <Icon name="logout" />
-              </button>
-            ) : null}
-          </div>
         </div>
+
+        {onSignOut ? (
+          <button
+            type="button"
+            className="id-sidebar__header-logout"
+            aria-label="Çıkış Yap"
+            title="Çıkış Yap"
+            onClick={() => {
+              onSignOut();
+              onClose?.();
+            }}
+          >
+            <Icon name="logout" />
+            <span>Çıkış</span>
+          </button>
+        ) : null}
 
         {collapsible && (
           <button

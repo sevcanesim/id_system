@@ -54,7 +54,7 @@ const protectedRoutes = [
   "/kurumsal/panel/roller",
 ] as const;
 
-async function documentOverflow(page: Page) {
+async function responsiveDiagnostics(page: Page) {
   return page.evaluate(() => {
     const root = document.documentElement;
     const delta = root.scrollWidth - window.innerWidth;
@@ -71,7 +71,18 @@ async function documentOverflow(page: Page) {
       })
       .filter((item) => item.right > window.innerWidth + 1 || item.left < -1)
       .slice(0, 20);
-    return { delta, offenders };
+
+    const topLevelMasks = [document.documentElement, document.body, document.querySelector("main")]
+      .filter((node): node is HTMLElement => node instanceof HTMLElement)
+      .map((node) => ({
+        tag: node.tagName,
+        id: node.id,
+        className: typeof node.className === "string" ? node.className : "",
+        overflowX: getComputedStyle(node).overflowX,
+      }))
+      .filter((item) => item.overflowX === "hidden" || item.overflowX === "clip");
+
+    return { delta, offenders, topLevelMasks };
   });
 }
 
@@ -85,16 +96,17 @@ async function assertResponsiveInvariants(page: Page, route: string, testInfo: T
     expect(response?.status(), `${route} should not return an HTTP error`).toBeLessThan(500);
     await page.waitForLoadState("networkidle").catch(() => undefined);
 
-    const overflow = await documentOverflow(page);
-    if (overflow.delta > 1) {
-      await testInfo.attach("overflow-diagnostics", {
-        body: Buffer.from(JSON.stringify({ route, viewport: page.viewportSize(), ...overflow }, null, 2)),
+    const diagnostics = await responsiveDiagnostics(page);
+    if (diagnostics.delta > 1 || diagnostics.topLevelMasks.length) {
+      await testInfo.attach("responsive-diagnostics", {
+        body: Buffer.from(JSON.stringify({ route, viewport: page.viewportSize(), ...diagnostics }, null, 2)),
         contentType: "application/json",
       });
     }
 
     expect(pageErrors, `${route} should not raise uncaught page errors`).toEqual([]);
-    expect(overflow.delta, `${route} document overflow: ${JSON.stringify(overflow.offenders)}`).toBeLessThanOrEqual(1);
+    expect(diagnostics.topLevelMasks, `${route} masks document overflow at html/body/main`).toEqual([]);
+    expect(diagnostics.delta, `${route} document overflow: ${JSON.stringify(diagnostics.offenders)}`).toBeLessThanOrEqual(1);
 
     const main = page.locator("main").first();
     if (await main.count()) await expect(main).toBeVisible();

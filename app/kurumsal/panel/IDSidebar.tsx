@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef } from "react";
 import { Icon } from "../../icons";
 import { corporatePanelNavItems, getCorporateSidebarActiveKey, type CorporateNavItem } from "./domain/navigation";
 import { groupSidebarItems } from "../../components/ui/sidebar-config";
@@ -22,8 +22,6 @@ export type IDSidebarProps = {
   open?: boolean;
   onClose?: () => void;
   loading?: boolean;
-  collapsible?: boolean;
-  storageKey?: string;
 };
 
 export default function IDSidebar({
@@ -36,36 +34,17 @@ export default function IDSidebar({
   open = false,
   onClose,
   loading = false,
-  collapsible = true,
-  storageKey = "yenomi:id-sidebar:collapsed",
 }: IDSidebarProps) {
   const pathname = usePathname();
   const generatedId = useId();
   const sidebarId = `id-sidebar-${generatedId.replace(/:/g, "")}`;
   const sidebarRef = useRef<HTMLElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
-  const [collapsed, setCollapsed] = useState(false);
 
   const { guardLinkClick } = useUnsavedChanges();
   const activeKey = getCorporateSidebarActiveKey(pathname);
   const items: CorporateNavItem[] = corporatePanelNavItems(role, ownCardHref);
   const itemGroups = groupSidebarItems(items);
-
-  useEffect(() => {
-    if (!collapsible) return;
-    try {
-      setCollapsed(window.localStorage.getItem(storageKey) === "1");
-    } catch {}
-  }, [collapsible, storageKey]);
-
-  const toggleCollapse = () => {
-    const next = !collapsed;
-    setCollapsed(next);
-    if (!collapsible) return;
-    try {
-      window.localStorage.setItem(storageKey, next ? "1" : "0");
-    } catch {}
-  };
 
   useEffect(() => {
     if (!open) return;
@@ -126,9 +105,8 @@ export default function IDSidebar({
       <aside
         ref={sidebarRef}
         id={sidebarId}
-        className={`id-sidebar ${collapsed ? "id-sidebar--collapsed" : ""} ${open ? "id-sidebar--mobile-open" : ""}`.trim()}
+        className={`id-sidebar ${open ? "id-sidebar--mobile-open" : ""}`.trim()}
         aria-label="Kurumsal yönetim menüsü"
-        data-collapsed={collapsed || undefined}
         data-open={open || undefined}
       >
         <button type="button" className="id-sidebar__mobile-close" aria-label="Menüyü kapat" onClick={onClose}>
@@ -182,7 +160,6 @@ export default function IDSidebar({
                           onClose?.();
                           guardLinkClick(event, item.href);
                         }}
-                        title={collapsed ? item.label : undefined}
                       >
                         <span className="id-sidebar__icon" aria-hidden="true">
                           <Icon name={item.icon} />
@@ -238,20 +215,6 @@ export default function IDSidebar({
           >
             <Icon name="logout" />
             <span>Çıkış</span>
-          </button>
-        ) : null}
-
-        {collapsible ? (
-          <button
-            type="button"
-            className="id-sidebar__collapse"
-            aria-label={collapsed ? "Menüyü genişlet" : "Menüyü daralt"}
-            aria-expanded={!collapsed}
-            title={collapsed ? "Menüyü genişlet" : "Menüyü daralt"}
-            onClick={toggleCollapse}
-          >
-            <Icon name={collapsed ? "chevronRight" : "chevronLeft"} />
-            <span className="id-sidebar__collapse-label">{collapsed ? "Genişlet" : "Daralt"}</span>
           </button>
         ) : null}
       </aside>

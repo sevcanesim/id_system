@@ -2,6 +2,7 @@ import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { Icon } from "../../../icons";
 import CardTemplate, { type CardBranding, type EditableCardData } from "../../../CardTemplate";
 import CorporateTemplateSelector from "./CorporateTemplateSelector";
+import CardPreviewFrame from "./CardPreviewFrame";
 import type { DatabaseTemplateOption } from "../../../../lib/config/database";
 
 type TemplateDraft = {
@@ -174,9 +175,9 @@ export default function TemplatesPanel({
           </header>
 
           <div className="corporate-template-preview__stage">
-            <div className="corporate-template-preview__phone">
+            <CardPreviewFrame compact>
               <CardTemplate preview branding={previewBranding} data={previewData} />
-            </div>
+            </CardPreviewFrame>
           </div>
 
           <footer className="corporate-template-preview__footer">

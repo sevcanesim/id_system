@@ -1,6 +1,8 @@
 import type { SidebarConfigItem } from "./sidebar-config";
 import type { SidebarAvailability, SidebarScope, SidebarSectionAvailabilityMap } from "./sidebar.types";
 
+export type { SidebarAvailability, SidebarScope, SidebarSectionAvailabilityMap } from "./sidebar.types";
+
 export type SidebarStateContext = {
   scope: SidebarScope;
   role?: string | null;

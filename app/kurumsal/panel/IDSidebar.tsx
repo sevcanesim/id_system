@@ -11,11 +11,6 @@ import { useUnsavedChanges } from "../../components/UnsavedChangesContext";
 export type IDSidebarProps = {
   role?: string;
   ownCardHref?: string;
-  user?: {
-    full_name?: string | null;
-    email?: string | null;
-    role?: string | null;
-  } | null;
   subscription?: {
     name?: string | null;
     usedSeats?: number | null;
@@ -60,25 +55,21 @@ export default function IDSidebar({
     if (!collapsible) return;
     try {
       setCollapsed(window.localStorage.getItem(storageKey) === "1");
-    } catch {
-      // LocalStorage fallback for restricted environments
-    }
+    } catch {}
   }, [collapsible, storageKey]);
 
   const toggleCollapse = () => {
     const next = !collapsed;
     setCollapsed(next);
-    if (collapsible) {
-      try {
-        window.localStorage.setItem(storageKey, next ? "1" : "0");
-      } catch {
-        // LocalStorage fallback
-      }
-    }
+    if (!collapsible) return;
+    try {
+      window.localStorage.setItem(storageKey, next ? "1" : "0");
+    } catch {}
   };
 
   useEffect(() => {
     if (!open) return;
+
     previouslyFocused.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -100,10 +91,12 @@ export default function IDSidebar({
         return;
       }
       if (event.key !== "Tab") return;
+
       const elements = focusable();
       if (!elements.length) return;
       const first = elements[0];
       const last = elements[elements.length - 1];
+
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
@@ -129,9 +122,10 @@ export default function IDSidebar({
 
   return (
     <>
-      {open && (
+      {open ? (
         <button type="button" className="id-sidebar__backdrop" aria-label="Menüyü kapat" onClick={onClose} />
-      )}
+      ) : null}
+
       <aside
         ref={sidebarRef}
         id={sidebarId}
@@ -148,9 +142,9 @@ export default function IDSidebar({
           <Link
             href="/kurumsal/panel"
             className="id-sidebar__brand-link"
-            onClick={(e) => {
+            onClick={(event) => {
               onClose?.();
-              guardLinkClick(e, "/kurumsal/panel");
+              guardLinkClick(event, "/kurumsal/panel");
             }}
           >
             <span className="id-sidebar__brand-mark" aria-hidden="true">
@@ -167,13 +161,16 @@ export default function IDSidebar({
           <nav className="id-sidebar__nav id-sidebar__nav--loading" aria-label="Kurumsal yönetim menüsü" aria-busy="true">
             <p className="id-sidebar__loading-note">Menü yükleniyor.</p>
             {Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="id-sidebar__loading-row" aria-hidden="true"><i /><span /></div>
+              <div key={index} className="id-sidebar__loading-row" aria-hidden="true">
+                <i />
+                <span />
+              </div>
             ))}
           </nav>
         ) : (
           <nav className="id-sidebar__nav" aria-label="Kurumsal yönetim menüsü">
-            {itemGroups.map((group, groupIdx) => (
-              <div key={groupIdx} className="id-sidebar__section">
+            {itemGroups.map((group, groupIndex) => (
+              <div key={group.name || `group-${groupIndex}`} className="id-sidebar__section">
                 {group.name ? <span className="id-sidebar__section-label">{group.name}</span> : null}
                 <div className="id-sidebar__section-items">
                   {group.items.map((item) => {
@@ -184,13 +181,15 @@ export default function IDSidebar({
                         href={item.href}
                         className={`id-sidebar__link ${isActive ? "id-sidebar__link--active" : ""}`}
                         aria-current={isActive ? "page" : undefined}
-                        onClick={(e) => {
+                        onClick={(event) => {
                           onClose?.();
-                          guardLinkClick(e, item.href);
+                          guardLinkClick(event, item.href);
                         }}
                         title={collapsed ? item.label : undefined}
                       >
-                        <span className="id-sidebar__icon" aria-hidden="true"><Icon name={item.icon} /></span>
+                        <span className="id-sidebar__icon" aria-hidden="true">
+                          <Icon name={item.icon} />
+                        </span>
                         <span className="id-sidebar__label">{item.label}</span>
                       </Link>
                     );
@@ -209,7 +208,11 @@ export default function IDSidebar({
                 {seatLimitCount !== null ? `${usedSeatsCount} / ${seatLimitCount} Kart` : "Kurumsal Kart"}
               </strong>
             </div>
-            {seatLimitCount ? <div className="id-sidebar__plan-meter" aria-hidden="true"><span style={{ width: `${usagePercentage}%` }} /></div> : null}
+            {seatLimitCount ? (
+              <div className="id-sidebar__plan-meter" aria-hidden="true">
+                <span style={{ width: `${usagePercentage}%` }} />
+              </div>
+            ) : null}
             {canManageLicenses && activeKey !== "cards" && onManageLicenses ? (
               <button
                 type="button"
@@ -241,7 +244,7 @@ export default function IDSidebar({
           </button>
         ) : null}
 
-        {collapsible && (
+        {collapsible ? (
           <button
             type="button"
             className="id-sidebar__collapse"
@@ -253,7 +256,7 @@ export default function IDSidebar({
             <Icon name={collapsed ? "chevronRight" : "chevronLeft"} />
             <span className="id-sidebar__collapse-label">{collapsed ? "Genişlet" : "Daralt"}</span>
           </button>
-        )}
+        ) : null}
       </aside>
     </>
   );

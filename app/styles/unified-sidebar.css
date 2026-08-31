@@ -1,0 +1,94 @@
+/* Unified sidebar structural contract.
+ * Visual dimensions remain owned by the existing id-sidebar design language.
+ */
+
+.unified-sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.unified-sidebar > .id-sidebar__brand,
+.unified-sidebar > .id-sidebar__mobile-close,
+.unified-sidebar > .unified-sidebar__footer-region {
+  flex: 0 0 auto;
+}
+
+.unified-sidebar > .id-sidebar__nav {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.unified-sidebar .id-sidebar__nav[data-static-groups="true"] {
+  align-content: start;
+}
+
+.unified-sidebar__footer-region {
+  min-width: 0;
+  background: inherit;
+}
+
+.unified-sidebar-account,
+.unified-sidebar-account__identity,
+.unified-sidebar-account__info {
+  min-width: 0;
+}
+
+.unified-sidebar-account__identity {
+  display: flex;
+  align-items: center;
+}
+
+.unified-sidebar-account__info {
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.unified-sidebar-account__name,
+.unified-sidebar-account__meta {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unified-sidebar-account__logout {
+  flex: 0 0 auto;
+}
+
+.unified-sidebar .id-sidebar__entry,
+.unified-sidebar .id-sidebar__link,
+.unified-sidebar .id-sidebar__label {
+  min-width: 0;
+}
+
+.unified-sidebar .id-sidebar__link[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: .52;
+}
+
+.unified-sidebar .id-sidebar__link[aria-disabled="true"]:hover {
+  background: inherit;
+}
+
+.unified-sidebar__brand-button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+@media (max-width: 1023px) {
+  .unified-sidebar {
+    height: 100dvh;
+    max-height: 100dvh;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}

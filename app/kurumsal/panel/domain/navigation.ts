@@ -79,7 +79,10 @@ export function corporateSidebarTabs(role?: string): readonly CorporatePanelTab[
   if (normalizedRole === "DEPARTMENT_MANAGER") return ["employees"];
   if (normalizedRole === "EMPLOYEE") return [];
   const canManageLicenses = normalizedRole === "OWNER" || normalizedRole === "ADMIN";
-  return CORPORATE_PANEL_TAB_ORDER.filter((tab) => {
+  const allowedTabs: readonly CorporatePanelTab[] = canManageLicenses
+    ? [...CORPORATE_PANEL_TAB_ORDER, "cards"]
+    : CORPORATE_PANEL_TAB_ORDER;
+  return allowedTabs.filter((tab) => {
     if (tab === "leads" || tab === "events" || tab === "meetings") return canManageLicenses;
     return true;
   });

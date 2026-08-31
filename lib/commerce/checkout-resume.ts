@@ -3,7 +3,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 const RESUME_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function resumeSecret() {
-  return process.env.CHECKOUT_RESUME_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  return process.env.CHECKOUT_RESUME_SECRET || "";
 }
 
 function signature(orderId: string, expiresAtMs: number) {

@@ -223,6 +223,11 @@ export default function OverviewPanel({
           <span>Kart kapasitesi</span>
           <strong>{usedSeats}<small> / {subscription?.seat_limit ?? "—"}</small></strong>
           <p>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} boş kart`}</p>
+          {availableSeats === 0 && canManageLicenses && (
+            <a className="cp-overview-v2__primary" href="/kurumsal#kapasite">
+              Kapasiteyi artır <span aria-hidden="true">→</span>
+            </a>
+          )}
         </article>
         <article data-state={invitedMembers > 0 ? "attention" : "neutral"}>
           <span>Bekleyen davet</span>

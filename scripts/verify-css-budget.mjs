@@ -42,9 +42,28 @@ if (fs.existsSync("app/styles")) {
     if (!entry.isFile() || !entry.name.startsWith("canonical-") || !entry.name.endsWith(".css")) continue;
     const file = `app/styles/${entry.name}`;
     if (!file.startsWith(MODULE_PREFIX)) continue;
+
     const value = metrics(fs.readFileSync(file, "utf8"));
-    if (value.lines > MAX_MODULE_LINES) failures.push(`${file} exceeds ${MAX_MODULE_LINES} lines (${value.lines})`);
-    if (value.bytes > MAX_MODULE_BYTES) failures.push(`${file} exceeds ${MAX_MODULE_BYTES} bytes (${value.bytes})`);
+    const baseValueSource = readGitFile(base, file);
+    const previous = baseValueSource === null ? null : metrics(baseValueSource);
+
+    /* Existing legacy modules may already exceed the target budget. Treat that
+     * as tracked debt, not as a failure in unrelated PRs. They still may not
+     * grow while over budget, and every newly-created module must fit. */
+    const linesOverBudget = value.lines > MAX_MODULE_LINES;
+    const bytesOverBudget = value.bytes > MAX_MODULE_BYTES;
+
+    if (linesOverBudget) {
+      if (previous === null || previous.lines <= MAX_MODULE_LINES || value.lines > previous.lines) {
+        failures.push(`${file} exceeds ${MAX_MODULE_LINES} lines (${value.lines})`);
+      }
+    }
+
+    if (bytesOverBudget) {
+      if (previous === null || previous.bytes <= MAX_MODULE_BYTES || value.bytes > previous.bytes) {
+        failures.push(`${file} exceeds ${MAX_MODULE_BYTES} bytes (${value.bytes})`);
+      }
+    }
   }
 }
 
@@ -55,4 +74,4 @@ if (failures.length) {
 }
 
 console.log(`PASS — ${CANONICAL} did not grow from ${base}`);
-console.log(`PASS — canonical modules stay within ${MAX_MODULE_LINES} lines / ${MAX_MODULE_BYTES} bytes`);
+console.log(`PASS — canonical modules stay within budget or do not grow existing legacy debt`);

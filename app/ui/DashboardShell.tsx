@@ -121,6 +121,7 @@ export default function DashboardShell({
       </button>
 
       <IndividualSidebar
+        id={sidebarId}
         email={email}
         hasCorporateSubscription={hasCorporateSubscription}
         onSignOut={signOut}

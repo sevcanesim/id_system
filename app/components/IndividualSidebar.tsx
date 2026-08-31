@@ -7,6 +7,7 @@ import { Icon } from "../icons";
 import { INDIVIDUAL_SIDEBAR_CONFIG, groupSidebarItems } from "./ui/sidebar-config";
 
 export type IndividualSidebarProps = {
+  id?: string;
   email?: string;
   hasCorporateSubscription?: boolean;
   onSignOut?: () => void;
@@ -17,6 +18,7 @@ export type IndividualSidebarProps = {
 };
 
 export default function IndividualSidebar({
+  id,
   email = "",
   hasCorporateSubscription = false,
   onSignOut,
@@ -27,7 +29,7 @@ export default function IndividualSidebar({
 }: IndividualSidebarProps) {
   const pathname = usePathname();
   const generatedId = useId();
-  const sidebarId = `individual-sidebar-${generatedId.replace(/:/g, "")}`;
+  const sidebarId = id || `individual-sidebar-${generatedId.replace(/:/g, "")}`;
   const sidebarRef = useRef<HTMLElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
   const [collapsed, setCollapsed] = useState(false);

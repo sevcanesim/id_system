@@ -11,6 +11,7 @@ const fullViewportMatrix = [
   { width: 1024, height: 1366, label: "1024x1366" },
   { width: 1280, height: 800, label: "1280x800" },
   { width: 1440, height: 900, label: "1440x900" },
+  { width: 1512, height: 982, label: "1512x982" },
   { width: 1728, height: 1117, label: "1728x1117" },
 ] as const;
 
@@ -76,26 +77,29 @@ async function documentOverflow(page: Page) {
 
 async function assertResponsiveInvariants(page: Page, route: string, testInfo: TestInfo) {
   const pageErrors: string[] = [];
-  page.on("pageerror", (error) => pageErrors.push(error.message));
+  const onPageError = (error: Error) => pageErrors.push(error.message);
+  page.on("pageerror", onPageError);
 
-  const response = await page.goto(route, { waitUntil: "domcontentloaded" });
-  expect(response?.status(), `${route} should not return an HTTP error`).toBeLessThan(500);
-  await page.waitForLoadState("networkidle").catch(() => undefined);
+  try {
+    const response = await page.goto(route, { waitUntil: "domcontentloaded" });
+    expect(response?.status(), `${route} should not return an HTTP error`).toBeLessThan(500);
+    await page.waitForLoadState("networkidle").catch(() => undefined);
 
-  const overflow = await documentOverflow(page);
-  if (overflow.delta > 1) {
-    await testInfo.attach("overflow-diagnostics", {
-      body: Buffer.from(JSON.stringify({ route, viewport: page.viewportSize(), ...overflow }, null, 2)),
-      contentType: "application/json",
-    });
-  }
+    const overflow = await documentOverflow(page);
+    if (overflow.delta > 1) {
+      await testInfo.attach("overflow-diagnostics", {
+        body: Buffer.from(JSON.stringify({ route, viewport: page.viewportSize(), ...overflow }, null, 2)),
+        contentType: "application/json",
+      });
+    }
 
-  expect(pageErrors, `${route} should not raise uncaught page errors`).toEqual([]);
-  expect(overflow.delta, `${route} document overflow: ${JSON.stringify(overflow.offenders)}`).toBeLessThanOrEqual(1);
+    expect(pageErrors, `${route} should not raise uncaught page errors`).toEqual([]);
+    expect(overflow.delta, `${route} document overflow: ${JSON.stringify(overflow.offenders)}`).toBeLessThanOrEqual(1);
 
-  const main = page.locator("main").first();
-  if (await main.count()) {
-    await expect(main).toBeVisible();
+    const main = page.locator("main").first();
+    if (await main.count()) await expect(main).toBeVisible();
+  } finally {
+    page.off("pageerror", onPageError);
   }
 }
 

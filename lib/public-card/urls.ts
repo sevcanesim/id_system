@@ -1,10 +1,40 @@
 const SHARE_PREFIX = "/p";
 const EVENT_PREFIX = "/e";
 const PHYSICAL_PREFIX = "/c";
+const DEFAULT_PUBLIC_CARD_ORIGIN = "https://qr.yenomilabs.com";
+const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"]);
+const ALLOWED_PROTOCOLS = new Set(["http:", "https:"]);
+
+function normalizeOrigin(candidate: string | undefined) {
+  if (!candidate) return null;
+
+  try {
+    const parsedOrigin = new URL(candidate);
+    if (!ALLOWED_PROTOCOLS.has(parsedOrigin.protocol)) return null;
+
+    const isLocalOrigin = LOCAL_HOSTNAMES.has(parsedOrigin.hostname);
+    const allowLocalOrigin = process.env.NODE_ENV !== "production";
+    if (isLocalOrigin && !allowLocalOrigin) return null;
+
+    return parsedOrigin.origin;
+  } catch {
+    return null;
+  }
+}
 
 export function publicCardOrigin(origin?: string) {
-  const value = origin || process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== "undefined" ? window.location.origin : "https://qr.yenomilabs.com");
-  return value.replace(/\/$/, "");
+  const explicitOrigin = normalizeOrigin(origin);
+  if (explicitOrigin) return explicitOrigin;
+
+  const configuredOrigin = normalizeOrigin(process.env.NEXT_PUBLIC_SITE_URL);
+  if (configuredOrigin) return configuredOrigin;
+
+  if (typeof window !== "undefined") {
+    const browserOrigin = normalizeOrigin(window.location.origin);
+    if (browserOrigin) return browserOrigin;
+  }
+
+  return DEFAULT_PUBLIC_CARD_ORIGIN;
 }
 
 export function publicCardHost(origin?: string) {
@@ -46,5 +76,5 @@ export function looksLikePublicId(token: string) {
 export function createOpaquePublicId() {
   const bytes = new Uint8Array(8);
   crypto.getRandomValues(bytes);
-  return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }

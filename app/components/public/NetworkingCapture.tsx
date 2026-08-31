@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { detectNetworkingLocale, type NetworkingLocale } from "../../../lib/networking/catalog";
+import { normalizeContactPhone } from "../../../lib/networking/contact-phone";
 
 type Copy = {
   title: string;
@@ -15,11 +16,29 @@ type Copy = {
   position: string;
   professional: string;
   submit: string;
+  submitting: string;
+  invalidPhone: string;
   successTitle: string;
   successBody: string;
   privacy: string;
   cancel: string;
   done: string;
+};
+
+type ContactForm = {
+  fullName: string;
+  email: string;
+  phone: string;
+  company: string;
+  position: string;
+};
+
+const EMPTY_CONTACT_FORM: ContactForm = {
+  fullName: "",
+  email: "",
+  phone: "",
+  company: "",
+  position: "",
 };
 
 const COPY: Record<NetworkingLocale, Copy> = {
@@ -35,6 +54,8 @@ const COPY: Record<NetworkingLocale, Copy> = {
     position: "Pozisyon",
     professional: "+ Profesyonel bilgi ekle",
     submit: "Bilgilerimi Paylaş",
+    submitting: "Paylaşılıyor…",
+    invalidPhone: "Telefon numarasını ülke koduyla birlikte geçerli formatta girin.",
     successTitle: "Bağlantı kuruldu",
     successBody: "Bilgileriniz {name} ile paylaşıldı.",
     privacy: "Bilgileriniz yalnızca bağlantı kurduğunuz kart sahibiyle paylaşılır.",
@@ -53,6 +74,8 @@ const COPY: Record<NetworkingLocale, Copy> = {
     position: "Position",
     professional: "+ Add professional details",
     submit: "Share My Details",
+    submitting: "Sharing…",
+    invalidPhone: "Enter a valid phone number, including the country code when applicable.",
     successTitle: "Connected",
     successBody: "Your details were shared with {name}.",
     privacy: "Your details are shared only with the card owner you connected with.",
@@ -61,14 +84,15 @@ const COPY: Record<NetworkingLocale, Copy> = {
   },
 };
 
-function visitorId() {
-  const key = "yenomi_vid";
+function getVisitorId() {
+  const storageKey = "yenomi_vid";
   try {
-    const existing = window.localStorage.getItem(key);
-    if (existing) return existing;
-    const created = crypto.randomUUID();
-    window.localStorage.setItem(key, created);
-    return created;
+    const storedVisitorId = window.localStorage.getItem(storageKey);
+    if (storedVisitorId) return storedVisitorId;
+
+    const newVisitorId = crypto.randomUUID();
+    window.localStorage.setItem(storageKey, newVisitorId);
+    return newVisitorId;
   } catch {
     return crypto.randomUUID();
   }
@@ -98,9 +122,9 @@ export default function NetworkingCapture({
   const setLocale = onLocaleChange || setInternalLocale;
   const [mode, setMode] = useState<"idle" | "share" | "success">("idle");
   const [showProfessional, setShowProfessional] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [form, setForm] = useState({ fullName: "", email: "", phone: "", company: "", position: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [contactForm, setContactForm] = useState<ContactForm>(EMPTY_CONTACT_FORM);
 
   useEffect(() => {
     if (!localeProp) setInternalLocale(detectNetworkingLocale(navigator.language));
@@ -109,47 +133,54 @@ export default function NetworkingCapture({
   const copy = COPY[locale];
   const ownerName = profileName || organizationName || "Yenomi";
 
-  async function submit() {
-    if (busy) return;
-    setBusy(true);
-    setError("");
+  async function submitContact() {
+    if (submitting) return;
+
+    const normalizedPhone = normalizeContactPhone(contactForm.phone);
+    if (!normalizedPhone.valid) {
+      setErrorMessage(copy.invalidPhone);
+      return;
+    }
+
+    setSubmitting(true);
+    setErrorMessage("");
     try {
       const response = await fetch("/api/networking/leads", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           profileId,
-          visitorId: visitorId(),
+          visitorId: getVisitorId(),
           eventId: eventId || undefined,
           source: eventId ? "EVENT" : source,
           locale,
           requestMeeting: false,
-          fullName: form.fullName.trim(),
-          email: form.email.trim(),
-          phone: form.phone.trim(),
-          company: form.company.trim(),
-          position: form.position.trim(),
+          fullName: contactForm.fullName.trim(),
+          email: contactForm.email.trim(),
+          phone: normalizedPhone.value || "",
+          company: contactForm.company.trim(),
+          position: contactForm.position.trim(),
           interests: [],
           introduction: "",
         }),
       });
-      const payload = await response.json() as { error?: string };
+      const responseBody = await response.json() as { error?: string };
       if (!response.ok) {
-        setError(payload.error || copy.submit);
+        setErrorMessage(responseBody.error || copy.submit);
         return;
       }
       setMode("success");
     } catch {
-      setError(locale === "tr" ? "Bilgiler kaydedilemedi. Lütfen tekrar deneyin." : "Your details could not be saved. Please try again.");
+      setErrorMessage(locale === "tr" ? "Bilgiler kaydedilemedi. Lütfen tekrar deneyin." : "Your details could not be saved. Please try again.");
     } finally {
-      setBusy(false);
+      setSubmitting(false);
     }
   }
 
-  function reset() {
+  function closeForm() {
     setMode("idle");
     setShowProfessional(false);
-    setError("");
+    setErrorMessage("");
   }
 
   return (
@@ -174,27 +205,27 @@ export default function NetworkingCapture({
       )}
 
       {mode === "share" && (
-        <form className="p12-networking-form" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
+        <form className="p12-networking-form" onSubmit={(event) => { event.preventDefault(); void submitContact(); }}>
           <div className="p12-networking-fields">
-            <label>{copy.name}<input required maxLength={120} autoComplete="name" value={form.fullName} onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))} /></label>
-            <label>{copy.email}<input required maxLength={254} type="email" autoComplete="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} /></label>
-            <label>{copy.phone}<input maxLength={40} type="tel" autoComplete="tel" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} /></label>
+            <label>{copy.name}<input required maxLength={120} autoComplete="name" value={contactForm.fullName} onChange={(event) => setContactForm((currentForm) => ({ ...currentForm, fullName: event.target.value }))} /></label>
+            <label>{copy.email}<input required maxLength={254} type="email" autoComplete="email" value={contactForm.email} onChange={(event) => setContactForm((currentForm) => ({ ...currentForm, email: event.target.value }))} /></label>
+            <label>{copy.phone}<input maxLength={40} type="tel" inputMode="tel" autoComplete="tel" value={contactForm.phone} onChange={(event) => setContactForm((currentForm) => ({ ...currentForm, phone: event.target.value }))} /></label>
           </div>
 
           {!showProfessional ? (
             <button type="button" className="p12-networking-disclosure" onClick={() => setShowProfessional(true)}>{copy.professional}</button>
           ) : (
             <div className="p12-networking-fields p12-networking-professional">
-              <label>{copy.company}<input maxLength={160} autoComplete="organization" value={form.company} onChange={(event) => setForm((current) => ({ ...current, company: event.target.value }))} /></label>
-              <label>{copy.position}<input maxLength={120} autoComplete="organization-title" value={form.position} onChange={(event) => setForm((current) => ({ ...current, position: event.target.value }))} /></label>
+              <label>{copy.company}<input maxLength={160} autoComplete="organization" value={contactForm.company} onChange={(event) => setContactForm((currentForm) => ({ ...currentForm, company: event.target.value }))} /></label>
+              <label>{copy.position}<input maxLength={120} autoComplete="organization-title" value={contactForm.position} onChange={(event) => setContactForm((currentForm) => ({ ...currentForm, position: event.target.value }))} /></label>
             </div>
           )}
 
           <p className="p12-networking-privacy">{copy.privacy}</p>
-          {error && <p className="p12-networking-message" role="alert">{error}</p>}
+          {errorMessage && <p className="p12-networking-message" role="alert">{errorMessage}</p>}
           <div className="p12-networking-form-actions">
-            <button type="submit" disabled={busy}>{busy ? "…" : copy.submit}</button>
-            <button type="button" className="p12-networking-back" onClick={reset}>{copy.cancel}</button>
+            <button type="submit" disabled={submitting} aria-busy={submitting}>{submitting ? copy.submitting : copy.submit}</button>
+            <button type="button" className="p12-networking-back" onClick={closeForm} disabled={submitting}>{copy.cancel}</button>
           </div>
         </form>
       )}
@@ -206,7 +237,7 @@ export default function NetworkingCapture({
             <strong>{copy.successTitle}</strong>
             <p>{copy.successBody.replace("{name}", ownerName)}</p>
           </div>
-          <button type="button" onClick={reset}>{copy.done}</button>
+          <button type="button" onClick={closeForm}>{copy.done}</button>
         </div>
       )}
     </section>

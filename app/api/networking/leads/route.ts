@@ -2,12 +2,13 @@ import { createHash } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { scoreLead } from "../../../../lib/networking/catalog";
+import { normalizeContactPhone } from "../../../../lib/networking/contact-phone";
 import { consumeDistributedRateLimit, requestIp } from "../../../../lib/security/rate-limit";
 import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 
 export const runtime = "nodejs";
 
-const schema = z.object({
+const leadSubmissionSchema = z.object({
   profileId: z.string().uuid(),
   visitorId: z.string().min(8).max(80),
   eventId: z.string().uuid().optional(),
@@ -25,74 +26,93 @@ const schema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const ip = requestIp(request.headers);
-  const limit = await consumeDistributedRateLimit({ key: `networking-lead:${ip}`, limit: 8, windowMs: 60 * 60 * 1000 });
-  if (!limit.allowed) {
+  const clientIp = requestIp(request.headers);
+  const rateLimit = await consumeDistributedRateLimit({
+    key: `networking-lead:${clientIp}`,
+    limit: 8,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!rateLimit.allowed) {
     return NextResponse.json({ error: "Çok fazla talep gönderildi. Lütfen daha sonra tekrar deneyin." }, { status: 429 });
   }
 
-  const parsed = schema.safeParse(await request.json());
-  if (!parsed.success) return NextResponse.json({ error: "Lütfen zorunlu alanları kontrol edin." }, { status: 400 });
-  const body = parsed.data;
-  const admin = getSupabaseAdminClient();
+  let requestBody: unknown;
+  try {
+    requestBody = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Geçersiz istek." }, { status: 400 });
+  }
 
-  const { data: profile } = await admin
+  const parsedSubmission = leadSubmissionSchema.safeParse(requestBody);
+  if (!parsedSubmission.success) {
+    return NextResponse.json({ error: "Lütfen zorunlu alanları kontrol edin." }, { status: 400 });
+  }
+
+  const submission = parsedSubmission.data;
+  const normalizedPhone = normalizeContactPhone(submission.phone);
+  if (!normalizedPhone.valid) {
+    return NextResponse.json({ error: "Telefon numarasını ülke koduyla birlikte geçerli formatta girin." }, { status: 400 });
+  }
+
+  const supabaseAdmin = getSupabaseAdminClient();
+  const { data: cardProfile } = await supabaseAdmin
     .from("card_profiles")
     .select("id,organization_id,user_id,is_published,card_status")
-    .eq("id", body.profileId)
+    .eq("id", submission.profileId)
     .maybeSingle();
-  if (!profile || !profile.is_published || profile.card_status !== "ACTIVE") {
+
+  if (!cardProfile || !cardProfile.is_published || cardProfile.card_status !== "ACTIVE") {
     return NextResponse.json({ error: "Bu kart şu anda lead kabul etmiyor." }, { status: 404 });
   }
 
-  const normalizedEmail = body.email.toLowerCase();
-  const { data: existing } = await admin
+  const normalizedEmail = submission.email.toLowerCase();
+  const { data: existingLead } = await supabaseAdmin
     .from("networking_leads")
     .select("id")
-    .eq("profile_id", profile.id)
-    .eq("visitor_id", body.visitorId)
+    .eq("profile_id", cardProfile.id)
+    .eq("visitor_id", submission.visitorId)
     .eq("email", normalizedEmail)
     .maybeSingle();
 
-  if (existing) {
-    return NextResponse.json({ ok: true, leadId: existing.id, duplicate: true });
+  if (existingLead) {
+    return NextResponse.json({ ok: true, leadId: existingLead.id, duplicate: true });
   }
 
-  const events = ["QR_SCAN", "CONTACT_SHARED"];
-  const score = scoreLead(events, body.interests);
+  const leadEvents = ["QR_SCAN", "CONTACT_SHARED"];
+  const leadScore = scoreLead(leadEvents, submission.interests);
 
-  const { data: lead, error } = await admin.from("networking_leads").insert({
-    organization_id: profile.organization_id,
-    profile_id: profile.id,
-    visitor_id: body.visitorId,
-    event_id: body.eventId || null,
-    event_link_id: body.eventLinkId || null,
-    full_name: body.fullName,
+  const { data: createdLead, error: insertError } = await supabaseAdmin.from("networking_leads").insert({
+    organization_id: cardProfile.organization_id,
+    profile_id: cardProfile.id,
+    visitor_id: submission.visitorId,
+    event_id: submission.eventId || null,
+    event_link_id: submission.eventLinkId || null,
+    full_name: submission.fullName,
     email: normalizedEmail,
-    phone: body.phone || null,
-    company: body.company || null,
-    position: body.position || null,
+    phone: normalizedPhone.value,
+    company: submission.company || null,
+    position: submission.position || null,
     city: "Belirtilmedi",
     country: "Belirtilmedi",
-    locale: body.locale,
-    interests: body.interests,
-    intent: body.interests[0] || null,
-    introduction: body.introduction || null,
-    source: body.source,
+    locale: submission.locale,
+    interests: submission.interests,
+    intent: submission.interests[0] || null,
+    introduction: submission.introduction || null,
+    source: submission.source,
     status: "NEW",
-    score,
-    ip_hash: ip === "unknown" ? null : createHash("sha256").update(ip).digest("hex"),
+    score: leadScore,
+    ip_hash: clientIp === "unknown" ? null : createHash("sha256").update(clientIp).digest("hex"),
   }).select("id").single();
 
-  if (error || !lead) {
-    console.error("networking lead insert failed", error);
+  if (insertError || !createdLead) {
+    console.error("networking lead insert failed");
     return NextResponse.json({ error: "Bilgiler kaydedilemedi." }, { status: 503 });
   }
 
-  await admin.from("networking_lead_events").insert([
-    { lead_id: lead.id, kind: "QR_SCAN", payload: { source: body.source } },
-    { lead_id: lead.id, kind: "CONTACT_SHARED", payload: { email: normalizedEmail } },
+  await supabaseAdmin.from("networking_lead_events").insert([
+    { lead_id: createdLead.id, kind: "QR_SCAN", payload: { source: submission.source } },
+    { lead_id: createdLead.id, kind: "CONTACT_SHARED", payload: { email: normalizedEmail } },
   ]);
 
-  return NextResponse.json({ ok: true, leadId: lead.id });
+  return NextResponse.json({ ok: true, leadId: createdLead.id });
 }

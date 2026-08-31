@@ -14,9 +14,11 @@ export type Org = {
     expires_at: string | null;
     business_plans: { name: string; code: string } | null;
   }>;
+  organization_capacity_terms?: OrganizationCapacityTerm[];
 };
 
 import type { DigitalProfileState, InvitationState, MemberStatus, PhysicalCardStatus } from "../../../../lib/organizations/lifecycle";
+import type { OrganizationCapacityTerm } from "../../../../lib/organizations/capacity-terms";
 
 export type MemberActionTarget = {
   id: string;

@@ -5,11 +5,11 @@ on:
     paths:
       - "app/**"
       - "lib/**"
-      - "scripts/**"
+      - "scripts/verify-authenticated-surfaces.mjs"
       - ".github/workflows/authenticated-surfaces.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   validate:
@@ -17,24 +17,10 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
-      - name: Apply one-shot corporate lazy refactor
-        if: github.actor != 'github-actions[bot]'
-        run: |
-          if [ -f scripts/apply-corporate-lazy-refactor.mjs ]; then
-            node scripts/apply-corporate-lazy-refactor.mjs
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add app/kurumsal/panel/CorporatePanelClient.tsx scripts/apply-corporate-lazy-refactor.mjs .github/workflows/apply-corporate-lazy-refactor.yml
-            git commit -m "refactor(corporate): lazy load panel data by tab"
-            git push origin HEAD:${{ github.event.pull_request.head.ref }}
-          fi
       - run: npm ci
       - name: Verify authenticated architecture
         run: node scripts/verify-authenticated-surfaces.mjs

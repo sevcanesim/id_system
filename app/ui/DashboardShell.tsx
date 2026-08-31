@@ -8,8 +8,8 @@ import { clearLegacyCart, setCartOwner } from "../../lib/cart";
 import { writeSessionCookie } from "../components/AuthSessionBridge";
 import { INDIVIDUAL_SIDEBAR_CONFIG } from "../components/ui/sidebar-config";
 import PanelSidebar from "../components/ui/PanelSidebar";
+import SidebarFooterActions from "../components/ui/SidebarFooterActions";
 import type { SidebarNavItem } from "../components/ui/SidebarNav";
-import { Icon } from "../icons";
 
 type ShellAction = { href?: string; label: string; primary?: boolean; onClick?: () => void; disabled?: boolean };
 
@@ -36,7 +36,6 @@ export default function DashboardShell({
   const [email, setEmail] = useState("");
   const [portalState, setPortalState] = useState<"checking" | "allowed" | "denied">("checking");
   const [hasCorporateSubscription, setHasCorporateSubscription] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -90,20 +89,13 @@ export default function DashboardShell({
   }, [pathname, portal]);
 
   async function signOut() {
-    if (signingOut) return;
-    setSigningOut(true);
-    try {
-      const supabase = getSupabaseBrowserClient();
-      if (supabase) await supabase.auth.signOut();
-      await writeSessionCookie(null);
-      clearLegacyCart();
-      setCartOwner(null, { claimGuest: false });
-      setMobileOpen(false);
-      router.replace(`/giris?portal=${portal}`);
-      router.refresh();
-    } finally {
-      setSigningOut(false);
-    }
+    const supabase = getSupabaseBrowserClient();
+    if (supabase) await supabase.auth.signOut();
+    await writeSessionCookie(null);
+    clearLegacyCart();
+    setCartOwner(null, { claimGuest: false });
+    router.replace(`/giris?portal=${portal}`);
+    router.refresh();
   }
 
   if (portalState !== "allowed")
@@ -155,37 +147,20 @@ export default function DashboardShell({
         ariaLabel="Kullanıcı paneli navigasyonu"
         id={sidebarId}
         labelledBy={menuButtonId}
-        subtitle="Kimlik Stüdyosu"
+        subtitle="Bireysel Panel"
         brandHref="/kartlarim"
         className={portal === "individual" ? "canonical-panel-sidebar--individual" : undefined}
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
         activeKey={calculatedActiveKey}
-        collapsibleGroups={portal !== "individual"}
+        collapsibleGroups
         storageKey="yenomi:individual-sidebar:collapsed"
         items={sidebarItems}
       >
-        <div className="enterprise-side-links enterprise-side-management canonical-personal-support">
-          <a href="mailto:hello@yenomilabs.com">
-            <Icon name="headset" />
-            <span>Destek</span>
-          </a>
-          <a href="https://www.yenomilabs.com" target="_blank" rel="noopener noreferrer">
-            <Icon name="external" />
-            <span>Yenomilabs</span>
-          </a>
-          <button
-            type="button"
-            className="id-sidebar__header-logout canonical-personal-signout"
-            aria-label="Çıkış Yap"
-            title="Çıkış Yap"
-            onClick={() => void signOut()}
-            disabled={signingOut}
-          >
-            <Icon name="logout" />
-            <span>{signingOut ? "Çıkılıyor…" : "Çıkış"}</span>
-          </button>
-        </div>
+        <SidebarFooterActions
+          onSignOut={signOut}
+          onAfterAction={() => setMobileOpen(false)}
+        />
       </PanelSidebar>
 
       <section className="yi-app__main p7-workspace">

@@ -1,0 +1,43 @@
+name: Responsive Master
+
+on:
+  pull_request:
+    paths:
+      - "app/**"
+      - "tests/e2e/responsive-master.spec.ts"
+      - "scripts/**"
+      - "package.json"
+      - ".github/workflows/responsive-master.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  responsive-master:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Product engineering contract
+        run: npm run verify:product-engineering
+      - name: CSS architecture
+        env:
+          DESIGN_SYSTEM_BASE: ${{ github.event.pull_request.base.sha }}
+        run: npm run verify:css-architecture
+      - name: UI system
+        run: npm run verify:ui-system
+      - name: Typography
+        run: npm run verify:typography
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Responsive browser matrix
+        run: npx playwright test tests/e2e/responsive-master.spec.ts --project=chromium-desktop
+      - name: Build
+        run: npm run build

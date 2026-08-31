@@ -11,12 +11,15 @@ type Props = {
   onShareSettings: () => void;
 };
 
-function chartPoints(series: Array<{ date: string; count: number }>) {
-  const max = Math.max(1, ...series.map((item) => item.count));
-  return series
-    .map((item, index) => {
-      const x = series.length === 1 ? 50 : (index / (series.length - 1)) * 100;
-      const y = 92 - (item.count / max) * 76;
+const CHART_STROKE = "#9b7427";
+const CHART_AREA = "#c7a45b";
+
+function buildChartPoints(dailySeries: Array<{ date: string; count: number }>) {
+  const maxDailyViews = Math.max(1, ...dailySeries.map((dailyPoint) => dailyPoint.count));
+  return dailySeries
+    .map((dailyPoint, pointIndex) => {
+      const x = dailySeries.length === 1 ? 50 : (pointIndex / (dailySeries.length - 1)) * 100;
+      const y = 92 - (dailyPoint.count / maxDailyViews) * 76;
       return `${x},${y}`;
     })
     .join(" ");
@@ -29,21 +32,23 @@ export default function AnalyticsPanel({
   onViewOwnCard,
   onShareSettings,
 }: Props) {
-  const unavailable = analytics?.available === false;
-  const series = analytics?.byDay?.length ? analytics.byDay : [{ date: new Date().toISOString().slice(0, 10), count: 0 }];
-  const trend = chartPoints(series);
-  const hasTrend = series.some((item) => item.count > 0);
-  const cards = analytics?.byCard ?? [];
-  const topCard = cards[0] ?? null;
-  const restCards = cards.slice(1, 10);
-  const countries = analytics?.byCountry?.slice(0, 5) ?? [];
-  const departments = analytics?.byDepartment?.slice(0, 5) ?? [];
+  const analyticsUnavailable = analytics?.available === false;
+  const dailySeries = analytics?.byDay?.length
+    ? analytics.byDay
+    : [{ date: new Date().toISOString().slice(0, 10), count: 0 }];
+  const trendPoints = buildChartPoints(dailySeries);
+  const hasTrend = dailySeries.some((dailyPoint) => dailyPoint.count > 0);
+  const cardRankings = analytics?.byCard ?? [];
+  const leadingCard = cardRankings[0] ?? null;
+  const remainingCards = cardRankings.slice(1, 10);
+  const countryRankings = analytics?.byCountry?.slice(0, 5) ?? [];
+  const departmentRankings = analytics?.byDepartment?.slice(0, 5) ?? [];
   const totalViews = analytics?.totalViews ?? 0;
-  const last30 = analytics?.last30DaysViews ?? 0;
-  const clicks = analytics?.content?.clicks ?? 0;
-  const downloads = analytics?.content?.downloads ?? 0;
-  const interactions = analytics?.content?.totalInteractions ?? 0;
-  const hasData = totalViews > 0 || last30 > 0 || cards.length > 0 || interactions > 0;
+  const last30DaysViews = analytics?.last30DaysViews ?? 0;
+  const contentClicks = analytics?.content?.clicks ?? 0;
+  const contentDownloads = analytics?.content?.downloads ?? 0;
+  const totalInteractions = analytics?.content?.totalInteractions ?? 0;
+  const hasAnalyticsData = totalViews > 0 || last30DaysViews > 0 || cardRankings.length > 0 || totalInteractions > 0;
 
   return (
     <section className="p11-employees p11-analytics" aria-labelledby="p11-analytics-title">
@@ -64,14 +69,14 @@ export default function AnalyticsPanel({
         </select>
       </header>
 
-      {unavailable ? (
+      {analyticsUnavailable ? (
         <EmptyState
           compact
           icon="analytics"
           title="Analitik geçici olarak kullanılamıyor"
           description="Görüntülenme verisi şu anda alınamıyor. Daha sonra yeniden deneyin."
         />
-      ) : !hasData ? (
+      ) : !hasAnalyticsData ? (
         <EmptyState
           compact
           icon="analytics"
@@ -88,9 +93,9 @@ export default function AnalyticsPanel({
         <>
           <div className="p11-kpis">
             <article><small>Toplam görüntülenme</small><strong>{totalViews.toLocaleString("tr-TR")}</strong><span>Son {analyticsDays} gün</span></article>
-            <article><small>Son 30 gün</small><strong>{last30.toLocaleString("tr-TR")}</strong><span>Dönem karşılaştırması</span></article>
-            <article><small>İçerik etkileşimi</small><strong>{interactions.toLocaleString("tr-TR")}</strong><span>URL ve PDF</span></article>
-            <article><small>Öne çıkan kart</small><strong>{topCard ? topCard.count.toLocaleString("tr-TR") : "—"}</strong><span>{topCard?.name || "Henüz sıralama yok"}</span></article>
+            <article><small>Son 30 gün</small><strong>{last30DaysViews.toLocaleString("tr-TR")}</strong><span>Dönem karşılaştırması</span></article>
+            <article><small>İçerik etkileşimi</small><strong>{totalInteractions.toLocaleString("tr-TR")}</strong><span>URL ve PDF</span></article>
+            <article><small>Öne çıkan kart</small><strong>{leadingCard ? leadingCard.count.toLocaleString("tr-TR") : "—"}</strong><span>{leadingCard?.name || "Henüz sıralama yok"}</span></article>
           </div>
 
           <div className="v26-reference-main-row p11-analytics-main">
@@ -110,34 +115,34 @@ export default function AnalyticsPanel({
                   <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Kart görüntülenme eğrisi">
                     <defs>
                       <linearGradient id="analyticsArea" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0" stopColor="#9848f2" stopOpacity=".52" />
-                        <stop offset="1" stopColor="#9848f2" stopOpacity="0" />
+                        <stop offset="0" stopColor={CHART_AREA} stopOpacity=".34" />
+                        <stop offset="1" stopColor={CHART_AREA} stopOpacity="0" />
                       </linearGradient>
                     </defs>
-                    <polygon points={`0,100 ${trend} 100,100`} fill="url(#analyticsArea)" />
-                    <polyline points={trend} fill="none" stroke="#a855f7" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                    <polygon points={`0,100 ${trendPoints} 100,100`} fill="url(#analyticsArea)" />
+                    <polyline points={trendPoints} fill="none" stroke={CHART_STROKE} strokeWidth="2" vectorEffect="non-scaling-stroke" />
                   </svg>
                 ) : (
                   <p>Bu dönemde henüz kart görüntülenmesi yok.</p>
                 )}
               </div>
               <footer>
-                <span>{analytics?.periodStart || series[0]?.date}</span>
+                <span>{analytics?.periodStart || dailySeries[0]?.date}</span>
                 <strong>{totalViews.toLocaleString("tr-TR")} toplam görüntülenme</strong>
-                <span>{analytics?.periodEnd || series[series.length - 1]?.date}</span>
+                <span>{analytics?.periodEnd || dailySeries[dailySeries.length - 1]?.date}</span>
               </footer>
             </section>
 
             <aside className="p11-top-card" aria-label="En çok görüntülenen kart">
               <small>En çok görüntülenen kart</small>
-              {topCard ? (
+              {leadingCard ? (
                 <>
-                  <strong>{topCard.name}</strong>
-                  <b>{topCard.count.toLocaleString("tr-TR")}</b>
+                  <strong>{leadingCard.name}</strong>
+                  <b>{leadingCard.count.toLocaleString("tr-TR")}</b>
                   <span>görüntülenme</span>
                   <p>
                     {totalViews > 0
-                      ? `Tüm görüntülenmenin %${Math.round((topCard.count / totalViews) * 100)}’i bu karta ait.`
+                      ? `Tüm görüntülenmenin %${Math.round((leadingCard.count / totalViews) * 100)}’i bu karta ait.`
                       : "Bu dönemdeki en yüksek kart performansı."}
                   </p>
                 </>
@@ -148,62 +153,46 @@ export default function AnalyticsPanel({
           </div>
 
           <section className="p11-analytics-compare" aria-label="Karşılaştırma">
-            <article>
-              <small>Seçili dönem</small>
-              <strong>{totalViews.toLocaleString("tr-TR")}</strong>
-              <span>Toplam görüntülenme</span>
-            </article>
-            <article>
-              <small>Son 30 gün</small>
-              <strong>{last30.toLocaleString("tr-TR")}</strong>
-              <span>Dönem karşılaştırması</span>
-            </article>
-            <article>
-              <small>URL tıklaması</small>
-              <strong>{clicks.toLocaleString("tr-TR")}</strong>
-              <span>İçerik etkileşimi</span>
-            </article>
-            <article>
-              <small>PDF indirme</small>
-              <strong>{downloads.toLocaleString("tr-TR")}</strong>
-              <span>Dosya etkileşimi</span>
-            </article>
+            <article><small>Seçili dönem</small><strong>{totalViews.toLocaleString("tr-TR")}</strong><span>Toplam görüntülenme</span></article>
+            <article><small>Son 30 gün</small><strong>{last30DaysViews.toLocaleString("tr-TR")}</strong><span>Dönem karşılaştırması</span></article>
+            <article><small>URL tıklaması</small><strong>{contentClicks.toLocaleString("tr-TR")}</strong><span>İçerik etkileşimi</span></article>
+            <article><small>PDF indirme</small><strong>{contentDownloads.toLocaleString("tr-TR")}</strong><span>Dosya etkileşimi</span></article>
           </section>
 
-          {(restCards.length > 0 || countries.length > 0 || departments.length > 0) && (
+          {(remainingCards.length > 0 || countryRankings.length > 0 || departmentRankings.length > 0) && (
             <div className="p11-analytics-rankings">
-              {restCards.length > 0 && (
+              {remainingCards.length > 0 && (
                 <div className="p10-ranking">
                   <h3>Diğer kartlar</h3>
-                  {restCards.map((item, index) => (
-                    <div key={item.profileId}>
-                      <span>{index + 2}</span>
-                      <strong>{item.name}</strong>
-                      <small>{item.count.toLocaleString("tr-TR")} görüntülenme</small>
+                  {remainingCards.map((cardRanking, rankingIndex) => (
+                    <div key={cardRanking.profileId}>
+                      <span>{rankingIndex + 2}</span>
+                      <strong>{cardRanking.name}</strong>
+                      <small>{cardRanking.count.toLocaleString("tr-TR")} görüntülenme</small>
                     </div>
                   ))}
                 </div>
               )}
-              {countries.length > 0 && (
+              {countryRankings.length > 0 && (
                 <div className="p10-ranking">
                   <h3>Konum dağılımı</h3>
-                  {countries.map((item, index) => (
-                    <div key={`${item.country}-${index}`}>
-                      <span>{index + 1}</span>
-                      <strong>{item.country || "Bilinmiyor"}</strong>
-                      <small>{item.count.toLocaleString("tr-TR")} görüntülenme</small>
+                  {countryRankings.map((countryRanking, rankingIndex) => (
+                    <div key={`${countryRanking.country}-${rankingIndex}`}>
+                      <span>{rankingIndex + 1}</span>
+                      <strong>{countryRanking.country || "Bilinmiyor"}</strong>
+                      <small>{countryRanking.count.toLocaleString("tr-TR")} görüntülenme</small>
                     </div>
                   ))}
                 </div>
               )}
-              {departments.length > 0 && (
+              {departmentRankings.length > 0 && (
                 <div className="p10-ranking">
                   <h3>Departman performansı</h3>
-                  {departments.map((item, index) => (
-                    <div key={item.department}>
-                      <span>{index + 1}</span>
-                      <strong>{item.department}</strong>
-                      <small>{item.count.toLocaleString("tr-TR")} görüntülenme</small>
+                  {departmentRankings.map((departmentRanking, rankingIndex) => (
+                    <div key={departmentRanking.department}>
+                      <span>{rankingIndex + 1}</span>
+                      <strong>{departmentRanking.department}</strong>
+                      <small>{departmentRanking.count.toLocaleString("tr-TR")} görüntülenme</small>
                     </div>
                   ))}
                 </div>

@@ -1595,6 +1595,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                     physicalCards={physicalCards}
                     memberCardStatuses={memberCardStatuses}
                     digitalCardsReady={digitalCardsReady}
+                    capacityTerms={org?.organization_capacity_terms || []}
                     cardBusy={cardBusy}
                     toggleCardStatus={toggleCardStatus}
                     openMemberDrawer={openMemberDrawer}

@@ -5,6 +5,7 @@ import { Icon } from "../../../icons";
 import { EmptyState } from "../../../components/ui/States";
 import { Button } from "../../../components/ui/DesignSystem";
 import type { MemberActionTarget, MemberCardStatus, PhysicalCard } from "../domain/types";
+import type { OrganizationCapacityTerm } from "../../../../lib/organizations/capacity-terms";
 import { physicalCardLabel, physicalInventoryCounts } from "../../../../lib/organizations/lifecycle";
 
 type Props = {
@@ -12,6 +13,7 @@ type Props = {
   physicalCards: PhysicalCard[];
   memberCardStatuses: MemberCardStatus[];
   digitalCardsReady: number;
+  capacityTerms: OrganizationCapacityTerm[];
   cardBusy: string | null;
   toggleCardStatus: (cardId: string, status: "ACTIVE" | "DISABLED") => void | Promise<void>;
   openMemberDrawer: (member: MemberActionTarget, tab?: "profile" | "card" | "invite" | "lifecycle") => void;
@@ -49,6 +51,7 @@ export default function CardsPanel({
   physicalCards,
   memberCardStatuses,
   digitalCardsReady,
+  capacityTerms,
   cardBusy,
   toggleCardStatus,
   openMemberDrawer,
@@ -132,6 +135,24 @@ export default function CardsPanel({
           </div>
           <Button type="button" variant="secondary" onClick={openEmployees}>Çalışanlara Git</Button>
         </header>
+      )}
+
+      {capacityTerms.length > 0 && (
+        <section className="p11-employee-card action-first-surface" aria-label="Kapasite yenilemeleri">
+          <div>
+            <span>KAPASİTE YENİLEMELERİ</span>
+            <strong>{capacityTerms.reduce((total, term) => total + term.card_count, 0)} ek kart kapasitesi</strong>
+            <p>Ek kapasite satın alımlarının yenileme dönemleri ayrı olarak takip edilir.</p>
+          </div>
+          <div className="action-first-summary__stats">
+            {capacityTerms.map((term) => (
+              <span key={term.id}>
+                <small>{term.card_count} kart</small>
+                <b>{new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(term.expires_at))}</b>
+              </span>
+            ))}
+          </div>
+        </section>
       )}
 
       <section className={`action-first-summary${attentionCount > 0 ? " has-attention" : " is-clear"}`} aria-label="Fiziksel kart özeti">

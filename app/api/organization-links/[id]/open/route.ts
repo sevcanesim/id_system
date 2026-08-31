@@ -19,7 +19,7 @@ export async function GET(
   const admin = getSupabaseAdminClient();
   const { data: link } = await admin
     .from("organization_links")
-    .select("id,organization_id,link_type,url,file_path,is_published,publish_at")
+    .select("id,organization_id,kind,link_type,url,file_path,is_published,publish_at")
     .eq("id", id)
     .eq("is_published", true)
     .maybeSingle();
@@ -29,10 +29,14 @@ export async function GET(
     return NextResponse.redirect(new URL("/", request.url), 302);
   }
 
+  // Toplantı Planla yalnız gerçek bir takvim/randevu URL'sine yönlenebilir.
+  if (link.kind === "MEETING" && link.link_type === "FILE") {
+    return NextResponse.redirect(new URL("/", request.url), 302);
+  }
+
   const target = safeTarget(
     link.link_type === "FILE" && link.file_path
-      ? admin.storage.from("organization-assets").getPublicUrl(link.file_path)
-          .data.publicUrl
+      ? admin.storage.from("organization-assets").getPublicUrl(link.file_path).data.publicUrl
       : link.url,
   );
   if (!target) return NextResponse.redirect(new URL("/", request.url), 302);

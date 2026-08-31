@@ -38,6 +38,7 @@ import "./kurumsal/panel/premium-ui-pass-4.css";
 import "./kurumsal/panel/premium-ui-pass-5.css";
 import "./kurumsal/panel/team-management.css";
 import "./styles/canonical-responsive-production.css";
+import "./styles/home-products-responsive.css";
 import "./kurumsal/panel/content-history-polish.css";
 import "./kurumsal/panel/content-layout-v2.css";
 import "./kurumsal/panel/card-editor-production.css";

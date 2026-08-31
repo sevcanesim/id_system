@@ -4,7 +4,7 @@ import { useEffect, useId, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { Icon, type IconName } from "../../icons";
 import { groupSidebarItems } from "./sidebar-config";
-import type { SidebarAvailability, SidebarSectionAvailabilityMap } from "./sidebar-state";
+import type { SidebarAvailability, SidebarSectionAvailabilityMap } from "./sidebar.types";
 
 export type SidebarNavItem = {
   key: string;

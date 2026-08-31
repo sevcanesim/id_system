@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { INDIVIDUAL_SIDEBAR_CONFIG } from "./ui/sidebar-config";
-import { resolveSidebarItems } from "./ui/sidebar-state";
+import { resolveSidebarItems, type SidebarAvailability, type SidebarSectionAvailabilityMap } from "./ui/sidebar-state";
 import UnifiedSidebar from "./ui/UnifiedSidebar";
 import SidebarAccountFooter from "./ui/SidebarAccountFooter";
 
@@ -13,6 +13,8 @@ export type IndividualSidebarProps = {
   onSignOut?: () => void;
   open?: boolean;
   onClose?: () => void;
+  itemAvailability?: Partial<Record<string, SidebarAvailability>>;
+  sectionAvailability?: SidebarSectionAvailabilityMap;
 };
 
 export default function IndividualSidebar({
@@ -22,12 +24,16 @@ export default function IndividualSidebar({
   onSignOut,
   open = false,
   onClose,
+  itemAvailability,
+  sectionAvailability,
 }: IndividualSidebarProps) {
   const pathname = usePathname();
   const close = onClose ?? (() => {});
   const items = resolveSidebarItems(INDIVIDUAL_SIDEBAR_CONFIG, {
     scope: "individual",
     hasCorporateSubscription,
+    itemAvailability,
+    sectionAvailability,
   });
   const activeKey = items.find(
     (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
@@ -46,6 +52,7 @@ export default function IndividualSidebar({
       open={open}
       onClose={close}
       className="id-sidebar--individual"
+      sectionAvailability={sectionAvailability}
       footer={
         <SidebarAccountFooter
           accountName="Bireysel Hesap"

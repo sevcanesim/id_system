@@ -1,6 +1,5 @@
 import type { FormEvent } from "react";
-import { Icon } from "../../../icons";
-import { Button } from "../../../components/ui/DesignSystem";
+import { TITLE_OPTIONS } from "../../../../lib/form-standards";
 
 type JobTitle = { id: string; title: string };
 type TitleRequest = {
@@ -23,101 +22,31 @@ type Props = {
   onResolveTitleRequest: (requestId: string, approve: boolean) => void | Promise<void>;
 };
 
-// Şirketin gerçek pozisyon kataloğu + İK onayı bekleyen ünvan talepleri.
-// Kart formundaki Ünvan alanı yalnızca buradaki listeden seçilir
-// (bkz. app/olustur/CardWizard.tsx — orgLock.jobTitles).
-export default function JobTitlesPanel({
-  jobTitles,
-  newJobTitle,
-  onNewJobTitleChange,
-  onAddJobTitle,
-  jobTitleBusy,
-  onRemoveJobTitle,
-  titleRequests,
-  titleRequestBusyId,
-  onResolveTitleRequest,
-}: Props) {
+export default function JobTitlesPanel(_props: Props) {
   return (
     <section className="job-titles-panel">
       <header>
         <div>
-          <span>POZİSYON KATALOĞU</span>
-          <h2>Şirketin gerçek ünvanları</h2>
+          <span>POZİSYON SEVİYELERİ</span>
+          <h2>Standart çalışan ünvanları</h2>
           <p>
-            Çalışan kart formundaki Ünvan alanı yalnızca buradaki listeden
-            seçilir. Listede olmayan bir ünvan istenirse çalışan İK&apos;ya
-            talep gönderir.
+            Çalışanlar ünvanlarını serbest yazamaz. Kart oluşturma ve düzenleme
+            ekranlarında yalnızca aşağıdaki beş standart seviyeden seçim yapılır.
           </p>
         </div>
       </header>
-      <form className="job-title-add-form" onSubmit={onAddJobTitle}>
-        <label>
-          Yeni unvan ekle
-          <input
-            value={newJobTitle}
-            onChange={(e) => onNewJobTitleChange(e.target.value)}
-            placeholder="Unvan adı..."
-            maxLength={120}
-          />
-        </label>
-        <Button type="submit" variant="primary" disabled={jobTitleBusy || newJobTitle.trim().length < 2}>
-          {jobTitleBusy ? "Ekleniyor..." : "+ Ekle"}
-        </Button>
-      </form>
-      <ul className="job-title-list">
-        {jobTitles.length === 0 && (
-          <li className="empty">
-            Henüz pozisyon eklenmedi. Boşken çalışan ünvanını serbest
-            yazabilir.
-          </li>
-        )}
-        {jobTitles.map((item) => (
-          <li key={item.id}>
-            <span>{item.title}</span>
-            <button type="button" onClick={() => void onRemoveJobTitle(item.id)}>
-              <Icon name="close" />
-            </button>
+
+      <ul className="job-title-list" aria-label="Standart çalışan ünvanları">
+        {TITLE_OPTIONS.map((title) => (
+          <li key={title}>
+            <span>{title}</span>
           </li>
         ))}
       </ul>
-      {titleRequests.length > 0 && (
-        <>
-          <h3>Bekleyen ünvan talepleri</h3>
-          <ul className="title-request-list">
-            {titleRequests.map((req) => (
-              <li key={req.id}>
-                <div>
-                  <strong>{req.organization_members?.full_name || "Çalışan"}</strong>
-                  <span>
-                    &quot;{req.requested_title}&quot; istiyor
-                    {req.organization_members?.department
-                      ? ` · ${req.organization_members.department}`
-                      : ""}
-                  </span>
-                </div>
-                <div className="title-request-actions">
-                  <button
-                    type="button"
-                    className="secondary"
-                    disabled={titleRequestBusyId === req.id}
-                    onClick={() => void onResolveTitleRequest(req.id, false)}
-                  >
-                    Reddet
-                  </button>
-                  <button
-                    type="button"
-                    className="primary"
-                    disabled={titleRequestBusyId === req.id}
-                    onClick={() => void onResolveTitleRequest(req.id, true)}
-                  >
-                    Onayla
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
+
+      <p className="job-title-policy-note">
+        Ünvan kataloğu şirket bazında değiştirilemez; yeni ünvan ekleme ve ünvan talebi akışları kapalıdır.
+      </p>
     </section>
   );
 }

@@ -733,6 +733,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
         body: JSON.stringify({
           organizationId: selected,
           rows: bulkInvitePreview.rows.slice(0, BULK_INVITE_MAX_ROWS).map((row) => ({
+            line: row.line,
             email: row.email,
             fullName: row.fullName,
             title: row.title,

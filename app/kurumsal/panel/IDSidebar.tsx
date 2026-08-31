@@ -6,6 +6,7 @@ import { useEffect, useId, useRef } from "react";
 import { Icon } from "../../icons";
 import { corporatePanelNavItems, getCorporateSidebarActiveKey, type CorporateNavItem } from "./domain/navigation";
 import { groupSidebarItems } from "../../components/ui/sidebar-config";
+import SidebarAccountFooter from "../../components/ui/SidebarAccountFooter";
 import { useUnsavedChanges } from "../../components/UnsavedChangesContext";
 
 export type IDSidebarProps = {
@@ -102,8 +103,7 @@ export default function IDSidebar({
   }, [open, onClose]);
 
   const accountName = user?.full_name?.trim() || "Kurumsal Hesap";
-  const accountEmail = user?.email?.trim() || "";
-  const accountRole = ROLE_LABELS[(user?.role || role || "EMPLOYEE").toUpperCase()] || "Kurumsal Kullanıcı";
+  const accountEmail = user?.email?.trim() || ROLE_LABELS[(user?.role || role || "EMPLOYEE").toUpperCase()] || "Kurumsal Kullanıcı";
   const accountInitials = (accountName || accountEmail || "Y")
     .split(/\s+/)
     .filter(Boolean)
@@ -121,7 +121,7 @@ export default function IDSidebar({
       <aside
         ref={sidebarRef}
         id={sidebarId}
-        className={`id-sidebar ${open ? "id-sidebar--mobile-open" : ""}`.trim()}
+        className={`id-sidebar id-sidebar--corporate ${open ? "id-sidebar--mobile-open" : ""}`.trim()}
         aria-label="Kurumsal yönetim menüsü"
         data-open={open || undefined}
       >
@@ -190,39 +190,13 @@ export default function IDSidebar({
           </nav>
         )}
 
-        <div className="id-sidebar__footer">
-          <div className="enterprise-side-links enterprise-side-management canonical-personal-support">
-            <a href="mailto:hello@yenomilabs.com" onClick={onClose}>
-              <Icon name="headset" />
-              <span>Destek</span>
-            </a>
-            <a href="https://www.yenomilabs.com" target="_blank" rel="noopener noreferrer">
-              <Icon name="external" />
-              <span>Yenomilabs</span>
-            </a>
-          </div>
-          <div className="id-sidebar__user">
-            <span className="id-sidebar__user-avatar" aria-hidden="true">{accountInitials}</span>
-            <span className="id-sidebar__user-info">
-              <strong className="id-sidebar__user-name">{accountName}</strong>
-              <small className="id-sidebar__user-role">{accountEmail || accountRole}</small>
-            </span>
-            {onSignOut ? (
-              <button
-                type="button"
-                className="id-sidebar__logout"
-                aria-label="Çıkış Yap"
-                title="Çıkış Yap"
-                onClick={() => {
-                  onSignOut();
-                  onClose?.();
-                }}
-              >
-                <Icon name="logout" />
-              </button>
-            ) : null}
-          </div>
-        </div>
+        <SidebarAccountFooter
+          accountName={accountName}
+          accountMeta={accountEmail}
+          initials={accountInitials}
+          onSignOut={onSignOut}
+          onClose={onClose}
+        />
       </aside>
     </>
   );

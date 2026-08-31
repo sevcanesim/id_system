@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AnalyticsTrendChart from "../../../components/ui/AnalyticsTrendChart";
 import { EmptyState, LoadingState } from "../../../components/ui/States";
 import type { CardAnalytics } from "../domain/types";
 
@@ -11,20 +12,6 @@ type Props = {
   onViewOwnCard: () => void;
   onShareSettings: () => void;
 };
-
-const CHART_STROKE = "#9b7427";
-const CHART_AREA = "#c7a45b";
-
-function buildChartPoints(dailySeries: Array<{ date: string; count: number }>) {
-  const maxDailyViews = Math.max(1, ...dailySeries.map((dailyPoint) => dailyPoint.count));
-  return dailySeries
-    .map((dailyPoint, pointIndex) => {
-      const x = dailySeries.length === 1 ? 50 : (pointIndex / (dailySeries.length - 1)) * 100;
-      const y = 92 - (dailyPoint.count / maxDailyViews) * 76;
-      return `${x},${y}`;
-    })
-    .join(" ");
-}
 
 export default function AnalyticsPanel({
   analytics,
@@ -38,8 +25,6 @@ export default function AnalyticsPanel({
   const dailySeries = analytics?.byDay?.length
     ? analytics.byDay
     : [{ date: new Date().toISOString().slice(0, 10), count: 0 }];
-  const trendPoints = buildChartPoints(dailySeries);
-  const hasTrend = dailySeries.some((dailyPoint) => dailyPoint.count > 0);
   const cardRankings = analytics?.byCard ?? [];
   const leadingCard = cardRankings[0] ?? null;
   const remainingCards = cardRankings.slice(1, 10);
@@ -50,7 +35,10 @@ export default function AnalyticsPanel({
   const contentClicks = analytics?.content?.clicks ?? 0;
   const contentDownloads = analytics?.content?.downloads ?? 0;
   const totalInteractions = analytics?.content?.totalInteractions ?? 0;
-  const hasAnalyticsData = totalViews > 0 || last30DaysViews > 0 || cardRankings.length > 0 || totalInteractions > 0;
+  const hasAnalyticsData = totalViews > 0
+    || last30DaysViews > 0
+    || cardRankings.length > 0
+    || totalInteractions > 0;
 
   useEffect(() => {
     setRefreshingPeriod(null);
@@ -135,27 +123,13 @@ export default function AnalyticsPanel({
                 <b>Görüntülenme</b>
                 <span>QR / NFC ölçümleri yalnızca kayıt oluştuğunda gösterilir</span>
               </div>
-              <div className="v26-chart-canvas">
-                {hasTrend ? (
-                  <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Kart görüntülenme eğrisi">
-                    <defs>
-                      <linearGradient id="analyticsArea" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0" stopColor={CHART_AREA} stopOpacity=".34" />
-                        <stop offset="1" stopColor={CHART_AREA} stopOpacity="0" />
-                      </linearGradient>
-                    </defs>
-                    <polygon points={`0,100 ${trendPoints} 100,100`} fill="url(#analyticsArea)" />
-                    <polyline points={trendPoints} fill="none" stroke={CHART_STROKE} strokeWidth="2" vectorEffect="non-scaling-stroke" />
-                  </svg>
-                ) : (
-                  <p>Bu dönemde henüz kart görüntülenmesi yok.</p>
-                )}
-              </div>
-              <footer>
-                <span>{analytics?.periodStart || dailySeries[0]?.date}</span>
-                <strong>{totalViews.toLocaleString("tr-TR")} toplam görüntülenme</strong>
-                <span>{analytics?.periodEnd || dailySeries[dailySeries.length - 1]?.date}</span>
-              </footer>
+              <AnalyticsTrendChart
+                points={dailySeries}
+                ariaLabel="Kurumsal kart görüntülenme eğrisi"
+                summary={`${totalViews.toLocaleString("tr-TR")} toplam görüntülenme`}
+                startLabel={analytics?.periodStart}
+                endLabel={analytics?.periodEnd}
+              />
             </section>
 
             <aside className="p11-top-card" aria-label="En çok görüntülenen kart">

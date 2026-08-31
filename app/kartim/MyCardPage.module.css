@@ -14,7 +14,7 @@
   align-self: start;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 64rem) {
   .layout {
     grid-template-columns: repeat(12, minmax(0, 1fr));
     gap: var(--space-6);
@@ -32,7 +32,7 @@
   }
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 63.9375rem) {
   .preview {
     order: 2;
   }

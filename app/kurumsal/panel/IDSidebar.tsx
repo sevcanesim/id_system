@@ -42,9 +42,6 @@ export default function IDSidebar({
   role,
   ownCardHref,
   user,
-  subscription,
-  canManageLicenses = false,
-  onManageLicenses,
   onSignOut,
   open = false,
   onClose,
@@ -65,7 +62,6 @@ export default function IDSidebar({
     if (!open) return;
 
     previouslyFocused.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-
     const sidebar = sidebarRef.current;
     const focusable = () =>
       Array.from(
@@ -105,15 +101,10 @@ export default function IDSidebar({
     };
   }, [open, onClose]);
 
-  const rawPlanName = (subscription?.name || "Business").replace(/BUSİNESS/gi, "BUSINESS");
-  const planDisplayName = subscription?.seatLimit ? `${rawPlanName} ${subscription.seatLimit}` : rawPlanName;
-  const usedSeatsCount = typeof subscription?.usedSeats === "number" ? subscription.usedSeats : 0;
-  const seatLimitCount = subscription?.seatLimit ?? null;
-  const usagePercentage = seatLimitCount ? Math.min(100, Math.round((usedSeatsCount / seatLimitCount) * 100)) : 0;
-
-  const accountName = user?.full_name?.trim() || user?.email?.trim() || "Kurumsal Hesap";
+  const accountName = user?.full_name?.trim() || "Kurumsal Hesap";
+  const accountEmail = user?.email?.trim() || "";
   const accountRole = ROLE_LABELS[(user?.role || role || "EMPLOYEE").toUpperCase()] || "Kurumsal Kullanıcı";
-  const accountInitials = accountName
+  const accountInitials = (accountName || accountEmail || "Y")
     .split(/\s+/)
     .filter(Boolean)
     .map((part) => part[0])
@@ -163,7 +154,7 @@ export default function IDSidebar({
             className="id-sidebar__nav id-sidebar__nav--loading"
             aria-label="Kurumsal yönetim menüsü"
             aria-busy="true"
-            style={{ paddingBottom: 320 }}
+            style={{ paddingBottom: 220 }}
           >
             <p className="id-sidebar__loading-note">Menü yükleniyor.</p>
             {Array.from({ length: 6 }).map((_, index) => (
@@ -177,7 +168,7 @@ export default function IDSidebar({
           <nav
             className="id-sidebar__nav"
             aria-label="Kurumsal yönetim menüsü"
-            style={{ paddingBottom: 320 }}
+            style={{ paddingBottom: 220 }}
           >
             {itemGroups.map((group) => (
               <div key={group.name || group.items[0]?.key || "root"} className="id-sidebar__section">
@@ -210,70 +201,91 @@ export default function IDSidebar({
         )}
 
         <div
-          className="id-sidebar__footer"
+          aria-label="Kurumsal hesap kısayolları"
           style={{
             position: "absolute",
             left: 0,
             right: 0,
             bottom: 0,
-            zIndex: 6,
-            maxHeight: "320px",
-            overflowY: "auto",
+            zIndex: 100,
+            display: "flex",
+            visibility: "visible",
+            opacity: 1,
+            flexDirection: "column",
+            gap: 8,
+            padding: "16px 18px",
+            borderTop: "1px solid var(--border)",
             background: "var(--surface)",
           }}
         >
-          <div className="id-sidebar__plan">
-            <div className="id-sidebar__plan-info">
-              <small className="id-sidebar__plan-name">{planDisplayName}</small>
-              <strong className="id-sidebar__plan-capacity">
-                {seatLimitCount !== null ? `${usedSeatsCount} / ${seatLimitCount} Kart` : "Kurumsal Kart"}
+          <a
+            href="mailto:hello@yenomilabs.com"
+            onClick={onClose}
+            style={{ display: "flex", alignItems: "center", gap: 12, minHeight: 40, color: "var(--ink-2)" }}
+          >
+            <Icon name="headset" />
+            <span>Destek</span>
+          </a>
+          <a
+            href="https://www.yenomilabs.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", gap: 12, minHeight: 40, color: "var(--ink-2)" }}
+          >
+            <Icon name="external" />
+            <span>Yenomilabs</span>
+          </a>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "44px minmax(0, 1fr) 40px",
+              alignItems: "center",
+              gap: 10,
+              minHeight: 64,
+              marginTop: 4,
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                width: 44,
+                height: 44,
+                display: "grid",
+                placeItems: "center",
+                borderRadius: "50%",
+                background: "var(--gold-dim)",
+                color: "var(--gold-hi)",
+                fontWeight: 700,
+              }}
+            >
+              {accountInitials}
+            </span>
+            <span style={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
+              <strong style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--ink)" }}>
+                {accountName}
               </strong>
-            </div>
-            {seatLimitCount ? (
-              <div className="id-sidebar__plan-meter" aria-hidden="true">
-                <span style={{ width: `${usagePercentage}%` }} />
-              </div>
-            ) : null}
-            {canManageLicenses && activeKey !== "cards" && onManageLicenses ? (
-              <button
-                type="button"
-                className="id-sidebar__plan-action"
-                onClick={() => {
-                  onManageLicenses();
-                  onClose?.();
-                }}
-              >
-                Yönet
-              </button>
-            ) : null}
-          </div>
-
-          <div className="enterprise-side-links enterprise-side-management canonical-personal-support">
-            <a href="mailto:hello@yenomilabs.com" onClick={onClose}>
-              <Icon name="headset" />
-              <span>Destek</span>
-            </a>
-            <a href="https://www.yenomilabs.com" target="_blank" rel="noopener noreferrer">
-              <Icon name="external" />
-              <span>Yenomilabs</span>
-            </a>
-          </div>
-
-          <div className="id-sidebar__user">
-            <span className="id-sidebar__user-avatar" aria-hidden="true">{accountInitials}</span>
-            <span className="id-sidebar__user-info">
-              <strong className="id-sidebar__user-name">{accountName}</strong>
-              <small className="id-sidebar__user-role">{accountRole}</small>
+              <small style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--ink-3)" }}>
+                {accountEmail || accountRole}
+              </small>
             </span>
             {onSignOut ? (
               <button
                 type="button"
-                className="id-sidebar__logout"
                 aria-label="Çıkış Yap"
                 title="Çıkış Yap"
                 onClick={() => {
                   onSignOut();
                   onClose?.();
+                }}
+                style={{
+                  width: 40,
+                  height: 40,
+                  display: "grid",
+                  placeItems: "center",
+                  border: 0,
+                  background: "transparent",
+                  color: "var(--ink-2)",
                 }}
               >
                 <Icon name="logout" />

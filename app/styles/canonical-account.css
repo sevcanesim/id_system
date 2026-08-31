@@ -1,3 +1,7 @@
+/* Yenomi ID — authenticated individual account domain styles.
+ * Root-owned canonical module. Keep route-local global CSS out of account pages.
+ */
+
 .renewal-page .p9-service__head h2 {
   margin-bottom: 8px;
   font-size: 15px;

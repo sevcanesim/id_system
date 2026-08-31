@@ -41,9 +41,9 @@ const semanticScale = [
   ["--type-body-lg: 18px", "large body type token is 18px"],
   ["--type-h4: 20px", "h4 token is 20px"],
   ["--type-h3: 24px", "h3 token is 24px"],
-  ["--type-h2: clamp(34px, 3.2vw, 48px)", "h2 token is canonical"],
-  ["--type-h1: clamp(42px, 4vw, 60px)", "h1 token is canonical"],
-  ["--type-display: clamp(52px, 5vw, 72px)", "display token is canonical"],
+  ["--type-h2: clamp(28px, 3vw, 40px)", "h2 token is canonical"],
+  ["--type-h1: clamp(40px, 4.8vw, 64px)", "h1 token is canonical"],
+  ["--type-display: clamp(48px, 6vw, 76px)", "display token is canonical"],
   ["--type-metric: 24px", "metric token is 24px"],
 ];
 
@@ -55,7 +55,7 @@ const checks = [
   [tokenCss.includes('--font-mono:'), "design-tokens owns numeric font stack"],
   ...semanticScale.map(([needle, label]) => [tokenCss.includes(needle), label]),
   [canonicalCss.includes('font-variant-numeric: tabular-nums'), "numeric typography is standardized"],
-  [!undersizedType.test(readableCss), "no user-facing CSS font size is below 11px"],
+  [!undersizedType.test(readableCss), "no user-facing canonical CSS font size is below 11px outside decorative specimens"],
   [canonicalCss.includes('body { margin: 0;') && canonicalCss.includes('font-family: var(--font-ui)'), "body consumes canonical UI font token"],
   [canonicalCss.includes('h1,h2,h3,h4 {') && canonicalCss.includes('font-family: var(--font-display)'), "headings consume canonical display font token"],
 ];

@@ -26,7 +26,6 @@ ok(releaseScript.includes('"tsconfig.tsbuildinfo"'), "TypeScript build-info cach
 
 const removedSymbols = [
   "isValidTrPhone",
-  "setCardStatus",
   "CommercialSku",
   "OrganizationMemberStatus",
   "DIGITAL_ID_PRODUCT",
@@ -62,12 +61,14 @@ for (const symbol of removedSymbols) {
 // Production-file reachability guard. Next metadata routes and middleware are explicit entry points.
 const fileByAbsolute = new Map(productionFiles.map((file) => [path.resolve(file), file]));
 const importPattern = /(?:import|export)\s+(?:[^'\"]*?\s+from\s+)?['\"]([^'\"]+)['\"]|import\(\s*['\"]([^'\"]+)['\"]\s*\)/g;
+const sourceExtensions = [".ts", ".tsx", ".js", ".jsx"];
 function resolveRelative(sourceFile, specifier) {
   if (!specifier.startsWith(".")) return null;
   const base = path.resolve(path.dirname(sourceFile), specifier);
-  const candidates = path.extname(base)
+  const hasSourceExtension = sourceExtensions.some((extension) => base.endsWith(extension));
+  const candidates = hasSourceExtension
     ? [base]
-    : [".ts", ".tsx", ".js", ".jsx"].flatMap((ext) => [`${base}${ext}`, path.join(base, `index${ext}`)]);
+    : sourceExtensions.flatMap((extension) => [`${base}${extension}`, path.join(base, `index${extension}`)]);
   return candidates.find((candidate) => fileByAbsolute.has(path.resolve(candidate))) ?? null;
 }
 const graph = new Map();

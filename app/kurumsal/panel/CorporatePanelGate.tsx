@@ -1,6 +1,7 @@
 "use client";
 
 import CorporatePanelClient from "./CorporatePanelClient";
+import CorporateUtilityBar from "./CorporateUtilityBar";
 import { UnsavedChangesProvider } from "../../components/UnsavedChangesContext";
 
 /**
@@ -9,6 +10,7 @@ import { UnsavedChangesProvider } from "../../components/UnsavedChangesContext";
 export default function CorporatePanelGate({ children }: { children: React.ReactNode }) {
   return (
     <UnsavedChangesProvider>
+      <CorporateUtilityBar />
       <CorporatePanelClient>{children}</CorporatePanelClient>
     </UnsavedChangesProvider>
   );

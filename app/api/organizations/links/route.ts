@@ -25,6 +25,10 @@ const postSchema = z.object({
   publishAt: z.string().datetime().nullable().optional(),
 });
 const deleteSchema = z.object({ organizationId: z.string().uuid(), kind: z.enum(["CATALOG", "PRESENTATION", "MEETING", "REFERENCES"]) });
+const deleteVersionSchema = z.object({
+  action: z.literal("DELETE_VERSION"),
+  versionId: z.string().uuid(),
+});
 const patchSchema = z.object({
   organizationId: z.string().uuid(),
   kind: z.enum(["CATALOG", "PRESENTATION", "MEETING", "REFERENCES"]),
@@ -193,7 +197,34 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const ctx = await context(request);
   if (!ctx) return NextResponse.json({ error: "Oturum gerekli." }, { status: 401 });
-  const parsed = deleteSchema.safeParse(await request.json());
+  const payload = await request.json();
+
+  if (payload?.action === "DELETE_VERSION") {
+    const parsedVersion = deleteVersionSchema.safeParse(payload);
+    if (!parsedVersion.success) return NextResponse.json({ error: "Geçersiz sürüm silme isteği." }, { status: 400 });
+
+    const { data: version, error: versionError } = await ctx.admin
+      .from("organization_link_versions")
+      .select("id,organization_id")
+      .eq("id", parsedVersion.data.versionId)
+      .maybeSingle();
+    if (versionError || !version) return NextResponse.json({ error: "Sürüm bulunamadı." }, { status: 404 });
+
+    const member = await membership(ctx.admin, ctx.user.id, version.organization_id);
+    if (!member || !canManageTemplates(member.role, "ACTIVE")) {
+      return NextResponse.json({ error: "Sürüm geçmişini yalnız şirket sahibi ve yöneticiler düzenleyebilir." }, { status: 403 });
+    }
+
+    const { error: deleteVersionError } = await ctx.admin
+      .from("organization_link_versions")
+      .delete()
+      .eq("id", parsedVersion.data.versionId)
+      .eq("organization_id", version.organization_id);
+    if (deleteVersionError) return NextResponse.json({ error: "Sürüm silinemedi." }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  }
+
+  const parsed = deleteSchema.safeParse(payload);
   if (!parsed.success) return NextResponse.json({ error: "Geçersiz istek." }, { status: 400 });
   const member = await membership(ctx.admin, ctx.user.id, parsed.data.organizationId);
   if (!member || !canManageTemplates(member.role, "ACTIVE")) return NextResponse.json({ error: "Kurumsal bağlantı yönetimi yalnız şirket sahibi ve yöneticilere açıktır." }, { status: 403 });

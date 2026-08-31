@@ -15,6 +15,7 @@ export type UnifiedSidebarProps = {
   onClose: () => void;
   onNavigate?: (item: SidebarNavItem, event: MouseEvent<HTMLAnchorElement>) => void;
   brandHref?: string;
+  onBrandNavigate?: (event: MouseEvent<HTMLAnchorElement>) => void;
   onBrandClick?: () => void;
   className?: string;
   id?: string;
@@ -36,6 +37,7 @@ export default function UnifiedSidebar({
   onClose,
   onNavigate,
   brandHref,
+  onBrandNavigate,
   onBrandClick,
   className,
   id,
@@ -143,7 +145,14 @@ export default function UnifiedSidebar({
 
       <div className="id-sidebar__brand">
         {brandHref
-          ? <Link href={brandHref} className="id-sidebar__brand-link" onClick={onClose}>{brand}</Link>
+          ? <Link
+              href={brandHref}
+              className="id-sidebar__brand-link"
+              onClick={(event) => {
+                onClose();
+                onBrandNavigate?.(event);
+              }}
+            >{brand}</Link>
           : <button type="button" className="id-sidebar__brand-link unified-sidebar__brand-button" onClick={onBrandClick}>{brand}</button>}
       </div>
 
@@ -170,8 +179,8 @@ export default function UnifiedSidebar({
             active: "id-sidebar__link--active",
           }}
           onNavigate={(item, event) => {
+            onClose();
             onNavigate?.(item, event);
-            if (!event.defaultPrevented) onClose();
           }}
           items={items}
           railCollapsed={collapsed}

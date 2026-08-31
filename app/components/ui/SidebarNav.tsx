@@ -20,7 +20,12 @@ export type SidebarNavItem = {
 
 export type SidebarNavClassNames = {
   nav: string;
+  section?: string;
+  sectionItems?: string;
   entry?: string;
+  link?: string;
+  icon?: string;
+  label?: string;
   group: string;
   active: string;
 };
@@ -90,7 +95,6 @@ export default function SidebarNav({
     } catch {
       // sessionStorage yoksa varsayılan açık grup korunur.
     }
-    // Mount + storage key only; group identity is reconciled below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [collapsibleGroups, groupStorageKey]);
 
@@ -105,7 +109,6 @@ export default function SidebarNav({
         && Object.keys(next).every((key) => next[key] === current[key]);
       return unchanged ? current : next;
     });
-    // groups is derived from groupSignature; comparing by identity would loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeKey, collapsibleGroups, groupSignature]);
 
@@ -114,7 +117,7 @@ export default function SidebarNav({
     try {
       window.sessionStorage.setItem(groupStorageKey, JSON.stringify(openGroups));
     } catch {
-      // Kalıcı grup tercihi başarısız olsa da navigasyon çalışmaya devam eder.
+      // Grup tercihi kalıcılaştırılamazsa navigasyon yine çalışır.
     }
   }, [collapsibleGroups, groupStorageKey, hydrated, openGroups]);
 
@@ -124,11 +127,7 @@ export default function SidebarNav({
   }
 
   return (
-    <nav
-      className={classNames.nav}
-      aria-label={ariaLabel}
-      data-static-groups={!collapsibleGroups || undefined}
-    >
+    <nav className={classNames.nav} aria-label={ariaLabel} data-static-groups={!collapsibleGroups || undefined}>
       {groups.map((group, index) => {
         const named = Boolean(group.name);
         const sectionState = sectionAvailability[group.name] ?? "visible";
@@ -138,7 +137,7 @@ export default function SidebarNav({
         return (
           <div
             key={group.name || `ungrouped-${index}`}
-            className="enterprise-nav-group"
+            className={["enterprise-nav-group", classNames.section].filter(Boolean).join(" ")}
             data-availability={sectionState}
             aria-disabled={sectionDisabled || undefined}
           >
@@ -152,24 +151,20 @@ export default function SidebarNav({
                   onClick={() => toggleGroup(group.name)}
                 >
                   <span>{group.name}</span>
-                  {sectionState !== "visible" ? (
-                    <small className="enterprise-nav-group-status">Pasif</small>
-                  ) : null}
+                  {sectionState !== "visible" ? <small className="enterprise-nav-group-status">Pasif</small> : null}
                   <Icon name="chevronDown" />
                 </button>
               ) : (
                 <div className={`${classNames.group} enterprise-nav-group-label`}>
                   <span>{group.name}</span>
-                  {sectionState !== "visible" ? (
-                    <small className="enterprise-nav-group-status">Pasif</small>
-                  ) : null}
+                  {sectionState !== "visible" ? <small className="enterprise-nav-group-status">Pasif</small> : null}
                 </div>
               )
             ) : null}
             <div
               id={named ? groupDomId : undefined}
               hidden={named && !isOpen}
-              className="enterprise-nav-group-items"
+              className={["enterprise-nav-group-items", classNames.sectionItems].filter(Boolean).join(" ")}
             >
               {group.items.map((item) => {
                 const itemAvailability = item.availability ?? "visible";
@@ -181,7 +176,6 @@ export default function SidebarNav({
                     key={item.key}
                     className={[
                       classNames.entry,
-                      isCurrent ? classNames.active : "",
                       disabled ? "is-disabled" : "",
                     ].filter(Boolean).join(" ") || undefined}
                     data-availability={disabled ? "disabled" : itemAvailability}
@@ -192,7 +186,11 @@ export default function SidebarNav({
                       aria-disabled={disabled || undefined}
                       tabIndex={disabled ? -1 : undefined}
                       title={disabled ? disabledReason : undefined}
-                      className={[isCurrent ? classNames.active : "", disabled ? "is-disabled" : ""].filter(Boolean).join(" ") || undefined}
+                      className={[
+                        classNames.link,
+                        isCurrent ? classNames.active : "",
+                        disabled ? "is-disabled" : "",
+                      ].filter(Boolean).join(" ") || undefined}
                       onClick={(event) => {
                         if (disabled) {
                           event.preventDefault();
@@ -203,8 +201,8 @@ export default function SidebarNav({
                         if (!event.defaultPrevented && event.detail > 0) event.currentTarget.blur();
                       }}
                     >
-                      <Icon name={item.icon} />
-                      <span>{item.label}</span>
+                      <span className={classNames.icon} aria-hidden="true"><Icon name={item.icon} /></span>
+                      <span className={classNames.label}>{item.label}</span>
                     </Link>
                   </div>
                 );

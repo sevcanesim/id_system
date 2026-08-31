@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   // Public recovery never reveals whether a valid-looking card or order exists.
-  if (!card || card.owner_user_id || card.owner_profile_id) return accepted();
+  if (!card || card.status !== "UNASSIGNED" || card.owner_user_id || card.owner_profile_id) return accepted();
 
   const { data: unit } = await admin
     .from("commerce_physical_card_units")

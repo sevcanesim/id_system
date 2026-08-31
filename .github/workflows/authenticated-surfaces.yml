@@ -1,0 +1,34 @@
+name: Authenticated Surfaces
+
+on:
+  pull_request:
+    paths:
+      - "app/**"
+      - "lib/**"
+      - "scripts/verify-authenticated-surfaces.mjs"
+      - ".github/workflows/authenticated-surfaces.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Verify authenticated architecture
+        run: node scripts/verify-authenticated-surfaces.mjs
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Verify CSS architecture budget
+        env:
+          DESIGN_SYSTEM_BASE: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/verify-css-budget.mjs
+      - name: Build
+        run: npm run build

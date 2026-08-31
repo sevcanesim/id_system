@@ -41,8 +41,8 @@ export const INDIVIDUAL_SIDEBAR_CONFIG = [
   { key: "analytics", href: "/istatistikler", label: "İstatistikler", icon: "analytics", group: "İÇGÖRÜLER" },
   { key: "leads", href: "/leadler", label: "Network Mail", icon: "mail", group: "İÇGÖRÜLER" },
   { key: "orders", href: "/siparislerim", label: "Siparişlerim", icon: "box", group: "HESAP" },
-  { key: "subscription", href: "/yenile", label: "Hizmet", icon: "refresh" },
-  { key: "settings", href: "/ayarlar", label: "Ayarlar", icon: "users" },
+  { key: "subscription", href: "/yenile", label: "Hizmet", icon: "refresh", group: "HESAP" },
+  { key: "settings", href: "/ayarlar", label: "Ayarlar", icon: "users", group: "HESAP" },
 ] satisfies readonly SidebarConfigItem[];
 
 export function normalizeSidebarRole(role?: string | null): OrganizationRole | null {
@@ -70,7 +70,7 @@ export type SidebarItemGroup<T extends { group?: string }> = {
   items: T[];
 };
 
-/** Consecutive items that share a group label become one collapsible section. */
+/** Consecutive items that share a group label become one sidebar section. */
 export function groupSidebarItems<T extends { group?: string }>(items: readonly T[]): SidebarItemGroup<T>[] {
   const groups: SidebarItemGroup<T>[] = [];
   for (const item of items) {

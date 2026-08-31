@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Icon } from "../../icons";
 import SidebarNav, { type SidebarNavItem } from "./SidebarNav";
-import type { SidebarSectionStatusMap } from "./sidebar-config";
 
-/** Bireysel ve kurumsal çalışma alanlarının ortak sidebar'ı. */
+/** Bireysel ve kurumsal çalışma alanlarının ortak, kurumsal kaynaklı sidebar'ı. */
 export default function PanelSidebar({
   ariaLabel,
   subtitle,
@@ -17,7 +16,6 @@ export default function PanelSidebar({
   onNavigate,
   brandHref,
   onBrandClick,
-  onBrandNavigate,
   className,
   id,
   labelledBy,
@@ -26,7 +24,6 @@ export default function PanelSidebar({
   collapsible = true,
   collapsibleGroups = true,
   storageKey,
-  sectionStatuses,
 }: {
   ariaLabel: string;
   subtitle: string;
@@ -34,10 +31,9 @@ export default function PanelSidebar({
   activeKey?: string;
   open?: boolean;
   onClose: () => void;
-  onNavigate?: (item: SidebarNavItem, event: MouseEvent<HTMLAnchorElement>) => void;
+  onNavigate?: (key: string) => void;
   brandHref?: string;
   onBrandClick?: () => void;
-  onBrandNavigate?: (event: MouseEvent<HTMLAnchorElement>) => void;
   className?: string;
   id?: string;
   labelledBy?: string;
@@ -48,7 +44,6 @@ export default function PanelSidebar({
   /** Uzun kurumsal menüler accordion kalabilir; kısa bireysel menüler statik gruplanır. */
   collapsibleGroups?: boolean;
   storageKey?: string;
-  sectionStatuses?: SidebarSectionStatusMap;
 }) {
   const generatedId = useId();
   const sidebarId = id || `panel-sidebar-${generatedId.replace(/:/g, "")}`;
@@ -83,7 +78,7 @@ export default function PanelSidebar({
     const sidebar = sidebarRef.current;
     const focusable = () => Array.from(sidebar?.querySelectorAll<HTMLElement>(
       'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    ) || []).filter((element) => !element.hasAttribute("hidden") && element.getAttribute("aria-disabled") !== "true");
+    ) || []).filter((element) => !element.hasAttribute("hidden"));
     focusable()[0]?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") { event.preventDefault(); onClose(); return; }
@@ -115,7 +110,7 @@ export default function PanelSidebar({
     <aside ref={sidebarRef} id={sidebarId} className={`enterprise-sidebar canonical-panel-sidebar ${collapsed ? "is-collapsed" : ""} ${className || ""} ${open ? "is-mobile-open" : ""}`.trim().replace(/\s+/g, " ")} aria-label={ariaLabel} aria-labelledby={labelledBy} data-open={open || undefined} data-collapsed={collapsed || undefined}>
       <button type="button" className="enterprise-sidebar-mobile-close" aria-label="Menüyü kapat" onClick={onClose}><Icon name="close" /></button>
       {brandHref
-        ? <Link href={brandHref} className="enterprise-side-brand enterprise-yenomi-brand" onClick={(event) => { onBrandNavigate?.(event); if (!event.defaultPrevented) onClose(); }}>{brand}</Link>
+        ? <Link href={brandHref} className="enterprise-side-brand enterprise-yenomi-brand" onClick={onClose}>{brand}</Link>
         : <button type="button" className="enterprise-side-brand enterprise-brand-button enterprise-yenomi-brand" onClick={onBrandClick}>{brand}</button>}
       {loading ? (
         <nav className="enterprise-canonical-nav enterprise-canonical-nav--loading" aria-label={ariaLabel} aria-busy="true">
@@ -132,15 +127,11 @@ export default function PanelSidebar({
           ariaLabel={ariaLabel}
           activeKey={activeKey}
           classNames={{ nav: "enterprise-canonical-nav", entry: "enterprise-nav-entry", group: "enterprise-side-section-title", active: "active" }}
-          onNavigate={(item, event) => {
-            onNavigate?.(item, event);
-            if (!event.defaultPrevented) onClose();
-          }}
+          onNavigate={(key) => { onNavigate?.(key); onClose(); }}
           items={items}
           railCollapsed={collapsed}
           collapsibleGroups={collapsibleGroups}
           groupStorageKey={collapsibleGroups ? `${collapseStorageKey}:groups` : undefined}
-          sectionStatuses={sectionStatuses}
         />
       )}
       {children ? <div className="enterprise-sidebar-footer">{children}</div> : null}

@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Icon } from "../../../icons";
 import { Button, Field, Input } from "../../../components/ui/DesignSystem";
+import { getSupabaseBrowserClient } from "../../../../lib/supabase/browser";
 
 type CorporateLink = {
   id: string | null;
@@ -109,6 +111,45 @@ export default function CorporateLinksPanel({
   onRemove,
   onRollback,
 }: Props) {
+  const [deletedVersionIds, setDeletedVersionIds] = useState<Set<string>>(() => new Set());
+  const [deletingVersionId, setDeletingVersionId] = useState<string | null>(null);
+
+  async function deleteVersion(version: LinkVersion) {
+    if (!window.confirm("Bu sürüm geçmişten kalıcı olarak silinsin mi? Bu işlem geri alınamaz.")) return;
+    setDeletingVersionId(version.id);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
+      const access = data.session?.access_token;
+      if (!access) {
+        window.alert("Sürümü silmek için oturum gerekli.");
+        return;
+      }
+      const response = await fetch("/api/organizations/links", {
+        method: "DELETE",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${access}`,
+        },
+        body: JSON.stringify({ action: "DELETE_VERSION", versionId: version.id }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        window.alert(payload?.error || "Sürüm silinemedi.");
+        return;
+      }
+      setDeletedVersionIds((current) => {
+        const next = new Set(current);
+        next.add(version.id);
+        return next;
+      });
+    } catch {
+      window.alert("Sürüm silinemedi.");
+    } finally {
+      setDeletingVersionId(null);
+    }
+  }
+
   return (
     <section className="corp-links-panel">
       <header>
@@ -124,7 +165,7 @@ export default function CorporateLinksPanel({
           const busy = linkBusyKind === link.kind;
           const isMeeting = link.kind === "MEETING";
           const scheduled = Boolean(link.isPublished && link.publishAt && new Date(link.publishAt).getTime() > Date.now());
-          const versions = linkVersions.filter((version) => version.kind === link.kind);
+          const versions = linkVersions.filter((version) => version.kind === link.kind && !deletedVersionIds.has(version.id));
           return (
             <details className="corp-link-card" key={link.kind} open={index === 0}>
               <summary className="corp-link-card__summary">
@@ -193,6 +234,7 @@ export default function CorporateLinksPanel({
                     <ol>
                       {versions.slice(0, 6).map((version) => {
                         const publication = versionPublication(version);
+                        const deleting = deletingVersionId === version.id;
                         return (
                           <li key={version.id} className="corp-link-history__item">
                             <div className="corp-link-history__main">
@@ -203,7 +245,10 @@ export default function CorporateLinksPanel({
                               <span className={`corp-link-history__state ${publication.tone}`}>{publication.value}</span>
                               <small>{publication.label}</small>
                             </div>
-                            <Button type="button" variant="secondary" size="sm" disabled={busy} onClick={() => void onRollback(version.id, link.kind)}>Geri al</Button>
+                            <div className="corp-link-history__actions">
+                              <Button type="button" variant="secondary" size="sm" disabled={busy || deleting} onClick={() => void onRollback(version.id, link.kind)}>Geri al</Button>
+                              <Button type="button" variant="destructive" size="sm" disabled={busy || deleting} onClick={() => void deleteVersion(version)}>{deleting ? "Siliniyor..." : "Sil"}</Button>
+                            </div>
                           </li>
                         );
                       })}

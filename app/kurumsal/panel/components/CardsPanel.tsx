@@ -124,10 +124,10 @@ export default function CardsPanel({
             <span>KART YÖNETİMİ</span>
             <h2 id="p11-cards-title">Kartlar</h2>
             <p>Dijital kart kapsamını izleyin; fiziksel kart atama, aktivasyon ve yaşam döngüsü işlemlerini tek envanterden yönetin.</p>
-            <div className="card-management-overview" aria-label="Kart kapsamı">
-              <span><b>{digitalCardsReady}</b> dijital kart yayında</span>
-              <span><b>{digitalDraftCount}</b> dijital kart taslak</span>
-              <span><b>{missingDigitalCardCount}</b> profil bekliyor</span>
+            <div className="action-first-summary__stats card-management-overview" aria-label="Kart kapsamı">
+              <span><small>Yayında</small><b>{digitalCardsReady}</b></span>
+              <span><small>Taslak</small><b>{digitalDraftCount}</b></span>
+              <span><small>Profil bekliyor</small><b>{missingDigitalCardCount}</b></span>
             </div>
           </div>
           <Button type="button" variant="secondary" onClick={openEmployees}>Çalışanlara Git</Button>

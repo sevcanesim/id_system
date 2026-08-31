@@ -1,6 +1,7 @@
 "use client";
 
-import { EmptyState } from "../../../components/ui/States";
+import { useEffect, useState } from "react";
+import { EmptyState, LoadingState } from "../../../components/ui/States";
 import type { CardAnalytics } from "../domain/types";
 
 type Props = {
@@ -32,6 +33,7 @@ export default function AnalyticsPanel({
   onViewOwnCard,
   onShareSettings,
 }: Props) {
+  const [refreshingPeriod, setRefreshingPeriod] = useState<7 | 30 | 90 | null>(null);
   const analyticsUnavailable = analytics?.available === false;
   const dailySeries = analytics?.byDay?.length
     ? analytics.byDay
@@ -50,8 +52,22 @@ export default function AnalyticsPanel({
   const totalInteractions = analytics?.content?.totalInteractions ?? 0;
   const hasAnalyticsData = totalViews > 0 || last30DaysViews > 0 || cardRankings.length > 0 || totalInteractions > 0;
 
+  useEffect(() => {
+    setRefreshingPeriod(null);
+  }, [analytics]);
+
+  function changePeriod(days: 7 | 30 | 90) {
+    if (days === analyticsDays) return;
+    setRefreshingPeriod(days);
+    onPeriodChange(days);
+  }
+
   return (
-    <section className="p11-employees p11-analytics" aria-labelledby="p11-analytics-title">
+    <section
+      className="p11-employees p11-analytics"
+      aria-labelledby="p11-analytics-title"
+      aria-busy={refreshingPeriod !== null}
+    >
       <header className="p11-employees-header">
         <div>
           <span>ANALİTİK</span>
@@ -61,13 +77,22 @@ export default function AnalyticsPanel({
         <select
           aria-label="Etkileşim tarih aralığı"
           value={analyticsDays}
-          onChange={(event) => onPeriodChange(Number(event.target.value) as 7 | 30 | 90)}
+          onChange={(event) => changePeriod(Number(event.target.value) as 7 | 30 | 90)}
         >
           <option value={7}>Son 7 gün</option>
           <option value={30}>Son 30 gün</option>
           <option value={90}>Son 90 gün</option>
         </select>
       </header>
+
+      {refreshingPeriod !== null ? (
+        <LoadingState
+          className="p11-analytics-refresh"
+          variant="compact"
+          label="Analitik güncelleniyor"
+          hint={`Son ${refreshingPeriod} günün verileri hazırlanıyor; mevcut görünüm ekranda kalır.`}
+        />
+      ) : null}
 
       {analyticsUnavailable ? (
         <EmptyState

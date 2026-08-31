@@ -1,0 +1,65 @@
+/* Yenomi ID — authenticated individual account domain styles.
+ * Root-owned canonical module. Keep route-local global CSS out of account pages.
+ */
+
+.renewal-page .p9-service__head h2 {
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+}
+
+.renewal-page .p9-section-copy {
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.renewal-page .p9-service-fact small {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.renewal-page .p9-service-fact strong {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.renewal-page .p9-price {
+  align-items: baseline;
+  gap: 3px;
+}
+
+.renewal-page .p9-price strong {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.renewal-page .p9-price small {
+  font-size: 10px;
+}
+
+.renewal-page .p9-feature {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.renewal-page .p9-feature .yi-icon {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+}
+
+.renewal-page .ds-badge {
+  font-size: 10px;
+}
+
+.renewal-page .ds-button,
+.renewal-page button,
+.renewal-page a.ds-button {
+  font-size: 11px;
+}

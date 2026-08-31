@@ -19,6 +19,16 @@ export type Org = {
     mail_credit_limit: number;
     mail_credits_remaining: number;
   } | null;
+  organization_capacity_terms?: Array<{
+    id: string;
+    organization_id: string;
+    card_count: number;
+    starts_at: string;
+    expires_at: string;
+    renewal_price_kurus: number | null;
+    currency: "TRY";
+    status: "ACTIVE" | "GRACE_PERIOD";
+  }>;
 };
 
 import type { DigitalProfileState, InvitationState, MemberStatus, PhysicalCardStatus } from "../../../../lib/organizations/lifecycle";
@@ -39,178 +49,110 @@ export type Member = MemberActionTarget & {
   last_activity_at: string;
 };
 
-export type Template = {
-  id: string;
-  name: string;
-  primary_color: string | null;
-  logo_url: string | null;
-  is_default: boolean;
-  fields?: Record<string, string | boolean>;
+export type MemberCardStatus = {
+  user_id: string;
+  profile_id: string | null;
+  public_id: string | null;
+  hasDigitalCard: boolean;
+  published: boolean;
+  physical_card_id: string | null;
+  physical_card_status: PhysicalCardStatus | null;
+  physical_card_serial: string | null;
+  physical_card_assigned_at: string | null;
+  digital_profile_state: DigitalProfileState;
+  physical_card_state: PhysicalCardStatus | "NONE";
+  invitation_state: InvitationState;
 };
 
 export type PhysicalCard = {
   id: string;
-  cardCodeMasked: string;
+  serial: string;
   status: PhysicalCardStatus;
-  ownerUserId: string | null;
-  ownerName: string | null;
-  activatedAt: string | null;
-  lostAt: string | null;
-  disabledAt: string | null;
-  replacedByCardId: string | null;
+  assigned_user_id: string | null;
+  assigned_at: string | null;
+  notes: string | null;
 };
 
-export type MemberProfile = {
+export type Template = {
   id: string;
-  slug: string;
   name: string;
-  role: string;
-  company: string | null;
-  phone: string | null;
-  whatsapp: string | null;
-  email: string | null;
-  website: string | null;
-  linkedin: string | null;
-  instagram: string | null;
-  location: string | null;
-  image_url: string | null;
-  is_published: boolean;
+  version: number;
+  status: string;
+  is_default: boolean;
+  template_json: Record<string, unknown>;
+  created_at: string;
   updated_at: string;
 };
 
-export type CardAnalytics = {
-  totalViews: number;
-  last30DaysViews: number;
-  windowDays: number;
-  byCountry: Array<{ country: string; count: number }>;
-  byDepartment?: Array<{ department: string; count: number }>;
-  byCard: Array<{
-    profileId: string;
-    name: string;
-    slug: string | null;
-    count: number;
-  }>;
-  periodDays?: number;
-  periodStart?: string;
-  periodEnd?: string;
-  byDay?: Array<{ date: string; count: number }>;
-  content?: {
-    totalInteractions: number;
-    clicks: number;
-    downloads: number;
-    byLink: Array<{
-      linkId: string;
-      label: string;
-      kind: string;
-      count: number;
-      downloads: number;
-    }>;
-    byKind?: Array<{
-      kind: string;
-      count: number;
-      downloads: number;
-    }>;
-  };
-  available?: boolean;
-  warning?: string | null;
-  code?: string | null;
+export type ContentItem = {
+  id: string;
+  content_type: "SOCIAL" | "LINK" | "CAMPAIGN" | "ANNOUNCEMENT";
+  title: string;
+  body: string | null;
+  url: string | null;
+  status: "DRAFT" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED";
+  publish_at: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
-export type MemberCardStatus = {
-  memberId: string;
-  memberStatus: MemberStatus;
-  hasDigitalCard: boolean;
-  profileId: string | null;
-  slug: string | null;
-  published: boolean;
-  digitalProfileState: DigitalProfileState;
-  physicalCardState: PhysicalCardStatus;
-  invitationState: InvitationState | null;
-  physicalCardCount: number;
-  activePhysicalCardCount: number;
+export type Department = {
+  id: string;
+  name: string;
+  manager_user_id: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
-export type JobTitleOption = {
+export type AuditLog = {
+  id: string;
+  action: string;
+  entity_type: string;
+  entity_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  actor_user_id: string | null;
+};
+
+export type Lead = {
+  id: string;
+  source: "PUBLIC_PROFILE" | "QR_SCAN" | "MANUAL";
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  company: string | null;
+  title: string | null;
+  note: string | null;
+  status: "NEW" | "CONTACTED" | "QUALIFIED" | "ARCHIVED";
+  created_at: string;
+  updated_at: string;
+};
+
+export type NetworkingEvent = {
   id: string;
   title: string;
-};
-
-export type TitleRequest = {
-  id: string;
-  member_id: string;
-  requested_title: string;
-  created_at: string;
-  organization_members: {
-    full_name: string | null;
-    department: string | null;
-  };
-};
-
-export type CorporateLink = {
-  id: string | null;
-  kind: string;
-  label: string;
-  subtitle: string;
-  configured: boolean;
-  linkType: string | null;
-  url: string | null;
-  fileName: string | null;
-  fileSize: number | null;
-  fileUrl: string | null;
-  isPublished: boolean;
-  publishedAt: string | null;
-  publishAt: string | null;
-};
-
-export type LinkVersion = {
-  id: string;
-  kind: string;
-  label: string | null;
-  link_type: string | null;
-  url: string | null;
-  file_name: string | null;
-  is_published: boolean;
-  publish_at: string | null;
-  change_reason: string;
+  location: string | null;
+  starts_at: string;
+  ends_at: string | null;
+  note: string | null;
   created_at: string;
 };
 
-export type BulkInvitePreview = {
-  fileName: string;
-  rows: Array<{
-    line: number;
-    email: string;
-    fullName: string;
-    title: string;
-    department: string;
-    role: string;
-  }>;
-  errors: Array<{ line: number; error: string }>;
+export type Meeting = {
+  id: string;
+  lead_id: string | null;
+  title: string;
+  starts_at: string;
+  ends_at: string | null;
+  location: string | null;
+  note: string | null;
+  status: "PLANNED" | "COMPLETED" | "CANCELLED";
+  created_at: string;
 };
 
-export type BulkInviteResults = {
-  created: number;
-  failed: number;
-  results: Array<{
-    email: string;
-    status: "created" | "error";
-    error?: string;
-    emailSent?: boolean;
-    memberId?: string;
-  }>;
-};
-
-export type ViewedMemberProfile = {
-  memberId: string;
-  memberName: string;
-  memberStatus: string;
-  profiles: MemberProfile[];
-  physicalCards: Array<{ id: string; status: string; hasProfile: boolean }>;
-  identityChanges: Array<{
-    id: string;
-    field: "name" | "email";
-    old_value: string | null;
-    new_value: string | null;
-    changed_at: string;
-  }>;
+export type CardAnalytics = {
+  available?: boolean;
+  totalViews: number;
+  byDay: Array<{ date: string; count: number }>;
+  content: { clicks: number };
 };

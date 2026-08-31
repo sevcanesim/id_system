@@ -6,13 +6,13 @@ import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/s
 
 // Kart şablonundaki "Kurumsal Bağlantılar" bölümünün 4 sabit slotu:
 // Ürün Kataloğu, Şirket Sunumu, Toplantı Planla, Referans Projeler.
-// Her slot ya bir URL ya da (bkz. /api/organizations/links/upload) bir
-// PDF dosyasıdır. Bu route URL ayarlamayı/temizlemeyi ve okumayı yönetir.
+// Katalog, sunum ve referanslar URL/PDF olabilir. MEETING yalnız takvim
+// veya randevu URL'sidir; PDF yükleme upload route'unda ayrıca engellenir.
 
 const KIND_DEFAULTS: Record<string, { label: string; subtitle: string; icon: string }> = {
   CATALOG: { label: "Ürün Kataloğu", subtitle: "Kurumsal ürün ve hizmetler", icon: "box" },
   PRESENTATION: { label: "Şirket Sunumu", subtitle: "Kurumsal sunum", icon: "building" },
-  MEETING: { label: "Toplantı Planla", subtitle: "Randevu oluştur", icon: "clock" },
+  MEETING: { label: "Toplantı Planla", subtitle: "Takvim veya randevu bağlantısı", icon: "clock" },
   REFERENCES: { label: "Referans Projeler", subtitle: "Projeleri incele", icon: "link" },
 };
 const KINDS = Object.keys(KIND_DEFAULTS);
@@ -150,6 +150,9 @@ export async function PATCH(request: NextRequest) {
       .eq("organization_id", rollback.data.organizationId)
       .maybeSingle();
     if (versionError || !version) return NextResponse.json({ error: "Sürüm bulunamadı." }, { status: 404 });
+    if (version.kind === "MEETING" && version.link_type === "FILE") {
+      return NextResponse.json({ error: "Toplantı Planla alanına ait eski PDF sürümleri geri alınamaz. Takvim veya randevu bağlantısı kullanın." }, { status: 400 });
+    }
     const { error: rollbackError } = await ctx.admin.from("organization_links").upsert({
       organization_id: rollback.data.organizationId,
       ...version,

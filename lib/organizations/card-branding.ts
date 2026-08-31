@@ -43,23 +43,22 @@ export async function fetchOrganizationLinks(
     const definitions = FALLBACK_SLOT_DEFINITIONS.map((fallback) => databaseByKind.get(fallback.kind) || fallback);
     const byKind = new Map(data.map((row) => [row.kind, row]));
 
-    return definitions.map((definition) => {
+    return definitions.flatMap<CardTemplateLink>((definition) => {
       const row = byKind.get(definition.kind);
-      if (!row) return null;
-
-      if (definition.kind === "MEETING" && row.link_type === "FILE") return null;
+      if (!row) return [];
+      if (definition.kind === "MEETING" && row.link_type === "FILE") return [];
 
       const hasTarget = row.link_type === "FILE" ? row.file_path : row.url;
-      if (!hasTarget) return null;
+      if (!hasTarget) return [];
 
       const query = profileId ? `?profileId=${encodeURIComponent(profileId)}` : "";
-      return {
+      return [{
         title: row.label || definition.default_label,
         subtitle: row.subtitle || definition.default_subtitle,
         href: `/api/organization-links/${row.id}/open${query}`,
         kind: "external",
-      } satisfies CardTemplateLink;
-    }).filter((link): link is CardTemplateLink => Boolean(link));
+      }];
+    });
   } catch {
     return [];
   }

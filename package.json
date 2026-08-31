@@ -132,7 +132,9 @@
     "verify:panel-master": "node scripts/verify-panel-master-contract.mjs",
     "test:e2e": "playwright test",
     "test:critical": "npm run test:e2e",
-    "audit:maintainability": "node scripts/audit-maintainability.mjs"
+    "audit:maintainability": "node scripts/audit-maintainability.mjs",
+    "test": "npm run test:critical",
+    "verify:css-architecture": "node scripts/verify-css-budget.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.53.0",

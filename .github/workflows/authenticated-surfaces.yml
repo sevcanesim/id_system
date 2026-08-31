@@ -1,0 +1,39 @@
+name: Authenticated Surfaces
+
+on:
+  pull_request:
+    paths:
+      - "app/**"
+      - "lib/**"
+      - "package.json"
+      - "scripts/verify-authenticated-surfaces.mjs"
+      - ".github/workflows/authenticated-surfaces.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify authenticated architecture
+        run: node scripts/verify-authenticated-surfaces.mjs
+      - name: Test
+        run: npm run test
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Verify CSS architecture
+        env:
+          DESIGN_SYSTEM_BASE: ${{ github.event.pull_request.base.sha }}
+        run: npm run verify:css-architecture
+      - name: Build
+        run: npm run build

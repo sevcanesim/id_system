@@ -1,0 +1,88 @@
+.desktopMatrix {
+  display: block;
+}
+
+.mobileMatrix {
+  display: none;
+}
+
+@media (max-width: 47.9375rem) {
+  .desktopMatrix {
+    display: none;
+  }
+
+  .mobileMatrix {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .roleCard {
+    display: grid;
+    gap: var(--space-3);
+    min-width: 0;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-card);
+  }
+
+  .roleHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  .roleHeader > span {
+    display: grid;
+    flex: 0 0 auto;
+    width: var(--space-10);
+    height: var(--space-10);
+    place-items: center;
+    border-radius: var(--radius-sm);
+    background: var(--surface-accent);
+  }
+
+  .roleHeader > div {
+    min-width: 0;
+  }
+
+  .roleHeader strong,
+  .roleHeader small {
+    display: block;
+  }
+
+  .roleHeader small {
+    margin-top: var(--space-1);
+    color: var(--text-secondary);
+  }
+
+  .capabilities {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .capabilities li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-2);
+    align-items: center;
+    min-height: var(--control-height-md);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    background: var(--surface-accent);
+  }
+
+  .capabilities span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .capabilities b {
+    font-size: var(--type-sm);
+    white-space: nowrap;
+  }
+}

@@ -103,7 +103,7 @@ export default function DashboardShell({
 
   const sidebarItems = INDIVIDUAL_SIDEBAR_CONFIG.map<SidebarNavItem>((item) => ({
     ...item,
-    status: item.key === "subscription" && hasCorporateSubscription ? "hidden" : item.status ?? "enabled",
+    status: item.key === "subscription" && hasCorporateSubscription ? "hidden" : "enabled",
   }));
 
   return (

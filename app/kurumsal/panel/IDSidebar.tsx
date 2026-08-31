@@ -64,7 +64,7 @@ export default function IDSidebar({
       storageKey={storageKey}
       items={items}
       onBrandNavigate={(event) => guardLinkClick(event, "/kurumsal/panel")}
-      onNavigate={(item, event) => guardLinkClick(event, item.href)}
+      onNavigateItem={(item, event) => guardLinkClick(event, item.href)}
     >
       <div className="id-sidebar__footer">
         <div className="id-sidebar__plan">

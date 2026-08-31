@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useId, useEffect, useState, type ReactNode } from "react";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { validateCardWorkspace, validatePortal, type PortalCheckResult } from "../../lib/auth/portal-guard";
+import { clearLegacyCart, setCartOwner } from "../../lib/cart";
+import { writeSessionCookie } from "../components/AuthSessionBridge";
 import { INDIVIDUAL_SIDEBAR_CONFIG } from "../components/ui/sidebar-config";
 import PanelSidebar from "../components/ui/PanelSidebar";
 import type { SidebarNavItem } from "../components/ui/SidebarNav";
@@ -27,12 +29,14 @@ export default function DashboardShell({
   activeKey?: string;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const menuButtonId = useId();
   const sidebarId = `${menuButtonId.replace(/:/g, "")}-sidebar`;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [portalState, setPortalState] = useState<"checking" | "allowed" | "denied">("checking");
   const [hasCorporateSubscription, setHasCorporateSubscription] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,6 +88,23 @@ export default function DashboardShell({
       cancelled = true;
     };
   }, [pathname, portal]);
+
+  async function signOut() {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      if (supabase) await supabase.auth.signOut();
+      await writeSessionCookie(null);
+      clearLegacyCart();
+      setCartOwner(null, { claimGuest: false });
+      setMobileOpen(false);
+      router.replace(`/giris?portal=${portal}`);
+      router.refresh();
+    } finally {
+      setSigningOut(false);
+    }
+  }
 
   if (portalState !== "allowed")
     return (
@@ -153,6 +174,17 @@ export default function DashboardShell({
             <Icon name="external" />
             <span>Yenomilabs</span>
           </a>
+          <button
+            type="button"
+            className="id-sidebar__header-logout canonical-personal-signout"
+            aria-label="Çıkış Yap"
+            title="Çıkış Yap"
+            onClick={() => void signOut()}
+            disabled={signingOut}
+          >
+            <Icon name="logout" />
+            <span>{signingOut ? "Çıkılıyor…" : "Çıkış"}</span>
+          </button>
         </div>
       </PanelSidebar>
 

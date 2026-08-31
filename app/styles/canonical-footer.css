@@ -1,71 +1,59 @@
 /* Canonical public footer rhythm. PublicSiteShell renders the footer as a sibling
- * of .public-site, so footer selectors must be rooted on the footer itself. */
+ * of .public-site, so footer selectors are rooted on the footer itself. */
 .yi-footer--premium {
   padding-block: 0;
 }
 
 .yi-footer--premium .yi-container {
-  padding-top: var(--section-space-md);
-  padding-bottom: max(var(--space-4), var(--safe-bottom));
+  padding-top: 52px;
+  padding-bottom: max(0px, var(--safe-bottom));
 }
 
 .yi-footer__premium-grid {
   gap: clamp(28px, 4vw, 56px);
-  padding-bottom: var(--space-10);
+  padding-bottom: 42px;
 }
 
 .yi-footer__premium-brand p {
-  margin-top: var(--space-5);
+  margin-top: 20px;
   max-width: 390px;
   line-height: 1.55;
 }
 
 .yi-footer__premium-column {
-  gap: var(--space-4);
+  gap: 18px;
 }
 
 .yi-footer__premium-column strong {
-  margin-bottom: var(--space-1);
-}
-
-.yi-footer__premium-column a {
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
+  margin-bottom: 4px;
 }
 
 .yi-footer__premium-base {
-  min-height: 64px;
-  padding-block: var(--space-4);
+  min-height: 72px;
+  padding-block: 22px;
 }
 
 @media (max-width: 760px) {
   .yi-footer--premium .yi-container {
-    padding-top: var(--section-space-sm);
+    padding-top: 38px;
   }
 
   .yi-footer__premium-grid {
-    gap: var(--space-6) var(--space-5);
-    padding-bottom: var(--space-8);
+    gap: 30px 22px;
+    padding-bottom: 34px;
   }
 
   .yi-footer__premium-brand p {
-    margin-top: var(--space-4);
+    margin-top: 16px;
   }
 
   .yi-footer__premium-column {
-    gap: var(--space-2);
+    gap: 14px;
   }
 
   .yi-footer__premium-base {
-    min-height: 60px;
-    padding-block: var(--space-3);
-    padding-bottom: max(var(--space-3), var(--safe-bottom));
-  }
-}
-
-@media (max-width: 360px) {
-  .yi-footer__premium-grid {
-    grid-template-columns: 1fr;
+    min-height: 64px;
+    padding-block: 18px;
+    padding-bottom: max(18px, var(--safe-bottom));
   }
 }

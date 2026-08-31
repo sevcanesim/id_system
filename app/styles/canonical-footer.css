@@ -6,7 +6,7 @@
 
 .yi-footer--premium .yi-container {
   padding-top: 52px;
-  padding-bottom: max(0px, var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
 }
 
 .yi-footer__premium-grid {
@@ -54,6 +54,6 @@
   .yi-footer__premium-base {
     min-height: 64px;
     padding-block: 18px;
-    padding-bottom: max(18px, var(--safe-bottom));
+    padding-bottom: max(var(--space-4), var(--safe-bottom));
   }
 }

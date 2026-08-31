@@ -147,13 +147,13 @@ export default function DashboardShell({
         ariaLabel="Kullanıcı paneli navigasyonu"
         id={sidebarId}
         labelledBy={menuButtonId}
-        subtitle="Bireysel Panel"
+        subtitle="Kimlik Stüdyosu"
         brandHref="/kartlarim"
         className={portal === "individual" ? "canonical-panel-sidebar--individual" : undefined}
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
         activeKey={calculatedActiveKey}
-        collapsibleGroups
+        collapsibleGroups={portal !== "individual"}
         storageKey="yenomi:individual-sidebar:collapsed"
         items={sidebarItems}
       >

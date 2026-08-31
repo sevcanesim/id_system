@@ -33,22 +33,18 @@ function stripDecorativeSpecimens(source) {
 
 const readableCss = stripDecorativeSpecimens(canonicalCss);
 const undersizedType = /font-size\s*:\s*(?:[0-9](?:\.\d+)?px|10px)\b/;
-
-// Application typography was intentionally capped at compact sidebar/panel
-// proportions. Public marketing surfaces may opt into larger display type in
-// their owned canonical modules; the semantic application tokens stay compact.
 const semanticScale = [
-  ["--type-xs: 10px", "caption application token is 10px"],
-  ["--type-sm: 11px", "label application token is 11px"],
-  ["--type-body-sm: 12px", "small body application token is 12px"],
-  ["--type-body: 13px", "body application token is 13px"],
-  ["--type-body-lg: 14px", "large body application token is 14px"],
-  ["--type-h4: 15px", "h4 application token is 15px"],
-  ["--type-h3: 17px", "h3 application token is 17px"],
-  ["--type-h2: 20px", "h2 application token is 20px"],
-  ["--type-h1: 24px", "h1 application token is 24px"],
-  ["--type-display: 28px", "display application token is 28px"],
-  ["--type-metric: 18px", "metric application token is 18px"],
+  ["--type-xs: 11px", "caption type token is 11px"],
+  ["--type-sm: 12px", "label type token is 12px"],
+  ["--type-body-sm: 14px", "small body type token is 14px"],
+  ["--type-body: 16px", "body type token is 16px"],
+  ["--type-body-lg: 18px", "large body type token is 18px"],
+  ["--type-h4: 20px", "h4 token is 20px"],
+  ["--type-h3: 24px", "h3 token is 24px"],
+  ["--type-h2: clamp(28px, 3vw, 40px)", "h2 token is canonical"],
+  ["--type-h1: clamp(40px, 4.8vw, 64px)", "h1 token is canonical"],
+  ["--type-display: clamp(48px, 6vw, 76px)", "display token is canonical"],
+  ["--type-metric: 24px", "metric token is 24px"],
 ];
 
 const checks = [

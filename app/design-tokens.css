@@ -23,8 +23,6 @@
   --border: #E9E4DA;
   --border-strong: #D8D1C5;
 
-  /* Core aliases used by existing surfaces. These remain direct values because
-   * the design-system verifier treats them as the public semantic contract. */
   --background: #FAF9F6;
   --surface: #FFFFFF;
   --surface-secondary: #F4F1EB;
@@ -36,7 +34,6 @@
   --secondary: var(--text-primary);
   --secondary-subtle: var(--surface-accent);
 
-  /* Semantic feedback colors */
   --success: #059669;
   --success-subtle: rgba(5,150,105,.10);
   --warning: #D97706;
@@ -46,23 +43,24 @@
   --info: var(--text-secondary);
   --info-subtle: var(--surface-accent);
 
-  /* Typography */
+  /* Compact application typography. Product/public display surfaces can opt
+   * into larger route-specific display type, but application chrome and
+   * panels never exceed this scale. */
   --font-ui: "Yenomi Inter", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-display: "Yenomi Inter Display", "Yenomi Inter", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", "PT Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --type-xs: 11px;
-  --type-sm: 12px;
-  --type-body-sm: 14px;
-  --type-body: 16px;
-  --type-body-lg: 18px;
-  --type-h4: 20px;
-  --type-h3: 24px;
-  --type-h2: clamp(28px, 3vw, 40px);
-  --type-h1: clamp(40px, 4.8vw, 64px);
-  --type-display: clamp(48px, 6vw, 76px);
-  --type-metric: 24px;
+  --type-xs: 10px;
+  --type-sm: 11px;
+  --type-body-sm: 12px;
+  --type-body: 13px;
+  --type-body-lg: 14px;
+  --type-h4: 15px;
+  --type-h3: 17px;
+  --type-h2: 20px;
+  --type-h1: 24px;
+  --type-display: 28px;
+  --type-metric: 18px;
 
-  /* Radius */
   --radius-xs: 6px;
   --radius-sm: 10px;
   --radius-md: 14px;
@@ -70,7 +68,6 @@
   --radius-xl: 28px;
   --radius-full: 999px;
 
-  /* Elevation */
   --shadow-xs: 0 1px 2px rgba(40,34,28,.045), 0 5px 18px rgba(40,34,28,.025);
   --shadow-sm: 0 1px 2px rgba(40,34,28,.04), 0 10px 28px rgba(40,34,28,.055);
   --shadow-md: 0 2px 6px rgba(40,34,28,.045), 0 18px 48px rgba(40,34,28,.085);
@@ -78,7 +75,6 @@
   --shadow-product: 0 10px 24px rgba(20,17,13,.12), 0 34px 78px rgba(20,17,13,.22);
   --shadow-overlay: var(--shadow-lg);
 
-  /* Spacing — 4px base */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -93,12 +89,10 @@
   --space-24: 96px;
   --space-30: 120px;
 
-  /* Section rhythm */
   --section-space-sm: clamp(24px, 4vw, 40px);
   --section-space-md: clamp(36px, 6vw, 64px);
   --section-space-lg: clamp(48px, 8vw, 96px);
 
-  /* Controls + motion */
   --control-height-sm: 36px;
   --control-height-md: 44px;
   --control-height-lg: 52px;
@@ -108,7 +102,6 @@
   --ease-standard: cubic-bezier(.4,0,.2,1);
   --ease-emphasis: cubic-bezier(.2,.8,.2,1);
 
-  /* Layout & breakpoint primitives */
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
@@ -123,7 +116,6 @@
   --content: 1180px;
   --wide: 1320px;
 
-  /* Layer contract */
   --z-base: 0;
   --z-sticky: 30;
   --z-header: 40;
@@ -132,13 +124,11 @@
   --z-modal: 90;
   --z-toast: 100;
 
-  /* Safe areas */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
 
-  /* Compatibility aliases: aliases only, no parallel palette. */
   --surface-base: var(--surface-canvas);
   --surface-soft: var(--surface-accent);
   --surface-dark-product: var(--surface-dark);
@@ -151,7 +141,6 @@
   --warm-muted: var(--text-tertiary);
   --warm-danger: var(--error);
 
-  /* Legacy canonical.css color names. Frozen for compatibility only. */
   --void: var(--surface-canvas);
   --deep: var(--surface-accent);
   --surface-2: var(--surface-canvas);
@@ -171,7 +160,6 @@
   --border-gold: color-mix(in srgb,var(--brand-gold) 34%,transparent);
   --glow: 0 0 48px color-mix(in srgb,var(--brand-gold) 14%,transparent);
 
-  /* Legacy component aliases */
   --font-family-ui: var(--font-ui);
   --font-family-display: var(--font-display);
   --font-size-label: var(--type-sm);

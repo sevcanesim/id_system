@@ -19,7 +19,6 @@ import {
   isIndividualPremiumPackage,
   type IndividualSubscriptionOfferId,
 } from "../../lib/commerce/packages";
-import "./renewal.css";
 
 type ServiceRecord = {
   id: string;

@@ -9,6 +9,7 @@ import {
 } from "../../lib/commerce/packages";
 import { formatTryFromKurus } from "../../lib/config/product";
 import CorporateLeadForm from "./CorporateLeadForm";
+import CorporateHashScroll from "./CorporateHashScroll";
 
 const outcomes = [
   { value: "Tek panel", label: "Çalışan, kart ve profil yönetimi" },
@@ -40,6 +41,7 @@ export default async function CorporatePage({ searchParams }: { searchParams: Pr
 
   return (
     <main id="main-content" className="theme-light corporate-page corporate-sales-page corporate-single-page">
+      <CorporateHashScroll />
       <section className="corporate-single-hero corporate-authentic-hero" aria-labelledby="corporate-single-title">
         <div className="corporate-single-copy">
           <span className="section-kicker">YENOMI BUSINESS</span>
@@ -49,7 +51,7 @@ export default async function CorporatePage({ searchParams }: { searchParams: Pr
         </div>
         <aside className="corporate-authentic-proof corporate-hero-specimen" aria-label="Yenomi ID kurumsal yönetim ekranı örneği">
           <div className="corporate-authentic-proof__head"><div className="corporate-specimen-badge">MERKEZİ ÇALIŞAN YÖNETİMİ</div><strong>Çalışan durumunu ve kart erişimini tek yerden kontrol edin.</strong></div>
-          <div className="corporate-specimen-table"><div className="corporate-specimen-table__header"><span>Çalışan</span><span>Ünvan</span><span>Durum</span><span>Aksiyon</span></div>{employeeSpecimens.map((emp) => <div key={emp.name} className="corporate-specimen-table__row"><div className="corporate-specimen-user"><span className="corporate-specimen-avatar">{emp.name[0]}</span><strong>{emp.name}</strong></div><span className="corporate-specimen-role">{emp.role}</span><span className={`corporate-specimen-status ${emp.statusClass}`}>{emp.status}</span><span className="corporate-specimen-action">{emp.action}</span></div>)}</div>
+          <div className="corporate-specimen-table"><div className="corporate-specimen-table__header"><span>Çalışan</span><span>Ünvan</span><span>Durum</span><span>Aksiyon</span></div>{employeeSpecimens.map((employee) => <div key={employee.name} className="corporate-specimen-table__row"><div className="corporate-specimen-user"><span className="corporate-specimen-avatar">{employee.name[0]}</span><strong>{employee.name}</strong></div><span className="corporate-specimen-role">{employee.role}</span><span className={`corporate-specimen-status ${employee.statusClass}`}>{employee.status}</span><span className="corporate-specimen-action">{employee.action}</span></div>)}</div>
         </aside>
       </section>
 

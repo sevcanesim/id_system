@@ -36,6 +36,7 @@ export type PanelSidebarProps = {
   className?: string;
   id?: string;
   labelledBy?: string;
+  children?: ReactNode;
   footer?: ReactNode;
   loading?: boolean;
   collapsible?: boolean;
@@ -54,6 +55,7 @@ export default function PanelSidebar({
   account,
   onSignOut,
   onClose,
+  children,
   footer,
   ...props
 }: PanelSidebarProps) {
@@ -86,7 +88,7 @@ export default function PanelSidebar({
       activeKey={resolvedActiveKey}
       onClose={onClose}
       sectionAvailability={sectionAvailability}
-      footer={footer ?? accountFooter}
+      footer={footer ?? children ?? accountFooter}
     />
   );
 }

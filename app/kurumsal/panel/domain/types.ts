@@ -14,6 +14,21 @@ export type Org = {
     expires_at: string | null;
     business_plans: { name: string; code: string } | null;
   }>;
+  organization_entitlements?: {
+    organization_id: string;
+    mail_credit_limit: number;
+    mail_credits_remaining: number;
+  } | null;
+  organization_capacity_terms?: Array<{
+    id: string;
+    organization_id: string;
+    card_count: number;
+    starts_at: string;
+    expires_at: string;
+    renewal_price_kurus: number | null;
+    currency: "TRY";
+    status: "ACTIVE" | "GRACE_PERIOD";
+  }>;
 };
 
 import type { DigitalProfileState, InvitationState, MemberStatus, PhysicalCardStatus } from "../../../../lib/organizations/lifecycle";

@@ -1,4 +1,3 @@
-
 import { notFound } from "next/navigation";
 import PublicCardWithNetworking from "../../components/public/PublicCardWithNetworking";
 import PublicProfileProtection from "../../components/security/PublicProfileProtection";
@@ -7,6 +6,7 @@ import { isCardProfileServiceActive, rowToCardData, type CardProfileRow } from "
 import { fetchCardBranding, fetchOrganizationLinks } from "../../../lib/organizations/card-branding";
 import { logCardView } from "../../../lib/analytics/card-views";
 import { fetchCardLocaleOverlays } from "../../../lib/public-card/locales";
+import CardRecoveryAction from "./CardRecoveryAction";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -31,8 +31,14 @@ export default async function PhysicalCardRoute({ params }: { params: Promise<{ 
 
   if (!card) notFound();
   if (card.status === "LOST") return <CardState title="Bu Yenomi kartı kayıp olarak bildirilmiştir." />;
+  if (card.status === "UNASSIGNED" || !card.owner_profile_id) {
+    return (
+      <CardState title="Bu Yenomi kartı henüz bir profile bağlı değildir.">
+        <CardRecoveryAction cardCode={normalizedCode} />
+      </CardState>
+    );
+  }
   if (card.status !== "ACTIVE") return <CardState title="Bu Yenomi kartı kullanım dışıdır." />;
-  if (!card.owner_profile_id) return <CardState title="Bu Yenomi kartı henüz bir profile bağlı değildir." />;
 
   const { data: rawProfile } = await admin
     .from("card_profiles")
@@ -68,13 +74,14 @@ export default async function PhysicalCardRoute({ params }: { params: Promise<{ 
   );
 }
 
-function CardState({ title }: { title: string }) {
+function CardState({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
     <main id="main-content" className="profile-state-page p12-profile-state">
       <section>
         <span>YENOMI ID</span>
         <h1>{title}</h1>
         <p>Kart sahibinin iletişim bilgileri güvenlik nedeniyle gösterilmemektedir.</p>
+        {children}
         <a className="home-mockup__link-secondary" href="/">Ana sayfaya dön</a>
       </section>
     </main>

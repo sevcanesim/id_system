@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 
+const STICKY_HEADER_OFFSET = 92;
+
 function scrollToCurrentHash() {
   const hash = window.location.hash.slice(1);
   if (!hash) return;
@@ -9,7 +11,8 @@ function scrollToCurrentHash() {
   const target = document.getElementById(targetId);
   if (!target) return;
   window.requestAnimationFrame(() => {
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    const targetTop = target.getBoundingClientRect().top + window.scrollY - STICKY_HEADER_OFFSET;
+    window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
   });
 }
 

@@ -1,7 +1,0 @@
-/* Corporate shell chrome correction.
- * Sidebar footer ownership now belongs to the shared UnifiedSidebar contract.
- */
-
-.p10-corporate-platform .enterprise-topbar--chrome {
-  display: none;
-}

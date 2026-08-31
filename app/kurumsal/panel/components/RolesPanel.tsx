@@ -6,6 +6,7 @@ import {
   ROLE_MATRIX_COLUMNS,
 } from "../../../../lib/organizations/role-matrix";
 import type { OrganizationRole } from "../../../../lib/organizations/permissions";
+import styles from "./RolesPanel.module.css";
 
 type RoleMember = { role: string; status: string };
 
@@ -62,32 +63,72 @@ export default function RolesPanel({ members }: { members: RoleMember[] }) {
             <h3 id="business-role-matrix-title">Yetki karşılaştırması</h3>
             <p>İşlem bazındaki gerçek yetki sınırlarını rol rol karşılaştırın.</p>
           </div>
-          <span className="business-role-scroll-hint">Tabloyu yatay kaydırın</span>
         </div>
-        <div className="business-role-matrix" role="region" aria-label="Rol ve yetki matrisi" tabIndex={0}>
-          <table>
-            <thead>
-              <tr>
-                <th>Yetki</th>
-                {ROLE_MATRIX_COLUMNS.map((role) => <th key={role}>{ROLE_LABELS[role]}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {ROLE_CAPABILITIES.map((capability) => (
-                <tr key={capability.label}>
-                  <td>{capability.label}</td>
-                  {ROLE_MATRIX_COLUMNS.map((matrixRole) => {
-                    const allowed = capability.allows(matrixRole);
+
+        <div className={styles.desktopMatrix}>
+          <div className="business-role-matrix" role="region" aria-label="Rol ve yetki matrisi" tabIndex={0}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Yetki</th>
+                  {ROLE_MATRIX_COLUMNS.map((role) => <th key={role}>{ROLE_LABELS[role]}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {ROLE_CAPABILITIES.map((capability) => (
+                  <tr key={capability.label}>
+                    <td>{capability.label}</td>
+                    {ROLE_MATRIX_COLUMNS.map((matrixRole) => {
+                      const allowed = capability.allows(matrixRole);
+                      return (
+                        <td key={matrixRole} className={allowed ? "allowed" : "denied"}>
+                          {allowed ? (
+                            <>
+                              <span className="business-role-permission-mark"><Icon name="check" /></span>
+                              <span className="sr-only">İzin var</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="business-role-permission-denied" aria-hidden="true">—</span>
+                              <span className="sr-only">İzin yok</span>
+                            </>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className={styles.mobileMatrix} aria-label="Mobil rol ve yetki karşılaştırması">
+          {ROLE_MATRIX_COLUMNS.map((role) => {
+            const count = members.filter((member) => member.role === role && member.status !== "LEFT").length;
+            return (
+              <article key={role} className={styles.roleCard}>
+                <header className={styles.roleHeader}>
+                  <span aria-hidden="true"><Icon name={ROLE_ICONS[role]} /></span>
+                  <div>
+                    <strong>{ROLE_LABELS[role]}</strong>
+                    <small>{count} aktif ekip üyesi</small>
+                  </div>
+                </header>
+                <ul className={styles.capabilities}>
+                  {ROLE_CAPABILITIES.map((capability) => {
+                    const allowed = capability.allows(role);
                     return (
-                      <td key={matrixRole} className={allowed ? "allowed" : "denied"}>
-                        {allowed ? <><span className="business-role-permission-mark"><Icon name="check" /></span><span className="sr-only">İzin var</span></> : <><span className="business-role-permission-denied" aria-hidden="true">—</span><span className="sr-only">İzin yok</span></>}
-                      </td>
+                      <li key={capability.label}>
+                        <span>{capability.label}</span>
+                        <b>{allowed ? "İzin var" : "İzin yok"}</b>
+                      </li>
                     );
                   })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                </ul>
+              </article>
+            );
+          })}
         </div>
       </section>
 

@@ -1,0 +1,32 @@
+name: Resilience Codemod
+
+on:
+  pull_request:
+    paths:
+      - "scripts/apply-commerce-resilience-codemod.mjs"
+      - ".github/workflows/resilience-codemod.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Apply guarded codemod
+        run: node scripts/apply-commerce-resilience-codemod.mjs
+      - name: Commit transformed sources
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/api/commerce/checkout/route.ts app/checkout/page.tsx app/kurumsal/panel/CorporatePanelClient.tsx app/kurumsal/panel/components/EmployeesPanel.tsx scripts/apply-commerce-resilience-codemod.mjs
+          git commit -m "feat(resilience): wire checkout resume and invite audit UI"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}

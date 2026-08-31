@@ -26,7 +26,6 @@ type PhysicalCard = {
   replacedByCardId: string | null;
 };
 
-
 type Subscription = {
   seat_limit: number;
   status: string;
@@ -56,7 +55,14 @@ type SortKey = "name" | "department" | "role" | "status" | "created";
 type SortDirection = "asc" | "desc";
 type BulkStatus = "ACTIVE" | "SUSPENDED" | "LEFT";
 
+type RenewalState = {
+  daysRemaining: number;
+  label: string;
+  urgent: boolean;
+};
+
 const PAGE_SIZE = 25;
+const DAY_MS = 86400000;
 
 type Props = {
   org: Org | null | undefined;
@@ -120,12 +126,26 @@ function compareText(a: string | null | undefined, b: string | null | undefined)
   return String(a || "").localeCompare(String(b || ""), "tr", { sensitivity: "base" });
 }
 
+function getRenewalState(expiresAt: string | null | undefined): RenewalState | null {
+  if (!expiresAt) return null;
+  const expiresAtMs = new Date(expiresAt).getTime();
+  if (!Number.isFinite(expiresAtMs)) return null;
+  const daysRemaining = Math.ceil((expiresAtMs - Date.now()) / DAY_MS);
+  if (daysRemaining < 0) return { daysRemaining, label: "Yıllık kart sistemi yenileme tarihi geçti", urgent: true };
+  if (daysRemaining === 0) return { daysRemaining, label: "Yıllık kart sistemi bugün yenileniyor", urgent: true };
+  return {
+    daysRemaining,
+    label: `Yıllık kart sistemi yenilemesine ${daysRemaining} gün kaldı`,
+    urgent: daysRemaining <= 30,
+  };
+}
+
 export default function EmployeesPanel(props: Props) {
   const {
     org, subscription, usedSeats, availableSeats, canInvite, activeMembers, invitedMembers,
     digitalCardsReady, physicalCards, totalMembers, filteredMembers, memberCardStatuses,
     search, setSearch, departmentFilter, setDepartmentFilter, departmentOptions,
-    statusFilter, setStatusFilter, showInviteForm, setShowInviteForm, setActiveTab, form,
+    statusFilter, setStatusFilter, showInviteForm, setShowInviteForm, form,
     setForm, add, currentUserId, onEditOwnCard, initials, roleLabel, relativeTime,
     openMemberDrawer, showBulkInvite, onToggleBulkInvite, onCloseBulkInvite,
     bulkInvitePreview, bulkInviteBusy, bulkInviteResults, onBulkInviteFile,
@@ -141,12 +161,14 @@ export default function EmployeesPanel(props: Props) {
   const [pendingInviteEmail, setPendingInviteEmail] = useState<string | null>(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const seatLimit = subscription?.seat_limit ?? "—";
+  const renewalState = getRenewalState(subscription?.expires_at);
   const bulkMailFailed = bulkInviteResults?.results.filter(isBulkInviteMailFailed) ?? [];
   const suspendedSeats = Math.max(0, usedSeats - activeMembers - invitedMembers);
   const showP0Capacity = availableSeats === 0;
   const showP0Pending = invitedMembers > 0;
   const showP0Suspended = suspendedSeats > 0;
-  const hasP0Attention = showP0Capacity || showP0Pending || showP0Suspended;
+  const showRenewalAttention = renewalState?.urgent ?? false;
+  const hasP0Attention = showP0Capacity || showP0Pending || showP0Suspended || showRenewalAttention;
   const hasActiveFilters = departmentFilter !== "ALL" || statusFilter !== "ALL" || sortKey !== "name" || sortDirection !== "asc";
   const bulkDepartmentChoices = useMemo(() => {
     const fromMembers = departmentOptions.filter((department) => department !== "Belirtilmemiş");
@@ -291,10 +313,15 @@ export default function EmployeesPanel(props: Props) {
           <h2 id="p11-employees-title">Çalışanlar</h2>
           <p>Çalışan kimliğini, davet durumunu ve dijital/fiziksel kart yaşam döngüsünü tek ekrandan yönet.</p>
         </div>
-        <div className="p11-org-capacity" aria-label="Organizasyon kapasitesi">
+        <div className="p11-org-capacity" aria-label="Organizasyon kapasitesi ve yenileme durumu">
           <small>{org?.organizations?.name || "Şirket"}</small>
           <strong>{usedSeats} / {seatLimit}</strong>
           <span>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} kart boş`}</span>
+          {renewalState && (
+            <small className={`p11-renewal-status${renewalState.urgent ? " is-urgent" : ""}`}>
+              <Icon name="clock" /> {renewalState.label}
+            </small>
+          )}
           {suspendedSeats > 0 && (
             <small className="p11-seat-policy">
               {suspendedSeats} pasif çalışan kart kapasitesini kullanmaya devam eder. Kapasiteyi boşaltmak için çalışanı şirketten ayırın.
@@ -315,9 +342,9 @@ export default function EmployeesPanel(props: Props) {
                 </div>
               </div>
               {canManageLicenses && (
-                <button type="button" className="p11-attention-cta" onClick={() => setActiveTab("cards")}>
-                  Kartları Yönet
-                </button>
+                <a className="p11-attention-cta" href="/kurumsal#kapasite">
+                  Kapasiteyi artır
+                </a>
               )}
             </article>
           )}
@@ -346,6 +373,22 @@ export default function EmployeesPanel(props: Props) {
               <button type="button" className="p11-attention-cta" onClick={() => setStatusFilter("SUSPENDED")}>
                 Pasif Çalışanları Göster
               </button>
+            </article>
+          )}
+          {showRenewalAttention && renewalState && (
+            <article key="p0-renewal" className="p11-attention-item p11-attention-item--warning">
+              <div className="p11-attention-content">
+                <Icon name="clock" />
+                <div>
+                  <strong>{renewalState.label}</strong>
+                  <p>Yıllık kullanım süresi yaklaşırken kart erişiminin kesintisiz devam etmesi için yenileme bilgisini kontrol edin.</p>
+                </div>
+              </div>
+              {canManageLicenses && (
+                <a className="p11-attention-cta" href="/kurumsal#kapasite">
+                  Yıllık planları gör
+                </a>
+              )}
             </article>
           )}
         </section>
@@ -442,7 +485,6 @@ export default function EmployeesPanel(props: Props) {
           </form>
         )}
 
-
         {selectedIds.size > 0 && (
           <div className="p11-bulk-bar" role="region" aria-label="Toplu çalışan işlemleri">
             <div className="p11-bulk-bar-copy">
@@ -472,7 +514,7 @@ export default function EmployeesPanel(props: Props) {
 
         <div className="p11-table-wrap">
           <table className="p11-table">
-            <thead><tr><th className="select"><input type="checkbox" aria-label="Bu sayfadaki çalışanları seç" checked={pageAllSelected} onChange={togglePage} /></th>{sortHeader("name", "Çalışan")}{sortHeader("department", "Departman")}{sortHeader("role", "Rol")}<th>Dijital Kart</th><th>Fiziksel Kart</th>{sortHeader("status", "Durum")}{sortHeader("created", "Son Güncelleme")}<th className="actions">İşlem</th></tr></thead>
+            <thead><tr><th className="select"><input type="checkbox" aria-label="Bu sayfadaki çalışanları seç" checked={pageAllSelected} onChange={togglePage} /></th>{sortHeader("name", "Çalışan")}{sortHeader("department", "Departman")}{sortHeader("role", "Rol")}<th>Dijital Kart</th><th>Fiziksel Kart</th>{sortHeader("status", "Durum")}{sortHeader("created", "Eklenme")}<th className="actions">İşlem</th></tr></thead>
             <tbody>
               {pageMembers.map((member) => {
                 const cardState = memberCardStatuses.find((item) => item.memberId === member.id);

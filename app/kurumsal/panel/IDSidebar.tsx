@@ -1,12 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useRef } from "react";
-import { Icon } from "../../icons";
-import { corporatePanelNavItems, getCorporateSidebarActiveKey, type CorporateNavItem } from "./domain/navigation";
-import { groupSidebarItems } from "../../components/ui/sidebar-config";
+import { corporatePanelNavItems, getCorporateSidebarActiveKey } from "./domain/navigation";
+import UnifiedSidebar from "../../components/ui/UnifiedSidebar";
 import SidebarAccountFooter from "../../components/ui/SidebarAccountFooter";
+import { resolveSidebarItems, type SidebarAvailability } from "../../components/ui/sidebar-state";
 import { useUnsavedChanges } from "../../components/UnsavedChangesContext";
 
 export type IDSidebarProps = {
@@ -28,6 +26,7 @@ export type IDSidebarProps = {
   open?: boolean;
   onClose?: () => void;
   loading?: boolean;
+  itemAvailability?: Partial<Record<string, SidebarAvailability>>;
 };
 
 const ROLE_LABELS: Record<string, string> = {
@@ -47,64 +46,21 @@ export default function IDSidebar({
   open = false,
   onClose,
   loading = false,
+  itemAvailability,
 }: IDSidebarProps) {
   const pathname = usePathname();
-  const generatedId = useId();
-  const sidebarId = `id-sidebar-${generatedId.replace(/:/g, "")}`;
-  const sidebarRef = useRef<HTMLElement>(null);
-  const previouslyFocused = useRef<HTMLElement | null>(null);
-
+  const close = onClose ?? (() => {});
   const { guardLinkClick } = useUnsavedChanges();
   const activeKey = getCorporateSidebarActiveKey(pathname);
-  const items: CorporateNavItem[] = corporatePanelNavItems(role, ownCardHref);
-  const itemGroups = groupSidebarItems(items);
-
-  useEffect(() => {
-    if (!open) return;
-
-    previouslyFocused.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const sidebar = sidebarRef.current;
-    const focusable = () =>
-      Array.from(
-        sidebar?.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-        ) || [],
-      ).filter((element) => !element.hasAttribute("hidden"));
-
-    focusable()[0]?.focus();
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose?.();
-        return;
-      }
-      if (event.key !== "Tab") return;
-
-      const elements = focusable();
-      if (!elements.length) return;
-      const first = elements[0];
-      const last = elements[elements.length - 1];
-
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      previouslyFocused.current?.focus();
-    };
-  }, [open, onClose]);
+  const items = resolveSidebarItems(corporatePanelNavItems(role, ownCardHref), {
+    scope: "corporate",
+    role,
+    itemAvailability,
+  });
 
   const accountName = user?.full_name?.trim() || "Kurumsal Hesap";
-  const accountEmail = user?.email?.trim() || ROLE_LABELS[(user?.role || role || "EMPLOYEE").toUpperCase()] || "Kurumsal Kullanıcı";
-  const accountInitials = (accountName || accountEmail || "Y")
+  const accountMeta = user?.email?.trim() || ROLE_LABELS[(user?.role || role || "EMPLOYEE").toUpperCase()] || "Kurumsal Kullanıcı";
+  const initials = (accountName || accountMeta || "Y")
     .split(/\s+/)
     .filter(Boolean)
     .map((part) => part[0])
@@ -113,91 +69,26 @@ export default function IDSidebar({
     .toLocaleUpperCase("tr-TR") || "Y";
 
   return (
-    <>
-      {open ? (
-        <button type="button" className="id-sidebar__backdrop" aria-label="Menüyü kapat" onClick={onClose} />
-      ) : null}
-
-      <aside
-        ref={sidebarRef}
-        id={sidebarId}
-        className={`id-sidebar id-sidebar--corporate ${open ? "id-sidebar--mobile-open" : ""}`.trim()}
-        aria-label="Kurumsal yönetim menüsü"
-        data-open={open || undefined}
-      >
-        <button type="button" className="id-sidebar__mobile-close" aria-label="Menüyü kapat" onClick={onClose}>
-          <Icon name="close" />
-        </button>
-
-        <div className="id-sidebar__brand">
-          <Link
-            href="/kurumsal/panel"
-            className="id-sidebar__brand-link"
-            onClick={(event) => {
-              onClose?.();
-              guardLinkClick(event, "/kurumsal/panel");
-            }}
-          >
-            <span className="id-sidebar__brand-mark" aria-hidden="true">
-              <img src="/images/yenomilabs-mark-transparent.png" alt="" />
-            </span>
-            <span className="id-sidebar__brand-copy">
-              <strong>Yenomi ID</strong>
-              <small>Kurumsal Panel</small>
-            </span>
-          </Link>
-        </div>
-
-        {loading ? (
-          <nav className="id-sidebar__nav id-sidebar__nav--loading" aria-label="Kurumsal yönetim menüsü" aria-busy="true">
-            <p className="id-sidebar__loading-note">Menü yükleniyor.</p>
-            {Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="id-sidebar__loading-row" aria-hidden="true">
-                <i />
-                <span />
-              </div>
-            ))}
-          </nav>
-        ) : (
-          <nav className="id-sidebar__nav" aria-label="Kurumsal yönetim menüsü">
-            {itemGroups.map((group) => (
-              <div key={group.name || group.items[0]?.key || "root"} className="id-sidebar__section">
-                {group.name ? <span className="id-sidebar__section-label">{group.name}</span> : null}
-                <div className="id-sidebar__section-items">
-                  {group.items.map((item) => {
-                    const isActive = item.key === activeKey;
-                    return (
-                      <Link
-                        key={item.key}
-                        href={item.href}
-                        className={`id-sidebar__link ${isActive ? "id-sidebar__link--active" : ""}`}
-                        aria-current={isActive ? "page" : undefined}
-                        onClick={(event) => {
-                          onClose?.();
-                          guardLinkClick(event, item.href);
-                        }}
-                      >
-                        <span className="id-sidebar__icon" aria-hidden="true">
-                          <Icon name={item.icon} />
-                        </span>
-                        <span className="id-sidebar__label">{item.label}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </nav>
-        )}
-
+    <UnifiedSidebar
+      ariaLabel="Kurumsal yönetim menüsü"
+      subtitle="Kurumsal Panel"
+      brandHref="/kurumsal/panel"
+      items={items}
+      activeKey={activeKey}
+      open={open}
+      onClose={close}
+      loading={loading}
+      className="id-sidebar--corporate"
+      onNavigate={(item, event) => guardLinkClick(event, item.href)}
+      footer={
         <SidebarAccountFooter
           accountName={accountName}
-          accountMeta={accountEmail}
-          initials={accountInitials}
+          accountMeta={accountMeta}
+          initials={initials}
           onSignOut={onSignOut}
-          onClose={onClose}
+          onClose={close}
         />
-      </aside>
-    </>
+      }
+    />
   );
 }

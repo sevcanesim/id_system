@@ -13,11 +13,15 @@ const FALLBACK_SLOT_DEFINITIONS = [
   { kind: "REFERENCES", default_label: "Referans Projeler", default_subtitle: "Projeleri incele" },
 ] as const;
 
-export async function fetchOrganizationLinks(userId: string | null | undefined, profileId?: string | null): Promise<CardTemplateLink[]> {
-  if (!userId) return [];
+export async function fetchOrganizationLinks(
+  userId: string | null | undefined,
+  profileId?: string | null,
+  profileOrganizationId?: string | null,
+): Promise<CardTemplateLink[]> {
+  if (!userId && !profileOrganizationId) return [];
   try {
     const admin = getSupabaseAdminClient();
-    const organizationId = await resolveOrganizationId(admin, userId);
+    const organizationId = profileOrganizationId || (userId ? await resolveOrganizationId(admin, userId) : null);
     if (!organizationId) return [];
 
     const { data } = await admin
@@ -43,7 +47,6 @@ export async function fetchOrganizationLinks(userId: string | null | undefined, 
       const row = byKind.get(definition.kind);
       if (!row) return null;
 
-      // Toplantı Planla yalnız takvim/randevu URL'sidir. Legacy PDF kayıtları public karta çıkmaz.
       if (definition.kind === "MEETING" && row.link_type === "FILE") return null;
 
       const hasTarget = row.link_type === "FILE" ? row.file_path : row.url;

@@ -1,9 +1,8 @@
 import type { IconName } from "../../icons";
 import { normalizeOrganizationRole, type OrganizationRole } from "../../../lib/organizations/permissions";
-import type { SidebarAvailability } from "./sidebar-state";
+import type { SidebarAvailability } from "./sidebar.types";
 
 export type SidebarRole = OrganizationRole | "HR_MANAGER";
-export type SidebarScope = "individual" | "corporate";
 
 export type SidebarConfigItem = {
   key: string;

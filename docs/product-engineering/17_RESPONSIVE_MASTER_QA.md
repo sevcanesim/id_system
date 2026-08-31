@@ -46,6 +46,12 @@ Public and commerce routes are exercised at:
 
 Protected routes are also exercised unauthenticated at the critical 390×844, 768×1024 and 1440×900 boundaries to verify stable auth routing. That boundary test is not accepted as signed-in route QA.
 
+## Validation checkpoints
+
+- Canonical responsive source restored to the `main` baseline after a formatting-only normalization created false design-system diffs.
+- Typography tokens and typography verifier are aligned with the enforced Design System Standard before browser validation.
+- Final route statuses remain evidence-only and will be updated only from successful browser runs.
+
 ## Release rule
 
 No route may move from `NOT TESTED` or `BLOCKED` to `PASS` without browser evidence. Signed-in individual/corporate routes require an isolated local or staging Supabase fixture; production seeding is prohibited.

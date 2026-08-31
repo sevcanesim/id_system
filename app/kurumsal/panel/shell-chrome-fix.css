@@ -1,0 +1,56 @@
+/* Corporate shell chrome correction.
+ * Removes redundant bottom-left chrome and places sign-out in the top header band.
+ */
+
+@media (min-width: 761px) {
+  .p10-corporate-platform .id-sidebar__footer,
+  .p10-corporate-platform .id-sidebar__collapse {
+    display: none !important;
+  }
+
+  .p10-corporate-platform .id-sidebar__header-logout {
+    position: fixed !important;
+    top: 12px !important;
+    right: 20px !important;
+    z-index: 120 !important;
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+    min-height: 42px;
+    padding: 0;
+    gap: 0;
+    border: 1px solid #e5ded1;
+    border-radius: 10px;
+    background: #fff;
+    color: #5f5a52;
+    box-shadow: none;
+  }
+
+  .p10-corporate-platform .id-sidebar__header-logout span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .p10-corporate-platform .id-sidebar__footer,
+  .p10-corporate-platform .id-sidebar__collapse {
+    display: none !important;
+  }
+
+  .p10-corporate-platform .id-sidebar__header-logout {
+    position: static !important;
+    width: calc(100% - 24px);
+    min-height: 44px;
+    margin: auto 12px 12px;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+}

@@ -67,6 +67,51 @@
   line-height: 1.45;
 }
 
+.ds-view-loading--compact {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.ds-view-loading--compact .ds-view-loading__intro {
+  gap: 9px;
+}
+
+.ds-view-loading--compact .ds-loading-mark {
+  width: 30px;
+  height: 30px;
+  flex-basis: 30px;
+  border-radius: 9px;
+  box-shadow: none;
+}
+
+.ds-view-loading--compact .ds-loading-mark > span {
+  bottom: 8px;
+  width: 4px;
+}
+
+.ds-view-loading--compact .ds-loading-mark > span:nth-child(1) {
+  left: 7px;
+  height: 7px;
+}
+
+.ds-view-loading--compact .ds-loading-mark > span:nth-child(2) {
+  left: 13px;
+  height: 11px;
+}
+
+.ds-view-loading--compact .ds-loading-mark > span:nth-child(3) {
+  left: 20px;
+  height: 8px;
+}
+
+.ds-view-loading--compact .ds-view-loading__copy strong {
+  font-size: 12px;
+}
+
+.ds-view-loading--compact .ds-view-loading__copy span {
+  font-size: 11px;
+}
+
 .ds-view-loading--inline {
   max-width: 520px;
   display: grid;

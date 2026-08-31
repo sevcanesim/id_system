@@ -1,13 +1,13 @@
 .p8-corporate-workspace--decoupled {
   --p8-editor-max: 1240px;
-  --p8-preview-width: 308px;
+  --p8-preview-width: 300px;
   --p8-editor-gap: 28px;
   padding-bottom: 48px;
 }
 
 @media (min-width: 1101px) {
   .p8-corporate-workspace--decoupled .p8-corporate-header {
-    min-height: 64px;
+    min-height: 72px;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
@@ -34,16 +34,20 @@
   .p8-corporate-workspace--decoupled .p8-header-actions {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 8px;
+    min-width: 0;
   }
 
   .p8-corporate-workspace--decoupled .p8-header-actions .ds-button {
     min-height: 38px;
     padding-inline: 14px;
+    white-space: nowrap;
   }
 
   .p8-corporate-workspace--decoupled .p8-section-nav {
-    top: 64px;
+    top: 72px;
+    z-index: 27;
     padding: 6px 0;
   }
 
@@ -104,38 +108,23 @@
 
   .p8-corporate-workspace--decoupled .p8-preview-column {
     position: sticky;
-    top: 112px;
+    top: 126px;
     width: var(--p8-preview-width);
-    max-height: calc(100vh - 128px);
-    overflow: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
-    display: grid;
-    gap: 10px;
+    max-height: none;
+    overflow: visible;
+    display: block;
     align-self: start;
   }
 
   .p8-corporate-workspace--decoupled .p8-ccard {
-    padding: 10px 12px;
-    margin: 0;
-  }
-
-  .p8-corporate-workspace--decoupled .p8-chead strong {
-    font-size: 13px;
-  }
-
-  .p8-corporate-workspace--decoupled .p8-chead small,
-  .p8-corporate-workspace--decoupled .p8-chint {
-    font-size: 10.5px;
-    line-height: 1.35;
-  }
-
-  .p8-corporate-workspace--decoupled .p8-chint {
-    margin: 6px 0 0;
+    display: none;
   }
 
   .p8-corporate-workspace--decoupled .p8-preview-card {
+    width: 100%;
     padding: 10px;
+    margin: 0;
+    overflow: hidden;
   }
 
   .p8-corporate-workspace--decoupled .p8-preview-hd {
@@ -157,19 +146,22 @@
   }
 
   .p8-corporate-workspace--decoupled .p8-preview-badge {
-    max-width: 190px;
+    max-width: 172px;
     font-size: 9.5px;
     line-height: 1.25;
   }
 
   .p8-corporate-workspace--decoupled .p8-preview-acts .ds-button {
     min-height: 32px;
-    padding-inline: 9px;
+    padding-inline: 8px;
     font-size: 10px;
+    white-space: nowrap;
   }
 
   .p8-corporate-workspace--decoupled .p8-preview-stage {
-    transform-origin: top center;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 16px;
   }
 
   .p8-corporate-workspace--decoupled .p8-url-card,
@@ -188,16 +180,19 @@
   }
 
   .p8-corporate-workspace--decoupled .p8-editor-grid {
-    grid-template-columns: minmax(0, 1fr) 280px !important;
+    grid-template-columns: minmax(0, 1fr) 270px !important;
     gap: 20px !important;
   }
 
   .p8-corporate-workspace--decoupled .p8-preview-column {
     position: sticky;
-    top: 118px;
-    width: 280px;
+    top: 126px;
+    width: 270px;
+    max-height: none;
+    overflow: visible;
   }
 
+  .p8-corporate-workspace--decoupled .p8-ccard,
   .p8-corporate-workspace--decoupled .p8-url-card,
   .p8-corporate-workspace--decoupled .p8-note {
     display: none;

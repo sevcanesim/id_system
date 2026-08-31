@@ -16,7 +16,7 @@ export type PanelSidebarAccount = {
 };
 
 export type PanelSidebarProps = {
-  scope: SidebarScope;
+  scope?: SidebarScope;
   ariaLabel: string;
   subtitle: string;
   items: readonly SidebarConfigItem[];
@@ -45,7 +45,7 @@ export type PanelSidebarProps = {
 };
 
 export default function PanelSidebar({
-  scope,
+  scope = "individual",
   items,
   activeKey,
   role,

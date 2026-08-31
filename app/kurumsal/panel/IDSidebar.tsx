@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useId, useRef, useState } from "react";
 import { Icon } from "../../icons";
-import PanelSidebar from "../../components/ui/PanelSidebar";
-import type { SidebarNavItem } from "../../components/ui/SidebarNav";
-import { corporatePanelNavItems, getCorporateSidebarActiveKey } from "./domain/navigation";
+import { corporatePanelNavItems, getCorporateSidebarActiveKey, type CorporateNavItem } from "./domain/navigation";
+import { groupSidebarItems } from "../../components/ui/sidebar-config";
 import { useUnsavedChanges } from "../../components/UnsavedChangesContext";
 
 export type IDSidebarProps = {
@@ -39,9 +40,76 @@ export default function IDSidebar({
   storageKey = "yenomi:id-sidebar:collapsed",
 }: IDSidebarProps) {
   const pathname = usePathname();
+  const generatedId = useId();
+  const sidebarId = `id-sidebar-${generatedId.replace(/:/g, "")}`;
+  const sidebarRef = useRef<HTMLElement>(null);
+  const previouslyFocused = useRef<HTMLElement | null>(null);
+  const [collapsed, setCollapsed] = useState(false);
+
   const { guardLinkClick } = useUnsavedChanges();
   const activeKey = getCorporateSidebarActiveKey(pathname);
-  const items: SidebarNavItem[] = corporatePanelNavItems(role, ownCardHref);
+  const items: CorporateNavItem[] = corporatePanelNavItems(role, ownCardHref);
+  const itemGroups = groupSidebarItems(items);
+
+  useEffect(() => {
+    if (!collapsible) return;
+    try {
+      setCollapsed(window.localStorage.getItem(storageKey) === "1");
+    } catch {}
+  }, [collapsible, storageKey]);
+
+  const toggleCollapse = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    if (!collapsible) return;
+    try {
+      window.localStorage.setItem(storageKey, next ? "1" : "0");
+    } catch {}
+  };
+
+  useEffect(() => {
+    if (!open) return;
+
+    previouslyFocused.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    const sidebar = sidebarRef.current;
+    const focusable = () =>
+      Array.from(
+        sidebar?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) || [],
+      ).filter((element) => !element.hasAttribute("hidden"));
+
+    focusable()[0]?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose?.();
+        return;
+      }
+      if (event.key !== "Tab") return;
+
+      const elements = focusable();
+      if (!elements.length) return;
+      const first = elements[0];
+      const last = elements[elements.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      previouslyFocused.current?.focus();
+    };
+  }, [open, onClose]);
 
   const rawPlanName = (subscription?.name || "Business").replace(/BUSİNESS/gi, "BUSINESS");
   const planDisplayName = subscription?.seatLimit ? `${rawPlanName} ${subscription.seatLimit}` : rawPlanName;
@@ -50,47 +118,111 @@ export default function IDSidebar({
   const usagePercentage = seatLimitCount ? Math.min(100, Math.round((usedSeatsCount / seatLimitCount) * 100)) : 0;
 
   return (
-    <PanelSidebar
-      ariaLabel="Kurumsal yönetim menüsü"
-      subtitle="Kurumsal Panel"
-      brandHref="/kurumsal/panel"
-      className="canonical-panel-sidebar--corporate"
-      open={open}
-      onClose={() => onClose?.()}
-      activeKey={activeKey}
-      loading={loading}
-      collapsible={collapsible}
-      collapsibleGroups
-      storageKey={storageKey}
-      items={items}
-      onBrandNavigate={(event) => guardLinkClick(event, "/kurumsal/panel")}
-      onNavigate={(item, event) => guardLinkClick(event, item.href)}
-    >
-      <div className="id-sidebar__footer">
-        <div className="id-sidebar__plan">
-          <div className="id-sidebar__plan-info">
-            <small className="id-sidebar__plan-name">{planDisplayName}</small>
-            <strong className="id-sidebar__plan-capacity">
-              {seatLimitCount !== null ? `${usedSeatsCount} / ${seatLimitCount} Kart` : "Kurumsal Kart"}
-            </strong>
-          </div>
-          {seatLimitCount ? (
-            <div className="id-sidebar__plan-meter" aria-hidden="true">
-              <span style={{ width: `${usagePercentage}%` }} />
+    <>
+      {open ? (
+        <button type="button" className="id-sidebar__backdrop" aria-label="Menüyü kapat" onClick={onClose} />
+      ) : null}
+
+      <aside
+        ref={sidebarRef}
+        id={sidebarId}
+        className={`id-sidebar ${collapsed ? "id-sidebar--collapsed" : ""} ${open ? "id-sidebar--mobile-open" : ""}`.trim()}
+        aria-label="Kurumsal yönetim menüsü"
+        data-collapsed={collapsed || undefined}
+        data-open={open || undefined}
+      >
+        <button type="button" className="id-sidebar__mobile-close" aria-label="Menüyü kapat" onClick={onClose}>
+          <Icon name="close" />
+        </button>
+
+        <div className="id-sidebar__brand">
+          <Link
+            href="/kurumsal/panel"
+            className="id-sidebar__brand-link"
+            onClick={(event) => {
+              onClose?.();
+              guardLinkClick(event, "/kurumsal/panel");
+            }}
+          >
+            <span className="id-sidebar__brand-mark" aria-hidden="true">
+              <img src="/images/yenomilabs-mark-transparent.png" alt="" />
+            </span>
+            <span className="id-sidebar__brand-copy">
+              <strong>Yenomi ID</strong>
+              <small>Kurumsal Panel</small>
+            </span>
+          </Link>
+        </div>
+
+        {loading ? (
+          <nav className="id-sidebar__nav id-sidebar__nav--loading" aria-label="Kurumsal yönetim menüsü" aria-busy="true">
+            <p className="id-sidebar__loading-note">Menü yükleniyor.</p>
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="id-sidebar__loading-row" aria-hidden="true">
+                <i />
+                <span />
+              </div>
+            ))}
+          </nav>
+        ) : (
+          <nav className="id-sidebar__nav" aria-label="Kurumsal yönetim menüsü">
+            {itemGroups.map((group) => (
+              <div key={group.name || group.items[0]?.key || "root"} className="id-sidebar__section">
+                {group.name ? <span className="id-sidebar__section-label">{group.name}</span> : null}
+                <div className="id-sidebar__section-items">
+                  {group.items.map((item) => {
+                    const isActive = item.key === activeKey;
+                    return (
+                      <Link
+                        key={item.key}
+                        href={item.href}
+                        className={`id-sidebar__link ${isActive ? "id-sidebar__link--active" : ""}`}
+                        aria-current={isActive ? "page" : undefined}
+                        onClick={(event) => {
+                          onClose?.();
+                          guardLinkClick(event, item.href);
+                        }}
+                        title={collapsed ? item.label : undefined}
+                      >
+                        <span className="id-sidebar__icon" aria-hidden="true">
+                          <Icon name={item.icon} />
+                        </span>
+                        <span className="id-sidebar__label">{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </nav>
+        )}
+
+        <div className="id-sidebar__footer">
+          <div className="id-sidebar__plan">
+            <div className="id-sidebar__plan-info">
+              <small className="id-sidebar__plan-name">{planDisplayName}</small>
+              <strong className="id-sidebar__plan-capacity">
+                {seatLimitCount !== null ? `${usedSeatsCount} / ${seatLimitCount} Kart` : "Kurumsal Kart"}
+              </strong>
             </div>
-          ) : null}
-          {canManageLicenses && activeKey !== "cards" && onManageLicenses ? (
-            <button
-              type="button"
-              className="id-sidebar__plan-action"
-              onClick={() => {
-                onManageLicenses();
-                onClose?.();
-              }}
-            >
-              Yönet
-            </button>
-          ) : null}
+            {seatLimitCount ? (
+              <div className="id-sidebar__plan-meter" aria-hidden="true">
+                <span style={{ width: `${usagePercentage}%` }} />
+              </div>
+            ) : null}
+            {canManageLicenses && activeKey !== "cards" && onManageLicenses ? (
+              <button
+                type="button"
+                className="id-sidebar__plan-action"
+                onClick={() => {
+                  onManageLicenses();
+                  onClose?.();
+                }}
+              >
+                Yönet
+              </button>
+            ) : null}
+          </div>
         </div>
 
         {onSignOut ? (
@@ -108,7 +240,21 @@ export default function IDSidebar({
             <span>Çıkış</span>
           </button>
         ) : null}
-      </div>
-    </PanelSidebar>
+
+        {collapsible ? (
+          <button
+            type="button"
+            className="id-sidebar__collapse"
+            aria-label={collapsed ? "Menüyü genişlet" : "Menüyü daralt"}
+            aria-expanded={!collapsed}
+            title={collapsed ? "Menüyü genişlet" : "Menüyü daralt"}
+            onClick={toggleCollapse}
+          >
+            <Icon name={collapsed ? "chevronRight" : "chevronLeft"} />
+            <span className="id-sidebar__collapse-label">{collapsed ? "Genişlet" : "Daralt"}</span>
+          </button>
+        ) : null}
+      </aside>
+    </>
   );
 }

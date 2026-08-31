@@ -133,6 +133,7 @@ export default function IDSidebar({
         className={`id-sidebar ${open ? "id-sidebar--mobile-open" : ""}`.trim()}
         aria-label="Kurumsal yönetim menüsü"
         data-open={open || undefined}
+        style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden" }}
       >
         <button type="button" className="id-sidebar__mobile-close" aria-label="Menüyü kapat" onClick={onClose}>
           <Icon name="close" />
@@ -158,7 +159,12 @@ export default function IDSidebar({
         </div>
 
         {loading ? (
-          <nav className="id-sidebar__nav id-sidebar__nav--loading" aria-label="Kurumsal yönetim menüsü" aria-busy="true">
+          <nav
+            className="id-sidebar__nav id-sidebar__nav--loading"
+            aria-label="Kurumsal yönetim menüsü"
+            aria-busy="true"
+            style={{ paddingBottom: 320 }}
+          >
             <p className="id-sidebar__loading-note">Menü yükleniyor.</p>
             {Array.from({ length: 6 }).map((_, index) => (
               <div key={index} className="id-sidebar__loading-row" aria-hidden="true">
@@ -168,7 +174,11 @@ export default function IDSidebar({
             ))}
           </nav>
         ) : (
-          <nav className="id-sidebar__nav" aria-label="Kurumsal yönetim menüsü">
+          <nav
+            className="id-sidebar__nav"
+            aria-label="Kurumsal yönetim menüsü"
+            style={{ paddingBottom: 320 }}
+          >
             {itemGroups.map((group) => (
               <div key={group.name || group.items[0]?.key || "root"} className="id-sidebar__section">
                 {group.name ? <span className="id-sidebar__section-label">{group.name}</span> : null}
@@ -199,7 +209,19 @@ export default function IDSidebar({
           </nav>
         )}
 
-        <div className="id-sidebar__footer">
+        <div
+          className="id-sidebar__footer"
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 6,
+            maxHeight: "320px",
+            overflowY: "auto",
+            background: "var(--surface)",
+          }}
+        >
           <div className="id-sidebar__plan">
             <div className="id-sidebar__plan-info">
               <small className="id-sidebar__plan-name">{planDisplayName}</small>

@@ -1,4 +1,5 @@
 import { abandonedEventType, classifyAbandonedWave } from "./abandoned-checkout";
+import { createCheckoutResumeToken } from "./checkout-resume";
 import { sendAbandonedCheckoutEmail, sendOpsFulfillmentAlertEmail } from "../email/resend";
 import { publicSiteUrl } from "../payments/config";
 import { getSupabaseAdminClient } from "../supabase/server-admin";
@@ -36,12 +37,18 @@ export async function sendAbandonedCheckoutReminders(admin: AdminClient, now = D
   if (!orders?.length) return { scanned: 0, sent: 0, skipped: 0 };
 
   const orderIds = orders.map((order) => order.id);
-  const [{ data: attempts, error: attemptError }, { data: mailedEvents, error: eventError }] = await Promise.all([
+  const [
+    { data: attempts, error: attemptError },
+    { data: mailedEvents, error: eventError },
+    { data: resumeSessions, error: resumeError },
+  ] = await Promise.all([
     admin.from("commerce_payment_attempts").select("order_id,status,updated_at").in("order_id", orderIds),
     admin.from("commerce_email_events").select("order_id,event_type").in("order_id", orderIds).in("event_type", ["ABANDONED_CHECKOUT", "ABANDONED_CHECKOUT_24H"]),
+    admin.from("commerce_checkout_sessions").select("order_id,expires_at").in("order_id", orderIds).gt("expires_at", new Date(now).toISOString()),
   ]);
   if (attemptError) throw attemptError;
   if (eventError) throw eventError;
+  if (resumeError) throw resumeError;
 
   const recentPending = new Set(
     (attempts ?? [])
@@ -49,6 +56,7 @@ export async function sendAbandonedCheckoutReminders(admin: AdminClient, now = D
       .map((attempt) => attempt.order_id),
   );
   const mailedKeys = new Set((mailedEvents ?? []).map((event) => `${event.order_id}:${event.event_type}`));
+  const resumeByOrder = new Map((resumeSessions ?? []).map((session) => [session.order_id, session.expires_at]));
 
   let mailed = 0;
   let skipped = 0;
@@ -65,11 +73,16 @@ export async function sendAbandonedCheckoutReminders(admin: AdminClient, now = D
       skipped += 1;
       continue;
     }
+
+    const expiresAt = resumeByOrder.get(order.id);
+    const resumeToken = expiresAt ? createCheckoutResumeToken(order.id, expiresAt) : null;
     const eventType = abandonedEventType(wave);
     const outbound = await sendAbandonedCheckoutEmail({
       to: order.guest_email,
       orderNumber: order.order_number,
-      checkoutUrl: `${publicSiteUrl}/checkout`,
+      checkoutUrl: resumeToken
+        ? `${publicSiteUrl}/checkout?resume=${encodeURIComponent(resumeToken)}`
+        : `${publicSiteUrl}/checkout`,
       wave,
     });
     if (!outbound.sent) {

@@ -108,6 +108,8 @@ type Props = {
   bulkInviteResults: {
     created: number;
     failed: number;
+    failedRowsCsvUrl?: string;
+    auditHealthy?: boolean;
     results: Array<{ email: string; status: "created" | "error"; error?: string; emailSent?: boolean; memberId?: string }>;
   } | null;
   onBulkInviteFile: (file: File) => void | Promise<void>;
@@ -453,6 +455,12 @@ export default function EmployeesPanel(props: Props) {
                   <strong>{bulkInviteResults.created}</strong> davet oluşturuldu · <strong>{bulkInviteResults.failed}</strong> başarısız
                   {bulkMailFailed.length > 0 ? ` · ${bulkMailFailed.length} e-posta gönderilemedi` : ""}
                 </p>
+                {bulkInviteResults.failedRowsCsvUrl && (bulkInviteResults.failed > 0 || bulkMailFailed.length > 0) && (
+                  <a className="p11-secondary" href={bulkInviteResults.failedRowsCsvUrl}>Başarısız kayıtları CSV indir</a>
+                )}
+                {bulkInviteResults.auditHealthy === false && (
+                  <p role="alert">Davetler işlendi ancak audit kayıtlarının bir kısmı doğrulanamadı. Operasyon ekibinin incelemesi gerekiyor.</p>
+                )}
                 {bulkMailFailed.length > 0 && (
                   <ul className="p11-bulk-mail-failed">
                     {bulkMailFailed.map((row) => (

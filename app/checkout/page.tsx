@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { readCart, type CartItem } from "../../lib/cart";
+import { readCart, writeCart, type CartItem } from "../../lib/cart";
 import { formatTryFromKurus } from "../../lib/config/product";
 import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, isDigitalOnlySku, isPhysicalBundleSku, isPremiumUpgradeSku, isRenewalSku } from "../../lib/config/commercial";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
@@ -14,6 +14,7 @@ import { track } from "../../lib/analytics";
 import { safeClientMessage } from "../../lib/errors";
 import { clearPendingCheckoutOrderId, getOrCreateCheckoutIdempotencyKey, lookupPendingCheckoutOrder, rotateCheckoutIdempotencyKey, setPendingCheckoutOrderId, setCheckoutReturnPath } from "../../lib/payments/browser-checkout";
 import { bootstrapAuthenticatedCheckout } from "../../lib/commerce/checkout-session-bootstrap";
+import { parseCheckoutResumeDraft } from "../../lib/commerce/checkout-resume-draft";
 
 type FormState = {
   recipientName: string;
@@ -98,12 +99,49 @@ export default function CheckoutPage() {
   }, []);
 
   useEffect(() => {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) {
-      setCheckoutReady(true);
-      return;
-    }
-    void supabase.auth.getSession().then(({ data }) => bootstrapAuthenticatedCheckout(data.session, { setForm, setItems, setIsAuthenticated, setOrganizationTargets, setCheckoutReady }));
+    let cancelled = false;
+    const resumeToken = new URLSearchParams(window.location.search).get("resume");
+    void (async () => {
+      const supabase = getSupabaseBrowserClient();
+      const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
+      await bootstrapAuthenticatedCheckout(data.session, {
+        setForm,
+        setItems,
+        setIsAuthenticated,
+        setOrganizationTargets,
+        setCheckoutReady: resumeToken ? () => undefined : setCheckoutReady,
+      });
+      if (cancelled || !resumeToken) return;
+
+      try {
+        const response = await fetch(`/api/commerce/checkout/resume?token=${encodeURIComponent(resumeToken)}`, {
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || "Sipariş taslağı yüklenemedi.");
+        const draft = parseCheckoutResumeDraft(payload.draft);
+        if (!draft || typeof payload.orderId !== "string") throw new Error("Sipariş taslağı doğrulanamadı.");
+        writeCart(draft.items);
+        setItems(draft.items);
+        setPendingCheckoutOrderId(payload.orderId);
+        setForm((current) => ({
+          ...current,
+          ...draft.form,
+          identityNumber: "",
+          distanceSalesAccepted: false,
+          personalizationAccepted: false,
+        }));
+        setActiveStep("buyer");
+        setToast("Sepetin ve teslimat bilgilerin geri yüklendi. Kimlik numaranı ve onaylarını yeniden girerek devam edebilirsin.");
+        window.history.replaceState(null, "", "/checkout");
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "Sipariş taslağı yüklenemedi.");
+      } finally {
+        if (!cancelled) setCheckoutReady(true);
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {

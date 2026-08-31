@@ -22,6 +22,7 @@ import { applyPendingOrderCookie } from "../../../../lib/payments/pending-order-
 import { stampPhysicalProductionConfig } from "../../../../lib/commerce/production-config";
 import { findExistingCheckoutAttempt } from "../../../../lib/payments/checkout-idempotency-lookup";
 import { rejectCheckoutInitializeFlood } from "../../../../lib/security/route-rate-limits";
+import { checkoutResumeExpiry } from "../../../../lib/commerce/checkout-resume";
 
 export const runtime = "nodejs";
 
@@ -489,6 +490,45 @@ export async function POST(request: NextRequest) {
         await admin.from("commerce_orders").delete().eq("id", order.id);
         return NextResponse.json(publicError("ORDER_CREATE_FAILED"), { status: 500 });
       }
+    }
+
+    const resumeExpiresAt = checkoutResumeExpiry();
+    const { error: resumeSessionError } = await admin.from("commerce_checkout_sessions").upsert({
+      order_id: order.id,
+      expires_at: resumeExpiresAt.toISOString(),
+      updated_at: new Date().toISOString(),
+      draft_payload: {
+        items: calculated.map((item) => ({
+          productId: item.product.slug,
+          variantSku: item.variant.sku,
+          kind: item.product.kind,
+          name: item.product.name,
+          unitPriceKurus: item.unitPriceKurus,
+          quantity: item.quantity,
+          configuration: item.configuration || {},
+        })),
+        form: {
+          recipientName: body.customer.name.trim(),
+          email: normalizedEmail,
+          phone: body.customer.phone,
+          addressLine: shipping.addressLine,
+          district: shipping.district,
+          city: shipping.city,
+          postalCode: shipping.postalCode || "",
+          deliveryNote: shipping.deliveryNote || "",
+          latitude: shipping.latitude,
+          longitude: shipping.longitude,
+          companyName: company?.name || "",
+          companyTaxNumber: company?.taxNumber || "",
+          companyTaxOffice: company?.taxOffice || "",
+        },
+      },
+    }, { onConflict: "order_id" });
+    if (resumeSessionError) {
+      console.error("checkout resume snapshot could not be persisted", {
+        orderId: order.id,
+        message: resumeSessionError.message,
+      });
     }
 
     const { data: openAttempt } = await admin

@@ -57,3 +57,25 @@ export async function rejectPaymentRecoverFlood(request: NextRequest) {
   );
 }
 
+export async function rejectPhysicalCardRecoveryFlood(request: NextRequest) {
+  const quota = await consumeDistributedRateLimit({
+    key: `physical-card-recovery-ip:${requestIp(request.headers)}`,
+    limit: 5,
+    windowMs: 60 * 60 * 1000,
+    failClosed: true,
+  });
+  if (quota.allowed) return null;
+  return NextResponse.json(
+    publicError("RATE_LIMITED", { message: "Çok fazla kart kurtarma isteği gönderildi. Lütfen daha sonra tekrar deneyin." }),
+    { status: quota.unavailable ? 503 : 429 },
+  );
+}
+
+export async function allowPhysicalCardRecoveryOrder(orderId: string) {
+  return consumeDistributedRateLimit({
+    key: `physical-card-recovery-order:${orderId}`,
+    limit: 1,
+    windowMs: 10 * 60 * 1000,
+    failClosed: true,
+  });
+}

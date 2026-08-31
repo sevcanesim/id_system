@@ -3,6 +3,8 @@ import { normalizeOrganizationRole, type OrganizationRole } from "../../../lib/o
 
 export type SidebarRole = OrganizationRole | "HR_MANAGER";
 export type SidebarScope = "individual" | "corporate";
+export type SidebarAvailability = "enabled" | "disabled" | "hidden";
+export type SidebarSectionStatusMap = Partial<Record<string, SidebarAvailability>>;
 
 export type SidebarConfigItem = {
   key: string;
@@ -11,6 +13,8 @@ export type SidebarConfigItem = {
   icon: IconName;
   group?: string;
   activeWhen?: string[];
+  /** Özelliğin navigasyondaki kullanılabilirliği. Route aktifliğiyle karıştırılmamalıdır. */
+  status?: SidebarAvailability;
   /** UI görünürlüğü; server authorization bunun yerine geçmez. */
   roles?: readonly SidebarRole[];
 };
@@ -54,7 +58,6 @@ function sidebarRoleAllowed(itemRoles: readonly SidebarRole[] | undefined, role?
   const normalized = normalizeSidebarRole(role);
   if (!normalized) return false;
   if (itemRoles.includes(normalized)) return true;
-  // Persisted DB role is HR; some nav configs still list the HR_MANAGER UI alias.
   return normalized === "HR" && itemRoles.includes("HR_MANAGER");
 }
 

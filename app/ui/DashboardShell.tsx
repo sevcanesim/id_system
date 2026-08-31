@@ -131,9 +131,11 @@ export default function DashboardShell({
         labelledBy={menuButtonId}
         subtitle="Kimlik Stüdyosu"
         brandHref="/kartlarim"
+        className={portal === "individual" ? "canonical-panel-sidebar--individual" : undefined}
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
         activeKey={calculatedActiveKey}
+        collapsibleGroups={portal !== "individual"}
         storageKey="yenomi:individual-sidebar:collapsed"
         items={INDIVIDUAL_SIDEBAR_CONFIG.map<SidebarNavItem>((item) => ({
           ...item,
@@ -200,4 +202,3 @@ export default function DashboardShell({
     </main>
   );
 }
-

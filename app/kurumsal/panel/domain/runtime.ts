@@ -1,6 +1,36 @@
 const INITIAL_PANEL_LOAD_TIMEOUT_MS = 12_000;
 const PANEL_REQUEST_TIMEOUT_MS = 10_000;
 
+type PanelRequestLease = {
+  signal: AbortSignal;
+  isCurrent: () => boolean;
+};
+
+export function createPanelRequestScope() {
+  let revision = 0;
+  let controller: AbortController | null = null;
+
+  function begin(): PanelRequestLease {
+    revision += 1;
+    controller?.abort();
+    controller = new AbortController();
+    const requestRevision = revision;
+
+    return {
+      signal: controller.signal,
+      isCurrent: () => requestRevision === revision && !controller?.signal.aborted,
+    };
+  }
+
+  function cancel() {
+    revision += 1;
+    controller?.abort();
+    controller = null;
+  }
+
+  return { begin, cancel };
+}
+
 export async function fetchWithPanelTimeout(
   input: RequestInfo | URL,
   init: RequestInit = {},

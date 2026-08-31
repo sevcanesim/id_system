@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CorporateLink, LinkVersion } from "../domain/types";
-import { fetchWithPanelTimeout } from "../domain/runtime";
+import { createPanelRequestScope, fetchWithPanelTimeout } from "../domain/runtime";
 
 export function useCorporateLinks(
   selectedOrganizationId: string,
@@ -12,6 +12,9 @@ export function useCorporateLinks(
   const [linkUrlDraft, setLinkUrlDraft] = useState<Record<string, string>>({});
   const [linkScheduleDraft, setLinkScheduleDraft] = useState<Record<string, string>>({});
   const [linkBusyKind, setLinkBusyKind] = useState<string | null>(null);
+  const linksRequestScope = useRef(createPanelRequestScope());
+
+  useEffect(() => () => linksRequestScope.current.cancel(), []);
 
   function scheduledPublishAt(kind: string) {
     const value = linkScheduleDraft[kind];
@@ -21,19 +24,32 @@ export function useCorporateLinks(
   }
 
   async function loadCorporateLinks(organizationId: string, accessToken?: string) {
+    const request = linksRequestScope.current.begin();
     const bearer = accessToken || (await getAccessToken());
-    if (!bearer) return;
+    if (!bearer || !request.isCurrent()) return;
 
-    const response = await fetchWithPanelTimeout(
-      `/api/organizations/links?organizationId=${encodeURIComponent(organizationId)}`,
-      { headers: { authorization: `Bearer ${bearer}` }, cache: "no-store" },
-    );
-    const payload = await response.json();
-    if (response.ok) {
-      setCorporateLinks(payload.links || []);
-      setLinkVersions(payload.versions || []);
-    } else {
-      setMessage(payload.error || "Kurumsal içerikler yüklenemedi.");
+    try {
+      const response = await fetchWithPanelTimeout(
+        `/api/organizations/links?organizationId=${encodeURIComponent(organizationId)}`,
+        {
+          headers: { authorization: `Bearer ${bearer}` },
+          cache: "no-store",
+          signal: request.signal,
+        },
+      );
+      const payload = await response.json();
+      if (!request.isCurrent()) return;
+
+      if (response.ok) {
+        setCorporateLinks(payload.links || []);
+        setLinkVersions(payload.versions || []);
+      } else {
+        setMessage(payload.error || "Kurumsal içerikler yüklenemedi.");
+      }
+    } catch (error) {
+      if (request.isCurrent() && !(error instanceof DOMException && error.name === "AbortError")) {
+        setMessage("Kurumsal içerikler yüklenemedi.");
+      }
     }
   }
 

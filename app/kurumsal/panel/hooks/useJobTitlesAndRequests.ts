@@ -1,17 +1,10 @@
-// No "use client" directive here: this hook is only ever imported by
-// CorporatePanelClient.tsx, which is already a client boundary. Adding a
-// second directive here would grow the repo's explicit-client-boundary
-// count without adding a real module boundary (see verify:faz9:freeze).
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import type { JobTitleOption, TitleRequest } from "../domain/types";
+import { fetchWithPanelTimeout } from "../domain/runtime";
 
-// Extracted from CorporatePanelClient (Faz 10 decomposition, batch 1).
-// Owns the "job titles" + "title change requests" domain: state, loads and
-// mutations. Behavior is unchanged from the inline implementation it
-// replaces — only the ownership boundary moved.
 export function useJobTitlesAndRequests(
-  selected: string,
-  token: () => Promise<string | null>,
+  selectedOrganizationId: string,
+  getAccessToken: () => Promise<string | null>,
   setMessage: (message: string) => void,
 ) {
   const [jobTitles, setJobTitles] = useState<JobTitleOption[]>([]);
@@ -19,49 +12,83 @@ export function useJobTitlesAndRequests(
   const [jobTitleBusy, setJobTitleBusy] = useState(false);
   const [titleRequests, setTitleRequests] = useState<TitleRequest[]>([]);
   const [titleRequestBusyId, setTitleRequestBusyId] = useState<string | null>(null);
+  const jobTitlesLoadId = useRef(0);
+  const titleRequestsLoadId = useRef(0);
 
-  async function loadJobTitles(id: string, access?: string) {
-    const bearer = access || (await token());
-    if (!bearer) return;
-    const response = await fetch(`/api/organizations/job-titles?organizationId=${id}`, {
-      headers: { authorization: `Bearer ${bearer}` },
-    });
-    const data = await response.json();
-    if (response.ok) setJobTitles(data.titles || []);
+  async function requireAccessToken() {
+    const accessToken = await getAccessToken();
+    if (!accessToken) setMessage("Oturum süresi dolmuş. Lütfen yeniden giriş yap.");
+    return accessToken;
   }
 
-  async function loadTitleRequests(id: string, access?: string) {
-    const bearer = access || (await token());
-    if (!bearer) return;
-    const response = await fetch(`/api/organizations/title-requests?organizationId=${id}`, {
-      headers: { authorization: `Bearer ${bearer}` },
-    });
-    const data = await response.json();
-    if (response.ok) setTitleRequests(data.requests || []);
+  async function loadJobTitles(organizationId: string, accessToken?: string) {
+    const loadId = ++jobTitlesLoadId.current;
+    const bearer = accessToken || (await getAccessToken());
+    if (!bearer || loadId !== jobTitlesLoadId.current) return;
+
+    try {
+      const response = await fetchWithPanelTimeout(
+        `/api/organizations/job-titles?organizationId=${encodeURIComponent(organizationId)}`,
+        { headers: { authorization: `Bearer ${bearer}` }, cache: "no-store" },
+      );
+      const payload = await response.json();
+      if (loadId !== jobTitlesLoadId.current) return;
+
+      if (response.ok) setJobTitles(payload.titles || []);
+      else setMessage(payload.error || "Pozisyonlar yüklenemedi.");
+    } catch {
+      if (loadId === jobTitlesLoadId.current) setMessage("Pozisyonlar yüklenemedi.");
+    }
+  }
+
+  async function loadTitleRequests(organizationId: string, accessToken?: string) {
+    const loadId = ++titleRequestsLoadId.current;
+    const bearer = accessToken || (await getAccessToken());
+    if (!bearer || loadId !== titleRequestsLoadId.current) return;
+
+    try {
+      const response = await fetchWithPanelTimeout(
+        `/api/organizations/title-requests?organizationId=${encodeURIComponent(organizationId)}`,
+        { headers: { authorization: `Bearer ${bearer}` }, cache: "no-store" },
+      );
+      const payload = await response.json();
+      if (loadId !== titleRequestsLoadId.current) return;
+
+      if (response.ok) setTitleRequests(payload.requests || []);
+      else setMessage(payload.error || "Pozisyon talepleri yüklenemedi.");
+    } catch {
+      if (loadId === titleRequestsLoadId.current) setMessage("Pozisyon talepleri yüklenemedi.");
+    }
   }
 
   async function addJobTitle(event: FormEvent) {
     event.preventDefault();
     const title = newJobTitle.trim();
-    if (title.length < 2 || !selected) return;
+    if (title.length < 2 || !selectedOrganizationId) return;
+
     setJobTitleBusy(true);
     try {
-      const access = await token();
-      const response = await fetch("/api/organizations/job-titles", {
+      const accessToken = await requireAccessToken();
+      if (!accessToken) return;
+
+      const response = await fetchWithPanelTimeout("/api/organizations/job-titles", {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          authorization: `Bearer ${access}`,
+          authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ organizationId: selected, title }),
+        body: JSON.stringify({ organizationId: selectedOrganizationId, title }),
       });
-      const data = await response.json();
-      if (response.ok) {
-        setJobTitles((current) =>
-          [...current, data.title].sort((a, b) => a.title.localeCompare(b.title, "tr")),
-        );
-        setNewJobTitle("");
-      } else setMessage(data.error || "Pozisyon eklenemedi.");
+      const payload = await response.json();
+      if (!response.ok) {
+        setMessage(payload.error || "Pozisyon eklenemedi.");
+        return;
+      }
+
+      setJobTitles((current) =>
+        [...current, payload.title].sort((a, b) => a.title.localeCompare(b.title, "tr")),
+      );
+      setNewJobTitle("");
     } catch {
       setMessage("Pozisyon eklenemedi.");
     } finally {
@@ -69,25 +96,30 @@ export function useJobTitlesAndRequests(
     }
   }
 
-  async function removeJobTitle(id: string) {
-    if (!selected) return;
+  async function removeJobTitle(jobTitleId: string) {
+    if (!selectedOrganizationId) return;
+
     setJobTitleBusy(true);
     try {
-      const access = await token();
-      const response = await fetch("/api/organizations/job-titles", {
+      const accessToken = await requireAccessToken();
+      if (!accessToken) return;
+
+      const response = await fetchWithPanelTimeout("/api/organizations/job-titles", {
         method: "DELETE",
         headers: {
           "content-type": "application/json",
-          authorization: `Bearer ${access}`,
+          authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ organizationId: selected, id }),
+        body: JSON.stringify({ organizationId: selectedOrganizationId, id: jobTitleId }),
       });
+
       if (response.ok) {
-        setJobTitles((current) => current.filter((item) => item.id !== id));
-      } else {
-        const data = await response.json().catch(() => null);
-        setMessage(data?.error || "Pozisyon kaldırılamadı.");
+        setJobTitles((current) => current.filter((jobTitle) => jobTitle.id !== jobTitleId));
+        return;
       }
+
+      const payload = await response.json().catch(() => null);
+      setMessage(payload?.error || "Pozisyon kaldırılamadı.");
     } catch {
       setMessage("Pozisyon kaldırılamadı.");
     } finally {
@@ -98,20 +130,27 @@ export function useJobTitlesAndRequests(
   async function resolveTitleRequest(requestId: string, approve: boolean) {
     setTitleRequestBusyId(requestId);
     try {
-      const access = await token();
-      const response = await fetch("/api/organizations/title-requests", {
+      const accessToken = await requireAccessToken();
+      if (!accessToken) return;
+
+      const response = await fetchWithPanelTimeout("/api/organizations/title-requests", {
         method: "PATCH",
         headers: {
           "content-type": "application/json",
-          authorization: `Bearer ${access}`,
+          authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({ requestId, approve }),
       });
-      const data = await response.json();
-      if (response.ok) {
-        setTitleRequests((current) => current.filter((item) => item.id !== requestId));
-        if (approve && selected) await loadJobTitles(selected, access || undefined);
-      } else setMessage(data.error || "Talep işlenemedi.");
+      const payload = await response.json();
+      if (!response.ok) {
+        setMessage(payload.error || "Talep işlenemedi.");
+        return;
+      }
+
+      setTitleRequests((current) => current.filter((request) => request.id !== requestId));
+      if (approve && selectedOrganizationId) {
+        await loadJobTitles(selectedOrganizationId, accessToken);
+      }
     } catch {
       setMessage("Talep işlenemedi.");
     } finally {

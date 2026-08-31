@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Icon } from "../icons";
 import { INDIVIDUAL_SIDEBAR_CONFIG, groupSidebarItems } from "./ui/sidebar-config";
 
@@ -13,8 +13,6 @@ export type IndividualSidebarProps = {
   onSignOut?: () => void;
   open?: boolean;
   onClose?: () => void;
-  collapsible?: boolean;
-  storageKey?: string;
 };
 
 export default function IndividualSidebar({
@@ -24,15 +22,11 @@ export default function IndividualSidebar({
   onSignOut,
   open = false,
   onClose,
-  collapsible = true,
-  storageKey = "yenomi:individual-sidebar:collapsed",
 }: IndividualSidebarProps) {
   const pathname = usePathname();
-  const generatedId = useId();
-  const sidebarId = id || `individual-sidebar-${generatedId.replace(/:/g, "")}`;
+  const sidebarId = id || "individual-sidebar";
   const sidebarRef = useRef<HTMLElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
-  const [collapsed, setCollapsed] = useState(false);
 
   const items = INDIVIDUAL_SIDEBAR_CONFIG.filter(
     (item) => !(item.key === "subscription" && hasCorporateSubscription),
@@ -41,22 +35,6 @@ export default function IndividualSidebar({
   const activeKey = items.find(
     (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
   )?.key;
-
-  useEffect(() => {
-    if (!collapsible) return;
-    try {
-      setCollapsed(window.localStorage.getItem(storageKey) === "1");
-    } catch {}
-  }, [collapsible, storageKey]);
-
-  function toggleCollapse() {
-    const next = !collapsed;
-    setCollapsed(next);
-    if (!collapsible) return;
-    try {
-      window.localStorage.setItem(storageKey, next ? "1" : "0");
-    } catch {}
-  }
 
   useEffect(() => {
     if (!open) return;
@@ -107,9 +85,8 @@ export default function IndividualSidebar({
       <aside
         ref={sidebarRef}
         id={sidebarId}
-        className={`id-sidebar id-sidebar--individual ${collapsed ? "id-sidebar--collapsed" : ""} ${open ? "id-sidebar--mobile-open" : ""}`.trim()}
+        className={`id-sidebar id-sidebar--individual ${open ? "id-sidebar--mobile-open" : ""}`.trim()}
         aria-label="Bireysel hesap menüsü"
-        data-collapsed={collapsed || undefined}
         data-open={open || undefined}
       >
         <button type="button" className="id-sidebar__mobile-close" aria-label="Menüyü kapat" onClick={onClose}>
@@ -142,7 +119,6 @@ export default function IndividualSidebar({
                       className={`id-sidebar__link ${isActive ? "id-sidebar__link--active" : ""}`}
                       aria-current={isActive ? "page" : undefined}
                       onClick={onClose}
-                      title={collapsed ? item.label : undefined}
                     >
                       <span className="id-sidebar__icon" aria-hidden="true"><Icon name={item.icon} /></span>
                       <span className="id-sidebar__label">{item.label}</span>
@@ -187,20 +163,6 @@ export default function IndividualSidebar({
             ) : null}
           </div>
         </div>
-
-        {collapsible ? (
-          <button
-            type="button"
-            className="id-sidebar__collapse"
-            aria-label={collapsed ? "Menüyü genişlet" : "Menüyü daralt"}
-            aria-expanded={!collapsed}
-            title={collapsed ? "Menüyü genişlet" : "Menüyü daralt"}
-            onClick={toggleCollapse}
-          >
-            <Icon name={collapsed ? "chevronRight" : "chevronLeft"} />
-            <span className="id-sidebar__collapse-label">{collapsed ? "Genişlet" : "Daralt"}</span>
-          </button>
-        ) : null}
       </aside>
     </>
   );

@@ -22,7 +22,6 @@ export type SidebarNavClassNames = {
   nav: string;
   section?: string;
   sectionItems?: string;
-  entry?: string;
   link?: string;
   icon?: string;
   label?: string;
@@ -155,10 +154,10 @@ export default function SidebarNav({
                   <Icon name="chevronDown" />
                 </button>
               ) : (
-                <div className={`${classNames.group} enterprise-nav-group-label`}>
-                  <span>{group.name}</span>
+                <span className={classNames.group}>
+                  {group.name}
                   {sectionState !== "visible" ? <small className="enterprise-nav-group-status">Pasif</small> : null}
-                </div>
+                </span>
               )
             ) : null}
             <div
@@ -172,39 +171,32 @@ export default function SidebarNav({
                 const isCurrent = !disabled && item.key === activeKey;
                 const disabledReason = sectionDisabled ? "Bu bölüm şu anda kullanılamıyor." : item.disabledReason;
                 return (
-                  <div
+                  <Link
                     key={item.key}
+                    href={item.href}
+                    aria-current={isCurrent ? "page" : undefined}
+                    aria-disabled={disabled || undefined}
+                    tabIndex={disabled ? -1 : undefined}
+                    title={disabled ? disabledReason : undefined}
+                    data-availability={disabled ? "disabled" : itemAvailability}
                     className={[
-                      classNames.entry,
+                      classNames.link,
+                      isCurrent ? classNames.active : "",
                       disabled ? "is-disabled" : "",
                     ].filter(Boolean).join(" ") || undefined}
-                    data-availability={disabled ? "disabled" : itemAvailability}
+                    onClick={(event) => {
+                      if (disabled) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        return;
+                      }
+                      onNavigate?.(item, event);
+                      if (!event.defaultPrevented && event.detail > 0) event.currentTarget.blur();
+                    }}
                   >
-                    <Link
-                      href={item.href}
-                      aria-current={isCurrent ? "page" : undefined}
-                      aria-disabled={disabled || undefined}
-                      tabIndex={disabled ? -1 : undefined}
-                      title={disabled ? disabledReason : undefined}
-                      className={[
-                        classNames.link,
-                        isCurrent ? classNames.active : "",
-                        disabled ? "is-disabled" : "",
-                      ].filter(Boolean).join(" ") || undefined}
-                      onClick={(event) => {
-                        if (disabled) {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          return;
-                        }
-                        onNavigate?.(item, event);
-                        if (!event.defaultPrevented && event.detail > 0) event.currentTarget.blur();
-                      }}
-                    >
-                      <span className={classNames.icon} aria-hidden="true"><Icon name={item.icon} /></span>
-                      <span className={classNames.label}>{item.label}</span>
-                    </Link>
-                  </div>
+                    <span className={classNames.icon} aria-hidden="true"><Icon name={item.icon} /></span>
+                    <span className={classNames.label}>{item.label}</span>
+                  </Link>
                 );
               })}
             </div>

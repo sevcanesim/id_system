@@ -14,6 +14,11 @@ export type Org = {
     expires_at: string | null;
     business_plans: { name: string; code: string } | null;
   }>;
+  organization_entitlements?: {
+    organization_id: string;
+    mail_credit_limit: number;
+    mail_credits_remaining: number;
+  } | null;
 };
 
 import type { DigitalProfileState, InvitationState, MemberStatus, PhysicalCardStatus } from "../../../../lib/organizations/lifecycle";

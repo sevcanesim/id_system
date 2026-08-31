@@ -29,33 +29,22 @@ export default function RolesPanel({ members }: { members: RoleMember[] }) {
         <span className="business-role-count">{ROLE_MATRIX_COLUMNS.length} rol</span>
       </header>
 
-      <aside className="business-role-platform">
-        <i><Icon name="lock" /></i>
-        <div>
-          <strong>Super Admin şirket rolü değildir</strong>
-          <p>Platform yönetimi ayrı bir alandır ve şirket içi yetki matrisine dahil edilmez.</p>
-        </div>
-      </aside>
-
       <div className="business-role-summary">
         {ROLE_MATRIX_COLUMNS.map((role) => {
           const count = members.filter((member) => member.role === role && member.status !== "LEFT").length;
           const guide = ROLE_GUIDES[role];
-          const visibleGuide = guide.slice(0, 3);
-          const remaining = Math.max(0, guide.length - visibleGuide.length);
           return (
             <article key={role} className={count === 0 ? "is-empty" : undefined}>
               <div className="business-role-summary__head">
                 <i><Icon name={ROLE_ICONS[role]} /></i>
                 <div>
                   <strong>{ROLE_LABELS[role]}</strong>
-                  <span>{count} {count === 1 ? "kişi" : "kişi"}</span>
+                  <span>{count} kişi</span>
                 </div>
               </div>
               <ul>
-                {visibleGuide.map((line) => <li key={line}>{line}</li>)}
+                {guide.map((line) => <li key={line}>{line}</li>)}
               </ul>
-              {remaining > 0 && <small className="business-role-summary__more">+{remaining} ek yetki</small>}
             </article>
           );
         })}

@@ -5,28 +5,15 @@ import Link from "next/link";
 import { Icon, type IconName } from "../../icons";
 import { groupSidebarItems } from "./sidebar-config";
 
-/**
- * Tek sidebar navigasyon bileşeni.
- *
- * Bireysel panel (AppShell) ve kurumsal panel (CorporatePanelClient) daha
- * önce birbirinden bağımsız, elle yazılmış iki ayrı <nav> bloğuna sahipti.
- * Bu bileşen ikisinin de ortak paylaştığı mantığı — gruplanmış bağlantı
- * listesi, aktif sekme vurgusu ve erişimi olmayan sekmelerin gizlenmesi —
- * tek bir yerde toplar. Her iki panel kendi CSS sınıf adlarını (görsel
- * kimliğini) parametre olarak verir; böylece mevcut stiller ve testler
- * değişmeden, kod tekrarı ortadan kalkar.
- */
+/** Tek sidebar navigasyon bileşeni. */
 export type SidebarNavItem = {
   key: string;
   href: string;
   label: string;
   icon: IconName;
   group?: string;
-  /** Kullanıcının bu sekmeye erişimi yoksa true — sekme listede gösterilmez. */
   hidden?: boolean;
-  /** Alt rotalarda da aktif kalması gereken menüler için rota öneki. */
   activeWhen?: string[];
-  /** UI görünürlüğü; gerçek güvenlik server authorization katmanındadır. */
   roles?: readonly string[];
 };
 
@@ -62,6 +49,7 @@ export default function SidebarNav({
   onNavigate,
   groupStorageKey,
   railCollapsed = false,
+  collapsibleGroups = true,
 }: {
   items: SidebarNavItem[];
   activeKey?: string;
@@ -70,6 +58,7 @@ export default function SidebarNav({
   onNavigate?: (key: string) => void;
   groupStorageKey?: string;
   railCollapsed?: boolean;
+  collapsibleGroups?: boolean;
 }) {
   const navId = useId();
   const visibleItems = items.filter((item) => !item.hidden);
@@ -80,7 +69,7 @@ export default function SidebarNav({
 
   useEffect(() => {
     setHydrated(true);
-    if (!groupStorageKey) return;
+    if (!collapsibleGroups || !groupStorageKey) return;
     try {
       const raw = window.sessionStorage.getItem(groupStorageKey);
       if (!raw) return;
@@ -96,9 +85,10 @@ export default function SidebarNav({
     }
     // Mount + storage key only; group identity is reconciled below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groupStorageKey]);
+  }, [collapsibleGroups, groupStorageKey]);
 
   useEffect(() => {
+    if (!collapsibleGroups) return;
     setOpenGroups((current) => {
       const defaults = defaultOpenGroups(groups, activeKey);
       const next = { ...defaults, ...current };
@@ -110,40 +100,52 @@ export default function SidebarNav({
     });
     // groups is derived from groupSignature; comparing by identity would loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeKey, groupSignature]);
+  }, [activeKey, collapsibleGroups, groupSignature]);
 
   useEffect(() => {
-    if (!hydrated || !groupStorageKey) return;
+    if (!collapsibleGroups || !hydrated || !groupStorageKey) return;
     try {
       window.sessionStorage.setItem(groupStorageKey, JSON.stringify(openGroups));
     } catch {
-      // Kalıcı grup tercihi başarısız olsa da menü çalışmaya devam eder.
+      // Kalıcı grup tercihi başarısız olsa da navigasyon çalışmaya devam eder.
     }
-  }, [groupStorageKey, hydrated, openGroups]);
+  }, [collapsibleGroups, groupStorageKey, hydrated, openGroups]);
 
   function toggleGroup(name: string) {
+    if (!collapsibleGroups) return;
     setOpenGroups((current) => ({ ...current, [name]: !current[name] }));
   }
 
   return (
-    <nav className={classNames.nav} role="navigation" aria-label={ariaLabel}>
+    <nav
+      className={classNames.nav}
+      role="navigation"
+      aria-label={ariaLabel}
+      style={collapsibleGroups ? undefined : { alignContent: "start" }}
+    >
       {groups.map((group, index) => {
         const named = Boolean(group.name);
-        const isOpen = !named || railCollapsed || Boolean(openGroups[group.name]);
+        const isOpen = !named || !collapsibleGroups || railCollapsed || Boolean(openGroups[group.name]);
         const groupDomId = `${navId.replace(/:/g, "")}-group-${index}`;
         return (
           <div key={group.name || `ungrouped-${index}`} className="enterprise-nav-group">
             {named ? (
-              <button
-                type="button"
-                className={`${classNames.group} enterprise-nav-group-toggle`}
-                aria-expanded={isOpen}
-                aria-controls={groupDomId}
-                onClick={() => toggleGroup(group.name)}
-              >
-                <span>{group.name}</span>
-                <Icon name="chevronDown" />
-              </button>
+              collapsibleGroups ? (
+                <button
+                  type="button"
+                  className={`${classNames.group} enterprise-nav-group-toggle`}
+                  aria-expanded={isOpen}
+                  aria-controls={groupDomId}
+                  onClick={() => toggleGroup(group.name)}
+                >
+                  <span>{group.name}</span>
+                  <Icon name="chevronDown" />
+                </button>
+              ) : (
+                <div className={`${classNames.group} enterprise-nav-group-label`}>
+                  <span>{group.name}</span>
+                </div>
+              )
             ) : null}
             <div
               id={named ? groupDomId : undefined}

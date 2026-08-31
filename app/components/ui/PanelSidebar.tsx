@@ -22,6 +22,7 @@ export default function PanelSidebar({
   children,
   loading = false,
   collapsible = true,
+  collapsibleGroups = true,
   storageKey,
 }: {
   ariaLabel: string;
@@ -33,16 +34,15 @@ export default function PanelSidebar({
   onNavigate?: (key: string) => void;
   brandHref?: string;
   onBrandClick?: () => void;
-  /** Var olan çağrı yerlerine ek CSS kancası (ör. eski test/stil bağımlılıkları) eklemek için. */
   className?: string;
   id?: string;
-  /** Mobil menü düğmesinin id'si; drawer ile tetikleyiciyi erişilebilir biçimde bağlar. */
   labelledBy?: string;
   children?: ReactNode;
-  /** Yetki verisi çözülene kadar menü öğelerinin layout'unu sabit tutar. */
   loading?: boolean;
   /** Masaüstü sidebar daraltmasını kalıcı hale getirir. */
   collapsible?: boolean;
+  /** Uzun kurumsal menüler accordion kalabilir; kısa bireysel menüler statik gruplanır. */
+  collapsibleGroups?: boolean;
   storageKey?: string;
 }) {
   const generatedId = useId();
@@ -108,43 +108,44 @@ export default function PanelSidebar({
   return <>
     {open && <button type="button" className="enterprise-mobile-drawer-backdrop canonical-sidebar-backdrop" aria-label="Menüyü kapat" onClick={onClose} />}
     <aside ref={sidebarRef} id={sidebarId} className={`enterprise-sidebar canonical-panel-sidebar ${collapsed ? "is-collapsed" : ""} ${className || ""} ${open ? "is-mobile-open" : ""}`.trim().replace(/\s+/g, " ")} aria-label={ariaLabel} aria-labelledby={labelledBy} data-open={open || undefined} data-collapsed={collapsed || undefined}>
-    <button type="button" className="enterprise-sidebar-mobile-close" aria-label="Menüyü kapat" onClick={onClose}><Icon name="close" /></button>
-    {brandHref
-      ? <Link href={brandHref} className="enterprise-side-brand enterprise-yenomi-brand" onClick={onClose}>{brand}</Link>
-      : <button type="button" className="enterprise-side-brand enterprise-brand-button enterprise-yenomi-brand" onClick={onBrandClick}>{brand}</button>}
-    {loading ? (
-      <nav className="enterprise-canonical-nav enterprise-canonical-nav--loading" aria-label={ariaLabel} aria-busy="true">
-        <p className="enterprise-nav-loading-note">Menü yükleniyor…</p>
-        {Array.from({ length: 5 }).map((_, index) => (
-          <span key={index} className="enterprise-nav-loading-row" aria-hidden="true">
-            <i />
-            <span />
-          </span>
-        ))}
-      </nav>
-    ) : (
-      <SidebarNav
-        ariaLabel={ariaLabel}
-        activeKey={activeKey}
-        classNames={{ nav: "enterprise-canonical-nav", entry: "enterprise-nav-entry", group: "enterprise-side-section-title", active: "active" }}
-        onNavigate={(key) => { onNavigate?.(key); onClose(); }}
-        items={items}
-        railCollapsed={collapsed}
-        groupStorageKey={`${collapseStorageKey}:groups`}
-      />
-    )}
-    {children ? <div className="enterprise-sidebar-footer">{children}</div> : null}
-    {collapsible && <button
-      type="button"
-      className="enterprise-sidebar-collapse"
-      aria-label={collapsed ? "Menüyü genişlet" : "Menüyü daralt"}
-      aria-expanded={!collapsed}
-      title={collapsed ? "Menüyü genişlet" : "Menüyü daralt"}
-      onClick={() => setCollapsed((value) => !value)}
-    >
-      <Icon name={collapsed ? "chevronRight" : "chevronLeft"} />
-      <span>{collapsed ? "Genişlet" : "Daralt"}</span>
-    </button>}
-  </aside>
+      <button type="button" className="enterprise-sidebar-mobile-close" aria-label="Menüyü kapat" onClick={onClose}><Icon name="close" /></button>
+      {brandHref
+        ? <Link href={brandHref} className="enterprise-side-brand enterprise-yenomi-brand" onClick={onClose}>{brand}</Link>
+        : <button type="button" className="enterprise-side-brand enterprise-brand-button enterprise-yenomi-brand" onClick={onBrandClick}>{brand}</button>}
+      {loading ? (
+        <nav className="enterprise-canonical-nav enterprise-canonical-nav--loading" aria-label={ariaLabel} aria-busy="true">
+          <p className="enterprise-nav-loading-note">Menü yükleniyor…</p>
+          {Array.from({ length: 5 }).map((_, index) => (
+            <span key={index} className="enterprise-nav-loading-row" aria-hidden="true">
+              <i />
+              <span />
+            </span>
+          ))}
+        </nav>
+      ) : (
+        <SidebarNav
+          ariaLabel={ariaLabel}
+          activeKey={activeKey}
+          classNames={{ nav: "enterprise-canonical-nav", entry: "enterprise-nav-entry", group: "enterprise-side-section-title", active: "active" }}
+          onNavigate={(key) => { onNavigate?.(key); onClose(); }}
+          items={items}
+          railCollapsed={collapsed}
+          collapsibleGroups={collapsibleGroups}
+          groupStorageKey={collapsibleGroups ? `${collapseStorageKey}:groups` : undefined}
+        />
+      )}
+      {children ? <div className="enterprise-sidebar-footer">{children}</div> : null}
+      {collapsible && <button
+        type="button"
+        className="enterprise-sidebar-collapse"
+        aria-label={collapsed ? "Menüyü genişlet" : "Menüyü daralt"}
+        aria-expanded={!collapsed}
+        title={collapsed ? "Menüyü genişlet" : "Menüyü daralt"}
+        onClick={() => setCollapsed((value) => !value)}
+      >
+        <Icon name={collapsed ? "chevronRight" : "chevronLeft"} />
+        <span>{collapsed ? "Genişlet" : "Daralt"}</span>
+      </button>}
+    </aside>
   </>;
 }

@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { corporatePanelNavItems, getCorporateSidebarActiveKey } from "./domain/navigation";
 import UnifiedSidebar from "../../components/ui/UnifiedSidebar";
 import SidebarAccountFooter from "../../components/ui/SidebarAccountFooter";
-import { resolveSidebarItems, type SidebarAvailability } from "../../components/ui/sidebar-state";
+import { resolveSidebarItems, type SidebarAvailability, type SidebarSectionAvailabilityMap } from "../../components/ui/sidebar-state";
 import { useUnsavedChanges } from "../../components/UnsavedChangesContext";
 
 export type IDSidebarProps = {
@@ -27,6 +27,7 @@ export type IDSidebarProps = {
   onClose?: () => void;
   loading?: boolean;
   itemAvailability?: Partial<Record<string, SidebarAvailability>>;
+  sectionAvailability?: SidebarSectionAvailabilityMap;
 };
 
 const ROLE_LABELS: Record<string, string> = {
@@ -47,6 +48,7 @@ export default function IDSidebar({
   onClose,
   loading = false,
   itemAvailability,
+  sectionAvailability,
 }: IDSidebarProps) {
   const pathname = usePathname();
   const close = onClose ?? (() => {});
@@ -56,6 +58,7 @@ export default function IDSidebar({
     scope: "corporate",
     role,
     itemAvailability,
+    sectionAvailability,
   });
 
   const accountName = user?.full_name?.trim() || "Kurumsal Hesap";
@@ -73,12 +76,14 @@ export default function IDSidebar({
       ariaLabel="Kurumsal yönetim menüsü"
       subtitle="Kurumsal Panel"
       brandHref="/kurumsal/panel"
+      onBrandNavigate={(event) => guardLinkClick(event, "/kurumsal/panel")}
       items={items}
       activeKey={activeKey}
       open={open}
       onClose={close}
       loading={loading}
       className="id-sidebar--corporate"
+      sectionAvailability={sectionAvailability}
       onNavigate={(item, event) => guardLinkClick(event, item.href)}
       footer={
         <SidebarAccountFooter

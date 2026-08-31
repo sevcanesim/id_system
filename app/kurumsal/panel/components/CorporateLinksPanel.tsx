@@ -223,7 +223,7 @@ export default function CorporateLinksPanel({
                   {link.configured && (
                     <div className="corp-link-toolbar">
                       <Button type="button" variant={link.isPublished ? "secondary" : "primary"} disabled={busy} onClick={() => void onTogglePublication(link.kind, !link.isPublished)}>{link.isPublished ? "Taslağa Al" : "Yayınla"}</Button>
-                      <Button type="button" variant="destructive" disabled={busy} onClick={() => { if (!window.confirm(`${link.label} içeriğini silmek bu alanı karttan kaldırır. Devam edilsin mi?`)) return; void onRemove(link.kind); }}>Sil</Button>
+                      <Button type="button" variant="secondary" disabled={busy} onClick={() => { if (!window.confirm(`${link.label} karttan kaldırılsın mı? İçerik sürüm geçmişinde korunur.`)) return; void onRemove(link.kind); }}>Karttan kaldır</Button>
                     </div>
                   )}
                 </div>

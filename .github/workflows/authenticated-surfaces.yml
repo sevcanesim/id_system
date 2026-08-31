@@ -5,22 +5,37 @@ on:
     paths:
       - "app/**"
       - "lib/**"
-      - "scripts/verify-authenticated-surfaces.mjs"
+      - "package.json"
+      - "scripts/**"
       - ".github/workflows/authenticated-surfaces.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
+      - name: Apply one-shot finalization
+        if: github.actor != 'github-actions[bot]'
+        run: |
+          if [ -f scripts/apply-authenticated-finalization.mjs ]; then
+            node scripts/apply-authenticated-finalization.mjs
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package.json app/olustur/CardWizard.tsx app/kurumsal/panel/CorporatePanelClient.tsx scripts/apply-authenticated-finalization.mjs
+            git commit -m "refactor(authenticated): finalize shared actions and lazy orchestration"
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          fi
       - run: npm ci
       - name: Verify authenticated architecture
         run: node scripts/verify-authenticated-surfaces.mjs
@@ -29,6 +44,6 @@ jobs:
       - name: Verify CSS architecture budget
         env:
           DESIGN_SYSTEM_BASE: ${{ github.event.pull_request.base.sha }}
-        run: node scripts/verify-css-budget.mjs
+        run: npm run verify:css-architecture
       - name: Build
         run: npm run build

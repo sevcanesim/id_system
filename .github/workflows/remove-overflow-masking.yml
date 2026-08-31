@@ -18,7 +18,7 @@ jobs:
         with:
           ref: refactor/master-responsive-zero-regression
           fetch-depth: 0
-      - name: Remove top-level overflow masking only
+      - name: Remove verified top-level corporate overflow masking
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -34,26 +34,12 @@ jobs:
               raise SystemExit(f'Expected production mask pattern missing: {old!r}')
             source = source.replace(old, new, 1)
           production.write_text(source)
-
-          final = Path('app/styles/canonical-responsive-final.css')
-          final_source = final.read_text()
-          candidates = [
-            '.public-site main{overflow-x:clip;}',
-            '.public-site main {overflow-x:clip;}',
-            '.public-site main { overflow-x:clip;}',
-            '.public-site main { overflow-x: clip; }',
-          ]
-          matched = next((candidate for candidate in candidates if candidate in final_source), None)
-          if not matched:
-            raise SystemExit('Expected .public-site main overflow-x clip rule missing')
-          final_source = final_source.replace(matched, '', 1)
-          final.write_text(final_source)
           PY
       - name: Commit root-cause visibility cleanup and remove one-shot workflow
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm .github/workflows/remove-overflow-masking.yml
-          git add app/styles/canonical-responsive-production.css app/styles/canonical-responsive-final.css
-          git commit -m "fix(responsive): expose document overflow at its source"
+          git add app/styles/canonical-responsive-production.css
+          git commit -m "fix(responsive): expose corporate document overflow at its source"
           git push origin HEAD:refactor/master-responsive-zero-regression

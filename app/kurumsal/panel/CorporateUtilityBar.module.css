@@ -1,4 +1,9 @@
 .bar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: calc(var(--space-30) * 2 + var(--space-5));
+  z-index: 45;
   min-height: 72px;
   display: flex;
   align-items: center;
@@ -7,6 +12,10 @@
   padding: 0 24px;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
+}
+
+:global(.enterprise-dashboard-main) {
+  padding-top: 72px;
 }
 
 .account {
@@ -59,5 +68,9 @@
 @media (max-width: 48rem) {
   .bar {
     display: none;
+  }
+
+  :global(.enterprise-dashboard-main) {
+    padding-top: 0;
   }
 }

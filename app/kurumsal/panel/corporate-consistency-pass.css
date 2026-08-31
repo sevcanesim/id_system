@@ -14,189 +14,95 @@
     #fff;
   background-size: 25% 100%, 100% 25%, auto;
 }
-.p10-corporate-platform .p11-analytics .v26-chart-canvas polyline {
-  stroke: #9b7427;
-}
-.p10-corporate-platform .p11-analytics #analyticsArea stop:first-child {
-  stop-color: #b88a31;
-  stop-opacity: .34;
-}
-.p10-corporate-platform .p11-analytics #analyticsArea stop:last-child {
-  stop-color: #b88a31;
-}
-.p10-corporate-platform .p11-analytics .p11-top-card {
-  border-color: rgba(169,129,47,.28);
-  background: linear-gradient(180deg,#fff 0%,#fbf7ee 100%);
-}
-.p10-corporate-platform .p11-analytics .p11-top-card > small {
-  color: #76591f;
-}
-.p10-corporate-platform .p11-analytics .p11-top-card > b {
-  font-variant-numeric: tabular-nums;
-}
+.p10-corporate-platform .p11-analytics .v26-chart-canvas polyline { stroke: #9b7427; }
+.p10-corporate-platform .p11-analytics #analyticsArea stop:first-child { stop-color: #b88a31; stop-opacity: .34; }
+.p10-corporate-platform .p11-analytics #analyticsArea stop:last-child { stop-color: #b88a31; }
+.p10-corporate-platform .p11-analytics .p11-top-card { border-color: rgba(169,129,47,.28); background: linear-gradient(180deg,#fff 0%,#fbf7ee 100%); }
+.p10-corporate-platform .p11-analytics .p11-top-card > small { color: #76591f; }
+.p10-corporate-platform .p11-analytics .p11-top-card > b { font-variant-numeric: tabular-nums; }
 
 /* Organization: operational information should read as one compact system. */
-.p10-corporate-platform .org-structure {
-  display: grid;
-  gap: 18px;
-}
-.p10-corporate-platform .org-structure__summary {
-  gap: 10px;
-}
-.p10-corporate-platform .org-structure__summary article {
-  min-height: 100px;
-  padding: 15px 16px;
-  align-content: center;
-}
-.p10-corporate-platform .org-structure__attention-item {
-  min-height: 58px;
-  padding: 12px 14px;
-}
-.p10-corporate-platform .org-structure__attention-item p {
-  margin: 2px 0 0;
-  line-height: 1.45;
-}
-.p10-corporate-platform .org-structure__table-wrap {
-  overflow: auto;
-  border: 1px solid #e6e2d8;
-  border-radius: 14px;
-  background: #fff;
-}
-.p10-corporate-platform .org-structure__table {
-  min-width: 760px;
-  margin: 0;
-}
-.p10-corporate-platform .org-structure__table th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background: #f8f5ee;
-}
+.p10-corporate-platform .org-structure { display: grid; gap: 18px; }
+.p10-corporate-platform .org-structure__summary { gap: 10px; }
+.p10-corporate-platform .org-structure__summary article { min-height: 100px; padding: 15px 16px; align-content: center; }
+.p10-corporate-platform .org-structure__attention-item { min-height: 58px; padding: 12px 14px; }
+.p10-corporate-platform .org-structure__attention-item p { margin: 2px 0 0; line-height: 1.45; }
+.p10-corporate-platform .org-structure__table-wrap { overflow: auto; border: 1px solid #e6e2d8; border-radius: 14px; background: #fff; }
+.p10-corporate-platform .org-structure__table { min-width: 760px; margin: 0; }
+.p10-corporate-platform .org-structure__table th { position: sticky; top: 0; z-index: 1; background: #f8f5ee; }
 .p10-corporate-platform .org-structure__table td,
-.p10-corporate-platform .org-structure__table th {
-  padding-block: 12px;
-}
-.p10-corporate-platform .org-structure__status > span {
-  white-space: nowrap;
-}
+.p10-corporate-platform .org-structure__table th { padding-block: 12px; }
+.p10-corporate-platform .org-structure__status > span { white-space: nowrap; }
 
-/* Role matrix: remove the oversized presentation-card feeling and prioritize scanability. */
-.p10-corporate-platform .business-role-panel {
-  display: grid;
-  gap: 18px;
-}
-.p10-corporate-platform .business-role-summary {
-  gap: 10px;
-}
-.p10-corporate-platform .business-role-summary > article {
-  min-height: 0;
-  padding: 15px;
-  align-content: start;
-}
-.p10-corporate-platform .business-role-summary__head {
-  margin-bottom: 10px;
-}
-.p10-corporate-platform .business-role-summary ul {
-  display: grid;
-  gap: 5px;
-  margin: 0;
-  padding-left: 16px;
-}
-.p10-corporate-platform .business-role-summary li {
-  color: #655f57;
-  font-size: 12px;
-  line-height: 1.4;
-}
-.p10-corporate-platform .business-role-matrix {
-  max-width: 100%;
-  overflow: auto;
-  border: 1px solid #e6e2d8;
-  border-radius: 14px;
-  background: #fff;
-}
-.p10-corporate-platform .business-role-matrix table {
-  min-width: 860px;
-  margin: 0;
-}
-.p10-corporate-platform .business-role-matrix thead th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: #f5f1e8;
-}
+/* Roles: hierarchy first, details second. */
+.p10-corporate-platform .business-role-panel { display: grid; gap: 20px; }
+.p10-corporate-platform .business-role-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+.p10-corporate-platform .business-role-header > div { min-width: 0; }
+.p10-corporate-platform .business-role-header h2 { margin-bottom: 6px; }
+.p10-corporate-platform .business-role-header p { max-width: 720px; margin: 0; }
+.p10-corporate-platform .business-role-count { flex: 0 0 auto; display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; border: 1px solid #e5ded1; border-radius: 999px; background: #faf8f3; color: #655f57; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.p10-corporate-platform .business-role-platform { min-height: 0; padding: 14px 16px; border: 1px solid #e6e2d8; border-radius: 14px; background: #fbfaf7; }
+.p10-corporate-platform .business-role-platform p { margin: 3px 0 0; color: #706a61; line-height: 1.45; }
+.p10-corporate-platform .business-role-summary { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.p10-corporate-platform .business-role-summary > article { min-width: 0; min-height: 178px; padding: 16px; align-content: start; border-radius: 14px; }
+.p10-corporate-platform .business-role-summary > article.is-empty { background: #fbfaf8; }
+.p10-corporate-platform .business-role-summary__head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.p10-corporate-platform .business-role-summary__head > i { flex: 0 0 auto; }
+.p10-corporate-platform .business-role-summary__head > div { display: grid; gap: 2px; min-width: 0; }
+.p10-corporate-platform .business-role-summary__head strong { overflow: hidden; text-overflow: ellipsis; font-size: 13px; line-height: 1.25; white-space: nowrap; }
+.p10-corporate-platform .business-role-summary__head span { color: #7a746b; font-size: 12px; }
+.p10-corporate-platform .business-role-summary ul { display: grid; gap: 6px; margin: 0; padding-left: 17px; }
+.p10-corporate-platform .business-role-summary li { color: #655f57; font-size: 12px; line-height: 1.45; }
+.p10-corporate-platform .business-role-summary__more { display: block; margin-top: 9px; color: #90702d; font-size: 11px; font-weight: 700; }
+.p10-corporate-platform .business-role-matrix-section { display: grid; gap: 10px; }
+.p10-corporate-platform .business-role-matrix-heading { display: flex; justify-content: space-between; align-items: end; gap: 16px; }
+.p10-corporate-platform .business-role-matrix-heading h3 { margin: 0 0 3px; font-size: 16px; }
+.p10-corporate-platform .business-role-matrix-heading p { margin: 0; color: #716b63; font-size: 12px; }
+.p10-corporate-platform .business-role-matrix-heading > span { color: #8a8379; font-size: 11px; white-space: nowrap; }
+.p10-corporate-platform .business-role-matrix { max-width: 100%; overflow: auto; border: 1px solid #e6e2d8; border-radius: 14px; background: #fff; scrollbar-gutter: stable; }
+.p10-corporate-platform .business-role-matrix table { width: 100%; min-width: 900px; margin: 0; table-layout: fixed; }
 .p10-corporate-platform .business-role-matrix th:first-child,
-.p10-corporate-platform .business-role-matrix td:first-child {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-  background: #fff;
-}
-.p10-corporate-platform .business-role-matrix thead th:first-child {
-  z-index: 3;
-  background: #f5f1e8;
-}
+.p10-corporate-platform .business-role-matrix td:first-child { width: 245px; position: sticky; left: 0; z-index: 1; background: #fff; }
+.p10-corporate-platform .business-role-matrix thead th { position: sticky; top: 0; z-index: 2; background: #f5f1e8; font-size: 11px; line-height: 1.25; }
+.p10-corporate-platform .business-role-matrix thead th:first-child { z-index: 3; background: #f5f1e8; }
 .p10-corporate-platform .business-role-matrix td,
-.p10-corporate-platform .business-role-matrix th {
-  padding-block: 10px;
-}
-.p10-corporate-platform .business-role-security {
-  margin-top: 0;
-}
+.p10-corporate-platform .business-role-matrix th { padding: 10px 12px; }
+.p10-corporate-platform .business-role-matrix tbody td:not(:first-child),
+.p10-corporate-platform .business-role-matrix thead th:not(:first-child) { text-align: center; }
+.p10-corporate-platform .business-role-matrix tbody tr:hover td { background-color: #fcfaf5; }
+.p10-corporate-platform .business-role-matrix tbody tr:hover td:first-child { background-color: #fcfaf5; }
+.p10-corporate-platform .business-role-security { margin-top: 0; padding: 13px 15px; }
+.p10-corporate-platform .business-role-security p { line-height: 1.45; }
 
 /* Card editor: the phone-test QR is a verification utility, not a full-screen poster. */
-.p8-pmodal {
-  width: min(100%, 430px);
-  display: grid;
-  gap: 14px;
-  margin-inline: auto;
-}
-.p8-pmodal > p {
-  margin: 0;
-  color: #655f57;
-  font-size: 13px;
-  line-height: 1.55;
-}
-.p8-pmodal img {
-  width: min(100%, 320px);
-  height: auto;
-  margin-inline: auto;
-  border: 1px solid #e6e2d8;
-  border-radius: 12px;
-  background: #fff;
-}
+.p8-pmodal { width: min(100%, 430px); display: grid; gap: 14px; margin-inline: auto; }
+.p8-pmodal > p { margin: 0; color: #655f57; font-size: 13px; line-height: 1.55; }
+.p8-pmodal img { width: min(100%, 320px); height: auto; margin-inline: auto; border: 1px solid #e6e2d8; border-radius: 12px; background: #fff; }
 .p8-pmodal code,
 .p8-pmodal > span,
-.p8-pmodal > small {
-  max-width: 100%;
-  overflow-wrap: anywhere;
-  color: #716b63;
-  font-size: 11px;
-  text-align: center;
+.p8-pmodal > small { max-width: 100%; overflow-wrap: anywhere; color: #716b63; font-size: 11px; text-align: center; }
+
+.p10-corporate-platform select { min-height: 42px; border-color: #ddd7cc; border-radius: 10px; background-color: #fff; color: #28241f; }
+
+@media (max-width: 1100px) {
+  .p10-corporate-platform .business-role-summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
 
-/* Native control chrome should look intentional when closed. */
-.p10-corporate-platform select {
-  min-height: 42px;
-  border-color: #ddd7cc;
-  border-radius: 10px;
-  background-color: #fff;
-  color: #28241f;
-}
-
-@media (max-width: 900px) {
-  .p10-corporate-platform .business-role-summary {
-    grid-template-columns: repeat(2,minmax(0,1fr));
-  }
+@media (max-width: 760px) {
+  .p10-corporate-platform .business-role-header,
+  .p10-corporate-platform .business-role-matrix-heading { align-items: flex-start; }
+  .p10-corporate-platform .business-role-header { display: grid; gap: 10px; }
+  .p10-corporate-platform .business-role-count { justify-self: start; }
+  .p10-corporate-platform .business-role-matrix table { min-width: 780px; }
+  .p10-corporate-platform .business-role-matrix th:first-child,
+  .p10-corporate-platform .business-role-matrix td:first-child { width: 210px; }
 }
 
 @media (max-width: 620px) {
-  .p10-corporate-platform .business-role-summary {
-    grid-template-columns: 1fr;
-  }
-  .p10-corporate-platform .p11-analytics .v26-chart-canvas {
-    min-height: 210px;
-  }
-  .p8-pmodal img {
-    width: min(100%, 280px);
-  }
+  .p10-corporate-platform .business-role-summary { grid-template-columns: 1fr; }
+  .p10-corporate-platform .business-role-summary > article { min-height: 0; }
+  .p10-corporate-platform .business-role-matrix-heading > span { display: none; }
+  .p10-corporate-platform .business-role-matrix { margin-inline: -2px; }
+  .p10-corporate-platform .p11-analytics .v26-chart-canvas { min-height: 210px; }
+  .p8-pmodal img { width: min(100%, 280px); }
 }

@@ -1,62 +1,63 @@
-/* Canonical public footer rhythm. */
-.public-site .yi-footer--premium {
+/* Canonical public footer rhythm. PublicSiteShell renders the footer as a sibling
+ * of .public-site, so footer selectors must be rooted on the footer itself. */
+.yi-footer--premium {
   padding-block: 0;
 }
 
-.public-site .yi-footer--premium .yi-container {
+.yi-footer--premium .yi-container {
   padding-top: var(--section-space-md);
   padding-bottom: max(var(--space-4), var(--safe-bottom));
 }
 
-.public-site .yi-footer__premium-grid {
+.yi-footer__premium-grid {
   gap: clamp(28px, 4vw, 56px);
   padding-bottom: var(--space-10);
 }
 
-.public-site .yi-footer__premium-brand p {
+.yi-footer__premium-brand p {
   margin-top: var(--space-5);
   max-width: 390px;
   line-height: 1.55;
 }
 
-.public-site .yi-footer__premium-column {
+.yi-footer__premium-column {
   gap: var(--space-4);
 }
 
-.public-site .yi-footer__premium-column strong {
+.yi-footer__premium-column strong {
   margin-bottom: var(--space-1);
 }
 
-.public-site .yi-footer__premium-column a {
+.yi-footer__premium-column a {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
 }
 
-.public-site .yi-footer__premium-base {
+.yi-footer__premium-base {
   min-height: 64px;
   padding-block: var(--space-4);
 }
 
 @media (max-width: 760px) {
-  .public-site .yi-footer--premium .yi-container {
+  .yi-footer--premium .yi-container {
     padding-top: var(--section-space-sm);
   }
 
-  .public-site .yi-footer__premium-grid {
+  .yi-footer__premium-grid {
     gap: var(--space-6) var(--space-5);
     padding-bottom: var(--space-8);
   }
 
-  .public-site .yi-footer__premium-brand p {
+  .yi-footer__premium-brand p {
     margin-top: var(--space-4);
   }
 
-  .public-site .yi-footer__premium-column {
+  .yi-footer__premium-column {
     gap: var(--space-2);
   }
 
-  .public-site .yi-footer__premium-base {
+  .yi-footer__premium-base {
     min-height: 60px;
     padding-block: var(--space-3);
     padding-bottom: max(var(--space-3), var(--safe-bottom));
@@ -64,7 +65,7 @@
 }
 
 @media (max-width: 360px) {
-  .public-site .yi-footer__premium-grid {
+  .yi-footer__premium-grid {
     grid-template-columns: 1fr;
   }
 }

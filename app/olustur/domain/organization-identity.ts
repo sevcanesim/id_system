@@ -1,4 +1,5 @@
 import type { CardBranding, EditableCardData } from "../../CardTemplate";
+import { TITLE_OPTIONS } from "../../../lib/form-standards";
 
 export type LockMode = "free" | "suggested" | "locked";
 
@@ -46,11 +47,9 @@ export async function fetchOrganizationIdentity(
       : mine.organizations?.[0];
     if (!org) return null;
 
-    const [templateResponse, selfResponse, titlesResponse, requestsResponse] = await Promise.all([
+    const [templateResponse, selfResponse] = await Promise.all([
       fetch(`/api/organizations/templates?organizationId=${org.organization_id}`, { headers: { authorization: `Bearer ${accessToken}` } }),
       fetch(`/api/organizations/members?organizationId=${org.organization_id}&self=true`, { headers: { authorization: `Bearer ${accessToken}` } }),
-      fetch(`/api/organizations/job-titles?organizationId=${org.organization_id}`, { headers: { authorization: `Bearer ${accessToken}` } }),
-      fetch(`/api/organizations/title-requests?organizationId=${org.organization_id}`, { headers: { authorization: `Bearer ${accessToken}` } }),
     ]);
 
     const templateRow = templateResponse.ok
@@ -59,12 +58,6 @@ export async function fetchOrganizationIdentity(
     const fields = templateRow?.fields ?? {};
     const self = selfResponse.ok
       ? ((await selfResponse.json()).member as { title?: string | null; department?: string | null; email?: string | null } | undefined)
-      : undefined;
-    const jobTitles = titlesResponse.ok
-      ? ((await titlesResponse.json()).titles as Array<{ title: string }> | undefined)?.map((t) => t.title) ?? []
-      : [];
-    const latestRequest = requestsResponse.ok
-      ? ((await requestsResponse.json()).requests?.[0] as { requested_title: string; status: "PENDING" | "APPROVED" | "REJECTED"; note?: string | null } | undefined)
       : undefined;
 
     const lock: OrgLock = {
@@ -78,10 +71,8 @@ export async function fetchOrganizationIdentity(
       lockEmail: readLockMode(fields.lockEmail, "suggested"),
       lockPhone: readLockMode(fields.lockPhone, "free"),
       lockName: readLockMode(fields.lockName, "suggested"),
-      jobTitles,
-      titleRequest: latestRequest
-        ? { requestedTitle: latestRequest.requested_title, status: latestRequest.status, note: latestRequest.note || null }
-        : null,
+      jobTitles: [...TITLE_OPTIONS],
+      titleRequest: null,
     };
 
     const lockedValues: Partial<CardData> = {};

@@ -6,13 +6,13 @@ import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/s
 
 // Kart şablonundaki "Kurumsal Bağlantılar" bölümünün 4 sabit slotu:
 // Ürün Kataloğu, Şirket Sunumu, Toplantı Planla, Referans Projeler.
-// Her slot ya bir URL ya da (bkz. /api/organizations/links/upload) bir
-// PDF dosyasıdır. Bu route URL ayarlamayı/temizlemeyi ve okumayı yönetir.
+// Katalog, sunum ve referanslar URL/PDF olabilir. MEETING yalnız takvim
+// veya randevu URL'sidir; PDF yükleme upload route'unda ayrıca engellenir.
 
 const KIND_DEFAULTS: Record<string, { label: string; subtitle: string; icon: string }> = {
   CATALOG: { label: "Ürün Kataloğu", subtitle: "Kurumsal ürün ve hizmetler", icon: "box" },
   PRESENTATION: { label: "Şirket Sunumu", subtitle: "Kurumsal sunum", icon: "building" },
-  MEETING: { label: "Toplantı Planla", subtitle: "Randevu oluştur", icon: "clock" },
+  MEETING: { label: "Toplantı Planla", subtitle: "Takvim veya randevu bağlantısı", icon: "clock" },
   REFERENCES: { label: "Referans Projeler", subtitle: "Projeleri incele", icon: "link" },
 };
 const KINDS = Object.keys(KIND_DEFAULTS);
@@ -25,6 +25,10 @@ const postSchema = z.object({
   publishAt: z.string().datetime().nullable().optional(),
 });
 const deleteSchema = z.object({ organizationId: z.string().uuid(), kind: z.enum(["CATALOG", "PRESENTATION", "MEETING", "REFERENCES"]) });
+const deleteVersionSchema = z.object({
+  action: z.literal("DELETE_VERSION"),
+  versionId: z.string().uuid(),
+});
 const patchSchema = z.object({
   organizationId: z.string().uuid(),
   kind: z.enum(["CATALOG", "PRESENTATION", "MEETING", "REFERENCES"]),
@@ -150,6 +154,9 @@ export async function PATCH(request: NextRequest) {
       .eq("organization_id", rollback.data.organizationId)
       .maybeSingle();
     if (versionError || !version) return NextResponse.json({ error: "Sürüm bulunamadı." }, { status: 404 });
+    if (version.kind === "MEETING" && version.link_type === "FILE") {
+      return NextResponse.json({ error: "Toplantı Planla alanına ait eski PDF sürümleri geri alınamaz. Takvim veya randevu bağlantısı kullanın." }, { status: 400 });
+    }
     const { error: rollbackError } = await ctx.admin.from("organization_links").upsert({
       organization_id: rollback.data.organizationId,
       ...version,
@@ -190,7 +197,34 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const ctx = await context(request);
   if (!ctx) return NextResponse.json({ error: "Oturum gerekli." }, { status: 401 });
-  const parsed = deleteSchema.safeParse(await request.json());
+  const payload = await request.json();
+
+  if (payload?.action === "DELETE_VERSION") {
+    const parsedVersion = deleteVersionSchema.safeParse(payload);
+    if (!parsedVersion.success) return NextResponse.json({ error: "Geçersiz sürüm silme isteği." }, { status: 400 });
+
+    const { data: version, error: versionError } = await ctx.admin
+      .from("organization_link_versions")
+      .select("id,organization_id")
+      .eq("id", parsedVersion.data.versionId)
+      .maybeSingle();
+    if (versionError || !version) return NextResponse.json({ error: "Sürüm bulunamadı." }, { status: 404 });
+
+    const member = await membership(ctx.admin, ctx.user.id, version.organization_id);
+    if (!member || !canManageTemplates(member.role, "ACTIVE")) {
+      return NextResponse.json({ error: "Sürüm geçmişini yalnız şirket sahibi ve yöneticiler düzenleyebilir." }, { status: 403 });
+    }
+
+    const { error: deleteVersionError } = await ctx.admin
+      .from("organization_link_versions")
+      .delete()
+      .eq("id", parsedVersion.data.versionId)
+      .eq("organization_id", version.organization_id);
+    if (deleteVersionError) return NextResponse.json({ error: "Sürüm silinemedi." }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  }
+
+  const parsed = deleteSchema.safeParse(payload);
   if (!parsed.success) return NextResponse.json({ error: "Geçersiz istek." }, { status: 400 });
   const member = await membership(ctx.admin, ctx.user.id, parsed.data.organizationId);
   if (!member || !canManageTemplates(member.role, "ACTIVE")) return NextResponse.json({ error: "Kurumsal bağlantı yönetimi yalnız şirket sahibi ve yöneticilere açıktır." }, { status: 403 });

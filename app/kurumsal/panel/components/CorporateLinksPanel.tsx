@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Icon } from "../../../icons";
 import { Button, Field, Input } from "../../../components/ui/DesignSystem";
+import { getSupabaseBrowserClient } from "../../../../lib/supabase/browser";
 
 type CorporateLink = {
   id: string | null;
@@ -50,26 +52,6 @@ type Props = {
 const dateTime = new Intl.DateTimeFormat("tr-TR", { dateStyle: "short", timeStyle: "short" });
 const dateTimeMedium = new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" });
 
-function turkishToIsoLocal(value: string) {
-  const match = value.trim().match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})(?:[ T,]*)(\d{1,2}):(\d{2})$/);
-  if (!match) return "";
-  return `${match[3]}-${match[2].padStart(2, "0")}-${match[1].padStart(2, "0")}T${match[4].padStart(2, "0")}:${match[5]}`;
-}
-
-function toDatetimeLocalValue(value: string) {
-  const trimmed = value.trim();
-  if (!trimmed) return "";
-  const iso = trimmed.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/);
-  if (iso) return iso[1];
-  const fromTurkish = turkishToIsoLocal(trimmed);
-  if (fromTurkish) return fromTurkish;
-  const parsed = Date.parse(trimmed);
-  if (Number.isNaN(parsed)) return "";
-  const date = new Date(parsed);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
 function publicationLabel(link: CorporateLink) {
   if (!link.configured) return "Boş";
   if (link.isPublished && link.publishAt && new Date(link.publishAt).getTime() > Date.now()) {
@@ -78,8 +60,26 @@ function publicationLabel(link: CorporateLink) {
   return link.isPublished ? "Yayında" : "Taslak";
 }
 
+function versionPublication(version: LinkVersion) {
+  if (version.publish_at) {
+    const publishDate = new Date(version.publish_at);
+    const scheduled = publishDate.getTime() > new Date(version.created_at).getTime() + 60_000;
+    return {
+      tone: scheduled ? "scheduled" : version.is_published ? "published" : "draft",
+      label: scheduled ? "Planlanan yayın" : version.is_published ? "Yayın zamanı" : "Planlanan yayın",
+      value: dateTimeMedium.format(publishDate),
+    };
+  }
+  return {
+    tone: version.is_published ? "published" : "draft",
+    label: "Yayın durumu",
+    value: version.is_published ? "Yayında" : "Taslak",
+  };
+}
+
 function sourceLabel(link: CorporateLink) {
-  if (!link.configured) return "İçerik eklenmedi";
+  if (!link.configured) return link.kind === "MEETING" ? "Takvim eklenmedi" : "İçerik eklenmedi";
+  if (link.kind === "MEETING") return "Takvim";
   return link.linkType === "FILE" ? "PDF" : "URL";
 }
 
@@ -104,8 +104,6 @@ export default function CorporateLinksPanel({
   linkVersions,
   linkUrlDraft,
   onUrlDraftChange,
-  linkScheduleDraft,
-  onScheduleDraftChange,
   linkBusyKind,
   onSaveUrl,
   onUploadFile,
@@ -113,27 +111,67 @@ export default function CorporateLinksPanel({
   onRemove,
   onRollback,
 }: Props) {
+  const [deletedVersionIds, setDeletedVersionIds] = useState<Set<string>>(() => new Set());
+  const [deletingVersionId, setDeletingVersionId] = useState<string | null>(null);
+
+  async function deleteVersion(version: LinkVersion) {
+    if (!window.confirm("Bu sürüm geçmişten kalıcı olarak silinsin mi? Bu işlem geri alınamaz.")) return;
+    setDeletingVersionId(version.id);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
+      const access = data.session?.access_token;
+      if (!access) {
+        window.alert("Sürümü silmek için oturum gerekli.");
+        return;
+      }
+      const response = await fetch("/api/organizations/links", {
+        method: "DELETE",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${access}`,
+        },
+        body: JSON.stringify({ action: "DELETE_VERSION", versionId: version.id }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        window.alert(payload?.error || "Sürüm silinemedi.");
+        return;
+      }
+      setDeletedVersionIds((current) => {
+        const next = new Set(current);
+        next.add(version.id);
+        return next;
+      });
+    } catch {
+      window.alert("Sürüm silinemedi.");
+    } finally {
+      setDeletingVersionId(null);
+    }
+  }
+
   return (
     <section className="corp-links-panel">
       <header>
         <div>
           <span>İÇERİK</span>
           <h2>Kurumsal Bağlantılar</h2>
-          <p>Çalışan kartlarında gösterilecek sabit içerik alanlarını yönetin. Her alan URL veya PDF olabilir; yalnız düzenlemek istediğiniz alanı açın.</p>
+          <p>Katalog, sunum ve referans içeriklerini URL veya PDF olarak yönetin. Toplantı Planla alanı yalnız takvim veya randevu bağlantısı kullanır.</p>
         </div>
       </header>
 
       <div className="corp-links-list" role="list">
         {links.map((link, index) => {
           const busy = linkBusyKind === link.kind;
+          const isMeeting = link.kind === "MEETING";
           const scheduled = Boolean(link.isPublished && link.publishAt && new Date(link.publishAt).getTime() > Date.now());
-          const versions = linkVersions.filter((version) => version.kind === link.kind);
+          const versions = linkVersions.filter((version) => version.kind === link.kind && !deletedVersionIds.has(version.id));
           return (
             <details className="corp-link-card" key={link.kind} open={index === 0}>
               <summary className="corp-link-card__summary">
                 <div className="corp-link-info">
                   <strong>{link.label}</strong>
-                  <small>{link.subtitle}</small>
+                  <small>{isMeeting ? "Google Calendar, Calendly veya Microsoft Bookings bağlantısı" : link.subtitle}</small>
                 </div>
                 <div className="corp-link-card__meta" aria-label={`${link.label} özeti`}>
                   <span className={`corp-link-state ${link.isPublished ? (scheduled ? "scheduled" : "published") : link.configured ? "draft" : "empty"}`}>{publicationLabel(link)}</span>
@@ -145,8 +183,14 @@ export default function CorporateLinksPanel({
 
               <div className="corp-link-card__body">
                 <div className="corp-link-current-block">
-                  <span>Aktif içerik</span>
-                  {link.configured ? (
+                  <div className="corp-link-section-heading"><span>Aktif içerik</span></div>
+                  {isMeeting ? (
+                    link.configured && link.linkType !== "FILE" ? (
+                      <span className="corp-link-current"><Icon name="clock" /> {link.url}</span>
+                    ) : (
+                      <span className="corp-link-current empty">Takvim veya randevu bağlantısı ekleyin.</span>
+                    )
+                  ) : link.configured ? (
                     link.linkType === "FILE" ? (
                       <article className="corp-file">
                         <span className="corp-file-badge">PDF</span>
@@ -168,17 +212,14 @@ export default function CorporateLinksPanel({
                 </div>
 
                 <div className="corp-link-editor">
-                  <Field label="URL">
-                    <Input placeholder="https://..." value={linkUrlDraft[link.kind] || ""} onChange={(e) => onUrlDraftChange(link.kind, e.target.value)} />
+                  <Field label={isMeeting ? "Takvim / randevu bağlantısı" : "URL"} help={isMeeting ? "Google Calendar, Calendly, Microsoft Bookings veya kullandığınız randevu servisinin bağlantısını ekleyin." : undefined}>
+                    <Input placeholder={isMeeting ? "https://calendar.google.com/... veya https://calendly.com/..." : "https://..."} value={linkUrlDraft[link.kind] || ""} onChange={(e) => onUrlDraftChange(link.kind, e.target.value)} />
                   </Field>
                   <div className="corp-link-source-actions">
-                    <Button type="button" variant="primary" disabled={busy || !(linkUrlDraft[link.kind] || "").trim()} onClick={() => void onSaveUrl(link.kind)}>URL Kaydet</Button>
-                    {link.linkType !== "FILE" && <label className="corp-link-upload" htmlFor={`corp-link-replace-${link.kind}`}>{busy ? "Yükleniyor..." : "PDF Yükle"}</label>}
-                    <input id={`corp-link-replace-${link.kind}`} type="file" accept="application/pdf" disabled={busy} hidden onChange={(e) => { const file = e.target.files?.[0]; if (file) void onUploadFile(link.kind, file); e.target.value = ""; }} />
+                    <Button type="button" variant="primary" disabled={busy || !(linkUrlDraft[link.kind] || "").trim()} onClick={() => void onSaveUrl(link.kind)}>{isMeeting ? "Takvimi Kaydet" : "URL Kaydet"}</Button>
+                    {!isMeeting && link.linkType !== "FILE" && <label className="corp-link-upload" htmlFor={`corp-link-replace-${link.kind}`}>{busy ? "Yükleniyor..." : "PDF Yükle"}</label>}
+                    {!isMeeting && <input id={`corp-link-replace-${link.kind}`} type="file" accept="application/pdf" disabled={busy} hidden onChange={(e) => { const file = e.target.files?.[0]; if (file) void onUploadFile(link.kind, file); e.target.value = ""; }} />}
                   </div>
-                  <Field label="Yayın zamanı" help="Türkiye saati">
-                    <Input type="datetime-local" lang="tr-TR" value={toDatetimeLocalValue(linkScheduleDraft[link.kind] || "")} onChange={(event) => onScheduleDraftChange(link.kind, event.target.value)} />
-                  </Field>
                   {link.configured && (
                     <div className="corp-link-toolbar">
                       <Button type="button" variant={link.isPublished ? "secondary" : "primary"} disabled={busy} onClick={() => void onTogglePublication(link.kind, !link.isPublished)}>{link.isPublished ? "Taslağa Al" : "Yayınla"}</Button>
@@ -191,12 +232,26 @@ export default function CorporateLinksPanel({
                   <details className="corp-link-history">
                     <summary><span><Icon name="clock" /><strong>Sürüm geçmişi</strong><small>{versions.length} kayıt</small></span><Icon name="chevronDown" /></summary>
                     <ol>
-                      {versions.slice(0, 6).map((version) => (
-                        <li key={version.id}>
-                          <div><strong title={version.file_name || version.url || "Boş sürüm"}>{version.file_name ? compactFileName(version.file_name) : version.url || "Boş sürüm"}</strong><small>{dateTimeMedium.format(new Date(version.created_at))} · {version.change_reason}</small></div>
-                          <Button type="button" variant="secondary" size="sm" disabled={busy} onClick={() => void onRollback(version.id, link.kind)}>Geri al</Button>
-                        </li>
-                      ))}
+                      {versions.slice(0, 6).map((version) => {
+                        const publication = versionPublication(version);
+                        const deleting = deletingVersionId === version.id;
+                        return (
+                          <li key={version.id} className="corp-link-history__item">
+                            <div className="corp-link-history__main">
+                              <strong title={version.file_name || version.url || "Boş sürüm"}>{version.file_name ? compactFileName(version.file_name) : version.url || "Boş sürüm"}</strong>
+                              <small>{dateTimeMedium.format(new Date(version.created_at))} · {version.change_reason}</small>
+                            </div>
+                            <div className="corp-link-history__publication">
+                              <span className={`corp-link-history__state ${publication.tone}`}>{publication.value}</span>
+                              <small>{publication.label}</small>
+                            </div>
+                            <div className="corp-link-history__actions">
+                              <Button type="button" variant="secondary" size="sm" disabled={busy || deleting} onClick={() => void onRollback(version.id, link.kind)}>Geri al</Button>
+                              <Button type="button" variant="destructive" size="sm" disabled={busy || deleting} onClick={() => void deleteVersion(version)}>{deleting ? "Siliniyor..." : "Sil"}</Button>
+                            </div>
+                          </li>
+                        );
+                      })}
                     </ol>
                   </details>
                 )}

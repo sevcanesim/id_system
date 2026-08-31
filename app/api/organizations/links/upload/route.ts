@@ -3,11 +3,9 @@ import { removeOrganizationAsset } from "../../../../../lib/organizations/organi
 import { canManageTemplates, isOrganizationRole } from "../../../../../lib/organizations/permissions";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../lib/supabase/server-admin";
 
-// Ürün Kataloğu / Şirket Sunumu / Referans Projeler slotlarına PDF
-// yüklemek için. Toplantı Planla genelde bir URL'dir (Calendly vb.)
-// ama aynı uçtan herhangi bir slota PDF yüklenebilir.
-
-const VALID_KINDS = new Set(["CATALOG", "PRESENTATION", "MEETING", "REFERENCES"]);
+// PDF is intentionally limited to document-oriented slots.
+// MEETING is a calendar/booking URL and must never accept file uploads.
+const VALID_KINDS = new Set(["CATALOG", "PRESENTATION", "REFERENCES"]);
 const MAX_SIZE = 20 * 1024 * 1024;
 
 async function context(request: NextRequest) {
@@ -31,6 +29,10 @@ export async function POST(request: NextRequest) {
   const publishAtRaw = String(form.get("publishAt") || "").trim();
   const publishAt = publishAtRaw && !Number.isNaN(Date.parse(publishAtRaw)) ? new Date(publishAtRaw).toISOString() : new Date().toISOString();
   const file = form.get("file");
+
+  if (kind === "MEETING") {
+    return NextResponse.json({ error: "Toplantı Planla alanı yalnız takvim veya randevu bağlantısı kabul eder." }, { status: 400 });
+  }
   if (!organizationId || !VALID_KINDS.has(kind)) return NextResponse.json({ error: "Geçersiz bağlantı türü." }, { status: 400 });
   if (!(file instanceof File)) return NextResponse.json({ error: "PDF dosyası gerekli." }, { status: 400 });
   if (file.type !== "application/pdf") return NextResponse.json({ error: "Yalnızca PDF dosyası yüklenebilir." }, { status: 400 });

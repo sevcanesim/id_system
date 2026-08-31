@@ -15,7 +15,6 @@ export default function PanelSidebar({
   open = false,
   onClose,
   onNavigate,
-  onNavigateItem,
   brandHref,
   onBrandClick,
   onBrandNavigate,
@@ -35,8 +34,7 @@ export default function PanelSidebar({
   activeKey?: string;
   open?: boolean;
   onClose: () => void;
-  onNavigate?: (key: string) => void;
-  onNavigateItem?: (item: SidebarNavItem, event: MouseEvent<HTMLAnchorElement>) => void;
+  onNavigate?: (item: SidebarNavItem, event: MouseEvent<HTMLAnchorElement>) => void;
   brandHref?: string;
   onBrandClick?: () => void;
   onBrandNavigate?: (event: MouseEvent<HTMLAnchorElement>) => void;
@@ -45,7 +43,9 @@ export default function PanelSidebar({
   labelledBy?: string;
   children?: ReactNode;
   loading?: boolean;
+  /** Masaüstü sidebar daraltmasını kalıcı hale getirir. */
   collapsible?: boolean;
+  /** Uzun kurumsal menüler accordion kalabilir; kısa bireysel menüler statik gruplanır. */
   collapsibleGroups?: boolean;
   storageKey?: string;
   sectionStatuses?: SidebarSectionStatusMap;
@@ -61,14 +61,18 @@ export default function PanelSidebar({
     if (!collapsible) return;
     try {
       setCollapsed(window.localStorage.getItem(collapseStorageKey) === "1");
-    } catch {}
+    } catch {
+      // localStorage erişimi olmayan ortamlarda varsayılan açık durum korunur.
+    }
   }, [collapseStorageKey, collapsible]);
 
   useEffect(() => {
     if (!collapsible) return;
     try {
       window.localStorage.setItem(collapseStorageKey, collapsed ? "1" : "0");
-    } catch {}
+    } catch {
+      // Kalıcı UI tercihi başarısız olsa da navigasyon çalışmaya devam eder.
+    }
   }, [collapseStorageKey, collapsed, collapsible]);
 
   useEffect(() => {
@@ -97,7 +101,9 @@ export default function PanelSidebar({
       document.removeEventListener("keydown", onKeyDown);
       previouslyFocused.current?.focus();
     };
-  }, [open, onClose]);
+    // onClose is intentionally read from the render that opened the drawer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const brand = <>
     <span className="enterprise-yenomi-mark" aria-hidden="true"><img src="/images/yenomilabs-mark-transparent.png" alt="" /></span>
@@ -115,7 +121,10 @@ export default function PanelSidebar({
         <nav className="enterprise-canonical-nav enterprise-canonical-nav--loading" aria-label={ariaLabel} aria-busy="true">
           <p className="enterprise-nav-loading-note">Menü yükleniyor…</p>
           {Array.from({ length: 5 }).map((_, index) => (
-            <span key={index} className="enterprise-nav-loading-row" aria-hidden="true"><i /><span /></span>
+            <span key={index} className="enterprise-nav-loading-row" aria-hidden="true">
+              <i />
+              <span />
+            </span>
           ))}
         </nav>
       ) : (
@@ -124,10 +133,8 @@ export default function PanelSidebar({
           activeKey={activeKey}
           classNames={{ nav: "enterprise-canonical-nav", entry: "enterprise-nav-entry", group: "enterprise-side-section-title", active: "active" }}
           onNavigate={(item, event) => {
-            onNavigateItem?.(item, event);
-            if (event.defaultPrevented) return;
-            onNavigate?.(item.key);
-            onClose();
+            onNavigate?.(item, event);
+            if (!event.defaultPrevented) onClose();
           }}
           items={items}
           railCollapsed={collapsed}

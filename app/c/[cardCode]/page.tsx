@@ -31,7 +31,7 @@ export default async function PhysicalCardRoute({ params }: { params: Promise<{ 
 
   if (!card) notFound();
   if (card.status === "LOST") return <CardState title="Bu Yenomi kartı kayıp olarak bildirilmiştir." />;
-  if (card.status === "UNASSIGNED" || !card.owner_profile_id) {
+  if (card.status === "UNASSIGNED") {
     return (
       <CardState title="Bu Yenomi kartı henüz bir profile bağlı değildir.">
         <CardRecoveryAction cardCode={normalizedCode} />
@@ -39,6 +39,7 @@ export default async function PhysicalCardRoute({ params }: { params: Promise<{ 
     );
   }
   if (card.status !== "ACTIVE") return <CardState title="Bu Yenomi kartı kullanım dışıdır." />;
+  if (!card.owner_profile_id) return <CardState title="Bu Yenomi kartı henüz bir profile bağlı değildir." />;
 
   const { data: rawProfile } = await admin
     .from("card_profiles")

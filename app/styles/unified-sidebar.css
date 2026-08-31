@@ -8,6 +8,7 @@
   height: 100dvh;
   max-height: 100dvh;
   overflow: hidden;
+  padding-bottom: var(--safe-bottom);
 }
 
 .unified-sidebar > .id-sidebar__brand,
@@ -83,12 +84,4 @@
   border: 0;
   background: transparent;
   text-align: left;
-}
-
-@media (max-width: 1023px) {
-  .unified-sidebar {
-    height: 100dvh;
-    max-height: 100dvh;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
 }

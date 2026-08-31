@@ -1,10 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import PanelSidebar from "../../components/ui/PanelSidebar";
 import { corporatePanelNavItems, getCorporateSidebarActiveKey } from "./domain/navigation";
-import UnifiedSidebar from "../../components/ui/UnifiedSidebar";
-import SidebarAccountFooter from "../../components/ui/SidebarAccountFooter";
-import { resolveSidebarItems, type SidebarAvailability, type SidebarSectionAvailabilityMap } from "../../components/ui/sidebar-state";
+import type { SidebarAvailability, SidebarSectionAvailabilityMap } from "../../components/ui/sidebar-state";
 import { useUnsavedChanges } from "../../components/UnsavedChangesContext";
 
 export type IDSidebarProps = {
@@ -53,16 +52,10 @@ export default function IDSidebar({
   const pathname = usePathname();
   const close = onClose ?? (() => {});
   const { guardLinkClick } = useUnsavedChanges();
-  const activeKey = getCorporateSidebarActiveKey(pathname);
-  const items = resolveSidebarItems(corporatePanelNavItems(role, ownCardHref), {
-    scope: "corporate",
-    role,
-    itemAvailability,
-    sectionAvailability,
-  });
-
   const accountName = user?.full_name?.trim() || "Kurumsal Hesap";
-  const accountMeta = user?.email?.trim() || ROLE_LABELS[(user?.role || role || "EMPLOYEE").toUpperCase()] || "Kurumsal Kullanıcı";
+  const accountMeta = user?.email?.trim()
+    || ROLE_LABELS[(user?.role || role || "EMPLOYEE").toUpperCase()]
+    || "Kurumsal Kullanıcı";
   const initials = (accountName || accountMeta || "Y")
     .split(/\s+/)
     .filter(Boolean)
@@ -72,28 +65,24 @@ export default function IDSidebar({
     .toLocaleUpperCase("tr-TR") || "Y";
 
   return (
-    <UnifiedSidebar
+    <PanelSidebar
+      scope="corporate"
       ariaLabel="Kurumsal yönetim menüsü"
       subtitle="Kurumsal Panel"
       brandHref="/kurumsal/panel"
       onBrandNavigate={(event) => guardLinkClick(event, "/kurumsal/panel")}
-      items={items}
-      activeKey={activeKey}
+      items={corporatePanelNavItems(role, ownCardHref)}
+      activeKey={getCorporateSidebarActiveKey(pathname)}
+      role={role}
       open={open}
       onClose={close}
       loading={loading}
       className="id-sidebar--corporate"
+      itemAvailability={itemAvailability}
       sectionAvailability={sectionAvailability}
+      account={{ name: accountName, meta: accountMeta, initials }}
+      onSignOut={onSignOut}
       onNavigate={(item, event) => guardLinkClick(event, item.href)}
-      footer={
-        <SidebarAccountFooter
-          accountName={accountName}
-          accountMeta={accountMeta}
-          initials={initials}
-          onSignOut={onSignOut}
-          onClose={close}
-        />
-      }
     />
   );
 }

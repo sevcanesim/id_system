@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { writeSessionCookie } from "../../components/AuthSessionBridge";
@@ -56,7 +56,8 @@ import {
   corporatePanelNavItems,
   corporateSidebarItems,
 } from "./domain/navigation";
-import { fetchWithPanelTimeout, waitForInitialPanelLoads } from "./domain/runtime";
+import { fetchWithPanelTimeout } from "./domain/runtime";
+import { corporatePanelDataResources, type CorporatePanelDataResource } from "./domain/tab-data";
 import { useJobTitlesAndRequests } from "./hooks/useJobTitlesAndRequests";
 import { useCorporateLinks } from "./hooks/useCorporateLinks";
 import { getIdentityInitials } from "../../../lib/organizations/identity";
@@ -135,22 +136,28 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     const requested = searchParams.get("tab");
     const bulkInviteRequested = searchParams.get("bulkInvite") === "1";
     if (routed) setActiveTab(routed);
-    else if (isCorporatePanelTab(requested)) {
-      setActiveTab(requested);
-    }
+    else if (isCorporatePanelTab(requested)) setActiveTab(requested);
     setShowBulkInvite(routed === "employees" && bulkInviteRequested);
     window.sessionStorage.setItem("yenomi-active-portal", "business");
-    fetch("/api/public-config?scope=corporate")
+  }, [pathname, searchParams]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/public-config?scope=corporate")
       .then(async (response) => {
         if (!response.ok) throw new Error("config unavailable");
         return response.json();
       })
       .then((data) => {
+        if (cancelled) return;
         setSeatPacks(data.seatPacks || []);
         setTemplateOptions(data.templateOptions || []);
       })
-      .catch(() => setMessage("Kart paketleri DB’den yüklenemedi."));
-  }, [pathname, searchParams]);
+      .catch(() => {
+        if (!cancelled) setMessage("Kart paketleri DB’den yüklenemedi.");
+      });
+    return () => { cancelled = true; };
+  }, []);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [departmentFilter, setDepartmentFilter] = useState("ALL");
@@ -325,6 +332,55 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     if (response.ok) setCardAnalytics(data);
   }
 
+  const loadedDataRef = useRef(new Set<string>());
+  const inFlightDataRef = useRef(new Map<string, Promise<void>>());
+
+  async function loadDataResource(
+    resource: CorporatePanelDataResource,
+    id: string,
+    access: string,
+    force = false,
+  ) {
+    const key = `${id}:${resource}`;
+    if (!force && loadedDataRef.current.has(key)) return;
+    if (!force) {
+      const existing = inFlightDataRef.current.get(key);
+      if (existing) return existing;
+    }
+
+    const request = (async () => {
+      switch (resource) {
+        case "members": await loadMembers(id, access); break;
+        case "templates": await loadTemplates(id, access); break;
+        case "physicalCards": await loadPhysicalCards(id, access); break;
+        case "memberCardStatuses": await loadMemberCardStatuses(id, access); break;
+        case "analytics": await loadCardAnalytics(id, access); break;
+        case "jobTitles": await loadJobTitles(id, access); break;
+        case "titleRequests": await loadTitleRequests(id, access); break;
+        case "corporateLinks": await loadCorporateLinks(id, access); break;
+      }
+      loadedDataRef.current.add(key);
+    })();
+
+    inFlightDataRef.current.set(key, request);
+    try {
+      await request;
+    } finally {
+      inFlightDataRef.current.delete(key);
+    }
+  }
+
+  async function loadDataForTab(
+    tab: CorporatePanelTab,
+    id: string,
+    access: string,
+    force = false,
+  ) {
+    await Promise.all(
+      corporatePanelDataResources(tab).map((resource) => loadDataResource(resource, id, access, force)),
+    );
+  }
+
   function selectOrganization(id: string) {
     setSelected(id);
     setViewedProfile(null);
@@ -342,19 +398,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       try {
         const access = await token();
         if (!access) return;
-        const result = await waitForInitialPanelLoads([
-          loadMembers(id, access),
-          loadTemplates(id, access),
-          loadPhysicalCards(id, access),
-          loadCardAnalytics(id, access),
-          loadMemberCardStatuses(id, access),
-          loadJobTitles(id, access),
-          loadTitleRequests(id, access),
-          loadCorporateLinks(id, access),
-        ]);
-        if (result.timedOut) {
-          setMessage("Bazı veriler henüz hazır değil. İlgili bölümden yeniden deneyebilirsin.");
-        }
+        await loadDataForTab(currentTab, id, access, true);
       } finally {
         setLoading(false);
       }
@@ -561,19 +605,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       // tek bir members/templates isteği başarısız olduğunda bütün paneli
       // sonsuz loading ekranına çevirmeyiz.
       setLoading(false);
-      const result = await waitForInitialPanelLoads([
-        loadMembers(id, access),
-        loadTemplates(id, access),
-        loadPhysicalCards(id, access),
-        loadCardAnalytics(id, access),
-        loadMemberCardStatuses(id, access),
-        loadJobTitles(id, access),
-        loadTitleRequests(id, access),
-        loadCorporateLinks(id, access),
-      ]);
-      if (result.timedOut) {
-        setMessage("Bazı veriler henüz hazır değil. İlgili bölümden yeniden deneyebilirsin.");
-      }
+      await loadDataForTab(currentTab, id, access, true);
     } catch {
       setLoadingError("Kurumsal panel verileri şu anda yüklenemiyor. Bağlantıyı kontrol edip yeniden deneyin.");
       setLoading(false);
@@ -627,29 +659,12 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
             role: "EMPLOYEE",
           }));
           setLoading(false);
-          const result = await waitForInitialPanelLoads([
-            loadMembers(id, access),
-            loadPhysicalCards(id, access),
-            loadMemberCardStatuses(id, access),
-            loadJobTitles(id, access),
-            loadTitleRequests(id, access),
-          ]);
-          if (result.timedOut) setMessage("Bazı veriler henüz hazır değil. İlgili bölümden yeniden deneyebilirsin.");
+          await loadDataForTab("employees", id, access);
         } else if (id) {
           // Organizasyon bulunduğu anda panel shell'i açılır. Her veri bloğu
           // kendi sonucunu gösterebilir; aggregate timeout yalnızca uyarıdır.
           setLoading(false);
-          const result = await waitForInitialPanelLoads([
-            loadMembers(id, access),
-            loadTemplates(id, access),
-            loadPhysicalCards(id, access),
-            loadCardAnalytics(id, access),
-            loadMemberCardStatuses(id, access),
-            loadJobTitles(id, access),
-            loadTitleRequests(id, access),
-            loadCorporateLinks(id, access),
-          ]);
-          if (result.timedOut) setMessage("Bazı veriler henüz hazır değil. İlgili bölümden yeniden deneyebilirsin.");
+          await loadDataForTab(currentTab, id, access);
         } else {
           setLoading(false);
         }
@@ -661,6 +676,16 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       }
     })();
   }, []);
+
+  useEffect(() => {
+    if (!selected || loading) return;
+    let cancelled = false;
+    void token().then(async (access) => {
+      if (!access || cancelled) return;
+      await loadDataForTab(currentTab, selected, access);
+    });
+    return () => { cancelled = true; };
+  }, [currentTab, selected, loading]);
 
   useEffect(() => {
     if (!loading) { setLoadingSlow(false); return; }

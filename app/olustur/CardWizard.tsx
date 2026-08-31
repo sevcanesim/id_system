@@ -16,6 +16,7 @@ import { fetchOwnProfile, fetchOwnProfileById, fetchOwnProfileByOrganizationId, 
 import { track } from "../../lib/analytics";
 import { PageLoadingView } from "../components/ui/States";
 import { useUnsavedChanges } from "../components/UnsavedChangesContext";
+import { useProfileCardActions } from "../hooks/useProfileCardActions";
 import {
   CORPORATE_PANEL_TAB_ROUTE,
   corporatePanelNavItems,
@@ -104,6 +105,15 @@ export default function CardWizard() {
   const isNewCard = searchParams.get("new") === "1";
   const businessOrganizationId = searchParams.get("organizationId");
   const isBusinessCard = searchParams.get("business") === "1" && Boolean(businessOrganizationId);
+  const profileCardActions = useProfileCardActions({
+    profileId,
+    slug: profileSlug,
+    publicUrl: cardShareUrl(profileSlug || ""),
+    shareTitle: data.name || "Yenomi ID",
+    isPublished,
+    onPublishedChange: setIsPublished,
+    onMessage: setMessage,
+  });
 
   const isDirty = useMemo(() => {
     if (!baseline) return false;
@@ -984,7 +994,7 @@ export default function CardWizard() {
           </div>
           <div className="p8-url-row">
             <span>{cardShareUrl(profileSlug || "yenomi-id").replace(/^https?:\/\//, "")}</span>
-            <Button size="sm" variant="secondary" onClick={() => navigator.clipboard?.writeText(cardShareUrl(profileSlug || ""))}>
+            <Button size="sm" variant="secondary" onClick={() => void profileCardActions.copyLink()}>
               <Icon name="copy" /> Kopyala
             </Button>
           </div>

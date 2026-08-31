@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { writeSessionCookie } from "../../components/AuthSessionBridge";
@@ -57,7 +57,7 @@ import {
   corporateSidebarItems,
 } from "./domain/navigation";
 import { fetchWithPanelTimeout } from "./domain/runtime";
-import { corporatePanelDataResources, type CorporatePanelDataResource } from "./domain/tab-data";
+import { useCorporatePanelLazyData } from "./hooks/useCorporatePanelLazyData";
 import { useJobTitlesAndRequests } from "./hooks/useJobTitlesAndRequests";
 import { useCorporateLinks } from "./hooks/useCorporateLinks";
 import { getIdentityInitials } from "../../../lib/organizations/identity";
@@ -332,54 +332,16 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     if (response.ok) setCardAnalytics(data);
   }
 
-  const loadedDataRef = useRef(new Set<string>());
-  const inFlightDataRef = useRef(new Map<string, Promise<void>>());
-
-  async function loadDataResource(
-    resource: CorporatePanelDataResource,
-    id: string,
-    access: string,
-    force = false,
-  ) {
-    const key = `${id}:${resource}`;
-    if (!force && loadedDataRef.current.has(key)) return;
-    if (!force) {
-      const existing = inFlightDataRef.current.get(key);
-      if (existing) return existing;
-    }
-
-    const request = (async () => {
-      switch (resource) {
-        case "members": await loadMembers(id, access); break;
-        case "templates": await loadTemplates(id, access); break;
-        case "physicalCards": await loadPhysicalCards(id, access); break;
-        case "memberCardStatuses": await loadMemberCardStatuses(id, access); break;
-        case "analytics": await loadCardAnalytics(id, access); break;
-        case "jobTitles": await loadJobTitles(id, access); break;
-        case "titleRequests": await loadTitleRequests(id, access); break;
-        case "corporateLinks": await loadCorporateLinks(id, access); break;
-      }
-      loadedDataRef.current.add(key);
-    })();
-
-    inFlightDataRef.current.set(key, request);
-    try {
-      await request;
-    } finally {
-      inFlightDataRef.current.delete(key);
-    }
-  }
-
-  async function loadDataForTab(
-    tab: CorporatePanelTab,
-    id: string,
-    access: string,
-    force = false,
-  ) {
-    await Promise.all(
-      corporatePanelDataResources(tab).map((resource) => loadDataResource(resource, id, access, force)),
-    );
-  }
+  const { loadDataForTab } = useCorporatePanelLazyData({
+    members: loadMembers,
+    templates: loadTemplates,
+    physicalCards: loadPhysicalCards,
+    memberCardStatuses: loadMemberCardStatuses,
+    analytics: (id, access) => loadCardAnalytics(id, access),
+    jobTitles: loadJobTitles,
+    titleRequests: loadTitleRequests,
+    corporateLinks: loadCorporateLinks,
+  });
 
   function selectOrganization(id: string) {
     setSelected(id);

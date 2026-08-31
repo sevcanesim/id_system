@@ -107,7 +107,7 @@ export default function SidebarNav({
     try {
       window.sessionStorage.setItem(groupStorageKey, JSON.stringify(openGroups));
     } catch {
-      // Kalıcı grup tercihi başarısız olsa da menü çalışmaya devam eder.
+      // Kalıcı grup tercihi başarısız olsa da navigasyon çalışmaya devam eder.
     }
   }, [collapsibleGroups, groupStorageKey, hydrated, openGroups]);
 
@@ -117,7 +117,12 @@ export default function SidebarNav({
   }
 
   return (
-    <nav className={classNames.nav} role="navigation" aria-label={ariaLabel}>
+    <nav
+      className={classNames.nav}
+      role="navigation"
+      aria-label={ariaLabel}
+      style={collapsibleGroups ? undefined : { alignContent: "start" }}
+    >
       {groups.map((group, index) => {
         const named = Boolean(group.name);
         const isOpen = !named || !collapsibleGroups || railCollapsed || Boolean(openGroups[group.name]);

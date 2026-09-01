@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { ACCESS_COOKIE } from "./http-only-session";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../supabase/server-admin";
 import {
+  ACCOUNT_ROUTE_ADMIN,
   ACCOUNT_ROUTE_CORPORATE,
   ACCOUNT_ROUTE_EMPLOYEE,
   ACCOUNT_ROUTE_INDIVIDUAL,
@@ -33,6 +34,17 @@ export async function resolveServerAccountDestination(): Promise<ServerAccountRo
   if (authError || !authData.user) return { ok: false, reason: "SESSION_INVALID" };
 
   const admin = getSupabaseAdminClient();
+
+  // Super Admin is an internal authorization layer, never a user-selectable
+  // account type. Resolve it before individual/corporate workspace routing.
+  const { data: adminUser, error: adminError } = await admin
+    .from("admin_users")
+    .select("user_id")
+    .eq("user_id", authData.user.id)
+    .maybeSingle();
+  if (adminError) return { ok: false, reason: "ACCOUNT_LOOKUP_FAILED" };
+  if (adminUser) return { ok: true, destination: ACCOUNT_ROUTE_ADMIN };
+
   const { data: account, error: accountError } = await admin
     .from("user_accounts")
     .select("account_type,test_login_scope")

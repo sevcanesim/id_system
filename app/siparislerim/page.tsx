@@ -8,13 +8,13 @@ import { safeClientMessage } from "../../lib/errors";
 import styles from "./OrdersPage.module.css";
 
 type CommerceStatus = "DRAFT" | "AWAITING_PAYMENT" | "PAID" | "PREPARING" | "SHIPPED" | "COMPLETED" | "CANCELLED" | "REFUNDED";
-type OperationalStatus = "PROFILE_REQUIRED" | "PRINT_PENDING" | "SHIPPING_PENDING" | "IN_TRANSIT" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED";
+type OperationalStatus = "PROFILE_REQUIRED" | "PRINT_PENDING" | "PRINTING" | "SHIPPING_PENDING" | "IN_TRANSIT" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED";
 type PhysicalUnit = {
   id: string;
-  operational_status: OperationalStatus;
+  operations_status: OperationalStatus;
   print_requested_at: string | null;
+  print_started_at: string | null;
   print_approved_at: string | null;
-  shipping_pending_at: string | null;
   carrier: string | null;
   tracking_number: string | null;
   shipped_at: string | null;
@@ -63,6 +63,7 @@ const statusInfo: Record<CommerceStatus, { label: string; description: string; s
 const operationLabel: Record<OperationalStatus, string> = {
   PROFILE_REQUIRED: "Profil bilgileri bekleniyor",
   PRINT_PENDING: "Dijital Kart Basımı Gerçekleştirilmeli",
+  PRINTING: "Kartınız Basılıyor",
   SHIPPING_PENDING: "Kargo İşlemi Bekleniyor",
   IN_TRANSIT: "Kargoya Verildi",
   OUT_FOR_DELIVERY: "Dağıtımda",
@@ -84,7 +85,7 @@ function formatDateTime(value?: string | null) {
   return new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 function operationStep(status: OperationalStatus) {
-  if (["PROFILE_REQUIRED", "PRINT_PENDING", "SHIPPING_PENDING"].includes(status)) return 0;
+  if (["PROFILE_REQUIRED", "PRINT_PENDING", "PRINTING", "SHIPPING_PENDING"].includes(status)) return 0;
   if (status === "IN_TRANSIT") return 1;
   if (status === "OUT_FOR_DELIVERY") return 2;
   if (status === "DELIVERED") return 3;
@@ -136,7 +137,7 @@ export default function MyOrdersPage() {
             const address = normalizeShippingAddress(order.shipping_addresses);
             const quantity = order.commerce_order_items.reduce((sum, item) => sum + item.quantity, 0);
             const unit = order.commerce_order_items.flatMap((item) => item.commerce_physical_card_units ?? [])[0];
-            const currentStep = unit ? operationStep(unit.operational_status) : 0;
+            const currentStep = unit ? operationStep(unit.operations_status) : 0;
             return (
               <Card className={styles.order} key={order.id}>
                 <div className={styles.head}>
@@ -153,9 +154,9 @@ export default function MyOrdersPage() {
                 </div>
                 {unit && (
                   <div className={styles.cardJourney}>
-                    <div className={styles.journeyHeader}><div><h3>Fiziksel kart & kargo</h3><span>{operationLabel[unit.operational_status]}</span></div>{unit.tracking_number && <span>{unit.carrier || "Kargo"} · {unit.tracking_number}</span>}</div>
+                    <div className={styles.journeyHeader}><div><h3>Fiziksel kart & kargo</h3><span>{operationLabel[unit.operations_status]}</span></div>{unit.tracking_number && <span>{unit.carrier || "Kargo"} · {unit.tracking_number}</span>}</div>
                     <div className={styles.steps}>
-                      {[{ title: "Hazırlanıyor", detail: unit.operational_status === "PRINT_PENDING" ? "Baskı onayı bekleniyor" : unit.operational_status === "SHIPPING_PENDING" ? "Kargo işlemi bekleniyor" : formatDateTime(unit.print_requested_at) }, { title: "Kargoya Verildi", detail: unit.shipped_at ? formatDateTime(unit.shipped_at) : "Bekleniyor" }, { title: "Dağıtımda", detail: unit.out_for_delivery_at ? formatDateTime(unit.out_for_delivery_at) : "Bekleniyor" }, { title: "Teslim Edildi", detail: unit.delivered_at ? formatDateTime(unit.delivered_at) : "Bekleniyor" }].map((step, index) => <div className={`${styles.step} ${index <= currentStep ? styles.stepActive : ""}`} key={step.title}><small>0{index + 1}</small><strong>{step.title}</strong><span>{step.detail}</span></div>)}
+                      {[{ title: "Hazırlanıyor", detail: unit.operations_status === "PRINT_PENDING" ? "Baskı onayı bekleniyor" : unit.operations_status === "PRINTING" ? "Kartın basılıyor" : unit.operations_status === "SHIPPING_PENDING" ? "Kargo işlemi bekleniyor" : formatDateTime(unit.print_requested_at) }, { title: "Kargoya Verildi", detail: unit.shipped_at ? formatDateTime(unit.shipped_at) : "Bekleniyor" }, { title: "Dağıtımda", detail: unit.out_for_delivery_at ? formatDateTime(unit.out_for_delivery_at) : "Bekleniyor" }, { title: "Teslim Edildi", detail: unit.delivered_at ? formatDateTime(unit.delivered_at) : "Bekleniyor" }].map((step, index) => <div className={`${styles.step} ${index <= currentStep ? styles.stepActive : ""}`} key={step.title}><small>0{index + 1}</small><strong>{step.title}</strong><span>{step.detail}</span></div>)}
                     </div>
                   </div>
                 )}

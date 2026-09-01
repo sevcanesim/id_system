@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import AppHeader from "../../components/AppHeader";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 import styles from "./AdminOperations.module.css";
 
 type Tab = "print" | "network" | "batches" | "pricing" | "audit";
+type LoadState = "idle" | "loading" | "ready" | "error";
 type PrintUnit = {
   id: string;
   operations_status: string;
@@ -44,11 +44,11 @@ type CapacityTerm = {
 type RenewalNotice = { id: string; term_id: string; organization_id: string; due_at: string; renewal_price_kurus: number; status: string; invoice_reference: string | null };
 type AuditRow = { id: string; actor_user_id: string | null; action: string; target_table: string; target_id: string | null; before_value: unknown; after_value: unknown; created_at: string };
 type MailAdjustment = { id: string; user_id: string | null; organization_id: string | null; delta: number; balance_before: number; balance_after: number; reason: string; created_at: string };
-type OperationsPayload = { printQueue: PrintUnit[]; premiumUsers: PremiumUser[]; capacityTerms: CapacityTerm[]; renewalNotices: RenewalNotice[]; mailAdjustments: MailAdjustment[]; auditLog: AuditRow[] };
+type OperationsPayload = { printQueue: PrintUnit[]; premiumUsers: PremiumUser[]; capacityTerms: CapacityTerm[]; renewalNotices: RenewalNotice[]; mailAdjustments: MailAdjustment[]; auditLog: AuditRow[]; demo?: boolean };
 type Variant = { id: string; sku: string; name: string; price_kurus: number; billing_period: string; is_active: boolean };
 type Plan = { id: string; code: string; name: string; seat_limit: number | null; annual_price_kurus: number | null; is_active: boolean };
 
-const emptyOperations: OperationsPayload = { printQueue: [], premiumUsers: [], capacityTerms: [], renewalNotices: [], mailAdjustments: [], auditLog: [] };
+const emptyOperations: OperationsPayload = { printQueue: [], premiumUsers: [], capacityTerms: [], renewalNotices: [], mailAdjustments: [], auditLog: [], demo: false };
 
 function formatDateTime(value?: string | null) {
   if (!value) return "—";
@@ -60,12 +60,31 @@ function formatMoney(value?: number | null) {
   return `${(value / 100).toLocaleString("tr-TR")} TL`;
 }
 
+function AdminHeader({ demo }: { demo: boolean }) {
+  return <header className={styles.adminBar}>
+    <div className={styles.adminBrand}>
+      <span className={styles.adminMark}>Y</span>
+      <div><strong>Yenomi ID</strong><small>Super Admin</small></div>
+    </div>
+    <nav className={styles.adminNav} aria-label="Super Admin">
+      <Link href="/admin/operations" aria-current="page">Operasyon</Link>
+      <Link href="/admin">Genel Admin</Link>
+      <Link href="/">Siteyi Gör</Link>
+    </nav>
+    <span className={demo ? styles.demoBadge : styles.liveBadge}>{demo ? "DEMO VERİ" : "GERÇEK VERİ"}</span>
+  </header>;
+}
+
 export default function AdminOperationsPage() {
   const [tab, setTab] = useState<Tab>("print");
   const [data, setData] = useState<OperationsPayload>(emptyOperations);
   const [variants, setVariants] = useState<Variant[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [demoMode, setDemoMode] = useState(false);
+  const [operationsState, setOperationsState] = useState<LoadState>("loading");
+  const [pricingState, setPricingState] = useState<LoadState>("loading");
+  const [operationsError, setOperationsError] = useState("");
+  const [pricingError, setPricingError] = useState("");
   const [authorized, setAuthorized] = useState(true);
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState<string | null>(null);
@@ -79,36 +98,72 @@ export default function AdminOperationsPage() {
     return session.session?.access_token ?? null;
   }
 
-  async function load() {
+  async function load(mode = demoMode) {
     const accessToken = await token();
-    if (!accessToken) { setAuthorized(false); setLoading(false); return; }
-    setLoading(true);
-    try {
-      const headers = { Authorization: `Bearer ${accessToken}` };
-      const [operationsResponse, pricingResponse] = await Promise.all([
-        fetch("/api/admin/operations", { headers, cache: "no-store" }),
-        fetch("/api/admin/pricing", { headers, cache: "no-store" }),
-      ]);
-      if (operationsResponse.status === 403 || pricingResponse.status === 403) { setAuthorized(false); return; }
-      const operationsJson = await operationsResponse.json();
-      const pricingJson = await pricingResponse.json();
-      if (!operationsResponse.ok) throw new Error(operationsJson.error || "Operasyon verileri yüklenemedi.");
-      if (!pricingResponse.ok) throw new Error(pricingJson.error || "Fiyat kataloğu yüklenemedi.");
-      setData(operationsJson);
-      setVariants(pricingJson.variants ?? []);
-      setPlans(pricingJson.plans ?? []);
-      setShipping(Object.fromEntries((operationsJson.printQueue ?? []).map((unit: PrintUnit) => [unit.id, { carrier: unit.carrier ?? "", tracking: unit.tracking_number ?? "" }])));
-      setPriceDraft(Object.fromEntries([...(pricingJson.variants ?? []).map((item: Variant) => [`variant:${item.sku}`, String(item.price_kurus / 100)]), ...(pricingJson.plans ?? []).map((item: Plan) => [`plan:${item.code}`, String((item.annual_price_kurus ?? 0) / 100)])]));
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Operasyon verileri yüklenemedi.");
-    } finally {
-      setLoading(false);
+    if (!accessToken) { setAuthorized(false); setOperationsState("error"); setPricingState("error"); return; }
+    setAuthorized(true);
+    setMessage("");
+    setOperationsError("");
+    setPricingError("");
+    setOperationsState("loading");
+    setPricingState("loading");
+    const headers = { Authorization: `Bearer ${accessToken}` };
+    const suffix = mode ? "?demo=1" : "";
+
+    const [operationsResult, pricingResult] = await Promise.allSettled([
+      fetch(`/api/admin/operations${suffix}`, { headers, cache: "no-store" }),
+      fetch(`/api/admin/pricing${suffix}`, { headers, cache: "no-store" }),
+    ]);
+
+    if (operationsResult.status === "fulfilled") {
+      const response = operationsResult.value;
+      if (response.status === 403) { setAuthorized(false); setOperationsState("error"); }
+      else {
+        const json = await response.json().catch(() => ({}));
+        if (response.ok) {
+          setData(json);
+          setOperationsState("ready");
+          setShipping(Object.fromEntries((json.printQueue ?? []).map((unit: PrintUnit) => [unit.id, { carrier: unit.carrier ?? "", tracking: unit.tracking_number ?? "" }])));
+        } else {
+          setData(emptyOperations);
+          setOperationsState("error");
+          setOperationsError(json.error || "Gerçek operasyon verisi okunamadı.");
+        }
+      }
+    } else {
+      setData(emptyOperations);
+      setOperationsState("error");
+      setOperationsError("Operasyon servisine ulaşılamadı.");
+    }
+
+    if (pricingResult.status === "fulfilled") {
+      const response = pricingResult.value;
+      if (response.status === 403) { setAuthorized(false); setPricingState("error"); }
+      else {
+        const json = await response.json().catch(() => ({}));
+        if (response.ok) {
+          setVariants(json.variants ?? []);
+          setPlans(json.plans ?? []);
+          setPricingState("ready");
+          setPriceDraft(Object.fromEntries([...(json.variants ?? []).map((item: Variant) => [`variant:${item.sku}`, String(item.price_kurus / 100)]), ...(json.plans ?? []).map((item: Plan) => [`plan:${item.code}`, String((item.annual_price_kurus ?? 0) / 100)])]));
+        } else {
+          setVariants([]); setPlans([]); setPricingState("error"); setPricingError(json.error || "Fiyat kataloğu okunamadı.");
+        }
+      }
+    } else {
+      setVariants([]); setPlans([]); setPricingState("error"); setPricingError("Fiyat servisine ulaşılamadı.");
     }
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => { void load(false); }, []);
+
+  async function switchMode(nextDemo: boolean) {
+    setDemoMode(nextDemo);
+    await load(nextDemo);
+  }
 
   async function patchOperations(body: Record<string, unknown>, key: string) {
+    if (demoMode) { setMessage("Demo modunda değişiklik yapılamaz. Gerçek veriye geçerek işlem yapabilirsiniz."); return; }
     const accessToken = await token(); if (!accessToken) return;
     setSaving(key); setMessage("");
     try {
@@ -116,13 +171,14 @@ export default function AdminOperationsPage() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "İşlem tamamlanamadı.");
       setMessage("İşlem kaydedildi ve denetim günlüğüne işlendi.");
-      await load();
+      await load(false);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "İşlem tamamlanamadı.");
     } finally { setSaving(null); }
   }
 
   async function savePrice(kind: "PRODUCT_VARIANT" | "CORPORATE_PLAN", key: string, id: string) {
+    if (demoMode) { setMessage("Demo modunda fiyat değiştirilemez."); return; }
     const value = Number(priceDraft[key]?.replace(",", "."));
     if (!Number.isFinite(value) || value < 0) { setMessage("Geçerli bir fiyat girin."); return; }
     const accessToken = await token(); if (!accessToken) return;
@@ -132,7 +188,7 @@ export default function AdminOperationsPage() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Fiyat güncellenemedi.");
       setMessage("Fiyat güncellendi ve audit log'a kaydedildi.");
-      await load();
+      await load(false);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Fiyat güncellenemedi.");
     } finally { setSaving(null); }
@@ -144,43 +200,52 @@ export default function AdminOperationsPage() {
     premium: data.premiumUsers.length,
     renewals: data.renewalNotices.filter((notice) => !["PAID", "CANCELLED"].includes(notice.status)).length,
   }), [data]);
+  const count = (value: number) => operationsState === "ready" ? String(value) : "—";
 
-  if (loading) return <main className={styles.page}><AppHeader context="Super Admin Operasyon" /><div className={styles.shell}><div className={styles.message}>Operasyon verileri yükleniyor…</div></div></main>;
-  if (!authorized) return <main className={styles.page}><AppHeader context="Super Admin Operasyon" /><div className={styles.shell}><div className={styles.message}>Bu alan yalnız Super Admin kullanıcılarına açıktır. <Link href="/giris">Giriş yap</Link></div></div></main>;
+  if (!authorized) return <main className={styles.page}><AdminHeader demo={false} /><section className={styles.shell}><div className={styles.errorPanel}>Bu alan yalnız Super Admin kullanıcılarına açıktır. <Link href="/giris">Giriş yap</Link></div></section></main>;
 
   return <main id="main-content" className={styles.page}>
-    <AppHeader context="Super Admin Operasyon" actions={[{ href: "/admin", label: "Klasik Admin" }, { href: "/", label: "Site", primary: true }]} />
+    <AdminHeader demo={demoMode} />
     <section className={styles.shell}>
-      <div className={styles.heading}><div><span className={styles.kicker}>OPERASYON KONTROL MERKEZİ</span><h1>Baskıdan yenilemeye tüm operasyonu yönet.</h1><p>Fiziksel kart üretimi, kargo, Premium Network Mail, kurumsal bağımsız lisans batchleri, fiyat kataloğu ve audit kayıtları aynı kontrol düzleminde.</p></div><button type="button" className={styles.secondary} onClick={() => void load()}>Yenile</button></div>
-      <div className={styles.stats}><div className={styles.stat}><small>Baskı kuyruğu</small><strong>{counts.print}</strong></div><div className={styles.stat}><small>Kargo süreci</small><strong>{counts.shipping}</strong></div><div className={styles.stat}><small>Premium kullanıcı</small><strong>{counts.premium}</strong></div><div className={styles.stat}><small>Açık yenileme</small><strong>{counts.renewals}</strong></div></div>
+      <div className={styles.heading}>
+        <div><span className={styles.kicker}>OPERASYON KONTROL MERKEZİ</span><h1>Baskıdan yenilemeye tüm operasyonu yönet.</h1><p>Fiziksel kart üretimi, kargo, Premium Network Mail, bağımsız kurumsal lisans batchleri, fiyat kataloğu ve audit kayıtları.</p></div>
+        <div className={styles.headingActions}><button type="button" className={styles.secondary} onClick={() => void load()}>Yenile</button><button type="button" className={demoMode ? styles.action : styles.secondary} onClick={() => void switchMode(!demoMode)}>{demoMode ? "Gerçek Veriye Dön" : "Demo Verilerle İncele"}</button></div>
+      </div>
+
+      {demoMode && <div className={styles.demoNotice}><strong>Demo modu açık.</strong> Bu kayıtlar sentetiktir ve hiçbir işlem veritabanına yazılmaz. Tüm değişiklik butonları devre dışıdır.</div>}
+      {!demoMode && operationsState === "error" && <div className={styles.errorPanel}><div><strong>Gerçek operasyon verisi okunamadı.</strong><p>{operationsError || "Local veritabanı şeması veya veri kaynağı kontrol edilmeli."}</p></div><button type="button" className={styles.action} onClick={() => void switchMode(true)}>Demo verilerle incele</button></div>}
+      {!demoMode && pricingState === "error" && <div className={styles.warningPanel}><strong>Fiyat kataloğu yüklenemedi.</strong> {pricingError}</div>}
+
+      <div className={styles.stats}><div className={styles.stat}><small>Baskı kuyruğu</small><strong>{count(counts.print)}</strong></div><div className={styles.stat}><small>Kargo süreci</small><strong>{count(counts.shipping)}</strong></div><div className={styles.stat}><small>Premium kullanıcı</small><strong>{count(counts.premium)}</strong></div><div className={styles.stat}><small>Açık yenileme</small><strong>{count(counts.renewals)}</strong></div></div>
       <div className={styles.tabs} role="tablist">{([['print','Baskı & Kargo'],['network','Network Mail'],['batches','Lisans Batchleri'],['pricing','Fiyatlandırma'],['audit','Audit Log']] as const).map(([key,label]) => <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => setTab(key)}>{label}</button>)}</div>
       {message && <div className={styles.message} role="status">{message}</div>}
+      {operationsState === "loading" && tab !== "pricing" && <div className={styles.message}>Operasyon verileri yükleniyor…</div>}
 
-      {tab === "print" && <div className={styles.grid}>{data.printQueue.length === 0 ? <div className={styles.message}>Aktif baskı veya kargo kaydı yok.</div> : data.printQueue.map((unit) => {
+      {tab === "print" && operationsState === "ready" && <div className={styles.grid}>{data.printQueue.length === 0 ? <div className={styles.emptyState}><strong>Aktif baskı veya kargo kaydı yok.</strong><span>Yeni bir üretim kaydı oluştuğunda burada görünecek.</span></div> : data.printQueue.map((unit) => {
         const ship = shipping[unit.id] ?? { carrier: "", tracking: "" };
         return <article className={styles.card} key={unit.id}>
           <div className={styles.cardHead}><div><span className={styles.label}>{unit.order?.order_number ?? "KART ÜRETİMİ"}</span><h2>{unit.order?.customer_name || unit.order?.guest_email || "Kullanıcı"}</h2><p>{unit.item?.product_name || "Fiziksel Yenomi ID"} · Baskı talebi {formatDateTime(unit.print_requested_at)}</p></div><span className={styles.badge}>{unit.operations_status}</span></div>
-          <div className={styles.fields}><label className={styles.field}><span className={styles.label}>Kargo firması</span><input value={ship.carrier} onChange={(event) => setShipping((current) => ({ ...current, [unit.id]: { ...ship, carrier: event.target.value } }))} placeholder="Yurtiçi Kargo" /></label><label className={styles.field}><span className={styles.label}>Takip numarası</span><input value={ship.tracking} onChange={(event) => setShipping((current) => ({ ...current, [unit.id]: { ...ship, tracking: event.target.value } }))} placeholder="Takip numarası" /></label><div className={styles.field}><span className={styles.label}>Son işlem</span><span className={styles.muted}>{formatDateTime(unit.delivered_at || unit.out_for_delivery_at || unit.shipped_at || unit.print_approved_at || unit.print_started_at || unit.print_requested_at)}</span></div></div>
+          <div className={styles.fields}><label className={styles.field}><span className={styles.label}>Kargo firması</span><input disabled={demoMode} value={ship.carrier} onChange={(event) => setShipping((current) => ({ ...current, [unit.id]: { ...ship, carrier: event.target.value } }))} placeholder="Yurtiçi Kargo" /></label><label className={styles.field}><span className={styles.label}>Takip numarası</span><input disabled={demoMode} value={ship.tracking} onChange={(event) => setShipping((current) => ({ ...current, [unit.id]: { ...ship, tracking: event.target.value } }))} placeholder="Takip numarası" /></label><div className={styles.field}><span className={styles.label}>Son işlem</span><span className={styles.muted}>{formatDateTime(unit.delivered_at || unit.out_for_delivery_at || unit.shipped_at || unit.print_approved_at || unit.print_started_at || unit.print_requested_at)}</span></div></div>
           <div className={styles.actions}>
-            {unit.operations_status === "PRINT_PENDING" && <button className={styles.secondary} type="button" disabled={saving === unit.id} onClick={() => void patchOperations({ action: "START_PRINT", unitId: unit.id }, unit.id)}>Baskıyı Başlat</button>}
-            {["PRINT_PENDING","PRINTING"].includes(unit.operations_status) && <button className={styles.action} type="button" disabled={saving === unit.id} onClick={() => void patchOperations({ action: "APPROVE_PRINT", unitId: unit.id }, unit.id)}>Baskıyı Onayla</button>}
-            {unit.operations_status === "SHIPPING_PENDING" && <button className={styles.action} type="button" disabled={saving === unit.id} onClick={() => void patchOperations({ action: "SHIP", unitId: unit.id, carrier: ship.carrier, trackingNumber: ship.tracking }, unit.id)}>Kargoya Ver</button>}
-            {unit.operations_status === "IN_TRANSIT" && <button className={styles.secondary} type="button" disabled={saving === unit.id} onClick={() => void patchOperations({ action: "OUT_FOR_DELIVERY", unitId: unit.id }, unit.id)}>Dağıtıma Çıktı</button>}
-            {["IN_TRANSIT","OUT_FOR_DELIVERY"].includes(unit.operations_status) && <button className={styles.action} type="button" disabled={saving === unit.id} onClick={() => void patchOperations({ action: "DELIVER", unitId: unit.id }, unit.id)}>Teslim Edildi</button>}
+            {unit.operations_status === "PRINT_PENDING" && <button className={styles.secondary} type="button" disabled={demoMode || saving === unit.id} onClick={() => void patchOperations({ action: "START_PRINT", unitId: unit.id }, unit.id)}>Baskıyı Başlat</button>}
+            {["PRINT_PENDING","PRINTING"].includes(unit.operations_status) && <button className={styles.action} type="button" disabled={demoMode || saving === unit.id} onClick={() => void patchOperations({ action: "APPROVE_PRINT", unitId: unit.id }, unit.id)}>Baskıyı Onayla</button>}
+            {unit.operations_status === "SHIPPING_PENDING" && <button className={styles.action} type="button" disabled={demoMode || saving === unit.id} onClick={() => void patchOperations({ action: "SHIP", unitId: unit.id, carrier: ship.carrier, trackingNumber: ship.tracking }, unit.id)}>Kargoya Ver</button>}
+            {unit.operations_status === "IN_TRANSIT" && <button className={styles.secondary} type="button" disabled={demoMode || saving === unit.id} onClick={() => void patchOperations({ action: "OUT_FOR_DELIVERY", unitId: unit.id }, unit.id)}>Dağıtıma Çıktı</button>}
+            {["IN_TRANSIT","OUT_FOR_DELIVERY"].includes(unit.operations_status) && <button className={styles.action} type="button" disabled={demoMode || saving === unit.id} onClick={() => void patchOperations({ action: "DELIVER", unitId: unit.id }, unit.id)}>Teslim Edildi</button>}
           </div>
         </article>;
       })}</div>}
 
-      {tab === "network" && <div className={styles.grid}>{data.premiumUsers.map((user) => {
+      {tab === "network" && operationsState === "ready" && <div className={styles.grid}>{data.premiumUsers.length === 0 && <div className={styles.emptyState}><strong>Premium kullanıcı kaydı yok.</strong><span>Aktif Premium haklar burada listelenecek.</span></div>}{data.premiumUsers.map((user) => {
         const form = mailForm[user.user_id] ?? { amount: "100", reason: "" };
-        return <article className={styles.card} key={user.id}><div className={styles.cardHead}><div><span className={styles.label}>BİREYSEL PREMIUM</span><h2>{user.profile?.name || user.profile?.email || user.user_id}</h2><p>Yenileme {formatDateTime(user.expires_at)}</p></div><span className={styles.badge}>{user.network_mail_remaining} / {user.network_mail_limit || 100}</span></div><div className={styles.fields}><label className={styles.field}><span className={styles.label}>Miktar</span><input inputMode="numeric" value={form.amount} onChange={(event) => setMailForm((current) => ({ ...current, [user.user_id]: { ...form, amount: event.target.value } }))} /></label><label className={styles.field}><span className={styles.label}>Gerekçe</span><input value={form.reason} onChange={(event) => setMailForm((current) => ({ ...current, [user.user_id]: { ...form, reason: event.target.value } }))} placeholder="Kota düzeltme nedeni" /></label></div><div className={styles.actions}><button type="button" className={styles.secondary} onClick={() => void patchOperations({ action: "ADJUST_NETWORK_MAIL", scope: "INDIVIDUAL", userId: user.user_id, mode: "ADD", amount: Number(form.amount), reason: form.reason }, `mail:${user.user_id}`)}>Kota Ekle</button><button type="button" className={styles.action} onClick={() => void patchOperations({ action: "ADJUST_NETWORK_MAIL", scope: "INDIVIDUAL", userId: user.user_id, mode: "RESET", amount: Number(form.amount), reason: form.reason }, `mail:${user.user_id}`)}>Kotayı Sıfırla/Ayarla</button></div></article>;
+        return <article className={styles.card} key={user.id}><div className={styles.cardHead}><div><span className={styles.label}>BİREYSEL PREMIUM</span><h2>{user.profile?.name || user.profile?.email || user.user_id}</h2><p>Yenileme {formatDateTime(user.expires_at)}</p></div><span className={styles.badge}>{user.network_mail_remaining} / {user.network_mail_limit || 100}</span></div><div className={styles.fields}><label className={styles.field}><span className={styles.label}>Miktar</span><input disabled={demoMode} inputMode="numeric" value={form.amount} onChange={(event) => setMailForm((current) => ({ ...current, [user.user_id]: { ...form, amount: event.target.value } }))} /></label><label className={styles.field}><span className={styles.label}>Gerekçe</span><input disabled={demoMode} value={form.reason} onChange={(event) => setMailForm((current) => ({ ...current, [user.user_id]: { ...form, reason: event.target.value } }))} placeholder="Kota düzeltme nedeni" /></label></div><div className={styles.actions}><button disabled={demoMode} type="button" className={styles.secondary} onClick={() => void patchOperations({ action: "ADJUST_NETWORK_MAIL", scope: "INDIVIDUAL", userId: user.user_id, mode: "ADD", amount: Number(form.amount), reason: form.reason }, `mail:${user.user_id}`)}>Kota Ekle</button><button disabled={demoMode} type="button" className={styles.action} onClick={() => void patchOperations({ action: "ADJUST_NETWORK_MAIL", scope: "INDIVIDUAL", userId: user.user_id, mode: "RESET", amount: Number(form.amount), reason: form.reason }, `mail:${user.user_id}`)}>Kotayı Ayarla</button></div></article>;
       })}<div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Tarih</th><th>Hedef</th><th>Değişim</th><th>Önce</th><th>Sonra</th><th>Gerekçe</th></tr></thead><tbody>{data.mailAdjustments.map((row) => <tr key={row.id}><td>{formatDateTime(row.created_at)}</td><td>{row.user_id || row.organization_id}</td><td>{row.delta > 0 ? `+${row.delta}` : row.delta}</td><td>{row.balance_before}</td><td>{row.balance_after}</td><td>{row.reason}</td></tr>)}</tbody></table></div></div>}
 
-      {tab === "batches" && <div className={styles.grid}><div className={styles.actions}><button className={styles.action} type="button" onClick={() => void patchOperations({ action: "QUEUE_RENEWALS", daysAhead: 30 }, "queue-renewals")}>30 Günlük Yenilemeleri Oluştur</button></div><div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Şirket</th><th>Batch ID</th><th>Lisans</th><th>Satın alma / başlangıç</th><th>Yenileme</th><th>Yenileme ücreti</th><th>Durum</th></tr></thead><tbody>{data.capacityTerms.map((term) => <tr key={term.id}><td>{term.organization?.name || term.organization_id}</td><td>{term.id}</td><td>{term.card_count}</td><td>{formatDateTime(term.starts_at)}</td><td>{formatDateTime(term.expires_at)}</td><td>{formatMoney(term.renewal_price_kurus)}</td><td>{term.status}</td></tr>)}</tbody></table></div><div className={styles.grid}>{data.renewalNotices.map((notice) => <article className={styles.card} key={notice.id}><div className={styles.cardHead}><div><span className={styles.label}>YENİLEME KAYDI</span><h3>{notice.term_id}</h3><p>{formatDateTime(notice.due_at)} · {formatMoney(notice.renewal_price_kurus)}</p></div><span className={styles.badge}>{notice.status}</span></div><div className={styles.actions}>{notice.status === "PENDING" && <button className={styles.secondary} type="button" onClick={() => void patchOperations({ action: "MARK_RENEWAL_NOTIFIED", noticeId: notice.id }, notice.id)}>Bildirim Gönderildi</button>}{["PENDING","NOTIFIED"].includes(notice.status) && <button className={styles.action} type="button" onClick={() => { const ref = window.prompt("Fatura referansı"); if (ref) void patchOperations({ action: "MARK_RENEWAL_INVOICED", noticeId: notice.id, invoiceReference: ref }, notice.id); }}>Faturalandı</button>}{notice.status === "INVOICED" && <button className={styles.action} type="button" onClick={() => void patchOperations({ action: "MARK_RENEWAL_PAID", noticeId: notice.id }, notice.id)}>Ödendi</button>}</div></article>)}</div></div>}
+      {tab === "batches" && operationsState === "ready" && <div className={styles.grid}><div className={styles.actions}><button disabled={demoMode} className={styles.action} type="button" onClick={() => void patchOperations({ action: "QUEUE_RENEWALS", daysAhead: 30 }, "queue-renewals")}>30 Günlük Yenilemeleri Oluştur</button></div><div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Şirket</th><th>Batch ID</th><th>Lisans</th><th>Satın alma / başlangıç</th><th>Yenileme</th><th>Yenileme ücreti</th><th>Durum</th></tr></thead><tbody>{data.capacityTerms.map((term) => <tr key={term.id}><td>{term.organization?.name || term.organization_id}</td><td>{term.id}</td><td>{term.card_count}</td><td>{formatDateTime(term.starts_at)}</td><td>{formatDateTime(term.expires_at)}</td><td>{formatMoney(term.renewal_price_kurus)}</td><td>{term.status}</td></tr>)}</tbody></table></div><div className={styles.grid}>{data.renewalNotices.map((notice) => <article className={styles.card} key={notice.id}><div className={styles.cardHead}><div><span className={styles.label}>YENİLEME KAYDI</span><h3>{notice.term_id}</h3><p>{formatDateTime(notice.due_at)} · {formatMoney(notice.renewal_price_kurus)}</p></div><span className={styles.badge}>{notice.status}</span></div><div className={styles.actions}>{notice.status === "PENDING" && <button disabled={demoMode} className={styles.secondary} type="button" onClick={() => void patchOperations({ action: "MARK_RENEWAL_NOTIFIED", noticeId: notice.id }, notice.id)}>Bildirim Gönderildi</button>}{["PENDING","NOTIFIED"].includes(notice.status) && <button disabled={demoMode} className={styles.action} type="button" onClick={() => { const ref = window.prompt("Fatura referansı"); if (ref) void patchOperations({ action: "MARK_RENEWAL_INVOICED", noticeId: notice.id, invoiceReference: ref }, notice.id); }}>Faturalandı</button>}{notice.status === "INVOICED" && <button disabled={demoMode} className={styles.action} type="button" onClick={() => void patchOperations({ action: "MARK_RENEWAL_PAID", noticeId: notice.id }, notice.id)}>Ödendi</button>}</div></article>)}</div></div>}
 
-      {tab === "pricing" && <div className={styles.grid}><div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Ürün</th><th>SKU</th><th>Mevcut</th><th>Yeni fiyat (TL)</th><th></th></tr></thead><tbody>{variants.map((item) => { const key = `variant:${item.sku}`; return <tr key={item.id}><td>{item.name}</td><td>{item.sku}</td><td>{formatMoney(item.price_kurus)}</td><td><input value={priceDraft[key] ?? ""} onChange={(event) => setPriceDraft((current) => ({ ...current, [key]: event.target.value }))} /></td><td><button className={styles.secondary} type="button" disabled={saving === key} onClick={() => void savePrice("PRODUCT_VARIANT", key, item.sku)}>Kaydet</button></td></tr>; })}</tbody></table></div><div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Kurumsal paket</th><th>Kod</th><th>Koltuk</th><th>Mevcut</th><th>Yeni fiyat (TL)</th><th></th></tr></thead><tbody>{plans.map((item) => { const key = `plan:${item.code}`; return <tr key={item.id}><td>{item.name}</td><td>{item.code}</td><td>{item.seat_limit ?? "—"}</td><td>{formatMoney(item.annual_price_kurus)}</td><td><input value={priceDraft[key] ?? ""} onChange={(event) => setPriceDraft((current) => ({ ...current, [key]: event.target.value }))} /></td><td><button className={styles.secondary} type="button" disabled={saving === key} onClick={() => void savePrice("CORPORATE_PLAN", key, item.code)}>Kaydet</button></td></tr>; })}</tbody></table></div></div>}
+      {tab === "pricing" && <div className={styles.grid}>{pricingState === "loading" && <div className={styles.message}>Fiyat kataloğu yükleniyor…</div>}{pricingState === "error" && <div className={styles.errorPanel}>{pricingError || "Fiyat kataloğu yüklenemedi."}</div>}{pricingState === "ready" && <><div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Ürün</th><th>SKU</th><th>Mevcut</th><th>Yeni fiyat (TL)</th><th></th></tr></thead><tbody>{variants.map((item) => { const key = `variant:${item.sku}`; return <tr key={item.id}><td>{item.name}</td><td>{item.sku}</td><td>{formatMoney(item.price_kurus)}</td><td><input disabled={demoMode} value={priceDraft[key] ?? ""} onChange={(event) => setPriceDraft((current) => ({ ...current, [key]: event.target.value }))} /></td><td><button className={styles.secondary} type="button" disabled={demoMode || saving === key} onClick={() => void savePrice("PRODUCT_VARIANT", key, item.sku)}>Kaydet</button></td></tr>; })}</tbody></table></div><div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Kurumsal paket</th><th>Kod</th><th>Koltuk</th><th>Mevcut</th><th>Yeni fiyat (TL)</th><th></th></tr></thead><tbody>{plans.map((item) => { const key = `plan:${item.code}`; return <tr key={item.id}><td>{item.name}</td><td>{item.code}</td><td>{item.seat_limit ?? "—"}</td><td>{formatMoney(item.annual_price_kurus)}</td><td><input disabled={demoMode} value={priceDraft[key] ?? ""} onChange={(event) => setPriceDraft((current) => ({ ...current, [key]: event.target.value }))} /></td><td><button className={styles.secondary} type="button" disabled={demoMode || saving === key} onClick={() => void savePrice("CORPORATE_PLAN", key, item.code)}>Kaydet</button></td></tr>; })}</tbody></table></div></>}</div>}
 
-      {tab === "audit" && <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Tarih</th><th>İşlem</th><th>Hedef</th><th>Actor</th><th>Değişiklik</th></tr></thead><tbody>{data.auditLog.map((row) => <tr key={row.id}><td>{formatDateTime(row.created_at)}</td><td>{row.action}</td><td>{row.target_table}{row.target_id ? ` · ${row.target_id}` : ""}</td><td>{row.actor_user_id || "SYSTEM"}</td><td><code>{JSON.stringify(row.after_value ?? {})}</code></td></tr>)}</tbody></table></div>}
+      {tab === "audit" && operationsState === "ready" && <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Tarih</th><th>İşlem</th><th>Hedef</th><th>Actor</th><th>Değişiklik</th></tr></thead><tbody>{data.auditLog.map((row) => <tr key={row.id}><td>{formatDateTime(row.created_at)}</td><td>{row.action}</td><td>{row.target_table}{row.target_id ? ` · ${row.target_id}` : ""}</td><td>{row.actor_user_id || "SYSTEM"}</td><td><code>{JSON.stringify(row.after_value ?? {})}</code></td></tr>)}</tbody></table></div>}
     </section>
   </main>;
 }

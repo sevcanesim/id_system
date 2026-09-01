@@ -28,12 +28,12 @@ async function resolveOwnUnit(userId: string, profileId?: string) {
       .eq("user_id", userId)
       .maybeSingle();
     entitlementId = profile?.entitlement_id ?? null;
-    if (!profile) return { admin, unit: null, profileFound: false };
+    if (!profile) return { admin, unit: null, entitlement: null, order: null, profileFound: false };
   }
 
   let entitlementQuery = admin
     .from("entitlements")
-    .select("id,order_item_id,expires_at,package_code,status")
+    .select("id,order_item_id,expires_at,grace_ends_at,package_code,status,created_at")
     .eq("user_id", userId)
     .in("status", ["ACTIVE", "GRACE_PERIOD"])
     .not("order_item_id", "is", null)
@@ -42,17 +42,35 @@ async function resolveOwnUnit(userId: string, profileId?: string) {
 
   if (entitlementId) entitlementQuery = entitlementQuery.eq("id", entitlementId);
   const { data: entitlement } = await entitlementQuery.maybeSingle();
-  if (!entitlement?.order_item_id) return { admin, unit: null, profileFound: true };
+  if (!entitlement?.order_item_id) return { admin, unit: null, entitlement: entitlement ?? null, order: null, profileFound: true };
 
-  const { data: unit } = await admin
-    .from("commerce_physical_card_units")
-    .select("id,order_item_id,operational_status,print_requested_at,print_approved_at,shipping_pending_at,carrier,tracking_number,shipped_at,out_for_delivery_at,delivered_at,created_at,updated_at")
-    .eq("order_item_id", entitlement.order_item_id)
-    .order("instance_no", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const [{ data: unit }, { data: orderItem }] = await Promise.all([
+    admin
+      .from("commerce_physical_card_units")
+      .select("id,order_item_id,operational_status,print_requested_at,print_approved_at,shipping_pending_at,carrier,tracking_number,shipped_at,out_for_delivery_at,delivered_at,created_at,updated_at")
+      .eq("order_item_id", entitlement.order_item_id)
+      .order("instance_no", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    admin
+      .from("commerce_order_items")
+      .select("order_id")
+      .eq("id", entitlement.order_item_id)
+      .maybeSingle(),
+  ]);
 
-  return { admin, unit, entitlement, profileFound: true };
+  let order = null;
+  if (orderItem?.order_id) {
+    const { data } = await admin
+      .from("commerce_orders")
+      .select("id,order_number,status,total_kurus,currency,paid_at,created_at,tracking_company,tracking_number,shipped_at,delivered_at")
+      .eq("id", orderItem.order_id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    order = data ?? null;
+  }
+
+  return { admin, unit: unit ?? null, entitlement, order, profileFound: true };
 }
 
 export async function GET(request: NextRequest) {
@@ -60,10 +78,8 @@ export async function GET(request: NextRequest) {
     const user = await authenticatedUser(request);
     if (!user) return NextResponse.json(publicError("AUTH_REQUIRED"), { status: 401 });
 
-    const { admin, unit, entitlement } = await resolveOwnUnit(user.id);
-    if (!unit) {
-      return NextResponse.json({ process: null, entitlement: entitlement ?? null, events: [] });
-    }
+    const { admin, unit, entitlement, order } = await resolveOwnUnit(user.id);
+    if (!unit) return NextResponse.json({ process: null, entitlement, order, events: [] });
 
     const { data: events } = await admin
       .from("commerce_card_operation_events")
@@ -71,7 +87,7 @@ export async function GET(request: NextRequest) {
       .eq("card_unit_id", unit.id)
       .order("created_at", { ascending: true });
 
-    return NextResponse.json({ process: unit, entitlement: entitlement ?? null, events: events ?? [] });
+    return NextResponse.json({ process: unit, entitlement, order, events: events ?? [] });
   } catch (error) {
     const payload = publicError("ORDER_LOAD_FAILED");
     console.error("own card process error", { reference: payload.reference, error });

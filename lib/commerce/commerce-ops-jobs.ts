@@ -21,6 +21,12 @@ export async function expireStaleAwaitingOrders(admin: AdminClient) {
   return expiry ?? { ok: true };
 }
 
+export async function queueCorporateCapacityRenewals(admin: AdminClient, daysAhead = 30) {
+  const { data, error } = await admin.rpc("queue_due_capacity_renewals", { p_days_ahead: daysAhead });
+  if (error) throw error;
+  return data ?? { ok: true, queued: 0 };
+}
+
 export async function sendAbandonedCheckoutReminders(admin: AdminClient, now = Date.now()) {
   const since = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
   const until = new Date(now - TWO_HOURS_MS).toISOString();
@@ -184,6 +190,7 @@ export async function runCommerceOpsJobs() {
   const abandoned = await sendAbandonedCheckoutReminders(admin);
   const expired = await expireStaleAwaitingOrders(admin);
   const reconciled = await runPaidOrderReconciliation(admin);
+  const renewals = await queueCorporateCapacityRenewals(admin);
   const alerts = await notifyOpenFulfillmentIssues(admin);
-  return { abandoned, expired, reconciled, alerts };
+  return { abandoned, expired, reconciled, renewals, alerts };
 }

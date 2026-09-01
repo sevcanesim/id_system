@@ -8,14 +8,19 @@ import AppHeader from "../components/AppHeader";
 import { EmptyState, LoadingState } from "../components/ui/States";
 
 type Status = "PAID" | "PREPARING" | "SHIPPED" | "COMPLETED" | "CANCELLED" | "REFUNDED";
+type OrderStatus = Status | "DRAFT" | "AWAITING_PAYMENT";
+type AudienceFilter = "ALL" | "INDIVIDUAL" | "CORPORATE";
+type ProductFilter = "ALL" | "STANDARD" | "PREMIUM" | "PREMIUM_UPGRADE" | "NETWORK_MAIL" | "CORPORATE_PACKAGE" | "CAPACITY" | "CARD" | "RENEWAL";
+type OperationsFilter = "ALL" | "PAYMENT_PENDING" | "ACTIVATION_PENDING" | "ACTIVE" | "FULFILLMENT" | "SHIPPING" | "COMPLETED" | "ISSUE";
 type ShippingAddress = { recipient_name: string; phone: string; address_line: string; district: string; city: string; postal_code: string | null; delivery_note: string | null };
+type OrderItem = { id: string; product_name: string; product_kind: string; quantity: number; configuration?: Record<string, unknown> | null };
 
 type Order = {
   id: string; order_number: string; customer_name: string | null; customer_phone: string | null; guest_email: string;
-  status: Status | "DRAFT" | "AWAITING_PAYMENT"; total_kurus: number; paid_at: string | null; created_at: string;
+  status: OrderStatus; total_kurus: number; paid_at: string | null; created_at: string;
   tracking_company: string | null; tracking_number: string | null; activation_claimed_at: string | null;
   company_name: string | null; tax_number: string | null; tax_office: string | null;
-  commerce_order_items: { id: string; product_name: string; product_kind: string; quantity: number }[];
+  commerce_order_items: OrderItem[];
   shipping_addresses: ShippingAddress[] | ShippingAddress | null;
 };
 
@@ -42,6 +47,64 @@ type CorporateAccount = {
 };
 
 const labels: Record<Status, string> = { PAID: "Ödeme alındı", PREPARING: "Hazırlanıyor", SHIPPED: "Kargolandı", COMPLETED: "Tamamlandı", CANCELLED: "İptal", REFUNDED: "İade" };
+const orderStatusLabels: Record<OrderStatus, string> = { DRAFT: "Taslak", AWAITING_PAYMENT: "Ödeme bekliyor", ...labels };
+const productLabels: Record<Exclude<ProductFilter, "ALL">, string> = {
+  STANDARD: "Standard",
+  PREMIUM: "Premium",
+  PREMIUM_UPGRADE: "Premium yükseltme",
+  NETWORK_MAIL: "Network Mail",
+  CORPORATE_PACKAGE: "Kurumsal paket",
+  CAPACITY: "Ek kapasite",
+  CARD: "Fiziksel / yedek kart",
+  RENEWAL: "Yenileme",
+};
+const operationsLabels: Record<Exclude<OperationsFilter, "ALL">, string> = {
+  PAYMENT_PENDING: "Ödeme bekliyor",
+  ACTIVATION_PENDING: "Aktivasyon bekliyor",
+  ACTIVE: "Hesap aktif",
+  FULFILLMENT: "Üretim / hazırlık",
+  SHIPPING: "Kargoda",
+  COMPLETED: "Tamamlandı",
+  ISSUE: "İptal / iade",
+};
+
+function itemSku(item: OrderItem) {
+  const sku = item.configuration?.sku;
+  return typeof sku === "string" ? sku.toUpperCase() : "";
+}
+
+function classifyProduct(item: OrderItem): Exclude<ProductFilter, "ALL"> {
+  const sku = itemSku(item);
+  const text = `${sku} ${item.product_name} ${item.product_kind}`.toLocaleUpperCase("tr-TR");
+  if (text.includes("PREMIUM") && (text.includes("UPGRADE") || text.includes("YÜKSELT"))) return "PREMIUM_UPGRADE";
+  if (text.includes("NETWORK") && text.includes("MAIL")) return "NETWORK_MAIL";
+  if (sku.startsWith("YENOMI-BUSINESS-SEATS-") || text.includes("EK KAPASİTE") || text.includes("EK KULLANICI")) return "CAPACITY";
+  if (sku.startsWith("YENOMI-CORP-") || text.includes("KURUMSAL")) return "CORPORATE_PACKAGE";
+  if (text.includes("YENİLEME") || text.includes("RENEWAL")) return "RENEWAL";
+  if (text.includes("PREMIUM")) return "PREMIUM";
+  if (text.includes("YEDEK") || text.includes("ADDITIONAL_CARD") || text.includes("FİZİKSEL KART")) return "CARD";
+  return "STANDARD";
+}
+
+function orderAudience(order: Order): Exclude<AudienceFilter, "ALL"> {
+  const corporateItem = order.commerce_order_items.some((item) => {
+    const sku = itemSku(item);
+    const configOrganizationId = item.configuration?.organizationId;
+    const text = `${item.product_name} ${item.product_kind}`.toLocaleUpperCase("tr-TR");
+    return sku.startsWith("YENOMI-CORP-") || sku.startsWith("YENOMI-BUSINESS-SEATS-") || typeof configOrganizationId === "string" || text.includes("KURUMSAL");
+  });
+  return corporateItem ? "CORPORATE" : "INDIVIDUAL";
+}
+
+function orderOperationsState(order: Order): Exclude<OperationsFilter, "ALL"> {
+  if (order.status === "CANCELLED" || order.status === "REFUNDED") return "ISSUE";
+  if (order.status === "DRAFT" || order.status === "AWAITING_PAYMENT") return "PAYMENT_PENDING";
+  if (order.status === "SHIPPED") return "SHIPPING";
+  if (order.status === "COMPLETED") return "COMPLETED";
+  if (order.status === "PREPARING") return "FULFILLMENT";
+  if (order.status === "PAID" && !order.activation_claimed_at) return "ACTIVATION_PENDING";
+  return "ACTIVE";
+}
 
 export default function AdminPage() {
   const [tab, setTab] = useState<"orders" | "reconciliation" | "corporate">("orders");
@@ -50,6 +113,9 @@ export default function AdminPage() {
   const [authorized, setAuthorized] = useState(true);
   const [message, setMessage] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | Order["status"]>("ALL");
+  const [audienceFilter, setAudienceFilter] = useState<AudienceFilter>("ALL");
+  const [productFilter, setProductFilter] = useState<ProductFilter>("ALL");
+  const [operationsFilter, setOperationsFilter] = useState<OperationsFilter>("ALL");
   const [search, setSearch] = useState("");
   const [tracking, setTracking] = useState<Record<string, { company: string; number: string }>>({});
   const [saving, setSaving] = useState<string | null>(null);
@@ -240,7 +306,6 @@ export default function AdminPage() {
 
   const selectedPlan = plans.find((plan) => plan.code === form.planCode);
 
-
   async function resendActivation(orderId: string) {
     const token = await getToken(); if (!token) return;
     setSaving(orderId); setMessage("");
@@ -267,16 +332,20 @@ export default function AdminPage() {
 
   const stats = useMemo(() => ({
     total: orders.length,
-    paid: orders.filter((o) => o.status === "PAID").length,
-    preparing: orders.filter((o) => o.status === "PREPARING").length,
+    individual: orders.filter((order) => orderAudience(order) === "INDIVIDUAL").length,
+    corporate: orders.filter((order) => orderAudience(order) === "CORPORATE").length,
     revenue: orders.filter((o) => !["CANCELLED", "REFUNDED"].includes(o.status)).reduce((sum, o) => sum + o.total_kurus, 0),
   }), [orders]);
+
   const visible = orders.filter((order) => {
     if (statusFilter !== "ALL" && order.status !== statusFilter) return false;
+    if (audienceFilter !== "ALL" && orderAudience(order) !== audienceFilter) return false;
+    if (operationsFilter !== "ALL" && orderOperationsState(order) !== operationsFilter) return false;
+    if (productFilter !== "ALL" && !order.commerce_order_items.some((item) => classifyProduct(item) === productFilter)) return false;
     const needle = search.trim().toLocaleLowerCase("tr-TR");
     if (!needle) return true;
     const address = Array.isArray(order.shipping_addresses) ? order.shipping_addresses[0] : order.shipping_addresses;
-    return [order.order_number, order.customer_name, order.customer_phone, order.guest_email, order.company_name, order.tax_number, order.tax_office, address?.recipient_name, address?.phone, address?.city, address?.district]
+    return [order.order_number, order.customer_name, order.customer_phone, order.guest_email, order.company_name, order.tax_number, order.tax_office, address?.recipient_name, address?.phone, address?.city, address?.district, ...order.commerce_order_items.flatMap((item) => [item.product_name, item.product_kind, itemSku(item)])]
       .filter(Boolean)
       .some((value) => String(value).toLocaleLowerCase("tr-TR").includes(needle));
   });
@@ -284,21 +353,31 @@ export default function AdminPage() {
   if (loading) return <main className="admin-page"><AppHeader context="Yönetim Paneli" /><div className="result-empty"><h1>Siparişler yükleniyor.</h1></div></main>;
   if (!authorized) return <main className="admin-page"><AppHeader context="Yönetim Paneli" /><div className="result-empty"><h1>Bu alan yalnız yöneticilere açıktır.</h1><Link href="/giris">Giriş Yap</Link></div></main>;
 
-  return <main id="main-content" className="admin-page"><AppHeader context="Yönetim Paneli" actions={[{ href: "/kurumsal", label: "Kurumsal" }, { href: "/urunler", label: "Ürünler", primary: true }]} />
+  return <main id="main-content" className="admin-page"><AppHeader context="Yönetim Paneli" actions={[{ href: "/admin/operations", label: "Operasyon" }, { href: "/urunler", label: "Ürünler", primary: true }]} />
     <section className="admin-shell">
-      <div className="admin-heading"><span className="section-kicker">SATIŞ VE OPERASYON</span><h1>Siparişi ödemeden teslimata kadar yönet.</h1><p>Yeni commerce siparişleri, üretim ve kargo bilgileri aynı kuyrukta.</p></div>
-      <div className="admin-tabs" role="tablist"><button type="button" role="tab" aria-selected={tab === "orders"} className={tab === "orders" ? "active" : ""} onClick={() => setTab("orders")}>Siparişler</button><button type="button" role="tab" aria-selected={tab === "reconciliation"} className={tab === "reconciliation" ? "active" : ""} onClick={() => setTab("reconciliation")}>Ödeme Mutabakatı</button><button type="button" role="tab" aria-selected={tab === "corporate"} className={tab === "corporate" ? "active" : ""} onClick={() => setTab("corporate")}>Kurumsal Hesaplar</button></div>
+      <div className="admin-heading"><span className="section-kicker">SATIŞ VE OPERASYON</span><h1>Tüm bireysel ve kurumsal satışları tek merkezden yönet.</h1><p>Ödeme, aktivasyon, ürün türü, üretim, kargo ve kurumsal kapasite alımları aynı ticari görünümde.</p></div>
+      <div className="admin-tabs" role="tablist"><button type="button" role="tab" aria-selected={tab === "orders"} className={tab === "orders" ? "active" : ""} onClick={() => setTab("orders")}>Tüm Satışlar</button><button type="button" role="tab" aria-selected={tab === "reconciliation"} className={tab === "reconciliation" ? "active" : ""} onClick={() => setTab("reconciliation")}>Ödeme Mutabakatı</button><button type="button" role="tab" aria-selected={tab === "corporate"} className={tab === "corporate" ? "active" : ""} onClick={() => setTab("corporate")}>Kurumsal Hesaplar</button></div>
       {tab === "orders" && <>
-      <div className="admin-stats"><article><small>Toplam</small><b>{stats.total}</b></article><article><small>Yeni ödenmiş</small><b>{stats.paid}</b></article><article><small>Hazırlanıyor</small><b>{stats.preparing}</b></article><article><small>Net sipariş tutarı</small><b>{(stats.revenue / 100).toLocaleString("tr-TR")} TL</b></article></div>
-      <div className="admin-filter"><label className="admin-search-label">Ara<input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Sipariş no, müşteri, VKN veya e-posta" /></label><label>Durum<select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}><option value="ALL">Tümü</option><option value="PAID">Ödeme alındı</option><option value="PREPARING">Hazırlanıyor</option><option value="SHIPPED">Kargolandı</option><option value="COMPLETED">Tamamlandı</option><option value="CANCELLED">İptal</option><option value="REFUNDED">İade</option></select></label></div>
+      <div className="admin-stats"><article><small>Tüm satışlar</small><b>{stats.total}</b></article><article><small>Bireysel</small><b>{stats.individual}</b></article><article><small>Kurumsal</small><b>{stats.corporate}</b></article><article><small>Net sipariş tutarı</small><b>{(stats.revenue / 100).toLocaleString("tr-TR")} TL</b></article></div>
+      <div className="admin-filter">
+        <label className="admin-search-label">Ara<input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Sipariş no, müşteri, şirket, VKN, SKU veya e-posta" /></label>
+        <label>Müşteri<select value={audienceFilter} onChange={(e) => setAudienceFilter(e.target.value as AudienceFilter)}><option value="ALL">Tümü</option><option value="INDIVIDUAL">Bireysel</option><option value="CORPORATE">Kurumsal</option></select></label>
+        <label>Ürün<select value={productFilter} onChange={(e) => setProductFilter(e.target.value as ProductFilter)}><option value="ALL">Tüm ürünler</option>{Object.entries(productLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+        <label>Operasyon<select value={operationsFilter} onChange={(e) => setOperationsFilter(e.target.value as OperationsFilter)}><option value="ALL">Tüm aşamalar</option>{Object.entries(operationsLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+        <label>Sipariş durumu<select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}><option value="ALL">Tümü</option><option value="DRAFT">Taslak</option><option value="AWAITING_PAYMENT">Ödeme bekliyor</option><option value="PAID">Ödeme alındı</option><option value="PREPARING">Hazırlanıyor</option><option value="SHIPPED">Kargolandı</option><option value="COMPLETED">Tamamlandı</option><option value="CANCELLED">İptal</option><option value="REFUNDED">İade</option></select></label>
+      </div>
       {message && <div className="auth-message">{message}</div>}
-      <div className="order-list">{visible.length === 0 ? <EmptyState icon="box" title="Bu durumda sipariş bulunmuyor." description="Filtreyi değiştirerek diğer sipariş durumlarına bakabilirsin." /> : visible.map((order) => {
-        const address = Array.isArray(order.shipping_addresses) ? order.shipping_addresses[0] : order.shipping_addresses as any;
+      <div className="order-list">{visible.length === 0 ? <EmptyState icon="box" title="Bu filtrelerde satış bulunmuyor." description="Müşteri, ürün veya operasyon filtresini değiştirerek tüm bireysel ve kurumsal alımları görüntüleyebilirsin." /> : visible.map((order) => {
+        const address = Array.isArray(order.shipping_addresses) ? order.shipping_addresses[0] : order.shipping_addresses as ShippingAddress | null;
         const t = tracking[order.id] ?? { company: "", number: "" };
+        const audience = orderAudience(order);
+        const operationsState = orderOperationsState(order);
+        const categories = [...new Set(order.commerce_order_items.map(classifyProduct))];
+        const currentStatusIsEditableTarget = order.status in labels;
         return <article className="admin-order" key={order.id}>
-          <div className="admin-order-top"><div><span>{new Date(order.created_at).toLocaleString("tr-TR")}</span><h2>{order.order_number}</h2><p>{order.commerce_order_items.map((item) => `${item.quantity} × ${item.product_name}`).join(" · ")}</p></div><div className="admin-status-controls"><em className={`payment-badge payment-${order.status.toLowerCase()}`}>{labels[order.status as Status] ?? order.status}</em><select value={order.status} onChange={(e) => updateOrder(order.id, e.target.value as Status)} disabled={saving === order.id}>{Object.entries(labels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div></div>
-          <div className="admin-order-grid"><div><small>Müşteri</small><b>{order.customer_name || address?.recipient_name || "—"}</b><span>{order.guest_email}</span><span>{order.customer_phone || address?.phone}</span></div><div><small>Fatura / teslimat</small><b>{order.company_name || (address ? `${address.district}, ${address.city}` : "—")}</b><span>{order.tax_number ? `VKN ${order.tax_number}${order.tax_office ? ` · ${order.tax_office}` : ""}` : (address ? `${address.district}, ${address.city}` : "")}</span><span>{address?.address_line}</span></div><div><small>Tutar</small><b>{(order.total_kurus / 100).toLocaleString("tr-TR")} TL</b><span>{order.activation_claimed_at ? "Hesap etkin" : "Aktivasyon bekleniyor"}</span></div></div>
-          <div className="payment-retry"><label>Kargo firması<input value={t.company} onChange={(e) => setTracking((current) => ({ ...current, [order.id]: { ...t, company: e.target.value } }))} placeholder="Örn. Yurtiçi Kargo" /></label><label>Takip numarası<input value={t.number} onChange={(e) => setTracking((current) => ({ ...current, [order.id]: { ...t, number: e.target.value } }))} placeholder="Takip numarası" /></label><div className="admin-order-actions"><button type="button" onClick={() => updateOrder(order.id, order.status === "SHIPPED" ? "SHIPPED" : "PREPARING")} disabled={saving === order.id}>{saving === order.id ? "Kaydediliyor..." : "Bilgileri Kaydet"}</button>{!order.activation_claimed_at && order.status === "PAID" && <button className="secondary" type="button" onClick={() => resendActivation(order.id)} disabled={saving === order.id}>Aktivasyonu Yeniden Gönder</button>}</div></div>
+          <div className="admin-order-top"><div><span>{new Date(order.created_at).toLocaleString("tr-TR")}</span><h2>{order.order_number}</h2><p>{order.commerce_order_items.map((item) => `${item.quantity} × ${item.product_name}`).join(" · ")}</p><p><strong>{audience === "CORPORATE" ? "KURUMSAL" : "BİREYSEL"}</strong> · {categories.map((category) => productLabels[category]).join(" · ")} · {operationsLabels[operationsState]}</p></div><div className="admin-status-controls"><em className={`payment-badge payment-${order.status.toLowerCase()}`}>{orderStatusLabels[order.status]}</em><select value={order.status} onChange={(e) => updateOrder(order.id, e.target.value as Status)} disabled={saving === order.id}>{!currentStatusIsEditableTarget && <option value={order.status}>{orderStatusLabels[order.status]}</option>}{Object.entries(labels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div></div>
+          <div className="admin-order-grid"><div><small>Müşteri</small><b>{order.customer_name || address?.recipient_name || "—"}</b><span>{order.guest_email}</span><span>{order.customer_phone || address?.phone}</span></div><div><small>{audience === "CORPORATE" ? "Şirket / fatura" : "Fatura / teslimat"}</small><b>{order.company_name || (address ? `${address.district}, ${address.city}` : "—")}</b><span>{order.tax_number ? `VKN ${order.tax_number}${order.tax_office ? ` · ${order.tax_office}` : ""}` : (address ? `${address.district}, ${address.city}` : "")}</span><span>{address?.address_line}</span></div><div><small>Ticari yaşam döngüsü</small><b>{operationsLabels[operationsState]}</b><span>{(order.total_kurus / 100).toLocaleString("tr-TR")} TL</span><span>{order.paid_at ? `Ödeme: ${new Date(order.paid_at).toLocaleString("tr-TR")}` : "Ödeme tarihi yok"}</span><span>{order.activation_claimed_at ? `Aktivasyon: ${new Date(order.activation_claimed_at).toLocaleString("tr-TR")}` : "Aktivasyon bekleniyor"}</span></div></div>
+          <div className="payment-retry"><label>Kargo firması<input value={t.company} onChange={(e) => setTracking((current) => ({ ...current, [order.id]: { ...t, company: e.target.value } }))} placeholder="Örn. Yurtiçi Kargo" /></label><label>Takip numarası<input value={t.number} onChange={(e) => setTracking((current) => ({ ...current, [order.id]: { ...t, number: e.target.value } }))} placeholder="Takip numarası" /></label><div className="admin-order-actions"><button type="button" onClick={() => updateOrder(order.id, order.status === "SHIPPED" ? "SHIPPED" : "PREPARING")} disabled={saving === order.id || order.status === "DRAFT" || order.status === "AWAITING_PAYMENT"}>{saving === order.id ? "Kaydediliyor..." : "Bilgileri Kaydet"}</button>{!order.activation_claimed_at && order.status === "PAID" && <button className="secondary" type="button" onClick={() => resendActivation(order.id)} disabled={saving === order.id}>Aktivasyonu Yeniden Gönder</button>}</div></div>
         </article>;
       })}</div>
       </>}

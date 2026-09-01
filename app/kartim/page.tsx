@@ -7,6 +7,7 @@ import QRCode from "qrcode";
 import CardTemplate, { EditableCardData } from "../CardTemplate";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { fetchOwnProfiles } from "../../lib/repositories/profiles";
+import { getCardProfileCompletion } from "../../lib/card-profile";
 import UserPanelShell from "../components/UserPanelShell";
 import { Card } from "../components/ui";
 import { Icon } from "../icons";
@@ -148,9 +149,7 @@ export default function MyCardPage() {
       ? cardQrUrl(publicId, publicCardOrigin())
       : publicUrl;
   const liveHref = cardSharePath(slug);
-  const completion = data
-    ? Math.min(100, [data.name, data.role, data.email, data.phone, data.image].filter(Boolean).length * 20)
-    : 0;
+  const completion = data ? getCardProfileCompletion(data) : null;
 
   useEffect(() => {
     if (!savedSlug || !isPublished) {
@@ -211,13 +210,16 @@ export default function MyCardPage() {
     );
   }
 
-  if (!data) {
+  if (!data || !completion) {
     return (
       <UserPanelShell activeKey="card" title="Kartım" description="Kart durumunuz kontrol ediliyor.">
         <Card><p className="p14-state-copy">Kart durumu kontrol ediliyor…</p></Card>
       </UserPanelShell>
     );
   }
+
+  const incompleteLabels = completion.missing.map((item) => item.label);
+  const recommendedLabels = completion.recommended.map((item) => item.label);
 
   return (
     <UserPanelShell
@@ -241,10 +243,31 @@ export default function MyCardPage() {
           </div>
 
           <div className="p7-card-health" aria-label="Kart sağlık özeti">
-            <div><small>Profil</small><strong>%{completion}</strong><span>tamamlandı</span></div>
+            <div><small>Profil</small><strong>%{completion.percent}</strong><span>tamamlandı</span></div>
             <div><small>Fiziksel kart</small><strong>{physicalCard ? (cardStatus === "LOST" ? "Kayıp" : "Aktif") : "Bağlı değil"}</strong><span>{physicalCard ? "NFC / QR" : "Dijital profil"}</span></div>
             <div><small>Yayın</small><strong>{isPublished ? "Yayında" : "Taslak"}</strong><span>{isPublished ? "Paylaşılabilir" : "Dışarıya kapalı"}</span></div>
           </div>
+
+          {(!completion.isComplete || recommendedLabels.length > 0) && (
+            <div className="p14-link-card" aria-label="Profil tamamlama önerisi">
+              <div className="p14-link-head">
+                <div>
+                  <small>{completion.isComplete ? "PROFİLİNİ GÜÇLENDİR" : "PROFİLİNİ TAMAMLA"}</small>
+                  <strong>{completion.isComplete ? "Temel profilin hazır." : `%${completion.percent} tamamlandı`}</strong>
+                </div>
+              </div>
+              <p className="p14-state-copy">
+                {incompleteLabels.length > 0
+                  ? `Eksik: ${incompleteLabels.join(", ")}.`
+                  : `Önerilen: ${recommendedLabels.join(", ")}.`}
+              </p>
+              <div className="p14-link-actions">
+                <Link href={editHref} className="p14-action primary">
+                  {completion.isComplete ? "Profili Güçlendir" : "Eksikleri Tamamla"}
+                </Link>
+              </div>
+            </div>
+          )}
 
           <div className="p14-link-card">
             <div className="p14-link-head">

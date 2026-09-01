@@ -40,7 +40,6 @@ import "./styles/canonical-responsive-production.css";
 import "./styles/home-products-responsive.css";
 import "./kurumsal/panel/content-history-polish.css";
 import "./kurumsal/panel/content-layout-v2.css";
-import "./kurumsal/panel/card-editor-production.css";
 import "./styles/individual-dashboard-polish.css";
 import "./styles/unified-sidebar.css";
 import HashScrollHandler from "./components/HashScrollHandler";
@@ -65,7 +64,7 @@ export const metadata: Metadata = {
     locale: "tr_TR",
     siteName: "Yenomi ID",
     title: "Yenomi ID | Kartvizitin güncel kalsın",
-    description: "NFC + QR kartvizit. Kendin için al, ekibin için yönet. Kart numarası Yenomi’de saklanmaz.",
+    description: "NFC + QR kartvizit. Unvanın değişince kartı yenilemezsin. Kendin için al, ekibin için yönet. Kart numarası Yenomi’de saklanmaz.",
     url: siteOrigin,
     images: ["/images/yenomilabs-share.png"],
   },

@@ -2,10 +2,15 @@ import type { AccountType, LoginPortal, TestLoginScope } from "./account-type";
 
 export type LoginAuthMode = "login" | "signup" | "forgot" | "recovery";
 
-export const DEFAULT_INDIVIDUAL_NEXT = "/kartlarim";
+export const DEFAULT_INDIVIDUAL_NEXT = "/kartim";
 export const DEFAULT_BUSINESS_NEXT = "/kurumsal/panel";
 
-const DEFAULT_WORKSPACE_PATHS = new Set([DEFAULT_INDIVIDUAL_NEXT, DEFAULT_BUSINESS_NEXT, "/hesabim"]);
+const DEFAULT_WORKSPACE_PATHS = new Set([
+  DEFAULT_INDIVIDUAL_NEXT,
+  DEFAULT_BUSINESS_NEXT,
+  "/hesabim",
+  "/kartlarim",
+]);
 
 export const LOGIN_ERROR_MESSAGES = {
   INVALID_CREDENTIALS: "E-posta veya şifre hatalı.",

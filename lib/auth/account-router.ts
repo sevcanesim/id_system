@@ -1,8 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export const ACCOUNT_ROUTE_LOGIN = "/giris?next=%2Fkartlarim";
+export const ACCOUNT_ROUTE_LOGIN = "/giris?next=%2Fkartim";
 export const ACCOUNT_ROUTE_CORPORATE = "/kurumsal/panel";
-export const ACCOUNT_ROUTE_INDIVIDUAL = "/kartlarim";
+export const ACCOUNT_ROUTE_INDIVIDUAL = "/kartim";
 export const ACCOUNT_ROUTE_EMPLOYEE = "/kartim";
 export const ACCOUNT_ROUTE_SERVER = "/hesabim";
 
@@ -11,6 +11,7 @@ const DEFAULT_WORKSPACE_PATHS = new Set([
   ACCOUNT_ROUTE_INDIVIDUAL,
   ACCOUNT_ROUTE_EMPLOYEE,
   ACCOUNT_ROUTE_SERVER,
+  "/kartlarim",
 ]);
 
 /**

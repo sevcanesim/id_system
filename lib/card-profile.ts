@@ -27,6 +27,36 @@ export type CardProfileRow = {
   grace_ends_at: string | null;
 };
 
+const PROFILE_COMPLETION_FIELDS = [
+  { key: "name", label: "Ad soyad" },
+  { key: "role", label: "Ünvan" },
+  { key: "email", label: "E-posta" },
+  { key: "phone", label: "Telefon" },
+  { key: "image", label: "Profil fotoğrafı" },
+] as const satisfies ReadonlyArray<{ key: keyof EditableCardData; label: string }>;
+
+const PROFILE_RECOMMENDED_FIELDS = [
+  { key: "whatsapp", label: "WhatsApp" },
+  { key: "location", label: "Konum" },
+] as const satisfies ReadonlyArray<{ key: keyof EditableCardData; label: string }>;
+
+function hasProfileValue(value: EditableCardData[keyof EditableCardData]) {
+  return typeof value === "string" ? value.trim().length > 0 : Boolean(value);
+}
+
+export function getCardProfileCompletion(data: EditableCardData) {
+  const completed = PROFILE_COMPLETION_FIELDS.filter(({ key }) => hasProfileValue(data[key]));
+  const missing = PROFILE_COMPLETION_FIELDS.filter(({ key }) => !hasProfileValue(data[key]));
+  const recommended = PROFILE_RECOMMENDED_FIELDS.filter(({ key }) => !hasProfileValue(data[key]));
+
+  return {
+    percent: Math.round((completed.length / PROFILE_COMPLETION_FIELDS.length) * 100),
+    missing,
+    recommended,
+    isComplete: missing.length === 0,
+  };
+}
+
 export function isCardProfileServiceActive(profile: Pick<CardProfileRow, "service_expires_at" | "grace_ends_at">, now = Date.now()): boolean {
   if (!profile.service_expires_at) return true;
   if (new Date(profile.service_expires_at).getTime() > now) return true;

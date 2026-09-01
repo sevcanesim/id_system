@@ -105,12 +105,12 @@ jobs:
       - name: Run desktop public and security regression
         env:
           E2E_BASE_URL: http://127.0.0.1:3000
-        run: npx playwright test e2e/public-nav.spec.ts e2e/homepage-funnel-density.spec.ts e2e/security-headers.spec.ts --project=chromium
+        run: npx playwright test e2e/public-nav.spec.ts e2e/homepage-funnel-density.spec.ts e2e/security-headers.spec.ts --project=chromium-desktop
 
       - name: Run mobile public regression
         env:
           E2E_BASE_URL: http://127.0.0.1:3000
-        run: npx playwright test e2e/public-nav.spec.ts e2e/homepage-funnel-density.spec.ts --project=mobile-chromium
+        run: npx playwright test e2e/public-nav.spec.ts e2e/homepage-funnel-density.spec.ts --project=chromium-mobile
 
       - name: Print server log on failure
         if: failure()

@@ -23,6 +23,7 @@ for (const file of required) check(exists(file), `phase6 artifact exists: ${file
 
 const layout = read("app/layout.tsx");
 const login = read("app/giris/page.tsx") + read("app/giris/LoginClient.tsx") + read("lib/auth/login-search.ts");
+const loginSearch = read("lib/auth/login-search.ts");
 const account = read("app/hesabim/page.tsx");
 const activation = read("app/aktivasyon/page.tsx");
 const checkout = read("app/checkout/page.tsx");
@@ -45,7 +46,8 @@ check(login.includes('portalTabHref("business"') && login.includes("/giris?"), "
 check(login.includes('messageTone === "error" ? "alert"') && login.includes("authAlert"), "auth errors render on the card as an alert, not only inside a form that can unmount");
 check(login.includes("persistActivePortal") && login.includes("noValidate"), "portal persistence cannot abort auth boot; login owns its validation messages");
 check(login.includes('setReturnPath') && login.includes('safeNext(params.get("next"))'), "explicit next destination is sanitized and preserved");
-check(login.includes('useState(initialNext') && login.includes('nextPortal === "business" ? "/kurumsal/panel" : "/kartlarim"'), "auth routes directly to selected portal workspace without visible account-check surface");
+check(login.includes('useState(initialNext') && loginSearch.includes('DEFAULT_INDIVIDUAL_NEXT = "/kartim"') && loginSearch.includes('DEFAULT_BUSINESS_NEXT = "/kurumsal/panel"'), "auth routes directly to the selected card-first or corporate workspace without visible account-check surface");
+check(loginSearch.includes('"/kartlarim"') && loginSearch.includes("DEFAULT_WORKSPACE_PATHS"), "legacy individual workspace path is normalized through the canonical login router");
 check(login.includes("options: { emailRedirectTo }"), "signup verification preserves auth return destination");
 check(login.includes("resetPasswordForEmail"), "forgot-password flow implemented");
 check(login.includes('event === "PASSWORD_RECOVERY"'), "Supabase password recovery state handled");
@@ -73,7 +75,8 @@ const authBridge = read("app/components/AuthSessionBridge.tsx");
 check(authBridge.includes("refresh_token") && authBridge.includes("INITIAL_SESSION"), "auth bridge writes refresh cookies and does not clear cookies on an empty initial session");
 check(read("middleware.ts").includes("resolveMiddlewareSession"), "middleware refreshes HttpOnly session cookies when the access token has expired");
 check(accountRouter.includes('from("user_accounts")') && accountRouter.includes('account_type'), "account router resolves the canonical user account type before portal routing");
-check(accountRouter.includes('ACCOUNT_ROUTE_CORPORATE = "/kurumsal/panel"') && accountRouter.includes('ACCOUNT_ROUTE_INDIVIDUAL = "/kartlarim"') && account.includes("resolveAccountDestination"), "account router resolves corporate versus individual destination (lib/auth/account-router.ts)");
+check(accountRouter.includes('ACCOUNT_ROUTE_CORPORATE = "/kurumsal/panel"') && accountRouter.includes('ACCOUNT_ROUTE_INDIVIDUAL = "/kartim"') && accountRouter.includes('ACCOUNT_ROUTE_SERVER = "/hesabim"') && account.includes("resolveAccountDestination"), "account router preserves DB-backed corporate routing while making the active card workspace canonical for individual accounts");
+check(accountRouter.includes('portal === "business"') && accountRouter.includes("ACCOUNT_ROUTE_SERVER"), "business login still passes through the authoritative server account router");
 check(activation.includes("p6-activation-page"), "legacy activation included in Phase 6 visual continuity");
 check(fs.existsSync(path.join(root, "app/api/commerce/activate/route.ts")) && fs.existsSync(path.join(root, "app/api/commerce/claim/route.ts")) && fs.existsSync(path.join(root, "app/api/commerce/activation/resend/route.ts")), "activation business APIs retained");
 check(checkout.includes('setCheckoutReturnPath("/checkout")'), "checkout preserves its return path for guest/authenticated payment flow");

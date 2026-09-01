@@ -5,7 +5,7 @@ export async function GET(request:NextRequest){
  const token=request.headers.get("authorization")?.replace(/^Bearer\s+/i,"");if(!token)return NextResponse.json({error:"Oturum gerekli."},{status:401});
  const auth=getSupabaseAuthClient();const {data:authData}=await auth.auth.getUser(token);if(!authData.user)return NextResponse.json({error:"Oturum doğrulanamadı."},{status:401});
  const management=request.nextUrl.searchParams.get("management")==="true";
- const admin=getSupabaseAdminClient();let query=admin.from("organization_members").select("organization_id,role,status,department,organizations(id,name,slug,status)").eq("user_id",authData.user.id).eq("status","ACTIVE");
+ const admin=getSupabaseAdminClient();let query=admin.from("organization_members").select("organization_id,role,status,department,organizations(id,name,slug,status,legal_name,tax_id_type,tax_number,tax_office,mersis_number,trade_registry_number,billing_address,billing_city,billing_district,billing_postal_code,billing_country_code,billing_email,billing_phone,authorized_person_name)").eq("user_id",authData.user.id).eq("status","ACTIVE");
  if(management)query=query.in("role",["OWNER","ADMIN","HR","DEPARTMENT_MANAGER"]);
  const {data:rows,error}=await query;
  if(error)return NextResponse.json({error:"Şirket erişimi doğrulanamadı."},{status:500});

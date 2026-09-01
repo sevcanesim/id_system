@@ -18,6 +18,15 @@
   max-width: 100%;
 }
 
+/* Legacy mobile layers used document-level clipping to conceal horizontal
+ * defects. Keep the document observable so regression tests can identify the
+ * actual component that overflows instead of hiding it at html/body/main. */
+html,
+body,
+body main {
+  overflow-x: visible;
+}
+
 .public-site :where(h1, h2, h3) {
   overflow-wrap: normal;
   word-break: normal;

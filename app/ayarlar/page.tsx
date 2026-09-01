@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import UserPanelShell from "../components/UserPanelShell";
 import { Button, Card, Field, Input } from "../components/ui";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
+import styles from "./SettingsLayout.module.css";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -85,8 +86,8 @@ export default function SettingsPage() {
       title="Profil ve Ayarlar"
       description="Hesap bilgilerinizi, güvenliğinizi, oturumunuzu ve gizlilik bağlantılarını yönetin."
     >
-      <div className="p9-settings-grid">
-        <div className="p9-settings-main">
+      <div className={`${styles.grid} p9-settings-grid`}>
+        <div className={`${styles.main} p9-settings-main`}>
           <Card>
             <form onSubmit={saveAccount} noValidate>
               <h2 className="ds-card-title">Hesap bilgileri</h2>
@@ -148,7 +149,7 @@ export default function SettingsPage() {
           </Card>
         </div>
 
-        <aside className="p9-settings-side">
+        <aside className={`${styles.side} p9-settings-side`}>
           <Card>
             <h2 className="ds-card-title">Oturum</h2>
             <p className="p9-section-copy">Bu cihazdaki Yenomi ID oturumunuzu yönetebilirsiniz.</p>

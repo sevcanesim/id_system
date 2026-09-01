@@ -12,8 +12,8 @@
 }
 
 .panelSurface :global(.p11-networking .ds-empty) {
-  width: min(100%, 720px);
-  min-height: clamp(320px, 45vh, 440px);
+  width: min(100%, calc(var(--space-20) * 9));
+  min-height: clamp(calc(var(--space-20) * 4), 45vh, calc(var(--space-10) * 11));
   margin: var(--space-6) auto 0;
   display: grid;
   align-content: center;
@@ -22,18 +22,18 @@
 }
 
 .panelSurface :global(.p11-networking .ds-empty__content) {
-  max-width: 460px;
+  max-width: calc(var(--space-10) * 11);
   margin-inline: auto;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 47.5rem) {
   .panelSurface :global(.p11-networking-header) {
     gap: var(--space-4);
   }
 
   .panelSurface :global(.p11-networking .ds-empty) {
     width: 100%;
-    min-height: 280px;
+    min-height: calc(var(--space-10) * 7);
     margin-top: var(--space-4);
   }
 }

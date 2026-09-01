@@ -19,6 +19,7 @@ async function executeCommerceOps(request: NextRequest) {
       abandoned: sweep.abandoned,
       expired: sweep.expired,
       reconciled: sweep.reconciled,
+      renewals: sweep.renewals,
       alerts: sweep.alerts,
     });
   } catch (error) {

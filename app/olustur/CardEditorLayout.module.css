@@ -2,7 +2,7 @@
   min-width: 0;
 }
 
-@media (min-width: 1101px) {
+@media (min-width: 68.8125rem) {
   .editorSurface :global(.p8-editor) {
     width: min(100%, var(--wide));
     margin-inline: auto;
@@ -10,7 +10,7 @@
   }
 
   .editorSurface :global(.p8-editor-grid) {
-    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-columns: minmax(0, 1fr) calc(var(--space-10) * 9);
     gap: var(--space-8);
     align-items: start;
   }
@@ -24,20 +24,20 @@
   .editorSurface :global(.p8-preview-column) {
     position: sticky;
     top: calc(var(--space-8) + var(--control-height-lg));
-    width: 360px;
-    max-width: 360px;
+    width: calc(var(--space-10) * 9);
+    max-width: calc(var(--space-10) * 9);
     min-width: 0;
     align-self: start;
   }
 
   .editorSurface :global(.p8-corporate-workspace--decoupled) {
-    --p8-editor-max: 1320px;
-    --p8-preview-width: 332px;
-    --p8-editor-gap: 28px;
+    --p8-editor-max: var(--wide);
+    --p8-preview-width: calc(var(--space-12) * 7);
+    --p8-editor-gap: var(--space-8);
   }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 68.75rem) {
   .editorSurface :global(.p8-editor-grid) {
     grid-template-columns: minmax(0, 1fr);
   }

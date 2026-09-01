@@ -7,6 +7,7 @@ import { fetchOwnProfiles } from "../../lib/repositories/profiles";
 import type { CardProfileRow } from "../../lib/card-profile";
 import { isManagementRole } from "../../lib/organizations/permissions";
 import { ButtonLink, DashboardShell } from "../ui";
+import { LoadingState } from "../components/ui/States";
 
 type Entitlement = {
   id: string;
@@ -129,12 +130,16 @@ export default function MyCardsPage() {
 
   if (pageState !== "ready") {
     return (
-      <main className="yi-app yi-app--loading" aria-busy="true">
-        <div className="yi-app__loading" role="status" aria-live="polite">
-          <strong>{pageState === "redirecting" ? "Doğru çalışma alanına yönlendiriliyorsunuz…" : "Hesabınız hazırlanıyor…"}</strong>
-          <span>Hesap ve çalışma alanı türünüz doğrulanıyor.</span>
-        </div>
-      </main>
+      <DashboardShell
+        title="Kartlarım"
+        description="Kartların ve hesap bilgilerin yükleniyor."
+      >
+        <LoadingState
+          variant="panel"
+          label={pageState === "redirecting" ? "Yönlendiriliyor" : "Kartların yükleniyor"}
+          hint={pageState === "redirecting" ? "Doğru çalışma alanı açılıyor." : "Profil ve kart durumun kontrol ediliyor."}
+        />
+      </DashboardShell>
     );
   }
 

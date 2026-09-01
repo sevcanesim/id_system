@@ -1,0 +1,49 @@
+.editorSurface {
+  min-width: 0;
+}
+
+@media (min-width: 1101px) {
+  .editorSurface :global(.p8-editor) {
+    width: min(100%, var(--wide));
+    margin-inline: auto;
+    min-width: 0;
+  }
+
+  .editorSurface :global(.p8-editor-grid) {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: var(--space-8);
+    align-items: start;
+  }
+
+  .editorSurface :global(.p8-form) {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .editorSurface :global(.p8-preview-column) {
+    position: sticky;
+    top: calc(var(--space-8) + var(--control-height-lg));
+    width: 360px;
+    max-width: 360px;
+    min-width: 0;
+    align-self: start;
+  }
+
+  .editorSurface :global(.p8-corporate-workspace--decoupled) {
+    --p8-editor-max: 1320px;
+    --p8-preview-width: 332px;
+    --p8-editor-gap: 28px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .editorSurface :global(.p8-editor-grid) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .editorSurface :global(.p8-preview-column) {
+    width: 100%;
+    max-width: none;
+  }
+}

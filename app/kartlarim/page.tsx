@@ -25,13 +25,13 @@ type Entitlement = {
 
 type MineOrganization = { role?: string | null };
 type PageState = "checking" | "ready" | "redirecting";
-type OperationalStatus = "PROFILE_REQUIRED" | "PRINT_PENDING" | "SHIPPING_PENDING" | "IN_TRANSIT" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED";
+type OperationalStatus = "PROFILE_REQUIRED" | "PRINT_PENDING" | "PRINTING" | "SHIPPING_PENDING" | "IN_TRANSIT" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED";
 type CardProcess = {
   id: string;
-  operational_status: OperationalStatus;
+  operations_status: OperationalStatus;
   print_requested_at?: string | null;
+  print_started_at?: string | null;
   print_approved_at?: string | null;
-  shipping_pending_at?: string | null;
   carrier?: string | null;
   tracking_number?: string | null;
   shipped_at?: string | null;
@@ -51,6 +51,7 @@ const PROFILE_FIELDS = ["name", "role", "email", "phone", "image_url"] as const;
 const STATUS_LABEL: Record<OperationalStatus, string> = {
   PROFILE_REQUIRED: "Dijital Kart Bilgilerinizi Doldurun",
   PRINT_PENDING: "Dijital Kart Basımı Gerçekleştirilmeli",
+  PRINTING: "Kartınız Basılıyor",
   SHIPPING_PENDING: "Kargo İşlemi Bekleniyor",
   IN_TRANSIT: "Kargoya Verildi",
   OUT_FOR_DELIVERY: "Dağıtımda",
@@ -69,7 +70,7 @@ function daysUntil(value?: string | null) {
 }
 
 function processStep(status?: OperationalStatus | null) {
-  if (!status || status === "PROFILE_REQUIRED" || status === "PRINT_PENDING" || status === "SHIPPING_PENDING") return 0;
+  if (!status || status === "PROFILE_REQUIRED" || status === "PRINT_PENDING" || status === "PRINTING" || status === "SHIPPING_PENDING") return 0;
   if (status === "IN_TRANSIT") return 1;
   if (status === "OUT_FOR_DELIVERY") return 2;
   if (status === "DELIVERED") return 3;
@@ -152,7 +153,7 @@ export default function MyCardsPage() {
   }, [entitlements, primary]);
   const completion = useMemo(() => primary ? Math.min(100, PROFILE_FIELDS.filter((field) => Boolean(primary[field])).length * 20) : 0, [primary]);
   const renewalDays = daysUntil(primaryEntitlement?.expires_at);
-  const currentStep = processStep(process?.operational_status);
+  const currentStep = processStep(process?.operations_status);
   const profileUrl = primary?.slug ? cardShareUrl(primary.slug) : "";
 
   useEffect(() => {
@@ -176,7 +177,7 @@ export default function MyCardsPage() {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "Kart baskı kuyruğuna alınamadı.");
-      setProcess((current) => current ? { ...current, operational_status: "PRINT_PENDING", print_requested_at: new Date().toISOString() } : current);
+      setProcess((current) => current ? { ...current, operations_status: "PRINT_PENDING", print_requested_at: new Date().toISOString() } : current);
       setMessage("Profil tamamlandı. Fiziksel kartın baskı kuyruğuna alındı.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Kart süreci güncellenemedi.");
@@ -202,10 +203,10 @@ export default function MyCardsPage() {
             <section className={styles.heroGrid}>
               <div className={styles.card}>
                 <span className={styles.eyebrow}>BİREYSEL STANDART</span>
-                <h2 className={styles.title}>{completion < 100 ? "Dijital Kart Bilgilerinizi Doldurun" : process ? STATUS_LABEL[process.operational_status] : "Kart sürecin hazırlanıyor"}</h2>
+                <h2 className={styles.title}>{completion < 100 ? "Dijital Kart Bilgilerinizi Doldurun" : process ? STATUS_LABEL[process.operations_status] : "Kart sürecin hazırlanıyor"}</h2>
                 <p className={styles.copy}>{completion < 100 ? `Profilin %${completion} tamamlandı. Baskı süreci başlamadan önce temel bilgilerini tamamla.` : "Profil bilgilerin tamam. Fiziksel kart sürecini buradan takip edebilirsin."}</p>
                 <div className={styles.actions}>
-                  {completion < 100 ? <ButtonLink href={`/olustur?id=${primary.id}`}>Profili Tamamla</ButtonLink> : process?.operational_status === "PROFILE_REQUIRED" ? <Button onClick={completeProfile} disabled={queueing}>{queueing ? "İşleniyor…" : "Profili Tamamla"}</Button> : <ButtonLink href={`/olustur?id=${primary.id}`} variant="secondary">Profili Düzenle</ButtonLink>}
+                  {completion < 100 ? <ButtonLink href={`/olustur?id=${primary.id}`}>Profili Tamamla</ButtonLink> : process?.operations_status === "PROFILE_REQUIRED" ? <Button onClick={completeProfile} disabled={queueing}>{queueing ? "İşleniyor…" : "Profili Tamamla"}</Button> : <ButtonLink href={`/olustur?id=${primary.id}`} variant="secondary">Profili Düzenle</ButtonLink>}
                   <ButtonLink href="/kartim" variant="secondary">Dijital Kartımı Aç</ButtonLink>
                 </div>
                 {message && <p className={styles.message} role="status">{message}</p>}
@@ -224,9 +225,9 @@ export default function MyCardsPage() {
             </section>
 
             <section className={styles.processCard}>
-              <div className={styles.processHeader}><div><span className={styles.eyebrow}>KART SİPARİŞİ & KARGO</span><h2 className={styles.title}>Fiziksel kart süreci</h2></div><span className={styles.status}>{process ? STATUS_LABEL[process.operational_status] : "Sipariş eşleştiriliyor"}</span></div>
+              <div className={styles.processHeader}><div><span className={styles.eyebrow}>KART SİPARİŞİ & KARGO</span><h2 className={styles.title}>Fiziksel kart süreci</h2></div><span className={styles.status}>{process ? STATUS_LABEL[process.operations_status] : "Sipariş eşleştiriliyor"}</span></div>
               <div className={styles.steps}>
-                {[{ title: "Hazırlanıyor", text: process?.operational_status === "PRINT_PENDING" ? "Baskı onayı bekleniyor" : process?.operational_status === "SHIPPING_PENDING" ? "Kargo işlemi bekleniyor" : "Kart hazırlık süreci" }, { title: "Kargoya Verildi", text: process?.carrier && process?.tracking_number ? `${process.carrier} · ${process.tracking_number}` : "Kargo bilgisi girildiğinde burada görünür" }, { title: "Dağıtımda", text: process?.out_for_delivery_at ? formatDateTime(process.out_for_delivery_at) : "Dağıtıma çıkması bekleniyor" }, { title: "Teslim Edildi", text: process?.delivered_at ? formatDateTime(process.delivered_at) : "Teslimat bekleniyor" }].map((step, index) => <div className={`${styles.step} ${index <= currentStep ? styles.stepActive : ""}`} key={step.title}><small>0{index + 1}</small><strong>{step.title}</strong><span>{step.text}</span></div>)}
+                {[{ title: "Hazırlanıyor", text: process?.operations_status === "PRINT_PENDING" ? "Baskı onayı bekleniyor" : process?.operations_status === "PRINTING" ? "Kartın basılıyor" : process?.operations_status === "SHIPPING_PENDING" ? "Kargo işlemi bekleniyor" : "Kart hazırlık süreci" }, { title: "Kargoya Verildi", text: process?.carrier && process?.tracking_number ? `${process.carrier} · ${process.tracking_number}` : "Kargo bilgisi girildiğinde burada görünür" }, { title: "Dağıtımda", text: process?.out_for_delivery_at ? formatDateTime(process.out_for_delivery_at) : "Dağıtıma çıkması bekleniyor" }, { title: "Teslim Edildi", text: process?.delivered_at ? formatDateTime(process.delivered_at) : "Teslimat bekleniyor" }].map((step, index) => <div className={`${styles.step} ${index <= currentStep ? styles.stepActive : ""}`} key={step.title}><small>0{index + 1}</small><strong>{step.title}</strong><span>{step.text}</span></div>)}
               </div>
             </section>
 

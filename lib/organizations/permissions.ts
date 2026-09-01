@@ -38,6 +38,12 @@ export function canManageNetworking(role: OrganizationRole, status: string) {
   return status === "ACTIVE" && (NETWORKING_MANAGER_ROLES as readonly string[]).includes(role);
 }
 
+// Legal/tax and billing identity affects invoices and commercial records.
+// Only the owner or an organization admin may maintain the current profile.
+export function canManageOrganizationLegalProfile(role: OrganizationRole, status: string) {
+  return status === "ACTIVE" && roleRank[role] >= roleRank.ADMIN;
+}
+
 // Şirketin resmi/görünen adını değiştirmek, şablon rengi seçmekten farklı bir
 // ağırlıkta bir işlem: bu isim her çalışan kartının "Şirket" alanına
 // (lockCompany kilitli/öneri olduğunda) ve genel kart sayfalarına yayılır.
@@ -77,9 +83,6 @@ export function canManageMemberIdentity(
   targetDepartment: string | null | undefined,
   isSelf: boolean,
 ) {
-  // The company owner is also an organization member and must be able to
-  // maintain their own corporate identity. Status/role operations remain
-  // protected by canChangeMemberStatus; this permission is identity-only.
   if (actorRole === "OWNER") return isSelf || roleRank[actorRole] > roleRank[targetRole];
   if (isSelf || targetRole === "OWNER") return false;
   if (roleRank[actorRole] <= roleRank[targetRole]) return false;

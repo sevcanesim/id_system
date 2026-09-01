@@ -9,7 +9,7 @@
  */
 
 export const NETWORK_MAIL_PER_SEAT_ANNUAL = 100;
-export const INDIVIDUAL_PREMIUM_NETWORK_MAIL = 500;
+export const INDIVIDUAL_PREMIUM_NETWORK_MAIL = 100;
 export const NETWORK_MAIL_DAILY_SEND_CAP = 150;
 export const PHYSICAL_CARD_VALUE_KURUS = 40_000;
 
@@ -88,12 +88,5 @@ export function recommendCorporatePack(employeeCount: number): { code: string; s
 export function prorateUpgradeKurus(input: { fromSeats: number; toSeats: number; daysRemaining: number; termDays: number; }): number | null { const delta = upgradeDeltaKurus(input.fromSeats, input.toSeats); if (delta == null || input.termDays <= 0) return null; const days = Math.max(0, Math.min(input.termDays, input.daysRemaining)); return Math.round(delta * (days / input.termDays)); }
 export function seatDecreasePolicy(input: { currentSeats: number; requestedSeats: number; }): { allowedNow: boolean; refundKurus: number; applyAtRenewal: boolean; reason: string } { if (input.requestedSeats >= input.currentSeats) return { allowedNow: true, refundKurus: 0, applyAtRenewal: false, reason: "NO_DECREASE" }; return { allowedNow: false, refundKurus: 0, applyAtRenewal: true, reason: "MID_TERM_DECREASE_NOT_REFUNDED" }; }
 export const INDIVIDUAL_DIGITAL_FEATURES = ["1 dijital kartvizit","QR paylaşımı","Kişisel mini profil","İletişim bilgileri","Sosyal medya bağlantıları","WhatsApp / telefon / e-posta aksiyonları","Temel görüntülenme istatistikleri","1 yıl platform üyeliği dahil"] as const;
-export const INDIVIDUAL_DIGITAL_CATALOG_POINTS = ["Canlı dijital kartvizit","QR ile paylaş","Temel görüntülenme","Tek seferlik ödeme","1 yıl platform üyeliği dahil"] as const;
-export const INDIVIDUAL_FEATURES = ["1 dijital kartvizit","1 NFC kart","QR kart","Kişisel mini profil","İletişim bilgileri","Sosyal medya bağlantıları","WhatsApp / telefon / e-posta aksiyonları","QR paylaşımı","NFC paylaşımı","Temel görüntülenme istatistikleri","1 yıl platform üyeliği dahil","Ücretsiz kargo"] as const;
-export const INDIVIDUAL_CATALOG_POINTS = ["1 NFC + QR kart","Canlı dijital profil","Temel görüntülenme","Tek seferlik ödeme, 1 yıl dahil","Türkiye içi kargo dahil"] as const;
-export const INDIVIDUAL_PREMIUM_FEATURES = ["NFC paketteki her şey","Toplantı oluşturma","Sunum ekleme ve paylaşımı","Gelişmiş istatistikler","Contact / bağlantı yönetimi","500 Network Mail kredisi","Hazır follow-up senaryoları","Kişiye özel follow-up","Etkinlik / fuar networking","1 NFC kart","1 yıl platform üyeliği dahil","Ücretsiz kargo"] as const;
-export const INDIVIDUAL_PREMIUM_CATALOG_POINTS = ["NFC paketteki her şey","500 Network Mail","Toplantı ve sunum","Gelişmiş profil ve kişi yönetimi","Tek seferlik ödeme, 1 yıl dahil"] as const;
-export const ADDITIONAL_CARD_FEATURES = ["1 NFC + QR kart","Mevcut profile bağlanır","Yeni yıllık hizmet başlatmaz","Yeni dijital kimlik açmaz","Türkiye içi kargo dahil"] as const;
-export const CORPORATE_SHARED_FEATURES = ["Şirket profili","Çalışan dijital kartvizitleri","NFC kartlar (kişi sayısı kadar)","QR kartlar","Şirket yönetim paneli","Kullanıcı yönetimi","Admin yetkilendirme","HR yetkilendirme","Departman yönetimi","Toplantı oluşturma","Sunum ekleme / paylaşma","Contact / lead yönetimi","Network Mail (kişi başı 100 / yıl)","Çalışan bazlı istatistikler","Şirket bazlı istatistikler","Networking / lead takibi","1 yıllık kullanım","Ücretsiz kargo"] as const;
-export const NETWORK_MAIL_POSITIONING = { name: "Network Mail Kredisi", promise: "Tanıştığınız kişilere doğrudan kartınız üzerinden profesyonel takip maili gönderin.", unit: "1 kredi = 1 alıcı", notBulk: "Toplu pazarlama (Campaign Mail) bu krediden düşmez." } as const;
-export const FOLLOW_UP_SCENARIOS = [{ code: "EVENT_MET", label: "Tanıştığımıza memnun oldum" },{ code: "OFFER", label: "Teklifimizi iletiyorum" },{ code: "AFTER_MEETING", label: "Toplantı sonrası takip" },{ code: "PRESENTATION", label: "Sunumu iletiyorum" },{ code: "EVENT_THANKS", label: "Etkinlik sonrası teşekkür" },{ code: "PRODUCT_INFO", label: "Ürün bilgisi gönder" },{ code: "CUSTOM", label: "Özel mesaj" }] as const;
+export const INDIVIDUAL_NFC_FEATURES = [...INDIVIDUAL_DIGITAL_FEATURES,"1 adet fiziksel NFC kart","QR + NFC ile temassız paylaşım","Kart tasarımı ve baskı","Kargo dahil"] as const;
+export const INDIVIDUAL_PREMIUM_FEATURES = [...INDIVIDUAL_NFC_FEATURES,"Network Mail","Lead toplama","Gelişmiş kullanım istatistikleri"] as const;

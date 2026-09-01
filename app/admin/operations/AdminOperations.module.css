@@ -1,0 +1,246 @@
+.page {
+  min-height: 100vh;
+  background: var(--surface-secondary);
+}
+
+.shell {
+  width: min(100% - 2rem, 1440px);
+  margin: 0 auto;
+  padding: var(--space-6) 0 var(--space-8);
+}
+
+.heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+
+.heading h1 {
+  margin: var(--space-2) 0 0;
+  font-size: var(--type-h2);
+  line-height: 1.08;
+}
+
+.heading p {
+  max-width: 52rem;
+  margin: var(--space-2) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--type-body-sm);
+  line-height: 1.55;
+}
+
+.kicker {
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+  font-weight: 750;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+.tabs button,
+.action,
+.secondary {
+  min-height: 2.75rem;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--type-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tabs button[aria-selected="true"],
+.action {
+  border-color: var(--text-primary);
+  background: var(--text-primary);
+  color: var(--surface);
+}
+
+.tabs button:disabled,
+.action:disabled,
+.secondary:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.stat,
+.card {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.stat {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+}
+
+.stat small,
+.label {
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.stat strong {
+  font-size: var(--type-h4);
+}
+
+.card {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.cardHead h2,
+.cardHead h3 {
+  margin: var(--space-1) 0 0;
+  font-size: var(--type-h4);
+}
+
+.cardHead p,
+.muted {
+  margin: var(--space-1) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+  line-height: 1.5;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--surface-secondary);
+  font-size: var(--type-xs);
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.table {
+  width: 100%;
+  min-width: 880px;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+  font-size: var(--type-sm);
+}
+
+.table th {
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.message {
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+}
+
+@media (max-width: 64rem) {
+  .stats,
+  .fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 47.9375rem) {
+  .shell {
+    width: min(100% - 1rem, 1440px);
+    padding-top: var(--space-4);
+  }
+
+  .heading,
+  .cardHead {
+    display: grid;
+  }
+
+  .stats,
+  .fields {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,46 @@
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.85fr);
+  gap: var(--space-4);
+  align-items: stretch;
+}
+
+.main,
+.side {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+  align-content: start;
+}
+
+.main > *,
+.side > * {
+  min-width: 0;
+}
+
+.main > :first-child,
+.side > :first-child {
+  align-self: stretch;
+}
+
+@media (max-width: 64rem) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 47.9375rem) {
+  .grid,
+  .main,
+  .side {
+    gap: var(--space-3);
+  }
+
+  .side {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

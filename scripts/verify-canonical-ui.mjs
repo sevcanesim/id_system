@@ -80,6 +80,9 @@ const orphanedCssModules = componentCssModules.filter((file) => !moduleImports.h
 const unownedGlobalCss = cssFiles.filter((file) => !file.endsWith(".module.css") && !layoutCssImports.includes(file) && !approvedModules.includes(file));
 const canonicalFiles = ["app/canonical.css", ...approvedModules.filter((file) => fs.existsSync(path.join(root, file)))];
 const canonicalSource = canonicalFiles.map(read).join("\n");
+const cardEditorModule = "app/olustur/CardEditorLayout.module.css";
+const cardEditorSource = fs.existsSync(path.join(root, cardEditorModule)) ? read(cardEditorModule) : "";
+const cardEditorConsumers = moduleImports.get(cardEditorModule) ?? [];
 
 let braceBalance = 0;
 for (const char of canonicalSource) braceBalance += char === "{" ? 1 : char === "}" ? -1 : 0;
@@ -95,7 +98,10 @@ const checks = {
   noImportant: !/!important\b/.test(canonicalSource),
   noLegacyYiTokens: !/var\(--yi-/.test(canonicalSource),
   noRouteGlobalCssImports: globalRouteCssImports.length === 0,
-  p8CorporateEditorContract: [".p8-corporate-editor", ".p8-editor-grid", ".p8-preview-column"].every((selector) => canonicalSource.includes(selector)),
+  p8CorporateEditorContract:
+    cardEditorConsumers.includes("app/olustur/page.tsx") &&
+    cardEditorConsumers.includes("app/kurumsal/panel/kartim/page.tsx") &&
+    [".editorSurface :global(.p8-editor-grid)", ".editorSurface :global(.p8-preview-column)"].every((selector) => cardEditorSource.includes(selector)),
 };
 
 console.log(JSON.stringify({

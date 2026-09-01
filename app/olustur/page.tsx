@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { Suspense } from "react";
 import CardWizard from "./CardWizard";
+import styles from "./CardEditorLayout.module.css";
 
 export const metadata: Metadata = {
   title: "Dijital Kartvizit Oluştur | Yenomilabs",
@@ -9,5 +10,11 @@ export const metadata: Metadata = {
 };
 
 export default function CreatePage() {
-  return <Suspense fallback={null}><CardWizard /></Suspense>;
+  return (
+    <div className={styles.editorSurface}>
+      <Suspense fallback={null}>
+        <CardWizard />
+      </Suspense>
+    </div>
+  );
 }

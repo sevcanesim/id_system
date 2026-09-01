@@ -47,7 +47,7 @@ async function resolveOwnUnit(userId: string, profileId?: string) {
   const [{ data: unit }, { data: orderItem }] = await Promise.all([
     admin
       .from("commerce_physical_card_units")
-      .select("id,order_item_id,operational_status,print_requested_at,print_approved_at,shipping_pending_at,carrier,tracking_number,shipped_at,out_for_delivery_at,delivered_at,created_at,updated_at")
+      .select("id,order_item_id,operations_status,print_requested_at,print_started_at,print_approved_at,carrier,tracking_number,shipped_at,out_for_delivery_at,delivered_at,created_at,updated_at")
       .eq("order_item_id", entitlement.order_item_id)
       .order("instance_no", { ascending: true })
       .limit(1)
@@ -82,9 +82,9 @@ export async function GET(request: NextRequest) {
     if (!unit) return NextResponse.json({ process: null, entitlement, order, events: [] });
 
     const { data: events } = await admin
-      .from("commerce_card_operation_events")
-      .select("id,event_type,from_status,to_status,metadata,created_at")
-      .eq("card_unit_id", unit.id)
+      .from("commerce_physical_card_status_history")
+      .select("id,from_status,to_status,source,note,metadata,created_at")
+      .eq("unit_id", unit.id)
       .order("created_at", { ascending: true });
 
     return NextResponse.json({ process: unit, entitlement, order, events: events ?? [] });
@@ -112,16 +112,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data, error } = await admin.rpc("mark_card_unit_print_pending", {
-      p_card_unit_id: unit.id,
+    const { data, error } = await admin.rpc("transition_physical_card_unit", {
+      p_unit_id: unit.id,
+      p_next_status: "PRINT_PENDING",
       p_actor_user_id: user.id,
+      p_source: "CUSTOMER",
+      p_carrier: null,
+      p_tracking_number: null,
+      p_note: "Profil tamamlandı; baskı kuyruğuna alındı.",
     });
-    if (error) {
-      console.error("mark card print pending failed", error);
-      return NextResponse.json({ error: "Kart baskı kuyruğuna alınamadı." }, { status: 500 });
+    const result = data as { ok?: boolean; code?: string; current?: string; from?: string; to?: string } | null;
+    if (error || !result?.ok) {
+      console.error("mark card print pending failed", { error, result });
+      return NextResponse.json({ error: result?.code ?? "Kart baskı kuyruğuna alınamadı.", current: result?.current }, { status: 409 });
     }
 
-    return NextResponse.json({ ok: true, process: data });
+    return NextResponse.json({ ok: true, process: result });
   } catch (error) {
     console.error("card process completion error", error);
     return NextResponse.json({ error: "Kart süreci güncellenemedi." }, { status: 500 });

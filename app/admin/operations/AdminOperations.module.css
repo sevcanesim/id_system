@@ -1,6 +1,99 @@
 .page {
   min-height: 100vh;
   background: var(--surface-secondary);
+  color: var(--text-primary);
+}
+
+.adminBar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 4.5rem;
+  padding: 0 max(var(--space-5), calc((100vw - 1440px) / 2));
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  backdrop-filter: blur(14px);
+}
+
+.adminBrand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.adminMark {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--text-primary);
+  color: var(--surface);
+  font-size: var(--type-sm);
+  font-weight: 800;
+}
+
+.adminBrand div {
+  display: grid;
+  gap: .05rem;
+}
+
+.adminBrand strong {
+  font-size: var(--type-sm);
+}
+
+.adminBrand small {
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+}
+
+.adminNav {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
+.adminNav a {
+  padding: .55rem .75rem;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.adminNav a[aria-current="page"] {
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+}
+
+.demoBadge,
+.liveBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.9rem;
+  padding: 0 .7rem;
+  border-radius: var(--radius-full);
+  font-size: var(--type-xs);
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.demoBadge {
+  border: 1px solid #c98d23;
+  background: #fff6df;
+  color: #7a4e00;
+}
+
+.liveBadge {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
 }
 
 .shell {
@@ -15,6 +108,13 @@
   justify-content: space-between;
   gap: var(--space-5);
   margin-bottom: var(--space-5);
+}
+
+.headingActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
 }
 
 .heading h1 {
@@ -70,7 +170,9 @@
 
 .tabs button:disabled,
 .action:disabled,
-.secondary:disabled {
+.secondary:disabled,
+.field input:disabled,
+.table input:disabled {
   cursor: not-allowed;
   opacity: .55;
 }
@@ -165,7 +267,8 @@
 }
 
 .field input,
-.field select {
+.field select,
+.table input {
   width: 100%;
   min-height: 2.75rem;
   padding: 0 var(--space-3);
@@ -211,7 +314,18 @@
   text-transform: uppercase;
 }
 
-.message {
+.table code {
+  display: block;
+  max-width: 28rem;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.message,
+.demoNotice,
+.warningPanel,
+.errorPanel,
+.emptyState {
   margin-bottom: var(--space-4);
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--border);
@@ -221,7 +335,56 @@
   font-size: var(--type-sm);
 }
 
+.demoNotice {
+  border-color: #dfbd70;
+  background: #fffaf0;
+  color: #654300;
+}
+
+.warningPanel {
+  border-color: #d9c087;
+  background: #fffaf1;
+}
+
+.errorPanel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  border-color: #d7a7a7;
+  background: #fff7f7;
+  color: #712929;
+}
+
+.errorPanel p {
+  margin: var(--space-1) 0 0;
+  color: inherit;
+}
+
+.emptyState {
+  display: grid;
+  gap: var(--space-1);
+  min-height: 7rem;
+  align-content: center;
+  text-align: center;
+}
+
 @media (max-width: 64rem) {
+  .adminBar {
+    grid-template-columns: auto 1fr;
+  }
+
+  .adminNav {
+    justify-content: flex-end;
+  }
+
+  .demoBadge,
+  .liveBadge {
+    grid-column: 1 / -1;
+    justify-self: start;
+    margin-bottom: var(--space-3);
+  }
+
   .stats,
   .fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -229,14 +392,30 @@
 }
 
 @media (max-width: 47.9375rem) {
+  .adminBar {
+    position: static;
+    grid-template-columns: 1fr;
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .adminNav {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
   .shell {
     width: min(100% - 1rem, 1440px);
     padding-top: var(--space-4);
   }
 
   .heading,
-  .cardHead {
+  .cardHead,
+  .errorPanel {
     display: grid;
+  }
+
+  .headingActions {
+    justify-content: flex-start;
   }
 
   .stats,

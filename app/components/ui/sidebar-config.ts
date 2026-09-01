@@ -24,26 +24,28 @@ const CORPORATE_ADMIN_OR_HR: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR", "
 
 export const CORPORATE_SIDEBAR_CONFIG = [
   { key: "overview", href: "/kurumsal/panel", label: "Genel Bakış", icon: "building", group: "GENEL" },
-  { key: "employees", href: "/kurumsal/panel/calisanlar", label: "Ekip & Kartlar", icon: "users", group: "EKİP & KARTLAR", roles: CORPORATE_MANAGEMENT },
-  { key: "templates", href: "/kurumsal/panel/sablon", label: "Marka & Şablon", icon: "id", group: "MARKA & İÇERİK", roles: CORPORATE_ADMIN },
-  { key: "content", href: "/kurumsal/panel/icerik", label: "İçerik", icon: "link", group: "MARKA & İÇERİK", roles: CORPORATE_ADMIN },
-  { key: "analytics", href: "/kurumsal/panel/istatistikler", label: "İstatistikler", icon: "analytics", group: "YÖNETİM", roles: CORPORATE_ADMIN_OR_HR },
-  { key: "organization", href: "/kurumsal/panel/organizasyon", label: "Organizasyon", icon: "building", group: "YÖNETİM", roles: CORPORATE_ADMIN },
-  { key: "roles", href: "/kurumsal/panel/roller", label: "Roller & Yetkiler", icon: "lock", group: "YÖNETİM", roles: CORPORATE_ADMIN },
-  { key: "settings", href: "/kurumsal/panel/ayarlar", label: "Ayarlar", icon: "adjustments", group: "YÖNETİM", roles: CORPORATE_ADMIN },
-  { key: "leads", href: "/kurumsal/panel/leadler", label: "Leadler", icon: "mail", group: "NETWORKING", roles: CORPORATE_ADMIN },
+  { key: "employees", href: "/kurumsal/panel/calisanlar", label: "Ekip & Kartlar", icon: "users", group: "EKİP", roles: CORPORATE_MANAGEMENT },
+  { key: "roles", href: "/kurumsal/panel/roller", label: "Roller & Yetkiler", icon: "lock", group: "EKİP", roles: CORPORATE_ADMIN },
+  { key: "organization", href: "/kurumsal/panel/organizasyon", label: "Organizasyon", icon: "building", group: "EKİP", roles: CORPORATE_ADMIN },
+  { key: "templates", href: "/kurumsal/panel/sablon", label: "Marka & Şirket Profili", icon: "id", group: "ŞİRKET", roles: CORPORATE_ADMIN },
+  { key: "content", href: "/kurumsal/panel/icerik", label: "Dokümanlar & İçerik", icon: "link", group: "ŞİRKET", roles: CORPORATE_ADMIN },
+  { key: "analytics", href: "/kurumsal/panel/istatistikler", label: "İstatistikler", icon: "analytics", group: "NETWORKING", roles: CORPORATE_ADMIN_OR_HR },
+  { key: "leads", href: "/kurumsal/panel/leadler", label: "Network Mail & Leadler", icon: "mail", group: "NETWORKING", roles: CORPORATE_ADMIN },
   { key: "events", href: "/kurumsal/panel/etkinlikler", label: "Etkinlikler", icon: "clock", group: "NETWORKING", roles: CORPORATE_ADMIN },
   { key: "meetings", href: "/kurumsal/panel/gorusmeler", label: "Görüşmeler", icon: "headset", group: "NETWORKING", roles: CORPORATE_ADMIN },
+  { key: "capacity", href: "/kurumsal/panel/lisans", label: "Paket & Kapasite", icon: "box", group: "TİCARİ", roles: CORPORATE_ADMIN },
+  { key: "card", href: "/kurumsal/panel/kartim", label: "Kartım", icon: "id", group: "KİŞİSEL" },
+  { key: "settings", href: "/kurumsal/panel/ayarlar", label: "Ayarlar", icon: "adjustments", group: "HESAP", roles: CORPORATE_ADMIN },
 ] satisfies readonly SidebarConfigItem[];
 
 export const INDIVIDUAL_SIDEBAR_CONFIG = [
-  { key: "home", href: "/kartlarim", label: "Genel Bakış", icon: "analytics", group: "KİMLİK" },
+  { key: "home", href: "/kartlarim", label: "Genel Bakış", icon: "analytics", group: "GENEL" },
   { key: "card", href: "/kartim", label: "Dijital Kart", icon: "id", group: "KİMLİK" },
   { key: "edit", href: "/olustur", label: "Kimlik Stüdyosu", icon: "pencil", group: "KİMLİK" },
-  { key: "analytics", href: "/istatistikler", label: "İstatistikler", icon: "analytics", group: "İÇGÖRÜLER" },
-  { key: "leads", href: "/leadler", label: "Network Mail", icon: "mail", group: "İÇGÖRÜLER" },
-  { key: "orders", href: "/siparislerim", label: "Siparişlerim", icon: "box", group: "HESAP" },
-  { key: "subscription", href: "/yenile", label: "Hizmet", icon: "refresh", group: "HESAP" },
+  { key: "analytics", href: "/istatistikler", label: "İstatistikler", icon: "analytics", group: "KİMLİK" },
+  { key: "leads", href: "/leadler", label: "Network Mail", icon: "mail", group: "HİZMET" },
+  { key: "orders", href: "/siparislerim", label: "Siparişlerim", icon: "box", group: "HİZMET" },
+  { key: "subscription", href: "/yenile", label: "Paket & Yenileme", icon: "refresh", group: "HİZMET" },
   { key: "settings", href: "/ayarlar", label: "Ayarlar", icon: "users", group: "HESAP" },
 ] satisfies readonly SidebarConfigItem[];
 

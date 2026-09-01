@@ -8,6 +8,7 @@ import { validateCardWorkspace, validatePortal, type PortalCheckResult } from ".
 import { clearLegacyCart, setCartOwner } from "../../lib/cart";
 import { writeSessionCookie } from "../components/AuthSessionBridge";
 import PanelSidebar from "../components/ui/PanelSidebar";
+import { LoadingState } from "../components/ui/States";
 import { INDIVIDUAL_SIDEBAR_CONFIG } from "../components/ui/sidebar-config";
 
 type ShellAction = {
@@ -108,11 +109,41 @@ export default function DashboardShell({
 
   if (portalState !== "allowed") {
     return (
-      <main className="yi-app yi-app--loading" aria-busy="true">
-        <div className="yi-app__loading" role="status" aria-live="polite">
-          <strong>{portalState === "checking" ? "Çalışma alanınız hazırlanıyor…" : "Yönlendiriliyorsunuz…"}</strong>
-          <span>Hesap türünüz doğrulanıyor.</span>
-        </div>
+      <main className={`yi-app yi-app--${portal} enterprise-dashboard-shell p7-shell`} aria-busy="true">
+        <PanelSidebar
+          id={sidebarId}
+          scope="individual"
+          ariaLabel="Bireysel hesap menüsü"
+          subtitle="Bireysel Panel"
+          brandHref="/kartlarim"
+          items={INDIVIDUAL_SIDEBAR_CONFIG}
+          onClose={() => setMobileOpen(false)}
+          open={mobileOpen}
+          className="id-sidebar--individual"
+          loading
+        />
+
+        <section className="yi-app__main p7-workspace">
+          <header className="yi-app__top p7-topbar">
+            <div className="yi-top-account">
+              <span className="yi-top-account__label">HESAP</span>
+              <span>{portalState === "checking" ? "Yükleniyor" : "Yönlendiriliyor"}</span>
+            </div>
+          </header>
+
+          <div className="yi-app__content p7-content">
+            <div className="yi-page-head">
+              <span>YENOMI ID</span>
+              <h1>{title}</h1>
+              {description && <p>{description}</p>}
+            </div>
+            <LoadingState
+              variant="panel"
+              label={portalState === "checking" ? "Bilgiler yükleniyor" : "Yönlendiriliyor"}
+              hint={portalState === "checking" ? "Güncel hesap bilgileriniz getiriliyor." : "Uygun çalışma alanına geçiliyor."}
+            />
+          </div>
+        </section>
       </main>
     );
   }

@@ -149,7 +149,7 @@
 .p10-corporate-platform .business-role-matrix-heading {
   display: flex;
   justify-content: space-between;
-  align-items: end;
+  align-items: flex-end;
   gap: 16px;
 }
 .p10-corporate-platform .business-role-scroll-hint {

@@ -61,7 +61,7 @@ export function digitalServiceBillingAddress(city: string, existingAddress = "")
 
 export const INDIVIDUAL_RENEWAL_MESSAGE = "Kartınız sizin. Yenilemede yeni kart gönderilmez; yalnızca platform hizmeti yenilenir.";
 export const INDIVIDUAL_PREMIUM_RENEWAL_MESSAGE = "Kartınız sizin. Premium yenilemede yeni kart gönderilmez. Kullanılmayan Network Mail krediniz bir sonraki yıla taşınır.";
-export const INDIVIDUAL_PREMIUM_UPGRADE_MESSAGE = "Mevcut süreniz korunur. 500 Network Mail bu dönem için eklenir; ikinci kart gönderilmez.";
+export const INDIVIDUAL_PREMIUM_UPGRADE_MESSAGE = "Mevcut süreniz korunur. 100 Network Mail bu dönem için eklenir; ikinci kart gönderilmez.";
 export function formatCommercialTry(amountKurus: number): string { return new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY", minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(amountKurus / 100); }
 export const COMMERCIAL_COPY = {
   digitalPrice: formatCommercialTry(COMMERCIAL_PRICING.YENOMI_ID_DIGITAL.priceKurus),

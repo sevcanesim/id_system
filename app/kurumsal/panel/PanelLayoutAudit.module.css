@@ -1,0 +1,39 @@
+.panelSurface {
+  min-width: 0;
+}
+
+.panelSurface :global(.p11-networking-header) {
+  align-items: start;
+  gap: var(--space-6);
+}
+
+.panelSurface :global(.p11-mail-credits) {
+  align-self: start;
+}
+
+.panelSurface :global(.p11-networking .ds-empty) {
+  width: min(100%, 720px);
+  min-height: clamp(320px, 45vh, 440px);
+  margin: var(--space-6) auto 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+}
+
+.panelSurface :global(.p11-networking .ds-empty__content) {
+  max-width: 460px;
+  margin-inline: auto;
+}
+
+@media (max-width: 760px) {
+  .panelSurface :global(.p11-networking-header) {
+    gap: var(--space-4);
+  }
+
+  .panelSurface :global(.p11-networking .ds-empty) {
+    width: 100%;
+    min-height: 280px;
+    margin-top: var(--space-4);
+  }
+}

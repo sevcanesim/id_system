@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const supabase = getSupabaseUserClient(context.token);
     const { data, error } = await supabase
       .from("commerce_orders")
-      .select("id,order_number,status,total_kurus,currency,paid_at,created_at,updated_at,tracking_company,tracking_number,shipped_at,delivered_at,customer_name,customer_phone,commerce_order_items(id,product_name,product_kind,quantity,unit_price_kurus,configuration,commerce_physical_card_units(id,operational_status,print_requested_at,print_approved_at,shipping_pending_at,carrier,tracking_number,shipped_at,out_for_delivery_at,delivered_at)),shipping_addresses(recipient_name,phone,address_line,district,city,postal_code)")
+      .select("id,order_number,status,total_kurus,currency,paid_at,created_at,updated_at,tracking_company,tracking_number,shipped_at,delivered_at,customer_name,customer_phone,commerce_order_items(id,product_name,product_kind,quantity,unit_price_kurus,configuration,commerce_physical_card_units(id,operations_status,print_requested_at,print_started_at,print_approved_at,carrier,tracking_number,shipped_at,out_for_delivery_at,delivered_at)),shipping_addresses(recipient_name,phone,address_line,district,city,postal_code)")
       .eq("user_id", context.user.id)
       .order("created_at", { ascending: false });
     if (error) {

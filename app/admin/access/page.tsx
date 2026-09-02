@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 import styles from "./AdminAccess.module.css";
@@ -133,7 +134,12 @@ export default function AdminAccessPage() {
 
       <section className={styles.note}>
         <strong>Devir sırası</strong>
-        <p>1) Yeni kullanıcı hesabı oluşturulur. 2) Buradan Super Admin yetkisi verilir. 3) Yeni yönetici <b>/admin/security</b> üzerinden kendi Google Authenticator faktörünü kurup AAL2 doğrular. 4) Erişim test edilir. 5) Eski yöneticinin yetkisi buradan kaldırılır.</p>
+        <p>1) Yeni kullanıcı hesabı oluşturulur. 2) Buradan Super Admin yetkisi verilir. 3) Yeni yönetici kendi hesabıyla giriş yapıp kendi Google Authenticator faktörünü kurar. 4) Satış ve operasyon erişimi test edilir. 5) Eski yöneticinin yetkisi buradan kaldırılır.</p>
+        <div className={styles.handoverActions}>
+          <Link href="/admin/security">MFA doğrulamasına git</Link>
+          <Link href="/admin/operations">Operasyon merkezini aç</Link>
+          <Link href="/admin/devir-rehberi">Tam devir rehberini aç</Link>
+        </div>
       </section>
     </section>
   </main>;

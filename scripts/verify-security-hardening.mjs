@@ -49,7 +49,7 @@ mustInclude(middleware, "/api/organizations/links/upload", "PDF upload must rema
 mustInclude(middleware, 'NextResponse.redirect(url, 308)', "/nfc-siparis must 308 to /checkout.");
 mustInclude(middleware, '"/nfc-siparis"', "Middleware matcher must include /nfc-siparis.");
 mustInclude(middleware, 'scope: "auth-login"', "Password login must be rate-limited on /api/auth/login.");
-mustNotInclude(middleware, '"auth-login",', "Password login must not 503 the account when Redis is unreachable from Edge.");
+mustInclude(middleware, '"auth-login",', "Password login API must fail closed when the Edge limiter is unavailable.");
 mustInclude(middleware, "x-nonce", "Middleware must pass a CSP nonce to Next.js.");
 mustInclude(middleware, "createRequestNonce", "CSP nonce must be generated per request.");
 mustInclude(middleware, "buildContentSecurityPolicy", "Document CSP must be issued in middleware, not as a static next.config header.");
@@ -70,24 +70,26 @@ const loginApi = read("app/api/auth/login/route.ts");
 const loginPage = read("app/giris/page.tsx") + read("app/giris/LoginClient.tsx");
 const testGate = read("lib/auth/production-test-gate.ts");
 const sessionRoute = read("app/api/auth/session/route.ts");
+const routeRateLimits = read("lib/security/route-rate-limits.ts");
 mustInclude(loginApi, "signInWithPassword", "Password verification must happen on the Next.js login route.");
 mustInclude(loginApi, "productionTestLoginBlocked", "Login must refuse production TEST / @yenomi.test identities.");
 mustInclude(loginApi, "applySessionCookies", "Login must write HttpOnly cookies on the server.");
 mustInclude(loginApi, "logAuthLoginEvent", "Failed login attempts must be visible in logs.");
 mustInclude(loginApi, "auth-login-email", "Login must also limit by email, not only by IP.");
 mustInclude(loginApi, "limitAuthLoginIp", "Login must also limit by IP to slow credential stuffing.");
-mustInclude(read("lib/security/route-rate-limits.ts"), "auth-login-ip", "Login IP limiter stays fail-open via the shared helper.");
+mustInclude(routeRateLimits, "auth-login-ip", "Login IP limiter must use a dedicated distributed key.");
+mustInclude(routeRateLimits, "failClosed: true", "Login IP limiter must fail closed when the distributed limiter is unavailable.");
 const activationResend = read("app/api/commerce/activation/resend/route.ts");
 mustInclude(activationResend, "limitActivationResendIp", "Activation resend must cap requests per IP.");
 mustInclude(activationResend, "limitActivationResendOrder", "Activation resend must cool down per order.");
-mustInclude(read("lib/security/route-rate-limits.ts"), "checkout-api:", "Checkout initialize limiter uses a dedicated IP key.");
+mustInclude(routeRateLimits, "checkout-api:", "Checkout initialize limiter uses a dedicated IP key.");
 if (existsSync("vercel.json")) {
   mustInclude(read("vercel.json"), '"/api/cron/commerce-ops"', "Commerce ops cron must be declared in vercel.json when the file exists.");
 }
 mustInclude(read("app/api/cron/commerce-ops/route.ts"), "authorizeCommerceCron", "Cron route must require CRON_SECRET in production.");
 mustInclude(read("lib/email/resend.ts"), "sendAbandonedCheckoutEmail", "Abandoned checkout recovery mail must exist.");
 mustInclude(read("supabase/migrations/20260822180000_commerce_ops_observability.sql"), "ABANDONED_CHECKOUT", "Email event vocabulary must include abandoned checkout.");
-mustNotInclude(loginApi, "failClosed: true", "Password login must degrade to memory when Redis is down, not 503.");
+mustNotInclude(loginApi, "failClosed: true", "Login route must delegate IP fail-closed behavior to the shared limiter helper.");
 mustInclude(loginPage, "passwordLogin", "The login page must send passwords through /api/auth/login.");
 mustInclude(read("app/giris/page.tsx"), "searchParams", "Login HTML must be rendered from the request query so portal tabs work before hydration.");
 mustInclude(read("app/giris/page.tsx"), "x-login-portal", "Login portal must also be read from the middleware request header, not only searchParams.");
@@ -105,9 +107,28 @@ mustInclude(activation, "pagehide", "Activation token must clear from sessionSto
 mustInclude(activation, "event.persisted", "Activation pagehide must keep the token for bfcache restore.");
 mustNotInclude(activation, "visibilitychange", "Do not clear the activation token on visibilitychange.");
 
-mustInclude(webhookSecret, "timingSafeEqual", "Optional webhook secret must compare in constant time.");
+mustInclude(webhookSecret, "timingSafeEqual", "Webhook secret must compare in constant time.");
+mustInclude(webhookSecret, 'process.env.NODE_ENV !== "production"', "Production webhook must fail closed when the shared secret is missing.");
 mustInclude(webhook, "IYZICO_WEBHOOK_SECRET", "Webhook must honor IYZICO_WEBHOOK_SECRET when set.");
 mustInclude(webhook, "settleCommercePaymentByProviderToken", "Webhook authenticity remains retrieveCheckout settlement.");
+
+const adminOrders = read("app/api/admin/commerce/orders/route.ts");
+const adminCardLink = read("app/api/admin/commerce/card-units/link/route.ts");
+const adminOrganizations = read("app/api/admin/organizations/route.ts");
+const adminAccess = read("app/api/admin/access/route.ts");
+const adminPricing = read("app/api/admin/pricing/route.ts");
+const adminOperations = read("app/api/admin/operations/route.ts");
+for (const [name, source] of [
+  ["commerce orders", adminOrders],
+  ["payment reconciliation", reconciliation],
+  ["card provenance", adminCardLink],
+  ["organizations", adminOrganizations],
+  ["admin access", adminAccess],
+  ["pricing", adminPricing],
+  ["operations", adminOperations],
+]) {
+  mustInclude(source, "requireSuperAdmin", `${name} admin API must require an AAL2 Super Admin session.`);
+}
 
 mustInclude(analytics, "This is not GA4", "Funnel tracker must stay an honest stub.");
 mustNotInclude(analytics, "gtag(", "Do not invent a GA4 wiring.");

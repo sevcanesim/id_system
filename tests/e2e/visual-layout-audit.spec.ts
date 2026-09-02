@@ -71,10 +71,7 @@ function resolveRoute(route: AuditRoute) {
 }
 
 async function assertNoDocumentOverflow(page: Page, label: string) {
-  const metrics = await page.evaluate(() => ({
-    clientWidth: document.documentElement.clientWidth,
-    scrollWidth: document.documentElement.scrollWidth,
-  }));
+  const metrics = await page.evaluate(() => ({ clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }));
   expect(metrics.scrollWidth, `${label}: document yatay taşıyor (${metrics.scrollWidth}px > ${metrics.clientWidth}px)`).toBeLessThanOrEqual(metrics.clientWidth + 1);
 }
 
@@ -87,17 +84,11 @@ async function assertNoViewportEscape(page: Page, label: string) {
         if (style.display === "none" || style.visibility === "hidden" || style.position === "fixed") return false;
         const rect = el.getBoundingClientRect();
         if (rect.width <= 0 || rect.height <= 0) return false;
-        const scrollableX = ["auto", "scroll"].includes(style.overflowX);
-        if (scrollableX) return false;
+        if (["auto", "scroll"].includes(style.overflowX)) return false;
         return rect.left < -1 || rect.right > viewport + 1;
       })
       .slice(0, 8)
-      .map((el) => ({
-        tag: el.tagName.toLowerCase(),
-        cls: typeof el.className === "string" ? el.className.slice(0, 120) : "",
-        text: (el.textContent || "").trim().slice(0, 80),
-        rect: el.getBoundingClientRect().toJSON(),
-      }));
+      .map((el) => ({ tag: el.tagName.toLowerCase(), cls: typeof el.className === "string" ? el.className.slice(0, 120) : "", text: (el.textContent || "").trim().slice(0, 80), rect: el.getBoundingClientRect().toJSON() }));
   });
   expect(offenders, `${label}: viewport dışına taşan component bulundu: ${JSON.stringify(offenders)}`).toEqual([]);
 }
@@ -114,17 +105,11 @@ async function assertTypography(page: Page, label: string) {
         const lineHeight = Number.parseFloat(style.lineHeight);
         const fontSize = Number.parseFloat(style.fontSize);
         const compressed = Number.isFinite(lineHeight) && Number.isFinite(fontSize) && lineHeight + 0.5 < fontSize;
-        return forbiddenFamily || compressed;
+        const undersized = Number.isFinite(fontSize) && fontSize < 11;
+        return forbiddenFamily || compressed || undersized;
       })
       .slice(0, 8)
-      .map((el) => ({
-        tag: el.tagName.toLowerCase(),
-        cls: typeof el.className === "string" ? el.className.slice(0, 100) : "",
-        text: (el.textContent || "").trim().slice(0, 80),
-        fontFamily: getComputedStyle(el).fontFamily,
-        fontSize: getComputedStyle(el).fontSize,
-        lineHeight: getComputedStyle(el).lineHeight,
-      }));
+      .map((el) => ({ tag: el.tagName.toLowerCase(), cls: typeof el.className === "string" ? el.className.slice(0, 100) : "", text: (el.textContent || "").trim().slice(0, 80), fontFamily: getComputedStyle(el).fontFamily, fontSize: getComputedStyle(el).fontSize, lineHeight: getComputedStyle(el).lineHeight }));
   });
   expect(issues, `${label}: font/line-height sözleşmesi ihlali: ${JSON.stringify(issues)}`).toEqual([]);
 }
@@ -147,6 +132,23 @@ async function assertLongTextContainment(page: Page, label: string) {
   expect(issues, `${label}: uzun metin containment problemi: ${JSON.stringify(issues)}`).toEqual([]);
 }
 
+async function assertMobileTouchTargets(page: Page, label: string) {
+  if ((page.viewportSize()?.width ?? 9999) > 430) return;
+  const issues = await page.evaluate(() => Array.from(document.querySelectorAll<HTMLElement>("button,a,input,select,textarea"))
+    .filter((el) => {
+      const style = getComputedStyle(el);
+      if (style.display === "none" || style.visibility === "hidden" || el.getAttribute("aria-hidden") === "true") return false;
+      const rect = el.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return false;
+      const isInlineTextLink = el.tagName === "A" && style.display === "inline";
+      if (isInlineTextLink) return false;
+      return rect.height < 44;
+    })
+    .slice(0, 8)
+    .map((el) => ({ tag: el.tagName.toLowerCase(), cls: typeof el.className === "string" ? el.className.slice(0, 100) : "", text: (el.textContent || "").trim().slice(0, 80), height: Math.round(el.getBoundingClientRect().height) })));
+  expect(issues, `${label}: 44px altı etkileşim kontrolü bulundu: ${JSON.stringify(issues)}`).toEqual([]);
+}
+
 for (const route of ROUTES) {
   test.describe(`${route.family} ${route.path}`, () => {
     for (const viewport of VIEWPORTS) {
@@ -165,6 +167,7 @@ for (const route of ROUTES) {
         await assertNoViewportEscape(page, label);
         await assertTypography(page, label);
         await assertLongTextContainment(page, label);
+        await assertMobileTouchTargets(page, label);
       });
     }
   });

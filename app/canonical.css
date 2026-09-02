@@ -942,6 +942,9 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .public-page-title__back {
   position: static;
   margin: 0 0 14px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--gold-hi);
   font-size: 13px;
   font-weight: 700;

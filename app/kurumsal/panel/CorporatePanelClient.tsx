@@ -148,10 +148,10 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
         if (!response.ok) throw new Error("config unavailable");
         return response.json();
       })
-      .then((data) => {
+      .then((publicConfigPayload) => {
         if (cancelled) return;
-        setSeatPacks(data.seatPacks || []);
-        setTemplateOptions(data.templateOptions || []);
+        setSeatPacks(publicConfigPayload.seatPacks || []);
+        setTemplateOptions(publicConfigPayload.templateOptions || []);
       })
       .catch(() => {
         if (!cancelled) setMessage("Kart paketleri DB’den yüklenemedi.");
@@ -239,13 +239,13 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       `/api/organizations/members?organizationId=${id}`,
       { headers: { authorization: `Bearer ${auth}` }, cache: "no-store" },
     );
-    const data = await response.json();
+    const membersPayload = await response.json();
     if (response.ok) {
-      setMembers(data.members || []);
-      if (typeof data.seatUsage?.used === "number") setOrganizationSeatUsage(data.seatUsage.used);
+      setMembers(membersPayload.members || []);
+      if (typeof membersPayload.seatUsage?.used === "number") setOrganizationSeatUsage(membersPayload.seatUsage.used);
       setDataError("employees", null);
     } else {
-      const detail = data.error || "Çalışanlar yüklenemedi.";
+      const detail = membersPayload.error || "Çalışanlar yüklenemedi.";
       setDataError("employees", detail);
       setMessage("");
     }
@@ -258,13 +258,13 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       `/api/organizations/templates?organizationId=${id}`,
       { headers: { authorization: `Bearer ${auth}` } },
     );
-    const data = await response.json();
+    const templatesPayload = await response.json();
     if (response.ok) {
-      setTemplates(data.templates || []);
+      setTemplates(templatesPayload.templates || []);
       setDataError("templates", null);
       const current =
-        data.templates?.find((item: Template) => item.is_default) ||
-        data.templates?.[0];
+        templatesPayload.templates?.find((item: Template) => item.is_default) ||
+        templatesPayload.templates?.[0];
       if (current) {
         setTemplate({
           name: current.name,
@@ -277,7 +277,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
         setProfileError(null);
       }
     } else {
-      setDataError("templates", data.error || "Kurumsal şablonlar yüklenemedi.");
+      setDataError("templates", templatesPayload.error || "Kurumsal şablonlar yüklenemedi.");
     }
   }
 
@@ -325,18 +325,18 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
         `/api/organizations/member-profile?organizationId=${selected}&memberId=${member.id}`,
         { headers: { authorization: `Bearer ${access}` } },
       );
-      const data = await response.json();
+      const memberProfilePayload = await response.json();
       if (!response.ok) {
-        setMessage(data.error || "Kart görüntülenemedi.");
+        setMessage(memberProfilePayload.error || "Kart görüntülenemedi.");
         return;
       }
       setViewedProfile({
         memberId: member.id,
         memberName: member.full_name || member.email,
         memberStatus: member.status,
-        profiles: data.profiles || [],
-        physicalCards: data.physicalCards || [],
-        identityChanges: data.identityChanges || [],
+        profiles: memberProfilePayload.profiles || [],
+        physicalCards: memberProfilePayload.physicalCards || [],
+        identityChanges: memberProfilePayload.identityChanges || [],
       });
     } finally {
       setViewLoading(null);
@@ -362,7 +362,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
         headers: { authorization: `Bearer ${access}` },
         cache: "no-store",
       });
-      const data = await response.json();
+      const organizationsPayload = await response.json();
       if (!response.ok) {
         if (response.status === 403) {
           router.replace("/kartim");
@@ -372,11 +372,11 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
           router.replace("/giris?portal=business&next=%2Fkurumsal%2Fpanel");
           return;
         }
-        setLoadingError(data.error || "Şirket bilgileri yüklenemedi.");
+        setLoadingError(organizationsPayload.error || "Şirket bilgileri yüklenemedi.");
         setLoading(false);
         return;
       }
-      const nextOrgs = data.organizations || [];
+      const nextOrgs = organizationsPayload.organizations || [];
       setOrgs(nextOrgs);
       const preferredOrgId = searchParams.get("organizationId");
       const matchedOrg = preferredOrgId ? (nextOrgs.find((item: Org) => item.organization_id === preferredOrgId) || nextOrgs[0]) : nextOrgs[0];
@@ -413,7 +413,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
           headers: { authorization: `Bearer ${access}` },
           cache: "no-store",
         });
-        const data = await response.json();
+        const organizationsPayload = await response.json();
         if (!response.ok) {
           // Yönetim paneli yalnız OWNER / ADMIN / HR / DEPARTMENT_MANAGER içindir.
           // EMPLOYEE'yi boş-şirket ekranında bırakmak yerine Kartım'a götür.
@@ -427,12 +427,12 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
             router.replace("/giris?portal=business&next=%2Fkurumsal%2Fpanel");
             return;
           }
-          setLoadingError(data.error || "Şirket bilgileri yüklenemedi.");
+          setLoadingError(organizationsPayload.error || "Şirket bilgileri yüklenemedi.");
           setMessage("");
           setLoading(false);
           return;
         }
-        const nextOrgs = data.organizations || [];
+        const nextOrgs = organizationsPayload.organizations || [];
         setOrgs(nextOrgs);
         const preferredOrgId = searchParams.get("organizationId");
         const matchedOrg = preferredOrgId ? (nextOrgs.find((item: Org) => item.organization_id === preferredOrgId) || nextOrgs[0]) : nextOrgs[0];
@@ -513,12 +513,12 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
         role: form.role,
       }),
     });
-    const data = await response.json();
+    const newMemberPayload = await response.json();
     if (!response.ok) {
-      setMessage(data.error || "Çalışan eklenemedi.");
+      setMessage(newMemberPayload.error || "Çalışan eklenemedi.");
       return;
     }
-    setMembers((current) => [...current, data.member]);
+    setMembers((current) => [...current, newMemberPayload.member]);
     setForm({
       email: "",
       firstName: "",
@@ -528,7 +528,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       role: "EMPLOYEE",
     });
     setMessage(
-      data.emailSent === false
+      newMemberPayload.emailSent === false
         ? "Davet kaydedildi ancak e-posta gönderilemedi. Yeniden gönder butonunu kullanabilirsin."
         : "Çalışan daveti gönderildi.",
     );
@@ -567,14 +567,14 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
           })),
         }),
       });
-      const data = await response.json();
+      const bulkInvitePayload = await response.json();
       if (!response.ok) {
-        setMessage(data.error || "Toplu davet işlenemedi.");
+        setMessage(bulkInvitePayload.error || "Toplu davet işlenemedi.");
         return;
       }
-      setBulkInviteResults(data);
-      if (data.created > 0) await loadMembers(selected, access || undefined);
-      setMessage(`Toplu davet tamamlandı: ${data.created} başarılı, ${data.failed} başarısız.`);
+      setBulkInviteResults(bulkInvitePayload);
+      if (bulkInvitePayload.created > 0) await loadMembers(selected, access || undefined);
+      setMessage(`Toplu davet tamamlandı: ${bulkInvitePayload.created} başarılı, ${bulkInvitePayload.failed} başarısız.`);
     } finally {
       setBulkInviteBusy(false);
     }
@@ -620,18 +620,18 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
           headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
           body: JSON.stringify({ organizationId: selected, ...template, fields: companyFields, isDefault: true }),
         });
-    const data = await response.json();
+    const templatePayload = await response.json();
     if (response.ok) {
       setTemplates((current) => {
-        const next = current.filter((item) => item.id !== data.template.id);
-        return [data.template, ...next].sort((a, b) => Number(b.is_default) - Number(a.is_default));
+        const next = current.filter((item) => item.id !== templatePayload.template.id);
+        return [templatePayload.template, ...next].sort((a, b) => Number(b.is_default) - Number(a.is_default));
       });
       setProfileDirty(false);
       setProfileSaved(true);
       setMessage("Varsayılan kurumsal şablon güncellendi.");
     } else {
-      setProfileError(data.error || "Şablon kaydedilemedi.");
-      setMessage(data.error || "Şablon kaydedilemedi.");
+      setProfileError(templatePayload.error || "Şablon kaydedilemedi.");
+      setMessage(templatePayload.error || "Şablon kaydedilemedi.");
     }
     setProfileBusy(false);
   }
@@ -655,13 +655,13 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
         },
         body: JSON.stringify({ organizationId: selected, memberId, ...body }),
       });
-      const data = await response.json();
+      const mutationPayload = await response.json();
       if (!response.ok) {
-        setMessage(data.error || "İşlem tamamlanamadı.");
+        setMessage(mutationPayload.error || "İşlem tamamlanamadı.");
         return null;
       }
-      if (data.warning) setMessage(data.warning);
-      return data;
+      if (mutationPayload.warning) setMessage(mutationPayload.warning);
+      return mutationPayload;
     } finally {
       setBusyMember(null);
     }
@@ -812,20 +812,20 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
       body: JSON.stringify({ organizationId: selected, name }),
     });
-    const data = await response.json();
+    const renamePayload = await response.json();
     if (response.ok) {
       setOrgs((current) =>
         current.map((item) =>
           item.organization_id === selected && item.organizations
-            ? { ...item, organizations: { ...item.organizations, name: data.organization.name } }
+            ? { ...item, organizations: { ...item.organizations, name: renamePayload.organization.name } }
             : item,
         ),
       );
       setOrgNameSaved(true);
       setMessage("Şirket adı güncellendi.");
     } else {
-      setOrgNameError(data.error || "Şirket adı güncellenemedi.");
-      setMessage(data.error || "Şirket adı güncellenemedi.");
+      setOrgNameError(renamePayload.error || "Şirket adı güncellenemedi.");
+      setMessage(renamePayload.error || "Şirket adı güncellenemedi.");
     }
     setOrgNameBusy(false);
   }
@@ -995,21 +995,21 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
           department: memberEdit.department,
         }),
       });
-      const data = await response.json();
+      const memberIdentityPayload = await response.json();
       if (!response.ok) {
-        setMessage(data.error || "Çalışan bilgileri güncellenemedi.");
+        setMessage(memberIdentityPayload.error || "Çalışan bilgileri güncellenemedi.");
         return;
       }
       setMembers((current) =>
         current.map((member) =>
           member.id === drawerMember.id
-            ? { ...member, ...data.member }
+            ? { ...member, ...memberIdentityPayload.member }
             : member,
         ),
       );
       setMessage(
-        data.inviteRenewed
-          ? data.emailSent === false
+        memberIdentityPayload.inviteRenewed
+          ? memberIdentityPayload.emailSent === false
             ? "Bilgiler güncellendi. Yeni davet oluşturuldu ancak e-posta gönderilemedi."
             : "Bilgiler güncellendi ve yeni e-posta adresine davet gönderildi."
           : "Çalışan bilgileri güncellendi.",

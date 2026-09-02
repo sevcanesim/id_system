@@ -24,7 +24,7 @@ export default function AdminSecurityDock() {
       const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
       if (cancelled) return;
 
-      if (aalData.currentLevel === "aal2") {
+      if (aalData?.currentLevel === "aal2") {
         setState("secure");
         return;
       }

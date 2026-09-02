@@ -2,7 +2,7 @@ import { ADMIN_PROVISION_PLAN_CODES, defaultMailCreditLimit } from "../../../../
 import { createHash, randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { requireSuperAdmin } from "../../../../lib/admin/require-admin";
 import { sendOrganizationInviteEmail } from "../../../../lib/email/resend";
 import { publicSiteUrl } from "../../../../lib/payments/config";
 import { normalizeCardSlug } from "../../../../lib/validation/slug";
@@ -51,23 +51,16 @@ const provisionSchema = z.object({
   termDays: z.number().int().min(1).max(3650).optional(),
 });
 
-async function requireAdmin(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-  const auth = getSupabaseAuthClient();
-  const { data } = await auth.auth.getUser(token);
-  if (!data.user) return null;
-  const admin = getSupabaseAdminClient();
-  const { data: row } = await admin.from("admin_users").select("user_id").eq("user_id", data.user.id).maybeSingle();
-  return row ? { user: data.user, admin } : null;
+function logAdminOperationFailure(operation: string, code?: string | null) {
+  console.error("admin organization operation failed", { operation, code: code || "UNKNOWN" });
 }
 
 // GET: corporate accounts overview for the admin dashboard (org, active
 // subscription/plan/seat_limit, seats used). Also returns the sellable plan
 // catalog so the provisioning form can populate its plan picker.
 export async function GET(request: NextRequest) {
-  const ctx = await requireAdmin(request);
-  if (!ctx) return NextResponse.json({ error: "Yönetici yetkisi gerekli." }, { status: 403 });
+  const ctx = await requireSuperAdmin(request);
+  if (!ctx) return NextResponse.json({ error: "AAL2 doğrulamalı Super Admin yetkisi gerekli." }, { status: 403 });
 
   const [{ data: organizations, error: orgError }, { data: plans, error: planError }] = await Promise.all([
     ctx.admin
@@ -77,11 +70,14 @@ export async function GET(request: NextRequest) {
     ctx.admin.from("business_plans").select("code,name,seat_limit,annual_price_kurus,monthly_price_kurus,is_active").eq("is_active", true).order("annual_price_kurus", { ascending: true, nullsFirst: true }),
   ]);
 
-  if (orgError || planError) return NextResponse.json({ error: "Kurumsal hesaplar yüklenemedi." }, { status: 500 });
+  if (orgError || planError) {
+    logAdminOperationFailure("load_organizations", orgError?.code || planError?.code);
+    return NextResponse.json({ error: "Kurumsal hesaplar yüklenemedi." }, { status: 500 });
+  }
 
   const accounts = (organizations || []).map((org) => {
     const activeSubscription = (org.organization_subscriptions || []).find((s: { status: string }) => ["ACTIVE", "GRACE_PERIOD"].includes(s.status));
-    const usedSeats = (org.organization_members || []).filter((m: { status: string }) => ["ACTIVE", "INVITED"].includes(m.status)).length;
+    const usedSeats = (org.organization_members || []).filter((m: { status: string }) => ["ACTIVE", "INVITED", "SUSPENDED"].includes(m.status)).length;
     const entitlements = Array.isArray(org.organization_entitlements) ? org.organization_entitlements[0] : org.organization_entitlements;
     const managers = (org.organization_members || []).filter((member: { role: string; status: string }) => ["OWNER", "ADMIN", "HR"].includes(member.role) && ["ACTIVE", "INVITED"].includes(member.status));
     return {
@@ -107,8 +103,8 @@ export async function GET(request: NextRequest) {
 // path that creates the initial organization_subscriptions.seat_limit for a
 // paying company — see supabase/migrations/029_organization_provisioning.sql.
 export async function POST(request: NextRequest) {
-  const ctx = await requireAdmin(request);
-  if (!ctx) return NextResponse.json({ error: "Yönetici yetkisi gerekli." }, { status: 403 });
+  const ctx = await requireSuperAdmin(request);
+  if (!ctx) return NextResponse.json({ error: "AAL2 doğrulamalı Super Admin yetkisi gerekli." }, { status: 403 });
   const incoming = await request.json().catch(() => null);
 
   if (incoming?.action === "create_tenant") {
@@ -144,13 +140,11 @@ export async function POST(request: NextRequest) {
         p_expires_at: expiresAt,
       });
       if (error) {
-        console.error("create_organization_tenant rpc error", error);
+        logAdminOperationFailure("create_tenant", error.code);
         return NextResponse.json({ error: "Şirket oluşturulamadı." }, { status: 500 });
       }
       const payload = result as { ok?: boolean; code?: string; organization?: { id: string; name: string; slug: string; corporate_id: string } } | null;
-      if (payload?.ok && payload.organization) {
-        return NextResponse.json({ organization: payload.organization });
-      }
+      if (payload?.ok && payload.organization) return NextResponse.json({ organization: payload.organization });
       if (payload?.code === "DUPLICATE_SLUG_OR_MEMBER" && attempt < 2) continue;
       const messages: Record<string, string> = {
         INVALID_INPUT: "Şirket adı veya vergi numarası geçersiz.",
@@ -180,7 +174,7 @@ export async function POST(request: NextRequest) {
       p_invite_expires_at: inviteExpiresAt,
     });
     if (error) {
-      console.error("attach_organization_manager rpc error", error);
+      logAdminOperationFailure("attach_manager", error.code);
       return NextResponse.json({ error: "Yönetici bağlanamadı." }, { status: 500 });
     }
     const payload = result as { ok?: boolean; code?: string; member?: { email: string; status: string; role: string } } | null;
@@ -201,8 +195,8 @@ export async function POST(request: NextRequest) {
           organizationName: org?.name || parsed.data.fullName,
         });
         emailSent = true;
-      } catch (emailError) {
-        console.error("manager invite email failed after attach", emailError);
+      } catch {
+        logAdminOperationFailure("attach_manager_invite_email");
       }
     }
     return NextResponse.json({ member: payload.member, emailSent, existingUser: payload.member.status === "ACTIVE" });
@@ -236,7 +230,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      console.error("provision_organization rpc error", error);
+      logAdminOperationFailure("provision_organization", error.code);
       return NextResponse.json({ error: "Kurumsal hesap oluşturulamadı." }, { status: 500 });
     }
 
@@ -245,8 +239,8 @@ export async function POST(request: NextRequest) {
       const inviteUrl = `${publicSiteUrl}/kurumsal/davet?token=${raw}`;
       try {
         await sendOrganizationInviteEmail({ to: payload.member.email, inviteUrl, organizationName: payload.organization.name });
-      } catch (emailError) {
-        console.error("owner invite email failed after successful provisioning", emailError);
+      } catch {
+        logAdminOperationFailure("owner_invite_email");
         return NextResponse.json({ organization: payload.organization, emailSent: false });
       }
       return NextResponse.json({ organization: payload.organization, emailSent: true });
@@ -269,12 +263,15 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const ctx = await requireAdmin(request);
-  if (!ctx) return NextResponse.json({ error: "Yönetici yetkisi gerekli." }, { status: 403 });
+  const ctx = await requireSuperAdmin(request);
+  if (!ctx) return NextResponse.json({ error: "AAL2 doğrulamalı Super Admin yetkisi gerekli." }, { status: 403 });
   const parsed = statusSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Durum bilgisi geçersiz." }, { status: 400 });
   const { error } = await ctx.admin.from("organizations").update({ status: parsed.data.status }).eq("id", parsed.data.organizationId);
-  if (error) return NextResponse.json({ error: "Şirket durumu güncellenemedi." }, { status: 503 });
+  if (error) {
+    logAdminOperationFailure("set_organization_status", error.code);
+    return NextResponse.json({ error: "Şirket durumu güncellenemedi." }, { status: 503 });
+  }
   await ctx.admin.from("admin_audit_log").insert({
     actor_user_id: ctx.user.id,
     action: parsed.data.status === "ACTIVE" ? "ORGANIZATION_ACTIVATED" : "ORGANIZATION_SUSPENDED",

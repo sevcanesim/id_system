@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { settlePendingCommercePaymentByOrderId } from "../../../../../lib/payments/settle-commerce-payment";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../lib/supabase/server-admin";
+import { requireSuperAdmin } from "../../../../../lib/admin/require-admin";
 
 export const runtime = "nodejs";
 
@@ -15,21 +15,10 @@ const postSchema = z.object({
   orderId: z.string().uuid().optional(),
 }).strict();
 
-async function requireAdmin(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-  const auth = getSupabaseAuthClient();
-  const { data } = await auth.auth.getUser(token);
-  if (!data.user) return null;
-  const admin = getSupabaseAdminClient();
-  const { data: row } = await admin.from("admin_users").select("user_id").eq("user_id", data.user.id).maybeSingle();
-  return row ? { user: data.user, admin } : null;
-}
-
 export async function GET(request: NextRequest) {
   try {
-    const context = await requireAdmin(request);
-    if (!context) return NextResponse.json({ error: "Yönetici yetkisi gerekli." }, { status: 403 });
+    const context = await requireSuperAdmin(request);
+    if (!context) return NextResponse.json({ error: "Yönetici yetkisi ve MFA doğrulaması gerekli." }, { status: 403 });
 
     const [{ data: orders, error: orderError }, { data: attempts, error: attemptError }, { data: issues, error: issueError }] = await Promise.all([
       context.admin
@@ -50,7 +39,11 @@ export async function GET(request: NextRequest) {
     ]);
 
     if (orderError || attemptError || issueError) {
-      console.error("commerce reconciliation load failed", { orderError, attemptError, issueError });
+      console.error("commerce reconciliation load failed", {
+        orderCode: orderError?.code ?? null,
+        attemptCode: attemptError?.code ?? null,
+        issueCode: issueError?.code ?? null,
+      });
       return NextResponse.json({ error: "Ödeme mutabakatı yüklenemedi." }, { status: 500 });
     }
 
@@ -109,16 +102,15 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("commerce reconciliation error", error);
+    console.error("commerce reconciliation error", error instanceof Error ? error.message : "UNKNOWN");
     return NextResponse.json({ error: "Ödeme mutabakatı yüklenemedi." }, { status: 500 });
   }
 }
 
-
 export async function POST(request: NextRequest) {
   try {
-    const context = await requireAdmin(request);
-    if (!context) return NextResponse.json({ error: "Yönetici yetkisi gerekli." }, { status: 403 });
+    const context = await requireSuperAdmin(request);
+    if (!context) return NextResponse.json({ error: "Yönetici yetkisi ve MFA doğrulaması gerekli." }, { status: 403 });
 
     const contentType = request.headers.get("content-type") || "";
     if (contentType.includes("application/json")) {
@@ -143,7 +135,7 @@ export async function POST(request: NextRequest) {
       if (parsed.data.action === "expire_stale_awaiting") {
         const { data, error } = await context.admin.rpc("expire_stale_awaiting_payment_orders", { p_limit: 250 });
         if (error) {
-          console.error("stale awaiting-payment expire failed", error);
+          console.error("stale awaiting-payment expire failed", error.code ?? "UNKNOWN");
           return NextResponse.json({ error: "Eski bekleyen ödemeler iptal edilemedi." }, { status: 500 });
         }
         await context.admin.from("admin_audit_log").insert({
@@ -159,7 +151,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await context.admin.rpc("reconcile_paid_commerce_orders", { p_limit: 250 });
     if (error) {
-      console.error("commerce reconciliation run failed", error);
+      console.error("commerce reconciliation run failed", error.code ?? "UNKNOWN");
       return NextResponse.json({ error: "Otomatik ödeme mutabakatı çalıştırılamadı." }, { status: 500 });
     }
 
@@ -173,15 +165,15 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ok: true, result: data });
   } catch (error) {
-    console.error("commerce reconciliation run error", error);
+    console.error("commerce reconciliation run error", error instanceof Error ? error.message : "UNKNOWN");
     return NextResponse.json({ error: "Otomatik ödeme mutabakatı çalıştırılamadı." }, { status: 500 });
   }
 }
 
 export async function PATCH(request: NextRequest) {
   try {
-    const context = await requireAdmin(request);
-    if (!context) return NextResponse.json({ error: "Yönetici yetkisi gerekli." }, { status: 403 });
+    const context = await requireSuperAdmin(request);
+    if (!context) return NextResponse.json({ error: "Yönetici yetkisi ve MFA doğrulaması gerekli." }, { status: 403 });
     const parsed = resolveSchema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Geçersiz çözüm kaydı." }, { status: 400 });
 
@@ -219,7 +211,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ ok: true, resolvedAt });
   } catch (error) {
-    console.error("commerce reconciliation update error", error);
+    console.error("commerce reconciliation update error", error instanceof Error ? error.message : "UNKNOWN");
     return NextResponse.json({ error: "Mutabakat kaydı güncellenemedi." }, { status: 500 });
   }
 }

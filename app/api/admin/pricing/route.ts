@@ -60,7 +60,10 @@ export async function GET(request: NextRequest) {
     ctx.admin.from("business_plans").select("id,code,name,seat_limit,annual_price_kurus,monthly_price_kurus,is_active").in("code", [...CORPORATE_CODES]).order("seat_limit", { ascending: true }),
   ]);
   if (variantError || planError) {
-    console.error("admin pricing load failed", { variantError, planError });
+    console.error("admin pricing load failed", {
+      variantCode: variantError?.code ?? null,
+      planCode: planError?.code ?? null,
+    });
     return NextResponse.json({ error: "Fiyat kataloğu yüklenemedi.", code: variantError?.code ?? planError?.code ?? null }, { status: 500 });
   }
   return NextResponse.json({ variants: variants ?? [], plans: plans ?? [], demo: false });

@@ -7,7 +7,10 @@ export async function limitAuthLoginIp(ip: string) {
     key: `auth-login-ip:${ip}`,
     limit: 30,
     windowMs: 60_000,
-    failClosed: false,
+    // Every login request passes this gate. Production must not authenticate
+    // when the distributed limiter is unavailable; development may still use
+    // the in-memory fallback provided by consumeDistributedRateLimit.
+    failClosed: true,
   });
 }
 

@@ -1,10 +1,11 @@
+import type { User } from "@supabase/supabase-js";
 import type { NextRequest } from "next/server";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../supabase/server-admin";
 
 type AuthenticatorAssuranceLevel = "aal1" | "aal2" | null;
 
 type VerifiedSuperAdmin = {
-  user: Awaited<ReturnType<ReturnType<typeof getSupabaseAuthClient>["auth"]["getUser"]>>["data"]["user"];
+  user: User;
   admin: ReturnType<typeof getSupabaseAdminClient>;
   aal: AuthenticatorAssuranceLevel;
 };
@@ -21,11 +22,7 @@ function assuranceLevelFromToken(token: string): AuthenticatorAssuranceLevel {
   }
 }
 
-/**
- * Confirms the bearer token belongs to a real Super Admin. This intentionally
- * does not require MFA so the security setup/status surface can be reached
- * before the first TOTP factor has been enrolled.
- */
+/** Confirms the session belongs to a Super Admin without requiring MFA yet. */
 export async function requireSuperAdminIdentity(request: NextRequest): Promise<VerifiedSuperAdmin | null> {
   const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   if (!token) return null;
@@ -45,11 +42,7 @@ export async function requireSuperAdminIdentity(request: NextRequest): Promise<V
   return { user: data.user, admin, aal: assuranceLevelFromToken(token) };
 }
 
-/**
- * All normal Super Admin APIs require an AAL2 access token. Supabase issues
- * AAL2 only after a verified MFA challenge, so password/session possession
- * alone is insufficient for privileged administration.
- */
+/** All normal Super Admin APIs require a verified MFA challenge (AAL2). */
 export async function requireSuperAdmin(request: NextRequest): Promise<VerifiedSuperAdmin | null> {
   const context = await requireSuperAdminIdentity(request);
   if (!context || context.aal !== "aal2") return null;

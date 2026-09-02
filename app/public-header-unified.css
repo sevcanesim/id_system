@@ -22,7 +22,7 @@
 }
 
 .public-site-chrome .yi-brand-marquee__static-item { color: var(--text-primary); }
-.public-site-chrome .yi-brand-marquee__static-item .yi-icon { color: var(--brand-gold); }
+.public-site-chrome .yi-brand-marquee__static-item .yi-icon { color: var(--brand-gold-deep); }
 
 .public-site-chrome .yi-header {
   padding: 0;

@@ -94,6 +94,43 @@
   font-size: var(--type-body-sm);
 }
 
+.paymentResume {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--brand-gold) 45%, var(--border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--brand-gold) 7%, var(--surface));
+}
+
+.paymentResumeButton {
+  min-height: 2.75rem;
+  padding: 0 var(--space-5);
+  border: 1px solid var(--text-primary);
+  border-radius: var(--radius-md);
+  background: var(--text-primary);
+  color: var(--surface);
+  font: inherit;
+  font-size: var(--type-body-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.paymentResumeButton:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+.paymentResumeError {
+  flex: 1 1 18rem;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+  line-height: 1.45;
+}
+
 .cardJourney {
   display: grid;
   gap: var(--space-4);
@@ -156,6 +193,11 @@
   .meta,
   .steps {
     grid-template-columns: 1fr;
+  }
+
+  .paymentResume,
+  .paymentResumeButton {
+    width: 100%;
   }
 
   .step {

@@ -6,7 +6,7 @@ Baseline: `main@7b87a360`
 
 ## Kapsam
 
-Kullanıcı tarafından verilen route inventory statik kaynak, mevcut Playwright visual-layout suite'i ve responsive master suite ile karşılaştırıldı. Verilen inventory 42 route girdisi içeriyor; dinamik `/[slug]`, `/p/[publicId]`, `/c/[cardCode]`, `/e/[eventPublicId]` dahil. "47 sayfa" hedefi ile liste arasında 5 route farkı var; audit gerçek route inventory üzerinden genişletilmeye devam edecek.
+Kullanıcı tarafından verilen route inventory 42 route girdisi içeriyordu. Repository ağacında kullanıcıya açık iki ek gerçek sayfa doğrulandı: `/aktivasyon` (`app/aktivasyon/page.tsx`) ve `/kurumsal/davet` (`app/kurumsal/davet/page.tsx`). Audit envanteri böylece **44 doğrulanmış kullanıcı yüzüne** çıktı. "47 sayfa" hedefiyle kalan 3 route, gerçek `app/**/page.tsx` kaynağı doğrulanmadan uydurulmayacak; admin/API/internal yüzeyler sırf sayıyı tamamlamak için eklenmeyecek.
 
 Viewport matrisi: 375, 390, 768, 1280 ve 1920 px. Mevcut `responsive-master.spec.ts` ayrıca 320, 360, 430, 820, 1024, 1440, 1512 ve 1728 px sınırlarını kapsıyor.
 
@@ -16,11 +16,12 @@ Viewport matrisi: 375, 390, 768, 1280 ve 1920 px. Mevcut `responsive-master.spec
 | --- | --- | --- | --- |
 | `/kurumsal/panel/calisanlar` | Typography | `team-management.css` içinde 9px, 9.5px ve 10.5px kullanıcı metinleri canonical 11px minimum ölçeğinin altındaydı. | `--type-xs`, `--type-sm`, `--type-body-sm` tokenlarına taşındı. |
 | `/kurumsal/panel/calisanlar` | Controls | Toolbar/input/action kontrollerinin bir bölümü 30–38px aralığındaydı. Mobil erişilebilirlik hedefi 44px ile tutarsızdı. | Etkileşimli kontroller `--control-height-md` (44px) ile hizalandı. |
-| `/kurumsal/panel/calisanlar` | Spacing / radius | Aynı yüzeyde 5/6/7/8/9/10/11/12/14/18/20/24px gibi çok sayıda lokal spacing/radius değeri bulunuyordu. | Uygun alanlar `--space-*`, `--radius-*`, `--border`, `--surface-*` tokenlarına bağlandı. |
+| `/kurumsal/panel/calisanlar` | Spacing / radius | Aynı yüzeyde çok sayıda lokal spacing/radius değeri bulunuyordu. | Uygun alanlar `--space-*`, `--radius-*`, `--border`, `--surface-*` tokenlarına bağlandı. |
 | `/kurumsal/panel/calisanlar` | Drawer | Çalışan drawer kapatma kontrolü desktopta 40px, tablar 38px idi. | Drawer close ve tab kontrolleri 44px standardına getirildi. |
 | Public + Commerce route matrisi | QA contract | Runtime typography kontrolü font family ve line-height kontrol ediyor ancak `<11px` metni yakalamıyordu. | Visual layout suite'e computed `font-size < 11px` ihlali eklendi. |
 | Public + Commerce mobil | QA contract | Genel visual-layout suite 44px touch-target invariantını kontrol etmiyordu. | 375/390px renderlarda görünür non-inline kontroller için 44px minimum kontrolü eklendi. |
-| Individual + Corporate authenticated routes | Coverage | Mevcut visual-layout suite bu route'ları bilinçli olarak `test.skip(Boolean(route.auth))` ile atlıyor. Bu nedenle gerçek signed-in layout için PASS iddia edilemez. | Authenticated fixture/storageState kurulmadan bu yüzeyler için runtime PASS verilmeyecek; statik audit + mevcut auth-boundary suite ayrı tutulacak. |
+| `/aktivasyon` + `/kurumsal/davet` | Coverage | İlk 42 route listesinde yoktu; ikisi de gerçek kullanıcı-yüzü `page.tsx` route'u. | Visual layout matrisine güvenli token fixture env'leriyle eklendi. Fixture yoksa bilinçli skip. |
+| Individual + Corporate authenticated routes | Coverage | Public visual-layout suite auth route'larını bilinçli atlıyor. | Ayrı `authenticated-visual-layout.spec.ts` oluşturuldu ve Authenticated Surfaces workflow'una bağlandı. Secret/fixture yoksa PASS sayılmadan skip edilir. |
 | Dinamik public card routes | Coverage | Dinamik route testleri E2E env fixture yoksa skip ediliyor. | `E2E_PUBLIC_SLUG`, `E2E_PUBLIC_ID`, `E2E_CARD_CODE`, `E2E_EVENT_PUBLIC_ID` fixture'larıyla runtime doğrulama gerekli. |
 
 ## Tasarım sistemi kararı
@@ -34,12 +35,12 @@ Viewport matrisi: 375, 390, 768, 1280 ve 1920 px. Mevcut `responsive-master.spec
 
 ## Runtime doğrulama durumu
 
-Bu branchteki Playwright ve verifier sonuçları GitHub Actions çalışmadan PASS kabul edilmez. Özellikle authenticated individual/corporate route'lar mevcut visual-layout testinde skip edildiği için tüm 42/47 route'un canlı render PASS olduğu iddia edilmemelidir.
+Önceki head `816490ae` için Quality Gate source-quality + browser regression PASS oldu. Yeni audit commitleri için Actions yeniden çalışır; yeni head tamamlanmadan tüm 44 route için runtime PASS iddiası yapılmaz. Authenticated suite yalnızca güvenli GitHub Secrets/fixture mevcutsa gerçek signed-in render doğrular.
 
 ## Sonraki audit dalgaları
 
-1. Public + commerce workflow çıktılarındaki gerçek overflow/typography/touch-target fail'lerini route bazında düzelt.
-2. Individual panel CSS/TSX kaynaklarında font-size, container gutter, preview fit ve uzun metin containment taraması.
-3. Corporate `/roller`, `/sablon`, `/organizasyon`, `/icerik` ve analytics yüzeylerinde tablo/preview/equal-height taraması.
-4. Authenticated demo fixture ile gerçek signed-in 375/390/768/1280/1920 render matrisi kur.
-5. Dinamik public profile/card/event fixture'larını workflow'a bağla.
+1. Repository ağacından kalan kullanıcı-yüzü `page.tsx` route'larını doğrulayıp 44/47 farkını kapat.
+2. Public + commerce workflow çıktılarındaki gerçek overflow/typography/touch-target fail'lerini route bazında düzelt.
+3. Individual panel CSS/TSX kaynaklarında font-size, container gutter, preview fit ve uzun metin containment taraması.
+4. Corporate `/roller`, `/sablon`, `/organizasyon`, `/icerik` ve analytics yüzeylerinde tablo/preview/equal-height taraması.
+5. Authenticated demo fixture mevcut olduğunda gerçek signed-in render matrisindeki ihlalleri kapat.

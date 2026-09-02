@@ -1,31 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../../lib/supabase/server-admin";
+import { requireSuperAdmin } from "../../../../../../lib/admin/require-admin";
 
 const schema = z.object({
   unitId: z.string().uuid(),
   cardCode: z.string().trim().regex(/^YN-[A-Z0-9]{12}$/i),
 });
 
-async function requireAdmin(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-  const auth = getSupabaseAuthClient();
-  const { data, error } = await auth.auth.getUser(token);
-  if (error || !data.user) return null;
-
-  const admin = getSupabaseAdminClient();
-  const { data: row } = await admin
-    .from("admin_users")
-    .select("user_id")
-    .eq("user_id", data.user.id)
-    .maybeSingle();
-  return row ? { user: data.user, admin } : null;
-}
-
 export async function POST(request: NextRequest) {
-  const context = await requireAdmin(request);
-  if (!context) return NextResponse.json({ error: "Yönetici yetkisi gerekli." }, { status: 403 });
+  const context = await requireSuperAdmin(request);
+  if (!context) return NextResponse.json({ error: "Yönetici yetkisi ve MFA doğrulaması gerekli." }, { status: 403 });
 
   const parsed = schema.safeParse(await request.json());
   if (!parsed.success) return NextResponse.json({ error: "Geçersiz kart veya üretim birimi." }, { status: 400 });

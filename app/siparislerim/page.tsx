@@ -5,6 +5,7 @@ import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import UserPanelShell from "../components/UserPanelShell";
 import { Badge, ButtonLink, Card, EmptyState } from "../components/ui";
 import { safeClientMessage } from "../../lib/errors";
+import ResumePaymentButton from "./ResumePaymentButton";
 import styles from "./OrdersPage.module.css";
 
 type CommerceStatus = "DRAFT" | "AWAITING_PAYMENT" | "PAID" | "PREPARING" | "SHIPPED" | "COMPLETED" | "CANCELLED" | "REFUNDED";
@@ -50,8 +51,8 @@ type CommerceOrder = {
 type BadgeTone = "neutral" | "success" | "warning" | "error" | "info";
 
 const statusInfo: Record<CommerceStatus, { label: string; description: string; step: number; tone: BadgeTone }> = {
-  DRAFT: { label: "Taslak", description: "Sipariş henüz tamamlanmadı.", step: 0, tone: "neutral" },
-  AWAITING_PAYMENT: { label: "Ödeme bekleniyor", description: "Ödeme tamamlandığında sipariş hazırlık sürecine alınır.", step: 1, tone: "warning" },
+  DRAFT: { label: "Taslak", description: "Sipariş henüz tamamlanmadı. Güvenli ödeme adımına devam edebilirsin.", step: 0, tone: "neutral" },
+  AWAITING_PAYMENT: { label: "Ödeme bekleniyor", description: "Siparişin hazır. Ödemeyi tamamladığında hazırlık süreci başlayacak.", step: 1, tone: "warning" },
   PAID: { label: "Ödeme alındı", description: "Sipariş doğrulandı ve hazırlık sırasına alındı.", step: 2, tone: "info" },
   PREPARING: { label: "Hazırlanıyor", description: "Kart üretim ve kalite kontrol aşamasında.", step: 3, tone: "info" },
   SHIPPED: { label: "Kargolandı", description: "Sipariş teslimat adresine doğru yola çıktı.", step: 4, tone: "info" },
@@ -138,6 +139,7 @@ export default function MyOrdersPage() {
             const quantity = order.commerce_order_items.reduce((sum, item) => sum + item.quantity, 0);
             const unit = order.commerce_order_items.flatMap((item) => item.commerce_physical_card_units ?? [])[0];
             const currentStep = unit ? operationStep(unit.operations_status) : 0;
+            const canResumePayment = order.status === "AWAITING_PAYMENT" || order.status === "DRAFT";
             return (
               <Card className={styles.order} key={order.id}>
                 <div className={styles.head}>
@@ -146,6 +148,7 @@ export default function MyOrdersPage() {
                 </div>
                 <div className={styles.progress} aria-label={`Sipariş durumu: ${info.label}`}>{[1,2,3,4,5].map((step) => <span key={step} data-active={info.step >= step ? "true" : "false"} />)}</div>
                 <p className={styles.statusCopy}>{info.description}</p>
+                {canResumePayment && <ResumePaymentButton orderId={order.id} />}
                 <div className={styles.meta}>
                   <div><small>Toplam</small><strong>{(order.total_kurus / 100).toLocaleString("tr-TR")} TL</strong></div>
                   <div><small>Adet</small><strong>{quantity}</strong></div>

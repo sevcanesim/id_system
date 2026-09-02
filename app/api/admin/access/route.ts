@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireSuperAdmin } from "../../../../lib/admin/require-admin";
+import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,7 +16,7 @@ const revokeSchema = z.object({
   userId: z.string().uuid(),
 });
 
-async function adminDirectory(admin: Awaited<ReturnType<typeof requireSuperAdmin>>["admin"]) {
+async function adminDirectory(admin: ReturnType<typeof getSupabaseAdminClient>) {
   const { data: rows, error } = await admin.from("admin_users").select("user_id");
   if (error) throw new Error("ADMIN_DIRECTORY_UNAVAILABLE");
 

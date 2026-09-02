@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useId, useRef } from "react";
 import {
   type Order, type Status,
   labels, orderStatusLabels, productLabels,
@@ -21,10 +24,28 @@ export default function OrderDetailDrawer({
   onUpdateOrder: (orderId: string, status: Status) => void;
   onResendActivation: (orderId: string) => void;
 }) {
+  const titleId = useId();
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    closeButtonRef.current?.focus();
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      previouslyFocused?.focus();
+    };
+  }, [onClose]);
+
   return <>
-    <button aria-label="Detayı kapat" className={styles.drawerBackdrop} onClick={onClose} />
-    <aside className={styles.drawer} aria-label="Sipariş detayı">
-      <div className={styles.drawerHead}><div><span className={styles.kicker}>{orderAudience(order) === "CORPORATE" ? "KURUMSAL SATIŞ" : "BİREYSEL SATIŞ"}</span><h2>{order.order_number}</h2><div className={styles.subtle}>{formatDate(order.created_at)}</div></div><button type="button" className={styles.iconButton} onClick={onClose} aria-label="Kapat">×</button></div>
+    <button type="button" aria-label="Sipariş detayını kapat" className={styles.drawerBackdrop} onClick={onClose} />
+    <aside className={styles.drawer} role="dialog" aria-modal="true" aria-labelledby={titleId}>
+      <div className={styles.drawerHead}><div><span className={styles.kicker}>{orderAudience(order) === "CORPORATE" ? "KURUMSAL SATIŞ" : "BİREYSEL SATIŞ"}</span><h2 id={titleId}>{order.order_number}</h2><div className={styles.subtle}>{formatDate(order.created_at)}</div></div><button ref={closeButtonRef} type="button" className={styles.iconButton} onClick={onClose} aria-label="Sipariş detayını kapat">×</button></div>
       <div className={styles.drawerBody}>
         <div className={styles.detailGrid}><div className={styles.detail}><small>Müşteri</small><strong>{order.customer_name || "—"}</strong><span className={styles.subtle}>{order.guest_email}</span></div><div className={styles.detail}><small>Tutar</small><strong>{money(order.total_kurus)}</strong><span className={styles.subtle}>{order.paid_at ? `Ödeme ${formatDate(order.paid_at)}` : "Ödeme bekleniyor"}</span></div><div className={styles.detail}><small>Hesap</small><strong>{order.activation_claimed_at ? "Aktif" : order.paid_at ? "Aktivasyon bekliyor" : "Ödeme bekliyor"}</strong></div><div className={styles.detail}><small>Fulfillment</small><strong>{needsPhysicalFulfillment(order) ? attentionLabel(order) : "Dijital ürün"}</strong></div></div>
         <section className={styles.section}><h3>Satın alınan ürünler</h3>{order.commerce_order_items.map((item) => <div className={styles.compactRow} key={item.id}><strong>{item.quantity} × {item.product_name}</strong><span className={styles.subtle}>{productLabels[classifyProduct(item)]}{itemSku(item) ? ` · ${itemSku(item)}` : ""}</span></div>)}</section>

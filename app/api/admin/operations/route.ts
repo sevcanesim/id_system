@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     ctx.admin.from("network_mail_adjustment_ledger").select("id,scope,user_id,organization_id,entitlement_id,delta,balance_before,balance_after,reason,actor_user_id,created_at").order("created_at", { ascending: false }).limit(200),
   ]);
   const firstError = [unitsResult.error, premiumResult.error, termsResult.error, noticesResult.error, auditResult.error, mailLedgerResult.error].find(Boolean);
-  if (firstError) { console.error("admin operations load failed", firstError); return NextResponse.json({ error: "Operasyon verileri yüklenemedi." }, { status: 500 }); }
+  if (firstError) { console.error("admin operations load failed", { code: firstError.code ?? "UNKNOWN" }); return NextResponse.json({ error: "Operasyon verileri yüklenemedi." }, { status: 500 }); }
 
   const units = unitsResult.data ?? [];
   const itemIds = [...new Set(units.map((unit) => unit.order_item_id))];

@@ -41,5 +41,5 @@ export default function PaymentSuccessHeader({ fallbackActions }: { fallbackActi
     };
   }, [orderId]);
 
-  return <AppHeader landing context="Ödeme Başarılı" actions={actions} showDefaultCta={false} />;
+  return <AppHeader actions={actions} showDefaultCta={false} />;
 }

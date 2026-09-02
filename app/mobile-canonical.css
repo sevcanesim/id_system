@@ -619,6 +619,9 @@
   }
 
   .yi-footer .yi-footer__premium-column a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
     font-size: 14px;
     line-height: 1.45;
   }

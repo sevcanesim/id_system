@@ -1,7 +1,7 @@
 import {
   type AudienceFilter, type Order, type OperationsFilter, type OrderStatus, type ProductFilter,
   orderStatusLabels, productLabels, operationsLabels,
-  formatDate, money, itemSku, classifyProduct, orderAudience, orderOperationsState, needsPhysicalFulfillment, attentionLabel,
+  formatDate, money, classifyProduct, orderAudience, orderOperationsState, needsPhysicalFulfillment, attentionLabel,
 } from "../../../lib/admin/order-classification";
 import styles from "../AdminSales.module.css";
 

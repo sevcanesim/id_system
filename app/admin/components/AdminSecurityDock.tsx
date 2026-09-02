@@ -54,6 +54,7 @@ export default function AdminSecurityDock() {
     {state === "mfa-required" && pathname !== "/admin/security" && <Link className={styles.warning} href={`/admin/security?next=${encodeURIComponent(pathname)}`}>Google Authenticator doğrulaması gerekli</Link>}
     <div className={styles.actions}>
       <Link className={pathname === "/admin/security" ? styles.active : ""} href="/admin/security">Güvenlik</Link>
+      <Link className={pathname === "/admin/access" ? styles.active : ""} href="/admin/access">Yönetici Erişimi</Link>
       <Link className={pathname === "/admin/devir-rehberi" ? styles.active : ""} href="/admin/devir-rehberi">Devir Rehberi</Link>
       <button type="button" onClick={() => void signOut()} disabled={busy}>{busy ? "Çıkılıyor…" : "Çıkış Yap"}</button>
     </div>

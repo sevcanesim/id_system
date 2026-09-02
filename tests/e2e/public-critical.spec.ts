@@ -8,7 +8,8 @@ for (const route of criticalRoutes) {
     page.on("pageerror", (error) => errors.push(error.message));
     const response = await page.goto(route, { waitUntil: "domcontentloaded" });
     expect(response?.status()).toBeLessThan(400);
-    await page.waitForLoadState("networkidle").catch(() => undefined);
+    await page.waitForLoadState("load");
+    await page.waitForTimeout(250);
     expect(errors).toEqual([]);
     expect(await page.locator("body").evaluate((el) => el.scrollWidth <= window.innerWidth + 1)).toBe(true);
   });

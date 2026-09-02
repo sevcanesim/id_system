@@ -55,7 +55,7 @@
 }
 .public-site--auth .p6-auth-heading>span{
   color:var(--brand-gold-deep);
-  font-size:10px;
+  font-size:var(--type-xs);
   font-weight:800;
   letter-spacing:.14em;
   text-transform:uppercase;

@@ -23,6 +23,24 @@ import { normalizeCardSlug, validateCardSlug } from "../validation/slug";
 const PROFILE_COLUMNS =
   "id,user_id,organization_id,entitlement_id,slug,public_id,name,role,company,phone,whatsapp,email,website,linkedin,instagram,location,image_url,bio,is_published,card_status,service_started_at,service_expires_at,grace_ends_at";
 
+type PublicPhysicalState = "NOT_PHYSICAL" | "ACTIVE" | "LOST" | "DISABLED";
+
+async function applyPublicPhysicalState(
+  supabase: SupabaseClient,
+  profile: CardProfileRow | null
+): Promise<{ data: CardProfileRow | null; error: string | null }> {
+  if (!profile) return { data: null, error: null };
+  const { data, error } = await supabase.rpc("get_public_profile_physical_state", {
+    p_profile_id: profile.id,
+  });
+  if (error) return { data: null, error: error.message };
+
+  const state = data as PublicPhysicalState | null;
+  if (state === "LOST") return { data: { ...profile, card_status: "LOST" }, error: null };
+  if (state === "DISABLED") return { data: { ...profile, card_status: "SUSPENDED" }, error: null };
+  return { data: profile, error: null };
+}
+
 export async function fetchOwnProfiles(
   supabase: SupabaseClient,
   userId: string
@@ -82,8 +100,9 @@ export async function fetchProfileBySlug(
     p_slug: slug,
     p_public_id: null,
   });
+  if (error) return { data: null, error: error.message };
   const profile = Array.isArray(data) ? data[0] : data;
-  return { data: (profile as CardProfileRow | null) ?? null, error: error?.message ?? null };
+  return applyPublicPhysicalState(supabase, (profile as CardProfileRow | null) ?? null);
 }
 
 export async function fetchProfileByPublicId(
@@ -94,8 +113,9 @@ export async function fetchProfileByPublicId(
     p_slug: null,
     p_public_id: publicId,
   });
+  if (error) return { data: null, error: error.message };
   const profile = Array.isArray(data) ? data[0] : data;
-  return { data: (profile as CardProfileRow | null) ?? null, error: error?.message ?? null };
+  return applyPublicPhysicalState(supabase, (profile as CardProfileRow | null) ?? null);
 }
 
 export async function fetchPublicCardByToken(
@@ -111,14 +131,16 @@ export async function fetchPublicCardByToken(
     .select("profile_id")
     .eq("old_slug", token)
     .maybeSingle();
-  if (!redirectRow?.profile_id) return { data: null, error: bySlug.error };
-  const { data: profile } = await supabase
+  if (!redirectRow?.profile_id) return { data: null, error: bySlug.error ?? byId.error };
+  const { data: profile, error: profileError } = await supabase
     .from("card_profiles")
     .select(PROFILE_COLUMNS)
     .eq("id", redirectRow.profile_id)
     .maybeSingle();
+  if (profileError) return { data: null, error: profileError.message };
   if (!profile) return { data: null, error: null };
-  return { data: profile as CardProfileRow, redirectedFrom: token, error: null };
+  const checked = await applyPublicPhysicalState(supabase, profile as CardProfileRow);
+  return { data: checked.data, redirectedFrom: token, error: checked.error };
 }
 
 export async function setProfilePublished(

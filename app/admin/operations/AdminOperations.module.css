@@ -5,68 +5,6 @@
   font-size: var(--type-body-sm);
 }
 
-.adminBar {
-  position: sticky;
-  top: var(--control-height-md);
-  z-index: var(--z-sticky);
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: var(--space-4);
-  min-height: var(--control-height-lg);
-  padding-inline: max(var(--page-gutter), calc((100vw - 1040px) / 2));
-  border-bottom: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface) 96%, transparent);
-  backdrop-filter: blur(14px);
-}
-
-.adminBrand {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-width: 0;
-}
-
-.adminMark {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-full);
-  background: var(--text-primary);
-  color: var(--text-inverse);
-  font-size: var(--type-xs);
-  font-weight: 700;
-}
-
-.adminBrand div { display: grid; gap: 0; }
-.adminBrand strong { font-size: var(--type-sm); font-weight: 700; }
-.adminBrand small { color: var(--text-tertiary); font-size: var(--type-xs); }
-
-.adminNav {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-1);
-}
-
-.adminNav a {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--control-height-md);
-  padding-inline: var(--space-3);
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  font-size: var(--type-sm);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.adminNav a:hover,
-.adminNav a[aria-current="page"] {
-  background: var(--surface-secondary);
-  color: var(--text-primary);
-}
-
 .demoBadge,
 .liveBadge {
   display: inline-flex;
@@ -398,17 +336,6 @@
 }
 
 @media (max-width: 48rem) {
-  .adminBar {
-    position: static;
-    grid-template-columns: 1fr;
-    padding: var(--space-2) var(--page-gutter);
-  }
-
-  .adminNav {
-    justify-content: flex-start;
-    overflow-x: auto;
-  }
-
   .demoBadge,
   .liveBadge { justify-self: start; }
 

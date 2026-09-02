@@ -136,7 +136,7 @@ export default function ActivationClient() {
 
   return (
     <main id="main-content" className="activation-page p5-activation-page p6-activation-page">
-      <AppHeader landing context="Sipariş Aktivasyonu" showDefaultCta={false} />
+      <AppHeader showDefaultCta={false} />
       <section className="activation-shell">
         <span className="section-kicker">HESABI BAĞLA</span>
         <h1>Siparişini hesabına bağla.</h1>

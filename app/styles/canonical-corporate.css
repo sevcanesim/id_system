@@ -459,6 +459,19 @@
   line-height: 1.5;
 }
 
+/* Public marketing page (/kurumsal) override for the same price/tier-badge
+   component — consolidated here from app/public-system.css so both the
+   dashboard look and the public-site look for .corporate-price-primary/
+   -secondary/-period, .corporate-tier-badge and .corporate-pack-note are
+   owned by this one file instead of being split across two. Each selector
+   below is more specific than its base rule above, so this still wins on
+   the public site regardless of where in the file (or which file) it sits. */
+.public-site .corporate-pack-table .corporate-price-primary strong { color: var(--public-ink); font-size: 17px; font-variant-numeric: tabular-nums; }
+.public-site .corporate-pack-table .corporate-price-secondary strong { color: var(--public-ink); font-size: 15px; font-variant-numeric: tabular-nums; }
+.public-site .corporate-pack-table .corporate-price-period { color: var(--public-muted); font-size: 12px; }
+.public-site .corporate-tier-badge { background: #1c1710; color: #fff; }
+.public-site .corporate-pack-note { max-width: 860px; margin-top: 18px; line-height: 1.65; }
+
 /* 04 Network Mail */
 .corporate-network-mail-grid {
   display: grid;

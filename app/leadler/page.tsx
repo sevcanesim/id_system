@@ -2,13 +2,12 @@
 
 import UserPanelShell from "../components/UserPanelShell";
 import NetworkingPanel from "../kurumsal/panel/components/NetworkingPanel";
-import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
+import { getBrowserSession } from "../../lib/auth/get-browser-session";
 
 export default function IndividualLeadsPage() {
   async function token() {
-    const supabase = getSupabaseBrowserClient();
-    const { data } = await supabase?.auth.getSession() ?? { data: { session: null } };
-    return data.session?.access_token ?? null;
+    const { accessToken } = await getBrowserSession();
+    return accessToken;
   }
 
   return (

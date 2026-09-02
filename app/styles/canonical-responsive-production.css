@@ -63,18 +63,8 @@ body main {
     padding-bottom: calc(var(--rp-mobile-dock-height) + var(--safe-bottom));
   }
 
-  .home-sales-mobile-cta {
-    min-height: var(--control-height-md);
-    padding-bottom: max(var(--space-3), var(--safe-bottom));
-  }
-
-  .home-sales-mobile-cta :where(a, button) {
-    min-height: var(--control-height-md);
-  }
-
-  .home-sales-mobile-cta.is-docked-away {
-    pointer-events: none;
-  }
+  /* .home-sales-mobile-cta sizing/is-docked-away rules consolidated into
+     app/styles/home-products-responsive.css — single source of truth. */
 }
 
 /* Corporate panel shell. */

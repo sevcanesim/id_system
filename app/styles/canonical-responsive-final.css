@@ -851,18 +851,6 @@
 /* ---------- Sticky/fixed purchase UI ---------- */
 
 @media (max-width: 760px) {
-  .home-sales-mobile-cta {
-    left: max(12px, env(safe-area-inset-left));
-    right: max(12px, env(safe-area-inset-right));
-    bottom: max(12px, env(safe-area-inset-bottom));
-    z-index: var(--responsive-sticky-layer);
-    min-height: 64px;
-  }
-
-  .home-sales-mobile-cta.is-docked-away {
-    pointer-events: none;
-  }
-
   .home-mockup {
     padding-bottom: calc(76px + env(safe-area-inset-bottom));
   }
@@ -872,11 +860,8 @@
   }
 }
 
-@media (min-width: 761px) {
-  .home-sales-mobile-cta {
-    display: none;
-  }
-}
+/* .home-sales-mobile-cta rules (≤760px sizing + min-width:761px hide) consolidated
+   into app/styles/home-products-responsive.css — single source of truth. */
 
 /* ---------- Tables / anchors / reduced motion ---------- */
 

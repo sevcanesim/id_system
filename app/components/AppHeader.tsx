@@ -7,17 +7,9 @@ export default function AppHeader({
   variant,
   showDefaultCta = true,
 }: {
-  context?: string;
-  landing?: boolean;
   variant?: HeaderVariant;
   actions?: HeaderAction[];
   showDefaultCta?: boolean;
 }) {
-  return (
-    <SiteHeader
-      variant={variant}
-      actions={actions}
-      showDefaultCta={showDefaultCta}
-    />
-  );
+  return <SiteHeader variant={variant} actions={actions} showDefaultCta={showDefaultCta} />;
 }

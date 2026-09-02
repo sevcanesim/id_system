@@ -78,7 +78,6 @@ export default function PublicSiteShell({ children }: { children: React.ReactNod
       <div className="public-site-chrome">
         {showAnnouncement && <AnnouncementBar />}
         <AppHeader
-          landing
           variant={variant}
           actions={publicHeaderActions(pathname)}
           showDefaultCta={variant === "marketing" || variant === "commerce"}

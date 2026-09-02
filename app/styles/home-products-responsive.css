@@ -28,6 +28,133 @@
   display: none;
 }
 
+/* ---------------------------------------------------------------------
+   .home-sales-mobile-cta — single source of truth.
+   Previously scattered (and partly contradicting itself) across 5 files:
+   canonical.css, ui-contract-v25.css, canonical-responsive-final.css,
+   canonical-responsive-production.css, home-products-responsive.css.
+   Blocks below are ordered exactly as those files used to import
+   (canonical.css first … this file last), so the effective cascade for
+   every property is unchanged from before this consolidation. This
+   file still owns the ≤47.5rem / ≤22.5rem / reduced-motion blocks
+   further down — those are left in place since they already sit last. */
+
+@media (max-width: 640px) {
+  /* Sticky (not fixed) so the bar rides the bottom of the viewport while
+     scrolling through the page, then docks in its normal flow position —
+     right after the final CTA section, before the footer — instead of
+     permanently overlapping the FAQ/footer. No JS, no magic-number
+     padding-bottom needed to "reserve" room for a fixed overlay.
+     NOTE: every property below is re-declared (and overridden) by the
+     ui-contract-v25.css block immediately following, except `margin`,
+     which nothing later touches and which therefore still applies. */
+  .home-sales-mobile-cta {
+    position: sticky;
+    z-index: 70;
+    bottom: calc(10px + var(--safe-bottom));
+    margin: 16px 12px calc(16px + var(--safe-bottom));
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 10px 10px 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+  .home-sales-mobile-cta .home-mockup__button {
+    min-height: 48px;
+    width: 100%;
+    padding-inline: 14px;
+    white-space: nowrap;
+  }
+  .home-sales-mobile-cta .home-mockup__button:focus-visible {
+    outline: 2px solid var(--primary-active);
+    outline-offset: 3px;
+  }
+
+  .home-sales-mobile-cta {
+    position: fixed;
+    left: max(var(--space-3), var(--safe-left));
+    right: max(var(--space-3), var(--safe-right));
+    bottom: max(var(--space-3), var(--safe-bottom));
+    z-index: 70;
+    display: grid;
+    grid-template-columns: minmax(72px, .38fr) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2);
+    border: 1px solid var(--border-subdued);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--surface-card) 94%, transparent);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    transition:
+      opacity var(--motion-standard) var(--ease-standard),
+      transform var(--motion-standard) var(--ease-standard),
+      visibility var(--motion-standard) var(--ease-standard);
+  }
+  .home-sales-mobile-cta.is-docked-away {
+    visibility: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(calc(100% + var(--space-5)));
+  }
+  .home-sales-mobile-cta .home-mockup__button {
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    padding-inline: var(--space-3);
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 360px) {
+  .home-sales-mobile-cta {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+  .home-sales-mobile-cta .home-mockup__button {
+    font-size: var(--type-body-sm);
+  }
+}
+
+@media (max-width: 760px) {
+  .home-sales-mobile-cta {
+    left: max(12px, env(safe-area-inset-left));
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    z-index: var(--responsive-sticky-layer);
+    min-height: 64px;
+  }
+  .home-sales-mobile-cta.is-docked-away {
+    pointer-events: none;
+  }
+}
+
+@media (min-width: 761px) {
+  .home-sales-mobile-cta {
+    display: none;
+  }
+}
+
+@media (max-width: 47.5rem) {
+  .home-sales-mobile-cta {
+    min-height: var(--control-height-md);
+    padding-bottom: max(var(--space-3), var(--safe-bottom));
+  }
+  .home-sales-mobile-cta :where(a, button) {
+    min-height: var(--control-height-md);
+  }
+  .home-sales-mobile-cta.is-docked-away {
+    pointer-events: none;
+  }
+}
+/* ------------------------- end consolidated block ---------------------- */
+
 .products-commerce-v3 :where(
   .products-commerce-v3__hero-grid,
   .products-commerce-v3__hero-copy,

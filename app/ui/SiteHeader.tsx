@@ -18,12 +18,10 @@ const links = [
 export type HeaderVariant = "marketing" | "commerce" | "support-legal" | "auth" | "checkout";
 
 export default function SiteHeader({
-  theme = "light",
   variant = "marketing",
   actions = [],
   showDefaultCta = true,
 }: {
-  theme?: "dark" | "light";
   variant?: HeaderVariant;
   actions?: Array<{ href: string; label: string; primary?: boolean }>;
   showDefaultCta?: boolean;
@@ -129,7 +127,7 @@ export default function SiteHeader({
   }, [open]);
 
   return (
-    <header className={`yi-header yi-header--${theme} yi-header--${variant}`}>
+    <header className={`yi-header yi-header--${variant}`}>
       {open ? (
         <button
           className="yi-nav-backdrop"

@@ -75,11 +75,10 @@
 .public-site .corporate-pack-table thead th { padding-block: 16px; color: var(--public-muted); font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; background: #fbfaf7; }
 .public-site .corporate-pack-table tbody tr:last-child > * { border-bottom: 0; }
 .public-site .corporate-pack-table tbody tr.is-recommended > * { background: #f5ecd8; }
-.public-site .corporate-pack-table .corporate-price-primary strong { color: var(--public-ink); font-size: 17px; font-variant-numeric: tabular-nums; }
-.public-site .corporate-pack-table .corporate-price-secondary strong { color: var(--public-ink); font-size: 15px; font-variant-numeric: tabular-nums; }
-.public-site .corporate-pack-table .corporate-price-period { color: var(--public-muted); font-size: 12px; }
-.public-site .corporate-tier-badge { background: #1c1710; color: #fff; }
-.public-site .corporate-pack-note { max-width: 860px; margin-top: 18px; line-height: 1.65; }
+/* .corporate-price-primary/-secondary/-period, .corporate-tier-badge and .corporate-pack-note
+   public-site overrides now live next to their base definitions in
+   app/styles/canonical-corporate.css, so the two files don't each own half
+   of the same component's styling. */
 
 /* Support */
 .public-site .support-hero { border-bottom: 1px solid var(--public-border); background: linear-gradient(180deg,#fbfaf8 0%,#f7f3eb 100%); }

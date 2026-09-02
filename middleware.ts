@@ -13,10 +13,11 @@ const PROTECTED_PAGES = ["/admin", "/kurumsal/panel", "/hesabim", "/siparislerim
 const PRIVATE_OR_PROFILE_PREFIXES = ["/admin", "/dashboard", "/giris", "/hesabim", "/kartim", "/kartlarim", "/siparisler", "/siparislerim", "/olustur", "/aktivasyon", "/checkout", "/odeme", "/sepet", "/leadler", "/kurumsal/panel", "/kurumsal/davet", "/p", "/e", "/qr", "/api"];
 const JSON_BODY_MAX_BYTES = 100 * 1024;
 const UPLOAD_PATH = "/api/organizations/links/upload";
-// Payment/activation APIs fail closed without Redis. /giris, /api/auth/session
-// and /api/auth/login stay rate-limited but fail-open: a limiter outage must
-// not 503 the only password path into an account (Edge often cannot reach Redis).
+// Payment/activation mutations and password login fail closed without Redis in
+// production. The /giris page itself and session-cookie refresh remain
+// available so a limiter outage does not hide the recovery/login UI.
 const FAIL_CLOSED_SCOPES = new Set([
+  "auth-login",
   "checkout",
   "legacy-checkout",
   "iyzico-recover",

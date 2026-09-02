@@ -36,8 +36,24 @@ export async function writeSessionCookie(
   }
 }
 
+const SENSITIVE_PATH_PREFIXES = [
+  "/checkout",
+  "/odeme",
+  "/aktivasyon",
+  "/nfc-siparis",
+  "/admin",
+  "/kurumsal/panel",
+  "/leadler",
+  "/kartim",
+  "/kartlarim",
+  "/hesabim",
+  "/siparislerim",
+  "/ayarlar",
+  "/istatistikler",
+];
+
 function isSensitivePath(pathname: string) {
-  return pathname.startsWith("/checkout") || pathname.startsWith("/odeme") || pathname.startsWith("/aktivasyon") || pathname.startsWith("/nfc-siparis");
+  return SENSITIVE_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
 export default function AuthSessionBridge() {

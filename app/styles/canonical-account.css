@@ -1,0 +1,4 @@
+/* Yenomi ID — authenticated individual account domain layer.
+ * Root-owned canonical stylesheet reserved for account-surface rules.
+ * Keep selectors route-scoped and token-based when account rules are added.
+ */

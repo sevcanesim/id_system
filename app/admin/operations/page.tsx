@@ -60,21 +60,6 @@ function formatMoney(value?: number | null) {
   return `${(value / 100).toLocaleString("tr-TR")} TL`;
 }
 
-function AdminHeader({ demo }: { demo: boolean }) {
-  return <header className={styles.adminBar}>
-    <div className={styles.adminBrand}>
-      <span className={styles.adminMark}>Y</span>
-      <div><strong>Yenomi ID</strong><small>Super Admin</small></div>
-    </div>
-    <nav className={styles.adminNav} aria-label="Super Admin">
-      <Link href="/admin/operations" aria-current="page">Operasyon</Link>
-      <Link href="/admin">Genel Admin</Link>
-      <Link href="/">Siteyi Gör</Link>
-    </nav>
-    <span className={demo ? styles.demoBadge : styles.liveBadge}>{demo ? "DEMO VERİ" : "GERÇEK VERİ"}</span>
-  </header>;
-}
-
 export default function AdminOperationsPage() {
   const [tab, setTab] = useState<Tab>("print");
   const [data, setData] = useState<OperationsPayload>(emptyOperations);
@@ -202,14 +187,13 @@ export default function AdminOperationsPage() {
   }), [data]);
   const count = (value: number) => operationsState === "ready" ? String(value) : "—";
 
-  if (!authorized) return <main className={styles.page}><AdminHeader demo={false} /><section className={styles.shell}><div className={styles.errorPanel}>Bu alan yalnız Super Admin kullanıcılarına açıktır. <Link href="/giris">Giriş yap</Link></div></section></main>;
+  if (!authorized) return <main className={styles.page}><section className={styles.shell}><div className={styles.errorPanel}>Bu alan yalnız Super Admin kullanıcılarına açıktır. <Link href="/giris">Giriş yap</Link></div></section></main>;
 
   return <main id="main-content" className={styles.page}>
-    <AdminHeader demo={demoMode} />
     <section className={styles.shell}>
       <div className={styles.heading}>
         <div><span className={styles.kicker}>OPERASYON KONTROL MERKEZİ</span><h1>Baskıdan yenilemeye tüm operasyonu yönet.</h1><p>Fiziksel kart üretimi, kargo, Premium Network Mail, bağımsız kurumsal lisans batchleri, fiyat kataloğu ve audit kayıtları.</p></div>
-        <div className={styles.headingActions}><button type="button" className={styles.secondary} onClick={() => void load()}>Yenile</button><button type="button" className={demoMode ? styles.action : styles.secondary} onClick={() => void switchMode(!demoMode)}>{demoMode ? "Gerçek Veriye Dön" : "Demo Verilerle İncele"}</button></div>
+        <div className={styles.headingActions}><span className={demoMode ? styles.demoBadge : styles.liveBadge}>{demoMode ? "DEMO VERİ" : "GERÇEK VERİ"}</span><button type="button" className={styles.secondary} onClick={() => void load()}>Yenile</button><button type="button" className={demoMode ? styles.action : styles.secondary} onClick={() => void switchMode(!demoMode)}>{demoMode ? "Gerçek Veriye Dön" : "Demo Verilerle İncele"}</button></div>
       </div>
 
       {demoMode && <div className={styles.demoNotice}><strong>Demo modu açık.</strong> Bu kayıtlar sentetiktir ve hiçbir işlem veritabanına yazılmaz. Tüm değişiklik butonları devre dışıdır.</div>}

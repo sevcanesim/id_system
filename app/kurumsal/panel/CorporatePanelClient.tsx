@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { writeSessionCookie } from "../../components/AuthSessionBridge";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
+import { getBrowserSession } from "../../../lib/auth/get-browser-session";
 import { Icon } from "../../icons";
 import { EmptyState, ErrorState, LoadingState } from "../../components/ui/States";
 import IDSidebar from "./IDSidebar";
@@ -180,12 +181,9 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   const [currentUserId, setCurrentUserId] = useState("");
 
   async function token() {
-    const supabase = getSupabaseBrowserClient();
-    const { data } = (await supabase?.auth.getSession()) ?? {
-      data: { session: null },
-    };
-    if (data.session?.user?.id) setCurrentUserId(data.session.user.id);
-    return data.session?.access_token || null;
+    const { accessToken, userId } = await getBrowserSession();
+    if (userId) setCurrentUserId(userId);
+    return accessToken;
   }
 
   const {

@@ -20,12 +20,12 @@ export async function GET(request: NextRequest) {
     const context = await getAuthenticatedContext(request);
     if (!context) return NextResponse.json(publicError("AUTH_REQUIRED"), { status: 401 });
 
-    // Customer-owned order reads must run with the user's JWT. This keeps RLS
-    // active and avoids depending on SUPABASE_SERVICE_ROLE_KEY for this route.
+    // Customer-owned reads use the JWT so RLS remains authoritative. Physical
+    // card units inherit ownership through commerce_order_items -> commerce_orders.
     const supabase = getSupabaseUserClient(context.token);
     const { data, error } = await supabase
       .from("commerce_orders")
-      .select("id,order_number,status,total_kurus,currency,paid_at,created_at,updated_at,tracking_company,tracking_number,shipped_at,delivered_at,customer_name,customer_phone,commerce_order_items(id,product_name,product_kind,quantity,unit_price_kurus,configuration),shipping_addresses(recipient_name,phone,address_line,district,city,postal_code)")
+      .select("id,order_number,status,total_kurus,currency,paid_at,created_at,updated_at,tracking_company,tracking_number,shipped_at,delivered_at,customer_name,customer_phone,commerce_order_items(id,product_name,product_kind,quantity,unit_price_kurus,configuration,commerce_physical_card_units(id,operations_status,print_requested_at,print_started_at,print_approved_at,carrier,tracking_number,shipped_at,out_for_delivery_at,delivered_at)),shipping_addresses(recipient_name,phone,address_line,district,city,postal_code)")
       .eq("user_id", context.user.id)
       .order("created_at", { ascending: false });
     if (error) {

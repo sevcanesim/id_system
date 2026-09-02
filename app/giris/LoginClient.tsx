@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, MouseEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getRememberedLogin, getSupabaseBrowserClient, setRememberedLogin } from "../../lib/supabase/browser";
 import { isSupabaseConfigured, supabaseConfigIssue } from "../../lib/supabase/config";
@@ -10,17 +10,9 @@ import { Icon } from "../icons";
 import { YenomiProductVisual } from "../ui/YenomiProductVisual";
 import { authErrorMessage } from "../../lib/errors";
 import { normalizeEmail, SIGNUP_PASSWORD_RULES, validateEmail, validateSignupPassword } from "../../lib/auth/credentials";
-import { LoginPortal } from "../../lib/auth/account-type";
-import {
-  loginPagePath,
-  parseLoginMode,
-  parseLoginPortal,
-  resolveLoginReturnPath,
-  safeLoginNext,
-  type LoginAuthMode,
-} from "../../lib/auth/login-search";
+import { parseLoginMode, safeLoginNext, type LoginAuthMode } from "../../lib/auth/login-search";
 import { passwordLogin } from "../../lib/auth/password-login";
-import { isAdminSession, validatePortal } from "../../lib/auth/portal-guard";
+import { isAdminSession } from "../../lib/auth/portal-guard";
 import { resolveLoginDestination } from "../../lib/auth/account-router";
 import { clearLegacyCart, setCartOwner } from "../../lib/cart";
 
@@ -30,32 +22,17 @@ function safeNext(value: string | null) {
   return safeLoginNext(value);
 }
 
-function persistActivePortal(nextPortal: LoginPortal) {
-  try {
-    window.sessionStorage.setItem("yenomi-active-portal", nextPortal);
-  } catch {
-    // Private / locked storage must not abort portal switching or auth boot.
-  }
-}
-
-function portalTabHref(nextPortal: LoginPortal, nextPath: string) {
-  return loginPagePath(nextPortal, nextPath);
-}
-
 export default function LoginClient({
-  initialPortal,
   initialNext,
   initialMode,
   initialMessage,
 }: {
-  initialPortal: LoginPortal;
   initialNext: string;
   initialMode: AuthMode;
   initialMessage: string;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<AuthMode>(initialMode);
-  const [portal, setPortal] = useState<LoginPortal>(initialPortal);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -66,7 +43,7 @@ export default function LoginClient({
   const [transitioning, setTransitioning] = useState(false);
   const [signupCompleted, setSignupCompleted] = useState(false);
   const [activeSessionEmail, setActiveSessionEmail] = useState<string | null>(null);
-  const [returnPath, setReturnPath] = useState(initialNext || "/kartlarim");
+  const [returnPath, setReturnPath] = useState(initialNext || "/hesabim");
 
   function showMessage(text: string, tone: "info" | "success" | "error" = "info") {
     setMessage(text);
@@ -79,14 +56,12 @@ export default function LoginClient({
     if (remembered.remember && remembered.email) setEmail(remembered.email);
 
     const params = new URLSearchParams(window.location.search);
-    const selectedPortal: LoginPortal = parseLoginPortal(params.get("portal"));
     const requestedMode = params.get("mode");
-    setPortal(selectedPortal);
-    setReturnPath(resolveLoginReturnPath(selectedPortal, safeNext(params.get("next"))));
+    setReturnPath(safeNext(params.get("next")) || "/hesabim");
     if (parseLoginMode(requestedMode) === "recovery") setMode("recovery");
-    persistActivePortal(selectedPortal);
     if (params.get("error")) {
       params.delete("error");
+      params.delete("portal");
       const nextSearch = params.toString();
       window.history.replaceState(null, "", nextSearch ? `/giris?${nextSearch}` : "/giris");
     }
@@ -100,14 +75,6 @@ export default function LoginClient({
         setActiveSessionEmail(data.session.user.email ?? null);
         return;
       }
-      const allowed = await validatePortal(supabase, data.session.user.id, selectedPortal);
-      if (!allowed.ok) {
-        await supabase.auth.signOut();
-        clearLegacyCart();
-        setCartOwner(null, { claimGuest: false });
-        showMessage(allowed.message, "error");
-        return;
-      }
       const sessionStored = await writeSessionCookie(
         data.session.access_token,
         data.session.expires_at,
@@ -115,11 +82,13 @@ export default function LoginClient({
       );
       if (!sessionStored) {
         await supabase.auth.signOut();
+        clearLegacyCart();
+        setCartOwner(null, { claimGuest: false });
         showMessage("Oturum kaydedilemedi. Lütfen yeniden dene.", "error");
         return;
       }
       if (await isAdminSession(data.session.access_token)) {
-        window.location.replace("/admin");
+        window.location.replace("/admin/operations");
         return;
       }
       setCartOwner(data.session.user.id, { claimGuest: true });
@@ -145,13 +114,10 @@ export default function LoginClient({
   useEffect(() => {
     if (!activeSessionEmail || mode === "recovery") return;
     const supabase = getSupabaseBrowserClient();
-    void resolveLoginDestination(supabase, portal, returnPath).then((destination) => {
-      const next = destination.startsWith("/giris")
-        ? (portal === "business" ? "/kartim" : "/kartlarim")
-        : destination;
-      window.location.replace(next);
+    void resolveLoginDestination(supabase, "individual", returnPath).then((destination) => {
+      window.location.replace(destination.startsWith("/giris") ? "/hesabim" : destination);
     });
-  }, [activeSessionEmail, mode, portal, returnPath, router]);
+  }, [activeSessionEmail, mode, returnPath, router]);
 
   async function signInWithGoogle() {
     showMessage("");
@@ -160,7 +126,7 @@ export default function LoginClient({
     if (!supabase) return showMessage("Giriş hizmeti şu anda kullanılamıyor.", "error");
     setRememberedLogin(rememberMe, email ? normalizeEmail(email) : undefined);
     setLoading(true);
-    const redirectTo = `${window.location.origin}/giris?portal=${portal}&next=${encodeURIComponent(returnPath)}`;
+    const redirectTo = `${window.location.origin}/giris?next=${encodeURIComponent(returnPath)}`;
     const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
     if (error) {
       setLoading(false);
@@ -175,10 +141,10 @@ export default function LoginClient({
     if (!supabase) return showMessage("Giriş hizmeti şu anda kullanılamıyor.", "error");
     setRememberedLogin(rememberMe, email ? normalizeEmail(email) : undefined);
     setLoading(true);
-    const redirectTo = `${window.location.origin}/giris?portal=${portal}&next=${encodeURIComponent(returnPath)}`;
+    const redirectTo = `${window.location.origin}/giris?next=${encodeURIComponent(returnPath)}`;
     let { error } = await supabase.auth.signInWithOAuth({ provider: "linkedin_oidc", options: { redirectTo, scopes: "openid profile email" } });
     if (error && (error.message?.includes("provider") || error.message?.includes("not supported"))) {
-      const fallback = await supabase.auth.signInWithOAuth({ provider: "linkedin" as any, options: { redirectTo, scopes: "r_liteprofile r_emailaddress" } });
+      const fallback = await supabase.auth.signInWithOAuth({ provider: "linkedin" as never, options: { redirectTo, scopes: "r_liteprofile r_emailaddress" } });
       error = fallback.error;
     }
     if (error) {
@@ -195,7 +161,7 @@ export default function LoginClient({
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return showMessage("Giriş hizmeti şu anda kullanılamıyor.", "error");
     setLoading(true);
-    const redirectTo = `${window.location.origin}/giris?mode=recovery&portal=${portal}&next=${encodeURIComponent(returnPath)}`;
+    const redirectTo = `${window.location.origin}/giris?mode=recovery&next=${encodeURIComponent(returnPath)}`;
     const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo });
     setLoading(false);
     if (error) return showMessage(authErrorMessage(error, "Şifre yenileme bağlantısı gönderilemedi."), "error");
@@ -215,7 +181,7 @@ export default function LoginClient({
     if (error) return showMessage(authErrorMessage(error, "Şifre güncellenemedi. Bağlantıyı yeniden isteyebilirsin."), "error");
     setPassword("");
     showMessage("Şifren güncellendi. Hesabına yönlendiriliyorsun.", "success");
-    window.setTimeout(() => router.replace(returnPath), 450);
+    window.setTimeout(() => router.replace("/hesabim"), 450);
   }
 
   async function submit(event: FormEvent) {
@@ -234,11 +200,10 @@ export default function LoginClient({
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return showMessage("Giriş hizmeti şu anda kullanılamıyor.", "error");
     setRememberedLogin(rememberMe, normalizedEmail);
-    persistActivePortal(portal);
     setLoading(true);
     setEmail(normalizedEmail);
 
-    const emailRedirectTo = `${window.location.origin}/giris?portal=${portal}&next=${encodeURIComponent(returnPath)}`;
+    const emailRedirectTo = `${window.location.origin}/giris?next=${encodeURIComponent(returnPath)}`;
     let result;
     try {
       if (mode === "signup") {
@@ -291,18 +256,7 @@ export default function LoginClient({
     if (result.data.session?.user) {
       setPassword("");
       setTransitioning(true);
-      const allowed = await validatePortal(supabase, result.data.session.user.id, portal);
-      if (!allowed.ok) {
-        setTransitioning(false);
-        setLoading(false);
-        await supabase.auth.signOut();
-        clearLegacyCart();
-        setCartOwner(null, { claimGuest: false });
-        return showMessage(allowed.message, "error");
-      }
       setCartOwner(result.data.session.user.id, { claimGuest: true });
-      // Password login already set HttpOnly cookies. A second POST /api/auth/session
-      // can 403/clear them and leave the form stuck after a 200 sign-in.
       const sessionStored = mode === "signup"
         ? await writeSessionCookie(
             result.data.session.access_token,
@@ -318,6 +272,7 @@ export default function LoginClient({
         setCartOwner(null, { claimGuest: false });
         return showMessage("Oturum kaydedilemedi. Lütfen yeniden dene.", "error");
       }
+
       let admin = false;
       try {
         admin = await isAdminSession(result.data.session.access_token);
@@ -326,73 +281,49 @@ export default function LoginClient({
       }
       if (admin) {
         setLoading(false);
-        window.location.replace("/admin");
+        window.location.replace("/admin/operations");
         return;
       }
+
       setLoading(false);
       setActiveSessionEmail(result.data.session.user.email ?? normalizedEmail);
       let destination = returnPath;
       try {
         destination = await Promise.race([
-          resolveLoginDestination(supabase, portal, returnPath),
-          new Promise<string>((resolve) => {
-            window.setTimeout(() => resolve(returnPath), 4000);
-          }),
+          resolveLoginDestination(supabase, "individual", returnPath),
+          new Promise<string>((resolve) => window.setTimeout(() => resolve("/hesabim"), 4000)),
         ]);
       } catch {
-        destination = returnPath;
+        destination = "/hesabim";
       }
-      if (destination.startsWith("/giris")) {
-        destination = portal === "business" ? "/kartim" : "/kartlarim";
-      }
-      window.location.replace(destination);
+      window.location.replace(destination.startsWith("/giris") ? "/hesabim" : destination);
       return;
     }
     setLoading(false);
     window.location.replace(returnPath);
   }
 
-  function choosePortal(nextPortal: LoginPortal) {
-    setPortal(nextPortal);
-    setMode("login");
-    setSignupCompleted(false);
-    persistActivePortal(nextPortal);
-    if (returnPath === "/hesabim" || returnPath === "/kartlarim" || returnPath === "/kurumsal/panel") {
-      setReturnPath(nextPortal === "business" ? "/kurumsal/panel" : "/kartlarim");
-    }
-  }
-
-  function onPortalTabClick(event: MouseEvent<HTMLAnchorElement>, nextPortal: LoginPortal) {
-    persistActivePortal(nextPortal);
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
-    choosePortal(nextPortal);
-  }
-
   const title = mode === "recovery"
     ? "Yeni şifreni belirle"
     : mode === "forgot"
       ? "Şifreni yenile"
-      : portal === "business"
-        ? "Kurumsal hesabına giriş yap"
-        : returnPath === "/checkout"
-          ? mode === "signup"
-            ? "Siparişini hesaba bağlamak istersen hesap oluştur"
-            : "Siparişini hesaba bağlamak istersen giriş yap"
-          : mode === "signup"
-            ? "Yenomi ID hesabını oluştur"
-            : "Hesabına giriş yap";
+      : returnPath === "/checkout"
+        ? mode === "signup"
+          ? "Siparişini hesaba bağlamak istersen hesap oluştur"
+          : "Siparişini hesaba bağlamak istersen giriş yap"
+        : mode === "signup"
+          ? "Yenomi ID hesabını oluştur"
+          : "Hesabına giriş yap";
 
   const description = mode === "recovery"
-    ? "Yeni şifreni oluşturduktan sonra kaldığın yerden devam edeceksin."
+    ? "Yeni şifreni oluşturduktan sonra doğru çalışma alanına yönlendirileceksin."
     : mode === "forgot"
       ? "Hesabındaki e-posta adresini yaz. Sana güvenli bir yenileme bağlantısı gönderelim."
-      : portal === "business"
-        ? "Şirket sahibi, yönetici veya İK hesabınla aynı güvenli giriş altyapısını kullan."
-        : returnPath === "/checkout"
-          ? "Hesap açmadan ödeme yapabilirsin. Giriş yalnızca siparişi bu e-posta ile hesabına bağlamak içindir."
-          : mode === "signup"
-            ? "Önce hesabını oluştur. Profil bilgilerini daha sonra, ihtiyaç oldukça tamamlayabilirsin."
-            : "Kartlarını, siparişlerini ve dijital kimliğini tek hesaptan yönet.";
+      : returnPath === "/checkout"
+        ? "Hesap açmadan ödeme yapabilirsin. Giriş yalnızca siparişi bu e-posta ile hesabına bağlamak içindir."
+        : mode === "signup"
+          ? "Hesabını oluştur. Çalışma alanın hesabına tanımlanan yetkilere göre otomatik hazırlanır."
+          : "E-posta ve şifrenle giriş yap. Doğru çalışma alanına otomatik yönlendirileceksin.";
 
   const busy = loading || transitioning;
   const showWorkspace = (transitioning || activeSessionEmail) && mode !== "recovery" && messageTone !== "error";
@@ -403,78 +334,26 @@ export default function LoginClient({
       role={messageTone === "error" ? "alert" : "status"}
       aria-live={messageTone === "error" ? "assertive" : "polite"}
     >
-      <div className="p6-auth-message-content">
-        <span>{message}</span>
-        {message.includes("bireysel hesaptır") && portal !== "individual" && (
-          <button
-            type="button"
-            className="p6-auth-switch-tab-btn"
-            onClick={() => {
-              setPortal("individual");
-              setMessage("");
-              persistActivePortal("individual");
-            }}
-          >
-            Bireysel Giriş Sekmesine Geç →
-          </button>
-        )}
-        {message.includes("kurumsal hesaptır") && portal !== "business" && (
-          <button
-            type="button"
-            className="p6-auth-switch-tab-btn"
-            onClick={() => {
-              setPortal("business");
-              setMessage("");
-              persistActivePortal("business");
-            }}
-          >
-            Kurumsal Giriş Sekmesine Geç →
-          </button>
-        )}
-      </div>
+      <div className="p6-auth-message-content"><span>{message}</span></div>
     </div>
   ) : null;
 
   return (
-    <main id="main-content" className="p6-auth-page" data-ui-context="public" data-login-portal={portal}>
-      {/* Public chrome is provided by PublicSiteShell. Do not remount AppHeader/AppFooter. */}
+    <main id="main-content" className="p6-auth-page" data-ui-context="public">
       <section className="p6-auth-shell">
         <aside className="p6-auth-story" aria-label="Yenomi ID ürün özeti">
           <span className="p6-auth-kicker">YENOMI ID</span>
           <h1>Kartın sende.<br /><span className="p6-gold-text">Profilin her an güncel.</span></h1>
           <p>Yaklaştır, paylaş. Unvanın değişince baskı yok. Kart numarası Yenomi’de saklanmaz.</p>
           <div className="p6-auth-product-flow" aria-label="Karttan dijital profile geçiş">
-            <div className="p6-auth-visual-card">
-              <YenomiProductVisual variant="card" compact />
-            </div>
+            <div className="p6-auth-visual-card"><YenomiProductVisual variant="card" compact /></div>
             <div className="p6-auth-flow-arrow" aria-hidden="true"><Icon name="external" /></div>
-            <div className="p6-auth-mini-phone">
-              <YenomiProductVisual variant="profile" compact />
-              <small>Canlı dijital kartvizit</small>
-            </div>
+            <div className="p6-auth-mini-phone"><YenomiProductVisual variant="profile" compact /><small>Canlı dijital kartvizit</small></div>
           </div>
           <div className="p6-auth-features-bento" aria-label="Yenomi ID avantajları">
-            <div className="p6-bento-card">
-              <div className="p6-bento-icon"><Icon name="share" /></div>
-              <div className="p6-bento-content">
-                <strong>Tek dokunuşla paylaş</strong>
-                <small>NFC veya QR ile uygulama gerektirmeden.</small>
-              </div>
-            </div>
-            <div className="p6-bento-card">
-              <div className="p6-bento-icon"><Icon name="refresh" /></div>
-              <div className="p6-bento-content">
-                <strong>Bilgilerin hep güncel</strong>
-                <small>Kartı yeniden bastırmadan profilini değiştir.</small>
-              </div>
-            </div>
-            <div className="p6-bento-card">
-              <div className="p6-bento-icon"><Icon name="shield" /></div>
-              <div className="p6-bento-content">
-                <strong>Güvenli erişim</strong>
-                <small>Bireysel ve kurumsal yetkiler korunur.</small>
-              </div>
-            </div>
+            <div className="p6-bento-card"><div className="p6-bento-icon"><Icon name="share" /></div><div className="p6-bento-content"><strong>Tek dokunuşla paylaş</strong><small>NFC veya QR ile uygulama gerektirmeden.</small></div></div>
+            <div className="p6-bento-card"><div className="p6-bento-icon"><Icon name="refresh" /></div><div className="p6-bento-content"><strong>Bilgilerin hep güncel</strong><small>Kartı yeniden bastırmadan profilini değiştir.</small></div></div>
+            <div className="p6-bento-card"><div className="p6-bento-icon"><Icon name="shield" /></div><div className="p6-bento-content"><strong>Güvenli erişim</strong><small>Hesap yetkilerin arka planda güvenli biçimde doğrulanır.</small></div></div>
           </div>
         </aside>
 
@@ -486,38 +365,26 @@ export default function LoginClient({
                 <Link href="/checkout">Ödemeye dön — hesap gerekmez</Link>
               </div>
             )}
-
-            {mode !== "recovery" && mode !== "forgot" && (
-              <div className="p6-auth-portal-tabs" role="tablist" aria-label="Hesap bağlamı">
-                <a href={portalTabHref("individual", returnPath)} role="tab" aria-selected={portal === "individual"} className={portal === "individual" ? "active" : ""} onClick={(event) => onPortalTabClick(event, "individual")}>Bireysel</a>
-                <a href={portalTabHref("business", returnPath)} role="tab" aria-selected={portal === "business"} className={portal === "business" ? "active" : ""} onClick={(event) => onPortalTabClick(event, "business")}>Kurumsal / Ekip</a>
-              </div>
-            )}
             {authAlert}
 
             {showWorkspace ? (
               <div className="p6-auth-state" role="status" aria-live="polite">
                 <span className="p6-auth-state-icon"><Icon name="lock" /></span>
                 <h2>Hesabın açılıyor</h2>
-                <p>
-                  {activeSessionEmail ? <><strong>{activeSessionEmail}</strong> olarak giriş yaptın. </> : null}
-                  Doğru çalışma alanına yönlendiriliyorsun.
-                </p>
+                <p>{activeSessionEmail ? <><strong>{activeSessionEmail}</strong> olarak giriş yaptın. </> : null}Doğru çalışma alanına yönlendiriliyorsun.</p>
               </div>
             ) : signupCompleted ? (
               <div className="p6-auth-state" role="status" aria-live="polite">
                 <span className="p6-auth-state-icon"><Icon name="mail" /></span>
                 <h2>E-postanı doğrula</h2>
                 <p><strong>{email}</strong> adresine gönderdiğimiz bağlantıya tıkla. Ardından bu ekrandan giriş yapabilirsin.</p>
-                <button className="p6-auth-submit" type="button" onClick={() => { setSignupCompleted(false); setMode("login"); setPassword(""); setMessage(""); }}>
-                  Giriş ekranına dön <Icon name="chevronRight" />
-                </button>
+                <button className="p6-auth-submit" type="button" onClick={() => { setSignupCompleted(false); setMode("login"); setPassword(""); setMessage(""); }}>Giriş ekranına dön <Icon name="chevronRight" /></button>
                 <small>Mail görünmüyorsa Gereksiz / Diğer klasörlerini kontrol et.</small>
               </div>
             ) : (
               <>
                 <header className="p6-auth-heading">
-                  <span>{portal === "business" ? "Kurumsal çalışma alanı" : "Yenomi hesabı"}</span>
+                  <span>Yenomi hesabı</span>
                   <h2>{title}</h2>
                   <p>{description}</p>
                 </header>
@@ -535,10 +402,7 @@ export default function LoginClient({
                       </span>
                       <span>Google ile devam et</span>
                     </button>
-                    <button type="button" onClick={() => void signInWithLinkedIn()} disabled={busy}>
-                      <span className="p6-auth-linkedin" aria-hidden="true"><Icon name="social" /></span>
-                      <span>LinkedIn ile devam et</span>
-                    </button>
+                    <button type="button" onClick={() => void signInWithLinkedIn()} disabled={busy}><span className="p6-auth-linkedin" aria-hidden="true"><Icon name="social" /></span><span>LinkedIn ile devam et</span></button>
                   </div>
                 )}
 
@@ -546,123 +410,38 @@ export default function LoginClient({
 
                 {mode === "forgot" ? (
                   <form className="p6-auth-form" noValidate onSubmit={(event) => { event.preventDefault(); void sendPasswordReset(); }}>
-                    <label>
-                      <span>E-posta adresi</span>
-                      <div className="p6-auth-input">
-                        <Icon name="mail" />
-                        <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} onBlur={() => setEmail(normalizeEmail(email))} required maxLength={254} autoComplete="email" placeholder="ornek@mail.com" />
-                      </div>
-                    </label>
-                    <button className="p6-auth-submit" disabled={busy}>
-                      {loading ? "Gönderiliyor…" : "Yenileme bağlantısı gönder"}
-                      <Icon name="chevronRight" />
-                    </button>
+                    <label><span>E-posta adresi</span><div className="p6-auth-input"><Icon name="mail" /><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} onBlur={() => setEmail(normalizeEmail(email))} required maxLength={254} autoComplete="email" placeholder="ornek@mail.com" /></div></label>
+                    <button className="p6-auth-submit" disabled={busy}>{loading ? "Gönderiliyor…" : "Yenileme bağlantısı gönder"}<Icon name="chevronRight" /></button>
                     <button className="p6-auth-text-action" type="button" onClick={() => { setMode("login"); setMessage(""); }}>Giriş ekranına dön</button>
                   </form>
                 ) : mode === "recovery" ? (
                   <form className="p6-auth-form" noValidate onSubmit={updateRecoveredPassword}>
-                    <label>
-                      <span>Yeni şifre</span>
-                      <div className="p6-auth-input">
-                        <Icon name="lock" />
-                        <input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} maxLength={72} autoComplete="new-password" placeholder="Yeni şifren" />
-                        <button type="button" className="p6-auth-password-toggle" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"} aria-pressed={showPassword}>
-                          <Icon name={showPassword ? "eye-off" : "eye"} />
-                        </button>
-                      </div>
-                    </label>
-                    <div className="p6-auth-password-rules" aria-label="Şifre kuralları">
-                      {SIGNUP_PASSWORD_RULES.map((rule) => (
-                        <span key={rule.key} className={rule.test(password) ? "valid" : ""}>
-                          <i aria-hidden="true" />
-                          {rule.label}
-                        </span>
-                      ))}
-                    </div>
-                    <button className="p6-auth-submit" disabled={busy}>
-                      {loading ? "Güncelleniyor…" : "Şifremi güncelle"}
-                      <Icon name="check" />
-                    </button>
+                    <label><span>Yeni şifre</span><div className="p6-auth-input"><Icon name="lock" /><input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} maxLength={72} autoComplete="new-password" placeholder="Yeni şifren" /><button type="button" className="p6-auth-password-toggle" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"} aria-pressed={showPassword}><Icon name={showPassword ? "eye-off" : "eye"} /></button></div></label>
+                    <div className="p6-auth-password-rules" aria-label="Şifre kuralları">{SIGNUP_PASSWORD_RULES.map((rule) => <span key={rule.key} className={rule.test(password) ? "valid" : ""}><i aria-hidden="true" />{rule.label}</span>)}</div>
+                    <button className="p6-auth-submit" disabled={busy}>{loading ? "Güncelleniyor…" : "Şifremi güncelle"}<Icon name="check" /></button>
                   </form>
                 ) : (
                   <form method="post" action="/api/auth/login" onSubmit={submit} className="p6-auth-form" noValidate>
-                    {mode === "login" ? (
-                      <>
-                        <input type="hidden" name="portal" value={portal} />
-                        <input type="hidden" name="next" value={returnPath} />
-                      </>
-                    ) : null}
-                    <label>
-                      <span>E-posta adresi</span>
-                      <div className="p6-auth-input">
-                        <Icon name="mail" />
-                        <input type="email" name="email" value={email} onChange={(event) => setEmail(event.target.value)} onBlur={() => setEmail(normalizeEmail(email))} required maxLength={254} placeholder="ornek@mail.com" autoComplete="email" />
-                      </div>
-                    </label>
-                    <label>
-                      <span>Şifre</span>
-                      <div className="p6-auth-input">
-                        <Icon name="lock" />
-                        <input type={showPassword ? "text" : "password"} name="password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={mode === "signup" ? 8 : 6} maxLength={72} placeholder="Şifreni gir" autoComplete={mode === "signup" ? "new-password" : "current-password"} />
-                        <button type="button" className="p6-auth-password-toggle" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"} aria-pressed={showPassword}>
-                          <Icon name={showPassword ? "eye-off" : "eye"} />
-                        </button>
-                      </div>
-                    </label>
+                    {mode === "login" ? <input type="hidden" name="next" value={returnPath} /> : null}
+                    <label><span>E-posta adresi</span><div className="p6-auth-input"><Icon name="mail" /><input type="email" name="email" value={email} onChange={(event) => setEmail(event.target.value)} onBlur={() => setEmail(normalizeEmail(email))} required maxLength={254} placeholder="ornek@mail.com" autoComplete="email" /></div></label>
+                    <label><span>Şifre</span><div className="p6-auth-input"><Icon name="lock" /><input type={showPassword ? "text" : "password"} name="password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={mode === "signup" ? 8 : 6} maxLength={72} placeholder="Şifreni gir" autoComplete={mode === "signup" ? "new-password" : "current-password"} /><button type="button" className="p6-auth-password-toggle" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"} aria-pressed={showPassword}><Icon name={showPassword ? "eye-off" : "eye"} /></button></div></label>
 
-                    {mode === "login" && (
-                      <div className="p6-auth-login-options">
-                        <label className="p6-auth-remember">
-                          <input type="checkbox" name="remember" checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} />
-                          <span>Beni hatırla</span>
-                        </label>
-                        <button type="button" onClick={() => { setMode("forgot"); setPassword(""); setMessage(""); }}>Şifremi unuttum</button>
-                      </div>
-                    )}
+                    {mode === "login" && <div className="p6-auth-login-options"><label className="p6-auth-remember"><input type="checkbox" name="remember" checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} /><span>Beni hatırla</span></label><button type="button" onClick={() => { setMode("forgot"); setPassword(""); setMessage(""); }}>Şifremi unuttum</button></div>}
+                    {mode === "signup" && <div className="p6-auth-password-rules" aria-label="Şifre kuralları">{SIGNUP_PASSWORD_RULES.map((rule) => <span key={rule.key} className={rule.test(password) ? "valid" : ""}><i aria-hidden="true" />{rule.label}</span>)}</div>}
 
-                    {mode === "signup" && (
-                      <div className="p6-auth-password-rules" aria-label="Şifre kuralları">
-                        {SIGNUP_PASSWORD_RULES.map((rule) => (
-                          <span key={rule.key} className={rule.test(password) ? "valid" : ""}>
-                            <i aria-hidden="true" />
-                            {rule.label}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    <button className="p6-auth-submit" disabled={busy}>
-                      {loading ? (mode === "signup" ? "Hesap açılıyor…" : "Giriş yapılıyor…") : mode === "signup" ? (returnPath === "/checkout" ? "Hesabı aç ve ödemeye dön" : "Hesabı aç ve panele geç") : returnPath === "/checkout" ? "Giriş yap ve ödemeye dön" : "Hesabına gir"}
-                      <Icon name="chevronRight" />
-                    </button>
+                    <button className="p6-auth-submit" disabled={busy}>{loading ? (mode === "signup" ? "Hesap açılıyor…" : "Giriş yapılıyor…") : mode === "signup" ? (returnPath === "/checkout" ? "Hesabı aç ve ödemeye dön" : "Hesap oluştur") : returnPath === "/checkout" ? "Giriş yap ve ödemeye dön" : "Hesabına gir"}<Icon name="chevronRight" /></button>
                   </form>
                 )}
 
-                {mode !== "forgot" && mode !== "recovery" && portal === "individual" && (
-                  <button
-                    className="p6-auth-switch"
-                    type="button"
-                    onClick={() => { setMode(mode === "login" ? "signup" : "login"); setMessage(""); setSignupCompleted(false); setPassword(""); }}
-                  >
+                {mode !== "forgot" && mode !== "recovery" && (
+                  <button className="p6-auth-switch" type="button" onClick={() => { setMode(mode === "login" ? "signup" : "login"); setMessage(""); setSignupCompleted(false); setPassword(""); }}>
                     {mode === "login" ? "Hesabın yok mu? Hesap oluştur" : "Zaten hesabın var mı? Giriş yap"}
                   </button>
-                )}
-                {mode === "login" && portal === "business" && (
-                  <div className="p6-auth-business-note" role="note">
-                    <Icon name="alert" />
-                    <span>Kurumsal hesaplar davet veya şirket kurulumu ile açılır. Yeni kurumsal hesap oluşturmak için <Link href="/kurumsal#teklif">Kurumsal teklif formuna git</Link>.</span>
-                  </div>
                 )}
               </>
             )}
 
-            <div className="p6-auth-security">
-              <Icon name="secure" />
-              <span>
-                <strong>Güvenli oturum</strong>
-                <small>Oturum şifreli tutulur. Kart numarası bu ekranda istenmez.</small>
-              </span>
-            </div>
+            <div className="p6-auth-security"><Icon name="secure" /><span><strong>Güvenli oturum</strong><small>Oturum şifreli tutulur. Hesap türü ve yetkiler girişten sonra güvenli biçimde belirlenir.</small></span></div>
             {!isSupabaseConfigured && <div className="p6-auth-message info">Giriş hizmeti şu anda yapılandırılıyor. Lütfen daha sonra tekrar dene.</div>}
           </div>
         </section>

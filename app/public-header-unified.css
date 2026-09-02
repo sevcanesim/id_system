@@ -7,8 +7,9 @@
 .public-site-chrome .yi-brand-marquee--static {
   min-height: 38px;
   border: 0;
-  background: #111113;
-  color: #f7f3eb;
+  border-bottom: 1px solid var(--border-subdued);
+  background: var(--surface-soft);
+  color: var(--text-primary);
 }
 
 .public-site-chrome .yi-brand-marquee__static-inner {
@@ -20,7 +21,7 @@
   gap: clamp(28px, 5vw, 68px);
 }
 
-.public-site-chrome .yi-brand-marquee__static-item { color: #f7f3eb; }
+.public-site-chrome .yi-brand-marquee__static-item { color: var(--text-primary); }
 .public-site-chrome .yi-brand-marquee__static-item .yi-icon { color: var(--brand-gold); }
 
 .public-site-chrome .yi-header {
@@ -189,7 +190,7 @@
 .products-commerce-v3 .add-to-cart-button:hover { background: linear-gradient(180deg, #d8b45e 0%, #c49739 100%); border-color: color-mix(in srgb, var(--brand-gold-deep) 62%, transparent); transform: translateY(-1px); box-shadow: 0 14px 28px rgba(148, 105, 25, .24); }
 .public-site-chrome .yi-header__actions .yi-btn--primary:active,
 .home-mockup__button--gold:active,
-.products-commerce-v3 .add-to-cart-button:active { transform: scale(.985); box-shadow: 0 6px 14px rgba(148, 105, 25, .18); }
+.products-commerce-v3 .add-to-cart-button:active { transform: scale(.985); box-shadow: 0 6px 14px rgba(148, 105, 25,.18); }
 .public-site-chrome .yi-header__actions .yi-btn--primary:focus-visible,
 .home-mockup__button--gold:focus-visible,
 .products-commerce-v3 .add-to-cart-button:focus-visible { outline: 2px solid var(--brand-gold); outline-offset: 4px; }

@@ -2,47 +2,97 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import QRCode from "qrcode";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { fetchOwnProfiles } from "../../lib/repositories/profiles";
 import type { CardProfileRow } from "../../lib/card-profile";
 import { isManagementRole } from "../../lib/organizations/permissions";
-import { ButtonLink, DashboardShell } from "../ui";
+import { cardShareUrl } from "../../lib/public-card/urls";
+import { Button, ButtonLink, DashboardShell } from "../ui";
 import { LoadingState } from "../components/ui/States";
+import styles from "./IndividualDashboard.module.css";
 
 type Entitlement = {
   id: string;
   kind: string;
   status: string;
+  starts_at?: string | null;
+  expires_at?: string | null;
+  package_code?: string | null;
+  network_mail_limit?: number | null;
+  network_mail_remaining?: number | null;
 };
 
-type MineOrganization = {
-  role?: string | null;
-};
-
+type MineOrganization = { role?: string | null };
 type PageState = "checking" | "ready" | "redirecting";
+type OperationalStatus = "PROFILE_REQUIRED" | "PRINT_PENDING" | "PRINTING" | "SHIPPING_PENDING" | "IN_TRANSIT" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED";
+type CardProcess = {
+  id: string;
+  operations_status: OperationalStatus;
+  print_requested_at?: string | null;
+  print_started_at?: string | null;
+  print_approved_at?: string | null;
+  carrier?: string | null;
+  tracking_number?: string | null;
+  shipped_at?: string | null;
+  out_for_delivery_at?: string | null;
+  delivered_at?: string | null;
+};
+type PurchaseSnapshot = {
+  id: string;
+  order_number?: string | null;
+  status?: string | null;
+  paid_at?: string | null;
+  created_at?: string | null;
+};
+type CardProcessPayload = { process?: CardProcess | null; entitlement?: Entitlement | null; order?: PurchaseSnapshot | null };
 
-const PROFILE_FIELDS = [
-  { key: "name", label: "ad soyad" },
-  { key: "role", label: "ünvan" },
-  { key: "email", label: "e-posta" },
-  { key: "phone", label: "telefon" },
-  { key: "image_url", label: "profil fotoğrafı" },
-] as const;
+const PROFILE_FIELDS = ["name", "role", "email", "phone", "image_url"] as const;
+const STATUS_LABEL: Record<OperationalStatus, string> = {
+  PROFILE_REQUIRED: "Dijital Kart Bilgilerinizi Doldurun",
+  PRINT_PENDING: "Dijital Kart Basımı Gerçekleştirilmeli",
+  PRINTING: "Kartınız Basılıyor",
+  SHIPPING_PENDING: "Kargo İşlemi Bekleniyor",
+  IN_TRANSIT: "Kargoya Verildi",
+  OUT_FOR_DELIVERY: "Dağıtımda",
+  DELIVERED: "Teslim Edildi",
+  CANCELLED: "İptal Edildi",
+};
+
+function formatDateTime(value?: string | null) {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+}
+
+function daysUntil(value?: string | null) {
+  if (!value) return null;
+  return Math.max(0, Math.ceil((new Date(value).getTime() - Date.now()) / 86_400_000));
+}
+
+function processStep(status?: OperationalStatus | null) {
+  if (!status || status === "PROFILE_REQUIRED" || status === "PRINT_PENDING" || status === "PRINTING" || status === "SHIPPING_PENDING") return 0;
+  if (status === "IN_TRANSIT") return 1;
+  if (status === "OUT_FOR_DELIVERY") return 2;
+  if (status === "DELIVERED") return 3;
+  return 0;
+}
 
 export default function MyCardsPage() {
   const router = useRouter();
   const [profiles, setProfiles] = useState<CardProfileRow[]>([]);
+  const [entitlements, setEntitlements] = useState<Entitlement[]>([]);
+  const [process, setProcess] = useState<CardProcess | null>(null);
+  const [purchase, setPurchase] = useState<PurchaseSnapshot | null>(null);
   const [spare, setSpare] = useState(0);
   const [pageState, setPageState] = useState<PageState>("checking");
+  const [queueing, setQueueing] = useState(false);
+  const [message, setMessage] = useState("");
+  const [qrDataUrl, setQrDataUrl] = useState("");
 
   useEffect(() => {
     let cancelled = false;
     const supabase = getSupabaseBrowserClient();
-
-    if (!supabase) {
-      setPageState("ready");
-      return;
-    }
+    if (!supabase) { setPageState("ready"); return; }
 
     void (async () => {
       const { data: authData } = await supabase.auth.getUser();
@@ -58,33 +108,19 @@ export default function MyCardsPage() {
         supabase.auth.getSession(),
       ]);
       if (cancelled) return;
-
       const token = sessionData.session?.access_token;
-      if (!token) {
-        setProfiles(ownProfiles);
-        setPageState("ready");
-        return;
-      }
+      if (!token) { setProfiles(ownProfiles); setPageState("ready"); return; }
 
-      const [entitlementsResponse, organizationsResponse] = await Promise.all([
-        fetch("/api/commerce/entitlements", {
-          headers: { authorization: `Bearer ${token}` },
-          cache: "no-store",
-        }),
-        fetch("/api/organizations/mine", {
-          headers: { authorization: `Bearer ${token}` },
-          cache: "no-store",
-        }),
+      const [entitlementsResponse, organizationsResponse, processResponse] = await Promise.all([
+        fetch("/api/commerce/entitlements", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" }),
+        fetch("/api/organizations/mine", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" }),
+        fetch("/api/commerce/card-process", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" }),
       ]);
-
       if (cancelled) return;
 
       if (organizationsResponse.ok) {
         const payload = (await organizationsResponse.json()) as { organizations?: MineOrganization[] };
-        const managesOrganization = (payload.organizations ?? []).some((organization) =>
-          isManagementRole(String(organization.role || "")),
-        );
-        if (managesOrganization) {
+        if ((payload.organizations ?? []).some((organization) => isManagementRole(String(organization.role || "")))) {
           setPageState("redirecting");
           router.replace("/kurumsal/panel");
           return;
@@ -92,145 +128,116 @@ export default function MyCardsPage() {
       }
 
       setProfiles(ownProfiles);
-
       if (entitlementsResponse.ok) {
         const payload = (await entitlementsResponse.json()) as { entitlements?: Entitlement[] };
-        const usedEntitlements = new Set(
-          ownProfiles.map((profile) => profile.entitlement_id).filter(Boolean),
-        );
-        setSpare(
-          (payload.entitlements ?? []).filter((entitlement) => !usedEntitlements.has(entitlement.id)).length,
-        );
+        const nextEntitlements = payload.entitlements ?? [];
+        setEntitlements(nextEntitlements);
+        const used = new Set(ownProfiles.map((profile) => profile.entitlement_id).filter(Boolean));
+        setSpare(nextEntitlements.filter((entitlement) => !used.has(entitlement.id)).length);
       }
-
+      if (processResponse.ok) {
+        const payload = (await processResponse.json()) as CardProcessPayload;
+        setProcess(payload.process ?? null);
+        setPurchase(payload.order ?? null);
+      }
       setPageState("ready");
-    })().catch(() => {
-      if (!cancelled) setPageState("ready");
-    });
+    })().catch(() => { if (!cancelled) setPageState("ready"); });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [router]);
 
   const primary = profiles[0];
-  const completion = useMemo(
-    () => primary
-      ? Math.min(100, PROFILE_FIELDS.filter((field) => Boolean(primary[field.key])).length * 20)
-      : 0,
-    [primary],
-  );
-  const missingFields = useMemo(
-    () => primary
-      ? PROFILE_FIELDS.filter((field) => !primary[field.key]).map((field) => field.label)
-      : [],
-    [primary],
-  );
-  const nextMissing = missingFields[0];
+  const primaryEntitlement = useMemo(() => {
+    if (primary?.entitlement_id) return entitlements.find((row) => row.id === primary.entitlement_id) ?? entitlements[0];
+    return entitlements[0];
+  }, [entitlements, primary]);
+  const completion = useMemo(() => primary ? Math.min(100, PROFILE_FIELDS.filter((field) => Boolean(primary[field])).length * 20) : 0, [primary]);
+  const renewalDays = daysUntil(primaryEntitlement?.expires_at);
+  const currentStep = processStep(process?.operations_status);
+  const profileUrl = primary?.slug ? cardShareUrl(primary.slug) : "";
+
+  useEffect(() => {
+    if (!profileUrl) { setQrDataUrl(""); return; }
+    QRCode.toDataURL(profileUrl, { width: 220, margin: 1, errorCorrectionLevel: "M" }).then(setQrDataUrl).catch(() => setQrDataUrl(""));
+  }, [profileUrl]);
+
+  async function completeProfile() {
+    if (!primary || completion < 100 || queueing) return;
+    setQueueing(true);
+    setMessage("");
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
+      const token = data.session?.access_token;
+      if (!token) throw new Error("Oturum bulunamadı.");
+      const response = await fetch("/api/commerce/card-process", {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+        body: JSON.stringify({ profileId: primary.id }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "Kart baskı kuyruğuna alınamadı.");
+      setProcess((current) => current ? { ...current, operations_status: "PRINT_PENDING", print_requested_at: new Date().toISOString() } : current);
+      setMessage("Profil tamamlandı. Fiziksel kartın baskı kuyruğuna alındı.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Kart süreci güncellenemedi.");
+    } finally {
+      setQueueing(false);
+    }
+  }
 
   if (pageState !== "ready") {
-    return (
-      <DashboardShell
-        title="Kartlarım"
-        description="Kartların ve hesap bilgilerin yükleniyor."
-      >
-        <LoadingState
-          variant="panel"
-          label={pageState === "redirecting" ? "Yönlendiriliyor" : "Kartların yükleniyor"}
-          hint={pageState === "redirecting" ? "Doğru çalışma alanı açılıyor." : "Profil ve kart durumun kontrol ediliyor."}
-        />
-      </DashboardShell>
-    );
+    return <DashboardShell title="Genel Bakış" description="Hesap ve kart bilgilerin yükleniyor."><LoadingState variant="panel" label={pageState === "redirecting" ? "Yönlendiriliyor" : "Hesabın yükleniyor"} hint="Paket, kart ve yenileme durumun kontrol ediliyor." /></DashboardShell>;
   }
 
   return (
-    <DashboardShell
-      title={primary?.name ? `Merhaba, ${primary.name.split(" ")[0]}` : "Yenomi ID'n"}
-      description="Kartını güncelle, paylaş ve kullanımını tek yerden yönet."
-    >
-      {!primary ? (
-        <div className="yi-empty-app">
-          <span>İLK ADIM</span>
-          <h2>Dijital kimliğini oluşturalım.</h2>
-          <p>
-            {spare
-              ? "Kullanılabilir bir kart hakkın var. Profilini oluşturarak QR ve NFC bağlantını hazırlayabilirsin."
-              : "Yenomi ID ürününü seçerek dijital kimliğini ve paylaşım bağlantını oluşturabilirsin."}
-          </p>
-          <ButtonLink href={spare ? "/olustur" : "/urunler/nfc-kart"} variant="primary">
-            {spare ? "Profilimi oluştur" : "NFC Kartı İncele"}
-          </ButtonLink>
-        </div>
-      ) : (
-        <div className="yi-dashboard-grid">
-          <section className="yi-dashboard-hero">
-            <div className="yi-dashboard-card">
-              <span>YENOMI ID</span>
-              <strong>{primary.name || "Yenomi ID"}</strong>
-              <small>{primary.role || "Dijital Kimlik"}</small>
-            </div>
-            <div>
-              <span className={`yi-status ${primary.is_published ? "yi-status--success" : "yi-status--warning"}`}>
-                {primary.is_published ? "Yayında" : "Taslak"}
-              </span>
-              <h2>{primary.is_published ? "Kartın hazır ve paylaşılabilir." : "Kartını yayına hazırlıyorsun."}</h2>
-              <p>
-                {completion === 100
-                  ? "Bilgilerin tamamlandı. Değişiklik yaptığında aynı QR ve NFC bağlantısında güncellenir."
-                  : `${completion}% tamamlandı${nextMissing ? `. Sıradaki öneri: ${nextMissing} bilgisini ekle.` : "."}`}
-              </p>
-              <progress max={100} value={completion} aria-label={`Profil tamamlama ${completion}%`}>
-                {completion}%
-              </progress>
-              <div className="yi-actions">
-                <ButtonLink href={`/olustur?id=${primary.id}`}>
-                  {completion === 100 ? "Profili Düzenle" : "Profili Tamamla"}
-                </ButtonLink>
-                <ButtonLink href="/kartim" variant="secondary">Kartı Görüntüle</ButtonLink>
+    <DashboardShell title={primary?.name ? `Merhaba, ${primary.name.split(" ")[0]}` : "Genel Bakış"} description="Dijital kimliğin, fiziksel kartın ve hizmet süren tek yerde.">
+      <div className={styles.page}>
+        {!primary ? (
+          <section className={styles.notice}>
+            <div><span className={styles.eyebrow}>İLK ADIM</span><h2 className={styles.title}>Dijital Kart Bilgilerinizi Doldurun</h2><p className={styles.copy}>Fiziksel kart baskısına geçebilmek için önce dijital kimlik profilini oluştur.</p></div>
+            <ButtonLink href={spare ? "/olustur" : "/urunler/nfc-kart"}>{spare ? "Profilimi Oluştur" : "NFC Kartı İncele"}</ButtonLink>
+          </section>
+        ) : (
+          <>
+            <section className={styles.heroGrid}>
+              <div className={styles.card}>
+                <span className={styles.eyebrow}>BİREYSEL STANDART</span>
+                <h2 className={styles.title}>{completion < 100 ? "Dijital Kart Bilgilerinizi Doldurun" : process ? STATUS_LABEL[process.operations_status] : "Kart sürecin hazırlanıyor"}</h2>
+                <p className={styles.copy}>{completion < 100 ? `Profilin %${completion} tamamlandı. Baskı süreci başlamadan önce temel bilgilerini tamamla.` : "Profil bilgilerin tamam. Fiziksel kart sürecini buradan takip edebilirsin."}</p>
+                <div className={styles.actions}>
+                  {completion < 100 ? <ButtonLink href={`/olustur?id=${primary.id}`}>Profili Tamamla</ButtonLink> : process?.operations_status === "PROFILE_REQUIRED" ? <Button onClick={completeProfile} disabled={queueing}>{queueing ? "İşleniyor…" : "Profili Tamamla"}</Button> : <ButtonLink href={`/olustur?id=${primary.id}`} variant="secondary">Profili Düzenle</ButtonLink>}
+                  <ButtonLink href="/kartim" variant="secondary">Dijital Kartımı Aç</ButtonLink>
+                </div>
+                {message && <p className={styles.message} role="status">{message}</p>}
               </div>
-            </div>
-          </section>
+              <div className={styles.countdown}>
+                <span className={styles.eyebrow}>HİZMET SÜRESİ</span>
+                <strong>{renewalDays == null ? "—" : `${renewalDays} gün`}</strong>
+                <span>{renewalDays == null ? "Yenileme tarihi hazırlanıyor" : "Yenilemeye kalan süre"}</span>
+              </div>
+            </section>
 
-          <section className="yi-metric-grid" aria-label="Kimlik durumu">
-            <div>
-              <small>Profil durumu</small>
-              <strong>{completion === 100 ? "Hazır" : `%${completion}`}</strong>
-              <span>{completion === 100 ? "Temel bilgiler tamamlandı" : nextMissing ? `${nextMissing} eksik` : "Tamamlanmayı sürdür"}</span>
-            </div>
-            <div>
-              <small>Yayın durumu</small>
-              <strong>{primary.is_published ? "Yayında" : "Taslak"}</strong>
-              <span>{primary.is_published ? "Kartın görüntülenebilir" : "Yayınlamak için düzenlemeye devam et"}</span>
-            </div>
-            <div>
-              <small>Ek kart hakkı</small>
-              <strong>{spare > 0 ? spare : "—"}</strong>
-              <span>{spare > 0 ? "Yeni bir profil oluşturabilirsin" : "Kullanılabilir ek kart hakkı yok"}</span>
-            </div>
-          </section>
+            <section className={styles.factGrid} aria-label="Paket ve yenileme bilgileri">
+              <div className={styles.fact}><small>Satın alma</small><strong>{formatDateTime(purchase?.paid_at || purchase?.created_at)}</strong><span>{purchase?.order_number ? `Sipariş ${purchase.order_number}` : "Ödeme zaman damgası"}</span></div>
+              <div className={styles.fact}><small>Yenileme</small><strong>{formatDateTime(primaryEntitlement?.expires_at)}</strong><span>Satın alınan hizmet süresinin bitişi</span></div>
+              <div className={styles.fact}><small>Paket</small><strong>{primaryEntitlement?.package_code === "INDIVIDUAL_PREMIUM" ? "Premium" : "Standart"}</strong><span>Premium'a istediğin zaman yükseltebilirsin</span></div>
+            </section>
 
-          <section className="yi-app-card yi-next-step">
-            <div>
-              <span>SIRADAKİ ADIM</span>
-              <h2>{completion < 100 ? "Profilini tamamla." : "Kartını kullanmaya başla."}</h2>
-              <p>
-                {completion < 100
-                  ? nextMissing
-                    ? `${nextMissing.charAt(0).toUpperCase() + nextMissing.slice(1)} bilgisini ekleyerek profilini güçlendir.`
-                    : "Eksik bilgilerini tamamlayarak kartını hazırla."
-                  : "Kartını aç, paylaş veya etkileşimlerini takip et."}
-              </p>
-            </div>
-            <div className="yi-actions">
-              <ButtonLink href={completion < 100 ? `/olustur?id=${primary.id}` : "/kartim"} variant="secondary">
-                {completion < 100 ? "Düzenlemeye Devam Et" : "Kartımı Aç"}
-              </ButtonLink>
-              <ButtonLink href="/istatistikler" variant="secondary">İstatistikler</ButtonLink>
-              {spare > 0 && <ButtonLink href="/olustur?new=1" variant="secondary">Yeni Kart Oluştur</ButtonLink>}
-            </div>
-          </section>
-        </div>
-      )}
+            <section className={styles.processCard}>
+              <div className={styles.processHeader}><div><span className={styles.eyebrow}>KART SİPARİŞİ & KARGO</span><h2 className={styles.title}>Fiziksel kart süreci</h2></div><span className={styles.status}>{process ? STATUS_LABEL[process.operations_status] : "Sipariş eşleştiriliyor"}</span></div>
+              <div className={styles.steps}>
+                {[{ title: "Hazırlanıyor", text: process?.operations_status === "PRINT_PENDING" ? "Baskı onayı bekleniyor" : process?.operations_status === "PRINTING" ? "Kartın basılıyor" : process?.operations_status === "SHIPPING_PENDING" ? "Kargo işlemi bekleniyor" : "Kart hazırlık süreci" }, { title: "Kargoya Verildi", text: process?.carrier && process?.tracking_number ? `${process.carrier} · ${process.tracking_number}` : "Kargo bilgisi girildiğinde burada görünür" }, { title: "Dağıtımda", text: process?.out_for_delivery_at ? formatDateTime(process.out_for_delivery_at) : "Dağıtıma çıkması bekleniyor" }, { title: "Teslim Edildi", text: process?.delivered_at ? formatDateTime(process.delivered_at) : "Teslimat bekleniyor" }].map((step, index) => <div className={`${styles.step} ${index <= currentStep ? styles.stepActive : ""}`} key={step.title}><small>0{index + 1}</small><strong>{step.title}</strong><span>{step.text}</span></div>)}
+              </div>
+            </section>
+
+            <section className={styles.secondaryGrid}>
+              <div className={styles.card}><span className={styles.eyebrow}>HİZMET & YENİLEME</span><h2 className={styles.title}>Paketini ve hizmet süreni yönet.</h2><p className={styles.copy}>Yenileme tarihini, Premium yükseltme seçeneğini ve paket fiyatlarını Hizmet & Yenileme alanında görebilirsin.</p><div className={styles.actions}><ButtonLink href="/yenile">Hizmet & Yenileme</ButtonLink><ButtonLink href="/siparislerim" variant="secondary">Siparişlerim & Kart Süreci</ButtonLink></div></div>
+              <div className={styles.qrCard}><span className={styles.eyebrow}>PROFİL QR</span><h2 className={styles.title}>Dijital kartın</h2>{qrDataUrl ? <img src={qrDataUrl} width={180} height={180} alt="Yenomi ID profil QR kodu" /> : <p className={styles.copy}>QR kodu profil bağlantın hazır olduğunda görünür.</p>}{profileUrl && <span className={styles.qrLink}>{profileUrl}</span>}</div>
+            </section>
+          </>
+        )}
+      </div>
     </DashboardShell>
   );
 }

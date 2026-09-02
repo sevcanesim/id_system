@@ -1,0 +1,156 @@
+.page {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.message {
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-secondary);
+  color: var(--text-secondary);
+  font-size: var(--type-body-sm);
+}
+
+.service,
+.offer,
+.pricing {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+.head h2,
+.pricing h2 {
+  margin: var(--space-2) 0 0;
+  font-size: var(--type-h4);
+  line-height: 1.25;
+}
+
+.copy {
+  margin: var(--space-2) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--type-body-sm);
+  line-height: 1.55;
+}
+
+.countdown {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 11rem;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-secondary);
+}
+
+.countdown small,
+.fact small,
+.pack small {
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.countdown strong {
+  font-size: var(--type-h3);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.fact,
+.pack {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-secondary);
+}
+
+.fact strong,
+.pack strong {
+  overflow-wrap: anywhere;
+  font-size: var(--type-body-sm);
+}
+
+.price {
+  display: grid;
+  justify-items: end;
+  gap: var(--space-1);
+  white-space: nowrap;
+}
+
+.price strong {
+  font-size: var(--type-h4);
+}
+
+.price span,
+.pack span {
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+}
+
+.features {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--type-body-sm);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.packGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+@media (max-width: 64rem) {
+  .facts,
+  .packGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 47.9375rem) {
+  .head {
+    display: grid;
+  }
+
+  .countdown {
+    min-width: 0;
+  }
+
+  .facts,
+  .packGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .price {
+    justify-items: start;
+  }
+}

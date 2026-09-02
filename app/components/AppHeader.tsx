@@ -4,8 +4,6 @@ import SiteHeader, { HeaderVariant } from "../ui/SiteHeader";
 type HeaderAction = { href: string; label: string; primary?: boolean };
 export default function AppHeader({
   actions = [],
-  landing = false,
-  context,
   variant,
   showDefaultCta = true,
 }: {
@@ -17,7 +15,6 @@ export default function AppHeader({
 }) {
   return (
     <SiteHeader
-      theme={landing || context === "Ürünler" || context === "Giriş" ? "light" : "dark"}
       variant={variant}
       actions={actions}
       showDefaultCta={showDefaultCta}

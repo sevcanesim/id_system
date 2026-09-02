@@ -38,10 +38,8 @@ import NetworkingPanel from "./components/NetworkingPanel";
 import type {
   BulkInvitePreview,
   BulkInviteResults,
-  CardAnalytics,
   Member,
   MemberActionTarget,
-  MemberCardStatus,
   Org,
   PhysicalCard,
   Template,
@@ -60,6 +58,7 @@ import { fetchWithPanelTimeout } from "./domain/runtime";
 import { useCorporatePanelLazyData } from "./hooks/useCorporatePanelLazyData";
 import { useJobTitlesAndRequests } from "./hooks/useJobTitlesAndRequests";
 import { useCorporateLinks } from "./hooks/useCorporateLinks";
+import { useCorporateCards } from "./hooks/useCorporateCards";
 import { getIdentityInitials } from "../../../lib/organizations/identity";
 import { isOrganizationRole, normalizeOrganizationRole } from "../../../lib/organizations/permissions";
 
@@ -161,25 +160,10 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [departmentFilter, setDepartmentFilter] = useState("ALL");
-  const [physicalCards, setPhysicalCards] = useState<PhysicalCard[]>([]);
-  const [cardAnalytics, setCardAnalytics] = useState<CardAnalytics | null>(
-    null,
-  );
-  const [analyticsDays, setAnalyticsDays] = useState<7 | 30 | 90>(30);
-  const [analyticsFrom, setAnalyticsFrom] = useState(() =>
-    new Date(Date.now() - 29 * 86400000).toISOString().slice(0, 10),
-  );
-  const [analyticsTo, setAnalyticsTo] = useState(() =>
-    new Date().toISOString().slice(0, 10),
-  );
-  const [cardBusy, setCardBusy] = useState<string | null>(null);
   const [viewedProfile, setViewedProfile] = useState<ViewedMemberProfile | null>(null);
   const [viewLoading, setViewLoading] = useState<string | null>(null);
   const [openMemberMenuId, setOpenMemberMenuId] = useState<string | null>(null);
   const [showInviteForm, setShowInviteForm] = useState(false);
-  const [memberCardStatuses, setMemberCardStatuses] = useState<
-    MemberCardStatus[]
-  >([]);
   const [drawerMemberId, setDrawerMemberId] = useState<string | null>(null);
   const [drawerTab, setDrawerTab] = useState<
     "profile" | "card" | "invite" | "lifecycle"
@@ -234,6 +218,22 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     rollbackCorporateLink,
   } = useCorporateLinks(selected, token, setMessage);
 
+  const {
+    physicalCards,
+    memberCardStatuses,
+    cardAnalytics,
+    analyticsDays,
+    setAnalyticsDays,
+    cardBusy,
+    loadPhysicalCards,
+    loadMemberCardStatuses,
+    loadCardAnalytics,
+    exportAnalyticsCsv,
+    linkReplacementCard,
+    toggleCardStatus,
+    resetCardsData,
+  } = useCorporateCards(selected, token, setMessage, setDataError);
+
   async function loadMembers(id: string, access?: string) {
     const auth = access || (await token());
     if (!auth) return;
@@ -283,55 +283,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     }
   }
 
-  async function loadPhysicalCards(id: string, access?: string) {
-    const auth = access || (await token());
-    if (!auth) return;
-    const response = await fetchWithPanelTimeout(
-      `/api/organizations/physical-cards?organizationId=${id}`,
-      { headers: { authorization: `Bearer ${auth}` } },
-    );
-    const data = await response.json();
-    if (response.ok) {
-      setPhysicalCards(data.cards || []);
-      setDataError("cards", null);
-    } else setDataError("cards", data.error || "Fiziksel kart verileri yüklenemedi.");
-  }
-
-  async function loadMemberCardStatuses(id: string, access?: string) {
-    const auth = access || (await token());
-    if (!auth) return;
-    const response = await fetchWithPanelTimeout(
-      `/api/organizations/member-card-statuses?organizationId=${id}`,
-      { headers: { authorization: `Bearer ${auth}` } },
-    );
-    const data = await response.json();
-    if (response.ok) {
-      setMemberCardStatuses(data.statuses || []);
-      setDataError("overview", null);
-    } else setDataError("overview", data.error || "Kart durumları yüklenemedi.");
-  }
-
-  async function loadCardAnalytics(
-    id: string,
-    access?: string,
-    days: 7 | 30 | 90 = analyticsDays,
-    range?: { from: string; to: string },
-  ) {
-    const auth = access || (await token());
-    if (!auth) return;
-    const params = new URLSearchParams({ organizationId: id, days: String(days) });
-    if (range) {
-      params.set("from", range.from);
-      params.set("to", range.to);
-    }
-    const response = await fetchWithPanelTimeout(
-      `/api/organizations/card-analytics?${params.toString()}`,
-      { headers: { authorization: `Bearer ${auth}` } },
-    );
-    const data = await response.json();
-    if (response.ok) setCardAnalytics(data);
-  }
-
   const { loadDataForTab } = useCorporatePanelLazyData({
     members: loadMembers,
     templates: loadTemplates,
@@ -349,9 +300,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     setMembers([]);
     setOrganizationSeatUsage(null);
     setTemplates([]);
-    setPhysicalCards([]);
-    setMemberCardStatuses([]);
-    setCardAnalytics(null);
+    resetCardsData();
     setLoading(true);
     setLoadingSlow(false);
     setLoadingError("");
@@ -365,128 +314,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
         setLoading(false);
       }
     })();
-  }
-
-  function exportAnalyticsCsv() {
-    if (!cardAnalytics) return;
-    const rows: Array<Array<string | number>> = [
-      ["Kategori", "Ad", "Değer", "PDF Açma"],
-      ...(cardAnalytics.byCard || []).map((item) => [
-        "Kart",
-        item.name,
-        item.count,
-        "",
-      ]),
-      ...(cardAnalytics.byDepartment || []).map((item) => [
-        "Departman",
-        item.department,
-        item.count,
-        "",
-      ]),
-      ...(cardAnalytics.byCountry || []).map((item) => [
-        "Ülke",
-        item.country,
-        item.count,
-        "",
-      ]),
-      ...(cardAnalytics.content?.byLink || []).map((item) => [
-        "İçerik",
-        item.label,
-        item.count,
-        item.downloads,
-      ]),
-    ];
-    const csv = rows
-      .map((row) =>
-        row
-          .map((value) => `"${String(value).replaceAll('"', '""')}"`)
-          .join(","),
-      )
-      .join("\n");
-    const url = URL.createObjectURL(
-      new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" }),
-    );
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    const periodName = cardAnalytics.periodStart && cardAnalytics.periodEnd
-      ? `${cardAnalytics.periodStart}_${cardAnalytics.periodEnd}`
-      : `${analyticsDays}-gun`;
-    anchor.download = `yenomi-kurumsal-analitik-${periodName}.csv`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-  }
-
-  async function linkReplacementCard(oldCardId: string, newCardId: string) {
-    const access = await token();
-    if (!access || !selected) return;
-    setCardBusy(oldCardId);
-    setMessage("");
-    try {
-      const response = await fetch("/api/organizations/physical-cards", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${access}`,
-        },
-        body: JSON.stringify({
-          organizationId: selected,
-          oldCardId,
-          newCardId,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        setMessage(data.error || "Replacement kart bağlanamadı.");
-        return;
-      }
-      setPhysicalCards((current) =>
-        current.map((card) =>
-          card.id === oldCardId
-            ? { ...card, replacedByCardId: newCardId }
-            : card,
-        ),
-      );
-      setMessage("Eski kart yeni fiziksel kartla kalıcı olarak eşleştirildi.");
-    } finally {
-      setCardBusy(null);
-    }
-  }
-
-  async function toggleCardStatus(
-    cardId: string,
-    status: "ACTIVE" | "DISABLED",
-  ) {
-    const access = await token();
-    if (!access || !selected) return;
-    setCardBusy(cardId);
-    setMessage("");
-    try {
-      const response = await fetch("/api/organizations/physical-cards", {
-        method: "PATCH",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${access}`,
-        },
-        body: JSON.stringify({ organizationId: selected, cardId, status }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        setMessage(data.error || "Kart durumu güncellenemedi.");
-        return;
-      }
-      setPhysicalCards((current) =>
-        current.map((card) =>
-          card.id === cardId ? { ...card, status } : card,
-        ),
-      );
-      setMessage(
-        status === "DISABLED"
-          ? "Kart devre dışı bırakıldı."
-          : "Kart yeniden etkinleştirildi.",
-      );
-    } finally {
-      setCardBusy(null);
-    }
   }
 
   async function viewMemberProfile(member: MemberActionTarget) {

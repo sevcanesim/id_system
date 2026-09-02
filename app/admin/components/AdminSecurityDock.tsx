@@ -8,6 +8,11 @@ import styles from "./AdminSecurityDock.module.css";
 
 type SecurityState = "loading" | "secure" | "mfa-required" | "signed-out";
 
+function isActive(pathname: string, href: string) {
+  if (href === "/admin") return pathname === "/admin";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export default function AdminSecurityDock() {
   const pathname = usePathname();
   const router = useRouter();
@@ -50,12 +55,14 @@ export default function AdminSecurityDock() {
 
   if (state === "signed-out") return null;
 
-  return <aside className={styles.dock} aria-label="Super Admin hızlı işlemler">
+  return <aside className={styles.dock} aria-label="Super Admin navigasyonu">
     {state === "mfa-required" && pathname !== "/admin/security" && <Link className={styles.warning} href={`/admin/security?next=${encodeURIComponent(pathname)}`}>Google Authenticator doğrulaması gerekli</Link>}
     <div className={styles.actions}>
-      <Link className={pathname === "/admin/security" ? styles.active : ""} href="/admin/security">Güvenlik</Link>
-      <Link className={pathname === "/admin/access" ? styles.active : ""} href="/admin/access">Yönetici Erişimi</Link>
-      <Link className={pathname === "/admin/devir-rehberi" ? styles.active : ""} href="/admin/devir-rehberi">Devir Rehberi</Link>
+      <Link className={isActive(pathname, "/admin") ? styles.active : ""} href="/admin">Satışlar</Link>
+      <Link className={isActive(pathname, "/admin/operations") ? styles.active : ""} href="/admin/operations">Operasyon</Link>
+      <Link className={isActive(pathname, "/admin/access") ? styles.active : ""} href="/admin/access">Yönetici Erişimi</Link>
+      <Link className={isActive(pathname, "/admin/security") ? styles.active : ""} href="/admin/security">Güvenlik</Link>
+      <Link className={isActive(pathname, "/admin/devir-rehberi") ? styles.active : ""} href="/admin/devir-rehberi">Devir Rehberi</Link>
       <button type="button" onClick={() => void signOut()} disabled={busy}>{busy ? "Çıkılıyor…" : "Çıkış Yap"}</button>
     </div>
   </aside>;

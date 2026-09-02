@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { writeSessionCookie } from "../../components/AuthSessionBridge";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
@@ -9,21 +8,14 @@ import { getBrowserSession } from "../../../lib/auth/get-browser-session";
 import { Icon } from "../../icons";
 import { EmptyState, ErrorState, LoadingState } from "../../components/ui/States";
 import IDSidebar from "./IDSidebar";
-import { YenomiProductVisual } from "../../ui/YenomiProductVisual";
 import {
   ROLE_LABELS,
 } from "../../../lib/organizations/role-matrix";
-import CardTemplate, { type CardBranding } from "../../CardTemplate";
+import { type CardBranding } from "../../CardTemplate";
 import { getSeatBreakdown } from "../../../lib/organizations/lifecycle";
-import { formatTryFromKurus } from "../../../lib/config/product";
 import type { DatabaseSeatPack, DatabaseTemplateOption } from "../../../lib/config/database";
 import { addCartItem, cartAddConflict, cartAddConflictMessage, clearLegacyCart, readCart, setCartOwner } from "../../../lib/cart";
-import {
-  DEPARTMENT_OPTIONS,
-  TITLE_OPTIONS,
-  normalizeEmailField,
-} from "../../../lib/form-standards";
-import { parseBulkInviteCsv, BULK_INVITE_CSV_TEMPLATE, BULK_INVITE_MAX_ROWS } from "../../../lib/organizations/bulk-invite";
+import { parseBulkInviteCsv, BULK_INVITE_MAX_ROWS } from "../../../lib/organizations/bulk-invite";
 import JobTitlesPanel from "./components/JobTitlesPanel";
 import CorporateLinksPanel from "./components/CorporateLinksPanel";
 import TemplatesPanel from "./components/TemplatesPanel";
@@ -42,7 +34,6 @@ import type {
   Member,
   MemberActionTarget,
   Org,
-  PhysicalCard,
   Template,
   ViewedMemberProfile,
 } from "./domain/types";
@@ -52,7 +43,6 @@ import {
   isCorporatePanelTab,
   type CorporatePanelTab,
   CORPORATE_PANEL_TAB_META,
-  corporatePanelNavItems,
   corporateSidebarItems,
 } from "./domain/navigation";
 import { fetchWithPanelTimeout } from "./domain/runtime";
@@ -61,7 +51,7 @@ import { useJobTitlesAndRequests } from "./hooks/useJobTitlesAndRequests";
 import { useCorporateLinks } from "./hooks/useCorporateLinks";
 import { useCorporateCards } from "./hooks/useCorporateCards";
 import { getIdentityInitials } from "../../../lib/organizations/identity";
-import { isOrganizationRole, normalizeOrganizationRole } from "../../../lib/organizations/permissions";
+import { normalizeOrganizationRole } from "../../../lib/organizations/permissions";
 
 export default function CompanyPanel({ children }: { children?: React.ReactNode }) {
   const router = useRouter();
@@ -87,7 +77,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     });
   };
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [busyMember, setBusyMember] = useState<string | null>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [template, setTemplate] = useState({
     name: "Kurumsal Standart",
@@ -163,7 +152,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   const [departmentFilter, setDepartmentFilter] = useState("ALL");
   const [viewedProfile, setViewedProfile] = useState<ViewedMemberProfile | null>(null);
   const [viewLoading, setViewLoading] = useState<string | null>(null);
-  const [openMemberMenuId, setOpenMemberMenuId] = useState<string | null>(null);
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [drawerMemberId, setDrawerMemberId] = useState<string | null>(null);
   const [drawerTab, setDrawerTab] = useState<
@@ -218,6 +206,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
 
   const {
     physicalCards,
+    productionSummary,
     memberCardStatuses,
     cardAnalytics,
     analyticsDays,
@@ -644,27 +633,22 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   ) {
     const access = await token();
     if (!access) return null;
-    setBusyMember(memberId);
     setMessage("");
-    try {
-      const response = await fetch(path, {
-        method,
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${access}`,
-        },
-        body: JSON.stringify({ organizationId: selected, memberId, ...body }),
-      });
-      const mutationPayload = await response.json();
-      if (!response.ok) {
-        setMessage(mutationPayload.error || "İşlem tamamlanamadı.");
-        return null;
-      }
-      if (mutationPayload.warning) setMessage(mutationPayload.warning);
-      return mutationPayload;
-    } finally {
-      setBusyMember(null);
+    const response = await fetch(path, {
+      method,
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${access}`,
+      },
+      body: JSON.stringify({ organizationId: selected, memberId, ...body }),
+    });
+    const mutationPayload = await response.json();
+    if (!response.ok) {
+      setMessage(mutationPayload.error || "İşlem tamamlanamadı.");
+      return null;
     }
+    if (mutationPayload.warning) setMessage(mutationPayload.warning);
+    return mutationPayload;
   }
 
   async function changeStatus(memberId: string, status: Member["status"]) {
@@ -849,34 +833,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     subscription?.seat_limit == null
       ? null
       : Math.max(0, subscription.seat_limit - usedSeats);
-  const suspendedSeats = Math.max(0, usedSeats - activeMembers - invitedMembers);
   const canInvite = availableSeats == null || availableSeats > 0;
-  const cardStatusCounts = useMemo(
-    () =>
-      physicalCards.reduce(
-        (acc, card) => {
-          acc[card.status] = (acc[card.status] || 0) + 1;
-          return acc;
-        },
-        {} as Record<PhysicalCard["status"], number>,
-      ),
-    [physicalCards],
-  );
-  const distributionGradient = (
-    entries: ReadonlyArray<readonly [string, number, ...unknown[]]>,
-    total: number,
-  ) => {
-    const colors = ["#8b5cf6", "#4e9df5", "#42c99a", "#f59e42", "#ec4899"];
-    if (!entries.length || total <= 0) return "conic-gradient(#242034 0 100%)";
-    let cursor = 0;
-    const stops = entries.map(([, count], index) => {
-      const start = cursor;
-      cursor += (count / total) * 100;
-      return `${colors[index % colors.length]} ${start}% ${cursor}%`;
-    });
-    if (cursor < 100) stops.push(`#242034 ${cursor}% 100%`);
-    return `conic-gradient(${stops.join(",")})`;
-  };
   const filteredMembers = useMemo(
     () =>
       members.filter((member) => {
@@ -965,7 +922,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       department: member.department || "",
       role: member.role,
     });
-    setOpenMemberMenuId(null);
     if (tab === "card" || tab === "lifecycle") void viewMemberProfile(member);
   }
 
@@ -1041,10 +997,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   const sidebarItems = org ? corporateSidebarItems(org.role) : [];
   const tabs: ReadonlyArray<readonly [CorporatePanelTab, string]> = sidebarItems.map(({ key, label }) => [key, label] as const);
   const sidebarPermissionsLoading = !org && loading;
-  const TAB_LABELS: [CorporatePanelTab, string][] = [
-    ["templates", "Marka & Şablon"],
-    ["content", "İçerik"],
-  ];
   const tabRoutes: Record<CorporatePanelTab, string> = {
     overview: "/kurumsal/panel",
     employees: "/kurumsal/panel/calisanlar",
@@ -1116,8 +1068,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   const ownCardEditorHref = selected
     ? `/kurumsal/panel/kartim?business=1&organizationId=${encodeURIComponent(selected)}${sidebarCardProfile?.profileId ? `&id=${encodeURIComponent(sidebarCardProfile.profileId)}` : "&new=1"}`
     : "/kurumsal/panel/calisanlar";
-  const sidebarRole = normalizeOrganizationRole(sidebarUser?.role);
-  const sidebarRoleLabel = sidebarRole ? ROLE_LABELS[sidebarRole] : roleLabel(sidebarUser?.role || "EMPLOYEE");
   const templatePreviewMember =
     members.find((member) => member.status === "ACTIVE") || members[0];
   const templatePreviewBranding: CardBranding = {
@@ -1406,6 +1356,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                   <CardsPanel
                     members={members}
                     physicalCards={physicalCards}
+                    productionSummary={productionSummary}
                     memberCardStatuses={memberCardStatuses}
                     digitalCardsReady={digitalCardsReady}
                     capacityTerms={org?.organization_capacity_terms || []}

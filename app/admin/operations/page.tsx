@@ -76,6 +76,9 @@ export default function AdminOperationsPage() {
   const [shipping, setShipping] = useState<Record<string, { carrier: string; tracking: string }>>({});
   const [mailForm, setMailForm] = useState<Record<string, { amount: string; reason: string }>>({});
   const [priceDraft, setPriceDraft] = useState<Record<string, string>>({});
+  const [search, setSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   async function token() {
     const supabase = getSupabaseBrowserClient();
@@ -179,6 +182,39 @@ export default function AdminOperationsPage() {
     } finally { setSaving(null); }
   }
 
+  // Çapraz filtreler: organizasyon/sipariş no/e-posta serbest metin araması
+  // ve tarih aralığı (yenileme penceresi dahil), aktif sekmenin veri setine
+  // uygulanır. Her sekme kendi en anlamlı tarih alanını kullanır.
+  const needle = search.trim().toLocaleLowerCase("tr-TR");
+  function matchesSearch(...values: Array<string | null | undefined>) {
+    if (!needle) return true;
+    return values.filter(Boolean).some((value) => String(value).toLocaleLowerCase("tr-TR").includes(needle));
+  }
+  function inDateRange(value?: string | null) {
+    if (!dateFrom && !dateTo) return true;
+    if (!value) return false;
+    const time = new Date(value).getTime();
+    if (dateFrom && time < new Date(dateFrom).getTime()) return false;
+    if (dateTo && time > new Date(dateTo).getTime() + 24 * 60 * 60 * 1000 - 1) return false;
+    return true;
+  }
+  const filteredPrintQueue = useMemo(() => data.printQueue.filter((unit) =>
+    matchesSearch(unit.order?.order_number, unit.order?.customer_name, unit.order?.guest_email, unit.item?.product_name, unit.tracking_number) &&
+    inDateRange(unit.print_requested_at),
+  ), [data.printQueue, needle, dateFrom, dateTo]);
+  const filteredPremiumUsers = useMemo(() => data.premiumUsers.filter((user) =>
+    matchesSearch(user.profile?.name, user.profile?.email, user.user_id) && inDateRange(user.expires_at),
+  ), [data.premiumUsers, needle, dateFrom, dateTo]);
+  const filteredCapacityTerms = useMemo(() => data.capacityTerms.filter((term) =>
+    matchesSearch(term.organization?.name, term.organization?.corporate_id, term.organization_id, term.id) && inDateRange(term.expires_at),
+  ), [data.capacityTerms, needle, dateFrom, dateTo]);
+  const filteredRenewalNotices = useMemo(() => data.renewalNotices.filter((notice) =>
+    matchesSearch(notice.term_id, notice.organization_id, notice.invoice_reference) && inDateRange(notice.due_at),
+  ), [data.renewalNotices, needle, dateFrom, dateTo]);
+  const filteredAuditLog = useMemo(() => data.auditLog.filter((row) =>
+    matchesSearch(row.action, row.target_table, row.target_id, row.actor_user_id) && inDateRange(row.created_at),
+  ), [data.auditLog, needle, dateFrom, dateTo]);
+
   const counts = useMemo(() => ({
     print: data.printQueue.filter((unit) => ["PRINT_PENDING", "PRINTING"].includes(unit.operations_status)).length,
     shipping: data.printQueue.filter((unit) => ["SHIPPING_PENDING", "IN_TRANSIT", "OUT_FOR_DELIVERY"].includes(unit.operations_status)).length,
@@ -202,10 +238,16 @@ export default function AdminOperationsPage() {
 
       <div className={styles.stats}><div className={styles.stat}><small>Baskı kuyruğu</small><strong>{count(counts.print)}</strong></div><div className={styles.stat}><small>Kargo süreci</small><strong>{count(counts.shipping)}</strong></div><div className={styles.stat}><small>Premium kullanıcı</small><strong>{count(counts.premium)}</strong></div><div className={styles.stat}><small>Açık yenileme</small><strong>{count(counts.renewals)}</strong></div></div>
       <div className={styles.tabs} role="tablist">{([['print','Baskı & Kargo'],['network','Network Mail'],['batches','Lisans Batchleri'],['pricing','Fiyatlandırma'],['audit','Audit Log']] as const).map(([key,label]) => <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => setTab(key)}>{label}</button>)}</div>
+      {tab !== "pricing" && <div className={styles.toolbar}>
+        <label className={styles.field}><span className={styles.label}>Ara</span><input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Organizasyon, sipariş no, e-posta" /></label>
+        <label className={styles.field}><span className={styles.label}>Başlangıç</span><input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} /></label>
+        <label className={styles.field}><span className={styles.label}>Bitiş (yenileme penceresi)</span><input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} /></label>
+        {(search || dateFrom || dateTo) && <button type="button" className={styles.secondary} onClick={() => { setSearch(""); setDateFrom(""); setDateTo(""); }}>Filtreleri temizle</button>}
+      </div>}
       {message && <div className={styles.message} role="status">{message}</div>}
       {operationsState === "loading" && tab !== "pricing" && <div className={styles.message}>Operasyon verileri yükleniyor…</div>}
 
-      {tab === "print" && operationsState === "ready" && <div className={styles.grid}>{data.printQueue.length === 0 ? <div className={styles.emptyState}><strong>Aktif baskı veya kargo kaydı yok.</strong><span>Yeni bir üretim kaydı oluştuğunda burada görünecek.</span></div> : data.printQueue.map((unit) => {
+      {tab === "print" && operationsState === "ready" && <div className={styles.grid}>{filteredPrintQueue.length === 0 ? <div className={styles.emptyState}><strong>{data.printQueue.length === 0 ? "Aktif baskı veya kargo kaydı yok." : "Filtrelerle eşleşen kayıt yok."}</strong><span>{data.printQueue.length === 0 ? "Yeni bir üretim kaydı oluştuğunda burada görünecek." : "Aramayı veya tarih aralığını değiştirin."}</span></div> : filteredPrintQueue.map((unit) => {
         const ship = shipping[unit.id] ?? { carrier: "", tracking: "" };
         return <article className={styles.card} key={unit.id}>
           <div className={styles.cardHead}><div><span className={styles.label}>{unit.order?.order_number ?? "KART ÜRETİMİ"}</span><h2>{unit.order?.customer_name || unit.order?.guest_email || "Kullanıcı"}</h2><p>{unit.item?.product_name || "Fiziksel Yenomi ID"} · Baskı talebi {formatDateTime(unit.print_requested_at)}</p></div><span className={styles.badge}>{unit.operations_status}</span></div>
@@ -220,16 +262,16 @@ export default function AdminOperationsPage() {
         </article>;
       })}</div>}
 
-      {tab === "network" && operationsState === "ready" && <div className={styles.grid}>{data.premiumUsers.length === 0 && <div className={styles.emptyState}><strong>Premium kullanıcı kaydı yok.</strong><span>Aktif Premium haklar burada listelenecek.</span></div>}{data.premiumUsers.map((user) => {
+      {tab === "network" && operationsState === "ready" && <div className={styles.grid}>{filteredPremiumUsers.length === 0 && <div className={styles.emptyState}><strong>{data.premiumUsers.length === 0 ? "Premium kullanıcı kaydı yok." : "Filtrelerle eşleşen kullanıcı yok."}</strong><span>{data.premiumUsers.length === 0 ? "Aktif Premium haklar burada listelenecek." : "Aramayı veya tarih aralığını değiştirin."}</span></div>}{filteredPremiumUsers.map((user) => {
         const form = mailForm[user.user_id] ?? { amount: "100", reason: "" };
         return <article className={styles.card} key={user.id}><div className={styles.cardHead}><div><span className={styles.label}>BİREYSEL PREMIUM</span><h2>{user.profile?.name || user.profile?.email || user.user_id}</h2><p>Yenileme {formatDateTime(user.expires_at)}</p></div><span className={styles.badge}>{user.network_mail_remaining} / {user.network_mail_limit || 100}</span></div><div className={styles.fields}><label className={styles.field}><span className={styles.label}>Miktar</span><input disabled={demoMode} inputMode="numeric" value={form.amount} onChange={(event) => setMailForm((current) => ({ ...current, [user.user_id]: { ...form, amount: event.target.value } }))} /></label><label className={styles.field}><span className={styles.label}>Gerekçe</span><input disabled={demoMode} value={form.reason} onChange={(event) => setMailForm((current) => ({ ...current, [user.user_id]: { ...form, reason: event.target.value } }))} placeholder="Kota düzeltme nedeni" /></label></div><div className={styles.actions}><button disabled={demoMode} type="button" className={styles.secondary} onClick={() => void patchOperations({ action: "ADJUST_NETWORK_MAIL", scope: "INDIVIDUAL", userId: user.user_id, mode: "ADD", amount: Number(form.amount), reason: form.reason }, `mail:${user.user_id}`)}>Kota Ekle</button><button disabled={demoMode} type="button" className={styles.action} onClick={() => void patchOperations({ action: "ADJUST_NETWORK_MAIL", scope: "INDIVIDUAL", userId: user.user_id, mode: "RESET", amount: Number(form.amount), reason: form.reason }, `mail:${user.user_id}`)}>Kotayı Ayarla</button></div></article>;
       })}<div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Tarih</th><th>Hedef</th><th>Değişim</th><th>Önce</th><th>Sonra</th><th>Gerekçe</th></tr></thead><tbody>{data.mailAdjustments.map((row) => <tr key={row.id}><td>{formatDateTime(row.created_at)}</td><td>{row.user_id || row.organization_id}</td><td>{row.delta > 0 ? `+${row.delta}` : row.delta}</td><td>{row.balance_before}</td><td>{row.balance_after}</td><td>{row.reason}</td></tr>)}</tbody></table></div></div>}
 
-      {tab === "batches" && operationsState === "ready" && <div className={styles.grid}><div className={styles.actions}><button disabled={demoMode} className={styles.action} type="button" onClick={() => void patchOperations({ action: "QUEUE_RENEWALS", daysAhead: 30 }, "queue-renewals")}>30 Günlük Yenilemeleri Oluştur</button></div><div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Şirket</th><th>Batch ID</th><th>Lisans</th><th>Satın alma / başlangıç</th><th>Yenileme</th><th>Yenileme ücreti</th><th>Durum</th></tr></thead><tbody>{data.capacityTerms.map((term) => <tr key={term.id}><td>{term.organization?.name || term.organization_id}</td><td>{term.id}</td><td>{term.card_count}</td><td>{formatDateTime(term.starts_at)}</td><td>{formatDateTime(term.expires_at)}</td><td>{formatMoney(term.renewal_price_kurus)}</td><td>{term.status}</td></tr>)}</tbody></table></div><div className={styles.grid}>{data.renewalNotices.map((notice) => <article className={styles.card} key={notice.id}><div className={styles.cardHead}><div><span className={styles.label}>YENİLEME KAYDI</span><h3>{notice.term_id}</h3><p>{formatDateTime(notice.due_at)} · {formatMoney(notice.renewal_price_kurus)}</p></div><span className={styles.badge}>{notice.status}</span></div><div className={styles.actions}>{notice.status === "PENDING" && <button disabled={demoMode} className={styles.secondary} type="button" onClick={() => void patchOperations({ action: "MARK_RENEWAL_NOTIFIED", noticeId: notice.id }, notice.id)}>Bildirim Gönderildi</button>}{["PENDING","NOTIFIED"].includes(notice.status) && <button disabled={demoMode} className={styles.action} type="button" onClick={() => { const ref = window.prompt("Fatura referansı"); if (ref) void patchOperations({ action: "MARK_RENEWAL_INVOICED", noticeId: notice.id, invoiceReference: ref }, notice.id); }}>Faturalandı</button>}{notice.status === "INVOICED" && <button disabled={demoMode} className={styles.action} type="button" onClick={() => void patchOperations({ action: "MARK_RENEWAL_PAID", noticeId: notice.id }, notice.id)}>Ödendi</button>}</div></article>)}</div></div>}
+      {tab === "batches" && operationsState === "ready" && <div className={styles.grid}><div className={styles.actions}><button disabled={demoMode} className={styles.action} type="button" onClick={() => void patchOperations({ action: "QUEUE_RENEWALS", daysAhead: 30 }, "queue-renewals")}>30 Günlük Yenilemeleri Oluştur</button></div><div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Şirket</th><th>Batch ID</th><th>Lisans</th><th>Satın alma / başlangıç</th><th>Yenileme</th><th>Yenileme ücreti</th><th>Durum</th></tr></thead><tbody>{filteredCapacityTerms.map((term) => <tr key={term.id}><td>{term.organization?.name || term.organization_id}</td><td>{term.id}</td><td>{term.card_count}</td><td>{formatDateTime(term.starts_at)}</td><td>{formatDateTime(term.expires_at)}</td><td>{formatMoney(term.renewal_price_kurus)}</td><td>{term.status}</td></tr>)}</tbody></table></div><div className={styles.grid}>{filteredRenewalNotices.map((notice) => <article className={styles.card} key={notice.id}><div className={styles.cardHead}><div><span className={styles.label}>YENİLEME KAYDI</span><h3>{notice.term_id}</h3><p>{formatDateTime(notice.due_at)} · {formatMoney(notice.renewal_price_kurus)}</p></div><span className={styles.badge}>{notice.status}</span></div><div className={styles.actions}>{notice.status === "PENDING" && <button disabled={demoMode} className={styles.secondary} type="button" onClick={() => void patchOperations({ action: "MARK_RENEWAL_NOTIFIED", noticeId: notice.id }, notice.id)}>Bildirim Gönderildi</button>}{["PENDING","NOTIFIED"].includes(notice.status) && <button disabled={demoMode} className={styles.action} type="button" onClick={() => { const ref = window.prompt("Fatura referansı"); if (ref) void patchOperations({ action: "MARK_RENEWAL_INVOICED", noticeId: notice.id, invoiceReference: ref }, notice.id); }}>Faturalandı</button>}{notice.status === "INVOICED" && <button disabled={demoMode} className={styles.action} type="button" onClick={() => void patchOperations({ action: "MARK_RENEWAL_PAID", noticeId: notice.id }, notice.id)}>Ödendi</button>}</div></article>)}</div></div>}
 
       {tab === "pricing" && <div className={styles.grid}>{pricingState === "loading" && <div className={styles.message}>Fiyat kataloğu yükleniyor…</div>}{pricingState === "error" && <div className={styles.errorPanel}>{pricingError || "Fiyat kataloğu yüklenemedi."}</div>}{pricingState === "ready" && <><div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Ürün</th><th>SKU</th><th>Mevcut</th><th>Yeni fiyat (TL)</th><th></th></tr></thead><tbody>{variants.map((item) => { const key = `variant:${item.sku}`; return <tr key={item.id}><td>{item.name}</td><td>{item.sku}</td><td>{formatMoney(item.price_kurus)}</td><td><input disabled={demoMode} value={priceDraft[key] ?? ""} onChange={(event) => setPriceDraft((current) => ({ ...current, [key]: event.target.value }))} /></td><td><button className={styles.secondary} type="button" disabled={demoMode || saving === key} onClick={() => void savePrice("PRODUCT_VARIANT", key, item.sku)}>Kaydet</button></td></tr>; })}</tbody></table></div><div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Kurumsal paket</th><th>Kod</th><th>Koltuk</th><th>Mevcut</th><th>Yeni fiyat (TL)</th><th></th></tr></thead><tbody>{plans.map((item) => { const key = `plan:${item.code}`; return <tr key={item.id}><td>{item.name}</td><td>{item.code}</td><td>{item.seat_limit ?? "—"}</td><td>{formatMoney(item.annual_price_kurus)}</td><td><input disabled={demoMode} value={priceDraft[key] ?? ""} onChange={(event) => setPriceDraft((current) => ({ ...current, [key]: event.target.value }))} /></td><td><button className={styles.secondary} type="button" disabled={demoMode || saving === key} onClick={() => void savePrice("CORPORATE_PLAN", key, item.code)}>Kaydet</button></td></tr>; })}</tbody></table></div></>}</div>}
 
-      {tab === "audit" && operationsState === "ready" && <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Tarih</th><th>İşlem</th><th>Hedef</th><th>Actor</th><th>Değişiklik</th></tr></thead><tbody>{data.auditLog.map((row) => <tr key={row.id}><td>{formatDateTime(row.created_at)}</td><td>{row.action}</td><td>{row.target_table}{row.target_id ? ` · ${row.target_id}` : ""}</td><td>{row.actor_user_id || "SYSTEM"}</td><td><code>{JSON.stringify(row.after_value ?? {})}</code></td></tr>)}</tbody></table></div>}
+      {tab === "audit" && operationsState === "ready" && <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>Tarih</th><th>İşlem</th><th>Hedef</th><th>Actor</th><th>Değişiklik</th></tr></thead><tbody>{filteredAuditLog.map((row) => <tr key={row.id}><td>{formatDateTime(row.created_at)}</td><td>{row.action}</td><td>{row.target_table}{row.target_id ? ` · ${row.target_id}` : ""}</td><td>{row.actor_user_id || "SYSTEM"}</td><td><code>{JSON.stringify(row.after_value ?? {})}</code></td></tr>)}</tbody></table></div>}
     </section>
   </main>;
 }

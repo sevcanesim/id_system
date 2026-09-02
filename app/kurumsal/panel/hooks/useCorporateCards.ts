@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { CardAnalytics, PhysicalCard, MemberCardStatus } from "../domain/types";
+import type { CardAnalytics, PhysicalCard, MemberCardStatus, PhysicalCardProductionSummary } from "../domain/types";
 import type { CorporatePanelTab } from "../domain/navigation";
 import { fetchWithPanelTimeout } from "../domain/runtime";
 
@@ -16,6 +16,7 @@ export function useCorporateCards(
   setDataError: (tab: CorporatePanelTab, error: string | null) => void,
 ) {
   const [physicalCards, setPhysicalCards] = useState<PhysicalCard[]>([]);
+  const [productionSummary, setProductionSummary] = useState<PhysicalCardProductionSummary | null>(null);
   const [memberCardStatuses, setMemberCardStatuses] = useState<MemberCardStatus[]>([]);
   const [cardAnalytics, setCardAnalytics] = useState<CardAnalytics | null>(null);
   const [analyticsDays, setAnalyticsDays] = useState<7 | 30 | 90>(30);
@@ -31,6 +32,7 @@ export function useCorporateCards(
     const data = await response.json();
     if (response.ok) {
       setPhysicalCards(data.cards || []);
+      setProductionSummary(data.productionSummary ?? null);
       setDataError("cards", null);
     } else setDataError("cards", data.error || "Fiziksel kart verileri yüklenemedi.");
   }
@@ -138,12 +140,14 @@ export function useCorporateCards(
 
   function resetCardsData() {
     setPhysicalCards([]);
+    setProductionSummary(null);
     setMemberCardStatuses([]);
     setCardAnalytics(null);
   }
 
   return {
     physicalCards,
+    productionSummary,
     memberCardStatuses,
     cardAnalytics,
     analyticsDays,

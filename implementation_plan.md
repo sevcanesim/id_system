@@ -18,17 +18,22 @@ The repository already contains production-facing foundations and this implement
 
 ### 1. Physical card production and shipping
 
-Operational state machine:
+Operational state machine (matches `operations_status` on `commerce_physical_card_units` and the
+`transition_physical_card_unit` guard clauses exactly — this is the implemented contract, not an
+earlier draft of it):
 
-`PRINT_PENDING -> PRINT_APPROVED -> SHIPPING_PENDING -> IN_TRANSIT -> OUT_FOR_DELIVERY -> DELIVERED`
+`PROFILE_REQUIRED -> PRINT_PENDING -> PRINTING -> SHIPPING_PENDING -> IN_TRANSIT -> OUT_FOR_DELIVERY -> DELIVERED`
 
-Terminal exception state: `CANCELLED`.
+Terminal exception state: `CANCELLED` (reachable from any non-terminal state).
+
+`SHIPPING_PENDING` is also reachable directly from `PRINT_PENDING`, skipping `PRINTING` — the
+"start print" step is optional bookkeeping, not a required gate before approval.
 
 Rules:
 
 1. A print request may only be opened for an existing `commerce_physical_card_units` row linked to a paid/authorized order item.
 2. The user's `Profili Tamamla` action marks the eligible paid unit as `PRINT_PENDING`; it does not create an unpaid physical entitlement.
-3. Super Admin `Baskıyı Onayla` atomically stamps approval actor/time and advances to `SHIPPING_PENDING`.
+3. Super Admin `Baskıyı Onayla` (the `APPROVE_PRINT` action, from `PRINT_PENDING` or `PRINTING`) atomically stamps approval actor/time and advances to `SHIPPING_PENDING`.
 4. Carrier and tracking number are required before `IN_TRANSIT`.
 5. Shipping transitions are timestamped and exposed to individual/corporate user-facing steppers.
 6. Every admin transition writes `admin_audit_log`.

@@ -57,6 +57,22 @@ export type PhysicalCard = {
   replacedByCardId: string | null;
 };
 
+// commerce_physical_card_units.operations_status — the pre-activation
+// production/shipping pipeline. Purchased units have no per-employee
+// attribution until a card is activated (see PhysicalCard above), so this is
+// only ever surfaced as an organization-wide count, never per employee.
+export type PhysicalCardOperationalStatus =
+  | "PROFILE_REQUIRED"
+  | "PRINT_PENDING"
+  | "PRINTING"
+  | "SHIPPING_PENDING"
+  | "IN_TRANSIT"
+  | "OUT_FOR_DELIVERY"
+  | "DELIVERED"
+  | "CANCELLED";
+
+export type PhysicalCardProductionSummary = Partial<Record<PhysicalCardOperationalStatus, number>>;
+
 export type MemberProfile = {
   id: string;
   slug: string;

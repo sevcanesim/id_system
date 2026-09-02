@@ -8,7 +8,7 @@ This QA contract covers the operational layer for Yenomi ID Super Admin manageme
 
 - A physical card can enter the print queue only when a paid `commerce_physical_card_units` row already exists.
 - Profile completion never creates a paid fulfillment unit.
-- Physical card operational lifecycle is monotonic: `PROFILE_REQUIRED -> PRINT_PENDING -> SHIPPING_PENDING -> IN_TRANSIT -> OUT_FOR_DELIVERY -> DELIVERED` except explicit administrative cancellation paths.
+- Physical card operational lifecycle is monotonic: `PROFILE_REQUIRED -> PRINT_PENDING -> PRINTING -> SHIPPING_PENDING -> IN_TRANSIT -> OUT_FOR_DELIVERY -> DELIVERED` (SHIPPING_PENDING is also reachable directly from PRINT_PENDING — PRINTING is an optional intermediate step, not a required gate) except explicit administrative cancellation paths.
 - Every administrative card transition writes both an operational event and an admin audit record.
 - Shipping requires a non-empty carrier and tracking number.
 - Individual Standard catalog price is sourced from `product_variants`; UI must not become a second pricing authority.

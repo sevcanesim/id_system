@@ -4,13 +4,14 @@ import { useMemo, useState } from "react";
 import { Icon } from "../../../icons";
 import { EmptyState } from "../../../components/ui/States";
 import { Button } from "../../../components/ui/DesignSystem";
-import type { MemberActionTarget, MemberCardStatus, PhysicalCard } from "../domain/types";
+import type { MemberActionTarget, MemberCardStatus, PhysicalCard, PhysicalCardOperationalStatus, PhysicalCardProductionSummary } from "../domain/types";
 import type { OrganizationCapacityTerm } from "../../../../lib/organizations/capacity-terms";
 import { physicalCardLabel, physicalInventoryCounts } from "../../../../lib/organizations/lifecycle";
 
 type Props = {
   members: MemberActionTarget[];
   physicalCards: PhysicalCard[];
+  productionSummary: PhysicalCardProductionSummary | null;
   memberCardStatuses: MemberCardStatus[];
   digitalCardsReady: number;
   capacityTerms: OrganizationCapacityTerm[];
@@ -46,9 +47,32 @@ function requiresAttention(card: PhysicalCard) {
   return card.status === "UNASSIGNED" || card.status === "DISABLED" || card.status === "LOST";
 }
 
+const PRODUCTION_STATUS_LABEL: Record<PhysicalCardOperationalStatus, string> = {
+  PROFILE_REQUIRED: "Profil bekleniyor",
+  PRINT_PENDING: "Baskı onayı bekleniyor",
+  PRINTING: "Basılıyor",
+  SHIPPING_PENDING: "Kargo işlemi bekleniyor",
+  IN_TRANSIT: "Kargoda",
+  OUT_FOR_DELIVERY: "Dağıtımda",
+  DELIVERED: "Teslim edildi",
+  CANCELLED: "İptal edildi",
+};
+
+// Pipeline = purchased but not yet in the employee's hands. DELIVERED and
+// CANCELLED are end states, not something a manager needs to keep watching.
+const PRODUCTION_PIPELINE_ORDER: PhysicalCardOperationalStatus[] = [
+  "PROFILE_REQUIRED",
+  "PRINT_PENDING",
+  "PRINTING",
+  "SHIPPING_PENDING",
+  "IN_TRANSIT",
+  "OUT_FOR_DELIVERY",
+];
+
 export default function CardsPanel({
   members,
   physicalCards,
+  productionSummary,
   memberCardStatuses,
   digitalCardsReady,
   capacityTerms,
@@ -63,6 +87,12 @@ export default function CardsPanel({
   const [assigningCard, setAssigningCard] = useState<PhysicalCard | null>(null);
   const [selectedMemberId, setSelectedMemberId] = useState("");
   const inventory = physicalInventoryCounts(physicalCards);
+  const pipelineEntries = productionSummary
+    ? PRODUCTION_PIPELINE_ORDER
+        .map((status) => ({ status, count: productionSummary[status] || 0 }))
+        .filter((entry) => entry.count > 0)
+    : [];
+  const pipelineTotal = pipelineEntries.reduce((total, entry) => total + entry.count, 0);
   const roster = useMemo(() => members.filter((member) => member.status !== "LEFT"), [members]);
 
   const eligibleMembers = useMemo(
@@ -149,6 +179,27 @@ export default function CardsPanel({
               <span key={term.id}>
                 <small>{term.card_count} kart</small>
                 <b>{new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(term.expires_at))}</b>
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {productionSummary && pipelineTotal > 0 && (
+        <section className="p11-employee-card action-first-surface" aria-label="Sipariş edilen kartların üretim ve kargo özeti">
+          <div>
+            <span>ÜRETİM & KARGO</span>
+            <strong>{pipelineTotal} kart üretim/kargo sürecinde</strong>
+            <p>
+              Satın alınan kartlar henüz belirli bir çalışana atanmadan önce şirket havuzunda üretim ve
+              kargo aşamalarından geçer; aşağıdaki sayılar tek tek çalışanlara değil, şirketin tamamına aittir.
+            </p>
+          </div>
+          <div className="action-first-summary__stats">
+            {pipelineEntries.map((entry) => (
+              <span key={entry.status}>
+                <small>{PRODUCTION_STATUS_LABEL[entry.status]}</small>
+                <b>{entry.count}</b>
               </span>
             ))}
           </div>

@@ -1,53 +1,55 @@
 .dock {
   position: sticky;
   top: 0;
-  z-index: 80;
+  z-index: var(--z-drawer);
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: .6rem;
-  min-height: 2.5rem;
-  padding: .32rem max(1rem, calc((100vw - 1440px) / 2));
-  border-bottom: 1px solid #e8e4dd;
-  background: color-mix(in srgb, var(--surface) 98%, transparent);
+  gap: var(--space-3);
+  min-height: var(--control-height-md);
+  padding: var(--space-1) max(var(--gutter), calc((100vw - 1440px) / 2));
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
   backdrop-filter: blur(14px);
 }
 
 .warning {
   margin-right: auto;
-  color: #76551b;
-  font-size: 12px;
-  font-weight: 600;
+  color: var(--warning);
+  font-size: var(--type-sm);
+  font-weight: 700;
   text-decoration: none;
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: .2rem;
+  gap: var(--space-1);
 }
 
 .actions a,
 .actions button {
-  min-height: 1.9rem;
-  padding: 0 .65rem;
+  min-height: var(--control-height-sm);
+  padding-inline: var(--space-3);
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: #68645d;
+  color: var(--text-secondary);
   font: inherit;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--type-sm);
+  font-weight: 700;
   text-decoration: none;
+  white-space: nowrap;
   cursor: pointer;
+  transition: background var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard);
 }
 
 .actions a:hover,
 .actions button:hover,
 .actions .active {
-  border-color: #e1ddd5;
-  background: #f5f3ef;
-  color: #1a1918;
+  border-color: var(--border);
+  background: var(--surface-secondary);
+  color: var(--text-primary);
 }
 
 .actions button:disabled {
@@ -60,20 +62,22 @@
     position: static;
     align-items: stretch;
     flex-direction: column;
-    padding: .5rem;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--gutter);
   }
 
   .warning {
     margin: 0;
-    padding: .45rem .6rem;
+    padding: var(--space-2) var(--space-1);
   }
 
   .actions {
     overflow-x: auto;
+    padding-bottom: var(--space-1);
   }
 
   .actions a,
   .actions button {
-    white-space: nowrap;
+    min-height: var(--control-height-md);
   }
 }

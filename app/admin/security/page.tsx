@@ -51,7 +51,7 @@ export default function AdminSecurityPage() {
       return;
     }
     setFactors((factorData?.all ?? []) as Factor[]);
-    setCurrentLevel(aalData.currentLevel);
+    setCurrentLevel(aalData?.currentLevel ?? null);
     setPageState("ready");
   }
 
@@ -136,7 +136,7 @@ export default function AdminSecurityPage() {
 
       {message && <div className={styles.message} role="status">{message}</div>}
 
-      <section className={`${styles.securityStatus} ${secure ? styles.securityStatusSecure : ""}`}>
+      <section className={`${styles.securityStatus} ${secure ? styles.securityStatusSecure : ""}`} aria-label="Google Authenticator durumu">
         <div className={styles.statusIcon} aria-hidden="true">{secure ? "✓" : "2"}</div>
         <div>
           <small>Google Authenticator</small>
@@ -165,16 +165,16 @@ export default function AdminSecurityPage() {
           </ol>
         </div>
         <details className={styles.manualSetup}><summary>QR kodu taranamıyor mu?</summary><p>Google Authenticator'da “Kurulum anahtarı gir” seçeneğini kullanın ve aşağıdaki anahtarı yalnızca kendi cihazınıza girin.</p><code>{enrollment.secret}</code></details>
-        <label className={styles.codeField}>Telefonunuzdaki 6 haneli kod<input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="000000" /></label>
-        <button className={styles.primary} type="button" onClick={() => void verifyFactor(enrollment.factorId)} disabled={busy}>{busy ? "Doğrulanıyor…" : "Doğrula ve Devam Et"}</button>
+        <label className={styles.codeField}>Telefonunuzdaki 6 haneli kod<input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} onKeyDown={(event) => { if (event.key === "Enter" && !busy) void verifyFactor(enrollment.factorId); }} placeholder="000000" /></label>
+        <button className={styles.primary} type="button" onClick={() => void verifyFactor(enrollment.factorId)} disabled={busy}>{busy ? "Doğrulanıyor…" : "Doğrula ve devam et"}</button>
       </section>}
 
       {verifiedTotp && !secure && <section className={styles.panel}>
         <span className={styles.stepLabel}>SON ADIM</span>
         <h2>Telefonunuzdaki kodu girin</h2>
         <p>Google Authenticator'ı açın ve Yenomi ID için görünen güncel 6 haneli kodu yazın.</p>
-        <label className={styles.codeField}>6 haneli doğrulama kodu<input autoFocus inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="000000" /></label>
-        <button className={styles.primary} type="button" onClick={() => void verifyFactor(verifiedTotp.id)} disabled={busy}>{busy ? "Doğrulanıyor…" : "Doğrula ve Yönetim Ekranına Geç"}</button>
+        <label className={styles.codeField}>6 haneli doğrulama kodu<input autoFocus inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} onKeyDown={(event) => { if (event.key === "Enter" && !busy) void verifyFactor(verifiedTotp.id); }} placeholder="000000" /></label>
+        <button className={styles.primary} type="button" onClick={() => void verifyFactor(verifiedTotp.id)} disabled={busy}>{busy ? "Doğrulanıyor…" : "Doğrula ve devam et"}</button>
       </section>}
 
       {verifiedTotp && secure && <section className={styles.success}>
@@ -183,11 +183,13 @@ export default function AdminSecurityPage() {
         <Link className={styles.primaryLink} href={safeNextPath()}>Yönetim ekranına geç</Link>
       </section>}
 
-      <section className={styles.notice}>
-        <strong>Yönetici değişirse ne yapmalıyım?</strong>
-        <p>Hesap başka bir yöneticiye devredilecekse önce bu cihazdaki Google Authenticator bağlantısını kaldırın. Yeni yönetici kendi telefonunda yeniden kurulum yapmalıdır. QR kodunu, kurulum anahtarını veya şifrenizi başka biriyle paylaşmayın.</p>
-        {verifiedTotp && secure && <button type="button" className={styles.dangerText} onClick={() => void removeFactor(verifiedTotp.id)} disabled={busy}>Google Authenticator bağlantısını kaldır</button>}
-      </section>
+      <details className={styles.notice}>
+        <summary>Yönetici değişikliği hakkında bilgi</summary>
+        <div className={styles.noticeBody}>
+          <p>Hesap başka bir yöneticiye devredilecekse önce bu cihazdaki Google Authenticator bağlantısını kaldırın. Yeni yönetici kendi telefonunda yeniden kurulum yapmalıdır. QR kodunu, kurulum anahtarını veya şifrenizi başka biriyle paylaşmayın.</p>
+          {verifiedTotp && secure && <button type="button" className={styles.dangerText} onClick={() => void removeFactor(verifiedTotp.id)} disabled={busy}>Google Authenticator bağlantısını kaldır</button>}
+        </div>
+      </details>
     </section>
   </main>;
 }

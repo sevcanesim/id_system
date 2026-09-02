@@ -13,7 +13,7 @@ type EventLinkRow = {
   id: string;
   event_id: string;
   profile_id: string;
-  networking_events: { name: string | null } | { name: string | null }[] | null;
+  event_name: string | null;
 };
 
 export default async function EventAttributionPage({ params }: { params: Promise<{ eventPublicId: string }> }) {
@@ -21,12 +21,10 @@ export default async function EventAttributionPage({ params }: { params: Promise
   const supabase = getPublicSupabaseClient();
   if (!supabase) notFound();
 
-  const { data: link } = await supabase
-    .from("networking_event_links")
-    .select("id,event_id,profile_id,networking_events(name)")
-    .eq("public_id", eventPublicId)
-    .maybeSingle();
-  const eventLink = link as EventLinkRow | null;
+  const { data: resolvedLinks } = await supabase.rpc("resolve_public_networking_event_link", {
+    p_public_id: eventPublicId,
+  });
+  const eventLink = (Array.isArray(resolvedLinks) ? resolvedLinks[0] : resolvedLinks) as EventLinkRow | null;
   if (!eventLink) notFound();
 
   const { data: profile } = await supabase
@@ -41,8 +39,6 @@ export default async function EventAttributionPage({ params }: { params: Promise
   const branding = await fetchCardBranding(card.user_id);
   const links = await fetchOrganizationLinks(card.user_id, card.id);
   const locales = await fetchCardLocaleOverlays(supabase, card.id);
-  const eventRel = eventLink.networking_events;
-  const eventName = Array.isArray(eventRel) ? eventRel[0]?.name : eventRel?.name;
 
   return (
     <main id="main-content" className="p12-public-card-page">
@@ -56,7 +52,7 @@ export default async function EventAttributionPage({ params }: { params: Promise
         profileName={card.name}
         organizationName={card.company || branding?.companyName}
         eventId={eventLink.event_id}
-        eventName={eventName || "Event"}
+        eventName={eventLink.event_name || "Event"}
         source="EVENT"
         locales={locales}
       />

@@ -1614,6 +1614,17 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .ds-button--accent { border-color:transparent; background:linear-gradient(135deg,var(--violet),var(--violet-hi)); color:#fff; }
 .ds-button--sm { min-height:34px; padding-inline:10px; }
 .ds-button--secondary:hover,.ds-button:hover { border-color:var(--gold); }
+/* --ghost/--destructive/--icon are declared in ButtonVariant (DesignSystem.tsx)
+   and used live (Modal/Drawer close buttons, employee revoke, link version
+   delete) but previously had no base rule — only scoped .p10-corporate-platform
+   overrides for --primary/--secondary/--destructive existed, so these three
+   rendered as an unstyled fallback to the plain .ds-button box. */
+.ds-button--ghost { border-color:transparent; background:transparent; color:var(--ink); }
+.ds-button--ghost:hover { background:var(--glass); border-color:var(--border); }
+.ds-button--destructive { border-color:var(--error); background:var(--error-subtle); color:var(--error); }
+.ds-button--destructive:hover { background:var(--error); border-color:var(--error); color:#fff; }
+.ds-button--icon { min-width:40px; padding:0; border-color:transparent; background:transparent; color:var(--ink); }
+.ds-button--icon:hover { background:var(--glass); border-color:var(--border); }
 .ds-card { padding:18px; border:1px solid var(--border); border-radius:14px; background:var(--glass); }
 .ds-label { color:var(--ink-3); font-size:12px; font-weight:700; }
 .ds-help { color:var(--ink-3); font-size:12px; }

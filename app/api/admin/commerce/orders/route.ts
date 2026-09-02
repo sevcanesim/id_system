@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../lib/supabase/server-admin";
+import { requireSuperAdmin } from "../../../../../lib/admin/require-admin";
 import { sendActivationEmail, sendShippingEmail } from "../../../../../lib/email/resend";
 import { canTransitionCommerceOrder, COMMERCE_ORDER_STATUSES, type CommerceOrderStatus } from "../../../../../lib/commerce/order-status";
 import { loadCommerceOrderKind } from "../../../../../lib/commerce/order-kind";
@@ -18,21 +18,10 @@ const patchSchema = z.object({
   trackingNumber: z.string().trim().max(120).optional().nullable(),
 });
 
-async function requireAdmin(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-  const auth = getSupabaseAuthClient();
-  const { data } = await auth.auth.getUser(token);
-  if (!data.user) return null;
-  const admin = getSupabaseAdminClient();
-  const { data: row } = await admin.from("admin_users").select("user_id").eq("user_id", data.user.id).maybeSingle();
-  return row ? { user: data.user, admin } : null;
-}
-
 export async function GET(request: NextRequest) {
   try {
-    const context = await requireAdmin(request);
-    if (!context) return NextResponse.json({ error: "Yönetici yetkisi gerekli." }, { status: 403 });
+    const context = await requireSuperAdmin(request);
+    if (!context) return NextResponse.json({ error: "Yönetici yetkisi ve MFA doğrulaması gerekli." }, { status: 403 });
     const { data, error } = await context.admin
       .from("commerce_orders")
       .select("id,order_number,customer_name,customer_phone,guest_email,status,total_kurus,currency,paid_at,created_at,updated_at,tracking_company,tracking_number,shipped_at,delivered_at,activation_claimed_at,company_name,tax_number,tax_office,commerce_order_items(id,product_name,product_kind,quantity,unit_price_kurus,configuration),shipping_addresses(recipient_name,phone,address_line,district,city,postal_code,delivery_note)")
@@ -40,15 +29,15 @@ export async function GET(request: NextRequest) {
     if (error) return NextResponse.json(publicError("ORDER_LOAD_FAILED"), { status: 500 });
     return NextResponse.json({ orders: data ?? [] });
   } catch (error) {
-    console.error("admin commerce orders error", error);
+    console.error("admin commerce orders error", error instanceof Error ? error.message : "UNKNOWN");
     return NextResponse.json({ error: "Siparişler yüklenemedi." }, { status: 500 });
   }
 }
 
 export async function PATCH(request: NextRequest) {
   try {
-    const context = await requireAdmin(request);
-    if (!context) return NextResponse.json({ error: "Yönetici yetkisi gerekli." }, { status: 403 });
+    const context = await requireSuperAdmin(request);
+    if (!context) return NextResponse.json({ error: "Yönetici yetkisi ve MFA doğrulaması gerekli." }, { status: 403 });
     const parsed = patchSchema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Geçersiz işlem." }, { status: 400 });
     const { data: currentOrder, error: currentOrderError } = await context.admin
@@ -167,7 +156,7 @@ export async function PATCH(request: NextRequest) {
     });
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("admin commerce order update error", error);
+    console.error("admin commerce order update error", error instanceof Error ? error.message : "UNKNOWN");
     return NextResponse.json({ error: "Sipariş güncellenemedi." }, { status: 500 });
   }
 }

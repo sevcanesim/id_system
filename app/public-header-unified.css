@@ -110,7 +110,7 @@
 
 .public-site-chrome .yi-brand__lockup small {
   color: var(--text-secondary);
-  font-size: 8px;
+  font-size: var(--type-xs);
   font-weight: 650;
   line-height: 1;
   letter-spacing: .18em;
@@ -200,7 +200,7 @@
 @media (max-width: 1100px) {
   .public-site-chrome .yi-header__inner { grid-template-columns: 190px minmax(0, 1fr) auto; gap: var(--space-4); }
   .public-site-chrome .yi-brand__lockup strong { font-size: 15px; }
-  .public-site-chrome .yi-brand__lockup small { font-size: 7px; }
+  .public-site-chrome .yi-brand__lockup small { font-size: var(--type-xs); }
   .public-site-chrome .yi-header__actions .yi-btn--ghost { display: none; }
 }
 

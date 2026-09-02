@@ -5786,56 +5786,8 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
   box-shadow: var(--shadow-md);
 }
 
-.home-sales-mobile-cta { display: none; }
-@media (max-width: 640px) {
-  /* Sticky (not fixed) so the bar rides the bottom of the viewport while
-     scrolling through the page, then docks in its normal flow position —
-     right after the final CTA section, before the footer — instead of
-     permanently overlapping the FAQ/footer. No JS, no magic-number
-     padding-bottom needed to "reserve" room for a fixed overlay. */
-  .home-sales-mobile-cta {
-    position: sticky;
-    z-index: 70;
-    bottom: calc(10px + var(--safe-bottom));
-    margin: 16px 12px calc(16px + var(--safe-bottom));
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: 12px;
-    padding: 10px 10px 10px 14px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    background: var(--surface);
-    box-shadow: var(--shadow-md);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-  }
-  .home-sales-mobile-cta__offer {
-    min-width: 0;
-    display: grid;
-    gap: 2px;
-  }
-  .home-sales-mobile-cta__offer strong {
-    color: var(--text-primary);
-    font-size: var(--type-body);
-    line-height: 1.1;
-    letter-spacing: -.02em;
-  }
-  .home-sales-mobile-cta__offer span {
-    color: var(--text-secondary);
-    font-size: var(--type-xs);
-  }
-  .home-sales-mobile-cta .home-mockup__button {
-    min-height: 48px;
-    width: 100%;
-    padding-inline: 14px;
-    white-space: nowrap;
-  }
-  .home-sales-mobile-cta .home-mockup__button:focus-visible {
-    outline: 2px solid var(--primary-active);
-    outline-offset: 3px;
-  }
-}
+/* .home-sales-mobile-cta rules consolidated into app/styles/home-products-responsive.css
+   (single source of truth — was previously scattered across 5 files). */
 
 .yi-footer__layer-link{
   display:inline-block;

@@ -163,67 +163,10 @@ textarea[aria-invalid="true"] {
     padding-bottom: calc(var(--space-16) + var(--control-height-lg));
   }
 
-  .home-sales-mobile-cta {
-    position: fixed;
-    left: max(var(--space-3), var(--safe-left));
-    right: max(var(--space-3), var(--safe-right));
-    bottom: max(var(--space-3), var(--safe-bottom));
-    z-index: 70;
-    display: grid;
-    grid-template-columns: minmax(72px, .38fr) minmax(0, 1fr);
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-2);
-    border: 1px solid var(--border-subdued);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--surface-card) 94%, transparent);
-    box-shadow: var(--shadow-md);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    transition:
-      opacity var(--motion-standard) var(--ease-standard),
-      transform var(--motion-standard) var(--ease-standard),
-      visibility var(--motion-standard) var(--ease-standard);
-  }
-
-  .home-sales-mobile-cta.is-docked-away {
-    visibility: hidden;
-    pointer-events: none;
-    opacity: 0;
-    transform: translateY(calc(100% + var(--space-5)));
-  }
-
-  .home-sales-mobile-cta__offer {
-    min-width: 0;
-    display: grid;
-    gap: 2px;
-    padding-left: var(--space-2);
-  }
-
-  .home-sales-mobile-cta__offer strong {
-    color: var(--text-primary);
-    font-size: var(--type-body);
-    line-height: 1.1;
-  }
-
-  .home-sales-mobile-cta .home-mockup__button {
-    width: 100%;
-    min-width: 0;
-    min-height: 48px;
-    padding-inline: var(--space-3);
-    white-space: nowrap;
-  }
 }
 
-@media (max-width: 360px) {
-  .home-sales-mobile-cta {
-    grid-template-columns: 72px minmax(0, 1fr);
-  }
-
-  .home-sales-mobile-cta .home-mockup__button {
-    font-size: var(--type-body-sm);
-  }
-}
+/* .home-sales-mobile-cta rules (was above, ≤640px and ≤360px) consolidated
+   into app/styles/home-products-responsive.css — single source of truth. */
 
 @media (prefers-reduced-motion: reduce) {
   .ds-button,

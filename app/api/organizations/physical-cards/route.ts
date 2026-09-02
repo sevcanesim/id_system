@@ -52,6 +52,28 @@ export async function GET(request: NextRequest) {
     .order("activated_at", { ascending: false });
   if (error) return NextResponse.json({ error: "Kartlar yüklenemedi." }, { status: 500 });
 
+  // Pre-activation production/shipping pipeline (commerce_physical_card_units)
+  // has no per-employee attribution yet — purchased units sit in an anonymous
+  // per-organization pool until a card is activated and claims an owner (see
+  // physical_cards above). So this can only be an organization-wide rollup,
+  // not a per-employee status, and is only meaningful to whole-company
+  // managers (not a DEPARTMENT_MANAGER, who cannot attribute pooled units to
+  // their department).
+  let productionSummary: Record<string, number> | null = null;
+  if (["OWNER", "ADMIN", "HR"].includes(actor.role)) {
+    const { data: units, error: unitsError } = await ctx.admin
+      .from("commerce_physical_card_units")
+      .select("operations_status")
+      .eq("organization_id", organizationId);
+    if (!unitsError) {
+      productionSummary = (units || []).reduce((acc, unit) => {
+        const status = unit.operations_status as string;
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+    }
+  }
+
   const ownerIds = [...new Set((data || []).map((card) => card.owner_user_id).filter(Boolean))] as string[];
   let ownersQuery = ownerIds.length
     ? ctx.admin.from("organization_members").select("user_id,full_name,email").eq("organization_id", organizationId).in("user_id", ownerIds)
@@ -76,7 +98,7 @@ export async function GET(request: NextRequest) {
     if (actor.role !== "DEPARTMENT_MANAGER") return true;
     return Boolean(card.ownerUserId && ownerByUserId.has(card.ownerUserId));
   });
-  return NextResponse.json({ cards });
+  return NextResponse.json({ cards, productionSummary });
 }
 
 // PATCH: enable/disable a card. Routed through change_physical_card_status,

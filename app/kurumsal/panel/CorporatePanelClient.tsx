@@ -218,6 +218,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
 
   const {
     physicalCards,
+    productionSummary,
     memberCardStatuses,
     cardAnalytics,
     analyticsDays,
@@ -1406,6 +1407,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                   <CardsPanel
                     members={members}
                     physicalCards={physicalCards}
+                    productionSummary={productionSummary}
                     memberCardStatuses={memberCardStatuses}
                     digitalCardsReady={digitalCardsReady}
                     capacityTerms={org?.organization_capacity_terms || []}

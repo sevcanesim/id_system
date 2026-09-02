@@ -1,0 +1,79 @@
+.dock {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .75rem;
+  min-height: 2.75rem;
+  padding: .4rem max(1rem, calc((100vw - 1440px) / 2));
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 98%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.warning {
+  margin-right: auto;
+  color: #7a4e00;
+  font-size: .78rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+}
+
+.actions a,
+.actions button {
+  min-height: 2rem;
+  padding: 0 .7rem;
+  border: 1px solid transparent;
+  border-radius: .5rem;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.actions a:hover,
+.actions button:hover,
+.actions .active {
+  border-color: var(--border);
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+}
+
+.actions button:disabled {
+  cursor: wait;
+  opacity: .6;
+}
+
+@media (max-width: 47.9375rem) {
+  .dock {
+    position: static;
+    align-items: stretch;
+    flex-direction: column;
+    padding: .5rem;
+  }
+
+  .warning {
+    margin: 0;
+    padding: .45rem .6rem;
+  }
+
+  .actions {
+    overflow-x: auto;
+  }
+
+  .actions a,
+  .actions button {
+    white-space: nowrap;
+  }
+}

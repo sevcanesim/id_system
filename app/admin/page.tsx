@@ -26,10 +26,6 @@ type CorporateAccount = {
   usedSeats: number; memberCount: number; managers: { id: string; role: string; status: string; email: string }[];
 };
 
-function AdminHeader() {
-  return <header className={styles.adminBar}><div className={styles.brand}><span className={styles.mark}>Y</span><div className={styles.brandText}><strong>Yenomi ID</strong><small>Super Admin</small></div></div><nav className={styles.nav} aria-label="Super Admin"><Link href="/admin" aria-current="page">Satışlar</Link><Link href="/admin/operations">Operasyon</Link><Link href="/">Siteyi Gör</Link></nav><span className={styles.live}>GERÇEK VERİ</span></header>;
-}
-
 export default function AdminPage() {
   const [tab, setTab] = useState<"orders" | "reconciliation" | "corporate">("orders");
   const [orders, setOrders] = useState<Order[]>([]); const [loading, setLoading] = useState(true); const [authorized, setAuthorized] = useState(true); const [message, setMessage] = useState("");
@@ -82,10 +78,10 @@ export default function AdminPage() {
     return [order.order_number, order.customer_name, order.guest_email, order.company_name, order.tax_number, address?.city, ...order.commerce_order_items.flatMap((item) => [item.product_name, itemSku(item)])].filter(Boolean).some((value) => String(value).toLocaleLowerCase("tr-TR").includes(needle));
   });
 
-  if (loading) return <main className={styles.page}><AdminHeader /><section className={styles.shell}><div className={styles.message}>Satış verileri yükleniyor…</div></section></main>;
-  if (!authorized) return <main className={styles.page}><AdminHeader /><section className={styles.shell}><div className={styles.message}>Bu alan yalnız Super Admin kullanıcılarına açıktır. <Link href="/giris">Giriş yap</Link></div></section></main>;
+  if (loading) return <main className={styles.page}><section className={styles.shell}><div className={styles.message}>Satış verileri yükleniyor…</div></section></main>;
+  if (!authorized) return <main className={styles.page}><section className={styles.shell}><div className={styles.message}>Bu alan yalnız Super Admin kullanıcılarına açıktır. <Link href="/giris">Giriş yap</Link></div></section></main>;
 
-  return <main id="main-content" className={styles.page}><AdminHeader /><section className={styles.shell}>
+  return <main id="main-content" className={styles.page}><section className={styles.shell}>
     <div className={styles.heading}><div><span className={styles.kicker}>SATIŞ KONTROL MERKEZİ</span><h1>Satışları listeleme değil, aksiyon sırasına göre yönet.</h1><p>Bireysel ve kurumsal alımlar aynı kayıt havuzunda; ödeme, aktivasyon, fulfillment ve teslimat birbirinden ayrı durumlar olarak izlenir.</p></div><button type="button" className={styles.button} onClick={() => void load()}>Veriyi yenile</button></div>
     <div className={styles.tabs} role="tablist"><button type="button" role="tab" aria-selected={tab === "orders"} onClick={() => setTab("orders")}>Satış Kuyruğu</button><button type="button" role="tab" aria-selected={tab === "reconciliation"} onClick={() => setTab("reconciliation")}>Ödeme Mutabakatı</button><button type="button" role="tab" aria-selected={tab === "corporate"} onClick={() => setTab("corporate")}>Kurumsal Hesaplar</button></div>
 

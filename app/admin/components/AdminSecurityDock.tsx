@@ -55,15 +55,31 @@ export default function AdminSecurityDock() {
 
   if (state === "signed-out") return null;
 
-  return <aside className={styles.dock} aria-label="Super Admin navigasyonu">
-    {state === "mfa-required" && pathname !== "/admin/security" && <Link className={styles.warning} href={`/admin/security?next=${encodeURIComponent(pathname)}`}>Google Authenticator doğrulaması gerekli</Link>}
-    <div className={styles.actions}>
-      <Link className={isActive(pathname, "/admin") ? styles.active : ""} href="/admin">Satışlar</Link>
-      <Link className={isActive(pathname, "/admin/operations") ? styles.active : ""} href="/admin/operations">Operasyon</Link>
-      <Link className={isActive(pathname, "/admin/access") ? styles.active : ""} href="/admin/access">Yönetici Erişimi</Link>
-      <Link className={isActive(pathname, "/admin/security") ? styles.active : ""} href="/admin/security">Güvenlik</Link>
-      <Link className={isActive(pathname, "/admin/devir-rehberi") ? styles.active : ""} href="/admin/devir-rehberi">Devir Rehberi</Link>
-      <button type="button" onClick={() => void signOut()} disabled={busy}>{busy ? "Çıkılıyor…" : "Çıkış Yap"}</button>
+  // Tek paylaşılan admin shell: marka + tüm domain sekmeleri (Overview,
+  // Satışlar, Operasyon, Kullanıcılar/Yönetici Erişimi, Güvenlik, Devir
+  // Rehberi) + oturum/MFA durumu, layout.tsx üzerinden her /admin/* rotasında
+  // render edilir. Önceden yalnızca app/admin/page.tsx kendi ayrı marka
+  // çubuğunu (AdminHeader) render ediyordu ve bu dock'un üstünde ikinci,
+  // kopuk bir şerit oluşturuyordu; artık marka + "Siteyi Gör" + canlı veri
+  // rozeti de buraya taşındı, ikinci bir admin shell yok.
+  return <header className={styles.dock} aria-label="Super Admin navigasyonu">
+    <div className={styles.brand}>
+      <span className={styles.mark}>Y</span>
+      <div className={styles.brandText}><strong>Yenomi ID</strong><small>Super Admin</small></div>
     </div>
-  </aside>;
+    <div className={styles.center}>
+      {state === "mfa-required" && pathname !== "/admin/security" && <Link className={styles.warning} href={`/admin/security?next=${encodeURIComponent(pathname)}`}>Google Authenticator doğrulaması gerekli</Link>}
+      <div className={styles.actions}>
+        <Link className={isActive(pathname, "/admin/overview") ? styles.active : ""} href="/admin/overview">Overview</Link>
+        <Link className={isActive(pathname, "/admin") ? styles.active : ""} href="/admin">Satışlar</Link>
+        <Link className={isActive(pathname, "/admin/operations") ? styles.active : ""} href="/admin/operations">Operasyon</Link>
+        <Link className={isActive(pathname, "/admin/access") ? styles.active : ""} href="/admin/access">Yönetici Erişimi</Link>
+        <Link className={isActive(pathname, "/admin/security") ? styles.active : ""} href="/admin/security">Güvenlik</Link>
+        <Link className={isActive(pathname, "/admin/devir-rehberi") ? styles.active : ""} href="/admin/devir-rehberi">Devir Rehberi</Link>
+        <Link href="/">Siteyi Gör</Link>
+        <button type="button" onClick={() => void signOut()} disabled={busy}>{busy ? "Çıkılıyor…" : "Çıkış Yap"}</button>
+      </div>
+    </div>
+    <span className={styles.live}>GERÇEK VERİ</span>
+  </header>;
 }

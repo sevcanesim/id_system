@@ -23,11 +23,21 @@ export default function AdminSecurityDock() {
       if (!sessionData.session) { if (!cancelled) setState("signed-out"); return; }
       const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
       if (cancelled) return;
-      setState(aalData.currentLevel === "aal2" ? "secure" : "mfa-required");
+
+      if (aalData.currentLevel === "aal2") {
+        setState("secure");
+        return;
+      }
+
+      setState("mfa-required");
+      if (pathname !== "/admin/security") {
+        const next = pathname.startsWith("/admin") ? pathname : "/admin";
+        router.replace(`/admin/security?next=${encodeURIComponent(next)}`);
+      }
     }
     void check();
     return () => { cancelled = true; };
-  }, [pathname]);
+  }, [pathname, router]);
 
   async function signOut() {
     const supabase = getSupabaseBrowserClient();
@@ -41,7 +51,7 @@ export default function AdminSecurityDock() {
   if (state === "signed-out") return null;
 
   return <aside className={styles.dock} aria-label="Super Admin hızlı işlemler">
-    {state === "mfa-required" && pathname !== "/admin/security" && <Link className={styles.warning} href="/admin/security">Google Authenticator doğrulaması gerekli</Link>}
+    {state === "mfa-required" && pathname !== "/admin/security" && <Link className={styles.warning} href={`/admin/security?next=${encodeURIComponent(pathname)}`}>Google Authenticator doğrulaması gerekli</Link>}
     <div className={styles.actions}>
       <Link className={pathname === "/admin/security" ? styles.active : ""} href="/admin/security">Güvenlik</Link>
       <Link className={pathname === "/admin/devir-rehberi" ? styles.active : ""} href="/admin/devir-rehberi">Devir Rehberi</Link>

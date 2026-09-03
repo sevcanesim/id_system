@@ -7,7 +7,7 @@
 @media (max-width: 760px) {
   :root {
     --mobile-gutter: 20px;
-    --mobile-section-gap: 36px;
+    --mobile-section-gap: 32px;
     --mobile-card-pad: 20px;
     --mobile-card-radius: 20px;
   }
@@ -222,8 +222,8 @@
   .home-sales-final h2 {
     max-width: 100%;
     margin: 10px 0 14px;
-    font-size: clamp(32px, 9.2vw, 40px);
-    line-height: 1.04;
+    font-size: clamp(30px, 8.8vw, 36px);
+    line-height: 1.06;
     letter-spacing: -.04em;
     text-wrap: balance;
     overflow-wrap: normal;
@@ -238,14 +238,14 @@
   .home-sales-final > p {
     max-width: 100%;
     margin: 0;
-    font-size: 16px;
-    line-height: 1.58;
+    font-size: 15px;
+    line-height: 1.55;
   }
 
   .home-mockup .home-sales-copy h1 {
     max-width: 100%;
-    font-size: clamp(38px, 10.2vw, 44px);
-    line-height: 1;
+    font-size: clamp(36px, 9.7vw, 42px);
+    line-height: 1.02;
     letter-spacing: -.045em;
   }
 
@@ -267,12 +267,12 @@
   }
 
   .home-premium__journey-steps h3 {
-    font-size: 21px;
+    font-size: 19px;
   }
 
   .home-premium__journey-steps p {
     margin-top: 6px;
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .home-premium__journey-action {

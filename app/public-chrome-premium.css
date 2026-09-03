@@ -276,7 +276,7 @@
 
 .yi-footer--premium .yi-container {
   max-width: var(--container-content);
-  padding-top: var(--space-16);
+  padding-top: var(--space-12);
   padding-bottom: var(--space-8);
 }
 
@@ -306,8 +306,8 @@
 
 .yi-footer__premium-grid {
   display: grid;
-  grid-template-columns: minmax(260px, 1.55fr) repeat(3, minmax(130px, .55fr));
-  gap: var(--space-12);
+  grid-template-columns: minmax(260px, 1.1fr) repeat(3, minmax(130px, .6fr));
+  gap: var(--space-8);
   align-items: start;
 }
 
@@ -360,8 +360,8 @@
 }
 
 .yi-footer__premium-base {
-  margin-top: var(--space-12);
-  padding-top: var(--space-5);
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
   border-top: 1px solid var(--border-subdued);
   display: flex;
   align-items: center;

@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
 import CardTemplate, { EditableCardData } from "../CardTemplate";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { fetchOwnProfiles } from "../../lib/repositories/profiles";
 import { getCardProfileCompletion } from "../../lib/card-profile";
 import UserPanelShell from "../components/UserPanelShell";
-import { Card } from "../components/ui";
+import { ButtonLink, Card, EmptyState } from "../components/ui";
 import { Icon } from "../icons";
 import AddToCartButton from "../components/AddToCartButton";
 import { useProfileCardActions } from "../hooks/useProfileCardActions";
@@ -38,7 +37,6 @@ type PhysicalCard = {
 };
 
 export default function MyCardPage() {
-  const router = useRouter();
   const [data, setData] = useState<CardData | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [savedSlug, setSavedSlug] = useState("");
@@ -49,7 +47,6 @@ export default function MyCardPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [qrDataUrl, setQrDataUrl] = useState("");
-  const [accountContextChecked, setAccountContextChecked] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -63,7 +60,6 @@ export default function MyCardPage() {
       const { data: authData } = await supabase.auth.getUser();
       if (cancelled) return;
       if (!authData.user) {
-        setAccountContextChecked(true);
         setLoading(false);
         return;
       }
@@ -76,7 +72,6 @@ export default function MyCardPage() {
 
       const profile = profiles[0] ?? null;
       const token = sessionData.session?.access_token;
-      setAccountContextChecked(true);
       if (error) setMessage(error);
 
       if (!profile) {
@@ -120,7 +115,6 @@ export default function MyCardPage() {
     })().catch(() => {
       if (!cancelled) {
         setMessage("Kartvizit bilgileri yüklenemedi.");
-        setAccountContextChecked(true);
         setLoading(false);
       }
     });
@@ -191,10 +185,6 @@ export default function MyCardPage() {
   });
 
   useEffect(() => {
-    if (!loading && accountContextChecked && !data) router.replace("/kartlarim");
-  }, [accountContextChecked, data, loading, router]);
-
-  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setMessage("");
     };
@@ -212,8 +202,13 @@ export default function MyCardPage() {
 
   if (!data || !completion) {
     return (
-      <UserPanelShell activeKey="card" title="Kartım" description="Kart durumunuz kontrol ediliyor.">
-        <Card><p className="p14-state-copy">Kart durumu kontrol ediliyor…</p></Card>
+      <UserPanelShell activeKey="card" title="Kartım" description="Dijital kartını düzenlemek için önce sipariş veya aktivasyon gerekir.">
+        <EmptyState
+          icon="id"
+          title="Sipariş bekleniyor"
+          description="Kartın tamamlandığında canlı profilini, QR kodunu ve Kayıp Modu ayarlarını buradan yönetebileceksin."
+          action={<ButtonLink href="/urunler/nfc-kart">İlk Dijital Kimliğini Tasarla & Sipariş Et</ButtonLink>}
+        />
       </UserPanelShell>
     );
   }

@@ -1,7 +1,39 @@
 .yi-icon-badge--soft .yi-icon { stroke-width:1.75; }
 
-.ds-button { display:inline-flex; align-items:center; justify-content:center; font-weight: 700; }
+.ds-button {
+  min-height:var(--control-height-md);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:var(--space-2);
+  padding-inline:var(--space-3);
+  font-weight:700;
+  line-height:var(--line-height-tight);
+}
 .ds-button:hover { opacity:0.9; }
+.ds-button--lg { min-height:var(--control-height-lg); padding-inline:var(--space-5); }
+.ds-button--sm { min-height:var(--control-height-sm); }
+
+.ds-button:focus-visible,
+.ds-input:focus-visible,
+.ds-select:focus-visible,
+.ds-textarea:focus-visible,
+.ds-checkbox input:focus-visible + span,
+.ds-switch input:focus-visible + .ds-switch__track {
+  outline:3px solid color-mix(in srgb,var(--brand-gold) 34%,transparent);
+  outline-offset:2px;
+}
+.ds-input,.ds-select,.ds-textarea {
+  min-height:var(--control-height-md);
+  border-radius:var(--radius-md);
+  font-family:var(--font-family-ui);
+  line-height:var(--line-height-body);
+}
+.ds-textarea { min-height:calc(var(--control-height-md) * 2); padding-block:var(--space-3); }
+.ds-field[data-invalid="true"] .ds-input,
+.ds-field[data-invalid="true"] .ds-select,
+.ds-field[data-invalid="true"] .ds-textarea { border-color:var(--error); }
+.ds-error { color:var(--error); font-size:var(--type-sm); line-height:var(--line-height-body); }
 
 /* Product/public cards reuse the same visual contract. */
 .ds-product-card,.ds-pricing-card {

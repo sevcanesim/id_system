@@ -12,6 +12,7 @@ import OrdersTab from "./components/OrdersTab";
 import ReconciliationTab from "./components/ReconciliationTab";
 import CorporateTab from "./components/CorporateTab";
 import OrderDetailDrawer from "./components/OrderDetailDrawer";
+import { LoadingState } from "../components/ui/States";
 import styles from "./AdminSales.module.css";
 
 export default function AdminPage() {
@@ -66,11 +67,11 @@ export default function AdminPage() {
     return [order.order_number, order.customer_name, order.guest_email, order.company_name, order.tax_number, address?.city, ...order.commerce_order_items.flatMap((item) => [item.product_name, itemSku(item)])].filter(Boolean).some((value) => String(value).toLocaleLowerCase("tr-TR").includes(needle));
   });
 
-  if (loading) return <main className={styles.page}><section className={styles.shell}><div className={styles.message}>Satış verileri yükleniyor…</div></section></main>;
+  if (loading) return <main className={styles.page}><section className={styles.shell}><LoadingState variant="panel" label="Satış verileri hazırlanıyor" hint="Sipariş, ödeme ve aktivasyon durumları yükleniyor." /></section></main>;
   if (!authorized) return <main className={styles.page}><section className={styles.shell}><div className={styles.message}>Bu alan yalnız Super Admin kullanıcılarına açıktır. <Link href="/giris">Giriş yap</Link></div></section></main>;
 
   return <main id="main-content" className={styles.page}><section className={styles.shell}>
-    <div className={styles.heading}><div><span className={styles.kicker}>SATIŞ KONTROL MERKEZİ</span><h1>Satışları listeleme değil, aksiyon sırasına göre yönet.</h1><p>Bireysel ve kurumsal alımlar aynı kayıt havuzunda; ödeme, aktivasyon, fulfillment ve teslimat birbirinden ayrı durumlar olarak izlenir.</p></div><button type="button" className={styles.button} onClick={() => void load()}>Veriyi yenile</button></div>
+    <div className={styles.heading}><div><span className={styles.kicker}>SATIŞ KONTROL MERKEZİ</span><h1>Satışları listeleme değil, aksiyon sırasına göre yönet.</h1><p>Bireysel ve kurumsal alımlar aynı kayıt havuzunda; ödeme, aktivasyon, fulfillment ve teslimat birbirinden ayrı durumlar olarak izlenir.</p></div><div className={styles.actions}><Link className={styles.button} href="/admin/overview">Platform genel bakış</Link><button type="button" className={styles.button} onClick={() => void load()}>Veriyi yenile</button></div></div>
     <div className={styles.tabs} role="tablist"><button type="button" role="tab" aria-selected={tab === "orders"} onClick={() => setTab("orders")}>Satış Kuyruğu</button><button type="button" role="tab" aria-selected={tab === "reconciliation"} onClick={() => setTab("reconciliation")}>Ödeme Mutabakatı</button><button type="button" role="tab" aria-selected={tab === "corporate"} onClick={() => setTab("corporate")}>Kurumsal Hesaplar</button></div>
 
     {tab === "orders" && <OrdersTab

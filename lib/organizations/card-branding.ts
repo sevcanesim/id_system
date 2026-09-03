@@ -92,13 +92,9 @@ export async function fetchCardBranding(userId: string | null | undefined): Prom
       logoUrl: template.logo_url ?? null,
       primaryColor: template.primary_color ?? null,
       companyName: organization?.name ?? null,
-      variant: (() => {
-        const fields = (template.fields || {}) as Record<string, unknown>;
-        const value = typeof fields.templateVariant === "string" ? fields.templateVariant : "ESSENTIAL";
-        if (value === "CLASSIC") return "ESSENTIAL";
-        if (value === "MINIMAL") return "PROFESSIONAL";
-        return (["ESSENTIAL", "PROFESSIONAL", "EXECUTIVE"].includes(value) ? value : "ESSENTIAL") as CardBranding["variant"];
-      })(),
+      // Launch policy: other variants remain implemented, but public corporate
+      // cards render the single approved Matte Obsidian / Essential template.
+      variant: "ESSENTIAL" as CardBranding["variant"],
     };
   } catch {
     return null;

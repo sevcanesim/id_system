@@ -1,0 +1,39 @@
+.launchStandard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(12rem, .72fr);
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-5);
+  border: 1px solid color-mix(in srgb, var(--brand-gold) 28%, var(--border));
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--surface-card), var(--brand-gold-soft));
+}
+
+.launchStandard > div:first-child {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.launchStandard span {
+  color: var(--brand-gold-deep);
+  font-size: var(--type-xs);
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+.launchStandard strong {
+  color: var(--text-primary);
+  font-size: var(--type-h4);
+  line-height: 1.2;
+}
+
+.launchStandard p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-body-sm);
+  line-height: 1.55;
+}
+
+@media (max-width: 47.9375rem) {
+  .launchStandard { grid-template-columns: 1fr; }
+}

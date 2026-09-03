@@ -13,7 +13,6 @@ import {
 } from "../../../lib/organizations/role-matrix";
 import { type CardBranding } from "../../CardTemplate";
 import { getSeatBreakdown } from "../../../lib/organizations/lifecycle";
-import type { DatabaseTemplateOption } from "../../../lib/config/database";
 import { clearLegacyCart, setCartOwner } from "../../../lib/cart";
 import { parseBulkInviteCsv, BULK_INVITE_MAX_ROWS } from "../../../lib/organizations/bulk-invite";
 import JobTitlesPanel from "./components/JobTitlesPanel";
@@ -62,7 +61,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   const [members, setMembers] = useState<Member[]>([]);
   const [organizationSeatUsage, setOrganizationSeatUsage] = useState<number | null>(null);
   const [message, setMessage] = useState("");
-  const [templateOptions, setTemplateOptions] = useState<DatabaseTemplateOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingSlow, setLoadingSlow] = useState(false);
   const [dataErrors, setDataErrors] = useState<Partial<Record<CorporatePanelTab, string>>>({});
@@ -128,22 +126,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     window.sessionStorage.setItem("yenomi-active-portal", "business");
   }, [pathname, searchParams]);
 
-  useEffect(() => {
-    let cancelled = false;
-    void fetch("/api/public-config?scope=corporate")
-      .then(async (response) => {
-        if (!response.ok) throw new Error("config unavailable");
-        return response.json();
-      })
-      .then((publicConfigPayload) => {
-        if (cancelled) return;
-        setTemplateOptions(publicConfigPayload.templateOptions || []);
-      })
-      .catch(() => {
-        if (!cancelled) setMessage("Şablon seçenekleri yüklenemedi.");
-      });
-    return () => { cancelled = true; };
-  }, []);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [departmentFilter, setDepartmentFilter] = useState("ALL");
@@ -585,6 +567,8 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     setProfileBusy(true);
     setProfileError(null);
     setProfileSaved(false);
+    const launchFields = { ...companyFields, templateVariant: "ESSENTIAL" };
+    setCompanyFields(launchFields);
     const existingDefault = templates.find((item) => item.is_default);
     // Aktif/varsayılan şablon zaten kayıtlıysa YERİNDE güncelle (PATCH) —
     // her kaydetmede yeni satır biriktirmemek için. Hiç şablon yoksa (ilk
@@ -593,12 +577,12 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       ? await fetch("/api/organizations/templates", {
           method: "PATCH",
           headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
-          body: JSON.stringify({ templateId: existingDefault.id, ...template, fields: companyFields }),
+          body: JSON.stringify({ templateId: existingDefault.id, ...template, fields: launchFields }),
         })
       : await fetch("/api/organizations/templates", {
           method: "POST",
           headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
-          body: JSON.stringify({ organizationId: selected, ...template, fields: companyFields, isDefault: true }),
+          body: JSON.stringify({ organizationId: selected, ...template, fields: launchFields, isDefault: true }),
         });
     const templatePayload = await response.json();
     if (response.ok) {
@@ -1032,19 +1016,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     logoUrl: template.logoUrl || null,
     primaryColor: template.primaryColor || null,
     companyName: org?.organizations?.name || "Şirketiniz",
-    variant: ([
-      "ESSENTIAL",
-      "PROFESSIONAL",
-      "EXECUTIVE",
-      "CLASSIC",
-      "MINIMAL",
-    ].includes(String(companyFields.templateVariant))
-      ? String(companyFields.templateVariant) === "CLASSIC"
-        ? "ESSENTIAL"
-        : String(companyFields.templateVariant) === "MINIMAL"
-          ? "PROFESSIONAL"
-          : String(companyFields.templateVariant)
-      : "ESSENTIAL") as CardBranding["variant"],
+    variant: "ESSENTIAL",
   };
   const templatePreviewData = {
     name: templatePreviewMember?.full_name || org?.organizations?.name || "Çalışan",
@@ -1297,17 +1269,12 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
 
                 {currentTab === "templates" && (
                   <TemplatesPanel
-                    templateVariant={String(companyFields.templateVariant || "ESSENTIAL")}
-                    onTemplateVariantChange={(templateVariant) =>
-                      setCompanyFields((value) => ({ ...value, templateVariant }))
-                    }
                     template={template}
                     setTemplate={setTemplate}
                     previewBranding={templatePreviewBranding}
                     previewData={templatePreviewData}
                     activeTemplateName={templates.find((item) => item.is_default)?.name ?? null}
                     onSubmit={saveTemplate}
-                    templateOptions={templateOptions}
                   />
                 )}
                 {currentTab === "cards" && (

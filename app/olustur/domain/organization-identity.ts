@@ -98,9 +98,9 @@ export async function fetchOrganizationIdentity(
       logoUrl: templateRow?.logo_url ?? null,
       primaryColor: templateRow?.primary_color ?? null,
       companyName: lock.organizationName || null,
-      variant: (typeof fields.templateVariant === "string" && ["ESSENTIAL", "PROFESSIONAL", "EXECUTIVE", "CLASSIC", "MINIMAL"].includes(fields.templateVariant)
-        ? fields.templateVariant === "CLASSIC" ? "ESSENTIAL" : fields.templateVariant === "MINIMAL" ? "PROFESSIONAL" : fields.templateVariant
-        : "ESSENTIAL") as CardBranding["variant"],
+      // Corporate variants remain available for future launch decisions; the
+      // active editor and every corporate preview use the approved standard.
+      variant: "ESSENTIAL" as CardBranding["variant"],
     };
 
     return { lock, lockedValues, suggestedValues, branding };

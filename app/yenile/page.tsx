@@ -6,6 +6,7 @@ import UserPanelShell from "../components/UserPanelShell";
 import AddToCartButton from "../components/AddToCartButton";
 import { Icon } from "../icons";
 import { Badge, ButtonLink, Card, EmptyState } from "../components/ui";
+import { LoadingState } from "../components/ui/States";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import {
   COMMERCIAL_PRICING,
@@ -98,7 +99,7 @@ export default function RenewalPage() {
   return (
     <UserPanelShell activeKey="subscription" eyebrow="HİZMET" title="Hizmet & Yenileme" description="Yenileme tarihini, kalan süreyi, Premium yükseltmeyi ve paket fiyatlarını yönet.">
       <div className={styles.page}>
-        {service.loading ? <Card><p>Hizmet bilgisi yükleniyor…</p></Card> : !service.signedIn ? (
+        {service.loading ? <LoadingState variant="panel" label="Hizmet bilgilerin hazırlanıyor" hint="Paketin ve yenileme tarihin kontrol ediliyor." /> : !service.signedIn ? (
           <EmptyState title="Oturum gerekli" description="Hizmet durumunu görmek için hesabına giriş yap." action={<ButtonLink href="/giris?next=%2Fyenile">Hesabına gir</ButtonLink>} />
         ) : (
           <>

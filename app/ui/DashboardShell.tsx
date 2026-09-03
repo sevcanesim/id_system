@@ -22,12 +22,14 @@ type ShellAction = {
 export default function DashboardShell({
   title,
   description,
+  eyebrow = "YENOMI ID",
   children,
   actions = [],
   portal = "individual",
 }: {
   title: string;
   description?: string;
+  eyebrow?: string;
   children: ReactNode;
   actions?: ShellAction[];
   portal?: "individual" | "business";
@@ -133,7 +135,7 @@ export default function DashboardShell({
 
           <div className="yi-app__content p7-content">
             <div className="yi-page-head">
-              <span>YENOMI ID</span>
+              <span>{eyebrow}</span>
               <h1>{title}</h1>
               {description && <p>{description}</p>}
             </div>
@@ -195,7 +197,7 @@ export default function DashboardShell({
         </header>
         <div className="yi-app__content p7-content">
           <div className="yi-page-head">
-            <span>YENOMI ID</span>
+            <span>{eyebrow}</span>
             <h1>{title}</h1>
             {description && <p>{description}</p>}
             {actions.length > 0 && (

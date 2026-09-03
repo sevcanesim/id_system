@@ -127,10 +127,9 @@ type Props = {
 };
 
 function templateVariant(fields: Record<string, string | boolean>): CardBranding["variant"] {
-  const value = String(fields.templateVariant);
-  if (value === "CLASSIC") return "ESSENTIAL";
-  if (value === "MINIMAL") return "PROFESSIONAL";
-  if (["ESSENTIAL", "PROFESSIONAL", "EXECUTIVE"].includes(value)) return value as CardBranding["variant"];
+  // Variants remain available in the codebase, but the launch surface has one
+  // approved corporate template so previews match the public card experience.
+  void fields;
   return "ESSENTIAL";
 }
 

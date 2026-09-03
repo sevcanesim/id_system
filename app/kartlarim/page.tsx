@@ -46,6 +46,7 @@ type PurchaseSnapshot = {
   created_at?: string | null;
 };
 type CardProcessPayload = { process?: CardProcess | null; entitlement?: Entitlement | null; order?: PurchaseSnapshot | null };
+type PhysicalCard = { id: string; status: "ACTIVE" | "LOST" | "DISABLED"; replaced_by_card_id?: string | null };
 
 const PROFILE_FIELDS = ["name", "role", "email", "phone", "image_url"] as const;
 const STATUS_LABEL: Record<OperationalStatus, string> = {
@@ -65,9 +66,9 @@ function formatDateTime(value?: string | null) {
 }
 
 function processStep(status?: OperationalStatus | null) {
-  if (!status || status === "PROFILE_REQUIRED" || status === "PRINT_PENDING" || status === "PRINTING" || status === "SHIPPING_PENDING") return 0;
-  if (status === "IN_TRANSIT") return 1;
-  if (status === "OUT_FOR_DELIVERY") return 2;
+  if (!status || status === "PROFILE_REQUIRED" || status === "PRINT_PENDING") return 0;
+  if (status === "PRINTING" || status === "SHIPPING_PENDING") return 1;
+  if (status === "IN_TRANSIT" || status === "OUT_FOR_DELIVERY") return 2;
   if (status === "DELIVERED") return 3;
   return 0;
 }
@@ -78,11 +79,13 @@ export default function MyCardsPage() {
   const [entitlements, setEntitlements] = useState<Entitlement[]>([]);
   const [process, setProcess] = useState<CardProcess | null>(null);
   const [purchase, setPurchase] = useState<PurchaseSnapshot | null>(null);
+  const [physicalCard, setPhysicalCard] = useState<PhysicalCard | null>(null);
   const [spare, setSpare] = useState(0);
   const [pageState, setPageState] = useState<PageState>("checking");
   const [queueing, setQueueing] = useState(false);
   const [message, setMessage] = useState("");
   const [qrDataUrl, setQrDataUrl] = useState("");
+  const [updatingLostMode, setUpdatingLostMode] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -106,10 +109,11 @@ export default function MyCardsPage() {
       const token = sessionData.session?.access_token;
       if (!token) { setProfiles(ownProfiles); setPageState("ready"); return; }
 
-      const [entitlementsResponse, organizationsResponse, processResponse] = await Promise.all([
+      const [entitlementsResponse, organizationsResponse, processResponse, cardsResponse] = await Promise.all([
         fetch("/api/commerce/entitlements", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" }),
         fetch("/api/organizations/mine", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" }),
         fetch("/api/commerce/card-process", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" }),
+        fetch(`/api/cards?profileId=${encodeURIComponent(ownProfiles[0]?.id || "")}`, { headers: { authorization: `Bearer ${token}` }, cache: "no-store" }),
       ]);
       if (cancelled) return;
 
@@ -134,6 +138,10 @@ export default function MyCardsPage() {
         const payload = (await processResponse.json()) as CardProcessPayload;
         setProcess(payload.process ?? null);
         setPurchase(payload.order ?? null);
+      }
+      if (cardsResponse.ok) {
+        const payload = await cardsResponse.json() as { cards?: PhysicalCard[] };
+        setPhysicalCard(payload.cards?.find((card) => !card.replaced_by_card_id) ?? payload.cards?.[0] ?? null);
       }
       setPageState("ready");
     })().catch(() => { if (!cancelled) setPageState("ready"); });
@@ -189,6 +197,29 @@ export default function MyCardsPage() {
       setMessage("Kartvizit bağlantın kopyalandı.");
     } catch {
       setMessage("Bağlantı kopyalanamadı. Lütfen yeniden deneyin.");
+    }
+  }
+
+  async function toggleLostMode() {
+    if (!physicalCard || updatingLostMode) return;
+    const nextStatus = physicalCard.status === "LOST" ? "ACTIVE" : "LOST";
+    if (nextStatus === "LOST" && !window.confirm("Kartı kayıp moduna almak fiziksel kart üzerinden erişimi durdurur. Dijital profilin çalışmaya devam eder. Devam etmek istiyor musun?")) return;
+    setUpdatingLostMode(true);
+    setMessage("");
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
+      const token = data.session?.access_token;
+      if (!token) throw new Error("Oturum doğrulanamadı.");
+      const response = await fetch("/api/cards", { method: "PATCH", headers: { authorization: `Bearer ${token}`, "content-type": "application/json" }, body: JSON.stringify({ cardId: physicalCard.id, status: nextStatus }) });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "Kayıp modu güncellenemedi.");
+      setPhysicalCard((card) => card ? { ...card, status: nextStatus } : card);
+      setMessage(nextStatus === "LOST" ? "Kayıp modu etkin. Dijital profilin çalışmaya devam eder." : "Fiziksel kart yeniden etkinleştirildi.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Kayıp modu güncellenemedi.");
+    } finally {
+      setUpdatingLostMode(false);
     }
   }
 
@@ -254,7 +285,7 @@ export default function MyCardsPage() {
             <section className={styles.processCard}>
               <div className={styles.processHeader}><div><span className={styles.eyebrow}>KART SİPARİŞİ & KARGO</span><h2 className={styles.title}>Fiziksel kart süreci</h2></div><span className={styles.status}>{process ? STATUS_LABEL[process.operations_status] : "Sipariş eşleştiriliyor"}</span></div>
               <div className={styles.steps}>
-                {[{ title: "Hazırlanıyor", text: process?.operations_status === "PRINT_PENDING" ? "Baskı onayı bekleniyor" : process?.operations_status === "PRINTING" ? "Kartın basılıyor" : process?.operations_status === "SHIPPING_PENDING" ? "Kargo işlemi bekleniyor" : "Kart hazırlık süreci" }, { title: "Kargoya Verildi", text: process?.carrier || process?.tracking_number ? [process.carrier && `Kargo firması: ${process.carrier}`, process.tracking_number && `Takip no: ${process.tracking_number}`].filter(Boolean).join(" · ") : "Kargo bilgisi girildiğinde burada görünür" }, { title: "Dağıtımda", text: process?.out_for_delivery_at ? formatDateTime(process.out_for_delivery_at) : "Dağıtıma çıkması bekleniyor" }, { title: "Teslim Edildi", text: process?.delivered_at ? formatDateTime(process.delivered_at) : "Teslimat bekleniyor" }].map((step, index) => <div className={`${styles.step} ${index <= currentStep ? styles.stepActive : ""}`} key={step.title}><small>0{index + 1}</small><strong>{step.title}</strong><span>{step.text}</span></div>)}
+                {[{ title: "Sipariş alındı", text: "Kart hazırlık süreci" }, { title: "Baskıda", text: process?.operations_status === "PRINTING" ? "Kartın basılıyor" : "Baskı onayı bekleniyor" }, { title: "Kargoda", text: process?.carrier || process?.tracking_number ? [process.carrier && `Kargo firması: ${process.carrier}`, process.tracking_number && `Takip no: ${process.tracking_number}`].filter(Boolean).join(" · ") : "Kargo bilgisi girildiğinde burada görünür" }, { title: "Teslim edildi", text: process?.delivered_at ? formatDateTime(process.delivered_at) : "Teslimat bekleniyor" }].map((step, index) => <div className={`${styles.step} ${index <= currentStep ? styles.stepActive : ""} ${index === currentStep ? styles.stepCurrent : ""}`} key={step.title}><small>{index < currentStep ? "✓" : `0${index + 1}`}</small><strong>{step.title}</strong><span>{step.text}</span></div>)}
               </div>
             </section>
 
@@ -262,6 +293,15 @@ export default function MyCardsPage() {
               <ButtonLink href={`/olustur?id=${primary.id}`} variant="secondary"><span>01</span> Profili güncelle</ButtonLink>
               <ButtonLink href="/kartim" variant="secondary"><span>02</span> vCard ve QR’ı test et</ButtonLink>
               <ButtonLink href="/kartim" variant="secondary"><span>03</span> Yedek / ek kart sipariş et</ButtonLink>
+            </section>
+
+            <section className={`${styles.card} ${styles.lostMode}`} aria-labelledby="lost-mode-title">
+              <div>
+                <span className={styles.eyebrow}>ACİL DURUM</span>
+                <h2 className={styles.title} id="lost-mode-title">Kayıp modu</h2>
+                <p className={styles.copy}>{physicalCard ? physicalCard.status === "LOST" ? "Fiziksel kartın NFC erişimi kapalı. Dijital profilin yayınlanmaya devam eder." : "Kartını kaybedersen fiziksel NFC erişimini anında kapatabilirsin." : "Fiziksel kart teslim edildiğinde kayıp modu buradan yönetilir."}</p>
+              </div>
+              <Button variant="secondary" onClick={() => void toggleLostMode()} disabled={!physicalCard || updatingLostMode}>{updatingLostMode ? "Güncelleniyor…" : physicalCard?.status === "LOST" ? "Kartı yeniden etkinleştir" : "Kayıp modunu aç"}</Button>
             </section>
 
             <section className={styles.card}>

@@ -328,6 +328,24 @@
   border-top-color: currentColor;
 }
 
+.stepCurrent::before {
+  position: absolute;
+  top: -6px;
+  left: 0;
+  width: .55rem;
+  height: .55rem;
+  border-radius: 50%;
+  background: var(--brand-gold);
+  box-shadow: 0 0 0 .32rem color-mix(in srgb, var(--brand-gold) 20%, transparent);
+  animation: stepPulse 1.8s ease-in-out infinite;
+  content: "";
+}
+
+@keyframes stepPulse {
+  0%, 100% { box-shadow: 0 0 0 .18rem color-mix(in srgb, var(--brand-gold) 14%, transparent); }
+  50% { box-shadow: 0 0 0 .48rem color-mix(in srgb, var(--brand-gold) 4%, transparent); }
+}
+
 .step strong {
   font-size: var(--type-body-sm);
 }
@@ -367,6 +385,20 @@
   font-weight: 700;
 }
 
+.lostMode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  border-color: color-mix(in srgb, #b53d45 34%, var(--border));
+  background: linear-gradient(135deg, #fffafa, #fff3f2);
+}
+
+.lostMode .eyebrow { color: #a4333b; }
+.lostMode .title { color: #68252c; }
+.lostMode :global(.yi-btn) { border-color: #b53d45; background: #b53d45; color: white; }
+.lostMode :global(.yi-btn):disabled { opacity: .55; }
+
 .message {
   margin-top: var(--space-3);
   color: var(--text-secondary);
@@ -377,6 +409,10 @@
   .heroGrid {
     grid-template-columns: 1fr;
   }
+}
+
+@media (min-width: 64.0625rem) {
+  .studio { position: sticky; top: var(--space-5); }
 }
 
 @media (max-width: 47.9375rem) {
@@ -391,7 +427,8 @@
   }
 
   .notice,
-  .processHeader {
+  .processHeader,
+  .lostMode {
     display: grid;
   }
 
@@ -415,6 +452,8 @@
   .stepActive {
     border-left-color: currentColor;
   }
+
+  .stepCurrent::before { top: .65rem; left: -6px; }
 
   .identityHero {
     padding: var(--space-5);

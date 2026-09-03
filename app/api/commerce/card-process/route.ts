@@ -78,7 +78,17 @@ export async function GET(request: NextRequest) {
     const user = await authenticatedUser(request);
     if (!user) return NextResponse.json(publicError("AUTH_REQUIRED"), { status: 401 });
 
-    const { admin, unit, entitlement, order } = await resolveOwnUnit(user.id);
+    const requestedProfileId = request.nextUrl.searchParams.get("profileId");
+    const profileId = requestedProfileId ? z.string().uuid().safeParse(requestedProfileId) : null;
+    if (requestedProfileId && !profileId?.success) {
+      return NextResponse.json({ error: "Geçersiz profil." }, { status: 400 });
+    }
+
+    const { admin, unit, entitlement, order, profileFound } = await resolveOwnUnit(
+      user.id,
+      profileId?.data,
+    );
+    if (!profileFound) return NextResponse.json({ error: "Profil bulunamadı." }, { status: 404 });
     if (!unit) return NextResponse.json({ process: null, entitlement, order, events: [] });
 
     const { data: events } = await admin

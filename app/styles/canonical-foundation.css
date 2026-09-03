@@ -1,0 +1,172 @@
+/* Canonical foundation extracted from app/canonical.css.
+ * Imported before the compatibility layer so the original cascade order stays intact. */
+
+/* Yenomi typography assets — bundled locally for deterministic rendering. */
+@font-face { font-family:"Yenomi Inter";
+  src: url("/fonts/Inter-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face { font-family:"Yenomi Inter";
+  src: url("/fonts/Inter-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face { font-family:"Yenomi Inter";
+  src: url("/fonts/Inter-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face { font-family:"Yenomi Inter";
+  src: url("/fonts/Inter-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family:"Yenomi Inter Display";
+  src: url("/fonts/InterDisplay-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family:"Yenomi Inter Display";
+  src: url("/fonts/InterDisplay-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family:"Yenomi Inter Display";
+  src: url("/fonts/InterDisplay-ExtraBold.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Typography: local Inter for deterministic rendering; SF Pro / system UI as resilient fallbacks.
+ * Body copy stays at 16px+ for comfortable reading; display type is reserved for hierarchy. */
+:root {
+  /* Premium light — universal default. Dark is now an intentional accent
+   * (product cards, mockups, the login panel), never a full-page theme. */
+  --void: #f7f5f0;
+  --deep: #efece4;
+  --surface: #ffffff;
+  --surface-2: #faf8f3;
+  --surface-3: #f1eee6;
+  --ink: #18151b;
+  --ink-2: #514c46;
+  --ink-3: #5f5850;
+  --gold: #a9812f;
+  --gold-hi: #8a6a26;
+  --gold-dim: rgba(169,129,47,.12);
+  --border: rgba(24,19,13,.12);
+  --border-gold: rgba(153,117,57,.34);
+  --glass: rgba(255,255,255,.72);
+  --glass-strong: rgba(255,255,255,.92);
+  --shadow: 0 24px 60px rgba(40,34,28,.13);
+  --shadow-soft: 0 10px 28px rgba(40,34,28,.09);
+  --space-unit: 8px;
+  --motion-fast: 140ms;
+  --motion-standard: 220ms;
+  --motion-emphasis: 380ms;
+  --ease-standard: cubic-bezier(.4,0,.2,1);
+  --ease-emphasis: cubic-bezier(.2,.8,.2,1);
+  --radius-sm: 10px;
+  --radius-button: 10px;
+  --radius-md: 14px;
+  --radius-card: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --content: 1180px;
+  --wide: 1320px;
+  --font-ui: "Yenomi Inter", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Yenomi Inter Display", "Yenomi Inter", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "PT Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --type-xs: 11px;
+  --type-sm: 12px;
+  --type-body-sm: 14px;
+  --type-body: 16px;
+  --type-body-lg: 18px;
+  --type-h4: 20px;
+  --type-h3: 24px;
+  --type-display: clamp(48px, 6vw, 76px);
+  --type-metric: 24px;
+}
+
+/* Opt-in dark surface for accent elements only (login panel, product mockups,
+ * card renders). Never applied to a full page. */
+.theme-dark,
+.theme-dark * {
+  --void: #090711;
+  --deep: #100c1d;
+  --surface: #171225;
+  --surface-2: #201a31;
+  --surface-3: #28213b;
+  --ink: #f7f3eb;
+  --ink-2: #d0c9be;
+  --ink-3: #928a80;
+  --gold: #d4b483;
+  --gold-hi: #efd3a3;
+  --gold-dim: rgba(212,180,131,.16);
+  --violet: #6d3de0;
+  --violet-hi: #9b7bf0;
+  --border: rgba(255,255,255,.105);
+  --border-gold: rgba(212,180,131,.28);
+  --glass: rgba(255,255,255,.045);
+  --glass-strong: rgba(255,255,255,.075);
+  --shadow: 0 22px 70px rgba(0,0,0,.34);
+  --shadow-soft: 0 12px 36px rgba(0,0,0,.22);
+  --glow: 0 0 48px rgba(212,180,131,.16);
+}
+
+/* Back-compat: some routes still pass .theme-light explicitly — it is now
+ * the default, so this is a harmless no-op alias. */
+.theme-light,
+.theme-light * {
+  --void: #f7f5f0;
+  --deep: #efece4;
+  --surface: #ffffff;
+  --surface-2: #faf8f3;
+  --surface-3: #f1eee6;
+  --ink: #18151b;
+  --ink-2: #514c46;
+  --ink-3: #7a746c;
+  --border: rgba(24,19,13,.12);
+  --border-gold: rgba(153,117,57,.34);
+  --glass: rgba(255,255,255,.72);
+  --glass-strong: rgba(255,255,255,.92);
+  --shadow: 0 24px 60px rgba(40,34,28,.13);
+  --shadow-soft: 0 10px 28px rgba(40,34,28,.09);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { max-width: 100%; scroll-behavior: smooth; background: var(--background); -webkit-text-size-adjust: 100%; }
+body { margin: 0; min-width: 320px; max-width: 100%; background: var(--background); color: var(--text-primary); font-family: var(--font-ui); font-size: var(--type-body); line-height: 1.6; letter-spacing: -0.008em; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+body, button, input, select, textarea { font: inherit; }
+img, svg { display: block; max-width: 100%; }
+button, a { -webkit-tap-highlight-color: transparent; }
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .55; }
+h1,h2,h3,h4,h5,h6,p,ul,ol { margin-top: 0; }
+h1,h2,h3,h4 { color: var(--ink); font-family: var(--font-display); font-weight:700; line-height:1.1; letter-spacing:-.02em; overflow-wrap: normal; word-break: normal; hyphens: none; text-wrap: balance; }
+h1 { font-size: var(--type-h1); }
+h2 { font-size: var(--type-h2); }
+h3 { font-size: var(--type-h3); }
+h4 { font-size: var(--type-h4); }
+p,li,dd { font-size: var(--type-body); }
+small,.text-caption,.caption { font-size: var(--type-xs); }
+code,pre,kbd,samp,.mono,.metric,.price,.order-number { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+p,li,dd { color: var(--ink-2); }
+::selection { background: rgba(212,180,131,.26); color: var(--ink); }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+.yi-skip-link { position: fixed; top: 10px; left: 10px; z-index: 1000; transform: translateY(-160%); padding: 10px 14px; border-radius: 10px; background: var(--gold); color: #17120c; font-weight: 800; }
+.yi-skip-link:focus { transform: none; }
+.yi-icon { width: 1.25rem; height: 1.25rem; min-width: 1.25rem; flex: 0 0 1.25rem; stroke: currentColor; }
+button .yi-icon, a .yi-icon { pointer-events: none; }

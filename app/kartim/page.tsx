@@ -36,6 +36,33 @@ type PhysicalCard = {
   replaced_by_card_id: string | null;
 };
 
+type OperationalStatus = "PROFILE_REQUIRED" | "PRINT_PENDING" | "PRINTING" | "SHIPPING_PENDING" | "IN_TRANSIT" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED";
+type CardProcess = {
+  operations_status: OperationalStatus;
+  carrier?: string | null;
+  tracking_number?: string | null;
+};
+
+function physicalCardSummary(physicalCard: PhysicalCard | null, cardStatus: "ACTIVE" | "LOST", process: CardProcess | null) {
+  if (physicalCard) {
+    return cardStatus === "LOST"
+      ? { label: "Kayıp modunda", detail: "NFC erişimi kapalı" }
+      : { label: "Aktif", detail: "NFC / QR hazır" };
+  }
+  if (!process) return { label: "Sipariş bekleniyor", detail: "Dijital profil hazır" };
+  const labels: Record<OperationalStatus, { label: string; detail: string }> = {
+    PROFILE_REQUIRED: { label: "Profil bekleniyor", detail: "Baskı öncesi son adım" },
+    PRINT_PENDING: { label: "Baskıya hazırlanıyor", detail: "Kart sırasına alındı" },
+    PRINTING: { label: "Basılıyor", detail: "Kartın üretiliyor" },
+    SHIPPING_PENDING: { label: "Kargoya hazırlanıyor", detail: "Gönderi bilgisi bekleniyor" },
+    IN_TRANSIT: { label: "Kargoda", detail: "Yolda" },
+    OUT_FOR_DELIVERY: { label: "Dağıtımda", detail: "Bugün teslim edilebilir" },
+    DELIVERED: { label: "Teslim edildi", detail: "Kartın kullanıma hazır" },
+    CANCELLED: { label: "İşlem iptal edildi", detail: "Sipariş detaylarını kontrol et" },
+  };
+  return labels[process.operations_status];
+}
+
 export default function MyCardPage() {
   const [data, setData] = useState<CardData | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
@@ -44,6 +71,7 @@ export default function MyCardPage() {
   const [isPublished, setIsPublished] = useState(false);
   const [cardStatus, setCardStatus] = useState<"ACTIVE" | "LOST">("ACTIVE");
   const [physicalCard, setPhysicalCard] = useState<PhysicalCard | null>(null);
+  const [cardProcess, setCardProcess] = useState<CardProcess | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [qrDataUrl, setQrDataUrl] = useState("");
@@ -99,15 +127,25 @@ export default function MyCardPage() {
       });
 
       if (token) {
-        const cardResponse = await fetch(`/api/cards?profileId=${encodeURIComponent(profile.id)}`, {
-          headers: { authorization: `Bearer ${token}` },
-          cache: "no-store",
-        });
+        const [cardResponse, processResponse] = await Promise.all([
+          fetch(`/api/cards?profileId=${encodeURIComponent(profile.id)}`, {
+            headers: { authorization: `Bearer ${token}` },
+            cache: "no-store",
+          }),
+          fetch(`/api/commerce/card-process?profileId=${encodeURIComponent(profile.id)}`, {
+            headers: { authorization: `Bearer ${token}` },
+            cache: "no-store",
+          }),
+        ]);
         if (cardResponse.ok && !cancelled) {
           const payload = await cardResponse.json() as { cards?: PhysicalCard[] };
           const card = payload.cards?.find((item) => !item.replaced_by_card_id) ?? payload.cards?.[0] ?? null;
           setPhysicalCard(card);
           if (card?.status === "LOST") setCardStatus("LOST");
+        }
+        if (processResponse.ok && !cancelled) {
+          const payload = await processResponse.json() as { process?: CardProcess | null };
+          setCardProcess(payload.process ?? null);
         }
       }
 
@@ -144,6 +182,7 @@ export default function MyCardPage() {
       : publicUrl;
   const liveHref = cardSharePath(slug);
   const completion = data ? getCardProfileCompletion(data) : null;
+  const physicalStatus = physicalCardSummary(physicalCard, cardStatus, cardProcess);
 
   useEffect(() => {
     if (!savedSlug || !isPublished) {
@@ -194,7 +233,7 @@ export default function MyCardPage() {
 
   if (loading) {
     return (
-      <UserPanelShell activeKey="card" title="Kartım" description="Kartvizitiniz yükleniyor.">
+      <UserPanelShell activeKey="home" title="Kartım" description="Kartvizitiniz yükleniyor.">
         <Card><p className="p14-state-copy">Kartvizit hazırlanıyor…</p></Card>
       </UserPanelShell>
     );
@@ -202,7 +241,7 @@ export default function MyCardPage() {
 
   if (!data || !completion) {
     return (
-      <UserPanelShell activeKey="card" title="Kartım" description="Dijital kartını düzenlemek için önce sipariş veya aktivasyon gerekir.">
+      <UserPanelShell activeKey="home" title="Kartım" description="Dijital kartını düzenlemek için önce sipariş veya aktivasyon gerekir.">
         <EmptyState
           icon="id"
           title="Sipariş bekleniyor"
@@ -218,7 +257,7 @@ export default function MyCardPage() {
 
   return (
     <UserPanelShell
-      activeKey="card"
+      activeKey="home"
       eyebrow="KARTIM"
       title="Kartım"
       description="Canlı profilini, kalıcı bağlantını, QR kodunu ve fiziksel kartını tek yerden yönet."
@@ -239,9 +278,16 @@ export default function MyCardPage() {
 
           <div className="p7-card-health" aria-label="Kart sağlık özeti">
             <div><small>Profil</small><strong>%{completion.percent}</strong><span>tamamlandı</span></div>
-            <div><small>Fiziksel kart</small><strong>{physicalCard ? (cardStatus === "LOST" ? "Kayıp" : "Aktif") : "Bağlı değil"}</strong><span>{physicalCard ? "NFC / QR" : "Dijital profil"}</span></div>
+            <div><small>Fiziksel kart</small><strong>{physicalStatus.label}</strong><span>{physicalStatus.detail}</span></div>
             <div><small>Yayın</small><strong>{isPublished ? "Yayında" : "Taslak"}</strong><span>{isPublished ? "Paylaşılabilir" : "Dışarıya kapalı"}</span></div>
           </div>
+
+          {cardProcess?.carrier && cardProcess.tracking_number && (
+            <div className={styles.shipment} role="status">
+              <div><span>KARGO TAKİBİ</span><strong>{cardProcess.carrier}</strong><p>Takip no: {cardProcess.tracking_number}</p></div>
+              <Link href="/siparislerim">Sipariş ayrıntısını aç <span aria-hidden>→</span></Link>
+            </div>
+          )}
 
           {(!completion.isComplete || recommendedLabels.length > 0) && (
             <div className="p14-link-card" aria-label="Profil tamamlama önerisi">
@@ -334,7 +380,7 @@ export default function MyCardPage() {
                 disabled={updatingStatus || !savedSlug || !physicalCard}
               >
                 <Icon name="shield" />
-                <span>{updatingStatus ? "Güncelleniyor..." : cardStatus === "LOST" ? "Kartı Yeniden Aktif Et" : "Kayıp Moduna Al"}</span>
+                <span>{updatingStatus ? "Güncelleniyor..." : cardStatus === "LOST" ? "Fiziksel kartı yeniden etkinleştir" : "Fiziksel kartı kayıp moduna al"}</span>
                 <Icon name="chevronRight" className="p14-row-chevron" />
               </button>
               <button

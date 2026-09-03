@@ -92,12 +92,16 @@ export default function RenewalPage() {
   const expiry = current?.expires_at ? new Date(current.expires_at) : null;
   const daysLeft = expiry ? Math.max(0, Math.ceil((expiry.getTime() - Date.now()) / 86_400_000)) : null;
   const isPremium = isIndividualPremiumPackage(current?.package_code);
+  const hasNetworkMail = (current?.network_mail_limit ?? 0) > 0;
   const offers = individualSubscriptionOffers({ signedIn: service.signedIn, hasEntitlement: Boolean(current), isPremium });
+  const renewalWindowOpen = daysLeft !== null && daysLeft <= 30;
+  const visibleOffers = offers.filter((offerId) => offerId === "PREMIUM_UPGRADE" || renewalWindowOpen);
+  const purchasableCreditPacks = NETWORK_MAIL_CREDIT_PACKS.filter((pack) => pack.liveCheckout);
   const tone = !current ? "neutral" : daysLeft !== null && daysLeft <= 30 ? "warning" : "success";
   const label = !current ? "Aktif hizmet bulunamadı" : daysLeft !== null && daysLeft <= 30 ? "Yenileme zamanı yaklaşıyor" : "Aktif";
 
   return (
-    <UserPanelShell activeKey="subscription" eyebrow="HİZMET" title="Hizmet & Yenileme" description="Yenileme tarihini, kalan süreyi, Premium yükseltmeyi ve paket fiyatlarını yönet.">
+    <UserPanelShell activeKey="account" eyebrow="HİZMET" title="Hizmet & Yenileme" description="Yenileme tarihini, kalan süreyi, Premium yükseltmeyi ve paket fiyatlarını yönet.">
       <div className={styles.page}>
         {service.loading ? <LoadingState variant="panel" label="Hizmet bilgilerin hazırlanıyor" hint="Paketin ve yenileme tarihin kontrol ediliyor." /> : !service.signedIn ? (
           <EmptyState title="Oturum gerekli" description="Hizmet durumunu görmek için hesabına giriş yap." action={<ButtonLink href="/giris?next=%2Fyenile">Hesabına gir</ButtonLink>} />
@@ -113,12 +117,19 @@ export default function RenewalPage() {
                 <div className={styles.fact}><small>Başlangıç</small><strong>{formatDateTime(current?.starts_at)}</strong></div>
                 <div className={styles.fact}><small>Yenileme tarihi</small><strong>{formatDateTime(current?.expires_at)}</strong></div>
                 <div className={styles.fact}><small>Paket</small><strong>{isPremium ? "Premium" : "Standart"}</strong></div>
-                <div className={styles.fact}><small>Network Mail</small><strong>{isPremium ? `${current?.network_mail_remaining ?? 0} / ${current?.network_mail_limit ?? 100}` : "Premium ile açılır"}</strong></div>
+                <div className={styles.fact}><small>Network Mail</small><strong>{hasNetworkMail ? `${current?.network_mail_remaining ?? 0} / ${current?.network_mail_limit ?? 0}` : "Premium ile açılır"}</strong></div>
               </div>
-              {isPremium && <div className={styles.actions}><Link className="ds-button ds-button--secondary" href="/leadler">Network Mail'i Aç</Link></div>}
+              {hasNetworkMail && (
+                <div className={styles.networkMail}>
+                  <div><strong>Network Mail paketin dahil</strong><span>{current?.network_mail_remaining ?? 0} kredin kaldı. Her takip e-postası 1 kredi kullanır; yanıtlar doğrulanmış e-posta adresine gelir.</span></div>
+                  <Link className="ds-button ds-button--secondary" href="/leadler">Bağlantılarımı aç</Link>
+                </div>
+              )}
             </Card>
 
-            {offers.map((offerId) => {
+            {current && !renewalWindowOpen && <p className={styles.renewalNote}>Yenileme seçeneği hizmetinin bitimine 30 gün kala burada açılır. Mevcut hizmetin kesintisiz devam ediyor.</p>}
+
+            {visibleOffers.map((offerId) => {
               const offer = OFFER_COPY[offerId];
               return (
                 <Card className={styles.offer} key={offerId}>
@@ -129,12 +140,12 @@ export default function RenewalPage() {
               );
             })}
 
-            <Card className={styles.pricing}>
+            {purchasableCreditPacks.length > 0 && <Card className={styles.pricing}>
               <div><h2>Paketler & Fiyatlandırma</h2><p className={styles.copy}>Ek Network Mail paketleri fiyat görünürlüğü için listelenir. Checkout aktif olmayan paketlerde satın alma butonu gösterilmez.</p></div>
               <div className={styles.packGrid}>
-                {NETWORK_MAIL_CREDIT_PACKS.map((pack) => <div className={styles.pack} key={pack.sku}><small>NETWORK MAIL</small><strong>{pack.credits.toLocaleString("tr-TR")} adet</strong><span>{formatTryFromKurus(pack.priceKurus)}</span><span>{pack.liveCheckout ? "Satışta" : "Satış yakında"}</span></div>)}
+                {purchasableCreditPacks.map((pack) => <div className={styles.pack} key={pack.sku}><small>NETWORK MAIL</small><strong>{pack.credits.toLocaleString("tr-TR")} adet</strong><span>{formatTryFromKurus(pack.priceKurus)}</span><span>Satışta</span></div>)}
               </div>
-            </Card>
+            </Card>}
 
             {!current && <EmptyState title="Aktif hizmet yok" description="Yenileme veya Premium yükseltme için önce bireysel Standart kart paketini al." action={<ButtonLink href="/urunler/nfc-kart">NFC Kartı Satın Al</ButtonLink>} />}
           </>

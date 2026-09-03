@@ -318,6 +318,7 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
   }
 
   const TitleTag = preview ? "h2" : "h1";
+  const previewContacts = generatedLinks.filter((link) => ["phone", "mail", "external"].includes(link.kind)).slice(0, 3);
   return (
     <div className="card-template-preview">
       <section className="card-template-preview__identity">
@@ -325,6 +326,13 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
         <TitleTag>{identity.name}</TitleTag>
         <p>{[identity.role, identity.company].filter(Boolean).join(" · ")}</p>
       </section>
+      <div className="card-template-preview__availability"><span aria-hidden>●</span> Canlı dijital profil</div>
+      <section className="card-template-preview__contacts" aria-label="Profil iletişim özeti">
+        {previewContacts.length > 0 ? previewContacts.map((link) => (
+          <div key={`${link.kind}-${link.href}`}><Icon name={link.kind} /><span>{link.title}</span></div>
+        )) : <div><Icon name="id" /><span>İletişim bilgilerini stüdyodan ekle</span></div>}
+      </section>
+      <div className="card-template-preview__save"><Icon name="save" /><span>Kişiye eklemeye hazır</span></div>
     </div>
   );
 

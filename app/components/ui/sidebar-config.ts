@@ -39,14 +39,10 @@ export const CORPORATE_SIDEBAR_CONFIG = [
 ] satisfies readonly SidebarConfigItem[];
 
 export const INDIVIDUAL_SIDEBAR_CONFIG = [
-  { key: "home", href: "/kartlarim", label: "Genel Bakış", icon: "analytics", group: "GENEL" },
-  { key: "card", href: "/kartim", label: "Dijital Kart", icon: "id", group: "KİMLİK" },
-  { key: "edit", href: "/olustur", label: "Kimlik Stüdyosu", icon: "pencil", group: "KİMLİK" },
-  { key: "analytics", href: "/istatistikler", label: "İstatistikler", icon: "analytics", group: "KİMLİK" },
-  { key: "leads", href: "/leadler", label: "Network Mail", icon: "mail", group: "HİZMET" },
-  { key: "orders", href: "/siparislerim", label: "Siparişlerim", icon: "box", group: "HİZMET" },
-  { key: "subscription", href: "/yenile", label: "Paket & Yenileme", icon: "refresh", group: "HİZMET" },
-  { key: "settings", href: "/ayarlar", label: "Ayarlar", icon: "users", group: "HESAP" },
+  { key: "home", href: "/kartlarim", label: "Kartım & Genel Bakış", icon: "id", group: "KARTIM" },
+  { key: "studio", href: "/olustur", label: "Kimlik Stüdyosu", icon: "pencil", group: "KİMLİK" },
+  { key: "connections", href: "/leadler", label: "Bağlantılar & Analiz", icon: "users", group: "BAĞLANTILAR" },
+  { key: "account", href: "/ayarlar", label: "Hesap & Abonelik", icon: "adjustments", group: "HESAP" },
 ] satisfies readonly SidebarConfigItem[];
 
 export function normalizeSidebarRole(role?: string | null): OrganizationRole | null {

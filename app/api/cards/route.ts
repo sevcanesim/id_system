@@ -19,6 +19,17 @@ export async function GET(request: NextRequest) {
   const auth = await context(request);
   if (!auth) return NextResponse.json({ error: "Oturum gerekli." }, { status: 401 });
   const profileId = request.nextUrl.searchParams.get("profileId");
+  if (profileId) {
+    // Do not rely on the physical_cards RLS policy alone for this query parameter.
+    // A caller may only scope the result to one of their own profiles.
+    const { data: ownedProfile } = await auth.client
+      .from("card_profiles")
+      .select("id")
+      .eq("id", profileId)
+      .eq("user_id", auth.user.id)
+      .maybeSingle();
+    if (!ownedProfile) return NextResponse.json({ error: "Kart profili bulunamadı." }, { status: 404 });
+  }
   let query = auth.client.from("physical_cards")
     .select("id,card_code,owner_profile_id,organization_id,status,activated_at,replaced_by_card_id,lost_at,disabled_at")
     .order("created_at", { ascending: true });

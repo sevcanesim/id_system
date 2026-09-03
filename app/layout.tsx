@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 
+import "./styles/canonical-foundation.css";
 import "./canonical.css";
 import "./design-tokens.css";
 import "./design-system.css";

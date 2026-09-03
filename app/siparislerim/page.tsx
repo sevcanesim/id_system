@@ -126,11 +126,11 @@ export default function MyOrdersPage() {
 
   const activeCount = useMemo(() => orders.filter((order) => !["COMPLETED", "CANCELLED", "REFUNDED"].includes(order.status)).length, [orders]);
 
-  if (loading) return <UserPanelShell activeKey="orders" title="Siparişlerim & Kart Süreci" description="Sipariş ve kargo bilgilerin yükleniyor."><LoadingState variant="panel" label="Siparişlerin hazırlanıyor" hint="Sipariş, baskı ve kargo bilgilerin güvenle yükleniyor." /></UserPanelShell>;
-  if (!signedIn) return <UserPanelShell activeKey="orders" title="Siparişlerim & Kart Süreci" description="Siparişlerini görüntülemek için hesabına giriş yap."><EmptyState title="Oturum gerekli" description="Siparişlerin hesabına bağlandığında burada görünür." action={<ButtonLink href="/giris?next=%2Fsiparislerim">Hesabına gir</ButtonLink>} /></UserPanelShell>;
+  if (loading) return <UserPanelShell activeKey="account" title="Siparişlerim & Kart Süreci" description="Sipariş ve kargo bilgilerin yükleniyor."><LoadingState variant="panel" label="Siparişlerin hazırlanıyor" hint="Sipariş, baskı ve kargo bilgilerin güvenle yükleniyor." /></UserPanelShell>;
+  if (!signedIn) return <UserPanelShell activeKey="account" title="Siparişlerim & Kart Süreci" description="Siparişlerini görüntülemek için hesabına giriş yap."><EmptyState title="Oturum gerekli" description="Siparişlerin hesabına bağlandığında burada görünür." action={<ButtonLink href="/giris?next=%2Fsiparislerim">Hesabına gir</ButtonLink>} /></UserPanelShell>;
 
   return (
-    <UserPanelShell activeKey="orders" eyebrow="HESAP" title="Siparişlerim & Kart Süreci" description={orders.length ? `${orders.length} sipariş · ${activeCount} devam eden süreç` : "Satın alma, baskı ve kargo sürecini tek yerden takip et."}>
+    <UserPanelShell activeKey="account" eyebrow="HESAP" title="Siparişlerim & Kart Süreci" description={orders.length ? `${orders.length} sipariş · ${activeCount} devam eden süreç` : "Satın alma, baskı ve kargo sürecini tek yerden takip et."}>
       <section className={styles.page}>
         {message && <div className={styles.message} role="status">{message}</div>}
         <div className={styles.list}>

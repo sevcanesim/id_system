@@ -1,0 +1,100 @@
+.empty {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(19rem, .8fr);
+  align-items: center;
+  gap: var(--space-6);
+  min-width: 0;
+  padding: clamp(var(--space-5), 5vw, var(--space-8));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--surface), var(--brand-gold-soft));
+}
+
+.emptyCopy {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+}
+
+.emptyCopy > span {
+  color: var(--brand-gold-deep);
+  font-size: var(--type-xs);
+  font-weight: 700;
+  letter-spacing: .1em;
+}
+
+.emptyCopy h2 {
+  max-width: 34rem;
+  margin: 0;
+  font-size: var(--type-h3);
+  line-height: 1.12;
+}
+
+.emptyCopy p {
+  max-width: 34rem;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-body-sm);
+  line-height: 1.55;
+}
+
+.chartTeaser {
+  display: grid;
+  gap: var(--space-4);
+  min-height: 14rem;
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  opacity: .74;
+}
+
+.chartHeader,
+.chartLegend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+  font-weight: 700;
+}
+
+.chartHeader i {
+  width: 4.4rem;
+  height: .6rem;
+  border-radius: var(--radius-full);
+  background: var(--border);
+}
+
+.chartBars {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: end;
+  gap: var(--space-2);
+  min-height: 8rem;
+  padding-top: var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.chartBars i {
+  display: block;
+  min-height: 18%;
+  border-radius: var(--radius-xs) var(--radius-xs) 0 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--brand-gold) 58%, transparent), color-mix(in srgb, var(--brand-gold) 12%, transparent));
+}
+
+.chartBars i:nth-child(2) { height: 46%; }
+.chartBars i:nth-child(3) { height: 28%; }
+.chartBars i:nth-child(4) { height: 68%; }
+.chartBars i:nth-child(5) { height: 38%; }
+.chartBars i:nth-child(6) { height: 82%; }
+.chartBars i:nth-child(7) { height: 57%; }
+
+.chartLegend { justify-content: flex-start; gap: var(--space-2); }
+.chartLegend span { width: 2.5rem; height: .5rem; border-radius: var(--radius-full); background: var(--border); }
+.chartLegend span:nth-child(2) { width: 4rem; }
+
+@media (max-width: 47.9375rem) {
+  .empty { grid-template-columns: 1fr; gap: var(--space-5); padding: var(--space-5); }
+  .chartTeaser { min-height: 12rem; padding: var(--space-4); }
+}

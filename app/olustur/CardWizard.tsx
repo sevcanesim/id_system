@@ -1027,7 +1027,7 @@ export default function CardWizard() {
       title={profileId ? "Profili Düzenle" : "Profilini Oluştur"}
       description="Dijital kartvizit bilgilerinizi düzenleyin. Kaydettiğiniz değişiklikler aynı QR ve NFC bağlantısında yayınlanır."
       eyebrow="Kart"
-      activeKey="edit"
+      activeKey="studio"
       actions={[
         { href: cancelHref, label: "İptal", onClick: () => { handleCancelClick({ preventDefault: () => {} } as React.MouseEvent); } },
         { label: primaryCtaLabel, onClick: () => void publish(), primary: true, disabled: publishDisabled },

@@ -198,21 +198,28 @@ export default function NetworkingPanel({
       <header className="p11-employees-header p11-networking-header">
         <div>
           <span>NETWORKING</span>
-          <h2 id="p11-networking-title">{view === "leads" ? "Leadler" : view === "events" ? "Etkinlikler" : "Görüşmeler"}</h2>
+          <h2 id="p11-networking-title">{view === "leads" ? variant === "individual" ? "Kartından gelen bağlantılar" : "Leadler" : view === "events" ? "Etkinlikler" : "Görüşmeler"}</h2>
           <p>
             {view === "leads"
-              ? "Kartınız üzerinden iletişim bilgilerini paylaşan kişileri burada takip edin ve sonraki adımı siz yönetin."
+              ? variant === "individual"
+                ? "Bir kişi kartındaki formdan iletişim bilgisini paylaştığında burada görünür. Durumunu güncelleyebilir, hazır bir mesaj seçip Network Mail ile takip edebilirsin."
+                : "Kartınız üzerinden iletişim bilgilerini paylaşan kişileri burada takip edin ve sonraki adımı siz yönetin."
               : view === "events"
                 ? "Etkinliklerinizi ve kartlarınıza bağlı etkinlik QR’lerini yönetin."
                 : "Networking bağlantılarınız için planlanan görüşmeleri yönetin."}
           </p>
         </div>
         <div className="p11-org-capacity p11-mail-credits">
-          <small>Network Mail</small>
+          <small>{variant === "individual" ? "Takip e-postası" : "Network Mail"}</small>
           <strong>{credits} / {creditLimit}</strong>
           <span>Kalan kredi</span>
         </div>
       </header>
+      {loaded && view === "leads" && variant === "individual" && (
+        <p className="p11-networking-message" role="note">
+          <strong>Network Mail nasıl çalışır?</strong> Her gönderim 1 kredi kullanır; gönderen Yenomi ID olur ve yanıtlar doğrulanmış e-posta adresine gelir. Göndermeden önce kişiye uygun hazır mesajı seçebilirsin.
+        </p>
+      )}
       {message && <p className="p11-networking-message" role="status">{message}</p>}
       {loaded && view === "leads" && credits < 1 && (
         <p className="p11-networking-message" role="status">
@@ -225,7 +232,7 @@ export default function NetworkingPanel({
 
       {loaded && view === "leads" && (
         leads.length === 0 ? (
-          <EmptyState compact icon="users" title="Henüz bağlantı yok" description="Kartınız üzerinden bilgilerini paylaşan kişiler burada görünür." action={variant === "individual" ? { href: "/kartim", label: "Kartımı aç" } : { href: "/kurumsal/panel/etkinlikler", label: "Etkinlikleri aç" }} />
+          <EmptyState compact icon="users" title="Henüz bağlantı yok" description={variant === "individual" ? "Kartını paylaştığında iletişim bilgilerini bırakan kişiler burada görünür. Her yeni bağlantı için takip e-postasını buradan yönetebilirsin." : "Kartınız üzerinden bilgilerini paylaşan kişiler burada görünür."} action={variant === "individual" ? { href: "/kartim", label: "Kartımı aç" } : { href: "/kurumsal/panel/etkinlikler", label: "Etkinlikleri aç" }} />
         ) : (
           <div className="p11-networking-list p11-networking-inbox">
             {leads.map((lead) => {

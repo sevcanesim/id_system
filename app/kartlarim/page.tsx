@@ -50,10 +50,10 @@ type CardProcessPayload = { process?: CardProcess | null; entitlement?: Entitlem
 
 const PROFILE_FIELDS = ["name", "role", "email", "phone", "image_url"] as const;
 const STATUS_LABEL: Record<OperationalStatus, string> = {
-  PROFILE_REQUIRED: "Dijital Kart Bilgilerinizi Doldurun",
-  PRINT_PENDING: "Dijital Kart Basımı Gerçekleştirilmeli",
-  PRINTING: "Kartınız Basılıyor",
-  SHIPPING_PENDING: "Kargo İşlemi Bekleniyor",
+  PROFILE_REQUIRED: "Profilini tamamla",
+  PRINT_PENDING: "Baskıya hazırlanıyor",
+  PRINTING: "Kartın basılıyor",
+  SHIPPING_PENDING: "Kargoya hazırlanıyor",
   IN_TRANSIT: "Kargoya Verildi",
   OUT_FOR_DELIVERY: "Dağıtımda",
   DELIVERED: "Teslim Edildi",
@@ -181,12 +181,30 @@ export default function MyCardsPage() {
     }
   }
 
+  async function copyProfileLink() {
+    if (!profileUrl) return;
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      setMessage("Kartvizit bağlantın kopyalandı.");
+    } catch {
+      setMessage("Bağlantı kopyalanamadı. Lütfen yeniden deneyin.");
+    }
+  }
+
+  function downloadQr() {
+    if (!qrDataUrl || !primary?.slug) return;
+    const link = document.createElement("a");
+    link.href = qrDataUrl;
+    link.download = `yenomi-id-${primary.slug}-qr.png`;
+    link.click();
+  }
+
   if (pageState !== "ready") {
-    return <DashboardShell title="Genel Bakış" description="Hesap ve kart bilgilerin yükleniyor."><LoadingState variant="panel" label={pageState === "redirecting" ? "Yönlendiriliyor" : "Hesabın yükleniyor"} hint="Paket, kart ve yenileme durumun kontrol ediliyor." /></DashboardShell>;
+    return <DashboardShell activeKey="home" title="Kartım & Genel Bakış" description="Hesap ve kart bilgilerin yükleniyor."><LoadingState variant="panel" label={pageState === "redirecting" ? "Yönlendiriliyor" : "Hesabın yükleniyor"} hint="Paket, kart ve yenileme durumun kontrol ediliyor." /></DashboardShell>;
   }
 
   return (
-    <DashboardShell eyebrow="BİREYSEL HESAP" title={primary?.name ? `Merhaba, ${primary.name.split(" ")[0]}` : "Genel Bakış"} description="Dijital kimliğin, fiziksel kartın ve hizmet süren tek yerde.">
+    <DashboardShell activeKey="home" eyebrow="BİREYSEL HESAP" title={primary?.name ? `Merhaba, ${primary.name.split(" ")[0]}` : "Kartım & Genel Bakış"} description="Dijital kimliğin, fiziksel kartın ve hizmet süren tek yerde.">
       <div className={styles.page}>
         {!primary ? (
           <section className={styles.notice}>
@@ -196,18 +214,22 @@ export default function MyCardsPage() {
         ) : (
           <>
             <section className={styles.heroGrid}>
-              <div className={styles.card}>
-                <span className={styles.eyebrow}>BİREYSEL STANDART</span>
-                <h2 className={styles.title}>{completion < 100 ? "Dijital Kart Bilgilerinizi Doldurun" : process ? STATUS_LABEL[process.operations_status] : "Kart sürecin hazırlanıyor"}</h2>
-                <p className={styles.copy}>{completion < 100 ? `Profilin %${completion} tamamlandı. Baskı süreci başlamadan önce temel bilgilerini tamamla.` : "Profil bilgilerin tamam. Fiziksel kart sürecini buradan takip edebilirsin."}</p>
+              <div className={`${styles.card} ${styles.identityHero}`}>
+                <div className={styles.heroMeta}>
+                  <span className={styles.eyebrow}>CANLI DİJİTAL KİMLİK</span>
+                  <span className={styles.completion}>%{completion} hazır</span>
+                </div>
+                <h2 className={styles.profileUrl}>{profileUrl.replace(/^https?:\/\//, "")}</h2>
+                <p className={styles.copy}>{completion < 100 ? "Baskı öncesi son adım: profilini tamamla, ardından kartın üretim sırasına otomatik alınsın." : "Bu bağlantı NFC kartın ve QR kodunla aynı canlı profile gider; bilgilerini dilediğin an güncelleyebilirsin."}</p>
                 <div className={styles.actions}>
-                  {completion < 100 ? <ButtonLink href={`/olustur?id=${primary.id}`}>Profili Tamamla</ButtonLink> : process?.operations_status === "PROFILE_REQUIRED" ? <Button onClick={completeProfile} disabled={queueing}>{queueing ? "İşleniyor…" : "Profili Tamamla"}</Button> : <ButtonLink href={`/olustur?id=${primary.id}`} variant="secondary">Profili Düzenle</ButtonLink>}
-                  <ButtonLink href="/kartim" variant="secondary">Dijital Kartımı Aç</ButtonLink>
+                  {completion < 100 ? <ButtonLink href={`/olustur?id=${primary.id}`}>Profili Tamamla</ButtonLink> : process?.operations_status === "PROFILE_REQUIRED" ? <Button onClick={completeProfile} disabled={queueing}>{queueing ? "İşleniyor…" : "Baskı Sürecini Başlat"}</Button> : <ButtonLink href={`/olustur?id=${primary.id}`} variant="secondary">Profili Düzenle</ButtonLink>}
+                  <Button variant="secondary" onClick={() => void copyProfileLink()}>Bağlantıyı Kopyala</Button>
+                  <Button variant="secondary" onClick={downloadQr} disabled={!qrDataUrl}>QR İndir</Button>
                 </div>
                 {message && <p className={styles.message} role="status">{message}</p>}
               </div>
               <div className={`${styles.countdown} ${styles.studio}`}>
-                <span className={styles.eyebrow}>KARTVİZİT STÜDYOSU</span>
+                <div className={styles.studioMeta}><span className={styles.eyebrow}>CANLI MOBİL ÖNİZLEME</span><ButtonLink href={`/olustur?id=${primary.id}`} variant="secondary">Düzenle</ButtonLink></div>
                 <div className={styles.studioSpecimen}>
                   <YenomiProductVisual
                     variant="card"
@@ -217,9 +239,8 @@ export default function MyCardsPage() {
                     company={primary.company || "Yenomi Labs"}
                   />
                 </div>
-                <strong>Canlı dijital profil</strong>
-                <span>vCard, QR ve Kayıp Modu ayarlarını tek stüdyoda yönet.</span>
-                <ButtonLink href="/kartim" variant="secondary">Stüdyoyu aç</ButtonLink>
+                <strong>Telefonundaki profil</strong>
+                <span>vCard, QR ve Kayıp Modu ayarlarını Kimlik Stüdyosu’ndan yönet.</span>
               </div>
             </section>
 
@@ -232,8 +253,14 @@ export default function MyCardsPage() {
             <section className={styles.processCard}>
               <div className={styles.processHeader}><div><span className={styles.eyebrow}>KART SİPARİŞİ & KARGO</span><h2 className={styles.title}>Fiziksel kart süreci</h2></div><span className={styles.status}>{process ? STATUS_LABEL[process.operations_status] : "Sipariş eşleştiriliyor"}</span></div>
               <div className={styles.steps}>
-                {[{ title: "Hazırlanıyor", text: process?.operations_status === "PRINT_PENDING" ? "Baskı onayı bekleniyor" : process?.operations_status === "PRINTING" ? "Kartın basılıyor" : process?.operations_status === "SHIPPING_PENDING" ? "Kargo işlemi bekleniyor" : "Kart hazırlık süreci" }, { title: "Kargoya Verildi", text: process?.carrier && process?.tracking_number ? `${process.carrier} · ${process.tracking_number}` : "Kargo bilgisi girildiğinde burada görünür" }, { title: "Dağıtımda", text: process?.out_for_delivery_at ? formatDateTime(process.out_for_delivery_at) : "Dağıtıma çıkması bekleniyor" }, { title: "Teslim Edildi", text: process?.delivered_at ? formatDateTime(process.delivered_at) : "Teslimat bekleniyor" }].map((step, index) => <div className={`${styles.step} ${index <= currentStep ? styles.stepActive : ""}`} key={step.title}><small>0{index + 1}</small><strong>{step.title}</strong><span>{step.text}</span></div>)}
+                {[{ title: "Hazırlanıyor", text: process?.operations_status === "PRINT_PENDING" ? "Baskı onayı bekleniyor" : process?.operations_status === "PRINTING" ? "Kartın basılıyor" : process?.operations_status === "SHIPPING_PENDING" ? "Kargo işlemi bekleniyor" : "Kart hazırlık süreci" }, { title: "Kargoya Verildi", text: process?.carrier || process?.tracking_number ? [process.carrier && `Kargo firması: ${process.carrier}`, process.tracking_number && `Takip no: ${process.tracking_number}`].filter(Boolean).join(" · ") : "Kargo bilgisi girildiğinde burada görünür" }, { title: "Dağıtımda", text: process?.out_for_delivery_at ? formatDateTime(process.out_for_delivery_at) : "Dağıtıma çıkması bekleniyor" }, { title: "Teslim Edildi", text: process?.delivered_at ? formatDateTime(process.delivered_at) : "Teslimat bekleniyor" }].map((step, index) => <div className={`${styles.step} ${index <= currentStep ? styles.stepActive : ""}`} key={step.title}><small>0{index + 1}</small><strong>{step.title}</strong><span>{step.text}</span></div>)}
               </div>
+            </section>
+
+            <section className={styles.quickActions} aria-label="Hızlı işlemler">
+              <ButtonLink href={`/olustur?id=${primary.id}`} variant="secondary"><span>01</span> Profili güncelle</ButtonLink>
+              <ButtonLink href="/kartim" variant="secondary"><span>02</span> vCard ve QR’ı test et</ButtonLink>
+              <ButtonLink href="/kartim" variant="secondary"><span>03</span> Yedek / ek kart sipariş et</ButtonLink>
             </section>
 
             <section className={styles.secondaryGrid}>

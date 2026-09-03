@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 import { publicError } from "../../../../lib/errors";
+import { INDIVIDUAL_PRODUCT_PURCHASE_HREF } from "../../../../lib/commerce/individual-portal-access";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
       .select("id,kind,status,starts_at,expires_at,grace_ends_at,order_item_id,package_code,network_mail_limit,network_mail_remaining")
       .eq("user_id", data.user.id)
       .in("kind", ["BUSINESS_CARD", "NFC_PHYSICAL_CARD"])
-      .in("status", ["ACTIVE", "EXPIRED"])
+      .in("status", ["ACTIVE", "EXPIRED", "PENDING_ACTIVATION"])
       .order("expires_at", { ascending: false, nullsFirst: true });
 
     if (entitlementError) {
@@ -34,12 +35,15 @@ export async function GET(request: NextRequest) {
       if (item.expires_at > now) return true;
       return Boolean(item.grace_ends_at && item.grace_ends_at > now);
     });
+    const renewalEntitlements = rows.filter((item) => item.status === "ACTIVE" || item.status === "EXPIRED");
+    const pendingEntitlements = rows.filter((item) => item.status === "PENDING_ACTIVATION");
     const active = activeEntitlements.length > 0;
     return NextResponse.json({
       active,
       entitlements: activeEntitlements,
-      renewalEntitlements: rows,
-      next: active ? "/olustur" : "/urunler?reason=access-required",
+      renewalEntitlements,
+      pendingEntitlements,
+      next: active ? "/olustur" : INDIVIDUAL_PRODUCT_PURCHASE_HREF,
     });
   } catch (error) {
     console.error("entitlement access error", error);

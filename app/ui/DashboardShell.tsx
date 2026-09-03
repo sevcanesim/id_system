@@ -6,6 +6,7 @@ import { useEffect, useId, useState, type ReactNode } from "react";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { validateCardWorkspace, validatePortal, type PortalCheckResult } from "../../lib/auth/portal-guard";
 import { clearLegacyCart, setCartOwner } from "../../lib/cart";
+import { INDIVIDUAL_PRODUCT_PURCHASE_HREF, needsIndividualProductPurchase } from "../../lib/commerce/individual-portal-access";
 import { writeSessionCookie } from "../components/AuthSessionBridge";
 import PanelSidebar from "../components/ui/PanelSidebar";
 import { LoadingState } from "../components/ui/States";
@@ -45,6 +46,7 @@ export default function DashboardShell({
   const [email, setEmail] = useState("");
   const [portalState, setPortalState] = useState<"checking" | "allowed" | "denied">("checking");
   const [hasCorporateSubscription, setHasCorporateSubscription] = useState(false);
+  const requiresProductAccess = portal === "individual" && activeKey !== "account";
 
   useEffect(() => {
     let cancelled = false;
@@ -75,30 +77,68 @@ export default function DashboardShell({
         return;
       }
 
-      setEmail(data.user.email || "");
-      setPortalState("allowed");
-
       const sessionRes = await sb.auth.getSession();
       const token = sessionRes.data.session?.access_token;
-      if (!token) return;
+      if (!token) {
+        setEmail(data.user.email || "");
+        setPortalState("allowed");
+        return;
+      }
 
       try {
-        const orgRes = await fetch("/api/organizations/mine", {
-          headers: { authorization: `Bearer ${token}` },
-          cache: "no-store",
-        });
-        if (!orgRes.ok || cancelled) return;
-        const body = (await orgRes.json()) as { organizations?: unknown[] };
-        setHasCorporateSubscription(Boolean(body.organizations?.length));
+        const [orgRes, entitlementRes] = await Promise.all([
+          fetch("/api/organizations/mine", {
+            headers: { authorization: `Bearer ${token}` },
+            cache: "no-store",
+          }),
+          requiresProductAccess
+            ? fetch("/api/commerce/entitlements", {
+              headers: { authorization: `Bearer ${token}` },
+              cache: "no-store",
+            })
+            : Promise.resolve(null),
+        ]);
+        if (cancelled) return;
+
+        const organizationPayload = orgRes.ok
+          ? await orgRes.json() as { organizations?: unknown[] }
+          : { organizations: [] };
+        const hasCorporateMembership = Boolean(organizationPayload.organizations?.length);
+        setHasCorporateSubscription(hasCorporateMembership);
+
+        const entitlementPayload = entitlementRes?.ok
+          ? await entitlementRes.json() as {
+            active?: boolean;
+            renewalEntitlements?: unknown[];
+            pendingEntitlements?: unknown[];
+          }
+          : null;
+        if (needsIndividualProductPurchase({
+          requiresProductAccess,
+          entitlementLookupSucceeded: Boolean(entitlementPayload),
+          corporateMembershipLookupSucceeded: orgRes.ok,
+          hasActiveEntitlement: Boolean(entitlementPayload?.active),
+          hasRenewalEntitlement: Boolean(entitlementPayload?.renewalEntitlements?.length),
+          hasPendingEntitlement: Boolean(entitlementPayload?.pendingEntitlements?.length),
+          hasCorporateMembership,
+        })) {
+          setPortalState("denied");
+          window.location.replace(INDIVIDUAL_PRODUCT_PURCHASE_HREF);
+          return;
+        }
       } catch {
-        // Organization lookup is advisory for navigation visibility only.
+        // Access is never removed just because advisory product data is unavailable.
       }
+
+      if (cancelled) return;
+      setEmail(data.user.email || "");
+      setPortalState("allowed");
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [pathname, portal]);
+  }, [activeKey, pathname, portal, requiresProductAccess]);
 
   async function signOut() {
     const supabase = getSupabaseBrowserClient();

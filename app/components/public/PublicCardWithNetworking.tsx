@@ -48,6 +48,7 @@ export default function PublicCardWithNetworking({
       slug={slug}
       publicId={publicId}
       branding={branding}
+      locale={locale}
       extras={
         <NetworkingCapture
           profileId={profileId}

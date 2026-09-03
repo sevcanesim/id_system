@@ -11,6 +11,8 @@ const migration = read("supabase/migrations/20260903183000_yenomi_to_yenomi_hand
 const route = read("app/api/networking/instant-connect/route.ts");
 const capture = read("app/components/public/NetworkingCapture.tsx");
 const scanner = read("app/components/public/InstantConnectScanner.tsx");
+const publicCard = read("app/components/public/PublicCardWithNetworking.tsx");
+const cardTemplate = read("app/CardTemplate.tsx");
 const inbox = read("app/api/networking/inbox/route.ts");
 const organizationInbox = read("app/api/organizations/networking/route.ts");
 const panel = read("app/kurumsal/panel/components/NetworkingPanel.tsx");
@@ -36,6 +38,7 @@ check(capture.includes("Alternatif iletişim formu"), "classic contact form rema
 check(capture.includes('kind: "ACCOUNT"') && capture.includes('kind: "QR"'), "client keeps account and QR submissions distinct");
 check(scanner.includes("getUserMedia") && scanner.includes("BarcodeDetector"), "scanner uses a real camera and native QR decoder where available");
 check(scanner.includes("manualLabel") && scanner.includes("parsePublicProfileId"), "scanner has an accessible QR-link fallback");
+check(publicCard.includes("locale={locale}") && cardTemplate.includes("const CARD_COPY") && cardTemplate.includes("digitalBusinessCard"), "English selection localizes the full public-card surface");
 check(headers.includes('camera=(), microphone=()') && headers.includes('camera=(self), microphone=()') && headers.includes('"/p/:path*"'), "camera permission is restricted to public-card routes");
 
 check(inbox.includes("counterpart:card_profiles") && organizationInbox.includes("counterpart:card_profiles"), "both inbox variants receive counterpart card data");

@@ -17,6 +17,7 @@ export type DemoLoginScope = "INDIVIDUAL" | "CORPORATE" | "BOTH";
 
 export type DemoUserKind =
   | "SUPER_ADMIN"
+  | "INDIVIDUAL_REGISTERED"
   | "INDIVIDUAL_PENDING"
   | "INDIVIDUAL_COMPLETE"
   | "INDIVIDUAL_PREMIUM"

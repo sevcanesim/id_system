@@ -41,7 +41,7 @@
 .subscriptionFacts span,
 .orderHead > div > span,
 .orderFacts span,
-.journeySteps small {
+.fulfillmentSteps small {
   font-size: var(--type-xs);
   font-weight: 750;
   letter-spacing: .08em;
@@ -59,7 +59,7 @@
 .sectionHeading > div,
 .offerCopy,
 .orderHead > div,
-.journeyHeader > div,
+.fulfillmentHeader > div,
 .sessionIdentity > div,
 .legalLinks a > div {
   min-width: 0;
@@ -82,7 +82,7 @@
 .emptyInline p,
 .orderHead p,
 .orderDescription,
-.journeyHeader p,
+.fulfillmentHeader p,
 .sessionIdentity span,
 .legalLinks small {
   margin: var(--space-2) 0 0;
@@ -130,7 +130,7 @@
 
 .subscriptionFacts span,
 .orderFacts span,
-.journeySteps small {
+.fulfillmentSteps small {
   color: var(--text-tertiary);
 }
 
@@ -143,8 +143,6 @@
 
 .renewalSection,
 .ordersSection,
-.main,
-.side,
 .orderList,
 .offerGrid {
   display: grid;
@@ -241,7 +239,7 @@
 }
 
 .orderHead,
-.journeyHeader {
+.fulfillmentHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -253,7 +251,7 @@
 }
 
 .orderHead h3,
-.journeyHeader h4 {
+.fulfillmentHeader h4 {
   margin: var(--space-1) 0 0;
   color: var(--text-primary);
   font-size: var(--type-h4);
@@ -262,28 +260,6 @@
 
 .orderStatus {
   flex: 0 0 auto;
-  padding: .4rem .6rem;
-  border-radius: var(--radius-full);
-  background: var(--surface-secondary);
-  color: var(--brand-gold);
-  font-size: var(--type-xs);
-}
-
-.orderProgress {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: var(--space-2);
-}
-
-.orderProgress span {
-  min-width: 0;
-  height: .25rem;
-  border-radius: var(--radius-full);
-  background: var(--border);
-}
-
-.orderProgress span[data-active="true"] {
-  background: var(--brand-gold);
 }
 
 .orderDescription {
@@ -305,28 +281,33 @@
   background: var(--surface-secondary);
 }
 
-.journey {
+.fulfillment {
   display: grid;
   gap: var(--space-4);
   padding-top: var(--space-4);
   border-top: 1px solid var(--border);
 }
 
-.journeyHeader h4 {
+.fulfillmentHeader h4 {
+  margin: 0;
+  color: var(--text-primary);
   font-size: var(--type-body);
 }
 
-.journeyHeader p {
+.fulfillmentHeader p {
   margin-bottom: 0;
 }
 
-.journeySteps {
+.fulfillmentSteps {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.journeySteps > div {
+.fulfillmentSteps > li {
   display: grid;
   gap: var(--space-1);
   min-width: 0;
@@ -334,16 +315,21 @@
   border-top: .2rem solid var(--border);
 }
 
-.journeySteps > div.journeyStepActive {
+.fulfillmentSteps > li[data-state="complete"] {
   border-top-color: var(--brand-gold);
 }
 
-.journeySteps strong {
+.fulfillmentSteps > li[data-state="current"] {
+  border-top-color: var(--brand-gold-deep);
+  background: linear-gradient(180deg, var(--brand-gold-soft), transparent);
+}
+
+.fulfillmentSteps strong {
   color: var(--text-primary);
   font-size: var(--type-body-sm);
 }
 
-.journeySteps span {
+.fulfillmentSteps span {
   overflow-wrap: anywhere;
   color: var(--text-secondary);
   font-size: var(--type-sm);
@@ -353,15 +339,25 @@
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(18rem, .85fr);
+  grid-auto-rows: 1fr;
   gap: var(--space-4);
-  align-items: start;
+  align-items: stretch;
 }
 
 .accountCard,
 .securityCard,
 .sessionCard,
 .legalCard {
+  display: flex;
+  flex-direction: column;
   padding: clamp(var(--space-4), 2.5vw, var(--space-5));
+}
+
+.accountCard > form,
+.securityCard > form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 
 .cardHeader {
@@ -374,21 +370,15 @@
   gap: var(--space-3);
 }
 
-.message {
+.formAlert {
   margin-top: var(--space-4);
-  padding: var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface-secondary);
-  color: var(--text-secondary);
-  font-size: var(--type-body-sm);
-  line-height: 1.5;
 }
 
 .actions {
   display: flex;
   justify-content: flex-start;
-  margin-top: var(--space-4);
+  margin-top: auto;
+  padding-top: var(--space-4);
 }
 
 .securityForm {
@@ -396,12 +386,14 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
   gap: var(--space-3);
+  margin-top: auto;
 }
 
 .sessionIdentity {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  min-height: calc(var(--control-height-md) + var(--space-4));
   padding: var(--space-3);
   border-radius: var(--radius-md);
   background: var(--surface-secondary);
@@ -437,13 +429,15 @@
 }
 
 .signOut {
-  width: 100%;
-  margin-top: var(--space-4);
+  align-self: flex-start;
+  margin-top: auto;
+  padding-top: var(--space-4);
 }
 
 .legalLinks {
   display: grid;
   gap: var(--space-2);
+  margin-top: auto;
 }
 
 .legalLinks a {
@@ -480,18 +474,12 @@
   .grid {
     grid-template-columns: minmax(0, 1fr);
   }
-
-  .side {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 47.9375rem) {
   .page,
   .renewalSection,
   .ordersSection,
-  .main,
-  .side,
   .orderList,
   .offerGrid {
     gap: var(--space-3);
@@ -522,8 +510,7 @@
   .subscriptionFacts,
   .formGrid,
   .orderFacts,
-  .journeySteps,
-  .side {
+  .fulfillmentSteps {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -537,20 +524,21 @@
   }
 
   .emptyInline,
-  .orderHead,
-  .journeyHeader {
+  .orderHead {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .journeySteps > div,
-  .journeySteps > div.journeyStepActive {
+  .fulfillmentSteps > li,
+  .fulfillmentSteps > li[data-state="complete"],
+  .fulfillmentSteps > li[data-state="current"] {
     padding: var(--space-2) 0 var(--space-2) var(--space-3);
     border-top: 0;
     border-left: .2rem solid var(--border);
   }
 
-  .journeySteps > div.journeyStepActive {
+  .fulfillmentSteps > li[data-state="complete"],
+  .fulfillmentSteps > li[data-state="current"] {
     border-left-color: var(--brand-gold);
   }
 }

@@ -264,6 +264,20 @@ const orderNumMap = new Map(orders?.map((o) => [o.order_number, o]));
 const { data: entitlements, error: entitlementsError } = await supabase.from("entitlements").select("id,user_id,status,kind");
 if (entitlementsError) throw entitlementsError;
 
+for (const userSpec of demoUsers.filter((user) => user.kind === "INDIVIDUAL_REGISTERED")) {
+  const authUser = authUserMap.get(userSpec.email.toLowerCase());
+  const userId = authUser?.id;
+  const hasOrder = Boolean(orders?.some((order) => order.user_id === userId));
+  const hasEntitlement = Boolean(entitlements?.some((entitlement) => entitlement.user_id === userId));
+  const hasProfile = Boolean(profiles?.some((profile) => profile.user_id === userId));
+  const hasCard = Boolean(physicalCards?.some((card) => card.owner_user_id === userId));
+  if (!userId || hasOrder || hasEntitlement || hasProfile || hasCard) {
+    fail(`Yalnız portal kaydı fixture uyumsuz: ${userSpec.email}`);
+  } else {
+    pass(`Yalnız portal kaydı doğrular: ${userSpec.email}`);
+  }
+}
+
 for (const userSpec of demoUsers.filter((u) => u.orderNumber || u.entitlement)) {
   if (userSpec.orderNumber) {
     const order = orderNumMap.get(userSpec.orderNumber);

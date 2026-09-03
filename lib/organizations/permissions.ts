@@ -39,9 +39,10 @@ export function canManageNetworking(role: OrganizationRole, status: string) {
 }
 
 // Legal/tax and billing identity affects invoices and commercial records.
-// Only the owner or an organization admin may maintain the current profile.
+// It is intentionally stricter than operational administration: only the
+// organization owner may maintain this legally binding profile.
 export function canManageOrganizationLegalProfile(role: OrganizationRole, status: string) {
-  return status === "ACTIVE" && roleRank[role] >= roleRank.ADMIN;
+  return status === "ACTIVE" && role === "OWNER";
 }
 
 // Şirketin resmi/görünen adını değiştirmek, şablon rengi seçmekten farklı bir

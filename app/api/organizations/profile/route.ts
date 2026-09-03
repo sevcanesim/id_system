@@ -66,7 +66,7 @@ export async function PATCH(request: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Geçersiz şirket profili." }, { status: 400 });
   const input = parsed.data;
   const member = await membership(ctx.admin, ctx.user.id, input.organizationId);
-  if (!member || !canManageOrganizationLegalProfile(member.role, member.status)) return NextResponse.json({ error: "Şirket vergi ve fatura profilini yalnız şirket sahibi veya yöneticisi güncelleyebilir." }, { status: 403 });
+  if (!member || !canManageOrganizationLegalProfile(member.role, member.status)) return NextResponse.json({ error: "Şirket vergi ve fatura profilini yalnız şirket sahibi güncelleyebilir." }, { status: 403 });
 
   const { data: before, error: beforeError } = await ctx.admin.from("organizations").select(selectFields).eq("id", input.organizationId).maybeSingle();
   if (beforeError || !before) return NextResponse.json({ error: "Şirket profili okunamadı." }, { status: 404 });

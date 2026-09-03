@@ -4,7 +4,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import UserPanelShell from "../components/UserPanelShell";
-import { Button, ButtonLink, Card, Field, Input } from "../components/ui";
+import { Alert, Button, ButtonLink, Card, Field, Input, StatusBadge } from "../components/ui";
 import AddToCartButton from "../components/AddToCartButton";
 import { Icon } from "../icons";
 import { isIndividualPremiumPackage } from "../../lib/commerce/packages";
@@ -58,16 +58,18 @@ type CommerceOrder = {
   }>;
 };
 type OrdersState = { loading: boolean; orders: CommerceOrder[]; error: boolean };
+type StatusTone = "neutral" | "success" | "warning" | "error" | "info";
+type AccountSnapshot = { name: string; email: string };
 
-const ORDER_STATUS: Record<CommerceStatus, { label: string; description: string; step: number }> = {
-  DRAFT: { label: "Taslak", description: "Sipariş henüz tamamlanmadı.", step: 0 },
-  AWAITING_PAYMENT: { label: "Ödeme bekleniyor", description: "Ödemeyi tamamladığınızda hazırlık süreci başlar.", step: 1 },
-  PAID: { label: "Ödeme alındı", description: "Sipariş doğrulandı ve hazırlık sırasına alındı.", step: 2 },
-  PREPARING: { label: "Hazırlanıyor", description: "Kart üretim ve kalite kontrol aşamasında.", step: 3 },
-  SHIPPED: { label: "Kargolandı", description: "Sipariş teslimat adresine doğru yola çıktı.", step: 4 },
-  COMPLETED: { label: "Teslim edildi", description: "Sipariş süreci tamamlandı.", step: 5 },
-  CANCELLED: { label: "İptal edildi", description: "Sipariş iptal edildi.", step: 0 },
-  REFUNDED: { label: "İade edildi", description: "Ödeme iade edildi ve ilgili dijital hizmet durduruldu.", step: 0 },
+const ORDER_STATUS: Record<CommerceStatus, { label: string; description: string; tone: StatusTone }> = {
+  DRAFT: { label: "Taslak", description: "Sipariş henüz tamamlanmadı.", tone: "neutral" },
+  AWAITING_PAYMENT: { label: "Ödeme bekleniyor", description: "Ödemeyi tamamladığınızda hazırlık süreci başlar.", tone: "warning" },
+  PAID: { label: "Ödeme alındı", description: "Sipariş doğrulandı ve hazırlık sırasına alındı.", tone: "info" },
+  PREPARING: { label: "Hazırlanıyor", description: "Kart üretim ve kalite kontrol aşamasında.", tone: "info" },
+  SHIPPED: { label: "Kargolandı", description: "Sipariş teslimat adresine doğru yola çıktı.", tone: "info" },
+  COMPLETED: { label: "Teslim edildi", description: "Sipariş süreci tamamlandı.", tone: "success" },
+  CANCELLED: { label: "İptal edildi", description: "Sipariş iptal edildi.", tone: "error" },
+  REFUNDED: { label: "İade edildi", description: "Ödeme iade edildi ve ilgili dijital hizmet durduruldu.", tone: "error" },
 };
 
 function formatDate(value?: string | null) {
@@ -123,13 +125,71 @@ function subscriptionName(entitlement: Entitlement | null) {
   return "Yenomi ID Bireysel Standart";
 }
 
+function paymentIsCollected(status: CommerceStatus) {
+  return ["PAID", "PREPARING", "SHIPPED", "COMPLETED"].includes(status);
+}
+
+function fulfillmentStartDetail(unit: PhysicalUnit) {
+  if (unit.print_requested_at) return formatDateTime(unit.print_requested_at);
+  if (unit.operations_status === "PROFILE_REQUIRED") return "Profil bilgileri bekleniyor";
+  if (unit.operations_status === "PRINTING") return "Kartınız basılıyor";
+  if (unit.operations_status === "SHIPPING_PENDING") return "Kargoya hazırlanıyor";
+  return "Sırada";
+}
+
+function OrderFulfillmentStepper({ order, unit }: { order: CommerceOrder; unit: PhysicalUnit }) {
+  if (!paymentIsCollected(order.status)) return null;
+
+  const currentFulfillmentStep = operationStep(unit.operations_status);
+  const steps = [
+    { title: "Ödeme", detail: order.paid_at ? formatDateTime(order.paid_at) : "Ödeme alındı" },
+    { title: "Hazırlanıyor", detail: fulfillmentStartDetail(unit) },
+    { title: "Kargoya verildi", detail: unit.shipped_at ? formatDateTime(unit.shipped_at) : "Bekleniyor" },
+    { title: "Dağıtımda", detail: unit.out_for_delivery_at ? formatDateTime(unit.out_for_delivery_at) : "Bekleniyor" },
+    { title: "Teslim edildi", detail: unit.delivered_at ? formatDateTime(unit.delivered_at) : "Bekleniyor" },
+  ];
+
+  return (
+    <section className={styles.fulfillment} aria-labelledby={`fulfillment-${order.id}`}>
+      <div className={styles.fulfillmentHeader}>
+        <div>
+          <h4 id={`fulfillment-${order.id}`}>Sipariş ve kargo süreci</h4>
+          <p>{unit.tracking_number ? `${unit.carrier || "Kargo"} · ${unit.tracking_number}` : "Kargo bilgisi hazır olduğunda burada görünür."}</p>
+        </div>
+      </div>
+      <ol className={styles.fulfillmentSteps}>
+        {steps.map((step, index) => {
+          const fulfillmentIndex = index - 1;
+          const state = index === 0
+            ? "complete"
+            : fulfillmentIndex < currentFulfillmentStep
+              ? "complete"
+              : fulfillmentIndex === currentFulfillmentStep
+                ? "current"
+                : "upcoming";
+          return (
+            <li data-state={state} key={step.title}>
+              <small>{String(index + 1).padStart(2, "0")}</small>
+              <strong>{step.title}</strong>
+              <span>{step.detail}</span>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
+
 export default function SettingsPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [accountSnapshot, setAccountSnapshot] = useState<AccountSnapshot>({ name: "", email: "" });
   const [password, setPassword] = useState("");
   const [accountMessage, setAccountMessage] = useState("");
+  const [accountMessageTone, setAccountMessageTone] = useState<"success" | "error">("success");
   const [securityMessage, setSecurityMessage] = useState("");
+  const [securityMessageTone, setSecurityMessageTone] = useState<"success" | "error">("success");
   const [savingAccount, setSavingAccount] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [browserLabel, setBrowserLabel] = useState("Bu cihaz");
@@ -147,8 +207,11 @@ export default function SettingsPage() {
         return;
       }
 
-      setEmail(data.user.email || "");
-      setName(String(data.user.user_metadata?.name || data.user.user_metadata?.full_name || ""));
+      const nextEmail = data.user.email || "";
+      const nextName = String(data.user.user_metadata?.name || data.user.user_metadata?.full_name || "");
+      setEmail(nextEmail);
+      setName(nextName);
+      setAccountSnapshot({ name: nextName, email: nextEmail });
       setBrowserLabel(currentBrowserLabel());
 
       const { data: sessionData } = await supabase?.auth.getSession() || { data: { session: null } };
@@ -209,11 +272,12 @@ export default function SettingsPage() {
   const hasPremium = isIndividualPremiumPackage(subscription.entitlement?.package_code);
   const hasNetworkMail = (subscription.entitlement?.network_mail_limit || 0) > 0;
   const renewalWindowOpen = daysLeft !== null && daysLeft <= 30;
+  const accountDirty = name.trim() !== accountSnapshot.name || email.trim() !== accountSnapshot.email;
 
   async function saveAccount(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
+    if (!supabase || !accountDirty) return;
     setSavingAccount(true);
     setAccountMessage("");
 
@@ -222,11 +286,15 @@ export default function SettingsPage() {
       data: { name: name.trim() },
     });
 
-    setAccountMessage(
-      error
-        ? "Hesap bilgileri kaydedilemedi. E-posta adresini kontrol edip tekrar deneyin."
-        : "Hesap bilgileriniz güncellendi. E-posta değiştiyse doğrulama bağlantısını gelen kutunuzdan onaylayın.",
-    );
+    if (error) {
+      setAccountMessageTone("error");
+      setAccountMessage("Hesap bilgileri kaydedilemedi. E-posta adresini kontrol edip tekrar deneyin.");
+    } else {
+      const updatedAccount = { name: name.trim(), email: email.trim() };
+      setAccountSnapshot(updatedAccount);
+      setAccountMessageTone("success");
+      setAccountMessage("Hesap bilgileriniz güncellendi. E-posta değiştiyse doğrulama bağlantısını gelen kutunuzdan onaylayın.");
+    }
     setSavingAccount(false);
   }
 
@@ -238,11 +306,8 @@ export default function SettingsPage() {
     setSecurityMessage("");
 
     const { error } = await supabase.auth.updateUser({ password });
-    setSecurityMessage(
-      error
-        ? "Şifre güncellenemedi. En az 8 karakter kullandığınızdan emin olup tekrar deneyin."
-        : "Şifreniz güncellendi.",
-    );
+    setSecurityMessageTone(error ? "error" : "success");
+    setSecurityMessage(error ? "Şifre güncellenemedi. En az 8 karakter kullandığınızdan emin olup tekrar deneyin." : "Şifreniz güncellendi.");
     if (!error) setPassword("");
     setSavingPassword(false);
   }
@@ -277,7 +342,7 @@ export default function SettingsPage() {
                   : "Aktif hizmetiniz bulunmuyor. Kart ve dijital profil paketlerini inceleyebilirsiniz."}</p>
             </div>
             <div className={styles.subscriptionActions}>
-              <ButtonLink href="#renewal-options" variant="secondary" size="sm"><Icon name="refresh" /> Hizmeti Yönet</ButtonLink>
+              <ButtonLink href="#renewal-options" variant={renewalWindowOpen ? "primary" : "secondary"} size="sm"><Icon name="refresh" /> {renewalWindowOpen ? "Yenileme seçeneklerini aç" : "Hizmeti Yönet"}</ButtonLink>
               {!subscription.loading && !subscription.entitlement && <ButtonLink href="/urunler/nfc-kart" variant="primary" size="sm">Paketleri Gör</ButtonLink>}
             </div>
           </div>
@@ -362,14 +427,12 @@ export default function SettingsPage() {
                 const info = ORDER_STATUS[order.status];
                 const quantity = order.commerce_order_items.reduce((total, item) => total + item.quantity, 0);
                 const unit = order.commerce_order_items.flatMap((item) => item.commerce_physical_card_units || [])[0];
-                const currentStep = unit ? operationStep(unit.operations_status) : 0;
                 const canResumePayment = order.status === "DRAFT" || order.status === "AWAITING_PAYMENT";
                 return <Card className={styles.orderCard} key={order.id}>
                   <div className={styles.orderHead}>
                     <div><span>Satın alma · {formatDateTime(order.paid_at || order.created_at)}</span><h3>{order.order_number}</h3><p>{order.commerce_order_items.map((item) => `${item.quantity} × ${item.product_name}`).join(" · ")}</p></div>
-                    <strong className={styles.orderStatus}>{info.label}</strong>
+                    <StatusBadge tone={info.tone} className={styles.orderStatus}>{info.label}</StatusBadge>
                   </div>
-                  <div className={styles.orderProgress} aria-label={`Sipariş durumu: ${info.label}`}>{[1, 2, 3, 4, 5].map((step) => <span key={step} data-active={info.step >= step ? "true" : "false"} />)}</div>
                   <p className={styles.orderDescription}>{info.description}</p>
                   {canResumePayment && <ResumePaymentButton orderId={order.id} />}
                   <div className={styles.orderFacts}>
@@ -377,12 +440,7 @@ export default function SettingsPage() {
                     <div><span>Adet</span><strong>{quantity}</strong></div>
                     <div><span>Ödeme zamanı</span><strong>{formatDateTime(order.paid_at)}</strong></div>
                   </div>
-                  {unit && <div className={styles.journey}>
-                    <div className={styles.journeyHeader}><div><h4>Fiziksel kart & kargo</h4><p>{unit.tracking_number ? `${unit.carrier || "Kargo"} · ${unit.tracking_number}` : "Kargo bilgisi hazır olduğunda burada görünür."}</p></div></div>
-                    <div className={styles.journeySteps}>
-                      {[{ title: "Hazırlanıyor", detail: unit.print_requested_at ? formatDateTime(unit.print_requested_at) : "Bekleniyor" }, { title: "Kargoya Verildi", detail: unit.shipped_at ? formatDateTime(unit.shipped_at) : "Bekleniyor" }, { title: "Dağıtımda", detail: unit.out_for_delivery_at ? formatDateTime(unit.out_for_delivery_at) : "Bekleniyor" }, { title: "Teslim Edildi", detail: unit.delivered_at ? formatDateTime(unit.delivered_at) : "Bekleniyor" }].map((step, index) => <div className={index <= currentStep ? styles.journeyStepActive : ""} key={step.title}><small>0{index + 1}</small><strong>{step.title}</strong><span>{step.detail}</span></div>)}
-                    </div>
-                  </div>}
+                  {unit && <OrderFulfillmentStepper order={order} unit={unit} />}
                 </Card>;
               })}
             </div>
@@ -390,14 +448,13 @@ export default function SettingsPage() {
         </section>
 
         <div className={styles.grid}>
-          <div className={styles.main}>
-            <Card className={styles.accountCard}>
+          <Card className={styles.accountCard}>
               <form onSubmit={saveAccount} noValidate>
                 <div className={styles.cardHeader}>
                   <div>
                     <span className={styles.sectionEyebrow}><Icon name="id" /> HESAP BİLGİLERİ</span>
                     <h2>Profilini güncel tut</h2>
-                    <p>Giriş ve hesap iletişim bilgileriniz. E-posta değişikliğinde yeniden doğrulama istenebilir.</p>
+                    <p>Giriş ve hesap iletişim bilgilerinizi yönetin.</p>
                   </div>
                 </div>
                 <div className={styles.formGrid}>
@@ -421,47 +478,17 @@ export default function SettingsPage() {
                     />
                   </Field>
                 </div>
-                {accountMessage && <div className={styles.message} role="status" aria-live="polite">{accountMessage}</div>}
+                <Alert tone="info" title="E-posta değişikliği" className={styles.formAlert}>E-posta adresiniz değişirse, yeni adresinizi doğrulamanız istenir.</Alert>
+                {accountMessage && <Alert tone={accountMessageTone} className={styles.formAlert}>{accountMessage}</Alert>}
                 <div className={styles.actions}>
-                  <Button type="submit" variant="primary" disabled={savingAccount}>
+                  <Button type="submit" variant={accountDirty ? "primary" : "secondary-strong"} disabled={savingAccount || !accountDirty}>
                     {savingAccount ? "Kaydediliyor…" : "Hesap Bilgilerini Kaydet"}
                   </Button>
                 </div>
               </form>
             </Card>
 
-            <Card className={styles.securityCard}>
-              <form onSubmit={savePassword}>
-                <div className={styles.cardHeader}>
-                  <div>
-                    <span className={styles.sectionEyebrow}><Icon name="lock" /> GÜVENLİK</span>
-                    <h2>Şifreni güncelle</h2>
-                    <p>Hesabınıza erişimi korumak için güçlü ve benzersiz bir şifre kullanın.</p>
-                  </div>
-                </div>
-                <div className={styles.securityForm}>
-                  <Field label="Yeni Şifre" help="En az 8 karakter">
-                    <Input
-                      type="password"
-                      minLength={8}
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      autoComplete="new-password"
-                      enterKeyHint="done"
-                      required
-                    />
-                  </Field>
-                  <Button type="submit" variant="secondary-strong" disabled={savingPassword || password.trim().length < 8}>
-                    {savingPassword ? "Güncelleniyor…" : "Şifreyi Güncelle"}
-                  </Button>
-                </div>
-                {securityMessage && <div className={styles.message} role="status" aria-live="polite">{securityMessage}</div>}
-              </form>
-            </Card>
-          </div>
-
-          <aside className={styles.side}>
-            <Card className={styles.sessionCard}>
+          <Card className={styles.sessionCard}>
               <div className={styles.cardHeader}>
                 <div>
                   <span className={styles.sectionEyebrow}><Icon name="secure" /> OTURUM & CİHAZLAR</span>
@@ -473,10 +500,39 @@ export default function SettingsPage() {
                 <span className={styles.sessionIcon}><Icon name="secure" /></span>
                 <div><strong>{browserLabel}</strong><span>Bu cihazda giriş yapılmış durumda.</span></div>
               </div>
-              <Button onClick={signOut} variant="secondary" className={styles.signOut}><Icon name="logout" /> Çıkış Yap</Button>
-            </Card>
+            <Button onClick={signOut} variant="ghost" className={styles.signOut}><Icon name="logout" /> Çıkış Yap</Button>
+          </Card>
 
-            <Card className={styles.legalCard}>
+          <Card className={styles.securityCard}>
+            <form onSubmit={savePassword}>
+              <div className={styles.cardHeader}>
+                <div>
+                  <span className={styles.sectionEyebrow}><Icon name="lock" /> GÜVENLİK</span>
+                  <h2>Şifreni güncelle</h2>
+                  <p>Hesabınıza erişimi korumak için güçlü ve benzersiz bir şifre kullanın.</p>
+                </div>
+              </div>
+              <div className={styles.securityForm}>
+                <Field label="Yeni Şifre" help="En az 8 karakter">
+                  <Input
+                    type="password"
+                    minLength={8}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete="new-password"
+                    enterKeyHint="done"
+                    required
+                  />
+                </Field>
+                <Button type="submit" variant={password.trim().length >= 8 ? "primary" : "secondary-strong"} disabled={savingPassword || password.trim().length < 8}>
+                  {savingPassword ? "Güncelleniyor…" : "Şifreyi Güncelle"}
+                </Button>
+              </div>
+              {securityMessage && <Alert tone={securityMessageTone} className={styles.formAlert}>{securityMessage}</Alert>}
+            </form>
+          </Card>
+
+          <Card className={styles.legalCard}>
               <div className={styles.cardHeader}>
                 <div>
                   <span className={styles.sectionEyebrow}><Icon name="shield" /> YASAL & GİZLİLİK</span>
@@ -488,9 +544,8 @@ export default function SettingsPage() {
                 <Link href="/kvkk"><span><Icon name="id" /></span><div><strong>KVKK Aydınlatma Metni</strong><small>Kişisel verilerinizin işlenmesi</small></div><Icon name="chevronRight" /></Link>
                 <Link href="/gizlilik"><span><Icon name="lock" /></span><div><strong>Gizlilik Politikası</strong><small>Veri ve gizlilik yaklaşımımız</small></div><Icon name="chevronRight" /></Link>
                 <Link href="/iade-iptal"><span><Icon name="refresh" /></span><div><strong>İade ve İptal Koşulları</strong><small>Sipariş ve hizmet koşulları</small></div><Icon name="chevronRight" /></Link>
-              </nav>
-            </Card>
-          </aside>
+            </nav>
+          </Card>
         </div>
       </div>
     </UserPanelShell>

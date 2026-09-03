@@ -104,7 +104,7 @@ export default function MyCardsPage() {
       if (cancelled) return;
       if (!authData.user) {
         setPageState("redirecting");
-        router.replace("/giris?next=%2Fkartlarim");
+        router.replace("/giris?next=%2Fkartim");
         return;
       }
 
@@ -164,6 +164,7 @@ export default function MyCardsPage() {
   const completion = useMemo(() => primary ? Math.min(100, PROFILE_FIELDS.filter((field) => Boolean(primary[field])).length * 20) : 0, [primary]);
   const missingProfileFields = useMemo(() => primary ? PROFILE_FIELDS.filter((field) => !primary[field]).map((field) => PROFILE_FIELD_LABELS[field]) : [], [primary]);
   const currentStep = processStep(process?.operations_status);
+  const canManageLostMode = Boolean(physicalCard && process?.operations_status === "DELIVERED");
   const profileUrl = primary?.slug ? cardShareUrl(primary.slug) : "";
   const displayProfileUrl = primary?.slug ? `yenomi.id/p/${primary.slug}` : "yenomi.id/p/...";
   const profileInitials = (primary?.name || "Yenomi ID").split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
@@ -210,7 +211,7 @@ export default function MyCardsPage() {
   }
 
   async function toggleLostMode() {
-    if (!physicalCard || updatingLostMode) return;
+    if (!physicalCard || !canManageLostMode || updatingLostMode) return;
     const nextStatus = physicalCard.status === "LOST" ? "ACTIVE" : "LOST";
     if (nextStatus === "LOST" && !window.confirm("Kartı kayıp moduna almak fiziksel kart üzerinden erişimi durdurur. Dijital profilin çalışmaya devam eder. Devam etmek istiyor musun?")) return;
     setUpdatingLostMode(true);
@@ -308,17 +309,17 @@ export default function MyCardsPage() {
 
             <section className={styles.quickActions} aria-label="Hızlı işlemler">
               <ButtonLink href={`/olustur?id=${primary.id}`} variant="secondary"><span>01</span> Profili güncelle</ButtonLink>
-              <ButtonLink href="/kartim" variant="secondary"><span>02</span> vCard ve QR’ı test et</ButtonLink>
-              <ButtonLink href="/kartim" variant="secondary"><span>03</span> Yedek / ek kart sipariş et</ButtonLink>
+              <a href={profileUrl} target="_blank" rel="noopener noreferrer" className="yi-btn yi-btn--secondary"><span>02</span> vCard ve QR’ı test et</a>
+              <ButtonLink href="/urunler#mevcut-kullanici" variant="secondary"><span>03</span> Yedek / ek kart sipariş et</ButtonLink>
             </section>
 
-            <section className={`${styles.card} ${styles.lostMode}`} aria-labelledby="lost-mode-title">
+            <section className={`${styles.card} ${styles.lostMode} ${!canManageLostMode ? styles.lostModeUnavailable : ""}`} aria-labelledby="lost-mode-title">
               <div>
                 <span className={styles.eyebrow}>ACİL DURUM</span>
                 <h2 className={styles.title} id="lost-mode-title">Kayıp modu</h2>
-                <p className={styles.copy}>{physicalCard ? physicalCard.status === "LOST" ? "Fiziksel kartın NFC erişimi kapalı. Dijital profilin yayınlanmaya devam eder." : "Kartını kaybedersen fiziksel NFC erişimini anında kapatabilirsin." : "Fiziksel kart teslim edildiğinde kayıp modu buradan yönetilir."}</p>
+                <p className={styles.copy}>{canManageLostMode ? physicalCard?.status === "LOST" ? "Fiziksel kartın NFC erişimi kapalı. Dijital profilin yayınlanmaya devam eder." : "Kartını kaybedersen fiziksel NFC erişimini anında kapatabilirsin." : "Fiziksel kart teslim edildiğinde kayıp modu buradan yönetilir."}</p>
               </div>
-              <Button variant="secondary" onClick={() => void toggleLostMode()} disabled={!physicalCard || updatingLostMode}>{updatingLostMode ? "Güncelleniyor…" : physicalCard?.status === "LOST" ? "Kartı yeniden etkinleştir" : "Kayıp modunu aç"}</Button>
+              <Button variant="secondary" onClick={() => void toggleLostMode()} disabled={!canManageLostMode || updatingLostMode}>{updatingLostMode ? "Güncelleniyor…" : physicalCard?.status === "LOST" ? "Kartı yeniden etkinleştir" : canManageLostMode ? "Kayıp modunu aç" : "Teslimat bekleniyor"}</Button>
             </section>
 
             <section className={styles.card}>

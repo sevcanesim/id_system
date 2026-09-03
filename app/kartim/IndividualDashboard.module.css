@@ -409,6 +409,11 @@
   background: var(--brand-gold-soft);
 }
 
+.quickActions :global(.yi-btn:focus-visible) {
+  outline: 3px solid color-mix(in srgb, var(--brand-gold) 60%, white);
+  outline-offset: 3px;
+}
+
 .quickActions span {
   color: var(--brand-gold-deep);
   font-family: var(--font-mono);
@@ -428,7 +433,21 @@
 .lostMode .eyebrow { color: #a4333b; }
 .lostMode .title { color: #68252c; }
 .lostMode :global(.yi-btn) { border-color: #b53d45; background: #b53d45; color: white; }
-.lostMode :global(.yi-btn):disabled { opacity: .55; }
+
+.lostModeUnavailable {
+  border-color: var(--border);
+  background: var(--surface-secondary);
+}
+
+.lostModeUnavailable .eyebrow { color: var(--text-tertiary); }
+.lostModeUnavailable .title { color: var(--text-primary); }
+.lostModeUnavailable :global(.yi-btn):disabled {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  opacity: 1;
+}
 
 .message {
   margin-top: var(--space-3);

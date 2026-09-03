@@ -167,24 +167,8 @@
 }
 
 @media (min-width: 68.8125rem) {
-  .editorSurface :global(.p8-corporate-workspace--decoupled .p8-corporate-header),
-  .editorSurface :global(.p8-corporate-workspace--decoupled .p8-section-nav) {
-    position: sticky;
-    background: var(--background);
-  }
-
-  .editorSurface :global(.p8-corporate-workspace--decoupled .p8-corporate-header) {
-    top: 0;
-    z-index: 30;
-  }
-
-  .editorSurface :global(.p8-corporate-workspace--decoupled .p8-section-nav) {
-    top: calc(var(--control-height-lg) + var(--space-5));
-    z-index: 24;
-  }
-
   .editorSurface :global(.p8-corporate-workspace--decoupled .p8-preview-column) {
-    top: calc((var(--control-height-lg) * 2) + var(--space-9));
+    top: var(--space-5);
   }
 }
 

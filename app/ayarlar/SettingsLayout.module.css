@@ -1,42 +1,479 @@
+.page {
+  display: grid;
+  gap: clamp(var(--space-5), 3vw, var(--space-7));
+  min-width: 0;
+}
+
+.subscriptionCard {
+  overflow: hidden;
+  padding: 0;
+}
+
+.subscriptionMain {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-5);
+  padding: clamp(var(--space-4), 2.5vw, var(--space-6));
+}
+
+.countdown {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  width: 6.75rem;
+  min-height: 6.75rem;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--brand-gold), color-mix(in srgb, var(--brand-gold) 70%, var(--surface)));
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.countdown strong {
+  font-size: clamp(2rem, 3.5vw, 2.9rem);
+  line-height: .9;
+  letter-spacing: -.07em;
+}
+
+.countdown span,
+.sectionEyebrow,
+.subscriptionFacts span,
+.orderHead > div > span,
+.orderFacts span,
+.journeySteps small {
+  font-size: var(--type-xs);
+  font-weight: 750;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.countdown span {
+  margin-top: var(--space-2);
+  font-size: .62rem;
+  letter-spacing: .09em;
+}
+
+.subscriptionCopy,
+.cardHeader > div,
+.sectionHeading > div,
+.offerCopy,
+.orderHead > div,
+.journeyHeader > div,
+.sessionIdentity > div,
+.legalLinks a > div {
+  min-width: 0;
+}
+
+.subscriptionCopy h2,
+.cardHeader h2,
+.sectionHeading h2 {
+  margin: var(--space-1) 0 0;
+  color: var(--text-primary);
+  font-size: clamp(1.35rem, 2.1vw, 1.8rem);
+  line-height: 1.15;
+  letter-spacing: -.035em;
+}
+
+.subscriptionCopy p,
+.cardHeader p,
+.sectionHeading p,
+.offerCopy p,
+.emptyInline p,
+.orderHead p,
+.orderDescription,
+.journeyHeader p,
+.sessionIdentity span,
+.legalLinks small {
+  margin: var(--space-2) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--type-body-sm);
+  line-height: 1.5;
+}
+
+.sectionEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--brand-gold);
+}
+
+.sectionEyebrow :global(.yi-icon) {
+  width: 1rem;
+  height: 1rem;
+}
+
+.subscriptionActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.subscriptionFacts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--border);
+}
+
+.subscriptionFacts > div {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-4) clamp(var(--space-4), 2.5vw, var(--space-6));
+  border-right: 1px solid var(--border);
+}
+
+.subscriptionFacts > div:last-child {
+  border-right: 0;
+}
+
+.subscriptionFacts span,
+.orderFacts span,
+.journeySteps small {
+  color: var(--text-tertiary);
+}
+
+.subscriptionFacts strong,
+.orderFacts strong {
+  overflow-wrap: anywhere;
+  color: var(--text-primary);
+  font-size: var(--type-body-sm);
+}
+
+.renewalSection,
+.ordersSection,
+.main,
+.side,
+.orderList,
+.offerGrid {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.emptyInline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.emptyInline strong {
+  color: var(--text-primary);
+  font-size: var(--type-body);
+}
+
+.emptyInline p {
+  max-width: 44rem;
+}
+
+.offerCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-5);
+  border-color: color-mix(in srgb, var(--brand-gold) 42%, var(--border));
+}
+
+.offerCopy h3 {
+  margin: var(--space-1) 0 0;
+  color: var(--text-primary);
+  font-size: var(--type-h4);
+  line-height: 1.2;
+  letter-spacing: -.025em;
+}
+
+.offerCopy ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.offerCopy li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--type-body-sm);
+}
+
+.offerCopy li :global(.yi-icon) {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  color: var(--brand-gold);
+}
+
+.offerAction {
+  display: grid;
+  justify-items: end;
+  gap: var(--space-1);
+  min-width: 10rem;
+  text-align: right;
+}
+
+.offerAction > strong {
+  color: var(--text-primary);
+  font-size: var(--type-h3);
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+
+.offerAction > span {
+  margin-bottom: var(--space-2);
+  color: var(--text-tertiary);
+  font-size: var(--type-sm);
+}
+
+.orderCard {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.orderHead,
+.journeyHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.orderHead > div > span {
+  color: var(--text-tertiary);
+}
+
+.orderHead h3,
+.journeyHeader h4 {
+  margin: var(--space-1) 0 0;
+  color: var(--text-primary);
+  font-size: var(--type-h4);
+  line-height: 1.2;
+}
+
+.orderStatus {
+  flex: 0 0 auto;
+  padding: .4rem .6rem;
+  border-radius: var(--radius-full);
+  background: var(--surface-secondary);
+  color: var(--brand-gold);
+  font-size: var(--type-xs);
+}
+
+.orderProgress {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.orderProgress span {
+  min-width: 0;
+  height: .25rem;
+  border-radius: var(--radius-full);
+  background: var(--border);
+}
+
+.orderProgress span[data-active="true"] {
+  background: var(--brand-gold);
+}
+
+.orderDescription {
+  margin: 0;
+}
+
+.orderFacts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.orderFacts > div {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-secondary);
+}
+
+.journey {
+  display: grid;
+  gap: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.journeyHeader h4 {
+  font-size: var(--type-body);
+}
+
+.journeyHeader p {
+  margin-bottom: 0;
+}
+
+.journeySteps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.journeySteps > div {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  padding-top: var(--space-3);
+  border-top: .2rem solid var(--border);
+}
+
+.journeySteps > div.journeyStepActive {
+  border-top-color: var(--brand-gold);
+}
+
+.journeySteps strong {
+  color: var(--text-primary);
+  font-size: var(--type-body-sm);
+}
+
+.journeySteps span {
+  overflow-wrap: anywhere;
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+  line-height: 1.4;
+}
+
 .grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.85fr);
+  grid-template-columns: minmax(0, 1.45fr) minmax(18rem, .85fr);
   gap: var(--space-4);
-  align-items: stretch;
+  align-items: start;
 }
 
-.main,
-.side {
+.accountCard,
+.securityCard,
+.sessionCard,
+.legalCard {
+  padding: clamp(var(--space-4), 2.5vw, var(--space-5));
+}
+
+.cardHeader {
+  margin-bottom: var(--space-5);
+}
+
+.formGrid {
   display: grid;
-  gap: var(--space-4);
-  min-width: 0;
-  align-content: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
 }
 
-.main > *,
-.side > * {
-  min-width: 0;
-}
-
-.main > :first-child,
-.side > :first-child {
-  align-self: stretch;
-}
-
-.grid :global(.ds-card) {
-  padding: var(--space-5);
-}
-
-.grid :global(.ds-card-title) {
-  margin-bottom: var(--space-2);
-  font-size: clamp(1.35rem, 2vw, 1.8rem);
-  line-height: 1.15;
-}
-
-.grid :global(.p9-section-copy) {
-  max-width: 42rem;
+.message {
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-secondary);
+  color: var(--text-secondary);
   font-size: var(--type-body-sm);
-  line-height: 1.55;
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: var(--space-4);
+}
+
+.securityForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--space-3);
+}
+
+.sessionIdentity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-secondary);
+}
+
+.sessionIcon,
+.legalLinks a > span {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--brand-gold) 12%, var(--surface));
+  color: var(--brand-gold);
+}
+
+.sessionIcon :global(.yi-icon),
+.legalLinks a > span :global(.yi-icon) {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.sessionIdentity strong,
+.legalLinks strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: var(--type-body-sm);
+}
+
+.sessionIdentity span {
+  display: block;
+}
+
+.signOut {
+  width: 100%;
+  margin-top: var(--space-4);
+}
+
+.legalLinks {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.legalLinks a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 4rem;
+  padding: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: inherit;
+  text-decoration: none;
+}
+
+.legalLinks a:hover {
+  border-color: var(--border);
+  background: var(--surface-secondary);
+}
+
+.legalLinks small {
+  display: block;
+  margin-top: .15rem;
+  font-size: var(--type-sm);
+}
+
+.legalLinks > a > :last-child {
+  width: 1rem;
+  height: 1rem;
+  color: var(--text-tertiary);
 }
 
 @media (max-width: 64rem) {
@@ -50,13 +487,70 @@
 }
 
 @media (max-width: 47.9375rem) {
-  .grid,
+  .page,
+  .renewalSection,
+  .ordersSection,
   .main,
-  .side {
+  .side,
+  .orderList,
+  .offerGrid {
     gap: var(--space-3);
   }
 
+  .subscriptionMain,
+  .offerCard,
+  .securityForm {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .subscriptionMain {
+    align-items: start;
+  }
+
+  .countdown {
+    width: 5.75rem;
+    min-height: 5.75rem;
+  }
+
+  .subscriptionActions,
+  .offerAction {
+    justify-content: flex-start;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .subscriptionFacts,
+  .formGrid,
+  .orderFacts,
+  .journeySteps,
   .side {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .subscriptionFacts > div {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .subscriptionFacts > div:last-child {
+    border-bottom: 0;
+  }
+
+  .emptyInline,
+  .orderHead,
+  .journeyHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .journeySteps > div,
+  .journeySteps > div.journeyStepActive {
+    padding: var(--space-2) 0 var(--space-2) var(--space-3);
+    border-top: 0;
+    border-left: .2rem solid var(--border);
+  }
+
+  .journeySteps > div.journeyStepActive {
+    border-left-color: var(--brand-gold);
   }
 }

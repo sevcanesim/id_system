@@ -314,7 +314,7 @@ export default function MyCardsPage() {
             </section>
 
             <section className={styles.card}>
-              <span className={styles.eyebrow}>HİZMET & YENİLEME</span><h2 className={styles.title}>Paketini ve hizmet süreni yönet.</h2><p className={styles.copy}>Yenileme tarihini, Premium yükseltme seçeneğini ve paket fiyatlarını Hizmet & Yenileme alanında görebilirsin.</p><div className={styles.actions}><ButtonLink href="/yenile">Hizmet & Yenileme</ButtonLink><ButtonLink href="/siparislerim" variant="secondary">Siparişlerim & Kart Süreci</ButtonLink></div>
+              <span className={styles.eyebrow}>HİZMET & YENİLEME</span><h2 className={styles.title}>Paketini ve hizmet süreni yönet.</h2><p className={styles.copy}>Yenileme seçeneklerini ve sipariş-kargo durumunu Hesap & Abonelik alanından takip edebilirsin.</p><div className={styles.actions}><ButtonLink href="/ayarlar#renewal-options">Plan & Yenileme</ButtonLink><ButtonLink href="/ayarlar#orders" variant="secondary">Siparişler & Kart Süreci</ButtonLink></div>
             </section>
           </>
         )}

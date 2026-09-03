@@ -9,7 +9,7 @@ export default function PremiumFeatureGate({ feature }: { feature: string }) {
       <span className={styles.eyebrow}>PREMİUM ÖZELLİK</span>
       <h2 id="premium-feature-title">{feature}</h2>
       <p>Bu alanı görüntüleyebilmeniz için Premium yükseltmesi yapmalısınız.</p>
-      <Link className="yi-btn yi-btn--primary" href="/yenile">Premium’a yükselt</Link>
+      <Link className="yi-btn yi-btn--primary" href="/ayarlar#renewal-options">Premium’a yükselt</Link>
     </section>
   );
 }

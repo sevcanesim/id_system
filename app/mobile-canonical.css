@@ -253,82 +253,6 @@
     letter-spacing: -.045em;
   }
 
-  /* Package matrix: no 900px desktop canvas on a phone. Each feature becomes
-     a readable label plus three equal package cells, preserving comparison. */
-  .public-site .home-package-matrix__scroll {
-    width: 100%;
-    overflow: visible;
-    border-radius: var(--mobile-card-radius);
-    box-shadow: 0 10px 28px rgba(28, 23, 16, .045);
-  }
-
-  .public-site .home-package-matrix__table {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .public-site .home-package-matrix__row {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    width: 100%;
-  }
-
-  .public-site .home-package-matrix__header > :first-child {
-    display: none;
-  }
-
-  .public-site .home-package-matrix__header > strong {
-    min-width: 0;
-    padding: 14px 8px;
-    font-size: 13px;
-    text-align: center;
-    overflow-wrap: anywhere;
-  }
-
-  .public-site .home-package-matrix__row:not(.home-package-matrix__header) > :first-child {
-    grid-column: 1 / -1;
-    min-height: 0;
-    padding: 14px 14px 8px;
-    border-left: 0;
-    background: #fff;
-    font-size: 14px;
-    line-height: 1.35;
-  }
-
-  .public-site .home-package-matrix__row:not(.home-package-matrix__header) > :nth-child(n + 2) {
-    min-width: 0;
-    min-height: 54px;
-    padding: 10px 8px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-left: 0;
-    font-size: 12px;
-    line-height: 1.35;
-    text-align: center;
-    overflow-wrap: anywhere;
-  }
-
-  .public-site .home-package-matrix__row:not(.home-package-matrix__header) > :nth-child(3) {
-    background: #f7eedb;
-  }
-
-  .public-site .home-package-matrix__actions > :first-child {
-    display: none;
-  }
-
-  .public-site .home-package-matrix__actions > span {
-    min-height: 68px;
-    padding: 10px 6px;
-  }
-
-  .public-site .home-package-matrix__actions a {
-    display: block;
-    font-size: 11px;
-    font-weight: 760;
-    line-height: 1.35;
-  }
-
   /* Journey and classic-vs-Yenomi comparison */
   .home-premium__journey-steps {
     gap: 0;
@@ -585,64 +509,6 @@
     margin-top: 10px;
   }
 
-  /* Footer ------------------------------------------------------------- */
-  .yi-footer.yi-footer--premium .yi-container {
-    width: 100%;
-    padding: 32px var(--mobile-gutter) calc(16px + env(safe-area-inset-bottom, 0px));
-  }
-
-  .yi-footer .yi-footer__premium-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 26px 24px;
-    padding-bottom: 26px;
-  }
-
-  .yi-footer .yi-footer__premium-brand {
-    grid-column: 1 / -1;
-  }
-
-  .yi-footer .yi-footer__premium-brand p {
-    max-width: 34ch;
-    margin: 14px 0 0;
-    font-size: 14px;
-    line-height: 1.5;
-  }
-
-  .yi-footer .yi-footer__premium-column {
-    gap: 10px;
-  }
-
-  .yi-footer .yi-footer__premium-column strong {
-    margin-bottom: 2px;
-    font-size: 12px;
-  }
-
-  .yi-footer .yi-footer__premium-column a {
-    display: flex;
-    align-items: center;
-    min-height: 44px;
-    font-size: 14px;
-    line-height: 1.45;
-  }
-
-  .yi-footer .yi-footer__premium-column[aria-label="Yasal"] {
-    grid-column: 1 / -1;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .yi-footer .yi-footer__premium-column[aria-label="Yasal"] strong {
-    grid-column: 1 / -1;
-  }
-
-  .yi-footer .yi-footer__premium-base {
-    min-height: 0;
-    padding: 18px 0 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 14px;
-    font-size: 12px;
-  }
 }
 
 @media (max-width: 360px) {
@@ -663,17 +529,4 @@
     font-size: 35px;
   }
 
-  .public-site .home-package-matrix__header > strong {
-    font-size: 12px;
-    padding-inline: 5px;
-  }
-
-  .public-site .home-package-matrix__row:not(.home-package-matrix__header) > :nth-child(n + 2) {
-    font-size: 11px;
-    padding-inline: 5px;
-  }
-
-  .yi-footer .yi-footer__premium-grid {
-    gap: 24px 18px;
-  }
 }

@@ -137,6 +137,10 @@ for (const route of routes) {
       if (viewport.width <= 430) {
         expect(await mobileTouchTargetViolations(page), `${label} mobile touch targets`).toEqual([]);
       }
+      if (route.path === "/" && viewport.width <= 430) {
+        await expect(page.locator(".home-package-matrix__mobile-cards")).toBeVisible();
+        await expect(page.locator(".home-package-matrix__scroll")).toBeHidden();
+      }
     });
   }
 }

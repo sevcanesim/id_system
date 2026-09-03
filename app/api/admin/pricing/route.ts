@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireSuperAdmin } from "../../../../lib/admin/require-admin";
+import {
+  INDIVIDUAL_PLAN,
+  INDIVIDUAL_PREMIUM_PLAN,
+  INDIVIDUAL_PREMIUM_UPGRADE_PLAN,
+  INDIVIDUAL_RENEWAL_PLAN,
+  INDIVIDUAL_PREMIUM_RENEWAL_PLAN,
+  NETWORK_MAIL_CREDIT_PACKS,
+  corporatePackageByCode,
+} from "../../../../lib/commerce/packages";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,26 +35,44 @@ const productSchema = z.object({ kind: z.literal("PRODUCT_VARIANT"), sku: z.enum
 const planSchema = z.object({ kind: z.literal("CORPORATE_PLAN"), code: z.enum(CORPORATE_CODES), priceKurus: z.number().int().min(0).max(1_000_000_000) });
 const schema = z.discriminatedUnion("kind", [productSchema, planSchema]);
 
+// Demo/preview fallback shown when the DB has no seeded product_variants /
+// business_plans rows yet (super-admin only, requires an explicit ?demo=1).
+// Prices are derived from lib/commerce/packages.ts — the commercial source
+// of truth — instead of being restated as literals here, so this preview
+// can never silently drift out of sync with real pricing again (it had:
+// corporate tiers here were ~45-53% below the actual current prices).
+function networkMailPackPrice(sku: string): number {
+  const pack = NETWORK_MAIL_CREDIT_PACKS.find((p) => p.sku === sku);
+  if (!pack) throw new Error(`Unknown Network Mail pack SKU in demoPricing(): ${sku}`);
+  return pack.priceKurus;
+}
+
+function corporateDemoPlan(id: string, code: string, name: string) {
+  const plan = corporatePackageByCode(code);
+  if (!plan) throw new Error(`Unknown corporate package code in demoPricing(): ${code}`);
+  return { id, code, name, seat_limit: plan.seats, annual_price_kurus: plan.priceKurus, is_active: true };
+}
+
 function demoPricing() {
   return {
     demo: true,
     variants: [
-      { id: "d1", sku: "YENOMI-NFC-CARD-ANNUAL", name: "Yenomi ID Standard", price_kurus: 149000, billing_period: "ANNUAL", is_active: true },
-      { id: "d2", sku: "YENOMI-NFC-PREMIUM-ANNUAL", name: "Yenomi ID Premium — NFC + 100 Network Mail", price_kurus: 249000, billing_period: "ANNUAL", is_active: true },
-      { id: "d3", sku: "YENOMI-PREMIUM-UPGRADE", name: "Standard → Premium Yükseltme", price_kurus: 100000, billing_period: "ONE_TIME", is_active: true },
-      { id: "d4", sku: "YENOMI-DIGITAL-RENEWAL-ANNUAL", name: "Standard Yıllık Yenileme", price_kurus: 59900, billing_period: "ANNUAL", is_active: true },
-      { id: "d5", sku: "YENOMI-PREMIUM-RENEWAL-ANNUAL", name: "Premium Yıllık Yenileme", price_kurus: 99900, billing_period: "ANNUAL", is_active: true },
-      { id: "d6", sku: "YENOMI-NETWORK-MAIL-100", name: "Network Mail 100", price_kurus: 19900, billing_period: "ONE_TIME", is_active: true },
-      { id: "d7", sku: "YENOMI-NETWORK-MAIL-500", name: "Network Mail 500", price_kurus: 74900, billing_period: "ONE_TIME", is_active: true },
-      { id: "d8", sku: "YENOMI-NETWORK-MAIL-1000", name: "Network Mail 1000", price_kurus: 129900, billing_period: "ONE_TIME", is_active: true },
+      { id: "d1", sku: "YENOMI-NFC-CARD-ANNUAL", name: "Yenomi ID Standard", price_kurus: INDIVIDUAL_PLAN.priceKurus, billing_period: "ANNUAL", is_active: true },
+      { id: "d2", sku: "YENOMI-NFC-PREMIUM-ANNUAL", name: "Yenomi ID Premium — NFC + 100 Network Mail", price_kurus: INDIVIDUAL_PREMIUM_PLAN.priceKurus, billing_period: "ANNUAL", is_active: true },
+      { id: "d3", sku: "YENOMI-PREMIUM-UPGRADE", name: "Standard → Premium Yükseltme", price_kurus: INDIVIDUAL_PREMIUM_UPGRADE_PLAN.priceKurus, billing_period: "ONE_TIME", is_active: true },
+      { id: "d4", sku: "YENOMI-DIGITAL-RENEWAL-ANNUAL", name: "Standard Yıllık Yenileme", price_kurus: INDIVIDUAL_RENEWAL_PLAN.priceKurus, billing_period: "ANNUAL", is_active: true },
+      { id: "d5", sku: "YENOMI-PREMIUM-RENEWAL-ANNUAL", name: "Premium Yıllık Yenileme", price_kurus: INDIVIDUAL_PREMIUM_RENEWAL_PLAN.priceKurus, billing_period: "ANNUAL", is_active: true },
+      { id: "d6", sku: "YENOMI-NETWORK-MAIL-100", name: "Network Mail 100", price_kurus: networkMailPackPrice("YENOMI-NETWORK-MAIL-100"), billing_period: "ONE_TIME", is_active: true },
+      { id: "d7", sku: "YENOMI-NETWORK-MAIL-500", name: "Network Mail 500", price_kurus: networkMailPackPrice("YENOMI-NETWORK-MAIL-500"), billing_period: "ONE_TIME", is_active: true },
+      { id: "d8", sku: "YENOMI-NETWORK-MAIL-1000", name: "Network Mail 1000", price_kurus: networkMailPackPrice("YENOMI-NETWORK-MAIL-1000"), billing_period: "ONE_TIME", is_active: true },
     ],
     plans: [
-      { id: "p2", code: "CORP-2", name: "Kurumsal 2", seat_limit: 2, annual_price_kurus: 299000, is_active: true },
-      { id: "p5", code: "CORP-5", name: "Kurumsal 5", seat_limit: 5, annual_price_kurus: 649000, is_active: true },
-      { id: "p10", code: "CORP-10", name: "Kurumsal 10", seat_limit: 10, annual_price_kurus: 1199000, is_active: true },
-      { id: "p25", code: "CORP-25", name: "Kurumsal 25", seat_limit: 25, annual_price_kurus: 2499000, is_active: true },
-      { id: "p50", code: "CORP-50", name: "Kurumsal 50", seat_limit: 50, annual_price_kurus: 4499000, is_active: true },
-      { id: "p100", code: "CORP-100", name: "Kurumsal 100", seat_limit: 100, annual_price_kurus: 7999000, is_active: true },
+      corporateDemoPlan("p2", "CORP-2", "Kurumsal 2"),
+      corporateDemoPlan("p5", "CORP-5", "Kurumsal 5"),
+      corporateDemoPlan("p10", "CORP-10", "Kurumsal 10"),
+      corporateDemoPlan("p25", "CORP-25", "Kurumsal 25"),
+      corporateDemoPlan("p50", "CORP-50", "Kurumsal 50"),
+      corporateDemoPlan("p100", "CORP-100", "Kurumsal 100"),
     ],
   };
 }

@@ -23,6 +23,22 @@
   align-self: stretch;
 }
 
+.grid :global(.ds-card) {
+  padding: var(--space-5);
+}
+
+.grid :global(.ds-card-title) {
+  margin-bottom: var(--space-2);
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+  line-height: 1.15;
+}
+
+.grid :global(.p9-section-copy) {
+  max-width: 42rem;
+  font-size: var(--type-body-sm);
+  line-height: 1.55;
+}
+
 @media (max-width: 64rem) {
   .grid {
     grid-template-columns: minmax(0, 1fr);

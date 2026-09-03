@@ -63,7 +63,7 @@ export default function AppShell({ title, description, eyebrow, actions = [], ch
       id={sidebarId}
       labelledBy={menuButtonId}
       subtitle="Kimlik Stüdyosu"
-      brandHref="/kartlarim"
+      brandHref="/kartim"
       open={mobileOpen}
       onClose={() => setMobileOpen(false)}
       activeKey={activeKey ?? sidebarItems.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))?.key}
@@ -78,7 +78,7 @@ export default function AppShell({ title, description, eyebrow, actions = [], ch
 
     <section className="p7-workspace">
       <header className="p7-topbar">
-        <div className="p7-breadcrumb"><Link href="/kartlarim">Kimlik</Link><span>/</span><strong>{title}</strong></div>
+        <div className="p7-breadcrumb"><Link href="/kartim">Kimlik</Link><span>/</span><strong>{title}</strong></div>
         <div className="p7-topbar-actions"><a href="mailto:hello@yenomilabs.com" aria-label="Destek ekibine e-posta gönder" title="Destek"><Icon name="headset" /></a><span className="p7-avatar" aria-label="Kullanıcı hesabı">YI</span></div>
       </header>
       <div className="p7-content">

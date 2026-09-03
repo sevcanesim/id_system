@@ -34,7 +34,7 @@ import {
 } from "./domain/profile-editor";
 import type { CardBranding } from "../CardTemplate";
 import { fetchOrganizationIdentity, type OrgLock } from "./domain/organization-identity";
-import { cardShareUrl, publicCardHost } from "../../lib/public-card/urls";
+import { cardShareUrl } from "../../lib/public-card/urls";
 
 const CARD_SECTIONS = [
   { id: "p8-basic", label: "Temel Bilgiler" },
@@ -291,7 +291,7 @@ export default function CardWizard() {
             return;
           }
         }
-        // `?new=1` -> boş formla yeni bir kart oluştur (mevcut kartları etkilemez).
+        // `?new=1` yalnızca kurumsal çoklu kart akışlarında kullanılabilir.
         // `?id=...` -> o belirli kartı düzenle.
         // Kurumsal Kartım ekranında `id` henüz URL'ye eklenmemiş olsa bile
         // kullanıcının kişisel ilk kartına düşme. Organizasyon adına bağlı
@@ -311,6 +311,11 @@ export default function CardWizard() {
         }
         if (!isBusinessCard && (isNewCard || !profile)) {
           const { data: existingProfiles } = await fetchOwnProfiles(supabase, user.id);
+          if (isNewCard && existingProfiles.length > 0) {
+            setAccessState("denied");
+            router.replace("/olustur");
+            return;
+          }
           const spareEntitlementId = unusedEntitlementId(entitlementPayload.entitlements ?? [], existingProfiles);
           if (!spareEntitlementId) {
             setAccessState("denied");
@@ -712,6 +717,9 @@ export default function CardWizard() {
           if (savePayload.code === "DIGITAL_CARD_LIMIT_REACHED") {
             throw new Error("Şirketin dijital kart kotası doldu.");
           }
+          if (savePayload.code === "INDIVIDUAL_PROFILE_LIMIT") {
+            throw new Error("Bireysel hesapta yalnızca bir dijital profil oluşturabilirsin.");
+          }
           throw new Error(saveError);
         }
 
@@ -774,7 +782,7 @@ export default function CardWizard() {
   }
   if (accessState === "denied") return null;
 
-  const cancelHref = isBusinessCard ? "/kurumsal/panel" : (profileId ? "/kartlarim" : "/");
+  const cancelHref = isBusinessCard ? "/kurumsal/panel" : (profileId ? "/kartim" : "/");
 
   const isAlreadyPublished = Boolean(profileId) && isPublished;
 
@@ -886,7 +894,7 @@ export default function CardWizard() {
           <div className="p8-field-grid">
             <Field label="Web Sitesi"><Input type="url" value={data.website} onChange={(e) => update("website", e.target.value)} placeholder="https://firma.com" inputMode="url" autoCapitalize="none" spellCheck={false} {...bindTarget("social")}/></Field>
             <Field label="Yenomi ID" help="Paylaşım adresi /p/{slug} şeklindedir. QR kimliği ayrı ve sabittir; slug değişince QR yeniden basılmaz.">
-              <div className="p8-slug-field"><span>{publicCardHost()}/p/</span><Input value={profileSlug} onChange={(e) => updateSlug(e.target.value)} onBlur={() => setProfileSlug(normalizeProfileSlug(profileSlug))} placeholder="adsoyad" minLength={3} maxLength={40}/></div>
+              <div className="p8-slug-field"><span>yenomi.id/p/</span><Input value={profileSlug} onChange={(e) => updateSlug(e.target.value)} onBlur={() => setProfileSlug(normalizeProfileSlug(profileSlug))} placeholder="adsoyad" minLength={3} maxLength={40}/></div>
             </Field>
           </div>
           <div className={`p8-slug-feedback p8-slug-feedback--${slugStatus}`} aria-live="polite"><span>{slugMessage || "Ad-soyadından otomatik önerilir; yayınlamadan önce değiştirebilirsiniz."}</span>{slugTouched && <Button size="sm" variant="secondary" onClick={() => { setSlugTouched(false); setProfileSlug(createProfileSlug(data.name)); }}>Otomatik Öner</Button>}</div>
@@ -894,7 +902,7 @@ export default function CardWizard() {
         </section>
 
         <section id="p8-appearance" className="p8-section-card">
-          <div className="p8-section-heading"><span>06</span><div><h2>Profil Görünümü</h2><p>Fotoğraf ve kısa biyografi ile kartınızın ilk izlenimini tamamlayın.</p></div></div>
+          <div className="p8-section-heading"><span>06</span><div><h2>Profil Görünümü &amp; Uluslararası Katman</h2><p>Fotoğraf, kısa biyografi ve İngilizce içerik ile kartınızın ilk izlenimini tamamlayın.</p></div></div>
           <div className="p8-photo-row">
             <div className="p8-photo-preview" aria-hidden="true">{data.image ? <img src={data.image} alt="" /> : <span>{data.name.trim().split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "Y"}</span>}</div>
             <div className="p8-photo-actions"><strong>Profil fotoğrafı</strong><p>JPG, PNG veya WebP · en fazla 5 MB · en az 240 × 240 px.</p><label className="ds-button ds-button--secondary p8-file-button">Fotoğraf Seç<input type="file" accept="image/jpeg,image/png,image/webp" onChange={imageChange} onFocus={() => setActivePreviewTarget("photo")} onBlur={() => setActivePreviewTarget(null)}/></label>{data.image && <Button size="sm" variant="ghost" onClick={() => { update("image", ""); setImageMessage(""); }}>Fotoğrafı Kaldır</Button>}{imageMessage && <span className="p8-field-error" role="alert">{imageMessage}</span>}</div>
@@ -902,6 +910,7 @@ export default function CardWizard() {
           <Field label="Kısa Biyografi" help={`${(data.bio || "").length}/280 karakter`}>
             <Textarea value={data.bio || ""} onChange={(e) => update("bio", e.target.value)} maxLength={280} rows={5} placeholder="Kısa ve profesyonel bir tanıtım yazın..." {...bindTarget("bio")}/>
           </Field>
+          <div className="p8-international-heading"><span>ULUSLARARASI KATMAN</span><p>İngilizce görünümde kullanılacak isteğe bağlı bilgileri ekleyin.</p></div>
           <Field label="İngilizce ünvan" help="Uluslararası networking katmanı. Boş bırakılırsa İngilizce görünümde Türkçe ünvan kullanılır.">
             <Input value={englishRole} onChange={(e) => setEnglishRole(e.target.value)} placeholder="Head of Partnerships" />
           </Field>
@@ -943,17 +952,17 @@ export default function CardWizard() {
         <section className="p8-preview-card">
           <div className="p8-preview-hd">
             <div>
-              <h3 className="p8-preview-title">Canlı Kart Önizlemesi</h3>
+              <h3 className="p8-preview-title">Minimal Kart Önizlemesi</h3>
               <div className="p8-preview-sub-row">
                 <span className={`p8-preview-badge p8-preview-badge--${isDirty ? "local" : isPublished ? "live" : "draft"}`}>
                   {isDirty ? (
                     isPublished ? (
-                      <><Icon name="edit" /> Önizleme — kaydedilmemiş değişiklikler var</>
+                    <><Icon name="edit" /> Minimal önizleme — kaydedilmemiş değişiklikler var</>
                     ) : (
-                      <><Icon name="edit" /> Önizleme — henüz yayınlanmadı (kaydedilmemiş değişiklikler var)</>
+                    <><Icon name="edit" /> Minimal önizleme — henüz yayınlanmadı (kaydedilmemiş değişiklikler var)</>
                     )
                   ) : isPublished ? (
-                    <><Icon name="check" /> Canlı profil ile aynı</>
+                    <><Icon name="check" /> Canlı profilin minimal görünümü</>
                   ) : (
                     <><Icon name="clock" /> Henüz yayınlanmadı</>
                   )}
@@ -961,6 +970,7 @@ export default function CardWizard() {
               </div>
             </div>
             <div className="p8-preview-acts">
+              {isPublished && profileSlug && <a className="yi-btn yi-btn--secondary" href={cardShareUrl(profileSlug)} target="_blank" rel="noopener noreferrer"><Icon name="external" /> Canlı profili aç</a>}
               <Button size="sm" variant="secondary" onClick={() => setPhoneTestOpen(true)}>
                 <Icon name="qr" /> Telefonda Test Et
               </Button>
@@ -975,7 +985,7 @@ export default function CardWizard() {
             <p>Paylaşım adresi okunabilir slug kullanır. QR kimliği ayrıdır ve değişmez.</p>
           </div>
           <div className="p8-url-row">
-            <span>{cardShareUrl(profileSlug || "yenomi-id").replace(/^https?:\/\//, "")}</span>
+            <span>yenomi.id/p/{profileSlug || "yenomi-id"}</span>
             <Button size="sm" variant="secondary" onClick={() => void profileCardActions.copyLink()}>
               <Icon name="copy" /> Kopyala
             </Button>

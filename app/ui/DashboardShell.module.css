@@ -1,0 +1,70 @@
+.shell {
+  min-height: 100svh;
+  display: grid;
+  grid-template-columns: 17rem minmax(0, 1fr);
+  background: #f9f8f6;
+  color: var(--text-primary);
+}
+
+.workspace { min-width: 0; }
+
+.topbar {
+  min-height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-inline: clamp(var(--space-4), 3vw, var(--space-6));
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, .82);
+  backdrop-filter: blur(14px);
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  margin-left: auto;
+  color: var(--text-secondary);
+  font-size: var(--type-body-sm);
+}
+
+.accountLabel {
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  font-weight: 700;
+  letter-spacing: .1em;
+}
+
+.accountValue { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.topActions { display: flex; align-items: center; gap: var(--space-2); }
+.topActions a { display: inline-flex; min-height: 2.25rem; align-items: center; padding-inline: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-secondary); font-size: var(--type-sm); font-weight: 650; }
+.topActions a:hover { border-color: var(--border-gold); color: var(--text-primary); }
+
+.content { width: min(calc(100% - 48px), 72rem); margin-inline: auto; padding-block: clamp(var(--space-5), 3vw, var(--space-6)) var(--space-8); }
+.pageHead { margin-bottom: var(--space-5); }
+.pageHead > span { display: block; margin-bottom: var(--space-2); color: var(--brand-gold-deep); font-family: var(--font-mono); font-size: var(--type-xs); font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+.pageHead h1 { margin: 0; font-size: clamp(1.9rem, 2.8vw, 2.5rem); letter-spacing: -.045em; }
+.pageHead p { max-width: 42rem; margin: var(--space-2) 0 0; color: var(--text-secondary); font-size: var(--type-body-sm); line-height: 1.55; }
+.actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
+
+.menu { display: none; }
+
+@media (max-width: 64rem) {
+  .shell { grid-template-columns: 1fr; }
+  .menu { position: fixed; z-index: 100; top: var(--space-3); left: var(--space-3); width: 2.5rem; height: 2.5rem; display: grid; place-content: center; gap: .25rem; border: 1px solid var(--border-gold); border-radius: var(--radius-sm); background: var(--surface); box-shadow: var(--shadow-soft); }
+  .menu span { width: 1rem; height: 2px; background: var(--text-primary); }
+}
+
+@media (max-width: 47.9375rem) {
+  .topbar { min-height: 3.6rem; padding-inline: var(--space-4); }
+  .account { max-width: calc(100vw - 9.5rem); margin-left: 3rem; }
+  .accountLabel, .topActions a:first-child { display: none; }
+  .topActions a { min-height: 2rem; padding-inline: var(--space-2); font-size: var(--type-xs); }
+  .content { width: min(calc(100% - 32px), 76rem); padding-block: var(--space-5) var(--space-7); }
+  .pageHead { margin-bottom: var(--space-4); }
+  .pageHead h1 { font-size: clamp(1.8rem, 9vw, 2.25rem); }
+}

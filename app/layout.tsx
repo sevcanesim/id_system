@@ -28,7 +28,6 @@ import "./styles/canonical-networking.css";
 import "./styles/canonical-responsive-production.css";
 import "./styles/home-products-responsive.css";
 import "./styles/canonical-package-matrix.css";
-import "./styles/individual-dashboard-polish.css";
 import "./styles/unified-sidebar.css";
 import "./typography-system.css";
 import HashScrollHandler from "./components/HashScrollHandler";

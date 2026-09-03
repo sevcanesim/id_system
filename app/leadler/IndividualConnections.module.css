@@ -10,7 +10,7 @@
 
 .insightsHeader {
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   justify-content: space-between;
   gap: var(--space-4);
 }
@@ -68,6 +68,22 @@
 .trend > div { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
 .trend > div strong { font-size: var(--type-body); }
 .trend > div span { color: var(--text-secondary); font-size: var(--type-xs); }
+
+.trendEmpty { gap: var(--space-3); }
+
+.emptyTrend {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px dashed color-mix(in srgb, var(--brand-gold) 36%, var(--border));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--brand-gold-soft) 56%, var(--surface));
+}
+
+.emptyTrend strong { font-size: var(--type-body); }
+.emptyTrend span { color: var(--text-secondary); font-size: var(--type-body-sm); line-height: 1.5; }
+.emptyTrend a { color: var(--brand-gold-deep); font-size: var(--type-body-sm); font-weight: 750; }
 
 @media (max-width: 47.9375rem) {
   .insights { padding: var(--space-4); }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { isIndividualPremiumPackage } from "../../../../lib/commerce/packages";
 
 export async function GET(request: NextRequest) {
   const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
@@ -8,6 +9,16 @@ export async function GET(request: NextRequest) {
   const { data } = await auth.auth.getUser(token);
   if (!data.user) return NextResponse.json({ error: "Oturum gerekli." }, { status: 401 });
   const admin = getSupabaseAdminClient();
+  const now = new Date().toISOString();
+  const { data: entitlements, error: entitlementError } = await admin
+    .from("entitlements")
+    .select("package_code,status,expires_at,grace_ends_at")
+    .eq("user_id", data.user.id)
+    .eq("status", "ACTIVE");
+  if (entitlementError) return NextResponse.json({ error: "Premium erişimi doğrulanamadı." }, { status: 500 });
+  const hasPremium = (entitlements ?? []).some((entitlement) => isIndividualPremiumPackage(entitlement.package_code)
+    && (!entitlement.expires_at || entitlement.expires_at > now || Boolean(entitlement.grace_ends_at && entitlement.grace_ends_at > now)));
+  if (!hasPremium) return NextResponse.json({ error: "İstatistikler Premium pakete dahildir.", code: "PREMIUM_REQUIRED" }, { status: 403 });
   const { data: profiles, error: profileError } = await admin.from("card_profiles").select("id,name,slug").eq("user_id", data.user.id);
   if (profileError) return NextResponse.json({ error: "Kartlar yüklenemedi." }, { status: 500 });
   const ids = (profiles || []).map((p) => p.id);

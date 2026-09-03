@@ -102,15 +102,15 @@ jobs:
       - name: Wait for application
         run: npx --yes wait-on http://127.0.0.1:3000
 
-      - name: Run desktop public and security regression
+      - name: Run desktop public regression
         env:
           E2E_BASE_URL: http://127.0.0.1:3000
-        run: npx playwright test e2e/public-nav.spec.ts e2e/homepage-funnel-density.spec.ts e2e/security-headers.spec.ts --project=chromium-desktop
+        run: npx playwright test tests/e2e/public-critical.spec.ts --project=chromium-desktop
 
       - name: Run mobile public regression
         env:
           E2E_BASE_URL: http://127.0.0.1:3000
-        run: npx playwright test e2e/public-nav.spec.ts e2e/homepage-funnel-density.spec.ts --project=chromium-mobile
+        run: npx playwright test tests/e2e/public-critical.spec.ts --project=chromium-mobile
 
       - name: Print server log on failure
         if: failure()

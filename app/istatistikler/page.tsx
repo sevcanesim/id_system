@@ -6,6 +6,9 @@ import UserPanelShell from "../components/UserPanelShell";
 import { Card, EmptyState } from "../components/ui";
 import AnalyticsTrendChart from "../components/ui/AnalyticsTrendChart";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
+import PremiumFeatureGate from "../components/ui/PremiumFeatureGate";
+import { useIndividualPremiumAccess } from "../components/ui/useIndividualPremiumAccess";
+import { LoadingState } from "../components/ui/States";
 import styles from "./AnalyticsPage.module.css";
 
 type Analytics = {
@@ -19,10 +22,15 @@ type Analytics = {
 export default function AnalyticsPage() {
   const [data, setData] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
+  const premiumAccess = useIndividualPremiumAccess();
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
+      if (premiumAccess !== "premium") {
+        if (!cancelled) setLoading(false);
+        return;
+      }
       const supabase = getSupabaseBrowserClient();
       if (!supabase) {
         setLoading(false);
@@ -50,7 +58,7 @@ export default function AnalyticsPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [premiumAccess]);
 
   const recentDailySeries = useMemo(() => data?.byDay.slice(-30) ?? [], [data]);
   const average30 = useMemo(() => {
@@ -66,7 +74,7 @@ export default function AnalyticsPage() {
       title="İstatistikler"
       description="Dijital profilinizin gerçek görüntülenme verisini sade ve anlamlı metriklerle takip edin."
     >
-      {loading ? (
+      {premiumAccess === "checking" ? <LoadingState variant="panel" label="Premium erişimin kontrol ediliyor" hint="İstatistik özelliğin hazırlanıyor." /> : premiumAccess === "locked" ? <PremiumFeatureGate feature="Gelişmiş istatistikler" /> : loading ? (
         <Card><p className="p9-section-copy">İstatistikler yükleniyor…</p></Card>
       ) : !data ? (
         <EmptyState

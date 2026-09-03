@@ -5,6 +5,9 @@ import UserPanelShell from "../components/UserPanelShell";
 import AnalyticsTrendChart from "../components/ui/AnalyticsTrendChart";
 import NetworkingPanel from "../kurumsal/panel/components/NetworkingPanel";
 import { getBrowserSession } from "../../lib/auth/get-browser-session";
+import PremiumFeatureGate from "../components/ui/PremiumFeatureGate";
+import { useIndividualPremiumAccess } from "../components/ui/useIndividualPremiumAccess";
+import { LoadingState } from "../components/ui/States";
 import styles from "./IndividualConnections.module.css";
 
 type Analytics = {
@@ -15,8 +18,10 @@ type Analytics = {
 
 export default function IndividualLeadsPage() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const premiumAccess = useIndividualPremiumAccess();
 
   useEffect(() => {
+    if (premiumAccess !== "premium") return;
     let cancelled = false;
     void (async () => {
       const { accessToken } = await getBrowserSession();
@@ -28,7 +33,7 @@ export default function IndividualLeadsPage() {
       if (response.ok && !cancelled) setAnalytics(await response.json() as Analytics);
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [premiumAccess]);
 
   const dailyAverage = useMemo(() => {
     if (!analytics?.last30DaysViews) return 0;
@@ -48,6 +53,7 @@ export default function IndividualLeadsPage() {
       title="Bağlantılarım"
       description="Kartını tarayan kişileri, gerçek profil görünürlüğünü ve Network Mail takibini aynı çalışma alanında yönet."
     >
+      {premiumAccess === "checking" ? <LoadingState variant="panel" label="Premium erişimin kontrol ediliyor" hint="Bağlantılar ve analiz özelliklerin hazırlanıyor." /> : premiumAccess === "locked" ? <PremiumFeatureGate feature="Bağlantılar, Network Mail ve analiz" /> : <>
       <section className={styles.insights} aria-labelledby="connection-insights-title">
         <div className={styles.insightsHeader}>
           <div><span>GÖRÜNÜRLÜK ÖZETİ</span><h2 id="connection-insights-title">Kartının etkisi tek bakışta.</h2></div>
@@ -68,6 +74,7 @@ export default function IndividualLeadsPage() {
         </div>
       </section>
       <NetworkingPanel view="leads" variant="individual" token={token} />
+      </>}
     </UserPanelShell>
   );
 }

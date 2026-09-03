@@ -156,7 +156,12 @@
   overflow: hidden;
   border-radius: var(--radius-sm);
   background: #eee9df;
+  color: inherit;
+  transition: transform var(--motion-fast), box-shadow var(--motion-fast);
 }
+
+.studioSpecimen:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.studioSpecimen:focus-visible { outline: 3px solid color-mix(in srgb, var(--brand-gold) 70%, white); outline-offset: 3px; }
 
 .phonePreview {
   position: relative;

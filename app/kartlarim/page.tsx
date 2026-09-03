@@ -227,7 +227,7 @@ export default function MyCardsPage() {
               </div>
               <div className={`${styles.countdown} ${styles.studio}`}>
                 <div className={styles.studioMeta}><span className={styles.eyebrow}>CANLI MOBİL ÖNİZLEME</span><ButtonLink href={`/olustur?id=${primary.id}`} variant="secondary">Düzenle</ButtonLink></div>
-                <div className={styles.studioSpecimen}>
+                <a className={styles.studioSpecimen} href={profileUrl} target="_blank" rel="noopener noreferrer" aria-label="Canlı dijital profilini yeni sekmede aç">
                   <div className={styles.phonePreview} aria-label="Canlı profil önizlemesi">
                     <div className={styles.phoneStatus}><span>9:41</span><span>● ● ●</span></div>
                     <div className={styles.phoneCover} />
@@ -239,9 +239,9 @@ export default function MyCardsPage() {
                       <div className={styles.phoneSave}>Kişiye ekle</div>
                     </div>
                   </div>
-                </div>
+                </a>
                 <strong>Telefonundaki profil</strong>
-                <span>Kimlik Stüdyosu’nda yaptığın her değişiklik burada yayınlanır.</span>
+                <span>Önizlemeye tıklayarak canlı web profilini görüntüle.</span>
               </div>
             </section>
 

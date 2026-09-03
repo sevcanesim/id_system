@@ -291,7 +291,7 @@ export default function CardWizard() {
             return;
           }
         }
-        // `?new=1` -> boş formla yeni bir kart oluştur (mevcut kartları etkilemez).
+        // `?new=1` yalnızca kurumsal çoklu kart akışlarında kullanılabilir.
         // `?id=...` -> o belirli kartı düzenle.
         // Kurumsal Kartım ekranında `id` henüz URL'ye eklenmemiş olsa bile
         // kullanıcının kişisel ilk kartına düşme. Organizasyon adına bağlı
@@ -311,6 +311,11 @@ export default function CardWizard() {
         }
         if (!isBusinessCard && (isNewCard || !profile)) {
           const { data: existingProfiles } = await fetchOwnProfiles(supabase, user.id);
+          if (isNewCard && existingProfiles.length > 0) {
+            setAccessState("denied");
+            router.replace("/olustur");
+            return;
+          }
           const spareEntitlementId = unusedEntitlementId(entitlementPayload.entitlements ?? [], existingProfiles);
           if (!spareEntitlementId) {
             setAccessState("denied");
@@ -711,6 +716,9 @@ export default function CardWizard() {
           }
           if (savePayload.code === "DIGITAL_CARD_LIMIT_REACHED") {
             throw new Error("Şirketin dijital kart kotası doldu.");
+          }
+          if (savePayload.code === "INDIVIDUAL_PROFILE_LIMIT") {
+            throw new Error("Bireysel hesapta yalnızca bir dijital profil oluşturabilirsin.");
           }
           throw new Error(saveError);
         }

@@ -56,6 +56,18 @@ export async function POST(request: NextRequest) {
   }
 
   const admin = getSupabaseAdminClient();
+  if (!parsed.data.profileId && !parsed.data.organizationId) {
+    const { data: individualProfiles, error: profileLookupError } = await admin
+      .from("card_profiles")
+      .select("id")
+      .eq("user_id", authData.user.id)
+      .is("organization_id", null)
+      .limit(1);
+    if (profileLookupError) return NextResponse.json({ error: "Mevcut dijital profil kontrol edilemedi." }, { status: 500 });
+    if (individualProfiles?.length) {
+      return NextResponse.json({ error: "Bireysel hesapta yalnızca bir dijital profil oluşturabilirsin.", code: "INDIVIDUAL_PROFILE_LIMIT" }, { status: 409 });
+    }
+  }
   const { data, error } = await admin.rpc("save_own_card_profile", {
     p_user_id: authData.user.id,
     p_profile_id: parsed.data.profileId || null,
@@ -77,6 +89,9 @@ export async function POST(request: NextRequest) {
     }
     if (code === "DIGITAL_CARD_LIMIT_REACHED") {
       return NextResponse.json({ error: "Şirketin dijital kart kotası doldu.", code }, { status: 409 });
+    }
+    if (code === "INDIVIDUAL_PROFILE_LIMIT") {
+      return NextResponse.json({ error: "Bireysel hesapta yalnızca bir dijital profil oluşturabilirsin.", code }, { status: 409 });
     }
     return NextResponse.json({ error: "Kartvizit kaydedilemedi.", code }, { status: 500 });
   }

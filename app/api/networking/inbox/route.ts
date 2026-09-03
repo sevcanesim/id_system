@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
   const profileIds = profiles.map((row) => row.id);
   const [{ data: leads }, { data: meetings }, { data: entitlements }] = await Promise.all([
     profileIds.length
-      ? admin.from("networking_leads").select("*").in("profile_id", profileIds).is("organization_id", null).order("created_at", { ascending: false }).limit(200)
+      ? admin.from("networking_leads").select("*,counterpart:card_profiles!networking_leads_counterpart_profile_id_fkey(public_id,slug)").in("profile_id", profileIds).is("organization_id", null).order("created_at", { ascending: false }).limit(200)
       : Promise.resolve({ data: [] as never[] }),
     profileIds.length
       ? admin.from("networking_meetings").select("*").in("profile_id", profileIds).is("organization_id", null).order("created_at", { ascending: false }).limit(200)

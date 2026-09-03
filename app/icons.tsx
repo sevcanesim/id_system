@@ -51,6 +51,8 @@ export type IconName =
   | "chevronDown"
   | "chevronLeft"
   | "sparkles"
+  | "bolt"
+  | "camera"
   | "eye"
   | "eye-off"
   | "logout";
@@ -135,6 +137,10 @@ function renderIcon(name?: IconName | string) {
       return <svg viewBox="0 0 24 24" {...strokeProps}><path d="m3 3 18 18" /><path d="M10.6 6.2A10.2 10.2 0 0 1 12 6c6.1 0 9.5 6 9.5 6a17.6 17.6 0 0 1-3 3.7M6.2 6.8C3.9 8.4 2.5 12 2.5 12s3.4 6 9.5 6c1.4 0 2.7-.3 3.8-.8" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>;
     case "sparkles":
       return <svg viewBox="0 0 24 24" {...strokeProps}><path d="m12 3 1.5 5.2L19 10l-5.5 1.8L12 17l-1.5-5.2L5 10l5.5-1.8L12 3ZM19 15l.7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7L19 15Z" /></svg>;
+    case "bolt":
+      return <svg viewBox="0 0 24 24" {...strokeProps}><path d="m13.5 2.8-8 10.1h6.1l-1.1 8.3 8-10.2h-6.1z" /></svg>;
+    case "camera":
+      return <svg viewBox="0 0 24 24" {...strokeProps}><path d="M4 8.5h3l1.4-2h7.2l1.4 2h3a2 2 0 0 1 2 2v7.2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-7.2a2 2 0 0 1 2-2Z" /><circle cx="12" cy="14" r="3.2" /></svg>;
     case "alert":
       return <svg viewBox="0 0 24 24" {...strokeProps}><path d="M12 3.5 21.5 20h-19L12 3.5Z" /><path d="M12 9.5v4.5" /><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none" /></svg>;
     case "share":

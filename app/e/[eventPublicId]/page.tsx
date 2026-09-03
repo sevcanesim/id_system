@@ -54,6 +54,7 @@ export default async function EventAttributionPage({ params }: { params: Promise
         profileName={card.name}
         organizationName={card.company || branding?.companyName}
         eventId={eventLink.event_id}
+        eventLinkId={eventLink.id}
         eventName={eventLink.event_name || "Event"}
         source="EVENT"
         locales={locales}

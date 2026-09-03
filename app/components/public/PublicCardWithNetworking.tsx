@@ -15,6 +15,7 @@ export default function PublicCardWithNetworking({
   profileName,
   organizationName,
   eventId,
+  eventLinkId,
   eventName,
   source = "QR",
   locales = [],
@@ -27,6 +28,7 @@ export default function PublicCardWithNetworking({
   profileName: string;
   organizationName?: string | null;
   eventId?: string | null;
+  eventLinkId?: string | null;
   eventName?: string | null;
   source?: "QR" | "NFC" | "EVENT" | "SHARE";
   locales?: CardLocaleOverlay[];
@@ -52,6 +54,7 @@ export default function PublicCardWithNetworking({
           profileName={profileName}
           organizationName={organizationName}
           eventId={eventId}
+          eventLinkId={eventLinkId}
           eventName={eventName}
           source={source}
           locale={locale}

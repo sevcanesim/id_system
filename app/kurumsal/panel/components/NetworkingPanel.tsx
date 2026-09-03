@@ -24,6 +24,10 @@ type Lead = {
   scoreLabel: string;
   interests: string[];
   created_at: string;
+  counterpart?: {
+    public_id?: string | null;
+    slug?: string | null;
+  } | null;
 };
 
 type Meeting = {
@@ -68,6 +72,7 @@ const TIMELINE_LABELS: Record<string, string> = {
   QR_SCAN: "QR ile geldi",
   NFC_TAP: "NFC ile geldi",
   CONTACT_SHARED: "İletişim bilgilerini paylaştı",
+  YENOMI_HANDSHAKE: "Yenomi ID ile kart takası yapıldı",
   LEAD_CREATED: "Bağlantı oluşturuldu",
   FOLLOWUP_SENT: "E-posta gönderildi",
   MEETING_ACCEPTED: "Görüşme kabul edildi",
@@ -238,6 +243,7 @@ export default function NetworkingPanel({
             {leads.map((lead) => {
               const eventsForLead = timeline.filter((item) => item.lead_id === lead.id);
               const phone = cleanPhone(lead.phone);
+              const counterpartHref = lead.counterpart?.public_id ? `/p/${lead.counterpart.public_id}` : null;
               return (
                 <article className="p11-networking-lead" key={lead.id}>
                   <div className="p11-networking-lead__top">
@@ -287,6 +293,7 @@ export default function NetworkingPanel({
                       {phone && (
                         <a className="p11-networking-action" href={`https://wa.me/${phone}?text=${encodeURIComponent(`Merhaba ${lead.full_name}, bugün tanıştığımıza memnun oldum. İletişimde kalmak istedim.`)}`} target="_blank" rel="noreferrer">WhatsApp</a>
                       )}
+                      {counterpartHref && <a className="p11-networking-action" href={counterpartHref}>Dijital kartı aç</a>}
                       <a className="p11-networking-action" href="/kurumsal/panel/gorusmeler">Görüşmeler</a>
                     </div>
                   </div>

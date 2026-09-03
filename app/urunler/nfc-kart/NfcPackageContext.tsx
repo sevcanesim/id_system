@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 
 export type NfcPackageId = "individual" | "premium";
 
@@ -19,7 +20,16 @@ export function NfcPackageProvider({
   children: React.ReactNode;
 }) {
   const [packageId, setPackageId] = useState<NfcPackageId>(initialPackage);
-  const value = useMemo(() => ({ packageId, setPackageId }), [packageId]);
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const setPackage = useCallback((nextPackage: NfcPackageId) => {
+    setPackageId(nextPackage);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("paket", nextPackage);
+    router.replace(pathname + "?" + params.toString(), { scroll: false });
+  }, [pathname, router, searchParams]);
+  const value = useMemo(() => ({ packageId, setPackageId: setPackage }), [packageId, setPackage]);
 
   return <NfcPackageContext.Provider value={value}>{children}</NfcPackageContext.Provider>;
 }

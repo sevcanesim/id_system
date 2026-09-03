@@ -1,6 +1,7 @@
 .editorSurface {
   min-width: 0;
   width: 100%;
+  color: var(--text-primary);
 }
 
 .editorSurface :global(.p8-editor),
@@ -27,11 +28,11 @@
 .editorSurface :global(.p8-form) {
   width: 100%;
   max-width: none;
-  padding: var(--space-2) var(--space-5);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, .04);
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid rgba(0, 0, 0, .08);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .03);
 }
 
 .editorSurface :global(.p8-preview-column) {
@@ -61,7 +62,7 @@
   gap: var(--space-6);
   align-items: center;
   padding-block: var(--space-4);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(0, 0, 0, .08);
 }
 
 .editorSurface :global(.p8-corporate-header > div:first-child) {
@@ -70,6 +71,7 @@
 
 .editorSurface :global(.p8-corporate-header h1) {
   margin: 0;
+  letter-spacing: -.035em;
 }
 
 .editorSurface :global(.p8-corporate-header p) {
@@ -94,10 +96,10 @@
   padding-block: var(--space-2);
   overflow-x: auto;
   scrollbar-width: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, .04);
+  border: 1px solid rgba(0, 0, 0, .08);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .03);
 }
 
 .editorSurface :global(.p8-section-nav::-webkit-scrollbar) {
@@ -113,6 +115,8 @@
   padding-inline: var(--space-3);
   border-radius: var(--radius-sm);
   white-space: nowrap;
+  color: var(--text-secondary);
+  font-weight: 650;
 }
 
 .editorSurface :global(.p8-required-hint) {
@@ -121,7 +125,7 @@
 
 .editorSurface :global(.p8-section-card) {
   padding-block: var(--space-5);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(0, 0, 0, .08);
   scroll-margin-top: var(--space-5);
 }
 
@@ -159,19 +163,22 @@
 .editorSurface :global(.p8-note) {
   width: 100%;
   max-width: 100%;
+  border-color: rgba(0, 0, 0, .08);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .03);
 }
 
 /* Individual studio keeps the editor calm and lets the live device remain the visual anchor. */
 .editorSurface :global(.p8-preview-card) {
   position: static;
   overflow: hidden;
-  border-color: color-mix(in srgb, var(--brand-gold) 24%, var(--border));
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, .04);
+  border-color: color-mix(in srgb, #B89047 28%, rgba(0, 0, 0, .08));
 }
 
 .editorSurface :global(.p8-preview-hd) {
   padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(0, 0, 0, .08);
 }
 
 .editorSurface :global(.p8-preview-acts) {
@@ -188,12 +195,13 @@
 .editorSurface :global(.p8-section-nav a.is-active) {
   color: var(--text-primary);
   background: var(--brand-gold-soft);
+  box-shadow: inset 0 -2px 0 #B89047;
 }
 
 .editorSurface :global(.p8-international-heading) {
   margin-top: var(--space-5);
   padding-top: var(--space-4);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(0, 0, 0, .08);
 }
 
 .editorSurface :global(.p8-international-heading span) {
@@ -207,6 +215,39 @@
   margin: var(--space-1) 0 0;
   color: var(--text-secondary);
   font-size: var(--type-body-sm);
+}
+
+/* Polish only: the data model, six section order and preview components stay untouched. */
+.editorSurface :global(.p8-form input:not([type="file"])),
+.editorSurface :global(.p8-form select),
+.editorSurface :global(.p8-form textarea) {
+  border-color: rgba(0, 0, 0, .12);
+  background: #fff;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.editorSurface :global(.p8-form input:not([type="file"]):focus),
+.editorSurface :global(.p8-form select:focus),
+.editorSurface :global(.p8-form textarea:focus) {
+  outline: none;
+  border-color: #B89047;
+  box-shadow: 0 0 0 3px rgba(184, 144, 71, .14);
+}
+
+.editorSurface :global(.p8-slug-field:focus-within) {
+  border-color: #B89047;
+  box-shadow: 0 0 0 3px rgba(184, 144, 71, .14);
+}
+
+.editorSurface :global(.p8-slug-field > span),
+.editorSurface :global(.p8-url-row > span) {
+  font-family: inherit;
+  font-weight: 650;
+  letter-spacing: -.01em;
+}
+
+.editorSurface :global(.p8-url-row > span) {
+  color: #4c443a;
 }
 
 @media (min-width: 68.8125rem) {

@@ -34,7 +34,7 @@ import {
 } from "./domain/profile-editor";
 import type { CardBranding } from "../CardTemplate";
 import { fetchOrganizationIdentity, type OrgLock } from "./domain/organization-identity";
-import { cardShareUrl, publicCardHost } from "../../lib/public-card/urls";
+import { cardShareUrl } from "../../lib/public-card/urls";
 
 const CARD_SECTIONS = [
   { id: "p8-basic", label: "Temel Bilgiler" },
@@ -894,7 +894,7 @@ export default function CardWizard() {
           <div className="p8-field-grid">
             <Field label="Web Sitesi"><Input type="url" value={data.website} onChange={(e) => update("website", e.target.value)} placeholder="https://firma.com" inputMode="url" autoCapitalize="none" spellCheck={false} {...bindTarget("social")}/></Field>
             <Field label="Yenomi ID" help="Paylaşım adresi /p/{slug} şeklindedir. QR kimliği ayrı ve sabittir; slug değişince QR yeniden basılmaz.">
-              <div className="p8-slug-field"><span>{publicCardHost()}/p/</span><Input value={profileSlug} onChange={(e) => updateSlug(e.target.value)} onBlur={() => setProfileSlug(normalizeProfileSlug(profileSlug))} placeholder="adsoyad" minLength={3} maxLength={40}/></div>
+              <div className="p8-slug-field"><span>yenomi.id/p/</span><Input value={profileSlug} onChange={(e) => updateSlug(e.target.value)} onBlur={() => setProfileSlug(normalizeProfileSlug(profileSlug))} placeholder="adsoyad" minLength={3} maxLength={40}/></div>
             </Field>
           </div>
           <div className={`p8-slug-feedback p8-slug-feedback--${slugStatus}`} aria-live="polite"><span>{slugMessage || "Ad-soyadından otomatik önerilir; yayınlamadan önce değiştirebilirsiniz."}</span>{slugTouched && <Button size="sm" variant="secondary" onClick={() => { setSlugTouched(false); setProfileSlug(createProfileSlug(data.name)); }}>Otomatik Öner</Button>}</div>
@@ -985,7 +985,7 @@ export default function CardWizard() {
             <p>Paylaşım adresi okunabilir slug kullanır. QR kimliği ayrıdır ve değişmez.</p>
           </div>
           <div className="p8-url-row">
-            <span>{cardShareUrl(profileSlug || "yenomi-id").replace(/^https?:\/\//, "")}</span>
+            <span>yenomi.id/p/{profileSlug || "yenomi-id"}</span>
             <Button size="sm" variant="secondary" onClick={() => void profileCardActions.copyLink()}>
               <Icon name="copy" /> Kopyala
             </Button>

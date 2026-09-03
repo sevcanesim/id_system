@@ -33,7 +33,7 @@ export default function MobilePurchaseDockController() {
     // a fixed control must never cover mobile table rows, links or the footer.
     const stops = Array.from(
       document.querySelectorAll<HTMLElement>(
-        ".home-sales-hero, .home-package-matrix, .home-sales-comparison, .home-premium, .home-faq, .home-sales-final, .yi-footer--premium",
+        ".home-sales-hero, .home-package-matrix, .home-sales-comparison, .home-sales-faq, .home-sales-final, .yi-footer--premium",
       ),
     );
 

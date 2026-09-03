@@ -7,7 +7,7 @@
 @media (max-width: 760px) {
   :root {
     --mobile-gutter: 20px;
-    --mobile-section-gap: 72px;
+    --mobile-section-gap: 36px;
     --mobile-card-pad: 20px;
     --mobile-card-radius: 20px;
   }
@@ -103,12 +103,12 @@
   .public-site-chrome .yi-nav.is-open {
     position: fixed;
     z-index: 101;
-    top: calc(36px + env(safe-area-inset-top, 0px));
+    top: max(12px, env(safe-area-inset-top, 0px));
     left: 12px;
     right: 12px;
     width: auto;
     max-width: none;
-    max-height: calc(100svh - 60px - env(safe-area-inset-top, 0px));
+    max-height: calc(100svh - 24px - env(safe-area-inset-top, 0px));
     padding: 12px;
     overflow-y: auto;
     display: grid;
@@ -117,10 +117,8 @@
     gap: 4px;
     border: 1px solid var(--border-subdued);
     border-radius: 20px;
-    background: rgba(255, 255, 255, .98);
+    background: #fff;
     box-shadow: 0 24px 64px rgba(20, 17, 13, .20);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
   }
 
   .public-site-chrome .yi-nav__header {
@@ -179,9 +177,7 @@
     inset: 0;
     z-index: 100;
     border: 0;
-    background: rgba(18, 16, 13, .42);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(18, 16, 13, .28);
   }
 
   /* Homepage ----------------------------------------------------------- */
@@ -197,13 +193,13 @@
   .home-sales-comparison,
   .home-sales-faq {
     width: 100%;
-    padding: 48px var(--mobile-gutter);
+    padding: var(--mobile-section-gap) var(--mobile-gutter);
   }
 
   .home-package-matrix {
     width: 100%;
     margin-inline: auto;
-    padding: 48px var(--mobile-gutter);
+    padding: var(--mobile-section-gap) var(--mobile-gutter);
     overflow: hidden;
     border-top: 1px solid var(--border-subdued);
   }
@@ -215,7 +211,7 @@
   .home-sales-faq-intro {
     width: 100%;
     max-width: none;
-    margin: 0 0 24px;
+    margin: 0 0 20px;
   }
 
   .home-package-matrix__head h2,
@@ -226,8 +222,8 @@
   .home-sales-final h2 {
     max-width: 100%;
     margin: 10px 0 14px;
-    font-size: clamp(36px, 10vw, 46px);
-    line-height: 1.01;
+    font-size: clamp(32px, 9.2vw, 40px);
+    line-height: 1.04;
     letter-spacing: -.04em;
     text-wrap: balance;
     overflow-wrap: normal;
@@ -248,8 +244,8 @@
 
   .home-mockup .home-sales-copy h1 {
     max-width: 100%;
-    font-size: clamp(40px, 11vw, 50px);
-    line-height: .98;
+    font-size: clamp(38px, 10.2vw, 44px);
+    line-height: 1;
     letter-spacing: -.045em;
   }
 

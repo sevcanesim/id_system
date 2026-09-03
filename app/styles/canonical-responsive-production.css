@@ -59,7 +59,7 @@ body main {
 
 /* The sticky purchase dock reserves its measured height + safe area. */
 @media (max-width: 47.5rem) {
-  body:has(.home-sales-mobile-cta) .public-site {
+  body:has(.home-sales-mobile-cta:not(.is-docked-away)) .public-site {
     padding-bottom: calc(var(--rp-mobile-dock-height) + var(--safe-bottom));
   }
 

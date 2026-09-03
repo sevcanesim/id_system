@@ -1879,7 +1879,7 @@
     line-height: 1;
   }
 
-  .yi-footer {
+  .yi-footer:not(.yi-footer--premium) {
     padding-top: 48px;
     padding-bottom: max(40px, env(safe-area-inset-bottom));
   }

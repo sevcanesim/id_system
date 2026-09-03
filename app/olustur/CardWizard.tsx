@@ -12,6 +12,7 @@ import { Badge, Button, Drawer, Field, Input, Modal, Select, Textarea } from "..
 import { Icon } from "../icons";
 import { TITLE_OPTIONS, normalizeEmailField, normalizeTrPhone } from "../../lib/form-standards";
 import { unusedEntitlementId } from "../../lib/commerce/entitlement-bind";
+import { INDIVIDUAL_PRODUCT_PURCHASE_HREF } from "../../lib/commerce/individual-portal-access";
 import { fetchOwnProfile, fetchOwnProfileById, fetchOwnProfileByOrganizationId, fetchOwnProfiles } from "../../lib/repositories/profiles";
 import { track } from "../../lib/analytics";
 import { PageLoadingView } from "../components/ui/States";
@@ -287,7 +288,7 @@ export default function CardWizard() {
           entitlementPayload = await entitlementResponse.json() as { active?: boolean; next?: string; entitlements?: { id: string }[] };
           if (!entitlementResponse.ok || !entitlementPayload.active) {
             setAccessState("denied");
-            router.replace(entitlementPayload.next || "/urunler?reason=access-required");
+            router.replace(entitlementPayload.next || INDIVIDUAL_PRODUCT_PURCHASE_HREF);
             return;
           }
         }
@@ -319,7 +320,7 @@ export default function CardWizard() {
           const spareEntitlementId = unusedEntitlementId(entitlementPayload.entitlements ?? [], existingProfiles);
           if (!spareEntitlementId) {
             setAccessState("denied");
-            router.replace(isNewCard ? "/urunler?reason=no-spare-card" : (entitlementPayload.next || "/urunler?reason=access-required"));
+            router.replace(isNewCard ? "/urunler/nfc-kart?paket=individual&reason=no-spare-card" : (entitlementPayload.next || INDIVIDUAL_PRODUCT_PURCHASE_HREF));
             return;
           }
           setNewCardEntitlementId(spareEntitlementId);

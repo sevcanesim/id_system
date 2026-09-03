@@ -48,7 +48,7 @@ export function HeroSection() {
         </div>
         <div className="home-sales-offer">
           <strong>{premiumPrice} · ilk yıl dahil</strong>
-          <span>NFC + QR kart · kişi yönetimi · 500 Network Mail</span>
+          <span>NFC + QR kart · kişi yönetimi · 100 Network Mail</span>
         </div>
         <div className="home-premium__hero-trust home-sales-trust">
           {heroTrust.map((item) => (

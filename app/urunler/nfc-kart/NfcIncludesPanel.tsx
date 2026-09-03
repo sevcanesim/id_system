@@ -14,7 +14,7 @@ const individualItems = [
 
 const premiumItems = [
   "Bireysel paketteki tüm özellikler",
-  "500 Network Mail kredisi",
+  "100 Network Mail kredisi",
   "Lead ve kişi yönetimi",
   "Toplantı ve sunum araçları",
 ];

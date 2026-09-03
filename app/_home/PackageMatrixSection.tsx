@@ -24,7 +24,7 @@ const packageComparisonRows = [
   ["NFC + QR kart", "included", "included", "Kişi sayısı kadar"],
   ["Kişi / lead toplama", "unavailable", "included", "included"],
   ["Toplantı ve sunum", "unavailable", "included", "included"],
-  ["Follow-up e-posta", "—", "500 Network Mail", "Kişi başı 100 Network Mail"],
+  ["Follow-up e-posta", "—", "100 Network Mail", "Kişi başı 100 Network Mail"],
   ["Merkezi çalışan yönetimi", "unavailable", "unavailable", "included"],
   ["Rol, departman ve durum", "unavailable", "unavailable", "included"],
   ["Kurumsal marka standardı", "unavailable", "unavailable", "included"],

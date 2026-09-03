@@ -10,7 +10,6 @@ import { isManagementRole } from "../../lib/organizations/permissions";
 import { cardShareUrl } from "../../lib/public-card/urls";
 import { Button, ButtonLink, DashboardShell } from "../ui";
 import { LoadingState } from "../components/ui/States";
-import { YenomiProductVisual } from "../ui/YenomiProductVisual";
 import styles from "./IndividualDashboard.module.css";
 
 type Entitlement = {
@@ -150,6 +149,8 @@ export default function MyCardsPage() {
   const completion = useMemo(() => primary ? Math.min(100, PROFILE_FIELDS.filter((field) => Boolean(primary[field])).length * 20) : 0, [primary]);
   const currentStep = processStep(process?.operations_status);
   const profileUrl = primary?.slug ? cardShareUrl(primary.slug) : "";
+  const displayProfileUrl = primary?.slug ? `yenomi.id/p/${primary.slug}` : "yenomi.id/p/...";
+  const profileInitials = (primary?.name || "Yenomi ID").split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 
   useEffect(() => {
     if (!profileUrl) { setQrDataUrl(""); return; }
@@ -219,7 +220,7 @@ export default function MyCardsPage() {
                   <span className={styles.eyebrow}>CANLI DİJİTAL KİMLİK</span>
                   <span className={styles.completion}>%{completion} hazır</span>
                 </div>
-                <h2 className={styles.profileUrl}>{profileUrl.replace(/^https?:\/\//, "")}</h2>
+                <h2 className={styles.profileUrl}>{displayProfileUrl}</h2>
                 <p className={styles.copy}>{completion < 100 ? "Baskı öncesi son adım: profilini tamamla, ardından kartın üretim sırasına otomatik alınsın." : "Bu bağlantı NFC kartın ve QR kodunla aynı canlı profile gider; bilgilerini dilediğin an güncelleyebilirsin."}</p>
                 <div className={styles.actions}>
                   {completion < 100 ? <ButtonLink href={`/olustur?id=${primary.id}`}>Profili Tamamla</ButtonLink> : process?.operations_status === "PROFILE_REQUIRED" ? <Button onClick={completeProfile} disabled={queueing}>{queueing ? "İşleniyor…" : "Baskı Sürecini Başlat"}</Button> : <ButtonLink href={`/olustur?id=${primary.id}`} variant="secondary">Profili Düzenle</ButtonLink>}
@@ -231,16 +232,20 @@ export default function MyCardsPage() {
               <div className={`${styles.countdown} ${styles.studio}`}>
                 <div className={styles.studioMeta}><span className={styles.eyebrow}>CANLI MOBİL ÖNİZLEME</span><ButtonLink href={`/olustur?id=${primary.id}`} variant="secondary">Düzenle</ButtonLink></div>
                 <div className={styles.studioSpecimen}>
-                  <YenomiProductVisual
-                    variant="card"
-                    compact
-                    name={primary.name || "Selin Kaya"}
-                    role={primary.role || "Ürün Yöneticisi"}
-                    company={primary.company || "Yenomi Labs"}
-                  />
+                  <div className={styles.phonePreview} aria-label="Canlı profil önizlemesi">
+                    <div className={styles.phoneStatus}><span>9:41</span><span>● ● ●</span></div>
+                    <div className={styles.phoneCover} />
+                    <div className={styles.phoneProfile}>
+                      {primary.image_url ? <img src={primary.image_url} alt="" className={styles.phoneAvatar} /> : <span className={styles.phoneAvatar}>{profileInitials}</span>}
+                      <strong>{primary.name || "Selin Kaya"}</strong>
+                      <span>{[primary.role, primary.company].filter(Boolean).join(" · ") || "Yenomi ID"}</span>
+                      <div className={styles.phoneContactActions}><i>☎</i><i>✉</i><i>↗</i></div>
+                      <div className={styles.phoneSave}>Kişiye ekle</div>
+                    </div>
+                  </div>
                 </div>
                 <strong>Telefonundaki profil</strong>
-                <span>vCard, QR ve Kayıp Modu ayarlarını Kimlik Stüdyosu’ndan yönet.</span>
+                <span>Kimlik Stüdyosu’nda yaptığın her değişiklik burada yayınlanır.</span>
               </div>
             </section>
 

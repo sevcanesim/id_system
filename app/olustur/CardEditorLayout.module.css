@@ -18,7 +18,7 @@
 .editorSurface :global(.p8-editor-grid) {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(20rem, 22.5rem);
-  gap: var(--space-8);
+  gap: var(--space-5);
   align-items: start;
 }
 
@@ -109,7 +109,7 @@
 }
 
 .editorSurface :global(.p8-section-card) {
-  padding-block: var(--space-6);
+  padding-block: var(--space-5);
   border-bottom: 1px solid var(--border);
 }
 
@@ -167,18 +167,18 @@
 }
 
 @media (min-width: 68.8125rem) {
-  .editorSurface :global(.p8-corporate-header),
-  .editorSurface :global(.p8-section-nav) {
+  .editorSurface :global(.p8-corporate-workspace--decoupled .p8-corporate-header),
+  .editorSurface :global(.p8-corporate-workspace--decoupled .p8-section-nav) {
     position: sticky;
     background: var(--background);
   }
 
-  .editorSurface :global(.p8-corporate-header) {
+  .editorSurface :global(.p8-corporate-workspace--decoupled .p8-corporate-header) {
     top: 0;
     z-index: 30;
   }
 
-  .editorSurface :global(.p8-section-nav) {
+  .editorSurface :global(.p8-corporate-workspace--decoupled .p8-section-nav) {
     top: calc(var(--control-height-lg) + var(--space-5));
     z-index: 24;
   }

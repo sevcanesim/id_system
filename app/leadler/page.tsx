@@ -34,6 +34,7 @@ export default function IndividualLeadsPage() {
     if (!analytics?.last30DaysViews) return 0;
     return Math.round(analytics.last30DaysViews / Math.max(1, new Set(analytics.byDay.map((point) => point.date)).size));
   }, [analytics]);
+  const hasTrendData = Boolean(analytics?.byDay.some((point) => point.count > 0));
 
   async function token() {
     const { accessToken } = await getBrowserSession();
@@ -49,7 +50,7 @@ export default function IndividualLeadsPage() {
     >
       <section className={styles.insights} aria-labelledby="connection-insights-title">
         <div className={styles.insightsHeader}>
-          <div><span>GÖRÜNÜRLÜK ÖZETİ</span><h2 id="connection-insights-title">Bağlantıların ve etkin burada.</h2></div>
+          <div><span>GÖRÜNÜRLÜK ÖZETİ</span><h2 id="connection-insights-title">Kartının etkisi tek bakışta.</h2></div>
           <a href="/istatistikler">Tüm istatistikler →</a>
         </div>
         <div className={styles.metrics}>
@@ -57,14 +58,13 @@ export default function IndividualLeadsPage() {
           <div><small>Son 30 gün</small><strong>{analytics?.last30DaysViews.toLocaleString("tr-TR") ?? "—"}</strong><span>profil görüntülenmesi</span></div>
           <div><small>Günlük ortalama</small><strong>{analytics ? dailyAverage.toLocaleString("tr-TR") : "—"}</strong><span>gözlenen günlerde</span></div>
         </div>
-        <div className={styles.trend}>
+        <div className={`${styles.trend} ${hasTrendData ? "" : styles.trendEmpty}`}>
           <div><strong>Profil görüntülenme eğilimi</strong><span>Son 30 gün</span></div>
-          <AnalyticsTrendChart
+          {hasTrendData ? <AnalyticsTrendChart
             points={analytics?.byDay.slice(-30) ?? []}
             ariaLabel="Son 30 gün profil görüntülenme eğrisi"
-            summary={analytics ? `${analytics.last30DaysViews.toLocaleString("tr-TR")} görüntülenme` : "Veri yükleniyor"}
-            emptyMessage="Kartınızı paylaştığınızda trend verileri burada oluşur."
-          />
+            summary={`${analytics?.last30DaysViews.toLocaleString("tr-TR")} görüntülenme`}
+          /> : <div className={styles.emptyTrend}><strong>Henüz veri oluşmadı</strong><span>Kartını paylaşmaya başladığında görüntülenme eğilimin burada görünür.</span><a href="/kartim">Canlı kartı aç →</a></div>}
         </div>
       </section>
       <NetworkingPanel view="leads" variant="individual" token={token} />

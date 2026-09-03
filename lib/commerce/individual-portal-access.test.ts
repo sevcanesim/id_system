@@ -13,7 +13,7 @@ const base = {
 };
 
 describe("needsIndividualProductPurchase", () => {
-  it("routes a portal-only individual account to the purchase flow", () => {
+  it("marks a portal-only individual account as requiring card purchase", () => {
     expect(needsIndividualProductPurchase(base)).toBe(true);
   });
 

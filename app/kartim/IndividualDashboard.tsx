@@ -11,6 +11,7 @@ import type { CardProfileRow } from "../../lib/card-profile";
 import { isManagementRole } from "../../lib/organizations/permissions";
 import { cardShareUrl } from "../../lib/public-card/urls";
 import { Button, ButtonLink, DashboardShell } from "../ui";
+import { StatusBadge } from "../components/ui";
 import { LoadingState } from "../components/ui/States";
 import styles from "./IndividualDashboard.module.css";
 
@@ -68,6 +69,13 @@ const STATUS_LABEL: Record<OperationalStatus, string> = {
   DELIVERED: "Teslim Edildi",
   CANCELLED: "İptal Edildi",
 };
+
+function processStatusTone(status?: OperationalStatus | null): "neutral" | "success" | "warning" | "error" {
+  if (status === "DELIVERED") return "success";
+  if (status === "CANCELLED") return "error";
+  if (status) return "warning";
+  return "neutral";
+}
 
 function formatDateTime(value?: string | null) {
   if (!value) return "—";
@@ -283,19 +291,26 @@ export default function MyCardsPage() {
               <div className={styles.fact}><small>Paket</small><strong>{primaryEntitlement?.package_code === "INDIVIDUAL_PREMIUM" ? "Premium" : "Standart"}</strong><span>Premium'a istediğin zaman yükseltebilirsin</span></div>
             </section>
 
-            <section className={styles.processCard}>
-              <div className={styles.processHeader}><div><span className={styles.eyebrow}>KART SİPARİŞİ & KARGO</span><h2 className={styles.title}>Fiziksel kart süreci</h2></div><span className={styles.status}>{process ? STATUS_LABEL[process.operations_status] : "Sipariş eşleştiriliyor"}</span></div>
+            <section className={styles.processCard} aria-labelledby="physical-card-process-title">
+              <div className={styles.processHeader}>
+                <div>
+                  <span className={styles.eyebrow}>KART SİPARİŞİ & KARGO</span>
+                  <h2 className={styles.title} id="physical-card-process-title">Fiziksel kart süreci</h2>
+                  <p className={styles.processIntro}>Kartının baskı ve teslimat durumunu buradan takip edebilirsin.</p>
+                </div>
+                <StatusBadge tone={processStatusTone(process?.operations_status)}>{process ? STATUS_LABEL[process.operations_status] : "Sipariş eşleştiriliyor"}</StatusBadge>
+              </div>
               {(completion < 100 || process?.operations_status === "PROFILE_REQUIRED") && <div className={styles.profileApproval}>
                 <div>
-                  <span className={styles.eyebrow}>BASKI ÖNCESİ ONAY</span>
-                  <strong>{completion < 100 ? "Profil bilgilerin bekleniyor" : "Baskı onayın bekleniyor"}</strong>
-                  <p>{completion < 100 ? `Baskıya geçmeden önce şu alanları tamamla: ${missingProfileFields.join(", ")}.` : "Kartında basılacak bilgileri kontrol ettikten sonra baskı onayını ver."}</p>
+                  <span className={styles.approvalEyebrow}>BASKI İÇİN İŞLEM GEREKİYOR</span>
+                  <h3>{completion < 100 ? "Profilini tamamla" : "Baskıyı onayla"}</h3>
+                  <p>{completion < 100 ? `Baskıya geçebilmek için şu alanları tamamla: ${missingProfileFields.join(", ")}.` : "Kartında basılacak bilgileri kontrol ettikten sonra baskı onayını ver."}</p>
                 </div>
                 {completion < 100 ? <ButtonLink href={`/olustur?id=${primary.id}`} variant="secondary">Profili tamamla</ButtonLink> : <Button onClick={completeProfile} disabled={queueing}>{queueing ? "İşleniyor…" : "Baskıyı onayla"}</Button>}
               </div>}
-              <div className={styles.steps}>
-                {[{ title: "Sipariş alındı", text: "Kart hazırlık süreci" }, { title: "Baskıda", text: process?.operations_status === "PRINTING" ? "Kartın basılıyor" : "Baskı onayı bekleniyor" }, { title: "Kargoda", text: process?.carrier || process?.tracking_number ? [process.carrier && `Kargo firması: ${process.carrier}`, process.tracking_number && `Takip no: ${process.tracking_number}`].filter(Boolean).join(" · ") : "Kargo bilgisi girildiğinde burada görünür" }, { title: "Teslim edildi", text: process?.delivered_at ? formatDateTime(process.delivered_at) : "Teslimat bekleniyor" }].map((step, index) => <div className={`${styles.step} ${index <= currentStep ? styles.stepActive : ""} ${index === currentStep ? styles.stepCurrent : ""}`} key={step.title}><small>{index < currentStep ? "✓" : `0${index + 1}`}</small><strong>{step.title}</strong><span>{step.text}</span></div>)}
-              </div>
+              <ol className={styles.steps} aria-label="Kart siparişi adımları">
+                {[{ title: "Sipariş alındı", text: "Kart hazırlık süreci" }, { title: "Baskıda", text: process?.operations_status === "PRINTING" ? "Kartın basılıyor" : "Baskı onayı bekleniyor" }, { title: "Kargoda", text: process?.carrier || process?.tracking_number ? [process.carrier && `Kargo firması: ${process.carrier}`, process.tracking_number && `Takip no: ${process.tracking_number}`].filter(Boolean).join(" · ") : "Kargo bilgisi girildiğinde burada görünür" }, { title: "Teslim edildi", text: process?.delivered_at ? formatDateTime(process.delivered_at) : "Teslimat bekleniyor" }].map((step, index) => <li className={`${styles.step} ${index <= currentStep ? styles.stepActive : ""} ${index === currentStep ? styles.stepCurrent : ""}`} key={step.title} aria-current={index === currentStep ? "step" : undefined}><small>{index < currentStep ? "✓" : `0${index + 1}`}</small><strong>{step.title}</strong><span>{step.text}</span></li>)}
+              </ol>
             </section>
 
             <section className={styles.quickActions} aria-label="Hızlı işlemler">

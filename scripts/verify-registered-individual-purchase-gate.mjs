@@ -10,8 +10,14 @@ for (const marker of [
   "INDIVIDUAL_PRODUCT_PURCHASE_HREF",
   "hasCorporateMembership",
   "activeKey !== \"account\"",
+  "purchase-required",
+  "NFC Kartını Satın Al",
 ]) {
   if (!shell.includes(marker)) throw new Error(`Portal purchase gate marker missing: ${marker}`);
+}
+
+if (shell.includes("window.location.replace(INDIVIDUAL_PRODUCT_PURCHASE_HREF)")) {
+  throw new Error("The product gate must keep users in the panel until they choose to purchase.");
 }
 
 for (const marker of ["pendingEntitlements", "PENDING_ACTIVATION", "INDIVIDUAL_PRODUCT_PURCHASE_HREF"]) {
@@ -20,6 +26,10 @@ for (const marker of ["pendingEntitlements", "PENDING_ACTIVATION", "INDIVIDUAL_P
 
 if (!wizard.includes("INDIVIDUAL_PRODUCT_PURCHASE_HREF")) {
   throw new Error("Card wizard must use the same individual purchase destination.");
+}
+
+if (wizard.includes("router.replace(entitlementPayload.next || INDIVIDUAL_PRODUCT_PURCHASE_HREF)")) {
+  throw new Error("Card wizard must preserve the panel purchase gate for an unpurchased account.");
 }
 
 if (!decision.includes("!input.hasActiveEntitlement && !input.hasRenewalEntitlement && !input.hasPendingEntitlement")) {

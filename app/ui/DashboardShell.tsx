@@ -44,7 +44,7 @@ export default function DashboardShell({
   const sidebarId = `${menuButtonId.replace(/:/g, "")}-sidebar`;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [email, setEmail] = useState("");
-  const [portalState, setPortalState] = useState<"checking" | "allowed" | "denied">("checking");
+  const [portalState, setPortalState] = useState<"checking" | "allowed" | "purchase-required" | "denied">("checking");
   const [hasCorporateSubscription, setHasCorporateSubscription] = useState(false);
   const requiresProductAccess = portal === "individual" && activeKey !== "account";
 
@@ -122,8 +122,8 @@ export default function DashboardShell({
           hasPendingEntitlement: Boolean(entitlementPayload?.pendingEntitlements?.length),
           hasCorporateMembership,
         })) {
-          setPortalState("denied");
-          window.location.replace(INDIVIDUAL_PRODUCT_PURCHASE_HREF);
+          setEmail(data.user.email || "");
+          setPortalState("purchase-required");
           return;
         }
       } catch {
@@ -151,7 +151,7 @@ export default function DashboardShell({
     router.refresh();
   }
 
-  if (portalState !== "allowed") {
+  if (portalState === "checking" || portalState === "denied") {
     return (
       <main className={`yi-app ${styles.shell}`} aria-busy="true">
         <PanelSidebar
@@ -268,7 +268,17 @@ export default function DashboardShell({
               </div>
             )}
           </div>
-          {children}
+          {portalState === "purchase-required" ? (
+            <section className={styles.purchaseGate} aria-labelledby="purchase-gate-title">
+              <span className={styles.purchaseGateEyebrow}>YENOMI ID BAŞLANGIÇ</span>
+              <h2 id="purchase-gate-title">Dijital kimliğini oluşturmak için kartını seç</h2>
+              <p>Bu alan, aktif Yenomi ID hizmetin olduğunda kullanıma açılır. NFC + QR kartını satın alarak profilini oluşturabilir ve bağlantılarını yönetmeye başlayabilirsin.</p>
+              <div className={styles.purchaseGateActions}>
+                <Link className="yi-btn yi-btn--primary" href={INDIVIDUAL_PRODUCT_PURCHASE_HREF}>NFC Kartını Satın Al</Link>
+                <Link className="yi-btn yi-btn--secondary" href="/ayarlar">Hesap & Abonelik</Link>
+              </div>
+            </section>
+          ) : children}
         </div>
       </section>
     </main>

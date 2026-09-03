@@ -252,10 +252,17 @@
 
 .processHeader {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
   gap: var(--space-4);
-  margin-bottom: var(--space-4);
+}
+
+.processIntro {
+  max-width: 42rem;
+  margin: var(--space-2) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--type-body-sm);
+  line-height: 1.5;
 }
 
 .profileApproval {
@@ -263,22 +270,28 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-5);
-  margin: var(--space-5) 0;
+  margin: 0;
   padding: var(--space-4) var(--space-5);
-  border: 1px solid color-mix(in srgb, var(--brand-gold) 38%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--brand-gold) 32%, var(--border));
+  border-left: .25rem solid var(--brand-gold);
   border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--brand-gold) 7%, white);
+  background: var(--brand-gold-soft);
 }
 
-.profileApproval strong,
-.profileApproval p {
+.approvalEyebrow {
   display: block;
+  color: var(--brand-gold-deep);
+  font-size: var(--type-xs);
+  font-weight: 750;
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }
 
-.profileApproval strong {
-  margin-top: var(--space-1);
+.profileApproval h3 {
+  margin: var(--space-1) 0 0;
   color: var(--text-primary);
   font-size: var(--type-title-sm);
+  line-height: 1.2;
 }
 
 .profileApproval p {
@@ -289,34 +302,26 @@
   line-height: 1.5;
 }
 
-.status {
-  display: inline-flex;
-  align-items: center;
-  min-height: 2rem;
-  padding: 0 var(--space-3);
-  border-radius: var(--radius-full);
-  background: var(--surface-secondary);
-  font-size: var(--type-sm);
-  font-weight: 700;
-}
-
 .steps {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .step {
   position: relative;
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-1);
   min-width: 0;
   padding-top: var(--space-4);
-  border-top: 3px solid var(--border);
+  border-top: 2px solid var(--border);
 }
 
 .stepActive {
-  border-top-color: currentColor;
+  border-top-color: var(--brand-gold);
 }
 
 .stepCurrent::before {
@@ -338,6 +343,7 @@
 }
 
 .step strong {
+  margin-top: var(--space-1);
   font-size: var(--type-body-sm);
 }
 
@@ -456,12 +462,12 @@
 
   .step {
     border-top: 0;
-    border-left: 3px solid var(--border);
+    border-left: 2px solid var(--border);
     padding: var(--space-2) 0 var(--space-2) var(--space-4);
   }
 
   .stepActive {
-    border-left-color: currentColor;
+    border-left-color: var(--brand-gold);
   }
 
   .stepCurrent::before { top: .65rem; left: -6px; }

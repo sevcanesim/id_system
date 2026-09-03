@@ -794,63 +794,6 @@
   }
 }
 
-/* ---------- Footer ---------- */
-/* NOTE: AppFooter renders as a sibling of the ".public-site" wrapper
-   (see PublicSiteShell.tsx), never inside it — selectors here must
-   target ".yi-footer" directly or they never match. */
-
-.yi-footer__premium-base {
-  padding-bottom: max(18px, env(safe-area-inset-bottom));
-}
-
-@media (max-width: 639px) {
-  .yi-footer--premium .yi-container {
-    padding-top: 34px;
-  }
-
-  .yi-footer__premium-grid {
-    grid-template-columns: repeat(2,minmax(0,1fr));
-    gap: 26px 20px;
-    padding-bottom: 30px;
-  }
-
-  .yi-footer__premium-brand {
-    grid-column: 1 / -1;
-  }
-
-  .yi-footer__premium-brand p {
-    max-width: 34ch;
-    margin-top: 14px;
-  }
-
-  .yi-footer__premium-column {
-    gap: 12px;
-  }
-
-  .yi-footer__premium-column a {
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-  }
-
-  .yi-footer__premium-base {
-    min-height: 60px;
-    padding-block: 16px;
-    padding-bottom: max(16px, env(safe-area-inset-bottom));
-  }
-}
-
-@media (max-width: 360px) {
-  .yi-footer__premium-grid {
-    grid-template-columns: 1fr;
-    gap: 22px;
-  }
-
-  .yi-footer__premium-brand {
-    grid-column: auto;
-  }
-}
-
 /* ---------- Sticky/fixed purchase UI ---------- */
 
 @media (max-width: 760px) {

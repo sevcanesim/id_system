@@ -12,11 +12,12 @@ const overview = read("app/kurumsal/panel/components/OverviewPanel.tsx");
 const header = read("app/components/AppHeader.tsx");
 const dashboard = read("app/ui/DashboardShell.tsx");
 const sidebar = read("app/components/ui/sidebar-config.ts");
+const corporateNavigation = read("app/kurumsal/panel/domain/navigation.ts");
 const cards = read("app/kartlarim/page.tsx");
 const card = read("app/kartim/page.tsx");
 const states = read("app/components/ui/States.tsx");
 const ds = read("app/components/ui/DesignSystem.tsx");
-const hero = read("app/kurumsal/panel/components/CorporateHeroPreview.tsx");
+const templates = read("app/kurumsal/panel/components/TemplatesPanel.tsx");
 
 const lines = corporate.split(/\r?\n/).length;
 const useStates = (corporate.match(/useState/g) || []).length;
@@ -25,16 +26,13 @@ console.log(`INFO  CorporatePanelClient metrics — ${lines} LOC, ${useStates} u
 
 check("corporate domain types extracted", corporate.includes('from "./domain/types"') && fs.existsSync("app/kurumsal/panel/domain/types.ts"));
 check("template field normalization extracted", corporate.includes('from "./domain/template-fields"') && fs.existsSync("app/kurumsal/panel/domain/template-fields.ts"));
-check(
-  "corporate hero preview is explicit imported component",
-  overview.includes('import CorporateHeroPreview from "./CorporateHeroPreview"') && overview.includes("<CorporateHeroPreview") && corporate.includes("<OverviewPanel"),
-);
-check("corporate hero preview renders real QR from slug", hero.includes("QRCode.toDataURL") && hero.includes("cardShareUrl"));
+check("corporate overview stays action-first", overview.includes("cp-overview-v2__priority") && overview.includes("Kart kapasitesi") && corporate.includes("<OverviewPanel"));
+check("template studio owns the canonical live card preview", templates.includes("CardPreviewFrame") && templates.includes("CardTemplate") && templates.includes("Matte Obsidian / Essential"));
 check("corporate panel has no duplicate global AppHeader", !corporate.includes("<AppHeader"));
 check("corporate panel remains pathname-aware", corporate.includes("usePathname") && corporate.includes("tabRoutes"));
 check(
   "/kartlarim remains dashboard/list intent",
-  cards.includes("DashboardShell") && cards.includes("yi-dashboard-hero") && cards.includes("Kimliğin") && cards.includes("/kartim"),
+  cards.includes("DashboardShell") && cards.includes("Dijital kimliğin") && cards.includes("/kartim"),
 );
 check("/kartim remains card-detail intent", card.includes('title="Kartım"') && card.includes("p7-card-health"));
 check(
@@ -42,7 +40,8 @@ check(
   sidebar.includes("export const INDIVIDUAL_SIDEBAR_CONFIG") &&
     sidebar.includes("export const CORPORATE_SIDEBAR_CONFIG") &&
     dashboard.includes("INDIVIDUAL_SIDEBAR_CONFIG") &&
-    corporate.includes("<PanelSidebar") &&
+    corporateNavigation.includes("CORPORATE_SIDEBAR_CONFIG") &&
+    corporate.includes("corporateSidebarItems") && corporate.includes("<IDSidebar") &&
     !header.includes("PanelSidebar"),
 );
 check("States EmptyState remains compatibility adapter", states.includes("DesignSystem") || states.includes("./DesignSystem"));

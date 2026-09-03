@@ -20,7 +20,7 @@ const checkoutApi = read("app/api/commerce/checkout/route.ts");
 const architectureAudit = read("audit/PHASE1_PRODUCT_ARCHITECTURE_AUDIT.md");
 
 check(commercial.includes("export const COMMERCIAL_SKUS"), "commercial SKU dictionary is canonical");
-check(product.includes("defaultOfferSku?: string") && product.includes("defaultOfferSku: COMMERCIAL_PRICING.YENOMI_ID_INITIAL.sku"), "catalog product explicitly points to its default sellable offer");
+check(product.includes("defaultOfferSku?: string") && product.includes("defaultOfferSku: COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.sku"), "catalog product explicitly points to its Premium-first default sellable offer");
 check(
   (purchasePanel.includes("product.defaultOfferSku") && purchasePanel.includes("COMMERCIAL_SKUS.PREMIUM") && purchasePanel.includes("variantSku={offerSku}"))
   || purchasePanel.includes("variantSku={product.defaultOfferSku}")

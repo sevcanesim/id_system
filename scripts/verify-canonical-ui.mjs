@@ -75,6 +75,7 @@ const required = [
   "app/styles/canonical-responsive-final.css",
   "app/styles/canonical-responsive-production.css",
   "app/styles/canonical-footer.css",
+  "app/styles/canonical-package-matrix.css",
 ];
 const approvedModules = [
   "app/styles/canonical-foundation.css",
@@ -89,6 +90,7 @@ const approvedModules = [
   "app/styles/canonical-responsive-final.css",
   "app/styles/canonical-responsive-production.css",
   "app/styles/canonical-footer.css",
+  "app/styles/canonical-package-matrix.css",
 ];
 
 const missingRequired = required.filter((file) => !fs.existsSync(path.join(root, file)) || !layoutCssImports.includes(file));

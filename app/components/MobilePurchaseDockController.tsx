@@ -28,13 +28,12 @@ export default function MobilePurchaseDockController() {
       };
     }
 
-    // The purchase dock is useful only between the primary hero offer and the
-    // final conversion/footer area. Hiding it while another purchase CTA is
-    // already visible avoids duplicate actions and prevents unnecessary mobile
-    // viewport obstruction.
+    // The purchase dock is useful only between primary conversion moments.
+    // Hide it while long-form content, a comparison or another CTA is visible:
+    // a fixed control must never cover mobile table rows, links or the footer.
     const stops = Array.from(
       document.querySelectorAll<HTMLElement>(
-        ".home-sales-hero, .home-sales-final, .yi-footer--premium",
+        ".home-sales-hero, .home-package-matrix, .home-sales-comparison, .home-premium, .home-faq, .home-sales-final, .yi-footer--premium",
       ),
     );
 

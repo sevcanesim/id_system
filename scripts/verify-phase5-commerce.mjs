@@ -28,6 +28,7 @@ const css = read("app/canonical.css");
 const layout = read("app/layout.tsx");
 const product = read("app/urunler/nfc-kart/page.tsx");
 const productLayout = read("app/urunler/nfc-kart/layout.tsx");
+const productPurchase = read("app/urunler/nfc-kart/NfcPurchasePanel.tsx");
 const cart = read("app/sepet/page.tsx");
 const checkout = read("app/checkout/page.tsx");
 const success = read("app/odeme/basarili/page.tsx");
@@ -50,8 +51,8 @@ check(phase5Doc.includes("app/canonical.css") && !phase5Doc.includes("`app/comme
 
 check(product.includes('className="nfc-product-page"'), "NFC product uses the live product-page scope");
 check(/fiziksel NFC \+ QR kart.*güncellenebilir/i.test(productLayout), "NFC product explains physical + digital package");
-check(product.includes("1 yıl") && product.includes("Türkiye içi kargo dahil"), "product inclusion and delivery remain explicit");
-check(product.includes("Sepete Ekle") && product.includes("#nfc-hero-price-row"), "product exposes add-to-cart purchase path");
+check(productPurchase.includes("1 yıl") && productPurchase.includes("Türkiye içi kargo dahil"), "product inclusion and delivery remain explicit");
+check(productPurchase.includes("AddToCartButton") && productPurchase.includes('id="nfc-hero-price-row"'), "product exposes add-to-cart purchase path");
 check(!product.includes("AppFooter") && !product.includes("AppHeader"), "product flow does not remount public chrome");
 
 check(cart.includes('className="cart-page') && cart.includes("p5-cart-page"), "cart keeps Phase 5 cart scope");

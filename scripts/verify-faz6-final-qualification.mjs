@@ -34,9 +34,9 @@ const quality = fs.readFileSync('.github/workflows/quality.yml', 'utf8');
 quality.includes('npm run verify:p0:static') && quality.includes('npm run verify:release')
   ? pass('quality workflow retains source-quality and release gates')
   : fail('quality workflow retains source-quality and release gates');
-!quality.includes('test:visual') && !quality.includes('playwright')
-  ? pass('quality workflow keeps legacy visual Playwright gate removed')
-  : fail('quality workflow keeps legacy visual Playwright gate removed');
+quality.includes('public-critical.spec.ts --project=chromium-desktop') && quality.includes('public-critical.spec.ts --project=chromium-mobile')
+  ? pass('quality workflow runs desktop and mobile public Playwright regression')
+  : fail('quality workflow runs desktop and mobile public Playwright regression');
 
 const staging = fs.readFileSync('.github/workflows/staging-integration.yml', 'utf8');
 staging.includes('npm run verify:migration-drift') && staging.includes('npm run verify:catalog') && !staging.includes('npm run verify:phase20:staging')

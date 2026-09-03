@@ -1,0 +1,92 @@
+/* Mobile owner for the homepage package comparison. The desktop table remains
+ * available above 760px; phone layouts expose the same data as readable cards. */
+
+@media (max-width: 47.5rem) {
+  .public-site .home-package-matrix__scroll {
+    display: none;
+  }
+
+  .public-site .home-package-matrix__mobile-cards {
+    display: grid;
+    gap: 10px;
+  }
+
+  .public-site .home-package-matrix__mobile-cards details {
+    overflow: clip;
+    border: 1px solid var(--public-border);
+    border-radius: 18px;
+    background: var(--public-surface);
+  }
+
+  .public-site .home-package-matrix__mobile-cards summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 68px;
+    padding: 14px 16px;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .public-site .home-package-matrix__mobile-cards summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .public-site .home-package-matrix__mobile-cards summary > span:first-child {
+    display: grid;
+    gap: 3px;
+  }
+
+  .public-site .home-package-matrix__mobile-cards summary strong {
+    color: var(--public-ink);
+    font-size: 18px;
+  }
+
+  .public-site .home-package-matrix__mobile-cards summary small {
+    color: var(--public-muted);
+    font-size: 13px;
+  }
+
+  .public-site .home-package-matrix__mobile-cards details[open] summary {
+    border-bottom: 1px solid var(--public-border);
+    background: #f7eedb;
+  }
+
+  .public-site .home-package-matrix__mobile-cards ul {
+    display: grid;
+    margin: 0;
+    padding: 0 16px;
+    list-style: none;
+  }
+
+  .public-site .home-package-matrix__mobile-cards li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    min-height: 48px;
+    border-bottom: 1px solid var(--public-border);
+    color: var(--public-muted);
+    font-size: 14px;
+  }
+
+  .public-site .home-package-matrix__mobile-cards li strong {
+    color: var(--public-ink);
+    font-size: 13px;
+    text-align: right;
+  }
+
+  .public-site .home-package-matrix__mobile-cards details > a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    margin: 12px 16px 16px;
+    border: 1px solid var(--brand-gold-deep);
+    border-radius: 12px;
+    color: var(--public-ink);
+    font-weight: 800;
+    text-decoration: none;
+  }
+}

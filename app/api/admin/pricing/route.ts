@@ -10,16 +10,17 @@ import {
   NETWORK_MAIL_CREDIT_PACKS,
   corporatePackageByCode,
 } from "../../../../lib/commerce/packages";
+import { COMMERCIAL_SKUS } from "../../../../lib/config/commercial";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const PRODUCT_SKUS = [
-  "YENOMI-NFC-CARD-ANNUAL",
-  "YENOMI-NFC-PREMIUM-ANNUAL",
-  "YENOMI-PREMIUM-UPGRADE",
-  "YENOMI-DIGITAL-RENEWAL-ANNUAL",
-  "YENOMI-PREMIUM-RENEWAL-ANNUAL",
+  COMMERCIAL_SKUS.INITIAL,
+  COMMERCIAL_SKUS.PREMIUM,
+  COMMERCIAL_SKUS.PREMIUM_UPGRADE,
+  COMMERCIAL_SKUS.RENEWAL,
+  COMMERCIAL_SKUS.PREMIUM_RENEWAL,
   "YENOMI-BUSINESS-SEATS-1",
   "YENOMI-BUSINESS-SEATS-5",
   "YENOMI-BUSINESS-SEATS-10",
@@ -57,11 +58,11 @@ function demoPricing() {
   return {
     demo: true,
     variants: [
-      { id: "d1", sku: "YENOMI-NFC-CARD-ANNUAL", name: "Yenomi ID Standard", price_kurus: INDIVIDUAL_PLAN.priceKurus, billing_period: "ANNUAL", is_active: true },
-      { id: "d2", sku: "YENOMI-NFC-PREMIUM-ANNUAL", name: "Yenomi ID Premium — NFC + 100 Network Mail", price_kurus: INDIVIDUAL_PREMIUM_PLAN.priceKurus, billing_period: "ANNUAL", is_active: true },
-      { id: "d3", sku: "YENOMI-PREMIUM-UPGRADE", name: "Standard → Premium Yükseltme", price_kurus: INDIVIDUAL_PREMIUM_UPGRADE_PLAN.priceKurus, billing_period: "ONE_TIME", is_active: true },
-      { id: "d4", sku: "YENOMI-DIGITAL-RENEWAL-ANNUAL", name: "Standard Yıllık Yenileme", price_kurus: INDIVIDUAL_RENEWAL_PLAN.priceKurus, billing_period: "ANNUAL", is_active: true },
-      { id: "d5", sku: "YENOMI-PREMIUM-RENEWAL-ANNUAL", name: "Premium Yıllık Yenileme", price_kurus: INDIVIDUAL_PREMIUM_RENEWAL_PLAN.priceKurus, billing_period: "ANNUAL", is_active: true },
+      { id: "d1", sku: COMMERCIAL_SKUS.INITIAL, name: "Yenomi ID Standard", price_kurus: INDIVIDUAL_PLAN.priceKurus, billing_period: "ANNUAL", is_active: true },
+      { id: "d2", sku: COMMERCIAL_SKUS.PREMIUM, name: "Yenomi ID Premium — NFC + 100 Network Mail", price_kurus: INDIVIDUAL_PREMIUM_PLAN.priceKurus, billing_period: "ANNUAL", is_active: true },
+      { id: "d3", sku: COMMERCIAL_SKUS.PREMIUM_UPGRADE, name: "Standard → Premium Yükseltme", price_kurus: INDIVIDUAL_PREMIUM_UPGRADE_PLAN.priceKurus, billing_period: "ONE_TIME", is_active: true },
+      { id: "d4", sku: COMMERCIAL_SKUS.RENEWAL, name: "Standard Yıllık Yenileme", price_kurus: INDIVIDUAL_RENEWAL_PLAN.priceKurus, billing_period: "ANNUAL", is_active: true },
+      { id: "d5", sku: COMMERCIAL_SKUS.PREMIUM_RENEWAL, name: "Premium Yıllık Yenileme", price_kurus: INDIVIDUAL_PREMIUM_RENEWAL_PLAN.priceKurus, billing_period: "ANNUAL", is_active: true },
       { id: "d6", sku: "YENOMI-NETWORK-MAIL-100", name: "Network Mail 100", price_kurus: networkMailPackPrice("YENOMI-NETWORK-MAIL-100"), billing_period: "ONE_TIME", is_active: true },
       { id: "d7", sku: "YENOMI-NETWORK-MAIL-500", name: "Network Mail 500", price_kurus: networkMailPackPrice("YENOMI-NETWORK-MAIL-500"), billing_period: "ONE_TIME", is_active: true },
       { id: "d8", sku: "YENOMI-NETWORK-MAIL-1000", name: "Network Mail 1000", price_kurus: networkMailPackPrice("YENOMI-NETWORK-MAIL-1000"), billing_period: "ONE_TIME", is_active: true },

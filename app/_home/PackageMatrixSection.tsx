@@ -30,6 +30,30 @@ const packageComparisonRows = [
   ["Kurumsal marka standardı", "unavailable", "unavailable", "included"],
 ] as const;
 
+const mobilePackages = [
+  {
+    name: "Bireysel",
+    price: individualPrice,
+    valueIndex: 1,
+    href: "/urunler/nfc-kart?paket=individual",
+    action: "Bireysel’i İncele",
+  },
+  {
+    name: "Premium",
+    price: premiumPrice,
+    valueIndex: 2,
+    href: "/urunler/nfc-kart?paket=premium",
+    action: "Premium’u Seç",
+  },
+  {
+    name: "Kurumsal",
+    price: `${corporateEntryPrice}’dan başlar`,
+    valueIndex: 3,
+    href: "/kurumsal",
+    action: "Kurumsal Paketler",
+  },
+] as const;
+
 function PackageComparisonValue({ value }: { value: string }) {
   if (value === "included") {
     return (
@@ -121,6 +145,33 @@ export function PackageMatrixSection() {
             </span>
           </div>
         </div>
+      </div>
+      <div
+        className="home-package-matrix__mobile-cards"
+        aria-label="Paket karşılaştırması"
+      >
+        {mobilePackages.map((plan) => (
+          <details key={plan.name} open={plan.name === "Premium"}>
+            <summary>
+              <span>
+                <strong>{plan.name}</strong>
+                <small>{plan.price}</small>
+              </span>
+              <span aria-hidden="true">⌄</span>
+            </summary>
+            <ul>
+              {packageComparisonRows.slice(1).map((row) => (
+                <li key={row[0]}>
+                  <span>{row[0]}</span>
+                  <strong>
+                    <PackageComparisonValue value={row[plan.valueIndex]} />
+                  </strong>
+                </li>
+              ))}
+            </ul>
+            <Link href={plan.href}>{plan.action} →</Link>
+          </details>
+        ))}
       </div>
     </section>
   );

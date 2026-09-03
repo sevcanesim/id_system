@@ -1,10 +1,10 @@
 import fs from "node:fs";
 const read=(path)=>fs.readFileSync(path,"utf8");let failed=false;const check=(ok,message)=>{console.log(`${ok?"PASS":"FAIL"}  ${message}`);if(!ok)failed=true;};
-const home=read("app/page.tsx");const header=read("app/ui/SiteHeader.tsx");const product=read("app/urunler/nfc-kart/page.tsx");const corporate=read("app/kurumsal/page.tsx");const how=read("app/nasil-calisir/HowItWorksBoard.tsx");const layout=read("app/layout.tsx");const publicCss=read("app/styles/canonical-public.css");
-check(home.includes("KAYIP MODU")&&home.includes("Kaybolursa erişimi kapat"),"lost mode remains visible as a secondary public trust value");
+const home=read("app/page.tsx");const hero=read("app/_home/HeroSection.tsx");const packageMatrix=read("app/_home/PackageMatrixSection.tsx");const header=read("app/ui/SiteHeader.tsx");const product=read("app/urunler/nfc-kart/page.tsx");const corporate=read("app/kurumsal/page.tsx");const how=read("app/nasil-calisir/HowItWorksBoard.tsx");const layout=read("app/layout.tsx");const publicCss=read("app/styles/canonical-public.css");
+check(hero.includes("KAYIP MODU")&&hero.includes("Kaybolursa erişimi kapat"),"lost mode remains visible as a secondary public trust value");
 check(header.includes('"Premium’u İncele"')&&header.includes('paket=premium'),"public header is Premium-first");
 check(!header.includes('"NFC Kartı Satın Al"'),"retired NFC-first header CTA stays removed");
-check(home.includes("BİREYSEL · PREMIUM · KURUMSAL")&&home.includes("Premium’u Seç"),"homepage uses current three-way package IA");
+check(home.includes("<PackageMatrixSection />")&&packageMatrix.includes("BİREYSEL · PREMIUM · KURUMSAL")&&packageMatrix.includes("Premium’u Seç"),"homepage uses current three-way package IA");
 check(product.includes("Kartımı kaybedersem ne olur?")||product.includes("Kayıp modu"),"NFC PDP retains lost-card lifecycle copy");
 check(corporate.includes("corporate-pack-table")&&corporate.includes("2. yıl ve sonrası"),"corporate pricing keeps first-year and renewal columns");
 check(corporate.includes("ilk 12 aylık kullanım tamamlandıktan sonra")&&corporate.includes("12 ay tamamlandıktan sonra"),"corporate renewal timing is explicit");

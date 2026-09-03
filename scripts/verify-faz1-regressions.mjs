@@ -12,21 +12,18 @@ const panel =
   read("app/kurumsal/panel/components/EmployeesPanel.tsx") +
   read("app/kurumsal/panel/components/EmployeeDrawer.tsx") +
   read("app/kurumsal/panel/components/OverviewPanel.tsx") +
-  read("app/kurumsal/panel/components/CorporateHeroPreview.tsx");
-const hero = read("app/kurumsal/panel/components/CorporateHeroPreview.tsx");
+  read("app/kurumsal/panel/components/TemplatesPanel.tsx");
+const templates = read("app/kurumsal/panel/components/TemplatesPanel.tsx");
 const staging = read(".github/workflows/staging-integration.yml");
 const production = read(".github/workflows/production-deploy.yml");
 
 check(
-  "CorporateHeroPreview is defined and imported",
-  hero.includes("function CorporateHeroPreview") &&
-    read("app/kurumsal/panel/components/OverviewPanel.tsx").includes(
-      'import CorporateHeroPreview from "./CorporateHeroPreview"',
-    ),
+  "corporate template preview is defined and rendered",
+  templates.includes("function TemplatesPanel") && templates.includes("CardPreviewFrame"),
 );
 check(
-  "corporate hero renders a real QR from slug",
-  hero.includes("QRCode.toDataURL") && panel.includes("representativeCard?.slug"),
+  "corporate template preview renders the live branded card",
+  templates.includes("CardTemplate") && panel.includes("previewBranding"),
 );
 check(
   "pre-deploy gate verifies production schema without staging mutation",

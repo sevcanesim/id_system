@@ -15,7 +15,6 @@
 .card,
 .notice,
 .processCard,
-.qrCard,
 .metric {
   min-width: 0;
   border: 1px solid var(--border);
@@ -25,8 +24,7 @@
 
 .card,
 .notice,
-.processCard,
-.qrCard {
+.processCard {
   padding: var(--space-5);
 }
 
@@ -261,6 +259,32 @@
   margin-top: var(--space-5);
 }
 
+.heroFooter {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.heroFooter .actions { margin-top: 0; }
+
+.heroQr {
+  display: grid;
+  justify-items: center;
+  gap: .35rem;
+  margin: 0;
+  padding: .45rem;
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: #2a2623;
+}
+
+.heroQr img { display: block; width: 5.5rem; height: 5.5rem; }
+.heroQr figcaption { font-size: .58rem; font-weight: 750; white-space: nowrap; }
+
 .processHeader {
   display: flex;
   align-items: flex-start;
@@ -309,12 +333,6 @@
   line-height: 1.4;
 }
 
-.secondaryGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(16rem, .7fr);
-  gap: var(--space-5);
-}
-
 .quickActions {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -344,18 +362,6 @@
   font-weight: 700;
 }
 
-.qrCard {
-  display: grid;
-  align-content: start;
-  gap: var(--space-3);
-}
-
-.qrLink {
-  overflow-wrap: anywhere;
-  color: var(--text-secondary);
-  font-size: var(--type-sm);
-}
-
 .message {
   margin-top: var(--space-3);
   color: var(--text-secondary);
@@ -363,8 +369,7 @@
 }
 
 @media (max-width: 64rem) {
-  .heroGrid,
-  .secondaryGrid {
+  .heroGrid {
     grid-template-columns: 1fr;
   }
 }
@@ -376,8 +381,7 @@
 
   .card,
   .notice,
-  .processCard,
-  .qrCard {
+  .processCard {
     padding: var(--space-4);
   }
 
@@ -415,4 +419,7 @@
     margin-top: var(--space-4);
     font-size: clamp(1.35rem, 7vw, 1.8rem);
   }
+
+  .heroFooter { grid-template-columns: 1fr; align-items: start; }
+  .heroQr { justify-self: start; }
 }

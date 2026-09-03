@@ -192,14 +192,6 @@ export default function MyCardsPage() {
     }
   }
 
-  function downloadQr() {
-    if (!qrDataUrl || !primary?.slug) return;
-    const link = document.createElement("a");
-    link.href = qrDataUrl;
-    link.download = `yenomi-id-${primary.slug}-qr.png`;
-    link.click();
-  }
-
   if (pageState !== "ready") {
     return <DashboardShell activeKey="home" title="Kartım & Genel Bakış" description="Hesap ve kart bilgilerin yükleniyor."><LoadingState variant="panel" label={pageState === "redirecting" ? "Yönlendiriliyor" : "Hesabın yükleniyor"} hint="Paket, kart ve yenileme durumun kontrol ediliyor." /></DashboardShell>;
   }
@@ -222,12 +214,16 @@ export default function MyCardsPage() {
                 </div>
                 <h2 className={styles.profileUrl}>{displayProfileUrl}</h2>
                 <p className={styles.copy}>{completion < 100 ? "Baskı öncesi son adım: profilini tamamla, ardından kartın üretim sırasına otomatik alınsın." : "Bu bağlantı NFC kartın ve QR kodunla aynı canlı profile gider; bilgilerini dilediğin an güncelleyebilirsin."}</p>
-                <div className={styles.actions}>
-                  {completion < 100 ? <ButtonLink href={`/olustur?id=${primary.id}`}>Profili Tamamla</ButtonLink> : process?.operations_status === "PROFILE_REQUIRED" ? <Button onClick={completeProfile} disabled={queueing}>{queueing ? "İşleniyor…" : "Baskı Sürecini Başlat"}</Button> : <ButtonLink href={`/olustur?id=${primary.id}`} variant="secondary">Profili Düzenle</ButtonLink>}
-                  <Button variant="secondary" onClick={() => void copyProfileLink()}>Bağlantıyı Kopyala</Button>
-                  <Button variant="secondary" onClick={downloadQr} disabled={!qrDataUrl}>QR İndir</Button>
+                <div className={styles.heroFooter}>
+                  <div>
+                    <div className={styles.actions}>
+                      {completion < 100 ? <ButtonLink href={`/olustur?id=${primary.id}`}>Profili Tamamla</ButtonLink> : process?.operations_status === "PROFILE_REQUIRED" ? <Button onClick={completeProfile} disabled={queueing}>{queueing ? "İşleniyor…" : "Baskı Sürecini Başlat"}</Button> : <ButtonLink href={`/olustur?id=${primary.id}`} variant="secondary">Profili Düzenle</ButtonLink>}
+                      <Button variant="secondary" onClick={() => void copyProfileLink()}>Bağlantıyı Kopyala</Button>
+                    </div>
+                    {message && <p className={styles.message} role="status">{message}</p>}
+                  </div>
+                  {qrDataUrl && <figure className={styles.heroQr}><img src={qrDataUrl} width={112} height={112} alt="Dijital kartın için taranabilir QR kod" /><figcaption>Taramaya hazır QR</figcaption></figure>}
                 </div>
-                {message && <p className={styles.message} role="status">{message}</p>}
               </div>
               <div className={`${styles.countdown} ${styles.studio}`}>
                 <div className={styles.studioMeta}><span className={styles.eyebrow}>CANLI MOBİL ÖNİZLEME</span><ButtonLink href={`/olustur?id=${primary.id}`} variant="secondary">Düzenle</ButtonLink></div>
@@ -268,9 +264,8 @@ export default function MyCardsPage() {
               <ButtonLink href="/kartim" variant="secondary"><span>03</span> Yedek / ek kart sipariş et</ButtonLink>
             </section>
 
-            <section className={styles.secondaryGrid}>
-              <div className={styles.card}><span className={styles.eyebrow}>HİZMET & YENİLEME</span><h2 className={styles.title}>Paketini ve hizmet süreni yönet.</h2><p className={styles.copy}>Yenileme tarihini, Premium yükseltme seçeneğini ve paket fiyatlarını Hizmet & Yenileme alanında görebilirsin.</p><div className={styles.actions}><ButtonLink href="/yenile">Hizmet & Yenileme</ButtonLink><ButtonLink href="/siparislerim" variant="secondary">Siparişlerim & Kart Süreci</ButtonLink></div></div>
-              <div className={styles.qrCard}><span className={styles.eyebrow}>PROFİL QR</span><h2 className={styles.title}>Dijital kartın</h2>{qrDataUrl ? <img src={qrDataUrl} width={180} height={180} alt="Yenomi ID profil QR kodu" /> : <p className={styles.copy}>QR kodu profil bağlantın hazır olduğunda görünür.</p>}{profileUrl && <span className={styles.qrLink}>{profileUrl}</span>}</div>
+            <section className={styles.card}>
+              <span className={styles.eyebrow}>HİZMET & YENİLEME</span><h2 className={styles.title}>Paketini ve hizmet süreni yönet.</h2><p className={styles.copy}>Yenileme tarihini, Premium yükseltme seçeneğini ve paket fiyatlarını Hizmet & Yenileme alanında görebilirsin.</p><div className={styles.actions}><ButtonLink href="/yenile">Hizmet & Yenileme</ButtonLink><ButtonLink href="/siparislerim" variant="secondary">Siparişlerim & Kart Süreci</ButtonLink></div>
             </section>
           </>
         )}

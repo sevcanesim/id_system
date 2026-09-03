@@ -1,6 +1,8 @@
 import fs from "node:fs";
 
-const canonicalCss = fs.readFileSync("app/canonical.css", "utf8");
+const canonicalCss = ["app/styles/canonical-foundation.css", "app/canonical.css"]
+  .map((file) => fs.readFileSync(file, "utf8"))
+  .join("\n");
 const tokenCss = fs.readFileSync("app/design-tokens.css", "utf8");
 
 // Physical-card, phone, dashboard and "Nasıl Çalışır" specimens deliberately

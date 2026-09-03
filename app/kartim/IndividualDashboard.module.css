@@ -298,6 +298,37 @@
   margin-bottom: var(--space-4);
 }
 
+.profileApproval {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin: var(--space-5) 0;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid color-mix(in srgb, var(--brand-gold) 38%, var(--border));
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--brand-gold) 7%, white);
+}
+
+.profileApproval strong,
+.profileApproval p {
+  display: block;
+}
+
+.profileApproval strong {
+  margin-top: var(--space-1);
+  color: var(--text-primary);
+  font-size: var(--type-title-sm);
+}
+
+.profileApproval p {
+  max-width: 44rem;
+  margin: var(--space-1) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--type-body-sm);
+  line-height: 1.5;
+}
+
 .status {
   display: inline-flex;
   align-items: center;
@@ -428,6 +459,7 @@
 
   .notice,
   .processHeader,
+  .profileApproval,
   .lostMode {
     display: grid;
   }

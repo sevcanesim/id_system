@@ -5,7 +5,27 @@ import { publicError } from "../../../../lib/errors";
 
 export const runtime = "nodejs";
 
-const completeSchema = z.object({ profileId: z.string().uuid() });
+const completeSchema = z.object({
+  profileId: z.string().uuid(),
+  confirmed: z.literal(true),
+});
+
+const PRINT_REQUIRED_FIELDS = [
+  ["name", "Ad soyad"],
+  ["role", "Ünvan"],
+  ["email", "E-posta"],
+  ["phone", "Telefon"],
+  ["image_url", "Profil fotoğrafı"],
+] as const;
+
+type PrintProfile = Record<(typeof PRINT_REQUIRED_FIELDS)[number][0], string | null>;
+
+function missingPrintFields(profile: PrintProfile | null) {
+  if (!profile) return PRINT_REQUIRED_FIELDS.map(([, label]) => label);
+  return PRINT_REQUIRED_FIELDS
+    .filter(([field]) => !profile[field]?.trim())
+    .map(([, label]) => label);
+}
 
 async function authenticatedUser(request: NextRequest) {
   const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
@@ -20,15 +40,17 @@ async function resolveOwnUnit(userId: string, profileId?: string) {
   const admin = getSupabaseAdminClient();
 
   let entitlementId: string | null = null;
+  let profile: (PrintProfile & { id: string; entitlement_id: string | null }) | null = null;
   if (profileId) {
-    const { data: profile } = await admin
+    const { data } = await admin
       .from("card_profiles")
-      .select("id,entitlement_id")
+      .select("id,entitlement_id,name,role,email,phone,image_url")
       .eq("id", profileId)
       .eq("user_id", userId)
       .maybeSingle();
+    profile = data;
     entitlementId = profile?.entitlement_id ?? null;
-    if (!profile) return { admin, unit: null, entitlement: null, order: null, profileFound: false };
+    if (!profile) return { admin, unit: null, entitlement: null, order: null, profile, profileFound: false };
   }
 
   let entitlementQuery = admin
@@ -42,7 +64,7 @@ async function resolveOwnUnit(userId: string, profileId?: string) {
 
   if (entitlementId) entitlementQuery = entitlementQuery.eq("id", entitlementId);
   const { data: entitlement } = await entitlementQuery.maybeSingle();
-  if (!entitlement?.order_item_id) return { admin, unit: null, entitlement: entitlement ?? null, order: null, profileFound: true };
+  if (!entitlement?.order_item_id) return { admin, unit: null, entitlement: entitlement ?? null, order: null, profile, profileFound: true };
 
   const [{ data: unit }, { data: orderItem }] = await Promise.all([
     admin
@@ -70,7 +92,7 @@ async function resolveOwnUnit(userId: string, profileId?: string) {
     order = data ?? null;
   }
 
-  return { admin, unit: unit ?? null, entitlement, order, profileFound: true };
+  return { admin, unit: unit ?? null, entitlement, order, profile, profileFound: true };
 }
 
 export async function GET(request: NextRequest) {
@@ -113,12 +135,20 @@ export async function POST(request: NextRequest) {
     const parsed = completeSchema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ error: "Geçersiz profil." }, { status: 400 });
 
-    const { admin, unit, profileFound } = await resolveOwnUnit(user.id, parsed.data.profileId);
+    const { admin, unit, profile, profileFound } = await resolveOwnUnit(user.id, parsed.data.profileId);
     if (!profileFound) return NextResponse.json({ error: "Profil bulunamadı." }, { status: 404 });
     if (!unit) {
       return NextResponse.json(
         { error: "Bu profile bağlı, ödemesi tamamlanmış fiziksel kart siparişi bulunamadı." },
         { status: 409 },
+      );
+    }
+
+    const missing = missingPrintFields(profile);
+    if (missing.length > 0) {
+      return NextResponse.json(
+        { error: `Baskı onayı için profilini tamamlamalısın: ${missing.join(", ")}.`, missingFields: missing },
+        { status: 422 },
       );
     }
 
@@ -129,7 +159,7 @@ export async function POST(request: NextRequest) {
       p_source: "CUSTOMER",
       p_carrier: null,
       p_tracking_number: null,
-      p_note: "Profil tamamlandı; baskı kuyruğuna alındı.",
+      p_note: "Müşteri profilini tamamladı ve baskıyı onayladı; baskı kuyruğuna alındı.",
     });
     const result = data as { ok?: boolean; code?: string; current?: string; from?: string; to?: string } | null;
     if (error || !result?.ok) {

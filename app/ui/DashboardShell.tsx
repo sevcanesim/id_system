@@ -71,7 +71,7 @@ export default function DashboardShell({
       if (cancelled) return;
       if (!result.ok) {
         setPortalState("denied");
-        window.location.replace(portal === "individual" ? "/kurumsal/panel" : "/kartlarim");
+        window.location.replace(portal === "individual" ? "/kurumsal/panel" : "/kartim");
         return;
       }
 
@@ -119,7 +119,7 @@ export default function DashboardShell({
           scope="individual"
           ariaLabel="Bireysel hesap menüsü"
           subtitle="Bireysel Panel"
-          brandHref="/kartlarim"
+          brandHref="/kartim"
           items={INDIVIDUAL_SIDEBAR_CONFIG}
           activeKey={activeKey}
           onClose={() => setMobileOpen(false)}
@@ -177,7 +177,7 @@ export default function DashboardShell({
         scope="individual"
         ariaLabel="Bireysel hesap menüsü"
         subtitle="Bireysel Panel"
-        brandHref="/kartlarim"
+        brandHref="/kartim"
         items={INDIVIDUAL_SIDEBAR_CONFIG}
         activeKey={activeKey}
         hasCorporateSubscription={hasCorporateSubscription}

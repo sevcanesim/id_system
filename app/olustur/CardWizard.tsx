@@ -782,7 +782,7 @@ export default function CardWizard() {
   }
   if (accessState === "denied") return null;
 
-  const cancelHref = isBusinessCard ? "/kurumsal/panel" : (profileId ? "/kartlarim" : "/");
+  const cancelHref = isBusinessCard ? "/kurumsal/panel" : (profileId ? "/kartim" : "/");
 
   const isAlreadyPublished = Boolean(profileId) && isPublished;
 

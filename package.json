@@ -130,8 +130,9 @@
     "verify:p0:corporate-resilience": "node scripts/verify-p0-corporate-resilience.mjs",
     "verify:premium-components": "node scripts/verify-premium-components-v45.mjs",
     "verify:panel-master": "node scripts/verify-panel-master-contract.mjs",
+    "test:unit": "vitest run",
     "test:e2e": "playwright test",
-    "test:critical": "npm run test:e2e",
+    "test:critical": "npm run test:unit && npm run test:e2e",
     "audit:maintainability": "node scripts/audit-maintainability.mjs",
     "test": "npm run test:critical",
     "verify:css-architecture": "node scripts/verify-css-budget.mjs"
@@ -151,7 +152,8 @@
     "@types/qrcode": "^1.5.5",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.7"
   },
   "engines": {
     "node": ">=20.11.0 <23",

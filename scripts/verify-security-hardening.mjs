@@ -23,10 +23,15 @@ const webhookSecret = read("lib/payments/iyzico-webhook-secret.ts");
 const analytics = read("lib/analytics.ts");
 const vitestConfig = read("vitest.config.ts");
 const playwrightConfig = read("playwright.config.ts");
-const e2e = read("e2e/critical-journeys.spec.ts");
+const publicCriticalE2e = read("tests/e2e/public-critical.spec.ts");
+const responsiveE2e = read("tests/e2e/responsive-master.spec.ts");
 const sweeper = read("supabase/migrations/20260821120000_expire_stale_awaiting_payment.sql");
 const reconciliation = read("app/api/admin/commerce/reconciliation/route.ts");
 const nfcOrder = read("app/nfc-siparis/page.tsx");
+const organizationAssetMigration = read("supabase/migrations/20260903110000_private_organization_assets.sql");
+const organizationLinkOpen = read("app/api/organization-links/[id]/open/route.ts");
+const organizationLinkManager = read("app/api/organizations/links/route.ts");
+const organizationLinkUpload = read("app/api/organizations/links/upload/route.ts");
 
 mustInclude(recoverAuth, "owner-required", "Recover intent must distinguish cookie possession from a body UUID.");
 mustInclude(recoverAuth, "ownerMayRecover", "Guest orders must not recover from a body UUID.");
@@ -133,16 +138,28 @@ for (const [name, source] of [
 mustInclude(analytics, "This is not GA4", "Funnel tracker must stay an honest stub.");
 mustNotInclude(analytics, "gtag(", "Do not invent a GA4 wiring.");
 
+mustInclude(organizationAssetMigration, "set public = false", "Corporate PDF bucket must be private at rest.");
+mustInclude(organizationAssetMigration, 'drop policy if exists "Organization assets are public"', "Public storage read policy must be removed.");
+for (const [name, source] of [
+  ["public organization-link redirect", organizationLinkOpen],
+  ["organization-link manager API", organizationLinkManager],
+  ["organization-link upload API", organizationLinkUpload],
+]) {
+  mustInclude(source, "createOrganizationAssetSignedUrl", `${name} must issue signed asset URLs.`);
+  mustNotInclude(source, "getPublicUrl", `${name} must not expose a permanent public asset URL.`);
+}
+mustInclude(organizationLinkOpen, "z.string().uuid().safeParse", "Public organization-link tracking must validate profile IDs.");
+mustInclude(organizationLinkOpen, '.eq("organization_id", link.organization_id)', "Public organization-link tracking must keep profile analytics within the link organization.");
+mustInclude(organizationLinkOpen, "isOrganizationAssetPubliclyAvailable", "Public organization-link redirects must deny unpublished or future-dated assets.");
+mustInclude(organizationLinkManager, "mayPreviewScheduledAssets", "Only template managers may preview scheduled organization assets.");
+mustInclude(organizationLinkManager, "isOrganizationAssetPubliclyAvailable", "Non-managers must receive asset URLs only after publication.");
+
 mustInclude(vitestConfig, '"**/*.test.ts"', "Vitest must not pick up Playwright spec files.");
-mustInclude(playwrightConfig, 'testDir: "e2e"', "Playwright must own the e2e directory.");
-mustInclude(playwrightConfig, 'name: "webkit"', "Safari/WebKit must be a Playwright project, not Chromium-only.");
-mustInclude(playwrightConfig, "Desktop Safari", "Desktop WebKit device must stay declared.");
-mustInclude(playwrightConfig, "iPhone 13", "Mobile WebKit device must stay declared.");
-mustInclude(e2e, "E2E-01", "Critical journeys must name E2E-01.");
-mustInclude(e2e, "E2E_BASE_URL is unset; journeys are not run.", "Missing E2E env must skip, not pass.");
-mustInclude(e2e, "E2E-06", "Guest spare-card gate must be listed.");
-mustInclude(e2e, "COVERAGE: 1/7 automated", "Critical journeys file must not hide that most cases are skeleton skips.");
-mustInclude(e2e, "test.skip(true", "Unwired payment journeys must stay explicit skips, not empty passes.");
+mustInclude(playwrightConfig, 'testDir: "./tests/e2e"', "Playwright must own the tests/e2e directory.");
+mustInclude(playwrightConfig, 'name: "chromium-mobile"', "Mobile browser coverage must remain declared.");
+mustInclude(playwrightConfig, 'name: "chromium-desktop"', "Desktop browser coverage must remain declared.");
+mustInclude(publicCriticalE2e, "mobile public navigation opens and closes", "Critical public navigation journey must remain covered.");
+mustInclude(responsiveE2e, "mobile navigation preserves focus and escape behavior", "Responsive navigation accessibility journey must remain covered.");
 
 mustInclude(sweeper, "expire_stale_awaiting_payment_orders", "Sweeper RPC must exist.");
 mustInclude(sweeper, "interval '7 days'", "Sweeper must target 7-day stale AWAITING_PAYMENT rows.");

@@ -13,8 +13,8 @@ import {
 } from "../../../lib/organizations/role-matrix";
 import { type CardBranding } from "../../CardTemplate";
 import { getSeatBreakdown } from "../../../lib/organizations/lifecycle";
-import type { DatabaseSeatPack, DatabaseTemplateOption } from "../../../lib/config/database";
-import { addCartItem, cartAddConflict, cartAddConflictMessage, clearLegacyCart, readCart, setCartOwner } from "../../../lib/cart";
+import type { DatabaseTemplateOption } from "../../../lib/config/database";
+import { clearLegacyCart, setCartOwner } from "../../../lib/cart";
 import { parseBulkInviteCsv, BULK_INVITE_MAX_ROWS } from "../../../lib/organizations/bulk-invite";
 import JobTitlesPanel from "./components/JobTitlesPanel";
 import CorporateLinksPanel from "./components/CorporateLinksPanel";
@@ -62,11 +62,9 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   const [members, setMembers] = useState<Member[]>([]);
   const [organizationSeatUsage, setOrganizationSeatUsage] = useState<number | null>(null);
   const [message, setMessage] = useState("");
-  const [seatPacks, setSeatPacks] = useState<DatabaseSeatPack[]>([]);
   const [templateOptions, setTemplateOptions] = useState<DatabaseTemplateOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingSlow, setLoadingSlow] = useState(false);
-  const [loadingError, setLoadingError] = useState("");
   const [dataErrors, setDataErrors] = useState<Partial<Record<CorporatePanelTab, string>>>({});
   const setDataError = (tab: CorporatePanelTab, error: string | null) => {
     setDataErrors((current) => {
@@ -139,11 +137,10 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       })
       .then((publicConfigPayload) => {
         if (cancelled) return;
-        setSeatPacks(publicConfigPayload.seatPacks || []);
         setTemplateOptions(publicConfigPayload.templateOptions || []);
       })
       .catch(() => {
-        if (!cancelled) setMessage("Kart paketleri DB’den yüklenemedi.");
+        if (!cancelled) setMessage("Şablon seçenekleri yüklenemedi.");
       });
     return () => { cancelled = true; };
   }, []);
@@ -290,7 +287,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     resetCardsData();
     setLoading(true);
     setLoadingSlow(false);
-    setLoadingError("");
     setDataErrors({});
     void (async () => {
       try {
@@ -337,7 +333,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   async function reloadPanelData() {
     setLoading(true);
     setLoadingSlow(false);
-    setLoadingError("");
     setDataErrors({});
     setMessage("");
     try {
@@ -361,7 +356,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
           router.replace("/giris?portal=business&next=%2Fkurumsal%2Fpanel");
           return;
         }
-        setLoadingError(organizationsPayload.error || "Şirket bilgileri yüklenemedi.");
         setLoading(false);
         return;
       }
@@ -383,7 +377,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       setLoading(false);
       await loadDataForTab(currentTab, id, access, true);
     } catch {
-      setLoadingError("Kurumsal panel verileri şu anda yüklenemiyor. Bağlantıyı kontrol edip yeniden deneyin.");
       setLoading(false);
     }
   }
@@ -416,7 +409,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
             router.replace("/giris?portal=business&next=%2Fkurumsal%2Fpanel");
             return;
           }
-          setLoadingError(organizationsPayload.error || "Şirket bilgileri yüklenemedi.");
           setMessage("");
           setLoading(false);
           return;
@@ -445,7 +437,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
           setLoading(false);
         }
       } catch {
-        setLoadingError("Kurumsal panel verileri yüklenemedi. Bağlantıyı kontrol edip yeniden deneyin.");
         setMessage("");
       } finally {
         if (!redirecting) setLoading(false);
@@ -735,23 +726,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     else setMessage(`${successful.length} çalışanın departmanı güncellendi.`);
   }
 
-  async function changeRole(memberId: string, role: string) {
-    const result = await mutateMember(
-      memberId,
-      "/api/organizations/members",
-      "PUT",
-      { role, reason: "Kurumsal panel rol değişikliği" },
-    );
-    if (result) {
-      setMembers((current) =>
-        current.map((member) =>
-          member.id === memberId ? { ...member, role } : member,
-        ),
-      );
-      setMessage("Çalışan rolü güncellendi.");
-    }
-  }
-
   async function inviteAction(memberId: string, action: "RESEND" | "REVOKE") {
     const result = await mutateMember(
       memberId,
@@ -973,22 +947,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     } finally {
       setMemberEditBusy(false);
     }
-  }
-
-  function buySeatPack(pack: DatabaseSeatPack) {
-    if (!selected || !canManageLicenses) return;
-    const conflict = cartAddConflict(pack.sku, readCart());
-    if (conflict && !window.confirm(cartAddConflictMessage(conflict))) return;
-    addCartItem({
-      productId: "yenomi-business-seat-pack",
-      variantSku: pack.sku,
-      kind: "NFC_PHYSICAL_CARD",
-      name: pack.name,
-      unitPriceKurus: pack.priceKurus,
-      quantity: 1,
-      configuration: { organizationId: selected, seatCount: pack.seats },
-    });
-    router.push("/sepet");
   }
 
   const departmentManager = org?.role === "DEPARTMENT_MANAGER";

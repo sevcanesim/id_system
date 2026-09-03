@@ -9,17 +9,19 @@ const source = files.filter((file) => !file.endsWith(".css")).map((file) => fs.r
 const canonicalPath = path.join(app, "canonical.css");
 const css = fs.existsSync(canonicalPath) ? fs.readFileSync(canonicalPath, "utf8") : "";
 
-const OWNED_GLOBAL_CSS = [
-  "app/authentic-enterprise.css",
-  "app/canonical.css",
-  "app/design-system.css",
-  "app/design-tokens.css",
-  "app/employee-management.css",
-  "app/homepage.css",
-  "app/kurumsal/panel/employee-action-first.css",
-  "app/public-chrome-premium.css",
-  "app/styles/canonical-corporate.css",
-  "app/theme-policy.css",
+const rootLayout = fs.readFileSync(path.join(app, "layout.tsx"), "utf8");
+const panelLayout = fs.readFileSync(path.join(app, "kurumsal", "panel", "layout.tsx"), "utf8");
+const CORPORATE_PANEL_CSS = [
+  "employee-action-first.css",
+  "overview-polish.css",
+  "template-studio.css",
+  "card-inventory-separation.css",
+  "networking-inbox.css",
+  "corporate-consistency-pass.css",
+  "premium-ui-pass.css",
+  "team-management.css",
+  "content-history-polish.css",
+  "content-layout-v2.css",
 ];
 
 const failures = [];
@@ -42,11 +44,17 @@ function walkCss(dir) {
 }
 walkCss(app);
 cssFiles.sort();
-const ownedSorted = [...OWNED_GLOBAL_CSS].sort();
-const extraCss = cssFiles.filter((file) => !OWNED_GLOBAL_CSS.includes(file));
-const missingCss = OWNED_GLOBAL_CSS.filter((file) => !cssFiles.includes(file));
-if (JSON.stringify(cssFiles) !== JSON.stringify(ownedSorted)) {
-  failures.push("app CSS inventory must match the live owned stylesheet allowlist");
+const misplacedPanelCss = CORPORATE_PANEL_CSS.filter((file) =>
+  rootLayout.includes(`./kurumsal/panel/${file}`),
+);
+const missingPanelCss = CORPORATE_PANEL_CSS.filter((file) =>
+  !panelLayout.includes(`./${file}`),
+);
+if (misplacedPanelCss.length) {
+  failures.push("corporate-panel styles must not be imported by the public root layout");
+}
+if (missingPanelCss.length) {
+  failures.push("corporate-panel layout must own each corporate-panel stylesheet");
 }
 
 const result = {
@@ -56,8 +64,8 @@ const result = {
   inlineStyleCount: (source.match(/style=\{\{/g) || []).length,
   migrationCount: migrations.length,
   cssFiles,
-  extraCss,
-  missingCss,
+  misplacedPanelCss,
+  missingPanelCss,
   status: failures.length ? "FAIL" : "PASS",
   failures,
 };

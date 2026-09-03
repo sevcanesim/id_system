@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { getSupabaseAuthClient, getSupabaseUserClient } from "../../../lib/supabase/server-admin";
+
+const cardStatusSchema = z.object({
+  cardId: z.string().uuid(),
+  status: z.enum(["ACTIVE", "LOST", "DISABLED"]),
+});
 
 async function context(request: NextRequest) {
   const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
@@ -25,10 +31,13 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const auth = await context(request);
   if (!auth) return NextResponse.json({ error: "Oturum gerekli." }, { status: 401 });
-  const body = await request.json().catch(() => null) as { cardId?: string; status?: string } | null;
-  if (!body?.cardId || !["ACTIVE", "LOST", "DISABLED"].includes(body.status ?? ""))
+  const parsed = cardStatusSchema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success)
     return NextResponse.json({ error: "Geçersiz kart işlemi." }, { status: 400 });
-  const { data, error } = await auth.client.rpc("change_physical_card_status", { p_card_id: body.cardId, p_status: body.status });
+  const { data, error } = await auth.client.rpc("change_physical_card_status", {
+    p_card_id: parsed.data.cardId,
+    p_status: parsed.data.status,
+  });
   if (error) {
     const message = error.message.includes("REPLACED_CARD_CANNOT_BE_REACTIVATED")
       ? "Yerine yeni kart tanımlanmış eski kart yeniden etkinleştirilemez."

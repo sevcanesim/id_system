@@ -1,4 +1,5 @@
 import { hydrateBrowserSessionFromCookies } from "../supabase/browser";
+import type { LoginPortal } from "./account-type";
 
 export type PasswordLoginResult =
   | { ok: true }
@@ -13,6 +14,7 @@ export async function passwordLogin(input: {
   email: string;
   password: string;
   remember?: boolean;
+  portal?: LoginPortal;
 }): Promise<PasswordLoginResult> {
   let response: Response;
   try {
@@ -26,6 +28,7 @@ export async function passwordLogin(input: {
         email: input.email,
         password: input.password,
         remember: Boolean(input.remember),
+        portal: input.portal,
       }),
     });
   } catch {

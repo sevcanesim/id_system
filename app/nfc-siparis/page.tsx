@@ -57,7 +57,6 @@ export default function NfcOrderPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
-  const [completed, setCompleted] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locationMessage, setLocationMessage] = useState("");
   const [qrPreview, setQrPreview] = useState("");
@@ -308,7 +307,6 @@ export default function NfcOrderPage() {
 
   if (loading) return <main className="order-page"><div className="result-empty"><h1>Sipariş ekranı yükleniyor.</h1></div></main>;
   if (!isSupabaseConfigured || !userId) return <main className="order-page order-page-v166"><section className="result-empty"><span className="section-kicker">GÜVENLİ SİPARİŞ</span><h1>Sipariş için hesabına giriş yap.</h1><p>Kartını kişisel Yenomi ID profiline güvenle bağlamak için oturum açmalısın.</p><div className="order-success-actions"><Link href="/giris?next=%2Fnfc-siparis">Giriş Yap</Link></div></section></main>;
-  if (completed) return <main className="order-page"><section className="order-success"><span className="p5-result-icon"><Icon name="check" /></span><h1>Sipariş talebin alındı.</h1><p>Üretim ayrıntıları ve ödeme için seninle iletişime geçeceğiz.</p><div className="order-success-actions"><Link href="/siparislerim">Siparişimi Takip Et</Link><Link className="secondary" href="/kartim">Kartvizitime Dön</Link></div></section></main>;
 
   function nextStep() {
     if (currentStepError) {

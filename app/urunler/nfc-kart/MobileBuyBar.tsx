@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AddToCartButton from "../../components/AddToCartButton";
-import type { CatalogProduct, ProductVariant } from "../../../lib/config/product";
+import type { CatalogProduct } from "../../../lib/config/product";
 
 /**
  * Mobile sticky "Sepete Ekle" bar for the NFC PDP.
@@ -24,7 +24,6 @@ import type { CatalogProduct, ProductVariant } from "../../../lib/config/product
 export default function MobileBuyBar({
   price,
   product,
-  variant,
   configuration,
   productName,
   unitPriceKurus,
@@ -33,7 +32,6 @@ export default function MobileBuyBar({
 }: {
   price: string;
   product: CatalogProduct;
-  variant?: ProductVariant;
   configuration?: Record<string, unknown>;
   productName: string;
   unitPriceKurus: number;

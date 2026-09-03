@@ -11,6 +11,7 @@ This directory is the project-level operating contract for product and engineeri
 5. Existing phase/QA documents in `/docs` — detailed historical and phase-specific contracts
 6. Parked product notes (`17_PARKED_*.md`) are **not** active contracts. Apply them only when the product owner says `notu uygula`.
 7. `18_USER_IDENTITY_TYPES.md` — user product family, occupancy, and package typing.
+8. `23_CSS_DECOMPOSITION_EXECUTION_PLAN.md` — legacy CSS'i cascade'i bozmadan alan sahiplerine taşıma planı.
 
 ## Source of truth
 

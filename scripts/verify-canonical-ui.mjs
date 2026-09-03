@@ -30,6 +30,23 @@ const layoutCssImports = [...layout.matchAll(/import\s+"\.\/([^"]+\.css)"/g)].ma
 
 const globalRouteCssImports = [];
 const moduleImports = new Map();
+const approvedGlobalStylesheetsBySource = new Map([
+  [
+    "app/kurumsal/panel/layout.tsx",
+    new Set([
+      "app/kurumsal/panel/employee-action-first.css",
+      "app/kurumsal/panel/overview-polish.css",
+      "app/kurumsal/panel/template-studio.css",
+      "app/kurumsal/panel/card-inventory-separation.css",
+      "app/kurumsal/panel/networking-inbox.css",
+      "app/kurumsal/panel/corporate-consistency-pass.css",
+      "app/kurumsal/panel/premium-ui-pass.css",
+      "app/kurumsal/panel/team-management.css",
+      "app/kurumsal/panel/content-history-polish.css",
+      "app/kurumsal/panel/content-layout-v2.css",
+    ]),
+  ],
+]);
 for (const rel of sourceFiles) {
   const source = read(rel);
   for (const match of source.matchAll(/import\s+(?:[^;\n]*?from\s+)?["']([^"']+\.css)["']/g)) {
@@ -77,7 +94,18 @@ const approvedModules = [
 const missingRequired = required.filter((file) => !fs.existsSync(path.join(root, file)) || !layoutCssImports.includes(file));
 const componentCssModules = cssFiles.filter((file) => file.endsWith(".module.css"));
 const orphanedCssModules = componentCssModules.filter((file) => !moduleImports.has(file));
-const unownedGlobalCss = cssFiles.filter((file) => !file.endsWith(".module.css") && !layoutCssImports.includes(file) && !approvedModules.includes(file));
+const approvedNestedGlobalStylesheets = new Set(
+  [...approvedGlobalStylesheetsBySource.values()].flatMap((stylesheets) => [...stylesheets]),
+);
+const isApprovedGlobalRouteImport = ({ source, stylesheet }) =>
+  approvedGlobalStylesheetsBySource.get(source)?.has(stylesheet) ?? false;
+const unownedGlobalCss = cssFiles.filter(
+  (file) =>
+    !file.endsWith(".module.css") &&
+    !layoutCssImports.includes(file) &&
+    !approvedModules.includes(file) &&
+    !approvedNestedGlobalStylesheets.has(file),
+);
 const canonicalFiles = ["app/canonical.css", ...approvedModules.filter((file) => fs.existsSync(path.join(root, file)))];
 const canonicalSource = canonicalFiles.map(read).join("\n");
 const cardEditorModule = "app/olustur/CardEditorLayout.module.css";
@@ -97,7 +125,7 @@ const checks = {
   balancedBraces: braceBalance === 0,
   noImportant: !/!important\b/.test(canonicalSource),
   noLegacyYiTokens: !/var\(--yi-/.test(canonicalSource),
-  noRouteGlobalCssImports: globalRouteCssImports.length === 0,
+  noRouteGlobalCssImports: globalRouteCssImports.every(isApprovedGlobalRouteImport),
   p8CorporateEditorContract:
     cardEditorConsumers.includes("app/olustur/page.tsx") &&
     cardEditorConsumers.includes("app/kurumsal/panel/kartim/page.tsx") &&

@@ -4,7 +4,8 @@ import {
   firstSearchParam,
   loginErrorMessage,
   parseLoginMode,
-  safeLoginNext,
+  parseLoginPortal,
+  resolveLoginReturnPath,
 } from "../../lib/auth/login-search";
 
 export const dynamic = "force-dynamic";
@@ -21,13 +22,18 @@ export default async function LoginPage({
 }) {
   const headerList = await headers();
   const params = await searchParams;
-  const initialNext = safeLoginNext(headerList.get("x-login-next") || firstSearchParam(params.next));
+  const initialPortal = parseLoginPortal(headerList.get("x-login-portal") || firstSearchParam(params.portal));
+  const initialNext = resolveLoginReturnPath(
+    initialPortal,
+    headerList.get("x-login-next") || firstSearchParam(params.next),
+  );
   const initialMode = parseLoginMode(headerList.get("x-login-mode") || firstSearchParam(params.mode));
   const initialMessage = loginErrorMessage(headerList.get("x-login-error") || firstSearchParam(params.error));
 
   return (
     <LoginClient
       initialNext={initialNext}
+      initialPortal={initialPortal}
       initialMode={initialMode}
       initialMessage={initialMessage}
     />

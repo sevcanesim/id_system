@@ -1,6 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const routes = [
+type VisualAuditRoute = {
+  path: string | null;
+  label?: string;
+  group: "public" | "commerce" | "individual" | "corporate";
+  auth?: boolean;
+};
+
+const routes: VisualAuditRoute[] = [
   { path: "/", group: "public" },
   { path: "/urunler", group: "public" },
   { path: "/urunler/nfc-kart", group: "public" },
@@ -45,7 +52,7 @@ const routes = [
   { path: "/kurumsal/panel/istatistikler", group: "corporate", auth: true },
   { path: "/kurumsal/panel/lisans", group: "corporate", auth: true },
   { path: "/kurumsal/panel/ayarlar", group: "corporate", auth: true },
-] as const;
+];
 
 const viewports = [
   { name: "mobile-375", width: 375, height: 812 },

@@ -1,4 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import {
+  createOrganizationAssetSignedUrl,
+  isOrganizationAssetPubliclyAvailable,
+} from "../../../../../lib/organizations/organization-assets";
 import { getSupabaseAdminClient } from "../../../../../lib/supabase/server-admin";
 
 function safeTarget(value: string | null) {
@@ -24,8 +29,7 @@ export async function GET(
     .eq("is_published", true)
     .maybeSingle();
 
-  if (!link) return NextResponse.redirect(new URL("/", request.url), 302);
-  if (link.publish_at && new Date(link.publish_at).getTime() > Date.now()) {
+  if (!link || !isOrganizationAssetPubliclyAvailable(link.is_published, link.publish_at)) {
     return NextResponse.redirect(new URL("/", request.url), 302);
   }
 
@@ -34,14 +38,23 @@ export async function GET(
     return NextResponse.redirect(new URL("/", request.url), 302);
   }
 
-  const target = safeTarget(
-    link.link_type === "FILE" && link.file_path
-      ? admin.storage.from("organization-assets").getPublicUrl(link.file_path).data.publicUrl
-      : link.url,
-  );
+  const fileUrl = link.link_type === "FILE"
+    ? await createOrganizationAssetSignedUrl(admin, link.file_path)
+    : null;
+  const target = safeTarget(link.link_type === "FILE" ? fileUrl : link.url);
   if (!target) return NextResponse.redirect(new URL("/", request.url), 302);
 
-  const profileId = request.nextUrl.searchParams.get("profileId");
+  const requestedProfileId = z.string().uuid().safeParse(request.nextUrl.searchParams.get("profileId"));
+  let profileId: string | null = null;
+  if (requestedProfileId.success) {
+    const { data: profile } = await admin
+      .from("card_profiles")
+      .select("id")
+      .eq("id", requestedProfileId.data)
+      .eq("organization_id", link.organization_id)
+      .maybeSingle();
+    profileId = profile?.id || null;
+  }
   const country =
     request.headers.get("x-vercel-ip-country") ||
     request.headers.get("cf-ipcountry") ||
@@ -49,7 +62,7 @@ export async function GET(
   await admin.from("organization_link_events").insert({
     organization_id: link.organization_id,
     organization_link_id: link.id,
-    profile_id: profileId || null,
+    profile_id: profileId,
     event_type: link.link_type === "FILE" ? "DOWNLOAD" : "CLICK",
     country,
   });

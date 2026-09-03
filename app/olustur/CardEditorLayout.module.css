@@ -174,6 +174,17 @@
   border-bottom: 1px solid var(--border);
 }
 
+.editorSurface :global(.p8-preview-acts) {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.editorSurface :global(.p8-preview-acts .yi-btn) {
+  min-height: 2.5rem;
+  padding-inline: var(--space-3);
+  font-size: var(--type-xs);
+}
+
 .editorSurface :global(.p8-section-nav a.is-active) {
   color: var(--text-primary);
   background: var(--brand-gold-soft);

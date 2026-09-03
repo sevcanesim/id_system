@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
+import CardTemplate from "../CardTemplate";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { fetchOwnProfiles } from "../../lib/repositories/profiles";
+import { rowToCardData } from "../../lib/card-profile";
 import type { CardProfileRow } from "../../lib/card-profile";
 import { isManagementRole } from "../../lib/organizations/permissions";
 import { cardShareUrl } from "../../lib/public-card/urls";
@@ -167,7 +169,6 @@ export default function MyCardsPage() {
   const canManageLostMode = Boolean(physicalCard && process?.operations_status === "DELIVERED");
   const profileUrl = primary?.slug ? cardShareUrl(primary.slug) : "";
   const displayProfileUrl = primary?.slug ? `yenomi.id/p/${primary.slug}` : "yenomi.id/p/...";
-  const profileInitials = (primary?.name || "Yenomi ID").split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 
   useEffect(() => {
     if (!profileUrl) { setQrDataUrl(""); return; }
@@ -269,20 +270,10 @@ export default function MyCardsPage() {
               <div className={`${styles.countdown} ${styles.studio}`}>
                 <div className={styles.studioMeta}><span className={styles.eyebrow}>CANLI MOBİL ÖNİZLEME</span><ButtonLink href={`/olustur?id=${primary.id}`} variant="secondary">Düzenle</ButtonLink></div>
                 <a className={styles.studioSpecimen} href={profileUrl} target="_blank" rel="noopener noreferrer" aria-label="Canlı dijital profilini yeni sekmede aç">
-                  <div className={styles.phonePreview} aria-label="Canlı profil önizlemesi">
-                    <div className={styles.phoneStatus}><span>9:41</span><span>● ● ●</span></div>
-                    <div className={styles.phoneCover} />
-                    <div className={styles.phoneProfile}>
-                      {primary.image_url ? <img src={primary.image_url} alt="" className={styles.phoneAvatar} /> : <span className={styles.phoneAvatar}>{profileInitials}</span>}
-                      <strong>{primary.name || "Selin Kaya"}</strong>
-                      <span>{[primary.role, primary.company].filter(Boolean).join(" · ") || "Yenomi ID"}</span>
-                      <div className={styles.phoneContactActions}><i>☎</i><i>✉</i><i>↗</i></div>
-                      <div className={styles.phoneSave}>Kişiye ekle</div>
-                    </div>
-                  </div>
+                  <CardTemplate data={rowToCardData(primary)} preview />
                 </a>
                 <strong>Telefonundaki profil</strong>
-                <span>Önizlemeye tıklayarak canlı web profilini görüntüle.</span>
+                <span>Minimal önizlemeye tıklayarak canlı web profilini görüntüle.</span>
               </div>
             </section>
 

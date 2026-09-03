@@ -151,8 +151,7 @@
 .studioSpecimen {
   display: grid;
   place-items: center;
-  min-height: 15rem;
-  padding: var(--space-3);
+  padding: var(--space-2);
   overflow: hidden;
   border-radius: var(--radius-sm);
   background: #eee9df;
@@ -163,66 +162,27 @@
 .studioSpecimen:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .studioSpecimen:focus-visible { outline: 3px solid color-mix(in srgb, var(--brand-gold) 70%, white); outline-offset: 3px; }
 
-.phonePreview {
-  position: relative;
-  width: min(100%, 12.25rem);
-  aspect-ratio: .51;
-  overflow: hidden;
-  border: 4px solid #22201e;
-  border-radius: 1.65rem;
-  background: #fffdf9;
-  box-shadow: 0 10px 22px rgba(30, 25, 20, .2);
+.studioSpecimen :global(.card-template-preview) {
+  width: min(100%, 16.5rem);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  box-shadow: none;
 }
 
-.phoneStatus {
-  position: absolute;
-  z-index: 2;
-  inset: .45rem .7rem auto;
-  display: flex;
-  justify-content: space-between;
-  color: #1f1c1a;
-  font-size: .47rem;
-  font-weight: 800;
+.studioSpecimen :global(.card-template-preview__identity) {
+  gap: var(--space-1);
+  padding: var(--space-2) 0 var(--space-3);
 }
 
-.phoneCover { height: 28%; background: linear-gradient(135deg, #d8b567, #8a692d); }
-
-.phoneProfile {
-  position: absolute;
-  inset: 22% .45rem .45rem;
-  display: grid;
-  grid-template-rows: auto auto auto auto auto;
-  justify-items: center;
-  align-content: start;
-  gap: .38rem;
-  padding: 0 .58rem .55rem;
-  border-radius: 1rem;
-  background: #fffdf9;
-  text-align: center;
+.studioSpecimen :global(.card-template-preview__avatar) {
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: var(--type-body);
 }
 
-.phoneAvatar {
-  display: grid;
-  width: 3rem;
-  height: 3rem;
-  place-items: center;
-  margin-top: -1.5rem;
-  overflow: hidden;
-  border: 2px solid #fffdf9;
-  border-radius: 50%;
-  background: #e8dcc2;
-  color: #75571e;
-  font-size: .7rem;
-  font-weight: 800;
-  object-fit: cover;
+.studioSpecimen :global(.card-template-preview__identity h2) {
+  font-size: var(--type-title-sm);
 }
-
-.phoneProfile strong { color: #1d1a18; font-size: .67rem; line-height: 1.15; }
-.phoneProfile > span { color: #706a64; font-size: .46rem; line-height: 1.2; }
-
-.phoneContactActions { display: flex; gap: .32rem; margin-top: .3rem; }
-.phoneContactActions i { display: grid; width: 1.45rem; height: 1.15rem; place-items: center; border-radius: .3rem; background: #f4eee3; color: #89692f; font-size: .58rem; font-style: normal; }
-.phoneSave { width: 100%; margin-top: .1rem; padding: .35rem; border: 1px solid #ded6c8; border-radius: .3rem; color: #312c26; font-size: .48rem; font-weight: 750; }
 
 .identityHero :global(.yi-btn--secondary) {
   border-color: rgba(247, 242, 232, .34);

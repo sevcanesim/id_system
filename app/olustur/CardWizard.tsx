@@ -952,17 +952,17 @@ export default function CardWizard() {
         <section className="p8-preview-card">
           <div className="p8-preview-hd">
             <div>
-              <h3 className="p8-preview-title">Canlı Kart Önizlemesi</h3>
+              <h3 className="p8-preview-title">Minimal Kart Önizlemesi</h3>
               <div className="p8-preview-sub-row">
                 <span className={`p8-preview-badge p8-preview-badge--${isDirty ? "local" : isPublished ? "live" : "draft"}`}>
                   {isDirty ? (
                     isPublished ? (
-                      <><Icon name="edit" /> Önizleme — kaydedilmemiş değişiklikler var</>
+                    <><Icon name="edit" /> Minimal önizleme — kaydedilmemiş değişiklikler var</>
                     ) : (
-                      <><Icon name="edit" /> Önizleme — henüz yayınlanmadı (kaydedilmemiş değişiklikler var)</>
+                    <><Icon name="edit" /> Minimal önizleme — henüz yayınlanmadı (kaydedilmemiş değişiklikler var)</>
                     )
                   ) : isPublished ? (
-                    <><Icon name="check" /> Canlı profil ile aynı</>
+                    <><Icon name="check" /> Canlı profilin minimal görünümü</>
                   ) : (
                     <><Icon name="clock" /> Henüz yayınlanmadı</>
                   )}
@@ -970,6 +970,7 @@ export default function CardWizard() {
               </div>
             </div>
             <div className="p8-preview-acts">
+              {isPublished && profileSlug && <a className="yi-btn yi-btn--secondary" href={cardShareUrl(profileSlug)} target="_blank" rel="noopener noreferrer"><Icon name="external" /> Canlı profili aç</a>}
               <Button size="sm" variant="secondary" onClick={() => setPhoneTestOpen(true)}>
                 <Icon name="qr" /> Telefonda Test Et
               </Button>

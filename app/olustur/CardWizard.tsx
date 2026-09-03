@@ -287,8 +287,9 @@ export default function CardWizard() {
           });
           entitlementPayload = await entitlementResponse.json() as { active?: boolean; next?: string; entitlements?: { id: string }[] };
           if (!entitlementResponse.ok || !entitlementPayload.active) {
-            setAccessState("denied");
-            router.replace(entitlementPayload.next || INDIVIDUAL_PRODUCT_PURCHASE_HREF);
+            // DashboardShell keeps the user in the panel and presents the
+            // intentional purchase CTA; it must not force a route change.
+            setAccessState("allowed");
             return;
           }
         }

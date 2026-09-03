@@ -28,7 +28,7 @@ Production’da `@yenomi.test` hesabı olamaz (`verify:production:no-demo-users`
 | `lifecycleDisabled` | `demo.lifecycle.disabled@yenomi.test` | CORPORATE_EMPLOYEE | CORPORATE | demo-yasam-dongusu (EMPLOYEE) | `demo-lifecycle-disabled` | `YN-LIFEDISABL01` (DISABLED) | Fiziksel kart DISABLED. |
 | `lifecycleSuspended` | `demo.lifecycle.suspended@yenomi.test` | CORPORATE_EMPLOYEE | CORPORATE | demo-yasam-dongusu (EMPLOYEE) | `demo-lifecycle-suspended` | `YN-LIFESUSPEND1` (DISABLED) | Üye SUSPENDED. |
 | `lifecycleLeft` | `demo.lifecycle.left@yenomi.test` | CORPORATE_EMPLOYEE | CORPORATE | demo-yasam-dongusu (EMPLOYEE) | `demo-lifecycle-left` | `YN-LIFELEFT0001` (DISABLED) | Üye LEFT. |
-| `trIndividualEmpty` | `demo.bireysel.bos@yenomi.test` | INDIVIDUAL_PENDING | INDIVIDUAL | - | Yok | - | Türkçe QA: ödenmiş, profil henüz yok. |
+| `trIndividualEmpty` | `demo.bireysel.bos@yenomi.test` | INDIVIDUAL_REGISTERED | INDIVIDUAL | - | Yok | - | Türkçe QA: yalnız portal kaydı; satın alma, kart, profil ve aktif hizmet yok. |
 | `trIndividualActive` | `demo.bireysel.aktif@yenomi.test` | INDIVIDUAL_COMPLETE | INDIVIDUAL | - | `demo-bireysel-aktif` | - | Türkçe QA: yayınlanmış bireysel kart. |
 | `trOwner` | `demo.kurumsal.yonetici@yenomi.test` | CORPORATE_OWNER | CORPORATE | demo-qa-uctan-uca (OWNER) | `qa-trowner` | - | Uçtan uca QA org OWNER. |
 | `trAdmin` | `demo.kurumsal.admin@yenomi.test` | CORPORATE_ADMIN | CORPORATE | demo-qa-uctan-uca (ADMIN) | `qa-tradmin` | - | OWNER değil ADMIN. |

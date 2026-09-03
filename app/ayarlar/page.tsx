@@ -53,7 +53,9 @@ type CommerceOrder = {
   commerce_order_items: Array<{
     id: string;
     product_name: string;
+    product_kind: string;
     quantity: number;
+    configuration: { sku?: unknown } | null;
     commerce_physical_card_units?: PhysicalUnit[];
   }>;
 };
@@ -127,6 +129,36 @@ function subscriptionName(entitlement: Entitlement | null) {
 
 function paymentIsCollected(status: CommerceStatus) {
   return ["PAID", "PREPARING", "SHIPPED", "COMPLETED"].includes(status);
+}
+
+function orderPresentation(order: CommerceOrder) {
+  const skus = order.commerce_order_items
+    .map((item) => String(item.configuration?.sku || "").toUpperCase())
+    .filter(Boolean);
+  const includesSku = (fragment: string) => skus.some((sku) => sku.includes(fragment));
+
+  if (includesSku("PREMIUM-UPGRADE")) {
+    return { title: "Yenomi ID Premium yükseltme", description: "Premium özellikler hesabınıza ekleniyor." };
+  }
+  if (includesSku("RENEWAL")) {
+    return { title: "Yenomi ID hizmet yenileme", description: "Hizmet süreniz bir yıl uzatılıyor." };
+  }
+  if (includesSku("NFC-EXTRA")) {
+    return { title: "Ek Yenomi ID kartı", description: "Ek fiziksel kartınız hazırlanıyor." };
+  }
+  if (includesSku("NFC-REPLACEMENT")) {
+    return { title: "Yenomi ID yedek kartı", description: "Yedek kartınız hazırlanıyor." };
+  }
+  if (includesSku("DIGITAL")) {
+    return { title: "Yenomi ID dijital profil hizmeti", description: "Dijital profil hizmetiniz hazırlanıyor." };
+  }
+  if (includesSku("PREMIUM")) {
+    return { title: "Yenomi ID Premium kart paketi", description: "NFC kartınız ve Premium dijital profiliniz hazırlanıyor." };
+  }
+  if (order.commerce_order_items.some((item) => item.product_kind === "NFC_PHYSICAL_CARD")) {
+    return { title: "Yenomi ID kart paketi", description: "NFC kartınız ve dijital profil hizmetiniz hazırlanıyor." };
+  }
+  return { title: "Yenomi ID hizmeti", description: "Seçtiğiniz hizmet paketi hazırlanıyor." };
 }
 
 function fulfillmentStartDetail(unit: PhysicalUnit) {
@@ -428,9 +460,10 @@ export default function SettingsPage() {
                 const quantity = order.commerce_order_items.reduce((total, item) => total + item.quantity, 0);
                 const unit = order.commerce_order_items.flatMap((item) => item.commerce_physical_card_units || [])[0];
                 const canResumePayment = order.status === "DRAFT" || order.status === "AWAITING_PAYMENT";
+                const presentation = orderPresentation(order);
                 return <Card className={styles.orderCard} key={order.id}>
                   <div className={styles.orderHead}>
-                    <div><span>Satın alma · {formatDateTime(order.paid_at || order.created_at)}</span><h3>{order.order_number}</h3><p>{order.commerce_order_items.map((item) => `${item.quantity} × ${item.product_name}`).join(" · ")}</p></div>
+                    <div><span>Satın alma · {formatDateTime(order.paid_at || order.created_at)}</span><h3>{presentation.title}</h3><p>{presentation.description}</p></div>
                     <StatusBadge tone={info.tone} className={styles.orderStatus}>{info.label}</StatusBadge>
                   </div>
                   <p className={styles.orderDescription}>{info.description}</p>

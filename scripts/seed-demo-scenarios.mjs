@@ -310,7 +310,24 @@ async function seedIndividualUser(spec) {
   }
 }
 
+async function enforceRegisteredOnlyDemoUser(spec) {
+  const user = users[spec.key];
+  if (!user) throw new Error(`Kayıtlı-only demo kullanıcı bulunamadı: ${spec.key}`);
+
+  // This fixture intentionally represents a portal registration only. Clear only
+  // records owned by this exact demo user so repeatable QA seeds cannot leave a
+  // prior purchase, entitlement, profile, or physical card behind.
+  await supabase.from("physical_cards").delete().eq("owner_user_id", user.id).throwOnError();
+  await supabase.from("card_profiles").delete().eq("user_id", user.id).throwOnError();
+  await supabase.from("entitlements").delete().eq("user_id", user.id).throwOnError();
+  await supabase.from("commerce_orders").delete().eq("user_id", user.id).throwOnError();
+}
+
 // Seed individual users from canonical matrix
+for (const spec of demoUsers.filter((user) => user.kind === "INDIVIDUAL_REGISTERED")) {
+  await enforceRegisteredOnlyDemoUser(spec);
+}
+
 const individualUsers = demoUsers.filter((u) => u.loginScope === "INDIVIDUAL" && (u.orderNumber || u.entitlement || u.profile));
 for (const spec of individualUsers) {
   await seedIndividualUser(spec);

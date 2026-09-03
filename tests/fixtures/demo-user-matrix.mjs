@@ -256,12 +256,10 @@ export const DEMO_LOGIN_USERS = [
   {
     key: "trIndividualEmpty",
     email: "demo.bireysel.bos@yenomi.test",
-    name: "Bireysel Profil Bekleyen",
-    kind: "INDIVIDUAL_PENDING",
+    name: "Bireysel Portal Kullanıcısı",
+    kind: "INDIVIDUAL_REGISTERED",
     loginScope: "INDIVIDUAL",
-    intent: "Türkçe QA: ödenmiş, profil henüz yok.",
-    orderNumber: "YI-TR-BIREYSEL-BOS",
-    entitlement: { status: "ACTIVE", variantSku: "YENOMI-NFC-CARD-ANNUAL" },
+    intent: "Türkçe QA: yalnız portal kaydı; satın alma, kart, profil ve aktif hizmet yok.",
     profile: null,
   },
   {

@@ -17,11 +17,9 @@ const staticPages: { path: string; changeFrequency: MetadataRoute.Sitemap[number
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
   const origin = publicCardOrigin();
   return staticPages.map((page) => ({
     url: page.path === "/" ? origin : `${origin}${page.path}`,
-    lastModified: now,
     changeFrequency: page.changeFrequency,
     priority: page.priority,
   }));

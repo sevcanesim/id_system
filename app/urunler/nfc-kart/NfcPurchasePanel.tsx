@@ -106,7 +106,6 @@ export default function NfcPurchasePanel({
       <MobileBuyBar
         price={price}
         product={product}
-        variant={selectedVariant}
         configuration={configuration}
         productName={productName}
         unitPriceKurus={unitPriceKurus}

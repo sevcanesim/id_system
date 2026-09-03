@@ -94,7 +94,7 @@ export function UnsavedChangesProvider({ children }: { children: React.ReactNode
       sentinelPushedRef.current = true;
     }
 
-    const handlePopState = (e: PopStateEvent) => {
+    const handlePopState = () => {
       if (!isDirty) return;
 
       const confirmed = window.confirm("Kaydedilmemiş değişiklikleriniz var. Sayfadan ayrılmak istediğinizden emin misiniz?");

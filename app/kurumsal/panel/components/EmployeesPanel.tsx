@@ -9,7 +9,6 @@ import {
   getPhysicalCardState,
   memberStatusLabel,
   physicalCardLabel,
-  type MemberStatus,
   type PhysicalCardStatus,
 } from "../../../../lib/organizations/lifecycle";
 

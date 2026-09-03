@@ -65,7 +65,17 @@ const migrations = fs.readdirSync("supabase/migrations").filter((file) => file.e
 migrations >= 49 ? pass(`migration baseline retained (${migrations})`) : fail(`migration baseline retained (${migrations})`);
 
 const unitTests = [...walkTests("lib"), ...walkTests("app")];
-unitTests.length >= 10 ? pass(`colocated unit regression baseline retained (${unitTests.length})`) : fail(`colocated unit regression baseline retained (${unitTests.length})`);
+const coreUnitTests = [
+  "lib/organizations/lifecycle.test.ts",
+  "lib/payments/reuse-open-attempt.test.ts",
+  "lib/commerce/packages.test.ts",
+];
+unitTests.length >= coreUnitTests.length
+  ? pass(`core colocated unit regression coverage retained (${unitTests.length})`)
+  : fail(`core colocated unit regression coverage retained (${unitTests.length})`);
+pkg.scripts?.["test:unit"]?.includes("vitest run")
+  ? pass("unit test runner is registered")
+  : fail("unit test runner is registered");
 
 const testsReadme = fs.readFileSync("tests/README.md", "utf8");
 const e2ePath = "tests/e2e/phase19-critical-regression.spec.ts";

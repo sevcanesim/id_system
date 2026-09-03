@@ -17,10 +17,6 @@ import { track } from "../../lib/analytics";
 import { PageLoadingView } from "../components/ui/States";
 import { useUnsavedChanges } from "../components/UnsavedChangesContext";
 import { useProfileCardActions } from "../hooks/useProfileCardActions";
-import {
-  CORPORATE_PANEL_TAB_ROUTE,
-  corporatePanelNavItems,
-} from "../kurumsal/panel/domain/navigation";
 
 import {
   calculateProfileCompletion,
@@ -81,11 +77,9 @@ export default function CardWizard() {
   const [titleRequestBusy, setTitleRequestBusy] = useState(false);
   const [titleRequestMessage, setTitleRequestMessage] = useState("");
   const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<(typeof CARD_SECTIONS)[number]["id"]>("p8-basic");
   const [phoneTestOpen, setPhoneTestOpen] = useState(false);
   const [phoneTestQrDataUrl, setPhoneTestQrDataUrl] = useState("");
-  const [saveFeedback, setSaveFeedback] = useState("");
   const [isPublished, setIsPublished] = useState<boolean>(false);
   const [activePreviewTarget, setActivePreviewTarget] = useState<string | null>(null);
   const bindTarget = (target: string) => ({
@@ -623,7 +617,6 @@ export default function CardWizard() {
     }
 
     setSaving(true);
-    setSaveFeedback("Kaydediliyor...");
     setMessage("");
     if (!isBusinessCard) localStorage.setItem("yenomi-card-draft", JSON.stringify(sanitizeCardDraft(data)));
 
@@ -761,7 +754,6 @@ export default function CardWizard() {
       } else {
         router.push("/kartim");
       }
-      setSaveFeedback("Kaydedildi.");
       setSaving(false);
     } catch (error) {
       if (uploaded?.uploaded && uploaded.path) {
@@ -773,7 +765,6 @@ export default function CardWizard() {
         ? "Sunucuya ulaşılamadı. İnternet bağlantını ve Supabase ayarlarını kontrol edip tekrar dene."
         : rawMessage;
       setMessage(friendlyMessage);
-      setSaveFeedback("Değişiklikler kaydedilemedi. Tekrar deneyin.");
       setSaving(false);
     }
   }
@@ -813,15 +804,6 @@ export default function CardWizard() {
   );
 
   const preview = <div className="p8-preview-stage"><CardTemplate data={deferredData} preview branding={orgBranding} activePreviewTarget={activePreviewTarget} /></div>;
-
-  const canManageLicenses = orgLock?.membershipRole === "OWNER" || orgLock?.membershipRole === "ADMIN";
-  const ownCardHref = `/kurumsal/panel/kartim?business=1&organizationId=${encodeURIComponent(businessOrganizationId || "")}${profileId ? `&id=${encodeURIComponent(profileId)}` : "&new=1"}`;
-  const corporateNavItems = corporatePanelNavItems(orgLock?.membershipRole, ownCardHref);
-  const signOut = async () => {
-    const supabase = getSupabaseBrowserClient();
-    if (supabase) await supabase.auth.signOut();
-    router.replace("/giris?portal=business");
-  };
 
   const editorBody = <div className="p8-editor" data-surface="dashboard">
     <nav className="p8-section-nav" aria-label="Profil bölümleri">

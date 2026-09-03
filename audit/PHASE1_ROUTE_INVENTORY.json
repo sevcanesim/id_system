@@ -974,5 +974,105 @@
     "empty_state": false,
     "error_state": false,
     "lines": 10
+  },
+  {
+    "route": "/admin/access",
+    "file": "app/admin/access/page.tsx",
+    "domain": "Internal Admin",
+    "user_types": [
+      "Super Admin"
+    ],
+    "purpose": "Super Admin erişimlerini listelemek, vermek ve kaldırmak",
+    "primary_action": "Yönetici Yetkisini Yönet",
+    "secondary_action": "Güvenlik Ayarlarına Git",
+    "rendering": "client",
+    "uses_supabase": true,
+    "uses_api_fetch": true,
+    "uses_user_panel_shell": false,
+    "uses_app_header": true,
+    "loading_state": true,
+    "empty_state": true,
+    "error_state": true,
+    "lines": 146
+  },
+  {
+    "route": "/admin/devir-rehberi",
+    "file": "app/admin/devir-rehberi/page.tsx",
+    "domain": "Internal Admin",
+    "user_types": [
+      "Super Admin"
+    ],
+    "purpose": "Super Admin kullanım ve güvenli devir prosedürünü açıklamak",
+    "primary_action": "Devir Kontrol Listesini İncele",
+    "secondary_action": "Yönetici Erişimine Git",
+    "rendering": "client",
+    "uses_supabase": false,
+    "uses_api_fetch": false,
+    "uses_user_panel_shell": false,
+    "uses_app_header": true,
+    "loading_state": false,
+    "empty_state": false,
+    "error_state": false,
+    "lines": 41
+  },
+  {
+    "route": "/admin/operations",
+    "file": "app/admin/operations/page.tsx",
+    "domain": "Internal Admin",
+    "user_types": [
+      "Super Admin"
+    ],
+    "purpose": "Baskı-kargo, Network Mail, lisans, fiyatlandırma ve audit operasyonlarını yürütmek",
+    "primary_action": "Operasyon Kuyruğunu Yönet",
+    "secondary_action": "Fiyatlandırma ve Audit Log'u İncele",
+    "rendering": "client",
+    "uses_supabase": true,
+    "uses_api_fetch": true,
+    "uses_user_panel_shell": false,
+    "uses_app_header": true,
+    "loading_state": true,
+    "empty_state": true,
+    "error_state": true,
+    "lines": 277
+  },
+  {
+    "route": "/admin/overview",
+    "file": "app/admin/overview/page.tsx",
+    "domain": "Internal Admin",
+    "user_types": [
+      "Super Admin"
+    ],
+    "purpose": "Satış ve operasyon özetini, hızlı yönetim bağlantılarıyla sunmak",
+    "primary_action": "Operasyon Merkezine Git",
+    "secondary_action": "Satış Kuyruğunu İncele",
+    "rendering": "client",
+    "uses_supabase": true,
+    "uses_api_fetch": true,
+    "uses_user_panel_shell": false,
+    "uses_app_header": true,
+    "loading_state": true,
+    "empty_state": true,
+    "error_state": true,
+    "lines": 105
+  },
+  {
+    "route": "/admin/security",
+    "file": "app/admin/security/page.tsx",
+    "domain": "Internal Admin",
+    "user_types": [
+      "Super Admin"
+    ],
+    "purpose": "Super Admin MFA/TOTP kaydını ve AAL2 doğrulamasını yönetmek",
+    "primary_action": "Authenticator Kur veya Doğrula",
+    "secondary_action": "Yönetim Paneline Dön",
+    "rendering": "client",
+    "uses_supabase": true,
+    "uses_api_fetch": true,
+    "uses_user_panel_shell": false,
+    "uses_app_header": true,
+    "loading_state": true,
+    "empty_state": false,
+    "error_state": true,
+    "lines": 195
   }
 ]

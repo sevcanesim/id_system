@@ -10,7 +10,12 @@ import { Icon } from "../icons";
 import { YenomiProductVisual } from "../ui/YenomiProductVisual";
 import { authErrorMessage } from "../../lib/errors";
 import { normalizeEmail, SIGNUP_PASSWORD_RULES, validateEmail, validateSignupPassword } from "../../lib/auth/credentials";
-import { parseLoginMode, safeLoginNext, type LoginAuthMode } from "../../lib/auth/login-search";
+import {
+  parseLoginMode,
+  resolveLoginReturnPath,
+  type LoginAuthMode,
+} from "../../lib/auth/login-search";
+import type { LoginPortal } from "../../lib/auth/account-type";
 import { passwordLogin } from "../../lib/auth/password-login";
 import { isAdminSession } from "../../lib/auth/portal-guard";
 import { resolveLoginDestination } from "../../lib/auth/account-router";
@@ -18,16 +23,14 @@ import { clearLegacyCart, setCartOwner } from "../../lib/cart";
 
 type AuthMode = LoginAuthMode;
 
-function safeNext(value: string | null) {
-  return safeLoginNext(value);
-}
-
 export default function LoginClient({
   initialNext,
+  initialPortal,
   initialMode,
   initialMessage,
 }: {
   initialNext: string;
+  initialPortal: LoginPortal;
   initialMode: AuthMode;
   initialMessage: string;
 }) {
@@ -45,6 +48,12 @@ export default function LoginClient({
   const [activeSessionEmail, setActiveSessionEmail] = useState<string | null>(null);
   const [returnPath, setReturnPath] = useState(initialNext || "/hesabim");
 
+  function loginRedirectPath(mode?: "recovery") {
+    const params = new URLSearchParams({ portal: initialPortal, next: returnPath });
+    if (mode) params.set("mode", mode);
+    return `${window.location.origin}/giris?${params.toString()}`;
+  }
+
   function showMessage(text: string, tone: "info" | "success" | "error" = "info") {
     setMessage(text);
     setMessageTone(tone);
@@ -57,11 +66,10 @@ export default function LoginClient({
 
     const params = new URLSearchParams(window.location.search);
     const requestedMode = params.get("mode");
-    setReturnPath(safeNext(params.get("next")) || "/hesabim");
+    setReturnPath(resolveLoginReturnPath(initialPortal, params.get("next")));
     if (parseLoginMode(requestedMode) === "recovery") setMode("recovery");
     if (params.get("error")) {
       params.delete("error");
-      params.delete("portal");
       const nextSearch = params.toString();
       window.history.replaceState(null, "", nextSearch ? `/giris?${nextSearch}` : "/giris");
     }
@@ -114,10 +122,10 @@ export default function LoginClient({
   useEffect(() => {
     if (!activeSessionEmail || mode === "recovery") return;
     const supabase = getSupabaseBrowserClient();
-    void resolveLoginDestination(supabase, "individual", returnPath).then((destination) => {
+      void resolveLoginDestination(supabase, initialPortal, returnPath).then((destination) => {
       window.location.replace(destination.startsWith("/giris") ? "/hesabim" : destination);
     });
-  }, [activeSessionEmail, mode, returnPath, router]);
+  }, [activeSessionEmail, initialPortal, mode, returnPath, router]);
 
   async function signInWithGoogle() {
     showMessage("");
@@ -126,7 +134,7 @@ export default function LoginClient({
     if (!supabase) return showMessage("Giriş hizmeti şu anda kullanılamıyor.", "error");
     setRememberedLogin(rememberMe, email ? normalizeEmail(email) : undefined);
     setLoading(true);
-    const redirectTo = `${window.location.origin}/giris?next=${encodeURIComponent(returnPath)}`;
+    const redirectTo = loginRedirectPath();
     const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
     if (error) {
       setLoading(false);
@@ -141,7 +149,7 @@ export default function LoginClient({
     if (!supabase) return showMessage("Giriş hizmeti şu anda kullanılamıyor.", "error");
     setRememberedLogin(rememberMe, email ? normalizeEmail(email) : undefined);
     setLoading(true);
-    const redirectTo = `${window.location.origin}/giris?next=${encodeURIComponent(returnPath)}`;
+    const redirectTo = loginRedirectPath();
     let { error } = await supabase.auth.signInWithOAuth({ provider: "linkedin_oidc", options: { redirectTo, scopes: "openid profile email" } });
     if (error && (error.message?.includes("provider") || error.message?.includes("not supported"))) {
       const fallback = await supabase.auth.signInWithOAuth({ provider: "linkedin" as never, options: { redirectTo, scopes: "r_liteprofile r_emailaddress" } });
@@ -161,7 +169,7 @@ export default function LoginClient({
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return showMessage("Giriş hizmeti şu anda kullanılamıyor.", "error");
     setLoading(true);
-    const redirectTo = `${window.location.origin}/giris?mode=recovery&next=${encodeURIComponent(returnPath)}`;
+    const redirectTo = loginRedirectPath("recovery");
     const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo });
     setLoading(false);
     if (error) return showMessage(authErrorMessage(error, "Şifre yenileme bağlantısı gönderilemedi."), "error");
@@ -203,7 +211,7 @@ export default function LoginClient({
     setLoading(true);
     setEmail(normalizedEmail);
 
-    const emailRedirectTo = `${window.location.origin}/giris?next=${encodeURIComponent(returnPath)}`;
+    const emailRedirectTo = loginRedirectPath();
     let result;
     try {
       if (mode === "signup") {
@@ -215,7 +223,12 @@ export default function LoginClient({
           }),
         ]);
       } else {
-        const signedIn = await passwordLogin({ email: normalizedEmail, password, remember: rememberMe });
+        const signedIn = await passwordLogin({
+          email: normalizedEmail,
+          password,
+          remember: rememberMe,
+          portal: initialPortal,
+        });
         if (!signedIn.ok) {
           setLoading(false);
           return showMessage(signedIn.message, "error");

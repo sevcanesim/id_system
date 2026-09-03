@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { removeOrganizationAsset } from "../../../../lib/organizations/organization-assets";
+import {
+  createOrganizationAssetSignedUrl,
+  isOrganizationAssetPubliclyAvailable,
+  removeOrganizationAsset,
+} from "../../../../lib/organizations/organization-assets";
 import { canManageTemplates, isOrganizationRole } from "../../../../lib/organizations/permissions";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 
@@ -65,7 +69,8 @@ export async function GET(request: NextRequest) {
   const { data, error } = await ctx.admin.from("organization_links").select("id,kind,label,subtitle,link_type,url,file_path,file_name,file_size,is_published,published_at,publish_at,updated_at").eq("organization_id", organizationId);
   if (error) return NextResponse.json({ error: "Bağlantılar yüklenemedi." }, { status: 500 });
   const byKind = new Map((data || []).map((row) => [row.kind, row]));
-  const links = KINDS.map((kind) => {
+  const mayPreviewScheduledAssets = canManageTemplates(member.role, "ACTIVE");
+  const links = await Promise.all(KINDS.map(async (kind) => {
     const row = byKind.get(kind);
     const fallback = KIND_DEFAULTS[kind];
     return {
@@ -81,12 +86,15 @@ export async function GET(request: NextRequest) {
       url: row?.url || null,
       fileName: row?.file_name || null,
       fileSize: row?.file_size || null,
-      fileUrl: row?.file_path
-        ? ctx.admin.storage.from("organization-assets").getPublicUrl(row.file_path).data.publicUrl
+      fileUrl: mayPreviewScheduledAssets || isOrganizationAssetPubliclyAvailable(
+        row?.is_published,
+        row?.publish_at,
+      )
+        ? await createOrganizationAssetSignedUrl(ctx.admin, row?.file_path)
         : null,
       updatedAt: row?.updated_at || null,
     };
-  });
+  }));
   let versions: unknown[] = [];
   if (canManageTemplates(member.role, "ACTIVE")) {
     const { data: versionRows } = await ctx.admin
@@ -95,10 +103,10 @@ export async function GET(request: NextRequest) {
       .eq("organization_id", organizationId)
       .order("created_at", { ascending: false })
       .limit(40);
-    versions = (versionRows || []).map((version) => ({
+    versions = await Promise.all((versionRows || []).map(async (version) => ({
       ...version,
-      fileUrl: version.file_path ? ctx.admin.storage.from("organization-assets").getPublicUrl(version.file_path).data.publicUrl : null,
-    }));
+      fileUrl: await createOrganizationAssetSignedUrl(ctx.admin, version.file_path),
+    })));
   }
   return NextResponse.json({ links, versions });
 }

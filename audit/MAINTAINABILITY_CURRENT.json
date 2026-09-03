@@ -1,17 +1,21 @@
 {
-  "generatedAt": "2026-08-30T08:54:01.981Z",
+  "generatedAt": "2026-09-03T09:07:39.826Z",
   "largestCss": [
     {
       "file": "app/canonical.css",
-      "lines": 17080
+      "lines": 17053
     },
     {
       "file": "app/styles/canonical-responsive-final.css",
-      "lines": 1987
+      "lines": 1975
+    },
+    {
+      "file": "app/kurumsal/panel/premium-ui-pass.css",
+      "lines": 1584
     },
     {
       "file": "app/styles/canonical-corporate.css",
-      "lines": 1360
+      "lines": 1377
     },
     {
       "file": "app/kurumsal/panel/employee-action-first.css",
@@ -19,105 +23,109 @@
     },
     {
       "file": "app/homepage.css",
-      "lines": 717
+      "lines": 693
+    },
+    {
+      "file": "app/mobile-canonical.css",
+      "lines": 680
     },
     {
       "file": "app/homepage-responsive.css",
-      "lines": 634
+      "lines": 660
+    },
+    {
+      "file": "app/kurumsal/panel/template-studio.css",
+      "lines": 628
+    },
+    {
+      "file": "app/styles/public-profile-canonical.css",
+      "lines": 571
     },
     {
       "file": "app/public-chrome-premium.css",
       "lines": 548
     },
     {
-      "file": "app/ui-contract-v25.css",
-      "lines": 242
+      "file": "app/kurumsal/panel/overview-polish.css",
+      "lines": 457
     },
     {
-      "file": "app/public-header-unified.css",
-      "lines": 225
+      "file": "app/styles/canonical-responsive-production.css",
+      "lines": 451
     },
     {
-      "file": "app/design-tokens.css",
-      "lines": 219
+      "file": "app/admin/security/Security.module.css",
+      "lines": 386
     },
     {
-      "file": "app/design-system.css",
-      "lines": 215
+      "file": "app/admin/operations/AdminOperations.module.css",
+      "lines": 379
     },
     {
-      "file": "app/authentic-enterprise.css",
-      "lines": 201
+      "file": "app/styles/premium-loading.css",
+      "lines": 372
     },
     {
-      "file": "app/public-system.css",
-      "lines": 183
+      "file": "app/styles/home-products-responsive.css",
+      "lines": 347
     },
     {
-      "file": "app/styles/canonical-auth.css",
-      "lines": 123
+      "file": "app/kurumsal/panel/corporate-consistency-pass.css",
+      "lines": 319
     },
     {
-      "file": "app/theme-policy.css",
-      "lines": 79
+      "file": "app/kurumsal/panel/content-layout-v2.css",
+      "lines": 318
     },
     {
-      "file": "app/styles/canonical-footer.css",
-      "lines": 58
-    },
-    {
-      "file": "app/styles/canonical-motion.css",
-      "lines": 48
-    },
-    {
-      "file": "app/styles/canonical-public.css",
-      "lines": 20
-    },
-    {
-      "file": "app/employee-management.css",
-      "lines": 13
+      "file": "app/admin/access/AdminAccess.module.css",
+      "lines": 256
     }
   ],
   "largestTsx": [
     {
       "file": "app/kurumsal/panel/CorporatePanelClient.tsx",
-      "lines": 1739
+      "lines": 1504
     },
     {
       "file": "app/olustur/CardWizard.tsx",
-      "lines": 1062
-    },
-    {
-      "file": "app/giris/LoginClient.tsx",
-      "lines": 673
-    },
-    {
-      "file": "app/kurumsal/panel/components/EmployeeDrawer.tsx",
-      "lines": 655
+      "lines": 1072
     },
     {
       "file": "app/kurumsal/panel/components/EmployeesPanel.tsx",
-      "lines": 551
+      "lines": 601
+    },
+    {
+      "file": "app/kurumsal/panel/components/EmployeeDrawer.tsx",
+      "lines": 598
     },
     {
       "file": "app/checkout/page.tsx",
-      "lines": 466
+      "lines": 504
+    },
+    {
+      "file": "app/giris/LoginClient.tsx",
+      "lines": 465
+    },
+    {
+      "file": "app/kurumsal/panel/components/CardsPanel.tsx",
+      "lines": 423
     },
     {
       "file": "app/nfc-siparis/page.tsx",
       "lines": 420
     },
     {
-      "file": "app/admin/page.tsx",
-      "lines": 401
-    },
-    {
-      "file": "app/kurumsal/panel/components/CardsPanel.tsx",
-      "lines": 388
+      "file": "app/kartim/page.tsx",
+      "lines": 371
     },
     {
       "file": "app/kurumsal/panel/components/OverviewPanel.tsx",
-      "lines": 339
+      "lines": 358
+    },
+    {
+      "file": "app/kurumsal/panel/components/NetworkingPanel.tsx",
+      "lines": 357
     },
     {
       "file": "app/CardTemplate.tsx",
@@ -128,48 +136,44 @@
       "lines": 322
     },
     {
-      "file": "app/kurumsal/panel/IDSidebar.tsx",
-      "lines": 302
+      "file": "app/kurumsal/page.tsx",
+      "lines": 311
+    },
+    {
+      "file": "app/admin/operations/page.tsx",
+      "lines": 278
     },
     {
       "file": "app/kurumsal/panel/components/CorporateLinksPanel.tsx",
-      "lines": 301
+      "lines": 266
     },
     {
-      "file": "app/kurumsal/panel/components/NetworkingPanel.tsx",
-      "lines": 290
+      "file": "app/aktivasyon/ActivationClient.tsx",
+      "lines": 253
     },
     {
       "file": "app/components/public/NetworkingCapture.tsx",
-      "lines": 272
-    },
-    {
-      "file": "app/kartim/page.tsx",
-      "lines": 270
+      "lines": 246
     },
     {
       "file": "app/odeme/basarili/ActivationAction.tsx",
       "lines": 245
     },
     {
-      "file": "app/odeme/basarili/OrderResultGate.tsx",
-      "lines": 231
-    },
-    {
-      "file": "app/kurumsal/panel/components/AnalyticsPanel.tsx",
-      "lines": 218
+      "file": "app/kartlarim/page.tsx",
+      "lines": 244
     }
   ],
   "cssOver2500": [
     {
       "file": "app/canonical.css",
-      "lines": 17080
+      "lines": 17053
     }
   ],
   "tsxOver1200": [
     {
       "file": "app/kurumsal/panel/CorporatePanelClient.tsx",
-      "lines": 1739
+      "lines": 1504
     }
   ]
 }

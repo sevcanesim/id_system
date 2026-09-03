@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { removeOrganizationAsset } from "../../../../../lib/organizations/organization-assets";
+import {
+  createOrganizationAssetSignedUrl,
+  removeOrganizationAsset,
+} from "../../../../../lib/organizations/organization-assets";
 import { canManageTemplates, isOrganizationRole } from "../../../../../lib/organizations/permissions";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../lib/supabase/server-admin";
 
@@ -78,6 +81,6 @@ export async function POST(request: NextRequest) {
     await removeOrganizationAsset(ctx.admin, existing.file_path);
   }
 
-  const publicUrl = ctx.admin.storage.from("organization-assets").getPublicUrl(path).data.publicUrl;
-  return NextResponse.json({ ok: true, fileUrl: publicUrl, fileName: file.name, fileSize: file.size }, { status: 201 });
+  const fileUrl = await createOrganizationAssetSignedUrl(ctx.admin, path);
+  return NextResponse.json({ ok: true, fileUrl, fileName: file.name, fileSize: file.size }, { status: 201 });
 }

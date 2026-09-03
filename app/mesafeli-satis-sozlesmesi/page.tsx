@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { getLegalIdentity } from "../../lib/config/legal-identity";
 import { PublicPageTitle } from "../components/PublicPageTitle";

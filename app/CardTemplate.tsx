@@ -4,6 +4,7 @@ import { useEffect, useState, type CSSProperties, type MouseEvent, type ReactNod
 import QRCode from "qrcode";
 import { Arrow, Icon } from "./icons";
 import { toGoogleMapsUrl } from "../lib/maps";
+import type { NetworkingLocale } from "../lib/networking/catalog";
 import type { OrganizationRole } from "../lib/organizations/permissions";
 import { cardQrUrl, cardVcardPath, publicCardOrigin } from "../lib/public-card/urls";
 
@@ -50,6 +51,105 @@ type Props = {
   branding?: CardBranding | null;
   corporateRole?: OrganizationRole | null;
   activePreviewTarget?: string | null;
+  locale?: NetworkingLocale;
+};
+
+const CARD_COPY: Record<NetworkingLocale, {
+  fallbackRole: string;
+  phone: string;
+  email: string;
+  website: string;
+  location: string;
+  profile: string;
+  digitalBusinessCard: string;
+  home: string;
+  digitalIdentity: string;
+  corporateProfile: string;
+  about: string;
+  addContact: string;
+  addContactDescription: string;
+  quickContact: string;
+  call: string;
+  web: string;
+  contact: string;
+  social: string;
+  links: string;
+  corporateLinks: string;
+  managedBy: (companyName: string) => string;
+  companyOwner: string;
+  companyEmployee: (companyName: string) => string;
+  profileImage: (name: string) => string;
+  companyLogo: (name: string) => string;
+  profileQr: string;
+  liveProfile: string;
+  profileContactSummary: string;
+  addContactInStudio: string;
+  readyToAddContact: string;
+}> = {
+  tr: {
+    fallbackRole: "Ürün Yöneticisi",
+    phone: "Telefon",
+    email: "E-posta",
+    website: "Web Sitesi",
+    location: "Konum",
+    profile: "Profil",
+    digitalBusinessCard: "Dijital kartvizit",
+    home: "Yenomi ID ana sayfa",
+    digitalIdentity: "Dijital kimlik",
+    corporateProfile: "Kurumsal profil",
+    about: "Hakkında",
+    addContact: "Kişiye Ekle",
+    addContactDescription: "İletişim bilgilerini tek dokunuşla ekle",
+    quickContact: "Hızlı iletişim",
+    call: "Ara",
+    web: "Web",
+    contact: "İletişim",
+    social: "Sosyal",
+    links: "Bağlantılar",
+    corporateLinks: "Kurumsal bağlantılar",
+    managedBy: (companyName) => `${companyName} tarafından yönetilir`,
+    companyOwner: "Şirket Sahibi",
+    companyEmployee: (companyName) => `${companyName} çalışanı`,
+    profileImage: (name) => `${name} görseli`,
+    companyLogo: (name) => `${name} logosu`,
+    profileQr: "Profil QR kodu",
+    liveProfile: "Canlı dijital profil",
+    profileContactSummary: "Profil iletişim özeti",
+    addContactInStudio: "İletişim bilgilerini stüdyodan ekle",
+    readyToAddContact: "Kişiye eklemeye hazır",
+  },
+  en: {
+    fallbackRole: "Product Manager",
+    phone: "Phone",
+    email: "Email",
+    website: "Website",
+    location: "Location",
+    profile: "Profile",
+    digitalBusinessCard: "Digital business card",
+    home: "Yenomi ID home",
+    digitalIdentity: "Digital identity",
+    corporateProfile: "Company profile",
+    about: "About",
+    addContact: "Add to Contacts",
+    addContactDescription: "Add contact details in one tap",
+    quickContact: "Quick contact",
+    call: "Call",
+    web: "Web",
+    contact: "Contact",
+    social: "Social",
+    links: "Links",
+    corporateLinks: "Company links",
+    managedBy: (companyName) => `Managed by ${companyName}`,
+    companyOwner: "Company owner",
+    companyEmployee: (companyName) => `${companyName} employee`,
+    profileImage: (name) => `${name} profile image`,
+    companyLogo: (name) => `${name} logo`,
+    profileQr: "Profile QR code",
+    liveProfile: "Live digital profile",
+    profileContactSummary: "Profile contact summary",
+    addContactInStudio: "Add contact details in Studio",
+    readyToAddContact: "Ready to add to contacts",
+  },
 };
 
 function safeHexColor(value: string | null | undefined): string | null {
@@ -73,7 +173,7 @@ function external(value: string) {
   return /^https?:\/\//i.test(value) ? value : `https://${value}`;
 }
 
-function displayIdentity(data: EditableCardData, preview: boolean) {
+function displayIdentity(data: EditableCardData, preview: boolean, fallbackRole: string) {
   const name = data.name.trim();
   const role = data.role.trim();
   const company = data.company.trim();
@@ -82,13 +182,14 @@ function displayIdentity(data: EditableCardData, preview: boolean) {
 
   return {
     name: name || "Selin Kaya",
-    role: role || "Ürün Yöneticisi",
+    role: role || fallbackRole,
     company: company || "Yenomi Labs",
   };
 }
 
-export default function CardTemplate({ data, preview = false, slug, publicId, extras, saveLabel, imagePosition, branding, corporateRole, activePreviewTarget }: Props) {
-  const identity = displayIdentity(data, preview);
+export default function CardTemplate({ data, preview = false, slug, publicId, extras, saveLabel, imagePosition, branding, corporateRole, activePreviewTarget, locale = "tr" }: Props) {
+  const copy = CARD_COPY[locale];
+  const identity = displayIdentity(data, preview, copy.fallbackRole);
   const phone = cleanPhone(data.phone);
   const whatsapp = cleanPhone(data.whatsapp || data.phone).replace(/^\+/, "");
   const initials = identity.name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "YI";
@@ -100,10 +201,10 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
   useEffect(() => { setLogoError(false); }, [branding?.logoUrl]);
 
   const generatedLinks = [
-    data.phone && { title: "Telefon", subtitle: data.phone, href: `tel:${phone}`, kind: "phone" as const },
-    data.email && { title: "E-posta", subtitle: data.email, href: `mailto:${data.email}`, kind: "mail" as const },
-    data.website && { title: "Web Sitesi", subtitle: data.website.replace(/^https?:\/\//, ""), href: external(data.website), kind: "external" as const },
-    data.location && { title: "Konum", subtitle: data.location.replace(/^https?:\/\//, ""), href: toGoogleMapsUrl(data.location), kind: "map" as const },
+    data.phone && { title: copy.phone, subtitle: data.phone, href: `tel:${phone}`, kind: "phone" as const },
+    data.email && { title: copy.email, subtitle: data.email, href: `mailto:${data.email}`, kind: "mail" as const },
+    data.website && { title: copy.website, subtitle: data.website.replace(/^https?:\/\//, ""), href: external(data.website), kind: "external" as const },
+    data.location && { title: copy.location, subtitle: data.location.replace(/^https?:\/\//, ""), href: toGoogleMapsUrl(data.location), kind: "map" as const },
     data.linkedin && { title: "LinkedIn", subtitle: data.linkedin.replace(/^https?:\/\//, ""), href: external(data.linkedin), kind: "social" as const },
     data.instagram && { title: "Instagram", subtitle: data.instagram.replace(/^https?:\/\//, ""), href: external(data.instagram), kind: "social" as const },
   ].filter(Boolean) as CardTemplateLink[];
@@ -121,9 +222,9 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
   const isCorporate = Boolean(branding?.variant || branding?.companyName || brandLogo || brandColor);
   const companyName = branding?.companyName || identity.company || "Yenomi Labs";
   const corporateIdentityBadge = corporateRole === "OWNER"
-    ? "Şirket Sahibi"
+    ? copy.companyOwner
     : corporateRole
-      ? `${companyName} çalışanı`
+      ? copy.companyEmployee(companyName)
       : null;
 
   useEffect(() => {
@@ -139,12 +240,12 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
   }, [brandVariant, isCorporate, publicHref, preview]);
 
   const identityPhoto = (className: string) => (data.image && !imgError)
-    ? <img className={`${className} ${activePreviewTarget === "photo" ? "p8-preview-target--active" : ""}`} src={data.image} alt={`${identity.name || "Profil"} görseli`} onError={() => setImgError(true)} style={{ objectPosition: imagePosition ?? "50% 50%" }} />
+    ? <img className={`${className} ${activePreviewTarget === "photo" ? "p8-preview-target--active" : ""}`} src={data.image} alt={copy.profileImage(identity.name || copy.profile)} onError={() => setImgError(true)} style={{ objectPosition: imagePosition ?? "50% 50%" }} />
     : <span className={`${className} corporate-avatar-fallback ${activePreviewTarget === "photo" ? "p8-preview-target--active" : ""}`}>{initials}</span>;
 
   const corporateBrand = (
     <div className="corp-logo-lockup">
-      {(brandLogo && !logoError) ? <img src={brandLogo} alt={`${companyName} logosu`} onError={() => setLogoError(true)} /> : <span className="corp-logo-symbol">Y</span>}
+      {(brandLogo && !logoError) ? <img src={brandLogo} alt={copy.companyLogo(companyName)} onError={() => setLogoError(true)} /> : <span className="corp-logo-symbol">Y</span>}
       <strong>{companyName}</strong>
     </div>
   );
@@ -157,12 +258,12 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
     const managedLinks = data.links ?? [];
 
     return (
-      <article className={`p12-public-card ${isCorporate ? "is-corporate" : "is-individual"}`} aria-label={identity.name || "Dijital kartvizit"} style={brandColor ? ({ "--card-brand-color": brandColor } as CSSProperties) : undefined}>
+      <article className={`p12-public-card ${isCorporate ? "is-corporate" : "is-individual"}`} aria-label={identity.name || copy.digitalBusinessCard} style={brandColor ? ({ "--card-brand-color": brandColor } as CSSProperties) : undefined}>
         <header className="p12-card-brand">
-          <a href={siteOrigin} aria-label="Yenomi ID ana sayfa">
-            {isCorporate ? corporateBrand : <><span className="p12-brand-mark">Y</span><span><strong>Yenomi ID</strong><small>Dijital kimlik</small></span></>}
+          <a href={siteOrigin} aria-label={copy.home}>
+            {isCorporate ? corporateBrand : <><span className="p12-brand-mark">Y</span><span><strong>Yenomi ID</strong><small>{copy.digitalIdentity}</small></span></>}
           </a>
-          {isCorporate && <span className="p12-managed-badge"><Icon name="shield" /> Kurumsal profil</span>}
+          {isCorporate && <span className="p12-managed-badge"><Icon name="shield" /> {copy.corporateProfile}</span>}
         </header>
 
         <section className="p12-identity">
@@ -175,39 +276,39 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
         </section>
 
         {data.bio && <section className="p12-section p12-bio-section" aria-labelledby="p12-bio-title">
-          <div className="p12-section-heading"><h2 id="p12-bio-title">Hakkında</h2></div>
+          <div className="p12-section-heading"><h2 id="p12-bio-title">{copy.about}</h2></div>
           <p className="p12-bio">{data.bio}</p>
         </section>}
 
         <a className="p12-save-contact" href={saveHref}>
           <span className="p12-save-icon"><Icon name="save" /></span>
-          <span><strong>{saveLabel?.title || "Kişiye Ekle"}</strong><small>{saveLabel?.subtitle || "İletişim bilgilerini tek dokunuşla ekle"}</small></span>
+          <span><strong>{saveLabel?.title || copy.addContact}</strong><small>{saveLabel?.subtitle || copy.addContactDescription}</small></span>
           <Arrow />
         </a>
 
-        <nav className="p12-quick-actions" aria-label="Hızlı iletişim">
-          {phone && <a href={`tel:${phone}`}><Icon name="phone" /><span>Ara</span></a>}
+        <nav className="p12-quick-actions" aria-label={copy.quickContact}>
+          {phone && <a href={`tel:${phone}`}><Icon name="phone" /><span>{copy.call}</span></a>}
           {whatsappHref && <a href={whatsappHref} target="_blank" rel="noopener"><Icon name="whatsapp" /><span>WhatsApp</span></a>}
-          {data.email && <a href={`mailto:${data.email}`}><Icon name="mail" /><span>E-posta</span></a>}
-          {data.website && <a href={external(data.website)} target="_blank" rel="noopener"><Icon name="external" /><span>Web</span></a>}
+          {data.email && <a href={`mailto:${data.email}`}><Icon name="mail" /><span>{copy.email}</span></a>}
+          {data.website && <a href={external(data.website)} target="_blank" rel="noopener"><Icon name="external" /><span>{copy.web}</span></a>}
         </nav>
 
         {directContacts.length > 0 && <section className="p12-section" aria-labelledby="p12-contact-title">
-          <div className="p12-section-heading"><h2 id="p12-contact-title">İletişim</h2></div>
+          <div className="p12-section-heading"><h2 id="p12-contact-title">{copy.contact}</h2></div>
           <div className="p12-contact-list">
             {directContacts.map((link) => <a href={link.href} key={`${link.title}-${link.href}`} target={link.href.startsWith("http") ? "_blank" : undefined} rel={link.href.startsWith("http") ? "noopener" : undefined}><span className="p12-row-icon"><Icon name={link.kind} /></span><span><strong>{link.title}</strong><small>{link.subtitle}</small></span><Arrow /></a>)}
           </div>
         </section>}
 
         {socialLinks.length > 0 && <section className="p12-section" aria-labelledby="p12-social-title">
-          <div className="p12-section-heading"><h2 id="p12-social-title">Sosyal</h2></div>
+          <div className="p12-section-heading"><h2 id="p12-social-title">{copy.social}</h2></div>
           <div className="p12-social-links">
             {socialLinks.map((link) => <a href={link.href} key={`${link.title}-${link.href}`} target="_blank" rel="noopener"><Icon name="social" /><span>{link.title}</span></a>)}
           </div>
         </section>}
 
         {managedLinks.length > 0 && <section className="p12-section" aria-labelledby="p12-links-title">
-          <div className="p12-section-heading"><h2 id="p12-links-title">{isCorporate ? "Kurumsal bağlantılar" : "Bağlantılar"}</h2></div>
+          <div className="p12-section-heading"><h2 id="p12-links-title">{isCorporate ? copy.corporateLinks : copy.links}</h2></div>
           <div className="p12-managed-links">
             {managedLinks.slice(0, 6).map((link) => <a href={link.href} key={`${link.title}-${link.href}`} target={link.href.startsWith("http") ? "_blank" : undefined} rel={link.href.startsWith("http") ? "noopener" : undefined}><span><strong>{link.title}</strong><small>{link.subtitle}</small></span><Arrow /></a>)}
           </div>
@@ -217,7 +318,7 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
 
         <footer className="p12-card-footer">
           <a href={siteOrigin}>Yenomi ID</a>
-          <span>{isCorporate ? `${companyName} tarafından yönetilir` : "Dijital kartvizit"}</span>
+          <span>{isCorporate ? copy.managedBy(companyName) : copy.digitalBusinessCard}</span>
         </footer>
       </article>
     );
@@ -252,33 +353,33 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
               </div>
             </section>
 
-            <nav className={`corp-main-actions corp-main-actions-dark ${activePreviewTarget === "phone" || activePreviewTarget === "email" ? "p8-preview-target--active" : ""}`} aria-label="Hızlı iletişim">
-              {phone && <a href={`tel:${phone}`} {...clickProps}><Icon name="phone" /><span>Ara</span></a>}
-              {data.email && <a href={`mailto:${data.email}`} {...clickProps}><Icon name="mail" /><span>E-posta</span></a>}
-              <a href={saveHref} {...clickProps}><Icon name="save" /><span>Kişiye Ekle</span></a>
+            <nav className={`corp-main-actions corp-main-actions-dark ${activePreviewTarget === "phone" || activePreviewTarget === "email" ? "p8-preview-target--active" : ""}`} aria-label={copy.quickContact}>
+              {phone && <a href={`tel:${phone}`} {...clickProps}><Icon name="phone" /><span>{copy.call}</span></a>}
+              {data.email && <a href={`mailto:${data.email}`} {...clickProps}><Icon name="mail" /><span>{copy.email}</span></a>}
+              <a href={saveHref} {...clickProps}><Icon name="save" /><span>{copy.addContact}</span></a>
             </nav>
 
-            <nav className={`corp-social-strip ${activePreviewTarget === "social" || activePreviewTarget === "website" || activePreviewTarget === "linkedin" || activePreviewTarget === "location" ? "p8-preview-target--active" : ""}`} aria-label="Sosyal bağlantılar">
+            <nav className={`corp-social-strip ${activePreviewTarget === "social" || activePreviewTarget === "website" || activePreviewTarget === "linkedin" || activePreviewTarget === "location" ? "p8-preview-target--active" : ""}`} aria-label={copy.social}>
               {data.linkedin && <a href={external(data.linkedin)} target="_blank" rel="noopener" {...clickProps}><Icon name="social" /> LinkedIn</a>}
-              {data.website && <a href={external(data.website)} target="_blank" rel="noopener" {...clickProps}><Icon name="external" /> Web Sitesi</a>}
-              {data.location && <a href={toGoogleMapsUrl(data.location)} target="_blank" rel="noopener" {...clickProps}><Icon name="map" /> Konum</a>}
+              {data.website && <a href={external(data.website)} target="_blank" rel="noopener" {...clickProps}><Icon name="external" /> {copy.website}</a>}
+              {data.location && <a href={toGoogleMapsUrl(data.location)} target="_blank" rel="noopener" {...clickProps}><Icon name="map" /> {copy.location}</a>}
               {whatsappHref && <a href={whatsappHref} target="_blank" rel="noopener" {...clickProps}><Icon name="whatsapp" /> WhatsApp</a>}
             </nav>
 
             <section className={`corp-info-section ${activePreviewTarget === "phone" || activePreviewTarget === "email" ? "p8-preview-target--active" : ""}`}>
-              <h2>İLETİŞİM BİLGİLERİ</h2>
+              <h2>{copy.contact}</h2>
               <div className="corp-contact-table">
                 {contactLinks.slice(0, 4).map((link) => <a href={link.href} key={`${link.title}-${link.href}`} {...clickProps}><Icon name={link.kind} /><span><b>{link.subtitle}</b><small>{link.title}</small></span></a>)}
               </div>
             </section>
 
             {data.bio && <section className={`corp-info-section corp-about-section ${activePreviewTarget === "bio" ? "p8-preview-target--active" : ""}`}>
-              <h2>HAKKINDA</h2>
+              <h2>{copy.about}</h2>
               <p>{data.bio}</p>
             </section>}
 
             <section className="corp-info-section corp-resource-section">
-              <h2>KURUMSAL BAĞLANTILAR</h2>
+              <h2>{copy.corporateLinks}</h2>
               {data.links?.length ? data.links.slice(0, 4).map((link) => <a href={link.href} key={`${link.title}-${link.href}`} {...clickProps}><Icon name="link" /><span><b>{link.title}</b><small>{link.subtitle}</small></span><Arrow /></a>) : null}
             </section>
           </div>
@@ -293,10 +394,10 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
               <p>{identity.role}</p>
               <span>{identity.company || companyName}</span>
             </section>
-            <nav className="corp-main-actions" aria-label="Hızlı iletişim">
-              {phone && <a href={`tel:${phone}`} {...clickProps}><Icon name="phone" /><span>Ara</span></a>}
-              {data.email && <a href={`mailto:${data.email}`} {...clickProps}><Icon name="mail" /><span>E-posta</span></a>}
-              <a href={saveHref} {...clickProps}><Icon name="save" /><span>Kişiye Ekle</span></a>
+            <nav className="corp-main-actions" aria-label={copy.quickContact}>
+              {phone && <a href={`tel:${phone}`} {...clickProps}><Icon name="phone" /><span>{copy.call}</span></a>}
+              {data.email && <a href={`mailto:${data.email}`} {...clickProps}><Icon name="mail" /><span>{copy.email}</span></a>}
+              <a href={saveHref} {...clickProps}><Icon name="save" /><span>{copy.addContact}</span></a>
             </nav>
           </div>
         )}
@@ -310,7 +411,7 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
               <p>{identity.role}</p>
               <span>{identity.company || companyName}</span>
             </section>
-            {qrDataUrl && <img className="corp-executive-qr" src={qrDataUrl} alt="Profil QR kodu" />}
+            {qrDataUrl && <img className="corp-executive-qr" src={qrDataUrl} alt={copy.profileQr} />}
           </div>
         )}
       </div>
@@ -326,13 +427,13 @@ export default function CardTemplate({ data, preview = false, slug, publicId, ex
         <TitleTag>{identity.name}</TitleTag>
         <p>{[identity.role, identity.company].filter(Boolean).join(" · ")}</p>
       </section>
-      <div className="card-template-preview__availability"><span aria-hidden>●</span> Canlı dijital profil</div>
-      <section className="card-template-preview__contacts" aria-label="Profil iletişim özeti">
+      <div className="card-template-preview__availability"><span aria-hidden>●</span> {copy.liveProfile}</div>
+      <section className="card-template-preview__contacts" aria-label={copy.profileContactSummary}>
         {previewContacts.length > 0 ? previewContacts.map((link) => (
           <div key={`${link.kind}-${link.href}`}><Icon name={link.kind} /><span>{link.title}</span></div>
-        )) : <div><Icon name="id" /><span>İletişim bilgilerini stüdyodan ekle</span></div>}
+        )) : <div><Icon name="id" /><span>{copy.addContactInStudio}</span></div>}
       </section>
-      <div className="card-template-preview__save"><Icon name="save" /><span>Kişiye eklemeye hazır</span></div>
+      <div className="card-template-preview__save"><Icon name="save" /><span>{copy.readyToAddContact}</span></div>
     </div>
   );
 

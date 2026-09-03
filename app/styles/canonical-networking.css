@@ -1,1 +1,488 @@
-.p12-public-card-page .p12-networking .p12-section-heading > div:first-child{min-width:0;display:grid;gap:5px}.p12-public-card-page .p12-networking .p12-section-heading p{margin:0;color:#6a635b;font-size:12.5px;line-height:1.5}.p12-public-card-page .p12-networking>.p12-networking-cta{margin-top:12px;min-height:48px;border-color:#aa7d27;background:linear-gradient(180deg,#b4872f,#a97822);color:#fffaf0;box-shadow:0 8px 18px rgba(151,108,28,.13)}.p12-public-card-page .p12-networking-form{display:grid;gap:13px;padding:15px}.p12-public-card-page .p12-networking-fields{display:grid;grid-template-columns:1fr;gap:10px}.p12-public-card-page .p12-networking-fields label{display:grid;gap:6px;color:#4f4841;font-size:10.5px;font-weight:800;letter-spacing:.01em}.p12-public-card-page .p12-networking-fields input{width:100%;min-height:46px;padding:0 12px;border:1px solid #ddd6cb;border-radius:11px;background:#fff;color:#1d1915;font-size:13px;outline:0;transition:border-color .15s ease,box-shadow .15s ease}.p12-public-card-page .p12-networking-fields input:focus{border-color:#ad812e;box-shadow:0 0 0 3px rgba(169,129,47,.10)}.p12-public-card-page .p12-networking-disclosure,.p12-public-card-page .p12-networking-back{width:fit-content;min-height:34px;padding:0;border:0;background:transparent;color:#866323;font-size:11px;font-weight:800;text-align:left}.p12-public-card-page .p12-networking-professional{padding-top:2px}.p12-public-card-page .p12-networking-privacy{margin:0;color:#7b736a;font-size:10.5px;line-height:1.5}.p12-public-card-page .p12-networking-form-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:center}.p12-public-card-page .p12-networking-form-actions>button[type="submit"]{min-height:48px;padding:0 15px;border:1px solid #9f7423;border-radius:11px;background:linear-gradient(180deg,#b4872f,#a97822);color:#fffaf0;font-size:12px;font-weight:850}.p12-public-card-page .p12-networking-form-actions .p12-networking-back{min-height:48px;padding:0 10px;color:#746c63}.p12-public-card-page .p12-networking-message{margin:0;padding:10px 11px;border:1px solid rgba(180,63,45,.22);border-radius:10px;background:rgba(180,63,45,.06);color:#8c3428;font-size:11px;line-height:1.45}.p12-public-card-page .p12-networking-success{margin-top:13px;display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center;padding:13px;border:1px solid #dfd7c9;border-radius:14px;background:#faf8f4}.p12-public-card-page .p12-networking-success>span{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:rgba(47,158,95,.11);color:#2f8c59;font-size:15px;font-weight:900}.p12-public-card-page .p12-networking-success>div{min-width:0;display:grid;gap:3px}.p12-public-card-page .p12-networking-success strong{color:#1d1915;font-size:12px}.p12-public-card-page .p12-networking-success p{margin:0;color:#6f675e;font-size:10.5px;line-height:1.45}.p12-public-card-page .p12-networking-success button{min-height:36px;padding:0 11px;border:1px solid #d8d0c4;border-radius:9px;background:#fff;color:#4f4841;font-size:10.5px;font-weight:800}@media(max-width:430px){.p12-public-card-page .p12-networking-form{padding:14px 12px}.p12-public-card-page .p12-networking-form-actions{grid-template-columns:1fr}.p12-public-card-page .p12-networking-form-actions .p12-networking-back{width:100%;justify-content:center;text-align:center}.p12-public-card-page .p12-networking-success{grid-template-columns:34px minmax(0,1fr)}.p12-public-card-page .p12-networking-success button{grid-column:1/-1;width:100%;min-height:42px}}
+/* Public-card networking owns the contact-capture and Yenomi-to-Yenomi
+ * handshake experience. It deliberately stays inside the public profile
+ * surface and consumes the semantic system tokens. */
+
+.p12-public-card-page .p12-networking .p12-section-heading > div:first-child {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.p12-public-card-page .p12-networking .p12-section-heading p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-body-sm);
+  line-height: var(--line-height-body);
+}
+
+.p12-public-card-page .p12-instant-connect-skeleton {
+  margin-top: var(--space-3);
+}
+
+.p12-public-card-page .p12-instant-connect-skeleton .ds-skeleton {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: linear-gradient(110deg, var(--surface-accent), var(--surface-card), var(--surface-accent));
+}
+
+.p12-public-card-page .p12-instant-connect {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--brand-gold) 55%, var(--border));
+  border-radius: var(--radius-md);
+  background: linear-gradient(145deg, var(--brand-gold-soft), var(--surface-card) 72%);
+  box-shadow: var(--shadow-xs);
+}
+
+.p12-public-card-page .p12-instant-connect > header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-primary);
+}
+
+.p12-public-card-page .p12-instant-connect > header .yi-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--brand-gold-deep);
+}
+
+.p12-public-card-page .p12-instant-connect > header strong {
+  font-size: var(--type-body-sm);
+  font-weight: 800;
+}
+
+.p12-public-card-page .p12-instant-connect__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.p12-public-card-page .p12-instant-connect__identity .ds-avatar {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-xs);
+}
+
+.p12-public-card-page .p12-instant-connect__identity > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.p12-public-card-page .p12-instant-connect__identity strong,
+.p12-public-card-page .p12-instant-connect__identity span,
+.p12-public-card-page .p12-instant-connect__identity small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.p12-public-card-page .p12-instant-connect__identity strong {
+  color: var(--text-primary);
+  font-size: var(--type-body-sm);
+  font-weight: 800;
+}
+
+.p12-public-card-page .p12-instant-connect__identity span {
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+}
+
+.p12-public-card-page .p12-instant-connect__identity small {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--success);
+  font-size: var(--type-xs);
+  font-weight: 700;
+}
+
+.p12-public-card-page .p12-instant-connect__identity small .yi-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.p12-public-card-page .p12-instant-connect > p,
+.p12-public-card-page .p12-instant-connect__qr-description {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+  line-height: var(--line-height-body);
+}
+
+.p12-public-card-page .p12-instant-connect__submit,
+.p12-public-card-page .p12-instant-connect__qr {
+  width: 100%;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.p12-public-card-page .p12-instant-connect__submit {
+  min-height: var(--control-height-lg);
+  border-color: var(--brand-gold-deep);
+  background: linear-gradient(100deg, var(--brand-gold), var(--brand-gold-deep));
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-xs);
+}
+
+.p12-public-card-page .p12-instant-connect__submit:hover {
+  background: var(--brand-gold-hover);
+}
+
+.p12-public-card-page .p12-instant-connect__qr {
+  margin-top: var(--space-3);
+  border-color: var(--border-strong);
+  background: var(--surface-card);
+  color: var(--text-primary);
+}
+
+.p12-public-card-page .p12-instant-connect__qr:hover {
+  border-color: var(--brand-gold);
+  background: var(--brand-gold-soft);
+}
+
+.p12-public-card-page .p12-instant-connect__qr-description {
+  margin-top: var(--space-2);
+}
+
+.p12-public-card-page .p12-networking-form {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+}
+
+.p12-public-card-page .p12-networking-form__intro {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.p12-public-card-page .p12-networking-form__intro strong {
+  color: var(--text-primary);
+  font-size: var(--type-body-sm);
+  font-weight: 800;
+}
+
+.p12-public-card-page .p12-networking-form__intro p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+  line-height: var(--line-height-body);
+}
+
+.p12-public-card-page .p12-networking-fields {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.p12-public-card-page .p12-networking-fields .ds-field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.p12-public-card-page .p12-networking-fields .ds-label {
+  color: var(--text-primary);
+  font-size: var(--type-sm);
+  font-weight: 750;
+}
+
+.p12-public-card-page .p12-networking-fields .ds-input {
+  width: 100%;
+  min-height: var(--control-height-md);
+  border-color: var(--border-strong);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-size: var(--type-body-sm);
+}
+
+.p12-public-card-page .p12-networking-disclosure,
+.p12-public-card-page .p12-networking-back {
+  width: fit-content;
+  min-height: var(--control-height-sm);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--brand-gold-deep);
+  font-size: var(--type-sm);
+  font-weight: 750;
+  text-align: left;
+}
+
+.p12-public-card-page .p12-networking-professional {
+  padding-top: var(--space-1);
+}
+
+.p12-public-card-page .p12-networking-privacy {
+  margin: 0;
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+  line-height: var(--line-height-body);
+}
+
+.p12-public-card-page .p12-networking-message,
+.p12-public-card-page .p12-instant-scanner__message {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--error) 30%, var(--border));
+  border-radius: var(--radius-sm);
+  background: var(--error-subtle);
+  color: var(--error);
+  font-size: var(--type-sm);
+  line-height: var(--line-height-body);
+}
+
+.p12-public-card-page .p12-networking-form-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.p12-public-card-page .p12-networking-form-actions > .ds-button[type="submit"] {
+  width: 100%;
+  min-height: var(--control-height-lg);
+  justify-content: center;
+}
+
+.p12-public-card-page .p12-networking-form-actions .p12-networking-back {
+  min-height: var(--control-height-lg);
+  padding-inline: var(--space-2);
+  color: var(--text-secondary);
+}
+
+.p12-public-card-page .p12-networking-success {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: center;
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-accent);
+}
+
+.p12-public-card-page .p12-networking-success > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  background: var(--success-subtle);
+  color: var(--success);
+}
+
+.p12-public-card-page .p12-networking-success > span .yi-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.p12-public-card-page .p12-networking-success > div {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.p12-public-card-page .p12-networking-success strong {
+  color: var(--text-primary);
+  font-size: var(--type-body-sm);
+}
+
+.p12-public-card-page .p12-networking-success p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+  line-height: var(--line-height-body);
+}
+
+.p12-instant-scanner {
+  width: min(calc(100% - (var(--gutter) * 2)), 440px);
+  max-height: calc(100svh - (var(--gutter) * 2));
+  overflow: auto;
+  padding: var(--space-5);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-overlay);
+}
+
+.p12-instant-scanner::backdrop {
+  background: color-mix(in srgb, var(--surface-dark) 58%, transparent);
+}
+
+.p12-instant-scanner__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-3);
+}
+
+.p12-instant-scanner__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--brand-gold-deep);
+  font-size: var(--type-xs);
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.p12-instant-scanner__eyebrow .yi-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.p12-instant-scanner h2 {
+  margin: var(--space-1) 0 0;
+  font-size: var(--type-h4);
+  line-height: var(--line-height-tight);
+}
+
+.p12-instant-scanner__header p {
+  margin: var(--space-2) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--type-body-sm);
+  line-height: var(--line-height-body);
+}
+
+.p12-instant-scanner__close {
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  color: var(--text-secondary);
+}
+
+.p12-instant-scanner__close .yi-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.p12-instant-scanner__close:focus-visible,
+.p12-public-card-page .p12-networking-disclosure:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand-gold) 34%, transparent);
+  outline-offset: 2px;
+}
+
+.p12-instant-scanner__camera {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  margin-top: var(--space-4);
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--surface-dark);
+}
+
+.p12-instant-scanner__camera video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.p12-instant-scanner__camera p {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  left: var(--space-3);
+  margin: 0;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface-dark) 82%, transparent);
+  color: var(--text-inverse);
+  font-size: var(--type-sm);
+  line-height: var(--line-height-snug);
+  text-align: center;
+}
+
+.p12-instant-scanner__frame {
+  position: absolute;
+  inset: 18%;
+  border: 2px solid var(--brand-gold);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 999px color-mix(in srgb, var(--surface-dark) 18%, transparent);
+}
+
+.p12-instant-scanner__manual {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.p12-instant-scanner__manual > label {
+  color: var(--text-primary);
+  font-size: var(--type-sm);
+  font-weight: 750;
+}
+
+.p12-instant-scanner__manual > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+}
+
+.p12-instant-scanner__manual .ds-input {
+  min-width: 0;
+  border-color: var(--border-strong);
+}
+
+.p12-instant-scanner__privacy {
+  margin: var(--space-3) 0 0;
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+  line-height: var(--line-height-body);
+}
+
+.p12-instant-scanner__cancel {
+  width: 100%;
+  justify-content: center;
+  margin-top: var(--space-2);
+}
+
+@media (max-width: 430px) {
+  .p12-public-card-page .p12-networking-form,
+  .p12-public-card-page .p12-instant-connect {
+    padding: var(--space-3);
+  }
+
+  .p12-public-card-page .p12-networking-form-actions,
+  .p12-instant-scanner__manual > div {
+    grid-template-columns: 1fr;
+  }
+
+  .p12-public-card-page .p12-networking-form-actions .p12-networking-back {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .p12-public-card-page .p12-networking-success {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .p12-public-card-page .p12-networking-success > .ds-button {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .p12-instant-scanner {
+    width: min(calc(100% - (var(--space-3) * 2)), 440px);
+    padding: var(--space-4);
+  }
+}

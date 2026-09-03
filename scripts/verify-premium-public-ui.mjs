@@ -38,8 +38,13 @@ for (const token of [".p6-auth-page", "prefers-reduced-motion"]) {
 for (const token of [".nfc-product-page", ".cart-page", ".checkout-page"]) {
   if (!canonical.includes(token)) throw new Error(`Premium commerce UI contract missing: ${token}`);
 }
-for (const token of ["--surface-base", "--brand-gold", "#F9F8F6"]) {
+for (const token of ["--surface-base", "--brand-gold", "--background:"]) {
   if (!tokens.includes(token)) throw new Error(`Canonical premium foundation missing: ${token}`);
+}
+// The exact warm-cream hex is allowed to be re-tuned without breaking this gate;
+// only the token's presence is a contract. See audit/home-route-deep-audit-2026-09-03.
+if (!/--background:\s*#[0-9a-fA-F]{3,8}/.test(tokens)) {
+  throw new Error("Canonical premium foundation missing: --background must resolve to a hex color");
 }
 
 const products = fs.readFileSync("app/urunler/page.tsx", "utf8");

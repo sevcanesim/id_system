@@ -10,6 +10,7 @@ import { writeSessionCookie } from "../components/AuthSessionBridge";
 import PanelSidebar from "../components/ui/PanelSidebar";
 import { LoadingState } from "../components/ui/States";
 import { INDIVIDUAL_SIDEBAR_CONFIG } from "../components/ui/sidebar-config";
+import styles from "./DashboardShell.module.css";
 
 type ShellAction = {
   href?: string;
@@ -112,7 +113,7 @@ export default function DashboardShell({
 
   if (portalState !== "allowed") {
     return (
-      <main className={`yi-app yi-app--${portal} enterprise-dashboard-shell p7-shell`} aria-busy="true">
+      <main className={`yi-app ${styles.shell}`} aria-busy="true">
         <PanelSidebar
           id={sidebarId}
           scope="individual"
@@ -127,16 +128,16 @@ export default function DashboardShell({
           loading
         />
 
-        <section className="yi-app__main p7-workspace">
-          <header className="yi-app__top p7-topbar">
-            <div className="yi-top-account">
-              <span className="yi-top-account__label">HESAP</span>
+        <section className={styles.workspace}>
+          <header className={styles.topbar}>
+            <div className={styles.account}>
+              <span className={styles.accountLabel}>HESAP</span>
               <span>{portalState === "checking" ? "Yükleniyor" : "Yönlendiriliyor"}</span>
             </div>
           </header>
 
-          <div className="yi-app__content p7-content">
-            <div className="yi-page-head">
+          <div className={styles.content}>
+            <div className={styles.pageHead}>
               <span>{eyebrow}</span>
               <h1>{title}</h1>
               {description && <p>{description}</p>}
@@ -156,10 +157,10 @@ export default function DashboardShell({
   const accountInitials = accountMeta.trim().charAt(0).toLocaleUpperCase("tr-TR") || "Y";
 
   return (
-    <main className={`yi-app yi-app--${portal} enterprise-dashboard-shell p7-shell`}>
+    <main className={`yi-app ${styles.shell}`}>
       <button
         id={menuButtonId}
-        className="p7-menu-button enterprise-sidebar-mobile-trigger"
+        className={`${styles.menu} enterprise-sidebar-mobile-trigger`}
         type="button"
         aria-label={mobileOpen ? "Menüyü kapat" : "Menüyü aç"}
         aria-controls={sidebarId}
@@ -187,24 +188,24 @@ export default function DashboardShell({
         className="id-sidebar--individual"
       />
 
-      <section className="yi-app__main p7-workspace">
-        <header className="yi-app__top p7-topbar">
-          <div className="yi-top-account">
-            <span className="yi-top-account__label">HESAP</span>
-            <span>{email}</span>
+      <section className={styles.workspace}>
+        <header className={styles.topbar}>
+          <div className={styles.account}>
+            <span className={styles.accountLabel}>HESAP</span>
+            <span className={styles.accountValue}>{email}</span>
           </div>
-          <div className="yi-top-actions p7-topbar-actions">
+          <div className={styles.topActions}>
             <Link href="/destek">Yardım</Link>
             <Link href="/">Siteye dön</Link>
           </div>
         </header>
-        <div className="yi-app__content p7-content">
-          <div className="yi-page-head">
+        <div className={styles.content}>
+          <div className={styles.pageHead}>
             <span>{eyebrow}</span>
             <h1>{title}</h1>
             {description && <p>{description}</p>}
             {actions.length > 0 && (
-              <div className="yi-actions">
+              <div className={styles.actions}>
                 {actions.map((action, index) => action.href ? (
                   <Link
                     key={`${action.href}-${index}`}

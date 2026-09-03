@@ -28,8 +28,14 @@ export default function MobilePurchaseDockController() {
       };
     }
 
+    // The purchase dock is useful only between the primary hero offer and the
+    // final conversion/footer area. Hiding it while another purchase CTA is
+    // already visible avoids duplicate actions and prevents unnecessary mobile
+    // viewport obstruction.
     const stops = Array.from(
-      document.querySelectorAll<HTMLElement>(".home-sales-final, .yi-footer--premium"),
+      document.querySelectorAll<HTMLElement>(
+        ".home-sales-hero, .home-sales-final, .yi-footer--premium",
+      ),
     );
 
     const visibleStops = new Set<Element>();
@@ -37,22 +43,38 @@ export default function MobilePurchaseDockController() {
       const hidden = visibleStops.size > 0;
       dock.classList.toggle("is-docked-away", hidden);
       dock.setAttribute("aria-hidden", hidden ? "true" : "false");
-      dock.querySelectorAll<HTMLElement>("a, button, input, select, textarea, [tabindex]").forEach((control) => {
-        if (hidden) {
-          if (control.hasAttribute("tabindex")) {
-            control.dataset.previousTabindex = control.getAttribute("tabindex") ?? "";
+      dock
+        .querySelectorAll<HTMLElement>(
+          "a, button, input, select, textarea, [tabindex]",
+        )
+        .forEach((control) => {
+          if (hidden) {
+            if (control.hasAttribute("tabindex")) {
+              control.dataset.previousTabindex =
+                control.getAttribute("tabindex") ?? "";
+            }
+            control.setAttribute("tabindex", "-1");
+          } else if (control.dataset.previousTabindex !== undefined) {
+            const previous = control.dataset.previousTabindex;
+            if (previous) control.setAttribute("tabindex", previous);
+            else control.removeAttribute("tabindex");
+            delete control.dataset.previousTabindex;
+          } else {
+            control.removeAttribute("tabindex");
           }
-          control.setAttribute("tabindex", "-1");
-        } else if (control.dataset.previousTabindex !== undefined) {
-          const previous = control.dataset.previousTabindex;
-          if (previous) control.setAttribute("tabindex", previous);
-          else control.removeAttribute("tabindex");
-          delete control.dataset.previousTabindex;
-        } else {
-          control.removeAttribute("tabindex");
-        }
-      });
+        });
     };
+
+    // Establish the correct first-paint state synchronously with the effect so
+    // the dock does not remain active until the observer delivers its first
+    // callback.
+    stops.forEach((stop) => {
+      const rect = stop.getBoundingClientRect();
+      if (rect.bottom > 0 && rect.top < window.innerHeight) {
+        visibleStops.add(stop);
+      }
+    });
+    setDockedState();
 
     const observer = new IntersectionObserver(
       (entries) => {

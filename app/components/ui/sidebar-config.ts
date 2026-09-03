@@ -39,9 +39,9 @@ export const CORPORATE_SIDEBAR_CONFIG = [
 ] satisfies readonly SidebarConfigItem[];
 
 export const INDIVIDUAL_SIDEBAR_CONFIG = [
-  { key: "home", href: "/kartlarim", label: "Kartım", icon: "id", group: "KARTIM" },
+  { key: "home", href: "/kartlarim", label: "Kartım & Genel Bakış", icon: "id", group: "KARTIM" },
   { key: "studio", href: "/olustur", label: "Kimlik Stüdyosu", icon: "pencil", group: "KİMLİK" },
-  { key: "connections", href: "/leadler", label: "Bağlantılarım", icon: "users", group: "BAĞLANTILAR" },
+  { key: "connections", href: "/leadler", label: "Bağlantılar & Analiz", icon: "users", group: "BAĞLANTILAR" },
   { key: "account", href: "/ayarlar", label: "Hesap & Abonelik", icon: "adjustments", group: "HESAP" },
 ] satisfies readonly SidebarConfigItem[];
 

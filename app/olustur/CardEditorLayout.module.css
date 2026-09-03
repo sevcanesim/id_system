@@ -149,6 +149,23 @@
   max-width: 100%;
 }
 
+/* Individual studio keeps the editor calm and lets the live device remain the visual anchor. */
+.editorSurface :global(.p8-preview-card) {
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--brand-gold) 24%, var(--border));
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, .04);
+}
+
+.editorSurface :global(.p8-preview-hd) {
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.editorSurface :global(.p8-section-nav a.is-active) {
+  color: var(--text-primary);
+  background: var(--brand-gold-soft);
+}
+
 @media (min-width: 68.8125rem) {
   .editorSurface :global(.p8-corporate-header),
   .editorSurface :global(.p8-section-nav) {

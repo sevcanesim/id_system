@@ -27,7 +27,7 @@ export function HowItWorksBoard() {
         <div className="yi-container how-simple-hero__grid">
           <div className="how-simple-hero__copy">
             <span className="section-kicker">NASIL ÇALIŞIR?</span>
-            <h1 id="how-title">Kartını paylaş.<br />Tanışmayı devam ettir.</h1>
+            <h1 id="how-title">Kartını paylaş.<br />Tanışmayı devam&nbsp;ettir.</h1>
             <p>Yenomi ID Premium yalnızca dijital kartvizit değildir. NFC + QR ile paylaşımın ardından kişi yönetimi, toplantı, sunum ve Network Mail ile profesyonel takip akışını sürdürür.</p>
             <div className="how-simple-hero__offer">
               <strong>{premiumPrice}</strong>

@@ -127,7 +127,7 @@
 
 .yi-brand__lockup small {
   color: color-mix(in srgb, currentColor 72%, #fff);
-  font-size: 10px;
+  font-size: var(--type-xs);
   font-weight: 600;
   line-height: 1;
   letter-spacing: .22em;
@@ -301,7 +301,7 @@
 
 .yi-footer--premium .yi-brand__lockup small {
   color: var(--text-secondary);
-  font-size: 8px;
+  font-size: var(--type-xs);
 }
 
 .yi-footer__premium-grid {
@@ -427,7 +427,7 @@
 
   .public-site-chrome .yi-brand__lockup small {
     color: var(--text-secondary);
-    font-size: 8px;
+    font-size: var(--type-xs);
   }
 
   .yi-footer__premium-grid {

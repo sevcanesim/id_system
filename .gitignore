@@ -26,3 +26,8 @@ supabase/.temp/
 /test-results/
 /playwright-report/
 /blob-report/
+
+# Local-only Playwright config overrides (e.g. a sandboxed Chromium
+# executablePath that doesn't match the pinned @playwright/test browser
+# revision). Never part of the PR/CI config.
+playwright.local.config.ts

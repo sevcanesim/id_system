@@ -12,10 +12,10 @@ export default function IndividualLeadsPage() {
 
   return (
     <UserPanelShell
-      activeKey="leads"
-      eyebrow="NETWORKING"
-      title="Network Mail"
-      description="Kartından düşen kişilere 1 kredi = 1 follow-up gönder. Gönderen Yenomi ID’dir; yanıtlar doğrulanmış e-postana gelir."
+      activeKey="connections"
+      eyebrow="BAĞLANTILAR"
+      title="Bağlantılarım"
+      description="Kartını tarayıp iletişim bilgilerini bırakan kişileri burada takip et. Network Mail ile her bağlantıya seçtiğin içerikte tek bir takip e-postası gönderebilirsin."
     >
       <NetworkingPanel view="leads" variant="individual" token={token} />
     </UserPanelShell>

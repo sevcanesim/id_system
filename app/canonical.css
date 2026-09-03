@@ -839,8 +839,21 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .p14-preview-label { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 2px 9px; color:var(--ink-3); font-size:11px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; }
 .p14-preview-label a { color:var(--gold-hi); font-size:12px; letter-spacing:0; text-transform:none; }
 .p14-preview-label a:hover { text-decoration:underline; text-underline-offset:3px; }
-.p14-preview-phone { display:grid; place-items:center; min-height:620px; padding:26px 18px; overflow:hidden; border:1px solid var(--border); border-radius:24px; background:linear-gradient(145deg,var(--surface-2),var(--surface)); box-shadow:var(--shadow); }
+.p14-preview-phone { display:grid; place-items:center; min-height:460px; padding:18px; overflow:hidden; border:1px solid var(--border); border-radius:24px; background:linear-gradient(145deg,var(--surface-2),var(--surface)); box-shadow:var(--shadow); }
 .p14-preview-phone > * { width:min(100%,420px); }
+.card-template-preview { display:grid; gap:16px; width:100%; padding:22px; border:1px solid var(--border); border-radius:22px; background:linear-gradient(155deg,#fff,#f6f2ea); box-shadow:0 18px 40px rgba(36,29,20,.08); }
+.card-template-preview__identity { display:grid; justify-items:center; gap:7px; padding:12px 0 17px; border-bottom:1px solid var(--border); text-align:center; }
+.card-template-preview__avatar { width:72px; height:72px; display:grid; place-items:center; overflow:hidden; border:1px solid var(--border-gold); border-radius:50%; background:var(--gold-dim); color:var(--gold-hi); font:800 22px var(--font-ui); object-fit:cover; }
+.card-template-preview__identity h2 { margin:0; color:var(--ink); font-size:24px; line-height:1.04; letter-spacing:-.04em; }
+.card-template-preview__identity p { margin:0; color:var(--ink-3); font-size:13px; line-height:1.4; }
+.card-template-preview__availability { display:inline-flex; justify-self:center; align-items:center; gap:7px; min-height:28px; padding:0 10px; border-radius:999px; background:rgba(47,158,95,.09); color:#247c4b; font-size:12px; font-weight:750; }
+.card-template-preview__availability span { font-size:12px; line-height:1; }
+.card-template-preview__contacts { display:grid; gap:8px; }
+.card-template-preview__contacts > div { display:flex; align-items:center; gap:9px; min-width:0; padding:10px 11px; border:1px solid var(--border); border-radius:11px; background:rgba(255,255,255,.7); color:var(--ink-2); font-size:12px; font-weight:650; }
+.card-template-preview__contacts svg { width:16px; height:16px; flex:none; color:var(--gold-hi); }
+.card-template-preview__contacts span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.card-template-preview__save { display:flex; align-items:center; justify-content:center; gap:7px; min-height:40px; border-radius:11px; background:var(--ink); color:#fff; font-size:12px; font-weight:750; }
+.card-template-preview__save svg { width:16px; height:16px; }
 .p14-status-group { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .p14-status-pill { display:inline-flex; align-items:center; gap:7px; min-height:28px; padding:0 10px; border:1px solid var(--border); border-radius:999px; background:var(--surface-2); color:var(--ink-2); font-size:12px; font-weight:800; }
 .p14-status-pill i { width:7px; height:7px; border-radius:50%; background:var(--ink-3); }
@@ -852,12 +865,12 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .p7-card-health { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
 .p7-card-health > div { min-width:0; padding:16px; border:1px solid var(--border); border-radius:var(--radius-card); background:var(--surface); box-shadow:var(--shadow-soft); }
 .p7-card-health small { display:block; color:var(--ink-3); font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
-.p7-card-health strong { display:block; margin-top:7px; overflow:hidden; color:var(--ink); font:700 18px var(--font-mono); text-overflow:ellipsis; white-space:nowrap; }
+.p7-card-health strong { display:block; margin-top:7px; overflow:hidden; color:var(--ink); font:700 18px var(--font-ui); text-overflow:ellipsis; white-space:nowrap; }
 .p7-card-health span { display:block; margin-top:3px; color:var(--ink-3); font-size:12px; }
 .p14-link-card { padding:18px; border:1px solid var(--border-gold); border-radius:var(--radius-card); background:linear-gradient(145deg,var(--surface),var(--surface-2)); box-shadow:var(--shadow-soft); }
 .p14-link-head { display:flex; align-items:center; justify-content:space-between; gap:14px; }
 .p14-link-head small { display:block; color:var(--ink-3); font-size:11px; font-weight:800; letter-spacing:.09em; }
-.p14-link-head strong { display:block; margin-top:6px; overflow:hidden; color:var(--ink); font:600 13px var(--font-mono); text-overflow:ellipsis; white-space:nowrap; }
+.p14-link-head strong { display:block; margin-top:6px; overflow:hidden; color:var(--ink); font:600 13px var(--font-ui); text-overflow:ellipsis; white-space:nowrap; }
 .p14-copy-btn { display:inline-flex; align-items:center; gap:6px; min-height:36px; padding:0 11px; flex:none; border:1px solid var(--border-gold); border-radius:var(--radius-button); background:var(--gold-dim); color:var(--gold-hi); font-size:12px; font-weight:800; }
 .p14-copy-btn:hover { border-color:var(--gold); box-shadow:var(--glow); }
 .p14-link-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:13px; }
@@ -2066,7 +2079,7 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 }
 
 @media (max-width: 768px) {
-  .p8-section-nav { margin-inline: calc(-1 * var(--space-4)); padding: var(--space-2) var(--space-4); border-radius: 0; border-inline: none; }
+  .p8-section-nav { position: static; margin-inline: calc(-1 * var(--space-4)); padding: var(--space-2) var(--space-4); border-radius: 0; border-inline: none; }
   .p8-section-nav a { min-height: 44px; font-size: 14px; }
   .p8-preview-column { display: none; }
   .p8-corporate-header { align-items: flex-start; flex-direction: column; padding: 12px 16px; gap: 8px; }
@@ -2994,7 +3007,7 @@ button .yi-icon, a .yi-icon { pointer-events: none; }
 .yi-metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.yi-metric-grid>div{padding:17px 18px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.72);box-shadow:0 8px 28px rgba(30,25,18,.05)}.yi-metric-grid small{display:block;color:var(--ink-3);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.yi-metric-grid strong{display:block;margin-top:6px;color:var(--ink);font:700 25px var(--font-mono)}.yi-metric-grid span{display:block;margin-top:4px;color:var(--ink-3);font-size:12px}
 .yi-next-step{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px 22px}.yi-next-step>div:first-child span{color:var(--gold-hi);font:700 10px var(--font-mono);letter-spacing:.12em}.yi-next-step h2{margin:5px 0 3px;font-size:21px}.yi-next-step p{margin:0;color:var(--ink-3);font-size:14px}.yi-next-step .yi-actions{flex-wrap:wrap;justify-content:flex-end}
 @media(max-width:900px){.yi-next-step{align-items:flex-start;flex-direction:column}.yi-next-step .yi-actions{justify-content:flex-start}}
-@media(max-width:640px){.yi-app--individual .yi-app__top{padding-inline:16px}.yi-top-account__label{display:none}.yi-top-actions{gap:12px}.yi-top-actions a:first-child{display:none}.yi-dashboard-hero{padding:16px}.yi-dashboard-card{min-height:240px}.yi-metric-grid{grid-template-columns:1fr}.yi-next-step{padding:18px}.yi-page-head h1{font-size:30px}}
+@media(max-width:640px){.yi-app--individual .yi-app__top{min-height:58px;padding-inline:16px}.yi-top-account{max-width:calc(100vw - 146px);overflow:hidden}.yi-top-account>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.yi-top-account__label{display:none}.yi-top-actions{gap:12px}.yi-top-actions a:first-child{display:none}.yi-dashboard-hero{padding:16px}.yi-dashboard-card{min-height:240px}.yi-metric-grid{grid-template-columns:1fr}.yi-next-step{padding:18px}.yi-page-head h1{font-size:30px}.p7-content{padding-top:24px;padding-bottom:48px}.yi-app--individual .yi-page-head{padding-bottom:16px}}
 
 /* P0 Corporate route/data resilience */
 .enterprise-route-loading { min-height:100svh; }
@@ -17040,10 +17053,6 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
     gap: 12px;
   }
 }
-
-
-
-
 
 
 

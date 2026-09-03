@@ -81,7 +81,7 @@ export default function SettingsPage() {
 
   return (
     <UserPanelShell
-      activeKey="settings"
+      activeKey="account"
       eyebrow="HESAP"
       title="Profil ve Ayarlar"
       description="Hesap bilgilerinizi, güvenliğinizi, oturumunuzu ve gizlilik bağlantılarını yönetin."

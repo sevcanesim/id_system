@@ -7,6 +7,7 @@
 .heroGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(18rem, .8fr);
+  align-items: start;
   gap: var(--space-5);
   min-width: 0;
 }

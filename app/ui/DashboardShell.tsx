@@ -26,6 +26,7 @@ export default function DashboardShell({
   children,
   actions = [],
   portal = "individual",
+  activeKey,
 }: {
   title: string;
   description?: string;
@@ -119,6 +120,7 @@ export default function DashboardShell({
           subtitle="Bireysel Panel"
           brandHref="/kartlarim"
           items={INDIVIDUAL_SIDEBAR_CONFIG}
+          activeKey={activeKey}
           onClose={() => setMobileOpen(false)}
           open={mobileOpen}
           className="id-sidebar--individual"
@@ -176,6 +178,7 @@ export default function DashboardShell({
         subtitle="Bireysel Panel"
         brandHref="/kartlarim"
         items={INDIVIDUAL_SIDEBAR_CONFIG}
+        activeKey={activeKey}
         hasCorporateSubscription={hasCorporateSubscription}
         account={{ name: "Bireysel Hesap", meta: accountMeta, initials: accountInitials }}
         onSignOut={signOut}

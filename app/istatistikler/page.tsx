@@ -6,6 +6,7 @@ import UserPanelShell from "../components/UserPanelShell";
 import { Card, EmptyState } from "../components/ui";
 import AnalyticsTrendChart from "../components/ui/AnalyticsTrendChart";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
+import styles from "./AnalyticsPage.module.css";
 
 type Analytics = {
   totalViews: number;
@@ -60,7 +61,7 @@ export default function AnalyticsPage() {
 
   return (
     <UserPanelShell
-      activeKey="analytics"
+      activeKey="connections"
       eyebrow="KART"
       title="İstatistikler"
       description="Dijital profilinizin gerçek görüntülenme verisini sade ve anlamlı metriklerle takip edin."
@@ -74,11 +75,19 @@ export default function AnalyticsPage() {
           action={{ href: "/giris?next=%2Fistatistikler", label: "Hesabına gir" }}
         />
       ) : data.totalViews === 0 && data.last30DaysViews === 0 ? (
-        <EmptyState
-          title="Henüz görüntülenme yok."
-          description="Kartınızı paylaştığınızda görüntülenme ve etkileşim verileri burada oluşur."
-          action={<Link className="ds-button ds-button--primary" href="/kartim">Kartımı Aç</Link>}
-        />
+        <section className={styles.empty} aria-labelledby="analytics-empty-title">
+          <div className={styles.emptyCopy}>
+            <span>İLK PAYLAŞIMINI BEKLİYOR</span>
+            <h2 id="analytics-empty-title">Kartını paylaştığında etkiyi burada görürsün.</h2>
+            <p>Görüntülenmeler, bağlantı tıklamaları ve kişi kaydetmeleri gerçek zamanlı olarak bu alanda toplanır. Henüz örnek veri göstermiyoruz.</p>
+            <Link className="ds-button ds-button--primary" href="/kartim">Kartımı aç ve paylaş</Link>
+          </div>
+          <div className={styles.chartTeaser} aria-hidden="true">
+            <div className={styles.chartHeader}><span>Görüntülenme eğilimi</span><i /></div>
+            <div className={styles.chartBars}><i /><i /><i /><i /><i /><i /><i /></div>
+            <div className={styles.chartLegend}><span /><span /><span /></div>
+          </div>
+        </section>
       ) : (
         <div className="p9-stack">
           <div className="p9-analytics-metrics">

@@ -13,11 +13,13 @@
 .editorSurface :global(.p8-editor) {
   width: min(100%, var(--wide));
   margin-inline: auto;
+  display: grid;
+  gap: var(--space-4);
 }
 
 .editorSurface :global(.p8-editor-grid) {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(20rem, 22.5rem);
+  grid-template-columns: minmax(0, 1fr) minmax(19rem, 22.5rem);
   gap: var(--space-5);
   align-items: start;
 }
@@ -25,6 +27,11 @@
 .editorSurface :global(.p8-form) {
   width: 100%;
   max-width: none;
+  padding: var(--space-2) var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, .04);
 }
 
 .editorSurface :global(.p8-preview-column) {
@@ -79,14 +86,18 @@
 }
 
 .editorSurface :global(.p8-section-nav) {
+  position: static;
   display: flex;
   gap: var(--space-1);
   min-width: 0;
-  margin: 0 0 var(--space-2);
+  margin: 0;
   padding-block: var(--space-2);
   overflow-x: auto;
   scrollbar-width: none;
-  border-bottom: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, .04);
 }
 
 .editorSurface :global(.p8-section-nav::-webkit-scrollbar) {
@@ -111,6 +122,7 @@
 .editorSurface :global(.p8-section-card) {
   padding-block: var(--space-5);
   border-bottom: 1px solid var(--border);
+  scroll-margin-top: var(--space-5);
 }
 
 .editorSurface :global(.p8-section-card:last-of-type) {
@@ -151,6 +163,7 @@
 
 /* Individual studio keeps the editor calm and lets the live device remain the visual anchor. */
 .editorSurface :global(.p8-preview-card) {
+  position: static;
   overflow: hidden;
   border-color: color-mix(in srgb, var(--brand-gold) 24%, var(--border));
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, .04);
@@ -166,8 +179,31 @@
   background: var(--brand-gold-soft);
 }
 
+.editorSurface :global(.p8-international-heading) {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.editorSurface :global(.p8-international-heading span) {
+  color: var(--brand-gold-deep);
+  font-size: var(--type-xs);
+  font-weight: 750;
+  letter-spacing: .09em;
+}
+
+.editorSurface :global(.p8-international-heading p) {
+  margin: var(--space-1) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--type-body-sm);
+}
+
 @media (min-width: 68.8125rem) {
   .editorSurface :global(.p8-corporate-workspace--decoupled .p8-preview-column) {
+    top: var(--space-5);
+  }
+
+  .editorSurface :global(.p8-preview-column) {
     top: var(--space-5);
   }
 }
@@ -196,6 +232,11 @@
 @media (max-width: 47.5rem) {
   .editorSurface :global(.p8-corporate-workspace--decoupled) {
     padding-inline: var(--space-2);
+  }
+
+  .editorSurface :global(.p8-form) {
+    padding-inline: var(--space-4);
+    border-radius: var(--radius-md);
   }
 
   .editorSurface :global(.p8-editor-grid),

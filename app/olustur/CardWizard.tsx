@@ -902,7 +902,7 @@ export default function CardWizard() {
         </section>
 
         <section id="p8-appearance" className="p8-section-card">
-          <div className="p8-section-heading"><span>06</span><div><h2>Profil Görünümü</h2><p>Fotoğraf ve kısa biyografi ile kartınızın ilk izlenimini tamamlayın.</p></div></div>
+          <div className="p8-section-heading"><span>06</span><div><h2>Profil Görünümü &amp; Uluslararası Katman</h2><p>Fotoğraf, kısa biyografi ve İngilizce içerik ile kartınızın ilk izlenimini tamamlayın.</p></div></div>
           <div className="p8-photo-row">
             <div className="p8-photo-preview" aria-hidden="true">{data.image ? <img src={data.image} alt="" /> : <span>{data.name.trim().split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "Y"}</span>}</div>
             <div className="p8-photo-actions"><strong>Profil fotoğrafı</strong><p>JPG, PNG veya WebP · en fazla 5 MB · en az 240 × 240 px.</p><label className="ds-button ds-button--secondary p8-file-button">Fotoğraf Seç<input type="file" accept="image/jpeg,image/png,image/webp" onChange={imageChange} onFocus={() => setActivePreviewTarget("photo")} onBlur={() => setActivePreviewTarget(null)}/></label>{data.image && <Button size="sm" variant="ghost" onClick={() => { update("image", ""); setImageMessage(""); }}>Fotoğrafı Kaldır</Button>}{imageMessage && <span className="p8-field-error" role="alert">{imageMessage}</span>}</div>
@@ -910,6 +910,7 @@ export default function CardWizard() {
           <Field label="Kısa Biyografi" help={`${(data.bio || "").length}/280 karakter`}>
             <Textarea value={data.bio || ""} onChange={(e) => update("bio", e.target.value)} maxLength={280} rows={5} placeholder="Kısa ve profesyonel bir tanıtım yazın..." {...bindTarget("bio")}/>
           </Field>
+          <div className="p8-international-heading"><span>ULUSLARARASI KATMAN</span><p>İngilizce görünümde kullanılacak isteğe bağlı bilgileri ekleyin.</p></div>
           <Field label="İngilizce ünvan" help="Uluslararası networking katmanı. Boş bırakılırsa İngilizce görünümde Türkçe ünvan kullanılır.">
             <Input value={englishRole} onChange={(e) => setEnglishRole(e.target.value)} placeholder="Head of Partnerships" />
           </Field>

@@ -3,7 +3,7 @@ import Link from "next/link";
 const faqItems = [
   [
     "Premium ne ekliyor?",
-    "Premium; NFC + QR kart ve canlı profile ek olarak toplantı, sunum, kişi yönetimi ve 500 Network Mail kredisi içerir. Tanışma sonrasındaki takip akışını tek üründe toplar.",
+    "Premium; NFC + QR kart ve canlı profile ek olarak toplantı, sunum, kişi yönetimi ve 100 Network Mail kredisi içerir. Tanışma sonrasındaki takip akışını tek üründe toplar.",
   ],
   [
     "Uygulama indirmek gerekiyor mu?",

@@ -13,12 +13,12 @@ export function FinalCtaSection() {
       <span className="home-mockup__kicker">ÖNERİLEN · PREMIUM</span>
       <h2 id="final-title">Tanışma kartvizitte bitmesin.</h2>
       <p>
-        NFC + QR kartvizit, kişi yönetimi ve 500 Network Mail tek pakette.
+        NFC + QR kartvizit, kişi yönetimi ve 100 Network Mail tek pakette.
       </p>
       <div className="home-sales-final-offer">
         <strong>{premiumPrice}</strong>
         <span>
-          1 kart · ilk yıl platform erişimi · 500 Network Mail · kargo dahil
+          1 kart · ilk yıl platform erişimi · 100 Network Mail · kargo dahil
         </span>
       </div>
       <div className="home-mockup__actions">

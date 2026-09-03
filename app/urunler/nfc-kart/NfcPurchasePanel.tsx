@@ -73,14 +73,14 @@ export default function NfcPurchasePanel({
         {accessRequired
           ? "Yedek veya replacement kart için aktif bir Yenomi ID hizmetin gerekir. Aşağıdan ilk kartını alabilirsin; ödeme sunucuda yeniden doğrulanır."
           : packageId === "premium"
-            ? "Premium: NFC kart + 1 yıl platform üyeliği + 500 Network Mail. Tek seferlik ödeme. Kart numarası iyzico’da kalır."
+            ? "Premium: NFC kart + 1 yıl platform üyeliği + 100 Network Mail. Tek seferlik ödeme. Kart numarası iyzico’da kalır."
             : "Tek seferlik ödeme, 1 yıl platform üyeliği dahil. Hesabın varsa sipariş bağlanır. Kart numarası Yenomi sunucularında tutulmaz."}
       </p>
 
       <div className="nfc-price-row" id="nfc-hero-price-row">
         <div className="nfc-price-tag">
           <strong>{price}</strong>
-          <small>{packageId === "premium" ? "tek seferlik · NFC + 1 yıl + 500 Network Mail" : "tek seferlik · NFC + 1 yıl dahil"}</small>
+          <small>{packageId === "premium" ? "tek seferlik · NFC + 1 yıl + 100 Network Mail" : "tek seferlik · NFC + 1 yıl dahil"}</small>
         </div>
         <div className="nfc-price-actions">
           <AddToCartButton

@@ -20,7 +20,7 @@ const benefits = [
 ];
 
 const faq = [
-  [`Premium ${COMMERCIAL_COPY.premiumPrice}’ye ne dahil?`, "1 kişiselleştirilmiş NFC + QR kart, canlı dijital profil, kişi yönetimi, toplantı ve sunum araçları, 500 Network Mail kredisi, ilk yıl Premium erişimi ve Türkiye içi standart kargo dahildir."],
+  [`Premium ${COMMERCIAL_COPY.premiumPrice}’ye ne dahil?`, "1 kişiselleştirilmiş NFC + QR kart, canlı dijital profil, kişi yönetimi, toplantı ve sunum araçları, 100 Network Mail kredisi, ilk yıl Premium erişimi ve Türkiye içi standart kargo dahildir."],
   ["2. yılda ne öderim?", `Premium erişimi ${COMMERCIAL_COPY.premiumRenewalPrice}/yıl, Bireysel erişimi ${COMMERCIAL_COPY.renewalPrice}/yıl üzerinden yenilenir. Yenilemede yeni fiziksel kart gönderilmez; mevcut kartın ve QR bağlantın kullanılmaya devam eder.`],
   ["Kart kaç günde hazırlanır?", "Sipariş ve profil bilgileriniz tamamlandıktan sonra kartınız 2 iş günü içinde hazırlanıp kargoya teslim edilir."],
   ["Bilgilerimi değiştirebilir miyim?", "Evet. Aktif kullanım süren boyunca telefon, unvan, şirket, bağlantılar ve diğer profil bilgilerini istediğin kadar güncelleyebilirsin."],

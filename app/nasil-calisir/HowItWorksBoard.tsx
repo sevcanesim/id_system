@@ -15,7 +15,7 @@ const premiumBenefits: Array<{ title: string; text: string; icon: IconName }> = 
   { title: "NFC + QR kart", text: "Tek fiziksel kart, değişmeyen bağlantı ve canlı dijital profil.", icon: "nfc" },
   { title: "Kişi yönetimi", text: "Tanıştığın kişileri kartvizit akışından kaydet ve düzenle.", icon: "id" },
   { title: "Toplantı & sunum", text: "Profesyonel içeriklerini profilinden tek noktada paylaş.", icon: "link" },
-  { title: "500 Network Mail", text: "Tanışma sonrasındaki profesyonel takip e-postalarını gönder.", icon: "mail" },
+  { title: "100 Network Mail", text: "Tanışma sonrasındaki profesyonel takip e-postalarını gönder.", icon: "mail" },
 ];
 
 export function HowItWorksBoard() {
@@ -31,7 +31,7 @@ export function HowItWorksBoard() {
             <p>Yenomi ID Premium yalnızca dijital kartvizit değildir. NFC + QR ile paylaşımın ardından kişi yönetimi, toplantı, sunum ve Network Mail ile profesyonel takip akışını sürdürür.</p>
             <div className="how-simple-hero__offer">
               <strong>{premiumPrice}</strong>
-              <span>1 yıl · NFC + QR · 500 Network Mail · Türkiye içi kargo</span>
+              <span>1 yıl · NFC + QR · 100 Network Mail · Türkiye içi kargo</span>
             </div>
             <div className="how-simple-actions">
               <Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart?paket=premium">Premium’u Seç →</Link>
@@ -107,7 +107,7 @@ export function HowItWorksBoard() {
           <div>
             <span className="section-kicker">YENOMI ID PREMIUM</span>
             <h2 id="how-final-title">Bir sonraki tanışmayı takip edebil.</h2>
-            <p>NFC + QR kart, canlı profil, kişi yönetimi, toplantı, sunum ve 500 Network Mail tek pakette.</p>
+            <p>NFC + QR kart, canlı profil, kişi yönetimi, toplantı, sunum ve 100 Network Mail tek pakette.</p>
           </div>
           <div className="how-simple-final__buy">
             <strong>{premiumPrice}</strong>

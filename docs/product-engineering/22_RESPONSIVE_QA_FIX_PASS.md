@@ -15,6 +15,7 @@ Bu tur, önceki statik audit'in devamı olarak **canlı production build üzerin
 | Cart ikonu masaüstünde 48/52px yerine 44px | **NEEDS FIX (rapor)** | Ölü CSS, düzeltilmedi — aşağıda neden |
 | Container/breakpoint sistemi tutarsızlığı | **NEEDS FIX (rapor)** | Büyük mimari değişiklik, bu turun kapsamı dışında |
 | Bireysel/Kurumsal panel sayfaları | **BLOCKED** | Gerçek Supabase test kimlik bilgisi yok |
+| Header nav — 981-1180px arası havada asılı panel | **FIXED (kritik)** | Kullanıcı tarafından bildirildi, bu turda düzeltildi — bkz. §9 |
 
 ## 1) Sticky satın alma CTA — PASS
 
@@ -72,10 +73,25 @@ Bunların hiçbiri tek başına "kırık" değil (siteyi bozmuyorlar), ama uzun 
 
 `tests/e2e/visual-layout-audit.spec.ts`, production build + Playwright ile tekrar koşuldu. Bu turun değişiklikleriyle ilişkili **hiçbir yeni fail yok** (route/viewport bazlı fark analizi yapıldı). Koşu sırasında `/destek` ve `/kurumsal`'da bu değişikliklerle ilgisiz, aralıklı 4 fail gözlendi — kaynağı `app/components/ui/States.tsx`'teki sayfa yükleme iskeleti (`YENOMI ID` etiketi, 9.5px), yani testin "load" event'i ile React hydration/veri çekme arasındaki bir yarış durumu (test kırılganlığı), bu değişikliklerden bağımsız — kod tabanında dokunulmadı.
 
-## 9) Bilinen sınırlamalar
+## 9) Header nav — 981-1180px arası "havada asılı" dropdown — FIXED (kritik)
+
+Kullanıcının kendi `localhost:3000` ekran görüntülerinde bildirdiği "boyutlanmada ciddi problem, elemanlar üst üste biniyor / taşıyor" şikayeti canlı genişlik taramasıyla doğrulandı ve kök nedeni bulundu:
+
+**Bulgu:** `app/canonical.css` içinde `.public-site-chrome .yi-nav` (masaüstü/mobil menü paneli) ve `.public-site-chrome .yi-menu` (hamburger düğmesi) için eski bir "Geometry" düzeltme bloğu `@media (max-width: 1180px)` kesme noktasını kullanıyordu. Ama site genelindeki güncel/nihai responsive sözleşme (`app/styles/canonical-responsive-final.css`, `app/mobile-canonical.css`) ve masaüstü nav'ı her zaman `display:flex` yapan scope'suz (media query'siz) kurallar (`public-chrome-premium.css`, `public-header-unified.css`) **980px**'i esas alıyordu.
+
+Sonuç: **981px-1180px arası genişliklerde** (yaygın bir laptop/pencere-yeniden-boyutlandırma aralığı):
+- `.yi-nav`'ın "kapalı" `display:none` durumu, daha sonra yüklenen dosyalardaki scope'suz `display:flex` kuralları tarafından eziliyordu (aynı özgüllük, sonraki dosya kazanıyor) — panel **görünür** hale geliyordu.
+- Ama aynı eski bloktaki `position:absolute; inset:auto 16px; top:calc(100% + 8px); z-index:20` gibi konumlandırma kuralları hiçbir sonraki dosya tarafından geçersiz kılınmıyordu — panel **header'ın altında, sağ üstte havada asılı** kalıyordu.
+- Kullanıcı hiçbir şeye tıklamamış olsa bile (React state `open=false`) bu görsel çakışma oluşuyordu — `pointer-events:none` sayesinde tıklanamaz ama **görünür ve içerikle çakışan** bir panel olarak render ediliyordu. Kullanıcının ekran görüntülerindeki "Dijital Kartvizit / Nasıl Çalışır / Kurumsal Çözümler / Yardım Merkezi" öğelerini gösteren, hero görselinin üzerine binen panel tam olarak buydu.
+
+**Düzeltme** (`app/canonical.css`, iki `@media` bloğu, yalnızca kesme noktası değişti): `max-width: 1180px` → `max-width: 980px`, sitedeki tek "nihai" mobil/masaüstü nav kesme noktasıyla hizalandı. Böylece 981px'ten itibaren nav satır içi (`position:static; display:flex`) render ediliyor, `.yi-menu` gizleniyor — 980px ve altında ise hamburger + kapalı/açılır panel modeli tutarlı çalışıyor.
+
+**Doğrulama:** 760/850/900/950/979/980/981/1000/1050/1100/1150/1180/1181/1200/1280/1920px genişliklerinde canlı DOM/computed-style ölçümü yapıldı — 980px'e kadar hamburger modeli, 981px'ten itibaren satır içi masaüstü nav, ara bölgede hiçbir "havada asılı" panel yok. `/`, `/urunler`, `/kurumsal`, `/nasil-calisir`, `/destek` sayfalarında 1040px'te ayrıca doğrulandı — hepsi satır içi nav gösteriyor. 981px ve 1150px ekran görüntülerinde header'da taşma/kırpılma/çakışma yok (mevcut container genişliği bu aralıkta rahat yer bırakıyor). Playwright regresyon takımı (`visual-layout-audit.spec.ts`) bu değişiklikten sonra da temiz geçti (59 passed, 0 failed — önceki turdaki `/destek`/`/kurumsal` yükleme-iskeleti kırılganlığı bu koşuda hiç görülmedi).
+
+## 10) Bilinen sınırlamalar
 
 - Bireysel panel (`/kartim`, `/ayarlar`, `/siparislerim`...) ve Kurumsal panel (`/kurumsal/panel/*`) rotaları `auth:true` olduğu için mevcut test suite'i tarafından atlanıyor — gerçek Supabase test kullanıcı/şifre bilgisi olmadan bu sandbox'ta doğrulanamıyor.
 - `/urunler/nfc-kart` sayfasının interaktif (scroll) davranışı, sandbox'ta ürün verisi yüklenmediği için sadece statik kod incelemesiyle doğrulandı, canlı scroll testiyle değil.
 
 ---
-*Branch: `audit/full-47-route-visual-layout` · Bu turun commit'leri: `1abf2f5` (ve önceki turun 6 commit'i: `d811d4b`…`45333f3`)*
+*Branch: `audit/full-47-route-visual-layout` · Bu turun commit'leri: `1abf2f5`, ve header nav düzeltmesi (ve önceki turun 6 commit'i: `d811d4b`…`45333f3`)*

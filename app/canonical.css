@@ -13704,7 +13704,16 @@ body:has(.legal-page) .yi-footer__trust .yi-icon {
   max-height: none;
 }
 
-@media (max-width: 1180px) {
+/* Breakpoint aligned to the canonical/final responsive contract's
+   980px mobile-nav threshold (see app/styles/canonical-responsive-final.css).
+   This block used to fire at max-width:1180px while the later-loaded
+   "final" drawer rules only re-hid the panel at max-width:980px — in the
+   981-1180px gap the two disagreed: this block's display:none/position:absolute
+   lost to unscoped `.public-site-chrome .yi-nav{display:flex}` rules loaded
+   after it (public-chrome-premium.css, public-header-unified.css), while its
+   position:absolute/inset/top were never re-overridden, leaving a visible,
+   non-interactive nav panel floating over page content at those widths. */
+@media (max-width: 980px) {
   .public-site-chrome .yi-menu {
     display: block;
     pointer-events: auto;
@@ -13859,7 +13868,7 @@ body:has(.legal-page) .yi-footer__trust .yi-icon {
   padding-inline: 2.5em;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 980px) {
   .public-site-chrome .yi-nav {
     max-width: min(420px, calc(100% - 32px));
     margin-left: auto;

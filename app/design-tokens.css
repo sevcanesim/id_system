@@ -59,6 +59,11 @@
   --type-display: clamp(48px, 6vw, 76px);
   --type-metric: 24px;
 
+  --line-height-tight: 1.15;
+  --line-height-snug: 1.35;
+  --line-height-body: 1.55;
+  --line-height-relaxed: 1.7;
+
   --radius-xs: 6px;
   --radius-sm: 10px;
   --radius-md: 14px;

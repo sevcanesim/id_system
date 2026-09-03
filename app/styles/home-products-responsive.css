@@ -329,6 +329,100 @@
   }
 }
 
+/* Home hero: the one-column layout begins before a narrow phone viewport.
+   Keep every pricing and proof value in its own available track so a scaled
+   browser window cannot retain a compressed desktop row. */
+@media (max-width: 47.5rem) {
+  .home-mockup .home-sales-hero,
+  .home-mockup .home-sales-copy,
+  .home-mockup .home-sales-stage,
+  .home-mockup .home-sales-offer,
+  .home-mockup .home-sales-trust {
+    min-width: 0;
+  }
+
+  .home-mockup .home-sales-hero {
+    width: 100%;
+    gap: var(--space-6);
+    padding: var(--space-8) var(--page-gutter);
+  }
+
+  .home-mockup .home-sales-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+    width: 100%;
+    margin-top: var(--space-5);
+  }
+
+  .home-mockup .home-sales-actions > * {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .home-mockup .home-sales-offer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-2);
+    margin-top: var(--space-5);
+  }
+
+  .home-mockup .home-sales-offer :is(strong, span) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .home-mockup .home-sales-trust {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3) var(--space-4);
+    margin-top: var(--space-4);
+  }
+
+  .home-mockup .home-sales-trust span {
+    min-width: 0;
+    align-items: flex-start;
+    line-height: var(--line-height-snug);
+    overflow-wrap: anywhere;
+  }
+
+  .home-mockup .home-sales-stage {
+    min-height: 22.5rem;
+    padding: 3.5rem var(--space-5) 3.25rem;
+    overflow: hidden;
+  }
+
+  .home-mockup .home-hero-specimens {
+    width: min(100%, 24rem);
+    height: auto;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .home-mockup .home-hero-specimens > .yi-product-ui--card {
+    width: 100%;
+    max-width: none;
+    transform: rotate(-2deg);
+  }
+}
+
+@media (max-width: 30rem) {
+  .home-mockup .home-sales-trust {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .home-mockup .home-sales-stage {
+    min-height: 19rem;
+    padding-inline: var(--space-4);
+  }
+
+  .home-mockup .home-hero-specimens {
+    width: min(100%, 19rem);
+  }
+}
+
 @media (max-width: 22.5rem) {
   .home-sales-mobile-cta {
     grid-template-columns: minmax(0, 1fr);

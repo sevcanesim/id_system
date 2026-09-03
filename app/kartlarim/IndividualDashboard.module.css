@@ -75,6 +75,23 @@
   line-height: 1.1;
 }
 
+.studio {
+  gap: var(--space-3);
+  align-content: start;
+  border: 1px solid color-mix(in srgb, var(--brand-gold) 26%, var(--border));
+  background: linear-gradient(145deg, var(--surface-card), var(--brand-gold-soft));
+}
+
+.studioSpecimen {
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.studio :global(.ds-button) {
+  justify-self: start;
+}
+
 .factGrid,
 .metricGrid {
   display: grid;

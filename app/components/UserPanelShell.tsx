@@ -5,6 +5,7 @@ type Action = { href?: string; label: string; primary?: boolean; onClick?: () =>
 export default function UserPanelShell({
   title,
   description,
+  eyebrow,
   children,
   actions = [],
   activeKey,
@@ -17,9 +18,8 @@ export default function UserPanelShell({
   activeKey?: string;
 }) {
   return (
-    <DashboardShell title={title} description={description} actions={actions} activeKey={activeKey}>
+    <DashboardShell title={title} description={description} eyebrow={eyebrow} actions={actions} activeKey={activeKey}>
       {children}
     </DashboardShell>
   );
 }
-

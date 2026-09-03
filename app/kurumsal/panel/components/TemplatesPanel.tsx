@@ -1,9 +1,9 @@
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { Icon } from "../../../icons";
 import CardTemplate, { type CardBranding, type EditableCardData } from "../../../CardTemplate";
-import CorporateTemplateSelector from "./CorporateTemplateSelector";
 import CardPreviewFrame from "./CardPreviewFrame";
-import type { DatabaseTemplateOption } from "../../../../lib/config/database";
+import { YenomiProductVisual } from "../../../ui/YenomiProductVisual";
+import styles from "./TemplatesPanel.module.css";
 
 type TemplateDraft = {
   name: string;
@@ -12,15 +12,12 @@ type TemplateDraft = {
 };
 
 type Props = {
-  templateVariant: string;
-  onTemplateVariantChange: (variant: string) => void;
   template: TemplateDraft;
   setTemplate: Dispatch<SetStateAction<TemplateDraft>>;
   previewBranding: CardBranding;
   previewData: EditableCardData;
   activeTemplateName: string | null;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
-  templateOptions: DatabaseTemplateOption[];
 };
 
 const DEFAULT_BRAND_COLOR = "#17121F";
@@ -30,25 +27,16 @@ function normalizeBrandColor(value: string) {
   return HEX_COLOR_PATTERN.test(value.trim()) ? value.trim().toUpperCase() : DEFAULT_BRAND_COLOR;
 }
 
-function variantLabel(templateVariant: string) {
-  const normalized = templateVariant.replace("CLASSIC", "ESSENTIAL").replace("MINIMAL", "PROFESSIONAL");
-  if (normalized === "ESSENTIAL") return "Essential";
-  if (normalized === "PROFESSIONAL") return "Professional";
-  return "Executive";
-}
+const LAUNCH_TEMPLATE_LABEL = "Matte Obsidian / Essential";
 
 export default function TemplatesPanel({
-  templateVariant,
-  onTemplateVariantChange,
   template,
   setTemplate,
   previewBranding,
   previewData,
   activeTemplateName,
   onSubmit,
-  templateOptions,
 }: Props) {
-  const currentVariant = variantLabel(templateVariant);
   const safeBrandColor = normalizeBrandColor(template.primaryColor);
 
   return (
@@ -64,7 +52,7 @@ export default function TemplatesPanel({
         <div className="corporate-template-studio__status" aria-label="Aktif şablon durumu">
           <small>AKTİF ŞABLON</small>
           <strong>{activeTemplateName || template.name || "Kurumsal Standart"}</strong>
-          <span>{currentVariant}</span>
+          <span>{LAUNCH_TEMPLATE_LABEL}</span>
         </div>
       </header>
 
@@ -73,16 +61,16 @@ export default function TemplatesPanel({
           <section className="corporate-template-section" aria-labelledby="template-style-title">
             <header className="corporate-template-section__header">
               <div className="corporate-template-section__index">01</div>
-              <div>
-                <h3 id="template-style-title">Kart stilini seç</h3>
-                <p>Kurumsal kimliğine en uygun temel yerleşimi belirle.</p>
-              </div>
+              <div><h3 id="template-style-title">Yayın standardı</h3><p>Canlıdaki tüm kurumsal kartlar aynı güvenilir görünümü kullanır.</p></div>
             </header>
-            <CorporateTemplateSelector
-              value={templateVariant}
-              onChange={onTemplateVariantChange}
-              options={templateOptions}
-            />
+            <div className={styles.launchStandard}>
+              <div>
+                <span>TEK AKTİF ŞABLON</span>
+                <strong>{LAUNCH_TEMPLATE_LABEL}</strong>
+                <p>Marka rengin, logo ve çalışan bilgilerin bu standart specimen üzerinde uygulanır. Diğer varyantlar kod seviyesinde korunur; canlı arayüzde gösterilmez.</p>
+              </div>
+              <YenomiProductVisual variant="card" compact />
+            </div>
           </section>
 
           <section className="corporate-template-section" aria-labelledby="template-brand-title">
@@ -159,7 +147,7 @@ export default function TemplatesPanel({
           <footer className="corporate-template-savebar">
             <div>
               <small>YAYINA ALINACAK GÖRÜNÜM</small>
-              <strong>{template.name || "Kurumsal Şablon"} · {currentVariant}</strong>
+              <strong>{template.name || "Kurumsal Şablon"} · {LAUNCH_TEMPLATE_LABEL}</strong>
             </div>
             <button type="submit">Şablonu kaydet</button>
           </footer>
@@ -171,7 +159,7 @@ export default function TemplatesPanel({
               <small>CANLI ÖNİZLEME</small>
               <strong>{template.name || "Kurumsal Şablon"}</strong>
             </div>
-            <span>{currentVariant}</span>
+            <span>{LAUNCH_TEMPLATE_LABEL}</span>
           </header>
 
           <div className="corporate-template-preview__stage">

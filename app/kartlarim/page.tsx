@@ -10,6 +10,7 @@ import { isManagementRole } from "../../lib/organizations/permissions";
 import { cardShareUrl } from "../../lib/public-card/urls";
 import { Button, ButtonLink, DashboardShell } from "../ui";
 import { LoadingState } from "../components/ui/States";
+import { YenomiProductVisual } from "../ui/YenomiProductVisual";
 import styles from "./IndividualDashboard.module.css";
 
 type Entitlement = {
@@ -62,11 +63,6 @@ const STATUS_LABEL: Record<OperationalStatus, string> = {
 function formatDateTime(value?: string | null) {
   if (!value) return "—";
   return new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
-}
-
-function daysUntil(value?: string | null) {
-  if (!value) return null;
-  return Math.max(0, Math.ceil((new Date(value).getTime() - Date.now()) / 86_400_000));
 }
 
 function processStep(status?: OperationalStatus | null) {
@@ -152,7 +148,6 @@ export default function MyCardsPage() {
     return entitlements[0];
   }, [entitlements, primary]);
   const completion = useMemo(() => primary ? Math.min(100, PROFILE_FIELDS.filter((field) => Boolean(primary[field])).length * 20) : 0, [primary]);
-  const renewalDays = daysUntil(primaryEntitlement?.expires_at);
   const currentStep = processStep(process?.operations_status);
   const profileUrl = primary?.slug ? cardShareUrl(primary.slug) : "";
 
@@ -191,7 +186,7 @@ export default function MyCardsPage() {
   }
 
   return (
-    <DashboardShell title={primary?.name ? `Merhaba, ${primary.name.split(" ")[0]}` : "Genel Bakış"} description="Dijital kimliğin, fiziksel kartın ve hizmet süren tek yerde.">
+    <DashboardShell eyebrow="BİREYSEL HESAP" title={primary?.name ? `Merhaba, ${primary.name.split(" ")[0]}` : "Genel Bakış"} description="Dijital kimliğin, fiziksel kartın ve hizmet süren tek yerde.">
       <div className={styles.page}>
         {!primary ? (
           <section className={styles.notice}>
@@ -211,10 +206,20 @@ export default function MyCardsPage() {
                 </div>
                 {message && <p className={styles.message} role="status">{message}</p>}
               </div>
-              <div className={styles.countdown}>
-                <span className={styles.eyebrow}>HİZMET SÜRESİ</span>
-                <strong>{renewalDays == null ? "—" : `${renewalDays} gün`}</strong>
-                <span>{renewalDays == null ? "Yenileme tarihi hazırlanıyor" : "Yenilemeye kalan süre"}</span>
+              <div className={`${styles.countdown} ${styles.studio}`}>
+                <span className={styles.eyebrow}>KARTVİZİT STÜDYOSU</span>
+                <div className={styles.studioSpecimen}>
+                  <YenomiProductVisual
+                    variant="card"
+                    compact
+                    name={primary.name || "Selin Kaya"}
+                    role={primary.role || "Ürün Yöneticisi"}
+                    company={primary.company || "Yenomi Labs"}
+                  />
+                </div>
+                <strong>Canlı dijital profil</strong>
+                <span>vCard, QR ve Kayıp Modu ayarlarını tek stüdyoda yönet.</span>
+                <ButtonLink href="/kartim" variant="secondary">Stüdyoyu aç</ButtonLink>
               </div>
             </section>
 

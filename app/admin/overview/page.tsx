@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 import { type Order, money, orderOperationsState, needsPhysicalFulfillment } from "../../../lib/admin/order-classification";
+import { YenomiProductVisual } from "../../ui/YenomiProductVisual";
+import { LoadingState } from "../../components/ui/States";
 import styles from "./AdminOverview.module.css";
 
 type OperationsSummary = {
@@ -79,13 +81,16 @@ export default function AdminOverviewPage() {
     renewals: operations.renewalNotices.filter((notice) => !["PAID", "CANCELLED"].includes(notice.status)).length,
   }), [orders, operations]);
 
-  if (loading) return <main id="main-content" className={styles.page}><section className={styles.shell}><div className={styles.message}>Genel bakış yükleniyor…</div></section></main>;
+  if (loading) return <main id="main-content" className={styles.page}><section className={styles.shell}><LoadingState variant="panel" label="Platform özeti hazırlanıyor" hint="Siparişler ve operasyon verileri birleştiriliyor." /></section></main>;
   if (!authorized) return <main id="main-content" className={styles.page}><section className={styles.shell}><div className={styles.message}>Bu alan yalnız Super Admin kullanıcılarına açıktır. <Link href="/giris">Giriş yap</Link></div></section></main>;
 
   return <main id="main-content" className={styles.page}><section className={styles.shell}>
     <div className={styles.heading}>
-      <div><span className={styles.kicker}>GENEL BAKIŞ</span><h1>Tüm operasyon alanlarının tek ekranda özeti.</h1><p>Her rakam kendi domain sayfasına bağlıdır; aksiyon burada değil, ilgili sekmede alınır.</p></div>
-      <button type="button" className={styles.button} onClick={() => void load()}>Veriyi yenile</button>
+      <div className={styles.headingCopy}><span className={styles.kicker}>PLATFORM GENEL BAKIŞ</span><h1>Tüm operasyon alanlarının tek ekranda özeti.</h1><p>Her rakam kendi domain sayfasına bağlıdır; aksiyon burada değil, ilgili sekmede alınır.</p></div>
+      <div className={styles.headingActions}>
+        <div className={styles.headingVisual}><YenomiProductVisual variant="dashboard" compact /></div>
+        <button type="button" className={styles.button} onClick={() => void load()}>Veriyi yenile</button>
+      </div>
     </div>
     {message && <div className={styles.message} role="status">{message}</div>}
     <div className={styles.stats}>

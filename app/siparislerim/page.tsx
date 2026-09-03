@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import UserPanelShell from "../components/UserPanelShell";
 import { Badge, ButtonLink, Card, EmptyState } from "../components/ui";
+import { LoadingState } from "../components/ui/States";
 import { safeClientMessage } from "../../lib/errors";
 import ResumePaymentButton from "./ResumePaymentButton";
 import styles from "./OrdersPage.module.css";
@@ -125,7 +126,7 @@ export default function MyOrdersPage() {
 
   const activeCount = useMemo(() => orders.filter((order) => !["COMPLETED", "CANCELLED", "REFUNDED"].includes(order.status)).length, [orders]);
 
-  if (loading) return <UserPanelShell activeKey="orders" title="Siparişlerim & Kart Süreci" description="Sipariş ve kargo bilgilerin yükleniyor."><Card><p>Siparişler yükleniyor…</p></Card></UserPanelShell>;
+  if (loading) return <UserPanelShell activeKey="orders" title="Siparişlerim & Kart Süreci" description="Sipariş ve kargo bilgilerin yükleniyor."><LoadingState variant="panel" label="Siparişlerin hazırlanıyor" hint="Sipariş, baskı ve kargo bilgilerin güvenle yükleniyor." /></UserPanelShell>;
   if (!signedIn) return <UserPanelShell activeKey="orders" title="Siparişlerim & Kart Süreci" description="Siparişlerini görüntülemek için hesabına giriş yap."><EmptyState title="Oturum gerekli" description="Siparişlerin hesabına bağlandığında burada görünür." action={<ButtonLink href="/giris?next=%2Fsiparislerim">Hesabına gir</ButtonLink>} /></UserPanelShell>;
 
   return (

@@ -17,14 +17,19 @@ export function YenomiProductVisual({
   compact = false,
   face = "front",
   finish = "matte",
+  name = SPECIMEN.name,
   role = SPECIMEN.role,
+  company = SPECIMEN.company,
 }: {
   variant?: VisualVariant;
   compact?: boolean;
   face?: CardFace;
   finish?: CardFinish;
+  name?: string;
   role?: string;
+  company?: string;
 }) {
+  const initials = name.trim().split(/\s+/).slice(0, 2).map((part) => part.charAt(0)).join("").toLocaleUpperCase("tr-TR") || SPECIMEN.initials;
   if (variant === "dashboard") {
     return (
       <div className={`yi-product-ui yi-product-ui--dashboard${compact ? " yi-product-ui--compact" : ""}`} aria-hidden="true">
@@ -61,9 +66,9 @@ export function YenomiProductVisual({
       <div className={foilClass} aria-hidden="true">
         <div className="yi-card-face">
           <div className="yi-card-identity">
-            <strong>{SPECIMEN.name}</strong>
+            <strong>{name}</strong>
             <span className="yi-card-role">{role}</span>
-            <b>{SPECIMEN.company}</b>
+            <b>{company}</b>
           </div>
           <div className="yi-card-nfc-mark">
             <Icon name="nfc" />
@@ -80,12 +85,12 @@ export function YenomiProductVisual({
         <span>CANLI PROFİL</span>
         <b>NFC + QR</b>
         <div className="yi-profile-portrait">
-          <em>{SPECIMEN.initials}</em>
+          <em>{initials}</em>
         </div>
       </div>
       <div className="yi-profile-body">
-        <strong>{SPECIMEN.name}</strong>
-        <span>{role} · {SPECIMEN.company}</span>
+        <strong>{name}</strong>
+        <span>{role} · {company}</span>
         <p className="yi-profile-bio">Kart bir kez basılır. Unvanın değişince profil güncellenir; baskı tekrarlanmaz.</p>
         <div className="yi-profile-cta-row">
           <div className="yi-profile-save">Rehbere Kaydet</div>

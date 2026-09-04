@@ -120,6 +120,10 @@ function sourceBadgeClass(link: CorporateLink) {
     : "corp-link-source-badge corp-link-source-badge--url";
 }
 
+function versionSummary(link: CorporateLink, versionCount: number) {
+  return link.configured ? `${versionCount} sürüm` : `Arşiv: ${versionCount} sürüm`;
+}
+
 function compactFileName(name: string, max = 36) {
   const trimmed = name.trim();
   const dot = trimmed.lastIndexOf(".");
@@ -202,6 +206,7 @@ export default function CorporateLinksPanel({
           const busy = linkBusyKind === link.kind;
           const isMeeting = link.kind === "MEETING";
           const versions = linkVersions.filter((version) => version.kind === link.kind && !deletedVersionIds.has(version.id));
+          const isArchivedOnly = !link.configured && versions.length > 0;
           return (
             <details className="corp-link-card" key={link.kind} open={index === 0}>
               <summary className="corp-link-card__summary">
@@ -220,7 +225,12 @@ export default function CorporateLinksPanel({
                       {sourceLabel(link)}
                     </StatusBadge>
                   )}
-                  {versions.length > 0 && <StatusBadge tone="info" className="corp-link-version-badge">{versions.length} sürüm</StatusBadge>}
+                  {versions.length > 0 && (
+                    <StatusBadge tone={isArchivedOnly ? "neutral" : "info"} className="corp-link-version-badge">
+                      {isArchivedOnly && <Icon name="clock" />}
+                      {versionSummary(link, versions.length)}
+                    </StatusBadge>
+                  )}
                 </div>
                 <span className="corp-link-card__chevron" aria-hidden="true"><Icon name="chevronDown" /></span>
               </summary>
@@ -274,7 +284,19 @@ export default function CorporateLinksPanel({
 
                 {versions.length > 0 && (
                   <details className="corp-link-history">
-                    <summary><span><Icon name="clock" /><strong>Sürüm geçmişi</strong><small>{versions.length} kayıt</small></span><Icon name="chevronDown" /></summary>
+                    <summary>
+                      <span>
+                        <Icon name="clock" />
+                        <strong>{isArchivedOnly ? "Arşivlenmiş sürümler" : "Sürüm geçmişi"}</strong>
+                        <small>{isArchivedOnly ? `Güncel içerik yok · ${versions.length} kayıt` : `${versions.length} kayıt`}</small>
+                      </span>
+                      <Icon name="chevronDown" />
+                    </summary>
+                    {isArchivedOnly && (
+                      <p className="corp-link-history__notice">
+                        <Icon name="alert" /> Bu kartta aktif içerik yok. Bir sürümü geri alarak yeniden düzenleyebilir veya yayınlayabilirsiniz.
+                      </p>
+                    )}
                     <ol>
                       {versions.slice(0, 6).map((version) => {
                         const publication = versionPublication(version);

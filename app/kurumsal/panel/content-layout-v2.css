@@ -171,6 +171,25 @@
   border-top: 1px solid var(--border);
 }
 
+.p10-corporate-platform .corp-link-history__notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border);
+  background: var(--canvas);
+  color: var(--text-secondary);
+  font-size: var(--type-caption);
+  line-height: 1.45;
+}
+
+.p10-corporate-platform .corp-link-history__notice svg {
+  flex: 0 0 auto;
+  margin-top: .1rem;
+  color: var(--warning);
+}
+
 .p10-corporate-platform .corp-link-history__item {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(10rem, auto) auto;

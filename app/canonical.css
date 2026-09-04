@@ -3974,6 +3974,53 @@
 .business-template-phone > * { width: 100%; }
 
 .corp-links-panel { display: grid; gap: 18px; }
+.corp-links-panel .corp-link-publication-badge,
+.corp-links-panel .corp-link-source-badge,
+.corp-links-panel .corp-link-version-badge,
+.corp-links-panel .corp-link-history-badge {
+  border: 1px solid transparent;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.56);
+}
+.corp-links-panel .corp-link-publication-badge.ds-status-badge--success,
+.corp-links-panel .corp-link-history-badge.ds-status-badge--success {
+  background: #eaf6ee;
+  border-color: #c9e8d4;
+  color: #27794f;
+}
+.corp-links-panel .corp-link-publication-badge.ds-status-badge--warning,
+.corp-links-panel .corp-link-history-badge.ds-status-badge--warning {
+  background: #fff4df;
+  border-color: #f0d49c;
+  color: #956316;
+}
+.corp-links-panel .corp-link-publication-badge.ds-status-badge--neutral,
+.corp-links-panel .corp-link-history-badge.ds-status-badge--neutral {
+  background: #f2f0ec;
+  border-color: #e3ded6;
+  color: #716b63;
+}
+.corp-links-panel .corp-link-publication-badge.ds-status-badge--info,
+.corp-links-panel .corp-link-history-badge.ds-status-badge--info,
+.corp-links-panel .corp-link-version-badge {
+  background: #f0edff;
+  border-color: #dcd2fb;
+  color: #6951a3;
+}
+.corp-links-panel .corp-link-source-badge--pdf {
+  background: #eaf2ff;
+  border-color: #cadcf7;
+  color: #376ba9;
+}
+.corp-links-panel .corp-link-source-badge--calendar {
+  background: #f3ebff;
+  border-color: #e0cef9;
+  color: #7653a9;
+}
+.corp-links-panel .corp-link-source-badge--url {
+  background: #e7f6f0;
+  border-color: #c6e8dc;
+  color: #277966;
+}
 .corp-links-list { display: grid; gap: 16px; margin: 0; padding: 0; list-style: none; }
 .corp-links-list > li {
   display: grid;
@@ -16907,6 +16954,5 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
     gap: 12px;
   }
 }
-
 
 

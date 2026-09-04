@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import AnalyticsTrendChart from "../../../components/ui/AnalyticsTrendChart";
 import { EmptyState, LoadingState } from "../../../components/ui/States";
+import { StatusBadge } from "../../../components/ui/DesignSystem";
+import { Icon } from "../../../icons";
 import type { CardAnalytics } from "../domain/types";
 
 type Props = {
@@ -105,10 +107,26 @@ export default function AnalyticsPanel({
       ) : (
         <>
           <div className="p11-kpis">
-            <article><small>Toplam görüntülenme</small><strong>{totalViews.toLocaleString("tr-TR")}</strong><span>Son {analyticsDays} gün</span></article>
-            <article><small>Son 30 gün</small><strong>{last30DaysViews.toLocaleString("tr-TR")}</strong><span>Dönem karşılaştırması</span></article>
-            <article><small>İçerik etkileşimi</small><strong>{totalInteractions.toLocaleString("tr-TR")}</strong><span>URL ve PDF</span></article>
-            <article><small>Öne çıkan kart</small><strong>{leadingCard ? leadingCard.count.toLocaleString("tr-TR") : "—"}</strong><span>{leadingCard?.name || "Henüz sıralama yok"}</span></article>
+            <article>
+              <small><Icon name="eye" /> Toplam görüntülenme</small>
+              <strong>{totalViews.toLocaleString("tr-TR")}</strong>
+              <span>Son {analyticsDays} gün</span>
+            </article>
+            <article>
+              <small><Icon name="clock" /> Son 30 gün</small>
+              <strong>{last30DaysViews.toLocaleString("tr-TR")}</strong>
+              <span>Dönem karşılaştırması</span>
+            </article>
+            <article>
+              <small><Icon name="external" /> İçerik etkileşimi</small>
+              <strong>{totalInteractions.toLocaleString("tr-TR")}</strong>
+              <span>URL ve PDF</span>
+            </article>
+            <article>
+              <small><Icon name="id" /> Öne çıkan kart</small>
+              <strong>{leadingCard ? leadingCard.count.toLocaleString("tr-TR") : "—"}</strong>
+              <span>{leadingCard?.name || "Henüz sıralama yok"}</span>
+            </article>
           </div>
 
           <div className="v26-reference-main-row p11-analytics-main">
@@ -152,20 +170,20 @@ export default function AnalyticsPanel({
           </div>
 
           <section className="p11-analytics-compare" aria-label="Karşılaştırma">
-            <article><small>Seçili dönem</small><strong>{totalViews.toLocaleString("tr-TR")}</strong><span>Toplam görüntülenme</span></article>
-            <article><small>Son 30 gün</small><strong>{last30DaysViews.toLocaleString("tr-TR")}</strong><span>Dönem karşılaştırması</span></article>
-            <article><small>URL tıklaması</small><strong>{contentClicks.toLocaleString("tr-TR")}</strong><span>İçerik etkileşimi</span></article>
-            <article><small>PDF indirme</small><strong>{contentDownloads.toLocaleString("tr-TR")}</strong><span>Dosya etkileşimi</span></article>
+            <article><small><Icon name="analytics" /> Seçili dönem</small><strong>{totalViews.toLocaleString("tr-TR")}</strong><span>Toplam görüntülenme</span></article>
+            <article><small><Icon name="clock" /> Son 30 gün</small><strong>{last30DaysViews.toLocaleString("tr-TR")}</strong><span>Dönem karşılaştırması</span></article>
+            <article><small><Icon name="external" /> URL tıklaması</small><strong>{contentClicks.toLocaleString("tr-TR")}</strong><span>İçerik etkileşimi</span></article>
+            <article><small><Icon name="fileText" /> PDF indirme</small><strong>{contentDownloads.toLocaleString("tr-TR")}</strong><span>Dosya etkileşimi</span></article>
           </section>
 
           {(remainingCards.length > 0 || countryRankings.length > 0 || departmentRankings.length > 0) && (
             <div className="p11-analytics-rankings">
               {remainingCards.length > 0 && (
                 <div className="p10-ranking">
-                  <h3>Diğer kartlar</h3>
+                  <h3><Icon name="id" /> Diğer kartlar</h3>
                   {remainingCards.map((cardRanking, rankingIndex) => (
                     <div key={cardRanking.profileId}>
-                      <span>{rankingIndex + 2}</span>
+                      <StatusBadge tone="neutral">#{rankingIndex + 2}</StatusBadge>
                       <strong>{cardRanking.name}</strong>
                       <small>{cardRanking.count.toLocaleString("tr-TR")} görüntülenme</small>
                     </div>
@@ -174,10 +192,10 @@ export default function AnalyticsPanel({
               )}
               {countryRankings.length > 0 && (
                 <div className="p10-ranking">
-                  <h3>Konum dağılımı</h3>
+                  <h3><Icon name="globe" /> Konum dağılımı</h3>
                   {countryRankings.map((countryRanking, rankingIndex) => (
                     <div key={`${countryRanking.country}-${rankingIndex}`}>
-                      <span>{rankingIndex + 1}</span>
+                      <StatusBadge tone="neutral">#{rankingIndex + 1}</StatusBadge>
                       <strong>{countryRanking.country || "Bilinmiyor"}</strong>
                       <small>{countryRanking.count.toLocaleString("tr-TR")} görüntülenme</small>
                     </div>
@@ -186,10 +204,10 @@ export default function AnalyticsPanel({
               )}
               {departmentRankings.length > 0 && (
                 <div className="p10-ranking">
-                  <h3>Departman performansı</h3>
+                  <h3><Icon name="users" /> Departman performansı</h3>
                   {departmentRankings.map((departmentRanking, rankingIndex) => (
                     <div key={departmentRanking.department}>
-                      <span>{rankingIndex + 1}</span>
+                      <StatusBadge tone="neutral">#{rankingIndex + 1}</StatusBadge>
                       <strong>{departmentRanking.department}</strong>
                       <small>{departmentRanking.count.toLocaleString("tr-TR")} görüntülenme</small>
                     </div>

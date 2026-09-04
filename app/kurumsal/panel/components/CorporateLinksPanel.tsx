@@ -113,6 +113,13 @@ function sourceIcon(link: CorporateLink) {
   return link.linkType === "FILE" ? "box" : "external";
 }
 
+function sourceBadgeClass(link: CorporateLink) {
+  if (link.kind === "MEETING") return "corp-link-source-badge corp-link-source-badge--calendar";
+  return link.linkType === "FILE"
+    ? "corp-link-source-badge corp-link-source-badge--pdf"
+    : "corp-link-source-badge corp-link-source-badge--url";
+}
+
 function compactFileName(name: string, max = 36) {
   const trimmed = name.trim();
   const dot = trimmed.lastIndexOf(".");
@@ -203,17 +210,17 @@ export default function CorporateLinksPanel({
                   <small>{isMeeting ? "Google Calendar, Calendly veya Microsoft Bookings bağlantısı" : link.subtitle}</small>
                 </div>
                 <div className="corp-link-card__meta" aria-label={`${link.label} özeti`}>
-                  <StatusBadge tone={publicationTone(link)}>
+                  <StatusBadge tone={publicationTone(link)} className="corp-link-publication-badge">
                     <Icon name={publicationIcon(link)} />
                     {publicationLabel(link)}
                   </StatusBadge>
                   {link.configured && (
-                    <StatusBadge tone="neutral">
+                    <StatusBadge tone="neutral" className={sourceBadgeClass(link)}>
                       <Icon name={sourceIcon(link)} />
                       {sourceLabel(link)}
                     </StatusBadge>
                   )}
-                  {versions.length > 0 && <StatusBadge tone="info">{versions.length} sürüm</StatusBadge>}
+                  {versions.length > 0 && <StatusBadge tone="info" className="corp-link-version-badge">{versions.length} sürüm</StatusBadge>}
                 </div>
                 <span className="corp-link-card__chevron" aria-hidden="true"><Icon name="chevronDown" /></span>
               </summary>
@@ -279,7 +286,7 @@ export default function CorporateLinksPanel({
                               <small>{dateTimeMedium.format(new Date(version.created_at))} · {version.change_reason}</small>
                             </div>
                             <div className="corp-link-history__publication">
-                              <StatusBadge tone={publication.tone}>
+                              <StatusBadge tone={publication.tone} className="corp-link-history-badge">
                                 <Icon name={publication.icon} />
                                 {publication.status}
                               </StatusBadge>

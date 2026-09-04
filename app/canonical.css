@@ -1794,6 +1794,8 @@
 .yi-cart-summary-rows .total{margin-top:6px;padding-top:12px;border-top:1px solid var(--border);color:var(--ink);font-weight:800}
 .yi-cart-summary-rows .total b{font:700 28px/1 var(--font-ui);font-variant-numeric:tabular-nums;letter-spacing:-.04em}
 .yi-cart-summary p{font-size:13px;color:#68645D;line-height:1.55;margin:0}
+.yi-cart-summary .yi-cart-account-prompt{padding:10px 12px;border:1px solid #e6ddca;border-radius:12px;background:#fffaf0;color:#5d554b}
+.yi-cart-account-prompt a{color:#8b6835;font-weight:800;text-underline-offset:3px}
 .yi-cart-summary .yi-btn{min-height:48px}
 .yi-cart-summary .yi-btn--ghost{color:#17131c}
 .yi-cart-empty{min-height:440px;padding:50px;border:1px dashed var(--border);border-radius:24px;display:grid;place-content:center;justify-items:center;text-align:center}
@@ -16959,4 +16961,3 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
     gap: 12px;
   }
 }
-

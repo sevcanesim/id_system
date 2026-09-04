@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Button } from "../../../components/ui/DesignSystem";
+import { Button, StatusBadge } from "../../../components/ui/DesignSystem";
+import { Icon } from "../../../icons";
 import type { MemberActionTarget } from "../domain/types";
 import { deriveDepartmentStructure } from "../domain/organization-structure";
 
@@ -34,7 +35,7 @@ export default function OrganizationStructurePanel({ members, onFilterDepartment
         <article data-attention={summary.unassignedDepartmentCount > 0 || undefined}>
           <small>Departmansız</small>
           <strong>{summary.unassignedDepartmentCount}</strong>
-          <span>çalışan</span>
+          <span>{summary.unassignedDepartmentCount > 0 ? "atama bekliyor" : "çalışan"}</span>
         </article>
       </div>
 
@@ -54,9 +55,10 @@ export default function OrganizationStructurePanel({ members, onFilterDepartment
                 <td className="org-structure__dept-name"><strong>{row.name}</strong></td>
                 <td className="org-structure__count">{row.memberCount} çalışan</td>
                 <td className="org-structure__status">
-                  <span data-unassigned={row.isUnassigned}>
+                  <StatusBadge tone={row.isUnassigned ? "warning" : "success"}>
+                    <Icon name={row.isUnassigned ? "alert-circle" : "check"} />
                     {row.isUnassigned ? "Departman gerekli" : "Atandı"}
-                  </span>
+                  </StatusBadge>
                 </td>
                 {onFilterDepartment && (
                   <td className="actions">
@@ -66,6 +68,7 @@ export default function OrganizationStructurePanel({ members, onFilterDepartment
                       size="sm"
                       onClick={() => openDepartment(row.name, row.isUnassigned)}
                     >
+                      <Icon name="users" />
                       Ekibi Gör
                     </Button>
                   </td>
@@ -81,11 +84,15 @@ export default function OrganizationStructurePanel({ members, onFilterDepartment
           <article key={row.name} className="org-structure__mobile-card" data-unassigned={row.isUnassigned}>
             <header className="org-structure__mobile-head">
               <div><strong>{row.name}</strong><small>{row.memberCount} çalışan</small></div>
-              <span className="org-structure__status"><span data-unassigned={row.isUnassigned}>{row.isUnassigned ? "Departman gerekli" : "Atandı"}</span></span>
+              <StatusBadge tone={row.isUnassigned ? "warning" : "success"}>
+                <Icon name={row.isUnassigned ? "alert-circle" : "check"} />
+                {row.isUnassigned ? "Departman gerekli" : "Atandı"}
+              </StatusBadge>
             </header>
             {onFilterDepartment && (
               <footer className="org-structure__mobile-foot">
                 <Button type="button" variant="secondary" size="sm" onClick={() => openDepartment(row.name, row.isUnassigned)}>
+                  <Icon name="users" />
                   Ekibi Gör
                 </Button>
               </footer>

@@ -4038,14 +4038,18 @@
 .corp-file-badge {
   width: 42px;
   height: 42px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
   border-radius: 10px;
   background: var(--gold-dim);
   color: var(--gold-hi);
   font: 800 10px/1 var(--font-mono);
   letter-spacing: .04em;
 }
+.corp-file-badge .yi-icon { width: 14px; height: 14px; }
 .corp-file-copy { min-width: 0; display: grid; gap: 3px; }
 .corp-file-copy strong {
   min-width: 0;
@@ -16903,7 +16907,6 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
     gap: 12px;
   }
 }
-
 
 
 

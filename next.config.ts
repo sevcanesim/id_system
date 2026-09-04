@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // The Next.js development toolbar is useful internally, but its floating
+  // "N" control overlays the public product chrome in local demos and
+  // screenshots. Keep the application surface identical between review and
+  // production builds.
+  devIndicators: false,
   experimental: {
     middlewareClientMaxBodySize: "21mb",
   },

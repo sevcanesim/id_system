@@ -17,7 +17,7 @@ Bu dosya yalnızca hedef ortamda üretilebilen kanıtları takip eder. Kod/stati
 - [ ] Full `npm run test:e2e` PASS.
 - [ ] Authenticated individual flow PASS.
 - [ ] Authenticated corporate owner flow PASS.
-- [ ] Department manager isolation flow PASS.
+- [ ] Retired role rejection flow PASS.
 
 ## Visual regression
 

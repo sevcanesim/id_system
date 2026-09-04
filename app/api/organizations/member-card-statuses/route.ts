@@ -31,11 +31,7 @@ export async function GET(request: NextRequest) {
     ctx.admin.from("organizations").select("name").eq("id", organizationId).maybeSingle(),
     // LEFT is intentionally included: historical members still have digital,
     // physical and invitation lifecycle states that must remain auditable.
-    (() => {
-      let membersQuery = ctx.admin.from("organization_members").select("id,user_id,status,department").eq("organization_id", organizationId);
-      if (actor.role === "DEPARTMENT_MANAGER") membersQuery = membersQuery.eq("department", actor.department as string);
-      return membersQuery;
-    })(),
+    ctx.admin.from("organization_members").select("id,user_id,status,department").eq("organization_id", organizationId),
     ctx.admin.from("physical_cards").select("id,owner_user_id,owner_profile_id,status,activated_at,replaced_by_card_id").eq("organization_id", organizationId),
     ctx.admin.from("organization_invites").select("member_id,expires_at,used_at,accepted_at,revoked_at,created_at").eq("organization_id", organizationId).order("created_at", { ascending: false }),
   ]);

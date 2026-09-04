@@ -1,12 +1,11 @@
-export const ORGANIZATION_ROLES = ["OWNER", "ADMIN", "HR", "DEPARTMENT_MANAGER", "EMPLOYEE"] as const;
+export const ORGANIZATION_ROLES = ["OWNER", "ADMIN", "HR", "EMPLOYEE"] as const;
 
 export type OrganizationRole = (typeof ORGANIZATION_ROLES)[number];
 
 const roleRank: Record<OrganizationRole, number> = {
-  OWNER: 5,
-  ADMIN: 4,
-  HR: 3,
-  DEPARTMENT_MANAGER: 2,
+  OWNER: 4,
+  ADMIN: 3,
+  HR: 2,
   EMPLOYEE: 1,
 };
 
@@ -18,7 +17,7 @@ export function canReadOrganization(role: OrganizationRole, status: string) {
   return status === "ACTIVE" && roleRank[role] >= roleRank.EMPLOYEE;
 }
 
-export const ORGANIZATION_MANAGEMENT_ROLES = ["OWNER", "ADMIN", "HR", "DEPARTMENT_MANAGER"] as const;
+export const ORGANIZATION_MANAGEMENT_ROLES = ["OWNER", "ADMIN", "HR"] as const;
 
 export function isManagementRole(role: string): role is OrganizationRole {
   return (ORGANIZATION_MANAGEMENT_ROLES as readonly string[]).includes(role);
@@ -57,38 +56,17 @@ export function canInviteRole(actorRole: OrganizationRole, invitedRole: Exclude<
   if (actorRole === "OWNER") return true;
   if (actorRole === "ADMIN") return invitedRole !== "ADMIN";
   if (actorRole === "HR") return invitedRole === "EMPLOYEE";
-  if (actorRole === "DEPARTMENT_MANAGER") return invitedRole === "EMPLOYEE";
   return false;
-}
-
-export function isDepartmentScoped(role: OrganizationRole) {
-  return role === "DEPARTMENT_MANAGER";
-}
-
-export function canManageMemberInDepartment(
-  actorRole: OrganizationRole,
-  actorDepartment: string | null | undefined,
-  targetRole: OrganizationRole,
-  targetDepartment: string | null | undefined,
-  isSelf: boolean,
-) {
-  if (!canChangeMemberStatus(actorRole, targetRole, isSelf)) return false;
-  if (!isDepartmentScoped(actorRole)) return true;
-  return Boolean(actorDepartment && actorDepartment === targetDepartment && targetRole === "EMPLOYEE");
 }
 
 export function canManageMemberIdentity(
   actorRole: OrganizationRole,
-  actorDepartment: string | null | undefined,
   targetRole: OrganizationRole,
-  targetDepartment: string | null | undefined,
   isSelf: boolean,
 ) {
   if (actorRole === "OWNER") return isSelf || roleRank[actorRole] > roleRank[targetRole];
   if (isSelf || targetRole === "OWNER") return false;
-  if (roleRank[actorRole] <= roleRank[targetRole]) return false;
-  if (!isDepartmentScoped(actorRole)) return true;
-  return Boolean(actorDepartment && actorDepartment === targetDepartment && targetRole === "EMPLOYEE");
+  return roleRank[actorRole] > roleRank[targetRole];
 }
 
 export function canChangeMemberStatus(actorRole: OrganizationRole, targetRole: OrganizationRole, isSelf: boolean) {

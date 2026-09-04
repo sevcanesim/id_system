@@ -178,7 +178,6 @@ It currently covers, among others:
 - individual pending/complete
 - corporate owners and managers
 - HR
-- department manager
 - employee without card
 - digital card ready
 - physical card assigned
@@ -247,4 +246,3 @@ Every `user_accounts` row stores three types:
 3. `package_code` — determined by the purchased or provisioned package (`UNASSIGNED` until then)
 
 `user_identity_types` holds every triple a user may have so Digital ID and Pet ID can coexist. Analytics remains a measurement capability, not a user type. Canonical mapping: `lib/identity/user-types.ts`. Migration: `supabase/migrations/20260819230000_user_identity_types.sql`.
-

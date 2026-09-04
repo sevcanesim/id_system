@@ -82,7 +82,7 @@ Güncel durum: v25.8.4 kurumsal kart formundaki alan yetki matrisini tamamladı 
 - Panelden önceki bir bağlantı sürümüne tek işlemle geri dönülebiliyor.
 - URL ve PDF içerikleri ileri bir tarihe planlanabiliyor; planlanan içerik yayın anına kadar genel kartlarda ve açma endpoint'inde gizli kalıyor.
 - Eski PDF nesneleri geri alma güvenliği için depoda korunuyor; kalıcı temizleme ayrı saklama politikasıyla yapılmalı.
-- Kurumsal panel bileşenleştirmesi başlatıldı: Rol ve Yetkiler ile Şirket Profili/Alan Kilitleri bağımsız bileşenlere taşındı; departman yöneticisi görünürlüğü rol matrisiyle eşitlendi.
+- Kurumsal panel bileşenleştirmesi başlatıldı: Rol ve Yetkiler ile Şirket Profili/Alan Kilitleri bağımsız bileşenlere taşındı.
 - Kurumsal panel bileşenleştirmesi devam etti: Pozisyon Kataloğu (`JobTitlesPanel`) ve Kurumsal Bağlantılar (`CorporateLinksPanel`) da bağımsız, salt-sunum bileşenlerine taşındı — veri/handler'lar (fetch, `token()`, `setMessage`) hâlâ `page.tsx`'te, bileşenler yalnız prop alıyor (RolesPanel/CompanySettingsPanel ile aynı desen).
 - Kurumsal Şablon editörü de `TemplatesPanel` bileşenine taşındı (şablon varyantı, ana renk/logo alanları, canlı önizleme); türetilmiş `templatePreviewBranding`/`templatePreviewData` hesaplaması `page.tsx`'te kalmaya devam ediyor çünkü `org`, `templatePreviewMember`, `corporateLinks` gibi birden fazla page-level state'e bağlı — bileşen bunları hazır prop olarak alıyor.
 - `page.tsx` içinde `false &&` koşuluyla hiç render edilmeyen ~140 satırlık ölü "Şirket profili ve alan kilitleri" formu (CompanySettingsPanel'in eski, artık kullanılmayan kopyası) tespit edilip kaldırıldı; kullanılmayan `normalizeTrPhone` import'u da temizlendi.
@@ -97,7 +97,7 @@ Güncel durum: v25.8.4 kurumsal kart formundaki alan yetki matrisini tamamladı 
 - Kurumsal bağlantılara taslak/yayında yaşam döngüsü, yayınlanmış içerik filtresi, tıklama/açılma olayı ve 7/30/90 günlük içerik analitiği eklendi.
 - Employee Drawer > Kart önizlemesi yayınlanmış kurumsal bağlantıları gösteriyor.
 - Employee Drawer > Yaşam Döngüsü sekmesi son 50 ad/e-posta değişikliğini salt-okunur denetim geçmişi olarak gösteriyor.
-- `DEPARTMENT_MANAGER` gerçek departman kapsamıyla çalışıyor: liste, çalışan daveti, kimlik/durum yönetimi, ünvan talepleri ve salt-okunur kart/yaşam döngüsü yalnız kendi departmanındaki çalışanlarla sınırlı.
+- Kurumsal üyelik yetkileri Owner, Kurumsal Yönetici, İK ve Çalışan rolleriyle sınırlandırıldı.
 - Kurumsal analitik; 7/30/90 günün yanında 1–366 günlük özel tarih aralığı, günlük seri, çalışan/departman/ülke ve içerik türü kırılımı sunuyor; CSV dosyası seçilen dönem adıyla indiriliyor.
 - Yeni `organization_links` tablosu + `organization-assets` storage bucket: 4 sabit slot (Ürün Kataloğu, Şirket Sunumu, Toplantı Planla, Referans Projeler), her biri URL ya da yüklenmiş PDF olabilir.
 - Kurumsal panel > Ayarlar'a "Kurumsal Bağlantılar" yönetim bölümü eklendi (URL kaydet / PDF yükle / kaldır), yalnız OWNER/ADMIN yazabiliyor.
@@ -109,7 +109,7 @@ Güncel durum: v25.8.4 kurumsal kart formundaki alan yetki matrisini tamamladı 
 - `save_own_card_profile` RPC'si: kart profili yazma artık `service_role` üzerinden tek noktadan geçiyor; şirket alan kilitleri (Ad Soyad, Şirket adı, Ünvan, E-posta, Telefon) istemciden bağımsız olarak sunucuda zorlanıyor.
 - Yeni `lockName` kilidi eklendi (Ayarlar > Çalışan alan kilitleri, artık 5 alan).
 - Ad Soyad / E-posta kilitli değilken serbestçe düzenlenebiliyor ama her değişiklik `member_identity_change_log`'a işleniyor (İK görünürlüğü).
-- Ünvan artık serbest metin değil; `organization_job_titles` kataloğundan seçiliyor. Katalogda olmayan ünvan için çalışan `member_title_requests` ile talep açıyor, İK/Yönetici/Departman Yöneticisi onaylıyor.
+- Ünvan artık serbest metin değil; `organization_job_titles` kataloğundan seçiliyor. Katalogda olmayan ünvan için çalışan `member_title_requests` ile talep açıyor, İK/Yönetici onaylıyor.
 
 ## Operasyon notu
 - `20260809140000_card_field_permission_matrix.sql`, `20260809160000_organization_links.sql` ve `20260811100000_organization_content_analytics.sql` bağlı Supabase projesine uygulandı.

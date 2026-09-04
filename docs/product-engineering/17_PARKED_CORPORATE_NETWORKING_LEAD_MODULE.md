@@ -459,7 +459,7 @@ Company
 
 **HR** — insan kaynakları: çalışan ekleme/çıkarma, çalışan bilgileri, departman, unvan, kart durumu. **Fatura / ödeme / şirket sahipliğine erişmez.**
 
-Bu ayrım mevcut panel yetkileriyle hizalanır; Super Admin notu DEPARTMENT_MANAGER’ı bu provisioning adımında atamaz (departman yöneticisi tenant içi operasyondur).
+Bu ayrım mevcut panel yetkileriyle hizalanır; Super Admin bu provisioning adımında yalnız Owner, Admin, HR ve Çalışan rollerini atar.
 
 ### C.6 Super Admin şirket detay
 

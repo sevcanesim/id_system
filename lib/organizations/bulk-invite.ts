@@ -1,8 +1,7 @@
 import { parseCsv } from "../csv";
 import { normalizeEmailField } from "../form-standards";
-import { isDepartmentScoped, isOrganizationRole, type OrganizationRole } from "./permissions";
 
-export type BulkInviteRole = "ADMIN" | "HR" | "DEPARTMENT_MANAGER" | "EMPLOYEE";
+export type BulkInviteRole = "ADMIN" | "HR" | "EMPLOYEE";
 
 export type BulkInviteRow = {
   line: number;
@@ -60,9 +59,6 @@ const ROLE_ALIASES: Record<string, BulkInviteRole> = {
   "insan kaynaklari": "HR",
   "ik yöneticisi": "HR",
   "ik yoneticisi": "HR",
-  "departman yöneticisi": "DEPARTMENT_MANAGER",
-  "departman yoneticisi": "DEPARTMENT_MANAGER",
-  department_manager: "DEPARTMENT_MANAGER",
   çalışan: "EMPLOYEE",
   calisan: "EMPLOYEE",
   employee: "EMPLOYEE",
@@ -130,7 +126,7 @@ export function parseBulkInviteCsv(text: string): BulkInviteParseResult {
     const roleRaw = normalizeHeaderKey(get("role"));
     const role = ROLE_ALIASES[roleRaw];
     if (roleRaw && !role) {
-      errors.push({ line, raw, error: `Tanınmayan rol: "${get("role")}". Geçerli değerler: Çalışan, İK Yöneticisi, Departman Yöneticisi, Kurumsal Yönetici.` });
+      errors.push({ line, raw, error: `Tanınmayan rol: "${get("role")}". Geçerli değerler: Çalışan, İK Yöneticisi, Kurumsal Yönetici.` });
       continue;
     }
 
@@ -158,18 +154,6 @@ export const BULK_INVITE_CSV_TEMPLATE =
   "E-posta,Ad,Soyad,Ünvan,Departman,Rol\nmehmet.yilmaz@firma.com,Mehmet,Yılmaz,Satış Uzmanı,Satış,Çalışan\nayse.kaya@firma.com,Ayşe,Kaya,İnsan Kaynakları Uzmanı,İnsan Kaynakları,İK\n";
 
 export const BULK_INVITE_MAX_ROWS = 200;
-
-/** Department managers cannot invite outside their own department; CSV department is ignored. */
-export function resolveBulkInviteDepartment(input: {
-  actorRole: OrganizationRole | string;
-  actorDepartment?: string | null;
-  csvDepartment?: string | null;
-}): string {
-  if (isOrganizationRole(input.actorRole) && isDepartmentScoped(input.actorRole)) {
-    return (input.actorDepartment || "").trim();
-  }
-  return (input.csvDepartment || "").trim();
-}
 
 export function isBulkInviteMailFailed(row: { status: "created" | "error"; emailSent?: boolean }) {
   return row.status === "created" && row.emailSent === false;

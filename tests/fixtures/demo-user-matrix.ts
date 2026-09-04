@@ -29,7 +29,6 @@ export type DemoUserKind =
   | "CORPORATE_OWNER"
   | "CORPORATE_ADMIN"
   | "CORPORATE_HR"
-  | "DEPARTMENT_MANAGER"
   | "CORPORATE_EMPLOYEE"
   | "MULTI_ORG_ADMIN";
 
@@ -64,7 +63,7 @@ export type DemoEntitlementFixture = {
 export type DemoAdditionalOrg = {
   slug: string;
   name: string;
-  role: "OWNER" | "ADMIN" | "HR" | "DEPARTMENT_MANAGER" | "EMPLOYEE";
+  role: "OWNER" | "ADMIN" | "HR" | "EMPLOYEE";
   status: "ACTIVE" | "INVITED" | "SUSPENDED" | "LEFT";
   title?: string;
   department?: string;
@@ -81,7 +80,7 @@ export type DemoLoginUser = {
   orderNumber?: string;
   organizationSlug?: string;
   organizationName?: string;
-  role?: "OWNER" | "ADMIN" | "HR" | "DEPARTMENT_MANAGER" | "EMPLOYEE";
+  role?: "OWNER" | "ADMIN" | "HR" | "EMPLOYEE";
   status?: "ACTIVE" | "INVITED" | "SUSPENDED" | "LEFT";
   title?: string;
   department?: string;

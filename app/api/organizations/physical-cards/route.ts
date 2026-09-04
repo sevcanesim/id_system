@@ -57,8 +57,7 @@ export async function GET(request: NextRequest) {
   // per-organization pool until a card is activated and claims an owner (see
   // physical_cards above). So this can only be an organization-wide rollup,
   // not a per-employee status, and is only meaningful to whole-company
-  // managers (not a DEPARTMENT_MANAGER, who cannot attribute pooled units to
-  // their department).
+  // managers.
   let productionSummary: Record<string, number> | null = null;
   if (["OWNER", "ADMIN", "HR"].includes(actor.role)) {
     const { data: units, error: unitsError } = await ctx.admin
@@ -75,12 +74,9 @@ export async function GET(request: NextRequest) {
   }
 
   const ownerIds = [...new Set((data || []).map((card) => card.owner_user_id).filter(Boolean))] as string[];
-  let ownersQuery = ownerIds.length
+  const ownersQuery = ownerIds.length
     ? ctx.admin.from("organization_members").select("user_id,full_name,email").eq("organization_id", organizationId).in("user_id", ownerIds)
     : null;
-  if (ownersQuery && actor.role === "DEPARTMENT_MANAGER") {
-    ownersQuery = ownersQuery.eq("department", actor.department as string);
-  }
   const { data: owners } = ownersQuery ? await ownersQuery : { data: [] };
   const ownerByUserId = new Map((owners || []).map((owner) => [owner.user_id, owner.full_name || owner.email]));
 
@@ -94,10 +90,7 @@ export async function GET(request: NextRequest) {
     lostAt: card.lost_at,
     disabledAt: card.disabled_at,
     replacedByCardId: card.replaced_by_card_id,
-  })).filter((card) => {
-    if (actor.role !== "DEPARTMENT_MANAGER") return true;
-    return Boolean(card.ownerUserId && ownerByUserId.has(card.ownerUserId));
-  });
+  }));
   return NextResponse.json({ cards, productionSummary });
 }
 

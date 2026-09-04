@@ -4,10 +4,9 @@ import { z } from "zod";
 import { sendOrganizationInviteEmail } from "../../../../../lib/email/resend";
 import {
   BULK_INVITE_MAX_ROWS,
-  resolveBulkInviteDepartment,
   summarizeBulkInviteResults,
 } from "../../../../../lib/organizations/bulk-invite";
-import { canInviteRole, isDepartmentScoped, isOrganizationRole } from "../../../../../lib/organizations/permissions";
+import { canInviteRole, isOrganizationRole } from "../../../../../lib/organizations/permissions";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../lib/supabase/server-admin";
 
 const rowSchema = z.object({
@@ -16,7 +15,7 @@ const rowSchema = z.object({
   fullName: z.string().trim().min(2).max(120),
   title: z.string().trim().max(120).optional().default(""),
   department: z.string().trim().max(120).optional().default(""),
-  role: z.enum(["ADMIN", "HR", "DEPARTMENT_MANAGER", "EMPLOYEE"]).default("EMPLOYEE"),
+  role: z.enum(["ADMIN", "HR", "EMPLOYEE"]).default("EMPLOYEE"),
 });
 
 const schema = z.object({
@@ -110,10 +109,6 @@ export async function POST(request: NextRequest) {
 
   const actor = await manager(ctx.admin, ctx.user.id, parsed.data.organizationId);
   if (!actor) return NextResponse.json({ error: "Bu şirkette çalışan davet etme yetkin yok." }, { status: 403 });
-  if (isDepartmentScoped(actor.role) && !actor.department) {
-    return NextResponse.json({ error: "Departman yöneticisine departman atanmamış." }, { status: 409 });
-  }
-
   const { data: job, error: jobError } = await ctx.admin
     .from("organization_invite_jobs")
     .insert({
@@ -155,11 +150,7 @@ export async function POST(request: NextRequest) {
       continue;
     }
 
-    const invitationDepartment = resolveBulkInviteDepartment({
-      actorRole: actor.role,
-      actorDepartment: actor.department,
-      csvDepartment: row.department,
-    });
+    const invitationDepartment = row.department;
     const raw = randomBytes(32).toString("hex");
     const hash = createHash("sha256").update(raw).digest("hex");
     const { data: reservation, error } = await ctx.admin.rpc("reserve_organization_invitation", {

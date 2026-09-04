@@ -14,7 +14,6 @@ const ROLE_ICONS: Record<OrganizationRole, IconName> = {
   OWNER: "building",
   ADMIN: "shield",
   HR: "users",
-  DEPARTMENT_MANAGER: "adjustments",
   EMPLOYEE: "id",
 };
 

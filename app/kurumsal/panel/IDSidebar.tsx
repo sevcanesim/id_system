@@ -34,7 +34,6 @@ const ROLE_LABELS: Record<string, string> = {
   ADMIN: "Yönetici",
   HR: "İnsan Kaynakları",
   HR_MANAGER: "İnsan Kaynakları",
-  DEPARTMENT_MANAGER: "Departman Yöneticisi",
   EMPLOYEE: "Çalışan",
 };
 

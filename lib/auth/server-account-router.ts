@@ -9,7 +9,7 @@ import {
   ACCOUNT_ROUTE_LOGIN,
 } from "./account-router";
 
-const MANAGEMENT_ROLES = ["OWNER", "ADMIN", "HR", "DEPARTMENT_MANAGER"] as const;
+const MANAGEMENT_ROLES = ["OWNER", "ADMIN", "HR"] as const;
 
 type ServerAccountRouteResult =
   | { ok: true; destination: string }

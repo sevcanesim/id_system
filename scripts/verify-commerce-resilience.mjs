@@ -26,7 +26,7 @@ const adminLink = read("app/api/admin/commerce/card-units/link/route.ts");
 assert(!clientRouter.includes("/api/organizations/mine?management=true"), "client account router still performs management organization fetch");
 assert(clientRouter.includes('ACCOUNT_ROUTE_SERVER = "/hesabim"'), "corporate-like client routing does not delegate to server router");
 assert(serverRouter.includes('.from("organization_members")'), "server account router does not resolve active organization membership from DB");
-assert(serverRouter.includes('"OWNER", "ADMIN", "HR", "DEPARTMENT_MANAGER"'), "management role set missing from server account router");
+assert(serverRouter.includes('"OWNER", "ADMIN", "HR"'), "management role set missing from server account router");
 assert(!/catch\s*(?:\([^)]*\))?\s*\{[^}]*ACCOUNT_ROUTE_EMPLOYEE/s.test(serverRouter), "server router silently falls back to employee on exception");
 assert(accountPage.includes("resolveServerAccountDestination"), "/hesabim is not backed by server account resolution");
 

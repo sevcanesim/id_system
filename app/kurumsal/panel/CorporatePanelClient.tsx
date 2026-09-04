@@ -379,7 +379,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
         });
         const organizationsPayload = await response.json();
         if (!response.ok) {
-          // Yönetim paneli yalnız OWNER / ADMIN / HR / DEPARTMENT_MANAGER içindir.
+          // Yönetim paneli yalnız OWNER / ADMIN / HR içindir.
           // EMPLOYEE'yi boş-şirket ekranında bırakmak yerine Kartım'a götür.
           if (response.status === 403) {
             redirecting = true;
@@ -401,16 +401,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
         const matchedOrg = preferredOrgId ? (nextOrgs.find((item: Org) => item.organization_id === preferredOrgId) || nextOrgs[0]) : nextOrgs[0];
         const id = matchedOrg?.organization_id || "";
         setSelected(id);
-        if (id && matchedOrg?.role === "DEPARTMENT_MANAGER") {
-          setActiveTab("employees");
-          setForm((current) => ({
-            ...current,
-            department: matchedOrg?.department || "",
-            role: "EMPLOYEE",
-          }));
-          setLoading(false);
-          await loadDataForTab("employees", id, access);
-        } else if (id) {
+        if (id) {
           // Organizasyon bulunduğu anda panel shell'i açılır. Her veri bloğu
           // kendi sonucunu gösterebilir; aggregate timeout yalnızca uyarıdır.
           setLoading(false);
@@ -933,7 +924,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     }
   }
 
-  const departmentManager = org?.role === "DEPARTMENT_MANAGER";
   const canManageLicenses = org?.role === "OWNER" || org?.role === "ADMIN";
   const canManageNetworking = canManageLicenses;
   const sidebarItems = org ? corporateSidebarItems(org.role) : [];
@@ -971,7 +961,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   const openTab = (tab: CorporatePanelTab) => {
     const allowed = !org || corporateSidebarItems(org.role).some((item) => item.key === tab);
     if (!allowed) {
-      const fallback = departmentManager ? "employees" : "overview";
+      const fallback = "overview";
       setActiveTab(fallback);
       setMobileNavOpen(false);
       router.replace(tabRoutes[fallback]);
@@ -987,10 +977,10 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     const allowed = corporateSidebarItems(org.role);
     if (allowed.length === 0) return;
     if (allowed.some((item) => item.key === currentTab)) return;
-    const fallback = departmentManager ? "employees" : "overview";
+    const fallback = "overview";
     setActiveTab(fallback);
     router.replace(tabRoutes[fallback]);
-  }, [currentTab, departmentManager, org, router]);
+  }, [currentTab, org, router]);
   const signOut = async () => {
     const supabase = getSupabaseBrowserClient();
     if (supabase) await supabase.auth.signOut();
@@ -1233,7 +1223,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                     onSubmitBulkInvite={submitBulkInvite}
                     onBulkStatus={changeMembersStatus}
                     onBulkDepartment={changeMembersDepartment}
-                    canBulkDepartment={org?.role !== "DEPARTMENT_MANAGER"}
+                    canBulkDepartment
                     canManageLicenses={canManageLicenses}
                   />
                 )}

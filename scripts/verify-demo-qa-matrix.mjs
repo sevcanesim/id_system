@@ -90,13 +90,6 @@ if (DEMO_IDENTITY_COLLISION.emailPrefix === "demo.ayni.isim." && DEMO_IDENTITY_C
   fail("identity collision registry drifted");
 }
 
-const deptMgr = DEMO_LOGIN_USERS.find((u) => u.key === "trDepartmentManager");
-if (deptMgr && deptMgr.role === "DEPARTMENT_MANAGER" && deptMgr.status === "ACTIVE" && deptMgr.department === "Satış") {
-  pass("department manager is Satış-scoped in matrix");
-} else {
-  fail("department manager matrix definition invalid");
-}
-
 const fullFive = DEMO_CORPORATE_CAPACITY_SCENARIOS.find((scenario) => scenario.limit === 5 && scenario.used === 5);
 if (fullFive) pass("full 5-seat occupancy is in the matrix");
 else fail("matrix missing 5/5 capacity scenario");

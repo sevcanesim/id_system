@@ -19,7 +19,7 @@ export type SidebarConfigItem = {
 };
 
 const CORPORATE_ADMIN: readonly SidebarRole[] = ["OWNER", "ADMIN"];
-const CORPORATE_MANAGEMENT: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR", "HR_MANAGER", "DEPARTMENT_MANAGER"];
+const CORPORATE_MANAGEMENT: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR", "HR_MANAGER"];
 const CORPORATE_ADMIN_OR_HR: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR", "HR_MANAGER"];
 
 export const CORPORATE_SIDEBAR_CONFIG = [

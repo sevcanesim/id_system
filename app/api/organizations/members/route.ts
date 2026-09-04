@@ -5,8 +5,6 @@ import { sendOrganizationInviteEmail } from "../../../../lib/email/resend";
 import { getSeatBreakdown } from "../../../../lib/organizations/lifecycle";
 import {
   canInviteRole,
-  canManageMemberInDepartment,
-  isDepartmentScoped,
   isOrganizationRole,
 } from "../../../../lib/organizations/permissions";
 import {
@@ -20,7 +18,7 @@ const createSchema = z.object({
   fullName: z.string().trim().min(2).max(120),
   title: z.string().trim().max(120).optional(),
   department: z.string().trim().max(120).optional(),
-  role: z.enum(["ADMIN", "HR", "DEPARTMENT_MANAGER", "EMPLOYEE"]).default("EMPLOYEE"),
+  role: z.enum(["ADMIN", "HR", "EMPLOYEE"]).default("EMPLOYEE"),
 });
 
 const statusPatchSchema = z.object({
@@ -44,7 +42,7 @@ const identityPatchSchema = z.object({
 const roleSchema = z.object({
   organizationId: z.string().uuid(),
   memberId: z.string().uuid(),
-  role: z.enum(["ADMIN", "HR", "DEPARTMENT_MANAGER", "EMPLOYEE"]),
+  role: z.enum(["ADMIN", "HR", "EMPLOYEE"]),
   reason: z.string().trim().max(500).optional(),
 });
 
@@ -114,11 +112,8 @@ export async function GET(request: NextRequest) {
   }
 
   const actor = await getManager(context.admin, context.user.id, organizationId);
-  if (!actor || !["OWNER", "ADMIN", "HR", "DEPARTMENT_MANAGER"].includes(actor.role)) {
+  if (!actor || !["OWNER", "ADMIN", "HR"].includes(actor.role)) {
     return NextResponse.json({ error: "Üye listesini görme yetkin yok." }, { status: 403 });
-  }
-  if (isDepartmentScoped(actor.role) && !actor.department) {
-    return NextResponse.json({ error: "Departman yöneticisine departman atanmamış." }, { status: 409 });
   }
 
   const memberColumns = "id,email,full_name,title,department,role,status,created_at,last_activity_at,user_id";
@@ -127,10 +122,6 @@ export async function GET(request: NextRequest) {
     .select(memberColumns)
     .eq("organization_id", organizationId);
 
-  if (isDepartmentScoped(actor.role)) {
-    membersQuery = membersQuery.eq("department", actor.department as string);
-  }
-
   let { data, error } = await membersQuery.order("created_at");
 
   if (error && error.code === "42703") {
@@ -138,10 +129,6 @@ export async function GET(request: NextRequest) {
       .from("organization_members")
       .select("id,email,full_name,title,department,role,status,created_at,user_id")
       .eq("organization_id", organizationId);
-
-    if (isDepartmentScoped(actor.role)) {
-      fallbackQuery = fallbackQuery.eq("department", actor.department as string);
-    }
 
     const fallback = await fallbackQuery.order("created_at");
     data = fallback.data?.map((member) => ({ ...member, last_activity_at: null as string | null })) ?? null;
@@ -188,13 +175,7 @@ export async function POST(request: NextRequest) {
   if (!actor || !canInviteRole(actor.role, parsed.data.role)) {
     return NextResponse.json({ error: "Bu rol için davet oluşturma yetkin yok." }, { status: 403 });
   }
-  if (isDepartmentScoped(actor.role) && !actor.department) {
-    return NextResponse.json({ error: "Departman yöneticisine departman atanmamış." }, { status: 409 });
-  }
-
-  const invitationDepartment = isDepartmentScoped(actor.role)
-    ? actor.department || ""
-    : parsed.data.department || "";
+  const invitationDepartment = parsed.data.department || "";
   const { data: organization } = await context.admin
     .from("organizations")
     .select("name")
@@ -348,32 +329,6 @@ export async function PATCH(request: NextRequest) {
   const actor = await getManager(context.admin, context.user.id, parsed.data.organizationId);
   if (!actor) return NextResponse.json({ error: "Yetkin yok." }, { status: 403 });
 
-  if (isDepartmentScoped(actor.role)) {
-    const { data: target } = await context.admin
-      .from("organization_members")
-      .select("user_id,role,department")
-      .eq("id", parsed.data.memberId)
-      .eq("organization_id", parsed.data.organizationId)
-      .maybeSingle();
-
-    if (
-      !target ||
-      !isOrganizationRole(target.role) ||
-      !canManageMemberInDepartment(
-        actor.role,
-        actor.department,
-        target.role,
-        target.department,
-        target.user_id === context.user.id,
-      )
-    ) {
-      return NextResponse.json(
-        { error: "Yalnız kendi departmanındaki çalışanların durumunu değiştirebilirsin." },
-        { status: 403 },
-      );
-    }
-  }
-
   const { data, error } = await context.admin.rpc("change_organization_member_status", {
     p_actor_user_id: context.user.id,
     p_organization_id: parsed.data.organizationId,
@@ -416,7 +371,7 @@ export async function PUT(request: NextRequest) {
   }
 
   const actor = await getManager(context.admin, context.user.id, parsed.data.organizationId);
-  if (!actor || isDepartmentScoped(actor.role)) {
+  if (!actor) {
     return NextResponse.json({ error: "Bu rol değişikliğine yetkin yok." }, { status: 403 });
   }
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
-import { isDepartmentScoped, isOrganizationRole } from "../../../../lib/organizations/permissions";
+import { isOrganizationRole } from "../../../../lib/organizations/permissions";
 
 // Deliberately GET-only. A company can see what an employee has published on
 // their corporate identity card (for brand/compliance oversight and support),
@@ -21,7 +21,7 @@ async function context(request: NextRequest) {
 
 async function manager(admin: ReturnType<typeof getSupabaseAdminClient>, userId: string, organizationId: string) {
   const { data } = await admin.from("organization_members").select("role,status,department").eq("organization_id", organizationId).eq("user_id", userId).maybeSingle();
-  return data && data.status === "ACTIVE" && isOrganizationRole(data.role) && ["OWNER", "ADMIN", "HR", "DEPARTMENT_MANAGER"].includes(data.role) ? data : null;
+  return data && data.status === "ACTIVE" && isOrganizationRole(data.role) && ["OWNER", "ADMIN", "HR"].includes(data.role) ? data : null;
 }
 
 export async function GET(request: NextRequest) {
@@ -42,10 +42,6 @@ export async function GET(request: NextRequest) {
     .maybeSingle();
   if (memberError) return NextResponse.json({ error: "Çalışan bulunamadı." }, { status: 500 });
   if (!member) return NextResponse.json({ error: "Çalışan bulunamadı." }, { status: 404 });
-  if (isDepartmentScoped(actor.role) && (!actor.department || actor.department !== member.department || member.role !== "EMPLOYEE")) {
-    return NextResponse.json({ error: "Yalnız kendi departmanındaki çalışan kartlarını görebilirsin." }, { status: 403 });
-  }
-
   const { data: identityChanges, error: identityChangesError } = await ctx.admin
     .from("member_identity_change_log")
     .select("id,field,old_value,new_value,changed_at")

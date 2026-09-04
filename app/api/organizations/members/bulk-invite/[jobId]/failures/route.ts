@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ACCESS_COOKIE, readSessionCookie } from "../../../../../../../lib/auth/http-only-session";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../../../lib/supabase/server-admin";
 
-const MANAGEMENT_ROLES = new Set(["OWNER", "ADMIN", "HR", "DEPARTMENT_MANAGER"]);
+const MANAGEMENT_ROLES = new Set(["OWNER", "ADMIN", "HR"]);
 
 function csvCell(value: unknown) {
   let text = String(value ?? "");

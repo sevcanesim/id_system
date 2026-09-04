@@ -20,7 +20,7 @@ import {
 
 /** Roles allowed to read organization-wide member data, analytics and cards. */
 export const ORGANIZATION_READER_ROLES: OrganizationRole[] = ["OWNER", "ADMIN", "HR"];
-export const MEMBER_CARD_READER_ROLES: OrganizationRole[] = ["OWNER", "ADMIN", "HR", "DEPARTMENT_MANAGER"];
+export const MEMBER_CARD_READER_ROLES: OrganizationRole[] = ["OWNER", "ADMIN", "HR"];
 
 export type RoleCapability = {
   label: string;
@@ -83,7 +83,6 @@ export const ROLE_LABELS: Record<OrganizationRole, string> = {
   OWNER: "Şirket Sahibi",
   ADMIN: "Kurumsal Yönetici",
   HR: "İK Yöneticisi",
-  DEPARTMENT_MANAGER: "Departman Yöneticisi",
   EMPLOYEE: "Çalışan",
 };
 
@@ -108,9 +107,6 @@ export const ROLE_GUIDES: Record<OrganizationRole, readonly string[]> = {
     "Davet gönderir.",
     "Kart atar.",
     "Çalışan durumunu değiştirir.",
-  ],
-  DEPARTMENT_MANAGER: [
-    "Yalnız kendi departmanındaki çalışanları yönetebilir.",
   ],
   EMPLOYEE: [
     "Yalnız kendi dijital kartını düzenleyebilir.",

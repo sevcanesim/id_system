@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { isDepartmentScoped, isOrganizationRole } from "../../../../lib/organizations/permissions";
+import { isOrganizationRole } from "../../../../lib/organizations/permissions";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 
 // Çalışanın, şirketin pozisyon kataloğunda olmayan bir ünvan istediği
 // durumlar için onay akışı (yetki matrisindeki Ünvan satırında
-// çalışan için "reddet / talep" karşılığı). Talep İK/Yönetici/Departman
-// Yöneticisi tarafından onaylanınca hem çalışanın kaydı hem de
+// çalışan için "reddet / talep" karşılığı). Talep İK/Yönetici tarafından
+// onaylanınca hem çalışanın kaydı hem de
 // kataloğu güncellenir — bkz. `resolve_member_title_request` RPC'si.
 
 const postSchema = z.object({ organizationId: z.string().uuid(), title: z.string().trim().min(2).max(120) });
@@ -28,11 +28,10 @@ export async function GET(request: NextRequest) {
   if (!organizationId) return NextResponse.json({ error: "Şirket seçimi gerekli." }, { status: 400 });
   const { data: actor } = await ctx.admin.from("organization_members").select("id,role,status,department").eq("organization_id", organizationId).eq("user_id", ctx.user.id).eq("status", "ACTIVE").maybeSingle();
   if (!actor || !isOrganizationRole(actor.role)) return NextResponse.json({ error: "Ünvan taleplerini görme yetkin yok." }, { status: 403 });
-  const manager = ["OWNER", "ADMIN", "HR", "DEPARTMENT_MANAGER"].includes(actor.role);
+  const manager = ["OWNER", "ADMIN", "HR"].includes(actor.role);
   let query = ctx.admin.from("member_title_requests").select("id,member_id,requested_title,status,note,created_at,resolved_at,organization_members!inner(full_name,department)").eq("organization_id", organizationId).order("created_at", { ascending: false });
   if (!manager) query = query.eq("member_id", actor.id).limit(5);
   else query = query.eq("status", "PENDING");
-  if (manager && isDepartmentScoped(actor.role)) query = query.eq("organization_members.department", actor.department || "");
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: "Talepler yüklenemedi." }, { status: 500 });
   return NextResponse.json({ requests: data || [] });

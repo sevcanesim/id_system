@@ -33,7 +33,6 @@ Production’da `@yenomi.test` hesabı olamaz (`verify:production:no-demo-users`
 | `trOwner` | `demo.kurumsal.yonetici@yenomi.test` | CORPORATE_OWNER | CORPORATE | demo-qa-uctan-uca (OWNER) | `qa-trowner` | - | Uçtan uca QA org OWNER. |
 | `trAdmin` | `demo.kurumsal.admin@yenomi.test` | CORPORATE_ADMIN | CORPORATE | demo-qa-uctan-uca (ADMIN) | `qa-tradmin` | - | OWNER değil ADMIN. |
 | `trHr` | `demo.ik.yonetici@yenomi.test` | CORPORATE_HR | CORPORATE | demo-qa-uctan-uca (HR) | `qa-trhr` | - | İK; lisans admin uydurulamaz. |
-| `trDepartmentManager` | `demo.departman.yonetici@yenomi.test` | DEPARTMENT_MANAGER | CORPORATE | demo-qa-uctan-uca (DEPARTMENT_MANAGER) | `qa-trdepartmentmanager` | - | Satış kapsamlı departman yöneticisi. |
 | `trRegistered` | `demo.calisan.kayit@yenomi.test` | CORPORATE_EMPLOYEE | CORPORATE | demo-qa-uctan-uca (EMPLOYEE) | Yok | - | Hesap var, profil yok. |
 | `trNoCard` | `demo.calisan.kartyok@yenomi.test` | CORPORATE_EMPLOYEE | CORPORATE | demo-qa-uctan-uca (EMPLOYEE) | Yok | - | Aktif üye, kart oluşturulmadı. |
 | `trDigital` | `demo.calisan.dijital@yenomi.test` | CORPORATE_EMPLOYEE | CORPORATE | demo-qa-uctan-uca (EMPLOYEE) | `qa-trdigital` |  | Dijital kart hazır; duplicate-email prosedürünün hedefi. |

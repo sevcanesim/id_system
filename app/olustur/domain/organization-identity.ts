@@ -1,4 +1,4 @@
-import type { CardBranding, EditableCardData } from "../../CardTemplate";
+import type { CardBranding, CardTemplateLink, EditableCardData } from "../../CardTemplate";
 import { TITLE_OPTIONS } from "../../../lib/form-standards";
 
 export type LockMode = "free" | "suggested" | "locked";
@@ -25,7 +25,39 @@ type OrganizationIdentity = {
   lockedValues: Partial<CardData>;
   suggestedValues: Partial<CardData>;
   branding: CardBranding;
+  links: CardTemplateLink[];
 };
+
+type OrganizationLinkPayload = {
+  id: string | null;
+  label: string;
+  subtitle: string;
+  configured: boolean;
+  isPublished: boolean;
+  publishAt: string | null;
+  linkType: string | null;
+  url: string | null;
+  fileUrl: string | null;
+};
+
+function isAvailableToCard(link: OrganizationLinkPayload) {
+  if (!link.id || !link.configured || !link.isPublished) return false;
+  if (!link.url && !link.fileUrl) return false;
+  if (!link.publishAt) return true;
+  const publishAt = new Date(link.publishAt).getTime();
+  return Number.isFinite(publishAt) && publishAt <= Date.now();
+}
+
+function toCardTemplateLink(link: OrganizationLinkPayload): CardTemplateLink {
+  return {
+    title: link.label,
+    subtitle: link.subtitle,
+    // Public cards use this endpoint too, so opening a corporate asset keeps
+    // access rules and content-interaction analytics in one place.
+    href: `/api/organization-links/${link.id}/open`,
+    kind: "external",
+  };
+}
 
 function readLockMode(raw: unknown, fallback: LockMode): LockMode {
   if (raw === true) return "locked";
@@ -47,9 +79,10 @@ export async function fetchOrganizationIdentity(
       : mine.organizations?.[0];
     if (!org) return null;
 
-    const [templateResponse, selfResponse] = await Promise.all([
+    const [templateResponse, selfResponse, linksResponse] = await Promise.all([
       fetch(`/api/organizations/templates?organizationId=${org.organization_id}`, { headers: { authorization: `Bearer ${accessToken}` } }),
       fetch(`/api/organizations/members?organizationId=${org.organization_id}&self=true`, { headers: { authorization: `Bearer ${accessToken}` } }),
+      fetch(`/api/organizations/links?organizationId=${org.organization_id}`, { headers: { authorization: `Bearer ${accessToken}` } }),
     ]);
 
     const templateRow = templateResponse.ok
@@ -59,6 +92,9 @@ export async function fetchOrganizationIdentity(
     const self = selfResponse.ok
       ? ((await selfResponse.json()).member as { title?: string | null; department?: string | null; email?: string | null } | undefined)
       : undefined;
+    const organizationLinks = linksResponse.ok
+      ? (((await linksResponse.json()).links ?? []) as OrganizationLinkPayload[])
+      : [];
 
     const lock: OrgLock = {
       organizationId: org.organization_id,
@@ -103,7 +139,13 @@ export async function fetchOrganizationIdentity(
       variant: "ESSENTIAL" as CardBranding["variant"],
     };
 
-    return { lock, lockedValues, suggestedValues, branding };
+    return {
+      lock,
+      lockedValues,
+      suggestedValues,
+      branding,
+      links: organizationLinks.filter(isAvailableToCard).map(toCardTemplateLink),
+    };
   } catch {
     return null;
   }

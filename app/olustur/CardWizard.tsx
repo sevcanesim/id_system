@@ -33,7 +33,7 @@ import {
   type CardData,
   type UploadedImage,
 } from "./domain/profile-editor";
-import type { CardBranding } from "../CardTemplate";
+import type { CardBranding, CardTemplateLink } from "../CardTemplate";
 import { fetchOrganizationIdentity, type OrgLock } from "./domain/organization-identity";
 import { cardShareUrl } from "../../lib/public-card/urls";
 
@@ -73,6 +73,7 @@ export default function CardWizard() {
   const [accessState, setAccessState] = useState<"checking" | "allowed" | "denied">("checking");
   const [orgLock, setOrgLock] = useState<OrgLock | null>(null);
   const [orgBranding, setOrgBranding] = useState<CardBranding | null>(null);
+  const [orgLinks, setOrgLinks] = useState<CardTemplateLink[]>([]);
   const [titleRequestOpen, setTitleRequestOpen] = useState(false);
   const [titleRequestValue, setTitleRequestValue] = useState("");
   const [titleRequestBusy, setTitleRequestBusy] = useState(false);
@@ -390,6 +391,7 @@ export default function CardWizard() {
         if (identity) {
           setOrgLock(identity.lock);
           setOrgBranding(identity.branding);
+          setOrgLinks(identity.links);
           setData((current) => {
             const filledGaps = Object.fromEntries(
               Object.entries(identity.suggestedValues).filter(
@@ -813,7 +815,19 @@ export default function CardWizard() {
     </span>
   );
 
-  const preview = <div className="p8-preview-stage"><CardTemplate data={deferredData} preview branding={orgBranding} activePreviewTarget={activePreviewTarget} /></div>;
+  const previewData = isBusinessCard ? { ...deferredData, links: orgLinks } : deferredData;
+  const preview = (
+    <div className="p8-preview-stage">
+      <CardTemplate
+        data={previewData}
+        preview
+        slug={profileSlug}
+        publicId={publicId || null}
+        branding={orgBranding}
+        activePreviewTarget={activePreviewTarget}
+      />
+    </div>
+  );
 
   const editorBody = <div className="p8-editor" data-surface="dashboard">
     <nav className="p8-section-nav" aria-label="Profil bölümleri">
@@ -970,7 +984,7 @@ export default function CardWizard() {
         <section className="p8-preview-card">
           <div className="p8-preview-hd">
             <div>
-              <h3 className="p8-preview-title">Minimal Kart Önizlemesi</h3>
+              <h3 className="p8-preview-title">Canlı Kart Önizlemesi</h3>
               <div className="p8-preview-sub-row">
                 <span className={`p8-preview-badge p8-preview-badge--${isDirty ? "local" : isPublished ? "live" : "draft"}`}>
                   {isDirty ? (
@@ -980,7 +994,7 @@ export default function CardWizard() {
                     <><Icon name="edit" /> Minimal önizleme — henüz yayınlanmadı (kaydedilmemiş değişiklikler var)</>
                     )
                   ) : isPublished ? (
-                    <><Icon name="check" /> Canlı profilin minimal görünümü</>
+                    <><Icon name="check" /> {isBusinessCard ? "Kurumsal şablonla bireysel kart görünümü" : "Canlı bireysel kart görünümü"}</>
                   ) : (
                     <><Icon name="clock" /> Henüz yayınlanmadı</>
                   )}

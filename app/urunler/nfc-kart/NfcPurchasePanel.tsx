@@ -22,15 +22,18 @@ export default function NfcPurchasePanel({
   const [selectedVariantId, setSelectedVariantId] = useState(variants[0]?.id ?? "");
   const { packageId, setPackageId } = useNfcPackage();
   const selectedVariant = variants.find((variant) => variant.id === selectedVariantId) ?? variants[0];
-  const offerSku = packageId === "premium" ? COMMERCIAL_SKUS.PREMIUM : product.defaultOfferSku;
+  // `product` represents the Premium listing, so its defaults must never be
+  // reused for the individually selected NFC package.
+  const offerSku = packageId === "premium" ? COMMERCIAL_SKUS.PREMIUM : COMMERCIAL_SKUS.INITIAL;
   const offerPriceKurus = packageId === "premium"
     ? COMMERCIAL_PRICING.YENOMI_ID_PREMIUM.priceKurus
-    : product.unitPriceKurus;
+    : COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus;
   const unitPriceKurus = offerPriceKurus + (selectedVariant?.priceDeltaKurus ?? 0);
   const price = formatTryFromKurus(unitPriceKurus);
+  const packageName = packageId === "premium" ? "Yenomi ID Premium" : "Yenomi ID NFC";
   const productName = selectedVariant
-    ? `${packageId === "premium" ? "Yenomi ID Premium" : product.name} — ${selectedVariant.name}`
-    : packageId === "premium" ? "Yenomi ID Premium" : product.name;
+    ? `${packageName} — ${selectedVariant.name}`
+    : packageName;
   const ctaLabel = packageId === "premium" ? "Premium’u Seç →" : "NFC Kartı Satın Al →";
   const configuration = useMemo(
     () => selectedVariant

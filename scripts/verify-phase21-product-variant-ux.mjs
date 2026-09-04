@@ -19,6 +19,12 @@ const button = readFileSync(required[2], "utf8");
 for (const token of ["ProductVariantSelector", "selectedVariant", "variantId", "variantName"]) {
   if (!panel.includes(token)) throw new Error(`Missing PDP variant contract: ${token}`);
 }
+for (const token of ["COMMERCIAL_SKUS.INITIAL", "COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus"]) {
+  if (!panel.includes(token)) throw new Error(`Individual NFC offer must use its own commercial contract: ${token}`);
+}
+if (panel.includes("product.defaultOfferSku") || panel.includes(": product.unitPriceKurus")) {
+  throw new Error("Individual NFC selection must not inherit the Premium listing defaults.");
+}
 for (const token of ['type="radio"', "checked={selected}", "ds-product-option--selected"]) {
   if (!selector.includes(token)) throw new Error(`Missing accessible variant contract: ${token}`);
 }

@@ -3,6 +3,8 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { FOLLOW_UP_SCENARIOS } from "../../../../lib/commerce/packages";
 import { EmptyState, LoadingState } from "../../../components/ui/States";
+import { StatusBadge } from "../../../components/ui/DesignSystem";
+import { Icon } from "../../../icons";
 import { LEAD_STATUSES } from "../../../../lib/networking/catalog";
 import { eventAttributionPath } from "../../../../lib/public-card/urls";
 import type { Member, MemberCardStatus } from "../domain/types";
@@ -67,6 +69,13 @@ const STATUS_LABELS: Record<string, string> = {
   WON: "Kazanıldı",
   CLOSED: "Kapandı",
 };
+
+function leadStatusTone(status: string): "info" | "warning" | "success" | "neutral" {
+  if (status === "NEW") return "info";
+  if (status === "CONTACTED" || status === "MEETING_REQUESTED") return "warning";
+  if (status === "QUALIFIED" || status === "WON" || status === "MEETING_SCHEDULED") return "success";
+  return "neutral";
+}
 
 const TIMELINE_LABELS: Record<string, string> = {
   QR_SCAN: "QR ile geldi",
@@ -255,18 +264,23 @@ export default function NetworkingPanel({
                         <small>{sourceLabel(lead.source)} · {relativeDate(lead.created_at)}</small>
                       </div>
                     </div>
-                    <span className="p11-networking-lead__status">{STATUS_LABELS[lead.status] || lead.status}</span>
+                    <StatusBadge tone={leadStatusTone(lead.status)} className="p11-networking-lead__status">
+                      <Icon name={lead.status === "NEW" ? "sparkles" : lead.status === "WON" || lead.status === "QUALIFIED" ? "check" : "mail"} />
+                      {STATUS_LABELS[lead.status] || lead.status}
+                    </StatusBadge>
                   </div>
 
                   <div className="p11-networking-lead__contact">
-                    <a href={`mailto:${lead.email}`}>{lead.email}</a>
-                    {lead.phone && <a href={`tel:${lead.phone}`}>{lead.phone}</a>}
+                    <a href={`mailto:${lead.email}`}><Icon name="mail" />{lead.email}</a>
+                    {lead.phone && <a href={`tel:${lead.phone}`}><Icon name="phone" />{lead.phone}</a>}
                   </div>
 
                   {eventsForLead.length > 0 && (
                     <div className="p11-networking-lead__timeline" aria-label="Bağlantı geçmişi">
                       {eventsForLead.slice(-3).map((item) => (
-                        <span key={`${item.kind}-${item.created_at}`}>{TIMELINE_LABELS[item.kind] || "Bağlantı güncellendi"}</span>
+                        <StatusBadge key={`${item.kind}-${item.created_at}`} tone="neutral">
+                          {TIMELINE_LABELS[item.kind] || "Bağlantı güncellendi"}
+                        </StatusBadge>
                       ))}
                     </div>
                   )}
@@ -289,12 +303,12 @@ export default function NetworkingPanel({
                       </select>
                     </label>
                     <div className="p11-networking-quick-actions">
-                      <button className="p11-networking-action p11-networking-action--primary" type="button" disabled={busy || credits < 1} onClick={() => void post({ action: "send_followup", leadId: lead.id, template: templates[lead.id] || "EVENT_MET" })}>E-posta Gönder</button>
+                      <button className="p11-networking-action p11-networking-action--primary" type="button" disabled={busy || credits < 1} onClick={() => void post({ action: "send_followup", leadId: lead.id, template: templates[lead.id] || "EVENT_MET" })}><Icon name="mail" />E-posta Gönder</button>
                       {phone && (
-                        <a className="p11-networking-action" href={`https://wa.me/${phone}?text=${encodeURIComponent(`Merhaba ${lead.full_name}, bugün tanıştığımıza memnun oldum. İletişimde kalmak istedim.`)}`} target="_blank" rel="noreferrer">WhatsApp</a>
+                        <a className="p11-networking-action" href={`https://wa.me/${phone}?text=${encodeURIComponent(`Merhaba ${lead.full_name}, bugün tanıştığımıza memnun oldum. İletişimde kalmak istedim.`)}`} target="_blank" rel="noreferrer"><Icon name="external" />WhatsApp</a>
                       )}
-                      {counterpartHref && <a className="p11-networking-action" href={counterpartHref}>Dijital kartı aç</a>}
-                      <a className="p11-networking-action" href="/kurumsal/panel/gorusmeler">Görüşmeler</a>
+                      {counterpartHref && <a className="p11-networking-action" href={counterpartHref}><Icon name="id" />Dijital kartı aç</a>}
+                      <a className="p11-networking-action" href="/kurumsal/panel/gorusmeler"><Icon name="clock" />Görüşmeler</a>
                     </div>
                   </div>
                 </article>

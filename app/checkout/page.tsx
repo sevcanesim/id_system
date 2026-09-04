@@ -8,6 +8,8 @@ import { formatTryFromKurus } from "../../lib/config/product";
 import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, isDigitalOnlySku, isPhysicalBundleSku, isPremiumUpgradeSku, isRenewalSku } from "../../lib/config/commercial";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { Icon } from "../icons";
+import { Button } from "../components/ui/DesignSystem";
+import { useNotice } from "../components/ui/NotificationCenter";
 import { TURKEY_CITIES, normalizeTrPhone } from "../../lib/form-standards";
 import { parseCompanyBilling } from "../../lib/validation/company";
 import { track } from "../../lib/analytics";
@@ -52,8 +54,22 @@ const initial: FormState = {
   personalizationAccepted: false,
 };
 
+function checkoutFailureMessage(payload: unknown): string {
+  const message = safeClientMessage(payload, "Ödeme başlatılamadı.");
+  const reference = payload && typeof payload === "object" && typeof (payload as { reference?: unknown }).reference === "string"
+    ? (payload as { reference: string }).reference
+    : null;
+
+  // Error references are intentionally short, generated server-side values.
+  // Never echo arbitrary response data into a customer-visible payment screen.
+  return reference && /^[A-Z][A-Z0-9-]{3,79}$/.test(reference)
+    ? `${message} Destek kodu: ${reference}.`
+    : message;
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
+  const { notify } = useNotice();
   const [items, setItems] = useState<CartItem[]>([]);
   const [form, setForm] = useState<FormState>(initial);
   const [busy, setBusy] = useState(false);
@@ -349,7 +365,7 @@ export default function CheckoutPage() {
         if (checkout.orderId) setPendingCheckoutOrderId(checkout.orderId);
         if (checkout.retryable) rotateCheckoutIdempotencyKey();
         if (checkout.resetOrder) clearPendingCheckoutOrderId();
-        throw new Error(safeClientMessage(checkout, "Ödeme başlatılamadı."));
+        throw new Error(checkoutFailureMessage(checkout));
       }
       if (!checkout.paymentPageUrl) throw new Error("Ödeme sayfası oluşturulamadı.");
       if (checkout.orderId) setPendingCheckoutOrderId(checkout.orderId);
@@ -357,7 +373,9 @@ export default function CheckoutPage() {
       update("identityNumber", "");
       window.location.href = checkout.paymentPageUrl;
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Ödeme başlatılamadı.");
+      const errorMessage = error instanceof Error ? error.message : "Ödeme başlatılamadı.";
+      setMessage(errorMessage);
+      notify({ title: "Ödeme başlatılamadı", message: errorMessage, tone: "error" });
     } finally {
       setBusy(false);
     }
@@ -439,11 +457,11 @@ export default function CheckoutPage() {
                       <label>Şehir<select required value={form.city} onChange={(event) => { update("city", event.target.value); update("district", ""); }}><option value="">Şehir seç</option>{TURKEY_CITIES.map((city) => <option key={city} value={city}>{city}</option>)}</select></label>
                       <label>İlçe<input required autoComplete="address-level2" value={form.district} onChange={(event) => update("district", event.target.value)} /></label>
                     </> : <>
-                      <div className="checkout-address-tools"><button type="button" onClick={useLocation} disabled={locationBusy}><Icon name="map" />{locationBusy ? "Konum aranıyor…" : "Konumu Algıla"}</button></div>
+                      <div className="checkout-address-tools"><Button type="button" variant="secondary" size="sm" onClick={useLocation} disabled={locationBusy}><Icon name="map" />{locationBusy ? "Konum aranıyor…" : "Konumu Algıla"}</Button></div>
                       <label>Açık adres<textarea required autoComplete="street-address" value={form.addressLine} onChange={(event) => update("addressLine", event.target.value)} rows={3} /></label>
                       <label>Şehir<select required value={form.city} onChange={(event) => { update("city", event.target.value); update("district", ""); }}><option value="">Şehir seç</option>{TURKEY_CITIES.map((city) => <option key={city} value={city}>{city}</option>)}</select></label>
                       <label>İlçe<input required autoComplete="address-level2" value={form.district} onChange={(event) => update("district", event.target.value)} /></label>
-                      {deliveryNoteOpen ? <label>Teslimat notu<textarea value={form.deliveryNote} onChange={(event) => update("deliveryNote", event.target.value)} rows={2} /></label> : <button type="button" onClick={() => setDeliveryNoteOpen(true)}>Teslimat notu ekle</button>}
+                      {deliveryNoteOpen ? <label>Teslimat notu<textarea value={form.deliveryNote} onChange={(event) => update("deliveryNote", event.target.value)} rows={2} /></label> : <Button type="button" variant="ghost" size="sm" onClick={() => setDeliveryNoteOpen(true)}>+ Teslimat notu ekle</Button>}
                     </>}
                     <button type="button" className="checkout-next" onClick={advanceShipping}>Onaylara geç <Icon name="chevronRight" /></button>
                   </div>}
@@ -455,15 +473,15 @@ export default function CheckoutPage() {
                     <span><strong>Onay ve ödeme</strong><small>Kart bilgisi iyzico’da girilir</small></span>
                   </button>
                   {activeStep === "approval" && <div className="checkout-step-body">
-                    <label>
+                    <label className="checkout-consent">
                       <input type="checkbox" checked={form.distanceSalesAccepted} onChange={(event) => update("distanceSalesAccepted", event.target.checked)} />
                       <span><Link href="/mesafeli-satis-sozlesmesi" target="_blank">Mesafeli Satış Sözleşmesini</Link> ve ön bilgilendirme metinlerini kabul ediyorum.</span>
                     </label>
-                    <label>
+                    <label className="checkout-consent">
                       <input type="checkbox" checked={form.personalizationAccepted} onChange={(event) => update("personalizationAccepted", event.target.checked)} />
                       <span>Kişiselleştirilmiş ürün koşullarını ve <Link href="/kvkk" target="_blank">KVKK</Link> Aydınlatma Metnini kabul ediyorum.</span>
                     </label>
-                    <button type="submit" className="checkout-pay" disabled={busy}>{busy ? "Ödeme hazırlanıyor…" : `${formatTryFromKurus(total)} ile ödemeye geç`}</button>
+                    <button type="submit" className="checkout-pay checkout-pay-button" disabled={busy}>{busy ? "Ödeme hazırlanıyor…" : `${formatTryFromKurus(total)} ile ödemeye geç`}</button>
                   </div>}
                 </section>
               </div>

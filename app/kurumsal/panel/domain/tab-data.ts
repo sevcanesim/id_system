@@ -17,6 +17,7 @@ const TAB_DATA_RESOURCES: Record<CorporatePanelTab, readonly CorporatePanelDataR
   roles: ["members"],
   templates: ["members", "templates", "corporateLinks"],
   content: ["corporateLinks"],
+  audit: [],
   analytics: ["analytics"],
   organization: ["members", "templates", "jobTitles", "titleRequests"],
   settings: [],

@@ -3,6 +3,7 @@ import {
   createOrganizationAssetSignedUrl,
   removeOrganizationAsset,
 } from "../../../../../lib/organizations/organization-assets";
+import { recordOrganizationAuditEvent } from "../../../../../lib/organizations/audit";
 import { canManageTemplates, isOrganizationRole } from "../../../../../lib/organizations/permissions";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../lib/supabase/server-admin";
 
@@ -80,6 +81,17 @@ export async function POST(request: NextRequest) {
   if (existing?.file_path && existing.file_path !== path) {
     await removeOrganizationAsset(ctx.admin, existing.file_path);
   }
+
+  await recordOrganizationAuditEvent(ctx.admin, {
+    organizationId,
+    actorUserId: ctx.user.id,
+    actorRole: member.role,
+    action: "CONTENT_URL_SAVED",
+    subjectType: "CORPORATE_LINK",
+    subjectId: kind,
+    summary: "Kurumsal PDF içeriği yüklendi.",
+    metadata: { kind, source: "PDF", scheduled: Boolean(publishAtRaw) },
+  });
 
   const fileUrl = await createOrganizationAssetSignedUrl(ctx.admin, path);
   return NextResponse.json({ ok: true, fileUrl, fileName: file.name, fileSize: file.size }, { status: 201 });

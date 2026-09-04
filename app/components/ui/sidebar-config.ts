@@ -29,6 +29,7 @@ export const CORPORATE_SIDEBAR_CONFIG = [
   { key: "organization", href: "/kurumsal/panel/organizasyon", label: "Organizasyon", icon: "building", group: "EKİP", roles: CORPORATE_ADMIN },
   { key: "templates", href: "/kurumsal/panel/sablon", label: "Marka & Şirket Profili", icon: "id", group: "ŞİRKET", roles: CORPORATE_ADMIN },
   { key: "content", href: "/kurumsal/panel/icerik", label: "Dokümanlar & İçerik", icon: "link", group: "ŞİRKET", roles: CORPORATE_ADMIN },
+  { key: "audit", href: "/kurumsal/panel/denetim", label: "Güvenlik & Denetim", icon: "shield", group: "ŞİRKET", roles: CORPORATE_MANAGEMENT },
   { key: "analytics", href: "/kurumsal/panel/istatistikler", label: "İstatistikler", icon: "analytics", group: "NETWORKING", roles: CORPORATE_ADMIN_OR_HR },
   { key: "leads", href: "/kurumsal/panel/leadler", label: "Network Mail & Leadler", icon: "mail", group: "NETWORKING", roles: CORPORATE_ADMIN },
   { key: "events", href: "/kurumsal/panel/etkinlikler", label: "Etkinlikler", icon: "clock", group: "NETWORKING", roles: CORPORATE_ADMIN },

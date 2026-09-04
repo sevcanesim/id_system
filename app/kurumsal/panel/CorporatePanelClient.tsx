@@ -25,6 +25,7 @@ import EmployeesPanel from "./components/EmployeesPanel";
 import EmployeeDrawer from "./components/EmployeeDrawer";
 import CardsPanel from "./components/CardsPanel";
 import AnalyticsPanel from "./components/AnalyticsPanel";
+import AuditPanel from "./components/AuditPanel";
 import OverviewPanel from "./components/OverviewPanel";
 import NetworkingPanel from "./components/NetworkingPanel";
 import type {
@@ -905,6 +906,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     roles: "/kurumsal/panel/roller",
     templates: "/kurumsal/panel/sablon",
     content: "/kurumsal/panel/icerik",
+    audit: "/kurumsal/panel/denetim",
     analytics: "/kurumsal/panel/istatistikler",
     leads: "/kurumsal/panel/leadler",
     events: "/kurumsal/panel/etkinlikler",
@@ -919,6 +921,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     roles: { title: "Roller & Yetkiler", description: "Kurumsal yetki sınırlarını ve rol dağılımını kontrol et.", icon: "lock" },
     templates: { title: "Marka & Şablon", description: "Kurumsal kart görünümünü ve marka standartlarını merkezi olarak yönet.", icon: "id" },
     content: { title: "İçerik", description: "Merkezi bağlantıları ve kurumsal dosyaları çalışan kartlarına dağıt.", icon: "link" },
+    audit: { title: "Güvenlik & Denetim", description: "Kurumsal yönetim işlemlerini zaman damgalı ve değiştirilemez kayıtlarla izle.", icon: "shield" },
     analytics: { title: "İstatistikler", description: "Kart görüntülenmelerini ve içerik etkileşimlerini gerçek verilerle izle.", icon: "analytics" },
     leads: { title: "Leadler", description: "Karttan düşen networking lead’lerini, mail ve görüşme takibini yönet.", icon: "mail" },
     events: { title: "Etkinlikler", description: "Etkinlik QR attribution katmanını kişi kartından ayrı tut.", icon: "clock" },
@@ -1377,6 +1380,9 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                     onRemove={removeCorporateLink}
                     onRollback={rollbackCorporateLink}
                   />
+                )}
+                {currentTab === "audit" && selected && (
+                  <AuditPanel organizationId={selected} token={token} />
                 )}
               </>
             )}

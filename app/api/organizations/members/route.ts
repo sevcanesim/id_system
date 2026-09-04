@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendOrganizationInviteEmail } from "../../../../lib/email/resend";
+import { recordOrganizationAuditEvent } from "../../../../lib/organizations/audit";
 import { getSeatBreakdown } from "../../../../lib/organizations/lifecycle";
 import {
   canInviteRole,
@@ -230,6 +231,17 @@ export async function POST(request: NextRequest) {
     organizationName: organization?.name || "Şirket",
   });
 
+  await recordOrganizationAuditEvent(context.admin, {
+    organizationId: parsed.data.organizationId,
+    actorUserId: context.user.id,
+    actorRole: actor.role,
+    action: "MEMBER_INVITED",
+    subjectType: "MEMBER",
+    subjectId: member.id,
+    summary: "Çalışan daveti oluşturuldu.",
+    metadata: { role: parsed.data.role, department: invitationDepartment || null },
+  });
+
   return NextResponse.json({ member, emailSent: mail.sent }, { status: 201 });
 }
 
@@ -315,6 +327,20 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
+    const actor = await getManager(context.admin, context.user.id, parsed.data.organizationId);
+    if (actor) {
+      await recordOrganizationAuditEvent(context.admin, {
+        organizationId: parsed.data.organizationId,
+        actorUserId: context.user.id,
+        actorRole: actor.role,
+        action: "MEMBER_IDENTITY_UPDATED",
+        subjectType: "MEMBER",
+        subjectId: parsed.data.memberId,
+        summary: "Çalışan kimlik bilgileri güncellendi.",
+        metadata: { invitationRenewed: inviteRenewed },
+      });
+    }
+
     return NextResponse.json({ member: result.member, inviteRenewed, emailSent });
   }
 
@@ -357,6 +383,17 @@ export async function PATCH(request: NextRequest) {
             : "Çalışan durumu güncellenemedi.";
     return NextResponse.json({ error: message }, { status });
   }
+
+  await recordOrganizationAuditEvent(context.admin, {
+    organizationId: parsed.data.organizationId,
+    actorUserId: context.user.id,
+    actorRole: actor.role,
+    action: "MEMBER_STATUS_CHANGED",
+    subjectType: "MEMBER",
+    subjectId: parsed.data.memberId,
+    summary: "Çalışan durumu güncellendi.",
+    metadata: { status: parsed.data.status, reasonProvided: Boolean(parsed.data.reason) },
+  });
 
   return NextResponse.json({ ok: true });
 }
@@ -403,6 +440,17 @@ export async function PUT(request: NextRequest) {
             : "Rol güncellenemedi.";
     return NextResponse.json({ error: message }, { status });
   }
+
+  await recordOrganizationAuditEvent(context.admin, {
+    organizationId: parsed.data.organizationId,
+    actorUserId: context.user.id,
+    actorRole: actor.role,
+    action: "MEMBER_ROLE_CHANGED",
+    subjectType: "MEMBER",
+    subjectId: parsed.data.memberId,
+    summary: "Çalışan rolü güncellendi.",
+    metadata: { role: parsed.data.role, reasonProvided: Boolean(parsed.data.reason) },
+  });
 
   return NextResponse.json({ ok: true });
 }

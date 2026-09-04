@@ -5,6 +5,7 @@ import {
   isOrganizationAssetPubliclyAvailable,
   removeOrganizationAsset,
 } from "../../../../lib/organizations/organization-assets";
+import { recordOrganizationAuditEvent } from "../../../../lib/organizations/audit";
 import { canManageTemplates, isOrganizationRole } from "../../../../lib/organizations/permissions";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 
@@ -143,6 +144,16 @@ export async function POST(request: NextRequest) {
   }, { onConflict: "organization_id,kind" });
   if (error) return NextResponse.json({ error: "Bağlantı kaydedilemedi." }, { status: 500 });
   if (existing?.file_path) await removeOrganizationAsset(ctx.admin, existing.file_path);
+  await recordOrganizationAuditEvent(ctx.admin, {
+    organizationId: parsed.data.organizationId,
+    actorUserId: ctx.user.id,
+    actorRole: member.role,
+    action: "CONTENT_URL_SAVED",
+    subjectType: "CORPORATE_LINK",
+    subjectId: parsed.data.kind,
+    summary: "Kurumsal bağlantı kaydedildi.",
+    metadata: { kind: parsed.data.kind, scheduled: Boolean(parsed.data.publishAt) },
+  });
   return NextResponse.json({ ok: true });
 }
 
@@ -179,6 +190,16 @@ export async function PATCH(request: NextRequest) {
       changed_by: ctx.user.id,
       change_reason: "ROLLBACK",
     });
+    await recordOrganizationAuditEvent(ctx.admin, {
+      organizationId: rollback.data.organizationId,
+      actorUserId: ctx.user.id,
+      actorRole: member.role,
+      action: "CONTENT_ROLLED_BACK",
+      subjectType: "CORPORATE_LINK",
+      subjectId: version.kind,
+      summary: "Kurumsal bağlantı önceki sürüme geri alındı.",
+      metadata: { kind: version.kind },
+    });
     return NextResponse.json({ ok: true });
   }
   const parsed = patchSchema.safeParse(payload);
@@ -199,6 +220,16 @@ export async function PATCH(request: NextRequest) {
     .select("kind,is_published,published_at,publish_at")
     .maybeSingle();
   if (error || !data) return NextResponse.json({ error: "Yayın durumu güncellenemedi." }, { status: 500 });
+  await recordOrganizationAuditEvent(ctx.admin, {
+    organizationId: parsed.data.organizationId,
+    actorUserId: ctx.user.id,
+    actorRole: member.role,
+    action: "CONTENT_PUBLICATION_CHANGED",
+    subjectType: "CORPORATE_LINK",
+    subjectId: parsed.data.kind,
+    summary: parsed.data.isPublished ? "Kurumsal bağlantı yayınlandı." : "Kurumsal bağlantı yayından kaldırıldı.",
+    metadata: { kind: parsed.data.kind, published: parsed.data.isPublished, scheduled: Boolean(parsed.data.publishAt) },
+  });
   return NextResponse.json({ ok: true, link: data });
 }
 
@@ -245,5 +276,15 @@ export async function DELETE(request: NextRequest) {
   const { error } = await ctx.admin.from("organization_links").delete().eq("organization_id", parsed.data.organizationId).eq("kind", parsed.data.kind);
   if (error) return NextResponse.json({ error: "Bağlantı kaldırılamadı." }, { status: 500 });
   if (existing?.file_path) await removeOrganizationAsset(ctx.admin, existing.file_path);
+  await recordOrganizationAuditEvent(ctx.admin, {
+    organizationId: parsed.data.organizationId,
+    actorUserId: ctx.user.id,
+    actorRole: member.role,
+    action: "CONTENT_REMOVED",
+    subjectType: "CORPORATE_LINK",
+    subjectId: parsed.data.kind,
+    summary: "Kurumsal bağlantı kaldırıldı.",
+    metadata: { kind: parsed.data.kind },
+  });
   return NextResponse.json({ ok: true });
 }

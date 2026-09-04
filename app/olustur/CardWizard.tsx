@@ -16,6 +16,7 @@ import { INDIVIDUAL_PRODUCT_PURCHASE_HREF } from "../../lib/commerce/individual-
 import { fetchOwnProfile, fetchOwnProfileById, fetchOwnProfileByOrganizationId, fetchOwnProfiles } from "../../lib/repositories/profiles";
 import { track } from "../../lib/analytics";
 import { PageLoadingView } from "../components/ui/States";
+import { useNotice } from "../components/ui/NotificationCenter";
 import { useUnsavedChanges } from "../components/UnsavedChangesContext";
 import { useProfileCardActions } from "../hooks/useProfileCardActions";
 
@@ -50,6 +51,7 @@ const HR_AUDIT_NOTICE = "Değişiklikler İK ve Sistem Yöneticisine bildirildi"
 const HR_AUDIT_NOTICE_KEY = "yenomi:card-editor:hr-audit";
 
 export default function CardWizard() {
+  const { notify } = useNotice();
   const [data, setData] = useState<CardData>(INITIAL_CARD_DATA);
   const [userId, setUserId] = useState<string | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
@@ -603,8 +605,11 @@ export default function CardWizard() {
       setTitleRequestOpen(false);
       setTitleRequestValue("");
       setTitleRequestMessage("Talebin İK'ya iletildi. Onaylanınca ünvanın otomatik güncellenecek.");
+      notify({ message: "Ünvan talebin İK'ya iletildi.", tone: "success" });
     } catch (error) {
-      setTitleRequestMessage(error instanceof Error ? error.message : "Talep gönderilemedi.");
+      const message = error instanceof Error ? error.message : "Talep gönderilemedi.";
+      setTitleRequestMessage(message);
+      notify({ message, tone: "error" });
     } finally {
       setTitleRequestBusy(false);
     }
@@ -622,6 +627,7 @@ export default function CardWizard() {
     const formError = validateForm();
     if (formError) {
       setMessage(formError);
+      notify({ message: formError, tone: "error" });
       return;
     }
 
@@ -737,7 +743,11 @@ export default function CardWizard() {
             role: englishRole.trim() || null,
             about: englishAbout.trim() || null,
           });
-          if (localeError) setMessage("Kart kaydedildi; İngilizce içerik katmanı ayrıca kaydedilemedi.");
+          if (localeError) {
+            const message = "Kart kaydedildi; İngilizce içerik katmanı ayrıca kaydedilemedi.";
+            setMessage(message);
+            notify({ message, tone: "warning" });
+          }
         }
         if (!isBusinessCard) localStorage.setItem("yenomi-card-draft", JSON.stringify(sanitizeCardDraft({ ...data, image: uploaded?.url ?? data.image })));
         localStorage.setItem("yenomi-card-slug", slug);
@@ -750,7 +760,9 @@ export default function CardWizard() {
           slug,
         });
       } else if (isSupabaseConfigured) {
-        setMessage("Kalıcı yayın için önce giriş yapmalısın. Taslağın bu tarayıcıya kaydedildi.");
+        const message = "Kalıcı yayın için önce giriş yapmalısın. Taslağın bu tarayıcıya kaydedildi.";
+        setMessage(message);
+        notify({ message, tone: "warning" });
         setSaving(false);
         return;
       }
@@ -766,6 +778,10 @@ export default function CardWizard() {
       } else {
         router.push("/kartim");
       }
+      notify({
+        message: isBusinessCard ? "Kurumsal kart profili güncellendi." : "Dijital kartvizitin yayınlandı.",
+        tone: "success",
+      });
       setSaving(false);
     } catch (error) {
       if (uploaded?.uploaded && uploaded.path) {
@@ -777,6 +793,7 @@ export default function CardWizard() {
         ? "Sunucuya ulaşılamadı. İnternet bağlantını ve Supabase ayarlarını kontrol edip tekrar dene."
         : rawMessage;
       setMessage(friendlyMessage);
+      notify({ message: friendlyMessage, tone: "error" });
       setSaving(false);
     }
   }

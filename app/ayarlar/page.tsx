@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import UserPanelShell from "../components/UserPanelShell";
 import { Alert, Button, ButtonLink, Card, Field, Input, StatusBadge } from "../components/ui";
+import { useNotice } from "../components/ui/NotificationCenter";
 import AddToCartButton from "../components/AddToCartButton";
 import { Icon } from "../icons";
 import { isIndividualPremiumPackage } from "../../lib/commerce/packages";
@@ -214,6 +215,7 @@ function OrderFulfillmentStepper({ order, unit }: { order: CommerceOrder; unit: 
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { notify } = useNotice();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [yenomiId, setYenomiId] = useState("");
@@ -333,11 +335,13 @@ export default function SettingsPage() {
     if (error) {
       setAccountMessageTone("error");
       setAccountMessage("Hesap bilgileri kaydedilemedi. E-posta adresini kontrol edip tekrar deneyin.");
+      notify({ message: "Hesap bilgileri kaydedilemedi. E-posta adresini kontrol edip tekrar deneyin.", tone: "error" });
     } else {
       const updatedAccount = { name: name.trim(), email: email.trim() };
       setAccountSnapshot(updatedAccount);
       setAccountMessageTone("success");
       setAccountMessage("Hesap bilgileriniz güncellendi. E-posta değiştiyse doğrulama bağlantısını gelen kutunuzdan onaylayın.");
+      notify({ message: "Hesap bilgileriniz güncellendi. E-posta değiştiyse doğrulama bağlantısını gelen kutunuzdan onaylayın.", tone: "success" });
     }
     setSavingAccount(false);
   }
@@ -352,6 +356,10 @@ export default function SettingsPage() {
     const { error } = await supabase.auth.updateUser({ password });
     setSecurityMessageTone(error ? "error" : "success");
     setSecurityMessage(error ? "Şifre güncellenemedi. En az 8 karakter kullandığınızdan emin olup tekrar deneyin." : "Şifreniz güncellendi.");
+    notify({
+      message: error ? "Şifre güncellenemedi. En az 8 karakter kullandığınızdan emin olup tekrar deneyin." : "Şifreniz güncellendi.",
+      tone: error ? "error" : "success",
+    });
     if (!error) setPassword("");
     setSavingPassword(false);
   }

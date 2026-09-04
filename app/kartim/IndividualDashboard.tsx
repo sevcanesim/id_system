@@ -12,6 +12,7 @@ import { isManagementRole } from "../../lib/organizations/permissions";
 import { cardShareUrl } from "../../lib/public-card/urls";
 import { Button, ButtonLink, DashboardShell } from "../ui";
 import { StatusBadge } from "../components/ui";
+import { useNotice } from "../components/ui/NotificationCenter";
 import { LoadingState } from "../components/ui/States";
 import styles from "./IndividualDashboard.module.css";
 
@@ -92,6 +93,7 @@ function processStep(status?: OperationalStatus | null) {
 
 export default function MyCardsPage() {
   const router = useRouter();
+  const { notify } = useNotice();
   const [profiles, setProfiles] = useState<CardProfileRow[]>([]);
   const [entitlements, setEntitlements] = useState<Entitlement[]>([]);
   const [process, setProcess] = useState<CardProcess | null>(null);
@@ -103,6 +105,11 @@ export default function MyCardsPage() {
   const [message, setMessage] = useState("");
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [updatingLostMode, setUpdatingLostMode] = useState(false);
+
+  function showMessage(text: string, tone: "success" | "warning" | "error" = "success") {
+    setMessage(text);
+    notify({ message: text, tone });
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -201,9 +208,9 @@ export default function MyCardsPage() {
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "Kart baskı kuyruğuna alınamadı.");
       setProcess((current) => current ? { ...current, operations_status: "PRINT_PENDING", print_requested_at: new Date().toISOString() } : current);
-      setMessage("Baskı onayın alındı. Fiziksel kartın baskı kuyruğuna alındı.");
+      showMessage("Baskı onayın alındı. Fiziksel kartın baskı kuyruğuna alındı.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Kart süreci güncellenemedi.");
+      showMessage(error instanceof Error ? error.message : "Kart süreci güncellenemedi.", "error");
     } finally {
       setQueueing(false);
     }
@@ -213,9 +220,9 @@ export default function MyCardsPage() {
     if (!profileUrl) return;
     try {
       await navigator.clipboard.writeText(profileUrl);
-      setMessage("Kartvizit bağlantın kopyalandı.");
+      showMessage("Kartvizit bağlantın kopyalandı.");
     } catch {
-      setMessage("Bağlantı kopyalanamadı. Lütfen yeniden deneyin.");
+      showMessage("Bağlantı kopyalanamadı. Lütfen yeniden deneyin.", "error");
     }
   }
 
@@ -234,9 +241,9 @@ export default function MyCardsPage() {
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "Kayıp modu güncellenemedi.");
       setPhysicalCard((card) => card ? { ...card, status: nextStatus } : card);
-      setMessage(nextStatus === "LOST" ? "Kayıp modu etkin. Dijital profilin çalışmaya devam eder." : "Fiziksel kart yeniden etkinleştirildi.");
+      showMessage(nextStatus === "LOST" ? "Kayıp modu etkin. Dijital profilin çalışmaya devam eder." : "Fiziksel kart yeniden etkinleştirildi.", nextStatus === "LOST" ? "warning" : "success");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Kayıp modu güncellenemedi.");
+      showMessage(error instanceof Error ? error.message : "Kayıp modu güncellenemedi.", "error");
     } finally {
       setUpdatingLostMode(false);
     }

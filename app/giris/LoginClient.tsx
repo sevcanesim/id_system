@@ -7,6 +7,7 @@ import { getRememberedLogin, getSupabaseBrowserClient, setRememberedLogin } from
 import { isSupabaseConfigured, supabaseConfigIssue } from "../../lib/supabase/config";
 import { writeSessionCookie } from "../components/AuthSessionBridge";
 import { Icon } from "../icons";
+import { useNotice } from "../components/ui/NotificationCenter";
 import { YenomiProductVisual } from "../ui/YenomiProductVisual";
 import { authErrorMessage } from "../../lib/errors";
 import { normalizeEmail, SIGNUP_PASSWORD_RULES, validateEmail, validateSignupPassword } from "../../lib/auth/credentials";
@@ -35,6 +36,7 @@ export default function LoginClient({
   initialMessage: string;
 }) {
   const router = useRouter();
+  const { notify } = useNotice();
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -57,6 +59,7 @@ export default function LoginClient({
   function showMessage(text: string, tone: "info" | "success" | "error" = "info") {
     setMessage(text);
     setMessageTone(tone);
+    if (text) notify({ message: text, tone });
   }
 
   useEffect(() => {

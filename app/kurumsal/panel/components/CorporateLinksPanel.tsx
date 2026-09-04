@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Icon } from "../../../icons";
 import { Button, Field, Input, StatusBadge } from "../../../components/ui/DesignSystem";
+import { useNotice } from "../../../components/ui/NotificationCenter";
 import { getSupabaseBrowserClient } from "../../../../lib/supabase/browser";
 
 type CorporateLink = {
@@ -152,6 +153,7 @@ export default function CorporateLinksPanel({
   onRemove,
   onRollback,
 }: Props) {
+  const { notify } = useNotice();
   const [deletedVersionIds, setDeletedVersionIds] = useState<Set<string>>(() => new Set());
   const [deletingVersionId, setDeletingVersionId] = useState<string | null>(null);
 
@@ -163,7 +165,7 @@ export default function CorporateLinksPanel({
       const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
       const access = data.session?.access_token;
       if (!access) {
-        window.alert("Sürümü silmek için oturum gerekli.");
+        notify({ message: "Sürümü silmek için oturum gerekli.", tone: "error" });
         return;
       }
       const response = await fetch("/api/organizations/links", {
@@ -176,7 +178,7 @@ export default function CorporateLinksPanel({
       });
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
-        window.alert(payload?.error || "Sürüm silinemedi.");
+        notify({ message: payload?.error || "Sürüm silinemedi.", tone: "error" });
         return;
       }
       setDeletedVersionIds((current) => {
@@ -184,8 +186,9 @@ export default function CorporateLinksPanel({
         next.add(version.id);
         return next;
       });
+      notify({ message: "Sürüm geçmişten silindi.", tone: "success" });
     } catch {
-      window.alert("Sürüm silinemedi.");
+      notify({ message: "Sürüm silinemedi.", tone: "error" });
     } finally {
       setDeletingVersionId(null);
     }

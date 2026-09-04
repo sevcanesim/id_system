@@ -50,6 +50,18 @@ export function isPhysicalBundleSku(sku: string | undefined): boolean { return s
 export function isRenewalSku(sku: string | undefined): boolean { return sku === COMMERCIAL_SKUS.RENEWAL || sku === COMMERCIAL_SKUS.PREMIUM_RENEWAL; }
 export function isPremiumUpgradeSku(sku: string | undefined): boolean { return sku === COMMERCIAL_SKUS.PREMIUM_UPGRADE; }
 export function isDigitalOnlySku(sku: string | undefined): boolean { return sku === COMMERCIAL_SKUS.DIGITAL || isRenewalSku(sku) || isPremiumUpgradeSku(sku); }
+/**
+ * Portal products must be bound to an authenticated account before payment so
+ * access, renewal rights and any included credits have an unambiguous owner.
+ * Physical-only products may still use the guest flow when introduced later.
+ */
+export function requiresPortalAccountSku(sku: string | undefined): boolean {
+  return isPhysicalBundleSku(sku)
+    || isDigitalOnlySku(sku)
+    || sku === COMMERCIAL_SKUS.ADDITIONAL_CARD
+    || sku === COMMERCIAL_SKUS.REPLACEMENT_CARD
+    || isCorporatePackageSku(sku);
+}
 export { CORPORATE_PACKAGE_PRODUCT_SLUG, corporatePackageSku, isCorporatePackageSku };
 export const CORPORATE_PACKAGE_OFFERS = CORPORATE_PACKAGE_LADDER.map((row) => ({ code: row.code, sku: corporatePackageSku(row.code), priceKurus: row.priceKurus, seats: row.seats }));
 

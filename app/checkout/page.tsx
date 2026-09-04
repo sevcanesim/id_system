@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { readCart, writeCart, type CartItem } from "../../lib/cart";
 import { formatTryFromKurus } from "../../lib/config/product";
-import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, isDigitalOnlySku, isPhysicalBundleSku, isPremiumUpgradeSku, isRenewalSku } from "../../lib/config/commercial";
+import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, isDigitalOnlySku, isPhysicalBundleSku, isPremiumUpgradeSku, isRenewalSku, requiresPortalAccountSku } from "../../lib/config/commercial";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { Icon } from "../icons";
 import { Button } from "../components/ui/DesignSystem";
@@ -83,6 +83,9 @@ export default function CheckoutPage() {
   const [toast, setToast] = useState("");
   const [organizationTargets, setOrganizationTargets] = useState<Record<string, { name: string; role: string }>>({});
   const [privacyMask, setPrivacyMask] = useState(false);
+  const portalPurchase = items.some((item) => requiresPortalAccountSku(item.variantSku));
+  const portalLoginHref = `/giris?portal=${items.some((item) => isCorporatePackageSku(item.variantSku)) ? "business" : "individual"}&next=%2Fcheckout`;
+  const requiresPortalLogin = portalPurchase && !isAuthenticated;
 
   useEffect(() => {
     fetch("/api/public-config")
@@ -159,6 +162,11 @@ export default function CheckoutPage() {
     })();
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    if (!checkoutReady || !requiresPortalLogin) return;
+    router.replace(portalLoginHref);
+  }, [checkoutReady, portalLoginHref, requiresPortalLogin, router]);
 
   useEffect(() => {
     const wipeIdentity = () => setForm((current) => (current.identityNumber ? { ...current, identityNumber: "" } : current));
@@ -419,6 +427,8 @@ export default function CheckoutPage() {
 
           {!checkoutReady ? (
             <div className="cart-empty"><h2>Sipariş yükleniyor…</h2><p>Henüz bir ödeme alınmadı. Sepetin kontrol ediliyor.</p></div>
+          ) : requiresPortalLogin ? (
+            <div className="cart-empty" role="status"><h2>Giriş sayfasına yönlendiriliyorsun…</h2><p>Portal erişimi içeren paketler ödeme öncesinde hesabınla eşleştirilir. Sepetin korunur.</p></div>
           ) : !items.length ? (
             <div className="cart-empty"><h2>Kartın henüz sepette değil.</h2><Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart">NFC Kartı Satın Al</Link></div>
           ) : (

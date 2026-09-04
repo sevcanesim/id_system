@@ -14,7 +14,7 @@ import {
   normalizeIdempotencyKey,
 } from "../../../../lib/payments/idempotency";
 import { getDatabaseLegalVersions } from "../../../../lib/config/database";
-import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, isDigitalOnlySku, isPremiumUpgradeSku } from "../../../../lib/config/commercial";
+import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, isDigitalOnlySku, isPremiumUpgradeSku, requiresPortalAccountSku } from "../../../../lib/config/commercial";
 import { corporateCheckoutLive, corporatePackageBySku, isDirectCheckoutBlocked } from "../../../../lib/commerce/packages";
 import { parseCompanyBilling } from "../../../../lib/validation/company";
 import { decideOpenPaymentAttempt } from "../../../../lib/payments/reuse-open-attempt";
@@ -151,10 +151,9 @@ export async function POST(request: NextRequest) {
     let authenticatedUserId: string | null = null;
     let normalizedEmail = body.customer.email.toLowerCase();
 
-    // Physical-first checkout supports guest purchase. If a session exists,
-    // we bind the order to that user and require the checkout email to match
-    // the authenticated account. Guest orders remain claimable by email after
-    // payment and do not receive an authenticated user_id.
+    // Physical-only checkout may support a guest purchase. Guest orders remain claimable by email after payment for physical-only purchases.
+    // Portal products are rejected below unless an account is present. If a
+    // session exists, bind the order to it and require the checkout email to match it.
     if (bearer) {
       const auth = getSupabaseAuthClient();
       const { data: authData } = await auth.auth.getUser(bearer);
@@ -195,6 +194,13 @@ export async function POST(request: NextRequest) {
         configuration: item.configuration,
       };
     });
+
+    if (!authenticatedUserId && calculated.some((item) => requiresPortalAccountSku(item.variant.sku))) {
+      return NextResponse.json({
+        code: "ACCOUNT_REQUIRED",
+        error: "Bu paket portal erişimi içerir. Ödeme öncesinde giriş yapmalı veya hesap oluşturmalısın.",
+      }, { status: 401 });
+    }
 
     for (const item of calculated) {
       const metadata = (item.variant.metadata as Record<string, unknown> | null) || {};

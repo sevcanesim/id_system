@@ -1,6 +1,7 @@
 "use client";
 
-import { Icon } from "../../../icons";
+import type { CSSProperties } from "react";
+import { Icon, type IconName } from "../../../icons";
 import type { CardAnalytics, Member, MemberCardStatus, Org, PhysicalCard, Template } from "../domain/types";
 import type { CorporatePanelTab } from "../domain/navigation";
 import { normalizeOrganizationRole } from "../../../../lib/organizations/permissions";
@@ -31,8 +32,10 @@ type Props = {
   onPeriodChange: (days: 7 | 30 | 90) => void;
   currentUserId: string | null;
   canManageLicenses: boolean;
+  canInvite: boolean;
   visibleTabs: ReadonlyArray<readonly [CorporatePanelTab, string]>;
   openTab: (tab: CorporatePanelTab) => void;
+  onInvite: () => void;
   openMemberDrawer: (member: Member) => void;
   relativeTime: (value: string) => string;
   onEditOwnCard: () => void;
@@ -41,6 +44,17 @@ type Props = {
 
 type AnalyticsEntry = { date: string; count: number };
 type AnalyticsChartPoint = AnalyticsEntry & { x: number; y: number };
+type PriorityItem = {
+  id: string;
+  eyebrow: string;
+  title: string;
+  copy: string;
+  action: string;
+  tab: CorporatePanelTab;
+  tone: "critical" | "attention" | "healthy";
+  icon: IconName;
+  capacityUpgrade?: boolean;
+};
 
 const shortDateFormatter = new Intl.DateTimeFormat("tr-TR", {
   day: "2-digit",
@@ -70,6 +84,14 @@ function buildAnalyticsChart(series: AnalyticsEntry[]) {
   };
 }
 
+function activityMeta(member: Member) {
+  if (member.status === "INVITED") return { label: "Davet bekliyor", icon: "mail" as IconName, tone: "attention" };
+  if (member.status === "SUSPENDED") return { label: "Hesap pasife alındı", icon: "lock" as IconName, tone: "critical" };
+  if (member.status === "LEFT") return { label: "Şirketten ayrıldı", icon: "logout" as IconName, tone: "neutral" };
+  if (member.last_activity_at) return { label: "Profil veya kart etkinliği", icon: "pencil" as IconName, tone: "positive" };
+  return { label: "Çalışan hesabı oluşturuldu", icon: "users" as IconName, tone: "positive" };
+}
+
 export default function OverviewPanel({
   org,
   subscription,
@@ -83,8 +105,10 @@ export default function OverviewPanel({
   analyticsDays,
   onPeriodChange,
   canManageLicenses,
+  canInvite,
   visibleTabs,
   openTab,
+  onInvite,
   openMemberDrawer,
   relativeTime,
   onExportCsv,
@@ -110,23 +134,17 @@ export default function OverviewPanel({
   const analyticsAvailable = analytics?.available !== false;
   const totalViews = analyticsAvailable ? analytics?.totalViews ?? 0 : null;
   const contentClicks = analytics?.content?.clicks ?? 0;
+  const contentHighlights = analytics?.content?.byLink?.slice(0, 3) ?? [];
+  const seatLimit = subscription?.seat_limit ?? 0;
+  const capacityPercent = seatLimit > 0 ? Math.min(100, Math.round((usedSeats / seatLimit) * 100)) : 0;
   const chartAccessibilityLabel = `${analyticsDays} günlük kart görüntülenme eğrisi. ${activeAnalyticsDays} aktif gün, zirve ${analyticsChart.peak.count} görüntülenme.`;
 
   const canOpen = (tab: CorporatePanelTab) => visibleTabs.some(([visibleTab]) => visibleTab === tab);
 
-  let priority: {
-    eyebrow: string;
-    title: string;
-    copy: string;
-    action: string;
-    tab: CorporatePanelTab;
-    tone: "critical" | "attention" | "healthy";
-    icon: "lock" | "contact" | "users" | "check";
-    capacityUpgrade?: boolean;
-  };
-
+  const priorityQueue: PriorityItem[] = [];
   if (unassignedPhysicalCards > 0) {
-    priority = {
+    priorityQueue.push({
+      id: "physical-cards",
       eyebrow: "AKSİYON GEREKİYOR",
       title: `${unassignedPhysicalCards} fiziksel kart çalışanla eşleşmemiş.`,
       copy: "Kartları ilgili çalışanlarla eşleştirerek dağıtım sürecini tamamlayın.",
@@ -134,9 +152,11 @@ export default function OverviewPanel({
       tab: "employees",
       tone: "attention",
       icon: "contact",
-    };
-  } else if (availableSeats === 0) {
-    priority = {
+    });
+  }
+  if (availableSeats === 0) {
+    priorityQueue.push({
+      id: "capacity",
       eyebrow: "KAPASİTE DOLU",
       title: "Yeni çalışan için boş kart kapasitesi yok.",
       copy: `${usedSeats} / ${subscription?.seat_limit ?? "—"} kapasite kullanımda. Yeni çalışan eklemek için kapasite açılması gerekiyor.`,
@@ -145,9 +165,11 @@ export default function OverviewPanel({
       tone: "critical",
       icon: "lock",
       capacityUpgrade: canManageLicenses,
-    };
-  } else if (invitedMembers > 0) {
-    priority = {
+    });
+  }
+  if (invitedMembers > 0) {
+    priorityQueue.push({
+      id: "invites",
       eyebrow: "DAVET BEKLİYOR",
       title: `${invitedMembers} çalışan henüz daveti tamamlamadı.`,
       copy: "Bekleyen davetleri kontrol ederek ekip kurulumunu tamamlayın.",
@@ -155,9 +177,11 @@ export default function OverviewPanel({
       tab: "employees",
       tone: "attention",
       icon: "users",
-    };
-  } else if (incompleteDigitalCards > 0) {
-    priority = {
+    });
+  }
+  if (incompleteDigitalCards > 0) {
+    priorityQueue.push({
+      id: "profiles",
       eyebrow: "PROFİL EKSİK",
       title: `${incompleteDigitalCards} çalışanın dijital kartı hazır değil.`,
       copy: "Eksik profilleri tamamlayarak tüm ekibin kartlarını yayına hazır hale getirin.",
@@ -165,9 +189,11 @@ export default function OverviewPanel({
       tab: "employees",
       tone: "attention",
       icon: "contact",
-    };
-  } else if (daysUntilExpiry != null && daysUntilExpiry <= 30) {
-    priority = {
+    });
+  }
+  if (daysUntilExpiry != null && daysUntilExpiry <= 30) {
+    priorityQueue.push({
+      id: "renewal",
       eyebrow: "YENİLEME YAKLAŞIYOR",
       title: `Aboneliğin yenilenmesine ${daysUntilExpiry} gün kaldı.`,
       copy: "Kart erişiminde kesinti oluşmaması için yenileme durumunu kontrol edin.",
@@ -175,9 +201,11 @@ export default function OverviewPanel({
       tab: "employees",
       tone: "attention",
       icon: "lock",
-    };
-  } else {
-    priority = {
+    });
+  }
+  if (priorityQueue.length === 0) {
+    priorityQueue.push({
+      id: "healthy",
       eyebrow: "HER ŞEY YOLUNDA",
       title: "Şu anda müdahale gerektiren bir kart işlemi yok.",
       copy: "Ekip kurulumu, dijital kartlar ve fiziksel kart atamaları güncel.",
@@ -185,8 +213,9 @@ export default function OverviewPanel({
       tab: "employees",
       tone: "healthy",
       icon: "check",
-    };
+    });
   }
+  const [priority, ...nextPriorities] = priorityQueue;
 
   return (
     <div className="cp-overview-v2" data-overview-version="3">
@@ -195,6 +224,11 @@ export default function OverviewPanel({
           <span className="cp-overview-v2__eyebrow">YENOMI BUSINESS</span>
           <h2>Genel Bakış</h2>
           <p>Bugün müdahale gerektiren işleri ve kart kullanımını tek ekranda takip edin.</p>
+        </div>
+        <div className="cp-overview-v2__quick-actions" aria-label="Hızlı işlemler">
+          {canInvite && <button type="button" className="cp-overview-v2__primary" onClick={onInvite}><Icon name="plus" /> Çalışan davet et</button>}
+          {canOpen("cards") && <button type="button" className="cp-overview-v2__secondary" onClick={() => openTab("cards")}><Icon name="contact" /> Kart ata</button>}
+          {canOpen("templates") && <button type="button" className="cp-overview-v2__secondary" onClick={() => openTab("templates")}><Icon name="pencil" /> Şablon belirle</button>}
         </div>
       </header>
 
@@ -216,33 +250,53 @@ export default function OverviewPanel({
             </button>
           ) : null}
         </div>
+        {nextPriorities.length > 0 && (
+          <div className="cp-overview-v2__priority-queue" aria-label="Sıradaki operasyonlar">
+            <span>Sıradaki</span>
+            {nextPriorities.slice(0, 2).map((item) => (
+              item.capacityUpgrade ? (
+                <a key={item.id} href="/kurumsal#kapasite">{item.title}</a>
+              ) : canOpen(item.tab) ? (
+                <button key={item.id} type="button" onClick={() => openTab(item.tab)}>{item.title}</button>
+              ) : null
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="cp-overview-v2__metrics" aria-label="Kurumsal hesap özeti">
         <article data-state={availableSeats === 0 ? "attention" : "neutral"}>
-          <span>Kart kapasitesi</span>
-          <strong>{usedSeats}<small> / {subscription?.seat_limit ?? "—"}</small></strong>
-          <p>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} boş kart`}</p>
-          {availableSeats === 0 && canManageLicenses && (
-            <a className="cp-overview-v2__primary" href="/kurumsal#kapasite">
-              Kapasiteyi artır <span aria-hidden="true">→</span>
-            </a>
-          )}
+          <button type="button" onClick={() => canManageLicenses ? window.location.assign("/kurumsal#kapasite") : openTab("employees")}>
+            <span>Kart kapasitesi</span>
+            <strong>{usedSeats}<small> / {subscription?.seat_limit ?? "—"}</small></strong>
+            <span className="cp-overview-v2__capacity-progress" aria-label={`Kapasitenin yüzde ${capacityPercent}'i kullanılıyor`}><i style={{ width: `${capacityPercent}%` }} /></span>
+            <p>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} boş kart`}</p>
+            <em>{canManageLicenses ? "Kapasiteyi artır" : "Ekibi görüntüle"} <span aria-hidden="true">→</span></em>
+          </button>
         </article>
         <article data-state={invitedMembers > 0 ? "attention" : "neutral"}>
-          <span>Bekleyen davet</span>
-          <strong>{invitedMembers}</strong>
-          <p>{invitedMembers > 0 ? "Takip gerekiyor" : "Bekleyen yok"}</p>
+          <button type="button" onClick={() => openTab("employees")}>
+            <span>Bekleyen davet</span>
+            <strong>{invitedMembers}</strong>
+            <p>{invitedMembers > 0 ? "Takip gerekiyor" : "Bekleyen yok"}</p>
+            <em>{invitedMembers > 0 ? "Davetleri yönet" : "Ekibi görüntüle"} <span aria-hidden="true">→</span></em>
+          </button>
         </article>
         <article data-state={profileCompletionPercent < 100 ? "attention" : "positive"}>
-          <span>Profil kurulumu</span>
-          <strong>%{profileCompletionPercent}</strong>
-          <p>{profileCompletionPercent === 100 ? "Tüm profiller hazır" : `${digitalCardsReady} / ${usedSeats || 0} hazır`}</p>
+          <button type="button" onClick={() => openTab("employees")}>
+            <span>Profil kurulumu</span>
+            <span className="cp-overview-v2__completion-ring" style={{ "--completion": `${profileCompletionPercent}%` } as CSSProperties}><b>%{profileCompletionPercent}</b></span>
+            <p>{profileCompletionPercent === 100 ? "Tüm profiller hazır" : `${incompleteDigitalCards} çalışanın kartı eksik`}</p>
+            <em>Profilleri görüntüle <span aria-hidden="true">→</span></em>
+          </button>
         </article>
         <article data-state={unassignedPhysicalCards > 0 ? "attention" : "positive"}>
-          <span>Fiziksel kart ataması</span>
-          <strong>{unassignedPhysicalCards}</strong>
-          <p>{unassignedPhysicalCards > 0 ? "Atama bekliyor" : "Eksik atama yok"}</p>
+          <button type="button" onClick={() => openTab("cards")}>
+            <span>Fiziksel kart ataması</span>
+            <strong>{unassignedPhysicalCards}</strong>
+            <p>{unassignedPhysicalCards > 0 ? "Atama bekliyor" : "Eksik atama yok"}</p>
+            <em>{unassignedPhysicalCards > 0 ? "Atamaya git" : "Kartları görüntüle"} <span aria-hidden="true">→</span></em>
+          </button>
         </article>
       </section>
 
@@ -279,6 +333,15 @@ export default function OverviewPanel({
             )}
           </div>
 
+          <section className="cp-overview-v2__content-highlights" aria-label="En çok ilgi gören içerikler">
+            <div><Icon name="link" /><span>En çok ilgi gören içerikler</span></div>
+            {contentHighlights.length > 0 ? (
+              <ul>
+                {contentHighlights.map((item) => <li key={item.linkId}><span>{item.label}</span><b>{item.count.toLocaleString("tr-TR")}</b></li>)}
+              </ul>
+            ) : <p>Bu dönemde içerik etkileşimi oluşmadı.</p>}
+          </section>
+
           <div className={`cp-overview-v2__chart${hasOverviewData ? " has-data" : " is-empty"}`}>
             {hasOverviewData ? (
               <>
@@ -287,6 +350,11 @@ export default function OverviewPanel({
                   <line className="cp-overview-v2__chart-guide" x1="0" y1="54" x2="100" y2="54" />
                   <line className="cp-overview-v2__chart-guide" x1="0" y1="80" x2="100" y2="80" />
                   <polyline className="cp-overview-v2__chart-line" points={analyticsChart.polyline} fill="none" vectorEffect="non-scaling-stroke" />
+                  {analyticsChart.points.filter((point) => point.count > 0).map((point) => (
+                    <circle key={point.date} className="cp-overview-v2__chart-point" cx={point.x} cy={point.y} r="1.35">
+                      <title>{`${formatAnalyticsDate(point.date)}: ${point.count.toLocaleString("tr-TR")} görüntülenme`}</title>
+                    </circle>
+                  ))}
                   <line
                     className="cp-overview-v2__chart-peak"
                     x1={analyticsChart.peak.x}
@@ -322,23 +390,16 @@ export default function OverviewPanel({
           </header>
           <div className="cp-overview-v2__activity-list">
             {recentActivity.length ? recentActivity.map((member) => {
-              const activityLabel = member.status === "INVITED"
-                ? "Davet bekliyor"
-                : member.status === "SUSPENDED"
-                  ? "Hesap pasife alındı"
-                  : member.status === "LEFT"
-                    ? "Şirketten ayrıldı"
-                    : member.last_activity_at
-                      ? "Son hesap etkinliği"
-                      : "Çalışan hesabı oluşturuldu";
+              const activity = activityMeta(member);
+              const role = normalizeOrganizationRole(member.role);
               return (
-                <button type="button" key={member.id} onClick={() => { openTab("employees"); openMemberDrawer(member); }}>
-                  <span className="cp-overview-v2__avatar" aria-hidden="true">
+                <button type="button" key={member.id} data-tone={activity.tone} onClick={() => { openTab("employees"); openMemberDrawer(member); }}>
+                  <span className="cp-overview-v2__avatar" data-role={role || "EMPLOYEE"} aria-hidden="true">
                     {(member.full_name || member.email || "Y").trim().slice(0, 1).toUpperCase()}
                   </span>
                   <span className="cp-overview-v2__activity-copy">
                     <strong>{member.full_name || member.email}</strong>
-                    <small>{activityLabel}</small>
+                    <small><Icon name={activity.icon} />{activity.label}{role && <b data-role={role}>{ROLE_LABELS[role]}</b>}</small>
                   </span>
                   <time>{relativeTime(member.last_activity_at || member.created_at)}</time>
                 </button>

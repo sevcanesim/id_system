@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { Icon } from "../../../icons";
+import { StatusBadge } from "../../../components/ui/DesignSystem";
 import { EmptyState } from "../../../components/ui/States";
 import { DEPARTMENT_OPTIONS, TITLE_OPTIONS, normalizeEmailField } from "../../../../lib/form-standards";
 import { BULK_INVITE_CSV_TEMPLATE, isBulkInviteMailFailed } from "../../../../lib/organizations/bulk-invite";
+import { ORGANIZATION_ROLES, type OrganizationRole } from "../../../../lib/organizations/permissions";
 import type { MemberActionTarget, MemberCardStatus } from "../domain/types";
 import {
   digitalProfileLabel,
@@ -63,6 +65,27 @@ type RenewalState = {
 const PAGE_SIZE = 25;
 const DAY_MS = 86400000;
 
+function digitalProfileTone(state: MemberCardStatus["digitalProfileState"] | undefined) {
+  if (state === "PUBLISHED") return "success" as const;
+  if (state === "DRAFT") return "warning" as const;
+  if (state === "DISABLED") return "error" as const;
+  return "neutral" as const;
+}
+
+function physicalCardTone(state: PhysicalCardStatus) {
+  if (state === "ACTIVE") return "success" as const;
+  if (state === "LOST") return "warning" as const;
+  if (state === "DISABLED") return "error" as const;
+  return "neutral" as const;
+}
+
+function memberStatusTone(status: string) {
+  if (status === "ACTIVE") return "success" as const;
+  if (status === "INVITED") return "warning" as const;
+  if (status === "SUSPENDED") return "error" as const;
+  return "neutral" as const;
+}
+
 type Props = {
   org: Org | null | undefined;
   subscription?: Subscription;
@@ -81,6 +104,8 @@ type Props = {
   departmentFilter: string;
   setDepartmentFilter: Dispatch<SetStateAction<string>>;
   departmentOptions: string[];
+  roleFilter: OrganizationRole | "ALL";
+  setRoleFilter: Dispatch<SetStateAction<OrganizationRole | "ALL">>;
   statusFilter: string;
   setStatusFilter: Dispatch<SetStateAction<string>>;
   showInviteForm: boolean;
@@ -145,7 +170,7 @@ export default function EmployeesPanel(props: Props) {
   const {
     org, subscription, usedSeats, availableSeats, canInvite, activeMembers, invitedMembers,
     digitalCardsReady, physicalCards, totalMembers, filteredMembers, memberCardStatuses,
-    search, setSearch, departmentFilter, setDepartmentFilter, departmentOptions,
+    search, setSearch, departmentFilter, setDepartmentFilter, departmentOptions, roleFilter, setRoleFilter,
     statusFilter, setStatusFilter, showInviteForm, setShowInviteForm, form,
     setForm, add, currentUserId, onEditOwnCard, initials, roleLabel, relativeTime,
     openMemberDrawer, showBulkInvite, onToggleBulkInvite, onCloseBulkInvite,
@@ -170,7 +195,7 @@ export default function EmployeesPanel(props: Props) {
   const showP0Suspended = suspendedSeats > 0;
   const showRenewalAttention = renewalState?.urgent ?? false;
   const hasP0Attention = showP0Capacity || showP0Pending || showP0Suspended || showRenewalAttention;
-  const hasActiveFilters = departmentFilter !== "ALL" || statusFilter !== "ALL" || sortKey !== "name" || sortDirection !== "asc";
+  const hasActiveFilters = roleFilter !== "ALL" || departmentFilter !== "ALL" || statusFilter !== "ALL" || sortKey !== "name" || sortDirection !== "asc";
   const bulkDepartmentChoices = useMemo(() => {
     const fromMembers = departmentOptions.filter((department) => department !== "Belirtilmemiş");
     return Array.from(new Set([...DEPARTMENT_OPTIONS, ...fromMembers])).sort((a, b) => compareText(a, b));
@@ -193,7 +218,7 @@ export default function EmployeesPanel(props: Props) {
   const currentPage = Math.min(page, pageCount);
   const pageMembers = sortedMembers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-  useEffect(() => { setPage(1); }, [search, departmentFilter, statusFilter, sortKey, sortDirection]);
+  useEffect(() => { setPage(1); }, [search, departmentFilter, roleFilter, statusFilter, sortKey, sortDirection]);
   useEffect(() => {
     setSelectedIds((current) => new Set([...current].filter((id) => filteredMembers.some((member) => member.id === id))));
   }, [filteredMembers]);
@@ -425,6 +450,9 @@ export default function EmployeesPanel(props: Props) {
           </div>
 
           <div className={`p11-toolbar-secondary${mobileFiltersOpen ? " is-open" : ""}`}>
+            <select aria-label="Rol filtresi" className="p11-filter-control" value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as OrganizationRole | "ALL")}>
+              <option value="ALL">Tüm roller</option>{ORGANIZATION_ROLES.map((role) => <option key={role} value={role}>{roleLabel(role)}</option>)}
+            </select>
             <select aria-label="Departman filtresi" className="p11-filter-control" value={departmentFilter} onChange={(event) => setDepartmentFilter(event.target.value)}>
               <option value="ALL">Tüm departmanlar</option>{departmentOptions.map((department) => <option key={department} value={department}>{department}</option>)}
             </select>
@@ -532,18 +560,20 @@ export default function EmployeesPanel(props: Props) {
                   <td className="select"><input type="checkbox" aria-label={`${member.full_name || member.email} seç`} checked={selectedIds.has(member.id)} disabled={!selectable} onChange={() => toggleMember(member.id)} /></td>
                   <td><button className="p11-person" type="button" aria-label={`${member.full_name || member.email} detayını aç`} onClick={() => openProfile(member)}><span>{initials(member)}</span><i><strong>{member.full_name || member.email}</strong><small>{member.email}</small></i></button></td>
                   <td>{member.department || "—"}</td><td>{roleLabel(member.role)}</td>
-                  <td><span className={`p11-status ${cardState?.digitalProfileState === "PUBLISHED" ? "success" : cardState?.digitalProfileState === "DISABLED" ? "error" : cardState?.digitalProfileState === "DRAFT" ? "warning" : "neutral"}`}>{digitalProfileLabel(cardState?.digitalProfileState ?? "NONE")}</span></td>
-                  <td><span className={`p11-status ${physicalState === "ACTIVE" ? "success" : physicalState === "LOST" ? "warning" : physicalState === "DISABLED" ? "error" : "neutral"}`}>{physicalCardLabel(physicalState)}</span></td>
-                  <td><span className={`p11-status status-${member.status.toLowerCase()}`}>{memberStatusLabel(member.status)}</span></td>
+                  <td><StatusBadge tone={digitalProfileTone(cardState?.digitalProfileState)} className="p11-lifecycle-badge"><Icon name="id" />{digitalProfileLabel(cardState?.digitalProfileState ?? "NONE")}</StatusBadge></td>
+                  <td><StatusBadge tone={physicalCardTone(physicalState)} className="p11-lifecycle-badge"><Icon name="nfc" />{physicalCardLabel(physicalState)}</StatusBadge></td>
+                  <td><StatusBadge tone={memberStatusTone(member.status)} className={`p11-lifecycle-badge status-${member.status.toLowerCase()}`}>{memberStatusLabel(member.status)}</StatusBadge></td>
                   <td><span className="p11-relative">{relativeTime(member.created_at)}</span></td>
                   <td className="actions">
-                    <button type="button" onClick={() => openProfile(member)}>Detay</button>
-                    <button type="button" onClick={() => openMemberDrawer(member, "card")}>Kartı Yönet</button>
+                    <div className="p11-row-actions">
+                      <button className="p11-row-action" type="button" aria-label={`${member.full_name || member.email} detayını aç`} title="Detayı aç" onClick={() => openProfile(member)}><Icon name="eye" /><span>Detay</span></button>
+                      <button className="p11-row-action" type="button" aria-label={`${member.full_name || member.email} kartlarını yönet`} title="Kartları yönet" onClick={() => openMemberDrawer(member, "card")}><Icon name="nfc" /><span>Kartı yönet</span></button>
+                    </div>
                     {member.status === "SUSPENDED" && (
-                      <button type="button" disabled={bulkBusy} onClick={() => {
+                      <button className="p11-row-action p11-row-action--destructive" type="button" disabled={bulkBusy} onClick={() => {
                         setSelectedIds(new Set([member.id]));
                         void runBulkStatus("LEFT");
-                      }}>Lisansı Boşa Çıkar</button>
+                      }}><Icon name="lock-open" /><span>Lisansı boşa çıkar</span></button>
                     )}
                   </td>
                 </tr>;
@@ -568,15 +598,15 @@ export default function EmployeesPanel(props: Props) {
                   <strong>{member.full_name || member.email}</strong>
                   <small>{member.title || roleLabel(member.role)} · {member.department || "Departman yok"}</small>
                 </div>
-                <span className={`p11-status status-${member.status.toLowerCase()}`}>{memberStatusLabel(member.status)}</span>
+                <StatusBadge tone={memberStatusTone(member.status)} className={`p11-lifecycle-badge status-${member.status.toLowerCase()}`}>{memberStatusLabel(member.status)}</StatusBadge>
               </header>
               <div className="p11-mobile-meta">
-                <span><small>Dijital kart</small><b>{digitalProfileLabel(cardState?.digitalProfileState ?? "NONE")}</b></span>
-                <span><small>Fiziksel kart</small><b>{physicalCardLabel(physicalState)}</b></span>
+                <span><small>Dijital kart</small><StatusBadge tone={digitalProfileTone(cardState?.digitalProfileState)} className="p11-lifecycle-badge"><Icon name="id" />{digitalProfileLabel(cardState?.digitalProfileState ?? "NONE")}</StatusBadge></span>
+                <span><small>Fiziksel kart</small><StatusBadge tone={physicalCardTone(physicalState)} className="p11-lifecycle-badge"><Icon name="nfc" />{physicalCardLabel(physicalState)}</StatusBadge></span>
               </div>
               <footer>
-                <button type="button" onClick={() => openProfile(member)}>Detay</button>
-                <button type="button" onClick={() => openMemberDrawer(member, "card")}>Kartı Yönet</button>
+                <button className="p11-row-action" type="button" onClick={() => openProfile(member)}><Icon name="eye" /><span>Detay</span></button>
+                <button className="p11-row-action" type="button" onClick={() => openMemberDrawer(member, "card")}><Icon name="nfc" /><span>Kartı yönet</span></button>
               </footer>
             </article>;
           })}
@@ -588,7 +618,7 @@ export default function EmployeesPanel(props: Props) {
             icon="search"
             title="Çalışan bulunamadı"
             description="Arama veya filtreleri değiştirerek yeniden deneyebilirsin."
-            action={{ label: "Filtreleri Temizle", onClick: () => { setSearch(""); setDepartmentFilter("ALL"); setStatusFilter("ALL"); } }}
+            action={{ label: "Filtreleri Temizle", onClick: () => { setSearch(""); setRoleFilter("ALL"); setDepartmentFilter("ALL"); setStatusFilter("ALL"); } }}
           />
         )}
 

@@ -50,7 +50,7 @@ import { useJobTitlesAndRequests } from "./hooks/useJobTitlesAndRequests";
 import { useCorporateLinks } from "./hooks/useCorporateLinks";
 import { useCorporateCards } from "./hooks/useCorporateCards";
 import { getIdentityInitials } from "../../../lib/organizations/identity";
-import { normalizeOrganizationRole } from "../../../lib/organizations/permissions";
+import { normalizeOrganizationRole, type OrganizationRole } from "../../../lib/organizations/permissions";
 
 export default function CompanyPanel({ children }: { children?: React.ReactNode }) {
   const router = useRouter();
@@ -119,9 +119,11 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   useEffect(() => {
     const routed = CORPORATE_PANEL_ROUTE_TO_TAB[pathname];
     const requested = searchParams.get("tab");
+    const requestedRole = normalizeOrganizationRole(searchParams.get("role"));
     const bulkInviteRequested = searchParams.get("bulkInvite") === "1";
     if (routed) setActiveTab(routed);
     else if (isCorporatePanelTab(requested)) setActiveTab(requested);
+    setRoleFilter(routed === "employees" && requestedRole ? requestedRole : "ALL");
     setShowBulkInvite(routed === "employees" && bulkInviteRequested);
     window.sessionStorage.setItem("yenomi-active-portal", "business");
   }, [pathname, searchParams]);
@@ -129,6 +131,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [departmentFilter, setDepartmentFilter] = useState("ALL");
+  const [roleFilter, setRoleFilter] = useState<OrganizationRole | "ALL">("ALL");
   const [viewedProfile, setViewedProfile] = useState<ViewedMemberProfile | null>(null);
   const [viewLoading, setViewLoading] = useState<string | null>(null);
   const [showInviteForm, setShowInviteForm] = useState(false);
@@ -798,13 +801,16 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
         const matchesDepartment =
           departmentFilter === "ALL" ||
           (member.department?.trim() || "Belirtilmemiş") === departmentFilter;
+        const matchesRole =
+          roleFilter === "ALL" || normalizeOrganizationRole(member.role) === roleFilter;
         return (
           matchesText &&
           matchesDepartment &&
+          matchesRole &&
           (statusFilter === "ALL" || member.status === statusFilter)
         );
       }),
-    [members, search, statusFilter, departmentFilter],
+    [members, search, statusFilter, departmentFilter, roleFilter],
   );
   const departmentOptions = useMemo(
     () =>
@@ -970,6 +976,23 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     setActiveTab(tab);
     setMobileNavOpen(false);
     router.push(tabRoutes[tab]);
+  };
+  const openRoleMembers = (role: OrganizationRole) => {
+    setSearch("");
+    setDepartmentFilter("ALL");
+    setStatusFilter("ALL");
+    setRoleFilter(role);
+    setShowInviteForm(false);
+    setMobileNavOpen(false);
+    setActiveTab("employees");
+    router.push(`${tabRoutes.employees}?role=${role}`);
+  };
+  const openInviteFromRoles = () => {
+    setRoleFilter("ALL");
+    setShowInviteForm(true);
+    setMobileNavOpen(false);
+    setActiveTab("employees");
+    router.push(tabRoutes.employees);
   };
 
   useEffect(() => {
@@ -1166,8 +1189,10 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                     }}
                     currentUserId={currentUserId}
                     canManageLicenses={canManageLicenses}
+                    canInvite={canInvite}
                     visibleTabs={tabs}
                     openTab={openTab}
+                    onInvite={openInviteFromRoles}
                     openMemberDrawer={openMemberDrawer}
                     relativeTime={relativeTime}
                     onEditOwnCard={() => router.push(ownCardEditorHref)}
@@ -1199,6 +1224,8 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                     departmentFilter={departmentFilter}
                     setDepartmentFilter={setDepartmentFilter}
                     departmentOptions={departmentOptions}
+                    roleFilter={roleFilter}
+                    setRoleFilter={setRoleFilter}
                     statusFilter={statusFilter}
                     setStatusFilter={setStatusFilter}
                     showInviteForm={showInviteForm}
@@ -1328,7 +1355,14 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                     </div>
                   </section>
                 )}
-                {currentTab === "roles" && <RolesPanel members={members} />}
+                {currentTab === "roles" && (
+                  <RolesPanel
+                    members={members}
+                    canInvite={canInvite}
+                    onInvite={openInviteFromRoles}
+                    onRoleSelect={openRoleMembers}
+                  />
+                )}
                 {currentTab === "organization" && (
                   <div className="p11-org-workspace">
                     <OrganizationStructurePanel

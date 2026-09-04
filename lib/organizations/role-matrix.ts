@@ -22,57 +22,91 @@ import {
 export const ORGANIZATION_READER_ROLES: OrganizationRole[] = ["OWNER", "ADMIN", "HR"];
 export const MEMBER_CARD_READER_ROLES: OrganizationRole[] = ["OWNER", "ADMIN", "HR"];
 
+export const ROLE_CAPABILITY_CATEGORIES = [
+  { id: "company", label: "Şirket & lisans yönetimi", description: "Şirketin ticari ve abonelik ayarları." },
+  { id: "team", label: "Ekip & üye yönetimi", description: "Davet, rol ve üyelik yaşam döngüsü işlemleri." },
+  { id: "card", label: "Kart & şablon yönetimi", description: "Kurumsal kart deneyimi ve marka standartları." },
+  { id: "insights", label: "Analitik & networking", description: "Görünürlük, raporlama ve bağlantı operasyonları." },
+] as const;
+
+export type RoleCapabilityCategory = (typeof ROLE_CAPABILITY_CATEGORIES)[number]["id"];
+export type RoleCapabilityScope = "COMPANY" | "SELF";
+
 export type RoleCapability = {
   label: string;
+  category: RoleCapabilityCategory;
+  scope: RoleCapabilityScope;
   allows: (role: OrganizationRole) => boolean;
 };
 
 export const ROLE_CAPABILITIES: RoleCapability[] = [
   {
-    label: "Şirket ve abonelik ayarları",
+    label: "Şirket, abonelik ve faturalandırma ayarları",
+    category: "company",
+    scope: "COMPANY",
     allows: (role) => role === "OWNER",
   },
   {
     // Every non-EMPLOYEE role can invite at least one kind of member.
     label: "Çalışan davet etme",
+    category: "team",
+    scope: "COMPANY",
     allows: (role) => canInviteRole(role, "EMPLOYEE"),
   },
   {
     label: "Yönetici davet etme",
+    category: "team",
+    scope: "COMPANY",
     allows: (role) => canInviteRole(role, "ADMIN"),
   },
   {
     // Changing another member's role requires outranking them; HR cannot
     // outrank an EMPLOYEE→ADMIN promotion, so it is measured against ADMIN.
     label: "Rol değiştirme",
+    category: "team",
+    scope: "COMPANY",
     allows: (role) => canChangeMemberStatus(role, "HR", false),
   },
   {
     label: "Çalışanı pasife alma / çıkarma",
+    category: "team",
+    scope: "COMPANY",
     allows: (role) => canChangeMemberStatus(role, "EMPLOYEE", false),
   },
   {
     label: "Kurumsal şablon yönetimi",
+    category: "card",
+    scope: "COMPANY",
     allows: (role) => canManageTemplates(role, "ACTIVE"),
   },
   {
     label: "Kurumsal analitik görüntüleme",
+    category: "insights",
+    scope: "COMPANY",
     allows: (role) => ORGANIZATION_READER_ROLES.includes(role),
   },
   {
     label: "Fiziksel kart yönetimi",
+    category: "card",
+    scope: "COMPANY",
     allows: (role) => ORGANIZATION_READER_ROLES.includes(role),
   },
   {
     label: "Çalışan kartını görüntüleme (salt okunur)",
+    category: "card",
+    scope: "COMPANY",
     allows: (role) => MEMBER_CARD_READER_ROLES.includes(role),
   },
   {
     label: "Kendi kartını görüntüleme / düzenleme",
+    category: "card",
+    scope: "SELF",
     allows: () => true,
   },
   {
     label: "Networking lead ve görüşme yönetimi",
+    category: "insights",
+    scope: "COMPANY",
     allows: (role) => canManageNetworking(role, "ACTIVE"),
   },
 ];

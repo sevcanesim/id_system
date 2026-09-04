@@ -3,7 +3,7 @@
 import { useEffect, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { Icon } from "../../../icons";
 import { EmptyState, LoadingState } from "../../../components/ui/States";
-import { Button } from "../../../components/ui/DesignSystem";
+import { Button, StatusBadge } from "../../../components/ui/DesignSystem";
 import { Drawer, Tabs } from "../../../components/ui/Interactive";
 import CardTemplate, { type CardBranding } from "../../../CardTemplate";
 import { DEPARTMENT_OPTIONS, TITLE_OPTIONS, normalizeEmailField } from "../../../../lib/form-standards";
@@ -98,6 +98,13 @@ type MemberEditDraft = {
   department: string;
   role: string;
 };
+
+function physicalCardTone(status: PhysicalCardStatus) {
+  if (status === "ACTIVE") return "success" as const;
+  if (status === "LOST") return "warning" as const;
+  if (status === "DISABLED") return "error" as const;
+  return "neutral" as const;
+}
 
 type Props = {
   drawerMember: DrawerMember;
@@ -375,10 +382,10 @@ export default function EmployeeDrawer({
                       <span className="v25-immutability-note">Fiziksel kart aktive edildikten sonra başka bir çalışana devredilemez.</span>
                     </p>
                   </div>
-                  <Icon name="nfc" />
+                  <StatusBadge tone={assignedCards.length ? "success" : "neutral"} className="v25-physical-card-summary"><Icon name="nfc" />{assignedCards.length ? "Kart bağlı" : "Atanmamış"}</StatusBadge>
                 </div>
                 {assignedCards.length === 0 ? (
-                  <div className="v25-empty-line">Bu çalışana bağlı fiziksel kart bulunmuyor.</div>
+                  <div className="v25-empty-line"><Icon name="nfc" />Bu çalışana bağlı fiziksel kart bulunmuyor.<StatusBadge tone="neutral">Atanmamış</StatusBadge></div>
                 ) : (
                   assignedCards.map((card) => {
                     const replacementCandidate = assignedCards.find(
@@ -391,7 +398,7 @@ export default function EmployeeDrawer({
                       <article key={card.id} className="v25-physical-control-row">
                         <div>
                           <strong>{card.cardCodeMasked}</strong>
-                          <span>{physicalCardLabel(card.status)}</span>
+                          <StatusBadge tone={physicalCardTone(card.status)} className="v25-physical-card-status"><Icon name="nfc" />{physicalCardLabel(card.status)}</StatusBadge>
                           {card.replacedByCardId && (
                             <small>
                               Yeni kartla değiştirildi
@@ -400,11 +407,11 @@ export default function EmployeeDrawer({
                           )}
                         </div>
                         {card.status === "ACTIVE" ? (
-                          <Button type="button" size="sm" disabled={cardBusy === card.id} onClick={() => void toggleCardStatus(card.id, "DISABLED")}>
+                          <Button type="button" variant="destructive" size="sm" disabled={cardBusy === card.id} onClick={() => void toggleCardStatus(card.id, "DISABLED")}>
                             Devre Dışı Bırak
                           </Button>
                         ) : card.status === "DISABLED" && !card.replacedByCardId ? (
-                          <Button type="button" size="sm" disabled={cardBusy === card.id} onClick={() => void toggleCardStatus(card.id, "ACTIVE")}>
+                          <Button type="button" variant="secondary-strong" size="sm" disabled={cardBusy === card.id} onClick={() => void toggleCardStatus(card.id, "ACTIVE")}>
                             Yeniden Etkinleştir
                           </Button>
                         ) : (card.status === "LOST" || card.status === "DISABLED") && !card.replacedByCardId && replacementCandidate ? (

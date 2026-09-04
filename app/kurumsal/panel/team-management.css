@@ -147,6 +147,71 @@
 .p10-corporate-platform .p11-table td { padding-block: var(--space-3); font-size: var(--type-body-sm); }
 .p10-corporate-platform .p11-table td.actions button { min-height: var(--control-height-md); padding-inline: var(--space-3); font-size: var(--type-sm); }
 
+/* Employee lifecycle is read as a status first, and acted on second. */
+.p10-corporate-platform .p11-lifecycle-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .3125rem;
+  min-height: 1.625rem;
+  max-width: 100%;
+  padding: .25rem .5rem;
+  border-radius: 999px;
+  font-size: var(--type-xs);
+  font-weight: 680;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.p10-corporate-platform .p11-lifecycle-badge .yi-icon { flex: 0 0 auto; width: .8125rem; height: .8125rem; }
+.p10-corporate-platform .p11-table td.actions { white-space: normal; }
+.p10-corporate-platform .p11-row-actions { display: inline-flex; flex-wrap: wrap; gap: var(--space-1); }
+.p10-corporate-platform .p11-row-action {
+  min-height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .375rem;
+  padding: .375rem .5625rem !important;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-card);
+  color: var(--text-secondary);
+  font-weight: 680;
+  line-height: 1;
+  box-shadow: none;
+}
+.p10-corporate-platform .p11-row-action .yi-icon { width: .875rem; height: .875rem; }
+.p10-corporate-platform .p11-row-action:hover:not(:disabled) { border-color: var(--brand-gold); background: var(--brand-gold-soft); color: var(--brand-gold-hover); }
+.p10-corporate-platform .p11-row-action:focus-visible { outline: 2px solid var(--brand-gold); outline-offset: 2px; }
+.p10-corporate-platform .p11-row-action--destructive { margin-top: var(--space-1); border-color: color-mix(in srgb, var(--error) 28%, var(--border)); color: var(--error); }
+.p10-corporate-platform .p11-row-action--destructive:hover:not(:disabled) { border-color: var(--error); background: var(--error-subtle); color: var(--error); }
+
+.v25-employee-drawer [role="tablist"] {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-1);
+  padding: var(--space-1);
+  overflow: visible;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-canvas);
+}
+.v25-employee-drawer [role="tab"] { min-width: 0; justify-content: center; border-radius: calc(var(--radius-sm) - .125rem); }
+.v25-employee-drawer [role="tab"][aria-selected="true"] { background: var(--surface-card); color: var(--text-primary); box-shadow: var(--shadow-xs); }
+.v25-employee-drawer .v25-physical-card-summary,
+.v25-employee-drawer .v25-physical-card-status {
+  display: inline-flex;
+  align-items: center;
+  gap: .3125rem;
+  width: fit-content;
+  font-size: var(--type-xs);
+  white-space: nowrap;
+}
+.v25-employee-drawer .v25-physical-card-summary .yi-icon,
+.v25-employee-drawer .v25-physical-card-status .yi-icon { width: .8125rem; height: .8125rem; }
+.v25-employee-drawer .v25-physical-control-row > div { display: grid; align-content: center; gap: var(--space-1); }
+.v25-employee-drawer .v25-empty-line { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
+.v25-employee-drawer .v25-empty-line > .yi-icon { color: var(--brand-gold-deep); }
+
 .p10-corporate-platform .card-inventory-page .action-first-summary { margin: 0; padding: var(--space-3) var(--space-4); border-radius: var(--radius-sm); box-shadow: none; }
 .p10-corporate-platform .card-inventory-page .action-first-summary strong { font-size: var(--type-body-sm); }
 .p10-corporate-platform .card-inventory-page .action-first-summary p { font-size: var(--type-sm); }
@@ -205,6 +270,7 @@ body:has(.ds-drawer.v25-employee-drawer) .ds-overlay { background: color-mix(in 
   .p10-corporate-platform .card-inventory-mobile-list article { padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-card); }
   .p10-corporate-platform .p11-mobile-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); margin-top: var(--space-2); }
   .p10-corporate-platform .p11-mobile-meta > span { min-height: var(--control-height-md); padding: var(--space-2); border-radius: var(--radius-xs); background: var(--surface-canvas); }
+  .p10-corporate-platform .p11-mobile-meta .p11-lifecycle-badge { margin-top: .25rem; }
   .p10-corporate-platform .p11-mobile-list footer,
   .p10-corporate-platform .card-inventory-mobile-list footer { display: grid; grid-template-columns: 1fr; gap: var(--space-2); margin-top: var(--space-2); }
   .p10-corporate-platform .p11-mobile-list footer button,
@@ -224,4 +290,36 @@ body:has(.ds-drawer.v25-employee-drawer) .ds-overlay { background: color-mix(in 
   .p10-corporate-platform .p11-attention-cta { width: 100%; }
   .p10-corporate-platform .p11-mobile-meta { grid-template-columns: 1fr; }
   .v25-employee-drawer .v25-status-summary dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .v25-employee-drawer [role="tablist"] { display: flex; overflow-x: auto; }
+  .v25-employee-drawer [role="tab"] { flex: 0 0 auto; }
+}
+
+/* Keep the drawer navigation as a compact segmented control after its legacy layout rules. */
+.v25-employee-drawer [role="tablist"] {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-1);
+  width: 100%;
+  padding: var(--space-1);
+  overflow: visible;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-canvas);
+}
+.v25-employee-drawer [role="tab"] {
+  min-width: 0;
+  min-height: var(--control-height-md);
+  justify-content: center;
+  padding-inline: var(--space-2);
+  border-radius: calc(var(--radius-sm) - .125rem);
+  white-space: normal;
+}
+.v25-employee-drawer [role="tab"][aria-selected="true"] {
+  background: var(--surface-card);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-xs);
+}
+@media (max-width: 26.875rem) {
+  .v25-employee-drawer [role="tablist"] { display: flex; overflow-x: auto; }
+  .v25-employee-drawer [role="tab"] { flex: 0 0 auto; white-space: nowrap; }
 }

@@ -93,12 +93,12 @@
   gap: var(--space-1);
   min-width: 0;
   margin: 0;
-  padding-block: var(--space-2);
+  padding: var(--space-1);
   overflow-x: auto;
   scrollbar-width: none;
   border: 1px solid rgba(0, 0, 0, .08);
   border-radius: 14px;
-  background: #fff;
+  background: #faf8f3;
   box-shadow: 0 2px 8px rgba(0, 0, 0, .03);
 }
 
@@ -113,7 +113,9 @@
   align-items: center;
   justify-content: center;
   padding-inline: var(--space-3);
-  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius-sm) - .125rem);
+  background: transparent;
   white-space: nowrap;
   color: var(--text-secondary);
   font-weight: 650;
@@ -240,9 +242,33 @@
 
 .editorSurface :global(.p8-section-nav a.is-active) {
   color: var(--text-primary);
-  background: var(--brand-gold-soft);
-  box-shadow: inset 0 -2px 0 #B89047;
+  border-color: color-mix(in srgb, var(--brand-gold) 38%, var(--border));
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(36, 29, 23, .09);
 }
+
+.editorSurface :global(.p8-completion-checklist) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-1);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.editorSurface :global(.p8-completion-checklist li) {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: .375rem;
+  color: var(--text-tertiary);
+  font-size: var(--type-xs);
+  line-height: 1.25;
+}
+
+.editorSurface :global(.p8-completion-checklist .yi-icon) { width: .875rem; height: .875rem; color: var(--text-tertiary); }
+.editorSurface :global(.p8-completion-checklist .is-complete) { color: var(--status-success); }
+.editorSurface :global(.p8-completion-checklist .is-complete .yi-icon) { color: var(--status-success); }
 
 .editorSurface :global(.p8-international-heading) {
   margin-top: var(--space-5);
@@ -342,7 +368,8 @@
 
   .editorSurface :global(.p8-editor-grid),
   .editorSurface :global(.p8-field-grid),
-  .editorSurface :global(.p8-inline-field) {
+  .editorSurface :global(.p8-inline-field),
+  .editorSurface :global(.p8-completion-checklist) {
     grid-template-columns: minmax(0, 1fr);
   }
 

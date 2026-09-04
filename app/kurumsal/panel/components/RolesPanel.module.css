@@ -1,12 +1,372 @@
-.desktopMatrix {
+.roleHub {
+  gap: 24px;
+}
+
+.header {
+  display: flex !important;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.headerCopy {
+  min-width: 0;
+}
+
+.kickerRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.kickerRow > span {
+  margin: 0;
+}
+
+.securityBadge,
+.accessBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.securityBadge svg {
+  width: 13px;
+  height: 13px;
+}
+
+.inviteButton {
+  flex: 0 0 auto;
+  gap: 7px;
+}
+
+.inviteButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid rgba(36, 29, 23, .1);
+  border-radius: 14px;
+  background: #faf8f4;
+}
+
+.metrics article {
+  display: flex;
+  min-width: 0;
+  min-height: 86px;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 15px;
+  border-right: 1px solid rgba(36, 29, 23, .09);
+}
+
+.metrics article:last-child {
+  border-right: 0;
+}
+
+.metrics article > svg {
+  flex: 0 0 auto;
+  width: 21px;
+  height: 21px;
+  color: #a9812f;
+}
+
+.metrics article > div {
+  display: grid;
+  min-width: 0;
+}
+
+.metrics small,
+.metrics span {
+  color: #7a746b;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.metrics strong {
+  margin: 2px 0 1px;
+  color: #241e16;
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.roleGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+  margin-bottom: 0 !important;
+}
+
+.roleCard {
+  min-width: 0;
+  min-height: 100%;
+  padding: 0 !important;
+}
+
+.roleCard > button {
+  display: flex;
+  width: 100%;
+  min-height: 100%;
+  flex-direction: column;
+  padding: 15px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.roleCard > button:focus-visible,
+.mobileRoleLink:focus-visible {
+  outline: 3px solid rgba(169, 129, 47, .45);
+  outline-offset: -3px;
+}
+
+.roleCard :global(.business-role-summary__head) {
+  align-items: flex-start;
+}
+
+.roleCard :global(.business-role-summary__head) > div {
+  flex: 1 1 auto;
+}
+
+.roleCard :global(.business-role-summary__head) strong {
+  white-space: normal;
+}
+
+.roleCard :global(.business-role-summary__head) span {
+  margin-top: 3px;
+}
+
+.roleCard :global(.business-role-summary__head) .accessBadge {
+  flex: 0 0 auto;
+}
+
+.roleCard ul {
+  flex: 1 1 auto;
+}
+
+.roleLink,
+.mobileRoleLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 13px;
+  color: #8a6620;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.roleLink svg,
+.mobileRoleLink svg {
+  width: 14px;
+  height: 14px;
+}
+
+.scrollHint {
+  display: none;
+  color: #8a8379;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.matrixRoleHeader {
+  vertical-align: middle;
+}
+
+.matrixRoleName {
   display: block;
+  color: #4e463a;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.matrixAccessBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 5px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: #f0f1f3;
+  color: #64615b;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.1;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.matrixAccessBadge[data-tone="warning"] {
+  background: #f8f0df;
+  color: #8a6620;
+}
+
+.matrixAccessBadge[data-tone="info"] {
+  background: #eeeaf7;
+  color: #62527c;
+}
+
+.matrixAccessBadge[data-tone="success"] {
+  background: #eaf5ed;
+  color: #28764f;
+}
+
+.categoryRow > th {
+  position: static !important;
+  width: auto !important;
+  padding: 9px 12px !important;
+  background: #fbf8f1 !important;
+  color: #6d5420 !important;
+  text-align: left !important;
+}
+
+.categoryRow svg {
+  width: 15px;
+  height: 15px;
+  margin-right: 7px;
+  vertical-align: -3px;
+}
+
+.categoryRow small {
+  margin-left: 8px;
+  color: #8a8379;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.scope {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 86px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  background: #f0f7f2;
+  color: #28764f;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.scope[data-scope="SELF"] {
+  background: #f0f3f7;
+  color: #4b6079;
+}
+
+.scope svg {
+  width: 12px;
+  height: 12px;
+}
+
+.noScope {
+  color: #aaa39a;
+  font-size: 15px;
 }
 
 .mobileMatrix {
   display: none;
 }
 
+.securityAlert {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 0 !important;
+  padding: 15px !important;
+  border: 1px solid rgba(169, 129, 47, .23) !important;
+  border-radius: 13px !important;
+  background: linear-gradient(135deg, #fffcf5, #f9f4e8) !important;
+  color: #4e463a !important;
+}
+
+.securityIcon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 9px;
+  background: rgba(169, 129, 47, .14);
+  color: #8a6620;
+}
+
+.securityIcon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.securityAlert strong {
+  display: block;
+  margin-top: 1px;
+  color: #30291f;
+  font-size: 12px;
+}
+
+.securityAlert ul {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0 0;
+  padding-left: 17px;
+}
+
+.securityAlert li {
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+@media (max-width: 1100px) {
+  .roleGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .scrollHint {
+    display: inline;
+  }
+
+  .metrics article {
+    padding: 12px;
+  }
+}
+
 @media (max-width: 47.9375rem) {
+  .header {
+    display: grid !important;
+  }
+
+  .inviteButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .metrics article {
+    min-height: 67px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(36, 29, 23, .09);
+  }
+
+  .metrics article:last-child {
+    border-bottom: 0;
+  }
+
   .desktopMatrix {
     display: none;
   }
@@ -16,9 +376,9 @@
     gap: var(--space-3);
   }
 
-  .roleCard {
+  .mobileRoleCard {
     display: grid;
-    gap: var(--space-3);
+    gap: 14px;
     min-width: 0;
     padding: var(--space-4);
     border: 1px solid var(--border);
@@ -57,6 +417,23 @@
     color: var(--text-secondary);
   }
 
+  .mobileCategory h4 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 7px;
+    color: #5b5042;
+    font-size: 10px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  .mobileCategory h4 svg {
+    width: 14px;
+    height: 14px;
+    color: #9b7427;
+  }
+
   .capabilities {
     display: grid;
     gap: var(--space-2);
@@ -82,7 +459,30 @@
   }
 
   .capabilities b {
-    font-size: var(--type-sm);
+    color: #747069;
+    font-size: var(--type-xs);
     white-space: nowrap;
+  }
+
+  .capabilities b[data-allowed="true"] {
+    color: #28764f;
+  }
+
+  .mobileRoleLink {
+    width: fit-content;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+}
+
+@media (max-width: 620px) {
+  .roleGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .securityAlert {
+    grid-template-columns: 1fr;
   }
 }

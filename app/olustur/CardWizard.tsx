@@ -934,6 +934,14 @@ export default function CardWizard() {
         {(() => {
           const completion = calculateProfileCompletion(data);
           const missingHint = formatMissingItemsText(data);
+          const checklist = [
+            { label: "Kimlik", complete: Boolean(data.name?.trim() && data.role?.trim()) },
+            { label: "İletişim", complete: Boolean(data.phone?.trim() || data.email?.trim()) },
+            { label: "Profil fotoğrafı", complete: Boolean(data.image?.trim()) },
+            { label: "Şirket bilgisi", complete: Boolean(data.company?.trim()) },
+            { label: "Kısa biyografi", complete: Boolean(data.bio?.trim()) },
+            { label: "LinkedIn", complete: Boolean(data.linkedin?.trim()) },
+          ];
           return (
             <section className="p8-ccard" aria-label="Profil doluluk seviyesi">
               <div className="p8-chead">
@@ -947,6 +955,14 @@ export default function CardWizard() {
                 <div className="p8-cfill" style={{ width: `${completion}%` }} />
               </div>
               <p className="p8-chint">{missingHint}</p>
+              <ul className="p8-completion-checklist" aria-label="Profil tamamlama kontrol listesi">
+                {checklist.map((item) => (
+                  <li key={item.label} className={item.complete ? "is-complete" : ""}>
+                    <Icon name={item.complete ? "check" : "clock"} aria-hidden="true" />
+                    <span>{item.label}</span>
+                  </li>
+                ))}
+              </ul>
             </section>
           );
         })()}

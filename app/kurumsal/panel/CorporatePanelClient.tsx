@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { writeSessionCookie } from "../../components/AuthSessionBridge";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
@@ -12,7 +12,7 @@ import {
   ROLE_LABELS,
 } from "../../../lib/organizations/role-matrix";
 import { type CardBranding } from "../../CardTemplate";
-import { getSeatBreakdown } from "../../../lib/organizations/lifecycle";
+import { countMembersWithoutPhysicalAssignment, getSeatBreakdown } from "../../../lib/organizations/lifecycle";
 import { clearLegacyCart, setCartOwner } from "../../../lib/cart";
 import { parseBulkInviteCsv, BULK_INVITE_MAX_ROWS } from "../../../lib/organizations/bulk-invite";
 import JobTitlesPanel from "./components/JobTitlesPanel";
@@ -53,11 +53,31 @@ import { useCorporateLinks } from "./hooks/useCorporateLinks";
 import { useCorporateCards } from "./hooks/useCorporateCards";
 import { getIdentityInitials } from "../../../lib/organizations/identity";
 import { normalizeOrganizationRole, type OrganizationRole } from "../../../lib/organizations/permissions";
+import { Alert } from "../../components/ui/DesignSystem";
+import { useNotice, type NoticeTone } from "../../components/ui/NotificationCenter";
+
+type OperationalAttention = {
+  tone: "warning" | "critical";
+  icon: Parameters<typeof Icon>[0]["name"];
+  title: string;
+  description: string;
+  action: string;
+  tab: CorporatePanelTab;
+};
+
+function messageNoticeTone(message: string): NoticeTone {
+  const normalized = message.toLocaleLowerCase("tr-TR");
+  if (/(kaydedilemedi|başlatılamadı|güncellenemedi|giriş yapmalısın|tamamlanamadı|yüklenemedi|başarısız)/.test(normalized)) return "error";
+  if (/(ancak|uyarı|bekleniyor|kontrol)/.test(normalized)) return "warning";
+  return "success";
+}
 
 export default function CompanyPanel({ children }: { children?: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { notify } = useNotice();
+  const previouslyNotifiedMessage = useRef("");
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [selected, setSelected] = useState("");
   const [members, setMembers] = useState<Member[]>([]);
@@ -66,6 +86,17 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   const [loading, setLoading] = useState(true);
   const [loadingSlow, setLoadingSlow] = useState(false);
   const [dataErrors, setDataErrors] = useState<Partial<Record<CorporatePanelTab, string>>>({});
+
+  useEffect(() => {
+    if (!message) {
+      previouslyNotifiedMessage.current = "";
+      return;
+    }
+    if (previouslyNotifiedMessage.current === message) return;
+    previouslyNotifiedMessage.current = message;
+    notify({ tone: messageNoticeTone(message), title: "Kurumsal panel", message });
+  }, [message, notify]);
+
   const setDataError = (tab: CorporatePanelTab, error: string | null) => {
     setDataErrors((current) => {
       const next = { ...current };
@@ -750,7 +781,52 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     subscription?.seat_limit == null
       ? null
       : Math.max(0, subscription.seat_limit - usedSeats);
+  const canManageLicenses = org?.role === "OWNER" || org?.role === "ADMIN";
   const canInvite = availableSeats == null || availableSeats > 0;
+  const unassignedPhysicalCards = useMemo(
+    () => countMembersWithoutPhysicalAssignment(members, physicalCards),
+    [members, physicalCards],
+  );
+  const incompleteProfiles = Math.max(0, activeMembers - digitalCardsReady);
+  const operationalAttention: OperationalAttention | null = !org || loading
+    ? null
+    : unassignedPhysicalCards > 0
+      ? {
+          tone: "warning",
+          icon: "contact",
+          title: `${unassignedPhysicalCards} fiziksel kart atama bekliyor`,
+          description: "Kartları ilgili çalışanlarla eşleştirerek dağıtım sürecini tamamlayın.",
+          action: "Kart atamalarına git",
+          tab: "cards",
+        }
+      : availableSeats === 0
+        ? {
+            tone: "critical",
+            icon: "alert",
+            title: "Kart kapasitesi dolu",
+            description: "Yeni çalışan eklemek için önce kullanılabilir kart kapasitesi açılması gerekiyor.",
+            action: canManageLicenses ? "Kapasiteyi artır" : "Ekibi görüntüle",
+            tab: canManageLicenses ? "cards" : "employees",
+          }
+        : invitedMembers > 0
+          ? {
+              tone: "warning",
+              icon: "mail",
+              title: `${invitedMembers} çalışan davetini bekliyor`,
+              description: "Bekleyen davetleri kontrol ederek ekip kurulumunu tamamlayın.",
+              action: "Davetleri görüntüle",
+              tab: "employees",
+            }
+          : incompleteProfiles > 0
+            ? {
+                tone: "warning",
+                icon: "contact",
+                title: `${incompleteProfiles} çalışan kartını tamamlamadı`,
+                description: "Eksik profil alanlarını tamamlayarak dijital kartları yayına hazır hale getirin.",
+                action: "Çalışanları görüntüle",
+                tab: "employees",
+              }
+            : null;
   const filteredMembers = useMemo(
     () =>
       members.filter((member) => {
@@ -895,7 +971,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     }
   }
 
-  const canManageLicenses = org?.role === "OWNER" || org?.role === "ADMIN";
   const canManageNetworking = canManageLicenses;
   const sidebarItems = org ? corporateSidebarItems(org.role) : [];
   const tabs: ReadonlyArray<readonly [CorporatePanelTab, string]> = sidebarItems.map(({ key, label }) => [key, label] as const);
@@ -1168,11 +1243,17 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                     onExportCsv={exportAnalyticsCsv}
                   />
                 )}
-                {message && (
-                  <div className="business-message" role="status">
-                    {message}
-                  </div>
+                {currentTab !== "overview" && operationalAttention && (
+                  <section className={`enterprise-global-attention is-${operationalAttention.tone}`} role="status" aria-labelledby="enterprise-global-attention-title">
+                    <span className="enterprise-global-attention__icon"><Icon name={operationalAttention.icon} /></span>
+                    <div>
+                      <strong id="enterprise-global-attention-title">{operationalAttention.title}</strong>
+                      <p>{operationalAttention.description}</p>
+                    </div>
+                    <button type="button" onClick={() => openTab(operationalAttention.tab)}>{operationalAttention.action}<span aria-hidden="true">→</span></button>
+                  </section>
                 )}
+                {message && <Alert tone={messageNoticeTone(message)} className="business-message">{message}</Alert>}
 
                 {currentTab === "employees" && (
                   <EmployeesPanel

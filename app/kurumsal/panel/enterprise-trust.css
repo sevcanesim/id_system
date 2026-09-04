@@ -88,6 +88,19 @@
 .integration-panel__secret code { overflow:auto; padding:8px; border-radius:7px; background:rgba(255,255,255,.6); color:var(--ink); font-size:11px; }
 .integration-panel__secret small { color:var(--ink-2); font-size:11px; line-height:1.45; }
 .integration-panel__message { margin:0; padding:11px 13px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--ink-2); font-size:12px; line-height:1.5; }
+.p10-corporate-platform .enterprise-global-attention { width:min(100%,1180px); display:grid; grid-template-columns:34px minmax(0,1fr) auto; align-items:center; gap:12px; margin:0 auto 16px; padding:13px 15px; border:1px solid rgba(163,123,44,.28); border-radius:13px; background:#fffbf2; color:var(--ink); box-shadow:0 5px 16px rgba(47,37,21,.04); }
+.p10-corporate-platform .enterprise-global-attention__icon { width:34px; height:34px; display:grid; place-items:center; border-radius:10px; background:#fbf0d9; color:#936b20; }
+.p10-corporate-platform .enterprise-global-attention__icon .yi-icon { width:17px; height:17px; }
+.p10-corporate-platform .enterprise-global-attention strong { display:block; color:var(--ink); font-size:13px; line-height:1.35; }
+.p10-corporate-platform .enterprise-global-attention p { margin:2px 0 0; color:var(--ink-2); font-size:11.5px; line-height:1.45; }
+.p10-corporate-platform .enterprise-global-attention button { min-height:34px; display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:0 11px; border:1px solid rgba(163,123,44,.32); border-radius:8px; background:#fff; color:#75541b; font-size:11px; font-weight:750; white-space:nowrap; cursor:pointer; }
+.p10-corporate-platform .enterprise-global-attention button:hover { border-color:#a37b2c; background:#fff9ed; }
+.p10-corporate-platform .enterprise-global-attention.is-critical { border-color:#292117; background:linear-gradient(135deg,#241f18,#342916); color:#fffaf0; }
+.p10-corporate-platform .enterprise-global-attention.is-critical .enterprise-global-attention__icon { background:rgba(230,196,126,.15); color:#e9c875; }
+.p10-corporate-platform .enterprise-global-attention.is-critical strong { color:#fffaf0; }
+.p10-corporate-platform .enterprise-global-attention.is-critical p { color:#dacbaa; }
+.p10-corporate-platform .enterprise-global-attention.is-critical button { border-color:rgba(230,196,126,.35); background:#d0aa59; color:#211d18; }
+@media (max-width:720px) { .p10-corporate-platform .enterprise-global-attention { grid-template-columns:34px minmax(0,1fr); align-items:start; } .p10-corporate-platform .enterprise-global-attention button { grid-column:1/-1; width:100%; min-height:42px; } }
 @media (max-width:720px) {
   .trust-audit-panel__header { flex-direction:column; }
   .trust-audit-panel__actions { justify-content:flex-start; }

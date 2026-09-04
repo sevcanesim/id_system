@@ -25,7 +25,9 @@ export {
   Textarea,
 } from "./DesignSystem";
 export { Drawer, Modal, Tabs, Toast } from "./Interactive";
+export { NoticeProvider, publishNotice, useNotice } from "./NotificationCenter";
 export type { ButtonSize, ButtonVariant } from "./DesignSystem";
+export type { NoticeInput, NoticeTone } from "./NotificationCenter";
 
 export { default as AppShell } from "./AppShell";
 export type { AppShellAction, AppShellNavKey } from "./AppShell";

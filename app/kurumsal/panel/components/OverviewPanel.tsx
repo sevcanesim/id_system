@@ -267,7 +267,7 @@ export default function OverviewPanel({
       <section className="cp-overview-v2__metrics" aria-label="Kurumsal hesap özeti">
         <article data-state={availableSeats === 0 ? "attention" : "neutral"}>
           <button type="button" onClick={() => canManageLicenses ? window.location.assign("/kurumsal#kapasite") : openTab("employees")}>
-            <span>Kart kapasitesi</span>
+            <span className="cp-overview-v2__metric-label"><Icon name="id" /><span>Kart kapasitesi</span></span>
             <strong>{usedSeats}<small> / {subscription?.seat_limit ?? "—"}</small></strong>
             <span className="cp-overview-v2__capacity-progress" aria-label={`Kapasitenin yüzde ${capacityPercent}'i kullanılıyor`}><i style={{ width: `${capacityPercent}%` }} /></span>
             <p>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} boş kart`}</p>
@@ -276,7 +276,7 @@ export default function OverviewPanel({
         </article>
         <article data-state={invitedMembers > 0 ? "attention" : "neutral"}>
           <button type="button" onClick={() => openTab("employees")}>
-            <span>Bekleyen davet</span>
+            <span className="cp-overview-v2__metric-label"><Icon name="users" /><span>Bekleyen davet</span></span>
             <strong>{invitedMembers}</strong>
             <p>{invitedMembers > 0 ? "Takip gerekiyor" : "Bekleyen yok"}</p>
             <em>{invitedMembers > 0 ? "Davetleri yönet" : "Ekibi görüntüle"} <span aria-hidden="true">→</span></em>
@@ -284,7 +284,7 @@ export default function OverviewPanel({
         </article>
         <article data-state={profileCompletionPercent < 100 ? "attention" : "positive"}>
           <button type="button" onClick={() => openTab("employees")}>
-            <span>Profil kurulumu</span>
+            <span className="cp-overview-v2__metric-label"><Icon name="shield" /><span>Profil kurulumu</span></span>
             <span className="cp-overview-v2__completion-ring" style={{ "--completion": `${profileCompletionPercent}%` } as CSSProperties}><b>%{profileCompletionPercent}</b></span>
             <p>{profileCompletionPercent === 100 ? "Tüm profiller hazır" : `${incompleteDigitalCards} çalışanın kartı eksik`}</p>
             <em>Profilleri görüntüle <span aria-hidden="true">→</span></em>
@@ -292,7 +292,7 @@ export default function OverviewPanel({
         </article>
         <article data-state={unassignedPhysicalCards > 0 ? "attention" : "positive"}>
           <button type="button" onClick={() => openTab("cards")}>
-            <span>Fiziksel kart ataması</span>
+            <span className="cp-overview-v2__metric-label"><Icon name="nfc" /><span>Fiziksel kart ataması</span></span>
             <strong>{unassignedPhysicalCards}</strong>
             <p>{unassignedPhysicalCards > 0 ? "Atama bekliyor" : "Eksik atama yok"}</p>
             <em>{unassignedPhysicalCards > 0 ? "Atamaya git" : "Kartları görüntüle"} <span aria-hidden="true">→</span></em>
@@ -349,6 +349,7 @@ export default function OverviewPanel({
                   <line className="cp-overview-v2__chart-guide" x1="0" y1="28" x2="100" y2="28" />
                   <line className="cp-overview-v2__chart-guide" x1="0" y1="54" x2="100" y2="54" />
                   <line className="cp-overview-v2__chart-guide" x1="0" y1="80" x2="100" y2="80" />
+                  <polygon className="cp-overview-v2__chart-area" points={`0,96 ${analyticsChart.polyline} 100,96`} />
                   <polyline className="cp-overview-v2__chart-line" points={analyticsChart.polyline} fill="none" vectorEffect="non-scaling-stroke" />
                   {analyticsChart.points.filter((point) => point.count > 0).map((point) => (
                     <circle key={point.date} className="cp-overview-v2__chart-point" cx={point.x} cy={point.y} r="1.35">

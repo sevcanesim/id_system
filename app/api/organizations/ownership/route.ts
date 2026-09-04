@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { MFA_REQUIRED_MESSAGE, requiresOrganizationMfaStepUp } from "../../../../lib/organizations/security-policy";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 
 const schema = z.object({ organizationId: z.string().uuid(), newOwnerMemberId: z.string().uuid(), reason: z.string().trim().max(500).optional() });
@@ -13,6 +14,9 @@ export async function POST(request: NextRequest) {
   const parsed = schema.safeParse(await request.json());
   if (!parsed.success) return NextResponse.json({ error: "Geçersiz sahiplik devri." }, { status: 400 });
   const admin = getSupabaseAdminClient();
+  if (await requiresOrganizationMfaStepUp(request, admin, parsed.data.organizationId)) {
+    return NextResponse.json({ error: MFA_REQUIRED_MESSAGE, code: "MFA_REQUIRED" }, { status: 403 });
+  }
   const { data: resultData, error } = await admin.rpc("transfer_organization_ownership", {
     p_actor_user_id: data.user.id, p_organization_id: parsed.data.organizationId,
     p_new_owner_member_id: parsed.data.newOwnerMemberId, p_reason: parsed.data.reason || null,

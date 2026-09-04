@@ -37,6 +37,9 @@ export default function AnalyticsPanel({
   const contentClicks = analytics?.content?.clicks ?? 0;
   const contentDownloads = analytics?.content?.downloads ?? 0;
   const totalInteractions = analytics?.content?.totalInteractions ?? 0;
+  const trafficSources = analytics?.attribution?.bySource ?? [];
+  const campaigns = analytics?.attribution?.byCampaign ?? [];
+  const funnel = analytics?.funnel ?? { views: totalViews, contentInteractions: totalInteractions, leads: 0, meetings: 0 };
   const hasAnalyticsData = totalViews > 0
     || last30DaysViews > 0
     || cardRankings.length > 0
@@ -174,6 +177,23 @@ export default function AnalyticsPanel({
             <article><small><Icon name="clock" /> Son 30 gün</small><strong>{last30DaysViews.toLocaleString("tr-TR")}</strong><span>Dönem karşılaştırması</span></article>
             <article><small><Icon name="external" /> URL tıklaması</small><strong>{contentClicks.toLocaleString("tr-TR")}</strong><span>İçerik etkileşimi</span></article>
             <article><small><Icon name="fileText" /> PDF indirme</small><strong>{contentDownloads.toLocaleString("tr-TR")}</strong><span>Dosya etkileşimi</span></article>
+          </section>
+
+          <section className="p11-roi-funnel" aria-labelledby="p11-roi-funnel-title">
+            <header>
+              <div><span>YENOMI ROI</span><h3 id="p11-roi-funnel-title">Erişimden görüşmeye</h3><p>Kart etkileşimlerinin satış ve networking çıktısına dönüşümünü seçili dönemde izleyin.</p></div>
+              {!analytics?.attribution?.available ? <StatusBadge tone="neutral">Kaynak ayrımı yeni kayıtlarla başlar</StatusBadge> : null}
+            </header>
+            <div className="p11-roi-funnel__steps">
+              <article><small>1. Erişim</small><strong>{funnel.views.toLocaleString("tr-TR")}</strong><span>Kart görüntülenmesi</span></article>
+              <article><small>2. İlgi</small><strong>{funnel.contentInteractions.toLocaleString("tr-TR")}</strong><span>URL veya PDF etkileşimi</span></article>
+              <article><small>3. Lead</small><strong>{funnel.leads.toLocaleString("tr-TR")}</strong><span>Oluşturulan bağlantı</span></article>
+              <article><small>4. Görüşme</small><strong>{funnel.meetings.toLocaleString("tr-TR")}</strong><span>Planlanan görüşme</span></article>
+            </div>
+            {(trafficSources.length > 0 || campaigns.length > 0) ? <div className="p11-roi-funnel__breakdown">
+              {trafficSources.length > 0 ? <div><h4>Kaynağa göre erişim</h4>{trafficSources.map((item) => <span key={item.source}><b>{item.source === "DIRECT" ? "Doğrudan" : item.source}</b><i>{item.count.toLocaleString("tr-TR")}</i></span>)}</div> : null}
+              {campaigns.length > 0 ? <div><h4>En iyi kampanyalar</h4>{campaigns.map((item) => <span key={item.campaign}><b>{item.campaign}</b><i>{item.count.toLocaleString("tr-TR")}</i></span>)}</div> : null}
+            </div> : null}
           </section>
 
           {(remainingCards.length > 0 || countryRankings.length > 0 || departmentRankings.length > 0) && (

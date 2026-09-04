@@ -7,6 +7,7 @@ import { isCardProfileServiceActive, rowToCardData, type CardProfileRow } from "
 import { fetchCardBranding, fetchOrganizationLinks } from "../../../lib/organizations/card-branding";
 import { fetchCardLocaleOverlays } from "../../../lib/public-card/locales";
 import { logCardView } from "../../../lib/analytics/card-views";
+import { getPublicCompanyVerification } from "../../../lib/organizations/verified-company";
 
 export const dynamic = "force-dynamic";
 
@@ -37,9 +38,10 @@ export default async function EventAttributionPage({ params }: { params: Promise
   const card = profile as CardProfileRow | null;
   if (!card || !card.is_published || card.card_status !== "ACTIVE" || !isCardProfileServiceActive(card)) notFound();
 
-  await logCardView(card.id);
+  await logCardView(card.id, { source: "EVENT" });
   const branding = await fetchCardBranding(card.user_id);
   const links = await fetchOrganizationLinks(card.user_id, card.id, card.organization_id);
+  const companyVerification = await getPublicCompanyVerification(card.organization_id);
   const locales = await fetchCardLocaleOverlays(supabase, card.id);
 
   return (
@@ -53,6 +55,7 @@ export default async function EventAttributionPage({ params }: { params: Promise
         profileId={card.id}
         profileName={card.name}
         organizationName={card.company || branding?.companyName}
+        companyVerification={companyVerification}
         eventId={eventLink.event_id}
         eventLinkId={eventLink.id}
         eventName={eventLink.event_name || "Event"}

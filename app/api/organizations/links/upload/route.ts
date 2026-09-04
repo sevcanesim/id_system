@@ -5,6 +5,7 @@ import {
 } from "../../../../../lib/organizations/organization-assets";
 import { recordOrganizationAuditEvent } from "../../../../../lib/organizations/audit";
 import { canManageTemplates, isOrganizationRole } from "../../../../../lib/organizations/permissions";
+import { MFA_REQUIRED_MESSAGE, requiresOrganizationMfaStepUp } from "../../../../../lib/organizations/security-policy";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../lib/supabase/server-admin";
 
 // PDF is intentionally limited to document-oriented slots.
@@ -18,7 +19,7 @@ async function context(request: NextRequest) {
   const auth = getSupabaseAuthClient();
   const { data } = await auth.auth.getUser(token);
   if (!data.user) return null;
-  return { user: data.user, admin: getSupabaseAdminClient() };
+  return { user: data.user, admin: getSupabaseAdminClient(), token };
 }
 
 export async function POST(request: NextRequest) {
@@ -45,6 +46,9 @@ export async function POST(request: NextRequest) {
   const { data: member } = await ctx.admin.from("organization_members").select("role,status").eq("organization_id", organizationId).eq("user_id", ctx.user.id).eq("status", "ACTIVE").maybeSingle();
   if (!member || !isOrganizationRole(member.role) || !canManageTemplates(member.role, "ACTIVE")) {
     return NextResponse.json({ error: "Kurumsal bağlantı yönetimi yalnız şirket sahibi ve yöneticilere açıktır." }, { status: 403 });
+  }
+  if (await requiresOrganizationMfaStepUp(request, ctx.admin, organizationId)) {
+    return NextResponse.json({ error: MFA_REQUIRED_MESSAGE, code: "MFA_REQUIRED" }, { status: 403 });
   }
 
   const { data: existing } = await ctx.admin

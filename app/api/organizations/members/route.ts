@@ -12,6 +12,7 @@ import {
   getSupabaseAdminClient,
   getSupabaseAuthClient,
 } from "../../../../lib/supabase/server-admin";
+import { MFA_REQUIRED_MESSAGE, requiresOrganizationMfaStepUp } from "../../../../lib/organizations/security-policy";
 
 const createSchema = z.object({
   organizationId: z.string().uuid(),
@@ -63,7 +64,7 @@ async function requestContext(request: NextRequest) {
   const { data } = await authClient.auth.getUser(accessToken);
   if (!data.user) return null;
 
-  return { user: data.user, admin: getSupabaseAdminClient() };
+  return { user: data.user, admin: getSupabaseAdminClient(), accessToken };
 }
 
 async function getManager(
@@ -176,6 +177,9 @@ export async function POST(request: NextRequest) {
   if (!actor || !canInviteRole(actor.role, parsed.data.role)) {
     return NextResponse.json({ error: "Bu rol için davet oluşturma yetkin yok." }, { status: 403 });
   }
+  if (await requiresOrganizationMfaStepUp(request, context.admin, parsed.data.organizationId)) {
+    return NextResponse.json({ error: MFA_REQUIRED_MESSAGE, code: "MFA_REQUIRED" }, { status: 403 });
+  }
   const invitationDepartment = parsed.data.department || "";
   const { data: organization } = await context.admin
     .from("organizations")
@@ -258,6 +262,9 @@ export async function PATCH(request: NextRequest) {
         { error: parsed.error.issues[0]?.message || "Geçersiz çalışan bilgisi." },
         { status: 400 },
       );
+    }
+    if (await requiresOrganizationMfaStepUp(request, context.admin, parsed.data.organizationId)) {
+      return NextResponse.json({ error: MFA_REQUIRED_MESSAGE, code: "MFA_REQUIRED" }, { status: 403 });
     }
 
     const { data, error } = await context.admin.rpc("update_organization_member_identity", {
@@ -354,6 +361,9 @@ export async function PATCH(request: NextRequest) {
 
   const actor = await getManager(context.admin, context.user.id, parsed.data.organizationId);
   if (!actor) return NextResponse.json({ error: "Yetkin yok." }, { status: 403 });
+  if (await requiresOrganizationMfaStepUp(request, context.admin, parsed.data.organizationId)) {
+    return NextResponse.json({ error: MFA_REQUIRED_MESSAGE, code: "MFA_REQUIRED" }, { status: 403 });
+  }
 
   const { data, error } = await context.admin.rpc("change_organization_member_status", {
     p_actor_user_id: context.user.id,
@@ -410,6 +420,9 @@ export async function PUT(request: NextRequest) {
   const actor = await getManager(context.admin, context.user.id, parsed.data.organizationId);
   if (!actor) {
     return NextResponse.json({ error: "Bu rol değişikliğine yetkin yok." }, { status: 403 });
+  }
+  if (await requiresOrganizationMfaStepUp(request, context.admin, parsed.data.organizationId)) {
+    return NextResponse.json({ error: MFA_REQUIRED_MESSAGE, code: "MFA_REQUIRED" }, { status: 403 });
   }
 
   const { data, error } = await context.admin.rpc("change_organization_member_role", {

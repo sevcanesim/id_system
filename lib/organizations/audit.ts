@@ -11,14 +11,15 @@ export type OrganizationAuditAction =
   | "CONTENT_URL_SAVED"
   | "CONTENT_PUBLICATION_CHANGED"
   | "CONTENT_ROLLED_BACK"
-  | "CONTENT_REMOVED";
+  | "CONTENT_REMOVED"
+  | "SECURITY_POLICY_CHANGED";
 
 export type OrganizationAuditEventInput = {
   organizationId: string;
   actorUserId: string;
   actorRole: OrganizationRole;
   action: OrganizationAuditAction;
-  subjectType: "MEMBER" | "CORPORATE_LINK";
+  subjectType: "MEMBER" | "CORPORATE_LINK" | "SECURITY_POLICY";
   subjectId?: string | null;
   summary: string;
   metadata?: Record<string, string | number | boolean | null>;

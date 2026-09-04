@@ -74,6 +74,8 @@ export function useCorporateCards(
       ...(cardAnalytics.byCard || []).map((item) => ["Kart", item.name, item.count, ""]),
       ...(cardAnalytics.byDepartment || []).map((item) => ["Departman", item.department, item.count, ""]),
       ...(cardAnalytics.byCountry || []).map((item) => ["Ülke", item.country, item.count, ""]),
+      ...(cardAnalytics.attribution?.bySource || []).map((item) => ["Erişim kaynağı", item.source, item.count, ""]),
+      ...(cardAnalytics.attribution?.byCampaign || []).map((item) => ["Kampanya", item.campaign, item.count, ""]),
       ...(cardAnalytics.content?.byLink || []).map((item) => ["İçerik", item.label, item.count, item.downloads]),
     ];
     const csv = rows

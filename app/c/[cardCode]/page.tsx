@@ -7,6 +7,7 @@ import { fetchCardBranding, fetchOrganizationLinks } from "../../../lib/organiza
 import { logCardView } from "../../../lib/analytics/card-views";
 import { fetchCardLocaleOverlays } from "../../../lib/public-card/locales";
 import CardRecoveryAction from "./CardRecoveryAction";
+import { getPublicCompanyVerification } from "../../../lib/organizations/verified-company";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -43,7 +44,7 @@ export default async function PhysicalCardRoute({ params }: { params: Promise<{ 
 
   const { data: rawProfile } = await admin
     .from("card_profiles")
-    .select("id,user_id,entitlement_id,slug,public_id,name,role,company,phone,whatsapp,email,website,linkedin,instagram,location,image_url,bio,is_published,card_status,service_started_at,service_expires_at,grace_ends_at")
+    .select("id,user_id,organization_id,entitlement_id,slug,public_id,name,role,company,phone,whatsapp,email,website,linkedin,instagram,location,image_url,bio,is_published,card_status,service_started_at,service_expires_at,grace_ends_at")
     .eq("id", card.owner_profile_id)
     .maybeSingle();
   const profile = rawProfile as CardProfileRow | null;
@@ -52,9 +53,10 @@ export default async function PhysicalCardRoute({ params }: { params: Promise<{ 
   if (profile.card_status === "LOST") return <CardState title="Bu Yenomi kartı kayıp olarak bildirilmiştir." />;
   if (profile.card_status !== "ACTIVE" || !isCardProfileServiceActive(profile)) return <CardState title="Bu Yenomi profili şu anda aktif değildir." />;
 
-  await logCardView(profile.id);
+  await logCardView(profile.id, { source: "NFC" });
   const branding = await fetchCardBranding(profile.user_id);
   const links = await fetchOrganizationLinks(profile.user_id, profile.id);
+  const companyVerification = await getPublicCompanyVerification(profile.organization_id);
   const locales = await fetchCardLocaleOverlays(admin, profile.id);
 
   return (
@@ -68,6 +70,7 @@ export default async function PhysicalCardRoute({ params }: { params: Promise<{ 
         profileId={profile.id}
         profileName={profile.name}
         organizationName={profile.company || branding?.companyName}
+        companyVerification={companyVerification}
         source="NFC"
         locales={locales}
       />

@@ -5,6 +5,7 @@ import CardTemplate, { type CardBranding, type EditableCardData } from "../../Ca
 import { type NetworkingLocale } from "../../../lib/networking/catalog";
 import type { CardLocaleOverlay } from "../../../lib/public-card/locales";
 import NetworkingCapture from "./NetworkingCapture";
+import type { PublicCompanyVerification } from "../../../lib/organizations/verified-company";
 
 export default function PublicCardWithNetworking({
   data,
@@ -19,6 +20,7 @@ export default function PublicCardWithNetworking({
   eventName,
   source = "QR",
   locales = [],
+  companyVerification,
 }: {
   data: EditableCardData;
   slug?: string;
@@ -32,6 +34,7 @@ export default function PublicCardWithNetworking({
   eventName?: string | null;
   source?: "QR" | "NFC" | "EVENT" | "SHARE";
   locales?: CardLocaleOverlay[];
+  companyVerification?: PublicCompanyVerification | null;
 }) {
   const [locale, setLocale] = useState<NetworkingLocale>("tr");
 
@@ -50,17 +53,23 @@ export default function PublicCardWithNetworking({
       branding={branding}
       locale={locale}
       extras={
-        <NetworkingCapture
-          profileId={profileId}
-          profileName={profileName}
-          organizationName={organizationName}
-          eventId={eventId}
-          eventLinkId={eventLinkId}
-          eventName={eventName}
-          source={source}
-          locale={locale}
-          onLocaleChange={setLocale}
-        />
+        <>
+          {companyVerification?.verified ? <section className="p12-verified-company" aria-label="Doğrulanmış kurumsal kimlik">
+            <span aria-hidden="true">✓</span>
+            <div><strong>Doğrulanmış kurumsal kimlik</strong><small>{companyVerification.companyName || organizationName || "Bu kuruluş"} için Yenomi resmi kayıt kontrolü tamamlandı.</small></div>
+          </section> : null}
+          <NetworkingCapture
+            profileId={profileId}
+            profileName={profileName}
+            organizationName={organizationName}
+            eventId={eventId}
+            eventLinkId={eventLinkId}
+            eventName={eventName}
+            source={source}
+            locale={locale}
+            onLocaleChange={setLocale}
+          />
+        </>
       }
     />
   );

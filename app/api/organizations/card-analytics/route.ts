@@ -97,15 +97,23 @@ export async function GET(request: NextRequest) {
   if (profileIds.length === 0) return NextResponse.json({ totalViews: 0, last30DaysViews: 0, windowDays, periodDays: windowDays, byCountry: [], byCard: [], byDay: [], content: { totalInteractions: 0, clicks: 0, downloads: 0, byLink: [] } });
 
   const since = `${periodStart}T00:00:00.000Z`;
-  const eventsQuery = ctx.admin
-    .from("card_view_events")
-    .select("profile_id,viewed_at,country")
-    .in("profile_id", profileIds)
-    .gte("viewed_at", since)
-    .limit(5000);
-  const { data: events, error: eventsError } = untilExclusive
-    ? await eventsQuery.lt("viewed_at", untilExclusive)
-    : await eventsQuery;
+  const viewQuery = (columns: string) => {
+    const query = ctx.admin
+      .from("card_view_events")
+      .select(columns)
+      .in("profile_id", profileIds)
+      .gte("viewed_at", since)
+      .limit(5000);
+    return untilExclusive ? query.lt("viewed_at", untilExclusive) : query;
+  };
+  let attributionAvailable = true;
+  let { data: events, error: eventsError } = await viewQuery("profile_id,viewed_at,country,source,campaign");
+  if (eventsError?.code === "42703") {
+    attributionAvailable = false;
+    const fallback = await viewQuery("profile_id,viewed_at,country");
+    events = fallback.data as typeof events;
+    eventsError = fallback.error;
+  }
   if (eventsError) {
     const relationMissing = eventsError.code === "42P01" || eventsError.code === "PGRST205" || (/card_view_events/i.test(eventsError.message || "") && /does not exist|schema cache/i.test(eventsError.message || ""));
     console.error("[card-analytics] card_view_events query failed", { organizationId, code: eventsError.code, message: eventsError.message });
@@ -132,18 +140,31 @@ export async function GET(request: NextRequest) {
   }
 
   const thirtyDaysAgo = Date.now() - 30 * 86400000;
+  const viewRows = (events || []) as unknown as Array<{
+    profile_id: string;
+    viewed_at: string;
+    country: string | null;
+    source?: string | null;
+    campaign?: string | null;
+  }>;
   const countryCounts: Record<string, number> = {};
   const cardCounts: Record<string, number> = {};
   const departmentCounts: Record<string, number> = {};
   const dailyCounts: Record<string, number> = {};
+  const sourceCounts: Record<string, number> = {};
+  const campaignCounts: Record<string, number> = {};
   let last30DaysViews = 0;
 
-  for (const event of events || []) {
+  for (const event of viewRows) {
     const country = event.country || "Bilinmiyor";
     countryCounts[country] = (countryCounts[country] || 0) + 1;
     cardCounts[event.profile_id] = (cardCounts[event.profile_id] || 0) + 1;
     const day = String(event.viewed_at).slice(0, 10);
     dailyCounts[day] = (dailyCounts[day] || 0) + 1;
+    const source = attributionAvailable && typeof event.source === "string" ? event.source : "Önceki kayıt";
+    sourceCounts[source] = (sourceCounts[source] || 0) + 1;
+    const campaign = attributionAvailable && typeof event.campaign === "string" ? event.campaign : null;
+    if (campaign) campaignCounts[campaign] = (campaignCounts[campaign] || 0) + 1;
     if (new Date(event.viewed_at).getTime() >= thirtyDaysAgo) last30DaysViews += 1;
   }
 
@@ -168,14 +189,27 @@ export async function GET(request: NextRequest) {
   const byDepartment = Object.entries(departmentCounts)
     .map(([department, count]) => ({ department, count }))
     .sort((a, b) => b.count - a.count);
+  const bySource = Object.entries(sourceCounts)
+    .map(([source, count]) => ({ source, count }))
+    .sort((a, b) => b.count - a.count);
+  const byCampaign = Object.entries(campaignCounts)
+    .map(([campaign, count]) => ({ campaign, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
 
   const contentEventsQuery = ctx.admin.from("organization_link_events").select("organization_link_id,event_type,occurred_at").eq("organization_id", organizationId).gte("occurred_at", since).limit(5000);
   const contentEventsPromise = untilExclusive
     ? contentEventsQuery.lt("occurred_at", untilExclusive)
     : contentEventsQuery;
-  const [{ data: organizationLinks }, { data: contentEvents, error: contentError }] = await Promise.all([
+  const [{ data: organizationLinks }, { data: contentEvents, error: contentError }, { count: leadCount }, { count: meetingCount }] = await Promise.all([
     ctx.admin.from("organization_links").select("id,kind,label").eq("organization_id", organizationId),
     contentEventsPromise,
+    (untilExclusive
+      ? ctx.admin.from("networking_leads").select("id", { count: "exact", head: true }).eq("organization_id", organizationId).gte("created_at", since).lt("created_at", untilExclusive)
+      : ctx.admin.from("networking_leads").select("id", { count: "exact", head: true }).eq("organization_id", organizationId).gte("created_at", since)),
+    (untilExclusive
+      ? ctx.admin.from("networking_meetings").select("id", { count: "exact", head: true }).eq("organization_id", organizationId).gte("created_at", since).lt("created_at", untilExclusive)
+      : ctx.admin.from("networking_meetings").select("id", { count: "exact", head: true }).eq("organization_id", organizationId).gte("created_at", since)),
   ]);
   const linkById = new Map((organizationLinks || []).map((link) => [link.id, link]));
   const contentCounts = new Map<string, { count: number; downloads: number }>();
@@ -222,7 +256,7 @@ export async function GET(request: NextRequest) {
     available: true,
     warning: null,
     code: null,
-    totalViews: (events || []).length,
+    totalViews: viewRows.length,
     last30DaysViews,
     windowDays,
     periodDays: windowDays,
@@ -232,6 +266,17 @@ export async function GET(request: NextRequest) {
     byCountry,
     byCard,
     byDepartment,
+    attribution: {
+      available: attributionAvailable,
+      bySource,
+      byCampaign,
+    },
+    funnel: {
+      views: viewRows.length,
+      contentInteractions: clicks + downloads,
+      leads: leadCount || 0,
+      meetings: meetingCount || 0,
+    },
     content: {
       totalInteractions: clicks + downloads,
       clicks,

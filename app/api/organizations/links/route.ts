@@ -7,6 +7,7 @@ import {
 } from "../../../../lib/organizations/organization-assets";
 import { recordOrganizationAuditEvent } from "../../../../lib/organizations/audit";
 import { canManageTemplates, isOrganizationRole } from "../../../../lib/organizations/permissions";
+import { MFA_REQUIRED_MESSAGE, requiresOrganizationMfaStepUp } from "../../../../lib/organizations/security-policy";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 
 // Kart şablonundaki "Kurumsal Bağlantılar" bölümünün 4 sabit slotu:
@@ -52,7 +53,7 @@ async function context(request: NextRequest) {
   const auth = getSupabaseAuthClient();
   const { data } = await auth.auth.getUser(token);
   if (!data.user) return null;
-  return { user: data.user, admin: getSupabaseAdminClient() };
+  return { user: data.user, admin: getSupabaseAdminClient(), token };
 }
 
 async function membership(admin: ReturnType<typeof getSupabaseAdminClient>, userId: string, organizationId: string) {
@@ -119,6 +120,9 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message || "Geçersiz bağlantı." }, { status: 400 });
   const member = await membership(ctx.admin, ctx.user.id, parsed.data.organizationId);
   if (!member || !canManageTemplates(member.role, "ACTIVE")) return NextResponse.json({ error: "Kurumsal bağlantı yönetimi yalnız şirket sahibi ve yöneticilere açıktır." }, { status: 403 });
+  if (await requiresOrganizationMfaStepUp(request, ctx.admin, parsed.data.organizationId)) {
+    return NextResponse.json({ error: MFA_REQUIRED_MESSAGE, code: "MFA_REQUIRED" }, { status: 403 });
+  }
 
   const publishAt = parsed.data.publishAt || new Date().toISOString();
   const { data: existing } = await ctx.admin
@@ -166,6 +170,9 @@ export async function PATCH(request: NextRequest) {
     if (!rollback.success) return NextResponse.json({ error: "Geçersiz geri alma isteği." }, { status: 400 });
     const member = await membership(ctx.admin, ctx.user.id, rollback.data.organizationId);
     if (!member || !canManageTemplates(member.role, "ACTIVE")) return NextResponse.json({ error: "Kurumsal bağlantı yönetimi yalnız şirket sahibi ve yöneticilere açıktır." }, { status: 403 });
+    if (await requiresOrganizationMfaStepUp(request, ctx.admin, rollback.data.organizationId)) {
+      return NextResponse.json({ error: MFA_REQUIRED_MESSAGE, code: "MFA_REQUIRED" }, { status: 403 });
+    }
     const { data: version, error: versionError } = await ctx.admin
       .from("organization_link_versions")
       .select("kind,label,subtitle,link_type,url,file_path,file_name,file_size,is_published,publish_at")
@@ -206,6 +213,9 @@ export async function PATCH(request: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: "Geçersiz istek." }, { status: 400 });
   const member = await membership(ctx.admin, ctx.user.id, parsed.data.organizationId);
   if (!member || !canManageTemplates(member.role, "ACTIVE")) return NextResponse.json({ error: "Kurumsal bağlantı yönetimi yalnız şirket sahibi ve yöneticilere açıktır." }, { status: 403 });
+  if (await requiresOrganizationMfaStepUp(request, ctx.admin, parsed.data.organizationId)) {
+    return NextResponse.json({ error: MFA_REQUIRED_MESSAGE, code: "MFA_REQUIRED" }, { status: 403 });
+  }
   const { data, error } = await ctx.admin
     .from("organization_links")
     .update({
@@ -253,6 +263,9 @@ export async function DELETE(request: NextRequest) {
     if (!member || !canManageTemplates(member.role, "ACTIVE")) {
       return NextResponse.json({ error: "Sürüm geçmişini yalnız şirket sahibi ve yöneticiler düzenleyebilir." }, { status: 403 });
     }
+    if (await requiresOrganizationMfaStepUp(request, ctx.admin, version.organization_id)) {
+      return NextResponse.json({ error: MFA_REQUIRED_MESSAGE, code: "MFA_REQUIRED" }, { status: 403 });
+    }
 
     const { error: deleteVersionError } = await ctx.admin
       .from("organization_link_versions")
@@ -267,6 +280,9 @@ export async function DELETE(request: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: "Geçersiz istek." }, { status: 400 });
   const member = await membership(ctx.admin, ctx.user.id, parsed.data.organizationId);
   if (!member || !canManageTemplates(member.role, "ACTIVE")) return NextResponse.json({ error: "Kurumsal bağlantı yönetimi yalnız şirket sahibi ve yöneticilere açıktır." }, { status: 403 });
+  if (await requiresOrganizationMfaStepUp(request, ctx.admin, parsed.data.organizationId)) {
+    return NextResponse.json({ error: MFA_REQUIRED_MESSAGE, code: "MFA_REQUIRED" }, { status: 403 });
+  }
   const { data: existing } = await ctx.admin
     .from("organization_links")
     .select("file_path")

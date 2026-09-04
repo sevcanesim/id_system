@@ -9,8 +9,12 @@ import { logCardView } from "../../../lib/analytics/card-views";
 import { fetchCardBranding, fetchOrganizationLinks } from "../../../lib/organizations/card-branding";
 import { fetchCardLocaleOverlays } from "../../../lib/public-card/locales";
 import { cardSharePath, looksLikePublicId } from "../../../lib/public-card/urls";
+import { getPublicCompanyVerification } from "../../../lib/organizations/verified-company";
 
-type PageProps = { params: Promise<{ publicId: string }> };
+type PageProps = {
+  params: Promise<{ publicId: string }>;
+  searchParams: Promise<{ utm_campaign?: string | string[] }>;
+};
 export const dynamic = "force-dynamic";
 
 async function getProfile(token: string) {
@@ -41,7 +45,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function PublicProfilePage({ params }: PageProps) {
+export default async function PublicProfilePage({ params, searchParams }: PageProps) {
   const { publicId: token } = await params;
   const { data: profile, redirectedFrom } = await getProfile(token);
   if (!profile) notFound();
@@ -73,9 +77,12 @@ export default async function PublicProfilePage({ params }: PageProps) {
       />
     );
   }
-  await logCardView(profile.id);
+  const query = await searchParams;
+  const campaign = Array.isArray(query.utm_campaign) ? query.utm_campaign[0] : query.utm_campaign;
+  await logCardView(profile.id, { source: "QR", campaign });
   const branding = await fetchCardBranding(profile.user_id);
   const links = await fetchOrganizationLinks(profile.user_id, profile.id, profile.organization_id);
+  const companyVerification = await getPublicCompanyVerification(profile.organization_id);
   const supabase = getPublicSupabaseClient();
   const locales = supabase ? await fetchCardLocaleOverlays(supabase, profile.id) : [];
   return (
@@ -89,6 +96,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
         profileId={profile.id}
         profileName={profile.name}
         organizationName={profile.company || branding?.companyName}
+        companyVerification={companyVerification}
         source="QR"
         locales={locales}
       />

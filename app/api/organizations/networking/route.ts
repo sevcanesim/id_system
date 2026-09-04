@@ -5,6 +5,7 @@ import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 import { LEAD_STATUSES, scoreLabel } from "../../../../lib/networking/catalog";
 import { countMailSentToday, NETWORK_FOLLOWUP_TEMPLATES, sendDebitedNetworkFollowUp } from "../../../../lib/networking/follow-up";
 import { createOpaquePublicId } from "../../../../lib/public-card/urls";
+import { queueOrganizationWebhookEvent } from "../../../../lib/organizations/webhook-integrations";
 
 export const runtime = "nodejs";
 
@@ -186,6 +187,12 @@ export async function POST(request: NextRequest) {
       kind: `MEETING_${parsed.data.status}`,
       payload: { meetingId: meetingRow.id },
     });
+    await queueOrganizationWebhookEvent(admin, parsed.data.organizationId, "MEETING_STATUS_CHANGED", {
+      meetingId: meetingRow.id,
+      leadId: meetingRow.lead_id,
+      status: parsed.data.status,
+      leadStatus,
+    });
     return NextResponse.json({ meeting: meetingRow });
   }
 
@@ -203,7 +210,18 @@ export async function POST(request: NextRequest) {
       .select("*")
       .maybeSingle();
     if (error || !lead) return NextResponse.json({ error: "Lead güncellenemedi." }, { status: 503 });
-    const leadRow = lead as { score: number };
+    const leadRow = lead as { id: string; full_name: string; email: string; company: string | null; position: string | null; phone: string | null; source: string; status: string; score: number };
+    await queueOrganizationWebhookEvent(admin, parsed.data.organizationId, "LEAD_STATUS_CHANGED", {
+      leadId: leadRow.id,
+      fullName: leadRow.full_name,
+      email: leadRow.email,
+      phone: leadRow.phone,
+      company: leadRow.company,
+      position: leadRow.position,
+      source: leadRow.source,
+      status: leadRow.status,
+      score: leadRow.score,
+    });
     return NextResponse.json({ lead: { ...leadRow, scoreLabel: scoreLabel(leadRow.score) } });
   }
 

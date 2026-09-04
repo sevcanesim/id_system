@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Icon } from "../../../icons";
 import { Button, StatusBadge } from "../../../components/ui/DesignSystem";
 import { EmptyState, LoadingState } from "../../../components/ui/States";
+import { getSupabaseBrowserClient } from "../../../../lib/supabase/browser";
 
 type AuditEvent = {
   id: string;
@@ -18,6 +19,15 @@ type Props = {
   organizationId: string;
   token: () => Promise<string | null>;
 };
+
+type SecurityState = {
+  requireMfaForCriticalActions: boolean;
+  migrationPending: boolean;
+  canManagePolicy: boolean;
+  assuranceLevel: "aal1" | "aal2" | null;
+};
+
+type Enrollment = { factorId: string; qrCode: string; secret: string } | null;
 
 const roleLabel: Record<AuditEvent["actor_role"], string> = {
   OWNER: "Şirket Sahibi",
@@ -36,11 +46,17 @@ function actionTone(action: string): "success" | "warning" | "info" | "neutral" 
 function actionIcon(action: string) {
   if (action.includes("MEMBER")) return "users";
   if (action.includes("CONTENT")) return "link";
+  if (action.includes("SECURITY")) return "secure";
   return "shield";
 }
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+}
+
+function csvCell(value: string | number | null | undefined) {
+  const text = String(value ?? "");
+  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
 export default function AuditPanel({ organizationId, token }: Props) {
@@ -50,6 +66,11 @@ export default function AuditPanel({ organizationId, token }: Props) {
   const [loading, setLoading] = useState(true);
   const [migrationPending, setMigrationPending] = useState(false);
   const [error, setError] = useState("");
+  const [security, setSecurity] = useState<SecurityState | null>(null);
+  const [securityError, setSecurityError] = useState("");
+  const [securityBusy, setSecurityBusy] = useState(false);
+  const [enrollment, setEnrollment] = useState<Enrollment>(null);
+  const [verificationCode, setVerificationCode] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -60,10 +81,14 @@ export default function AuditPanel({ organizationId, token }: Props) {
         setError("Denetim kaydı için oturum gerekli.");
         return;
       }
-      const response = await fetch(`/api/organizations/audit?organizationId=${encodeURIComponent(organizationId)}`, {
-        headers: { authorization: `Bearer ${access}` },
-        cache: "no-store",
-      });
+      const [response, securityResponse] = await Promise.all([
+        fetch(`/api/organizations/audit?organizationId=${encodeURIComponent(organizationId)}`, {
+          headers: { authorization: `Bearer ${access}` }, cache: "no-store",
+        }),
+        fetch(`/api/organizations/security?organizationId=${encodeURIComponent(organizationId)}`, {
+          headers: { authorization: `Bearer ${access}` }, cache: "no-store",
+        }),
+      ]);
       const payload = await response.json();
       if (!response.ok) {
         setError(payload.error || "Denetim kayıtları yüklenemedi.");
@@ -73,6 +98,18 @@ export default function AuditPanel({ organizationId, token }: Props) {
       setTotal(payload.summary?.total || 0);
       setLast30Days(payload.summary?.last30Days || 0);
       setMigrationPending(Boolean(payload.migrationPending));
+      if (securityResponse.ok) {
+        const securityPayload = await securityResponse.json();
+        setSecurity({
+          requireMfaForCriticalActions: Boolean(securityPayload.policy?.requireMfaForCriticalActions),
+          migrationPending: Boolean(securityPayload.migrationPending),
+          canManagePolicy: Boolean(securityPayload.permissions?.canManagePolicy),
+          assuranceLevel: securityPayload.session?.assuranceLevel === "aal2" ? "aal2" : securityPayload.session?.assuranceLevel === "aal1" ? "aal1" : null,
+        });
+        setSecurityError("");
+      } else {
+        setSecurityError("MFA politikası şu anda yüklenemedi.");
+      }
     } catch {
       setError("Denetim kayıtları yüklenirken bağlantı hatası oluştu.");
     } finally {
@@ -82,6 +119,69 @@ export default function AuditPanel({ organizationId, token }: Props) {
 
   useEffect(() => { void load(); }, [load]);
 
+  function downloadCsv() {
+    const rows = [
+      ["Tarih", "İşlem", "Açıklama", "Yapan", "Rol"],
+      ...events.map((event) => [formatDate(event.occurred_at), event.action, event.summary, event.actor_name, roleLabel[event.actor_role]]),
+    ];
+    const blob = new Blob([`\uFEFF${rows.map((row) => row.map(csvCell).join(",")).join("\n")}`], { type: "text/csv;charset=utf-8" });
+    const href = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = href;
+    anchor.download = `yenomi-denetim-kaydi-${new Date().toISOString().slice(0, 10)}.csv`;
+    anchor.click();
+    URL.revokeObjectURL(href);
+  }
+
+  async function startMfaEnrollment() {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) { setSecurityError("MFA kurulumu için oturum gerekli."); return; }
+    setSecurityBusy(true);
+    setSecurityError("");
+    const { data, error: enrollError } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "Yenomi Business" });
+    if (enrollError || !data?.totp) setSecurityError("Authenticator kurulumu başlatılamadı. Lütfen yeniden deneyin.");
+    else setEnrollment({ factorId: data.id, qrCode: data.totp.qr_code, secret: data.totp.secret });
+    setSecurityBusy(false);
+  }
+
+  async function verifyMfa() {
+    const supabase = getSupabaseBrowserClient();
+    const code = verificationCode.replace(/\s/g, "");
+    if (!supabase || !enrollment) return;
+    if (!/^\d{6}$/.test(code)) { setSecurityError("Authenticator uygulamasındaki 6 haneli kodu girin."); return; }
+    setSecurityBusy(true);
+    setSecurityError("");
+    const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: enrollment.factorId });
+    if (challengeError || !challenge) setSecurityError("Doğrulama başlatılamadı. Yeni kodla tekrar deneyin.");
+    else {
+      const { error: verifyError } = await supabase.auth.mfa.verify({ factorId: enrollment.factorId, challengeId: challenge.id, code });
+      if (verifyError) setSecurityError("Kod doğrulanamadı. Güncel kodu kontrol edin.");
+      else {
+        setEnrollment(null);
+        setVerificationCode("");
+        await load();
+      }
+    }
+    setSecurityBusy(false);
+  }
+
+  async function updatePolicy(enabled: boolean) {
+    const access = await token();
+    if (!access) { setSecurityError("Güvenlik ayarını değiştirmek için oturum gerekli."); return; }
+    setSecurityBusy(true);
+    setSecurityError("");
+    const response = await fetch("/api/organizations/security", {
+      method: "PATCH",
+      headers: { authorization: `Bearer ${access}`, "content-type": "application/json" },
+      body: JSON.stringify({ organizationId, requireMfaForCriticalActions: enabled }),
+    });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      setSecurityError(payload?.error || "MFA politikası kaydedilemedi.");
+    } else await load();
+    setSecurityBusy(false);
+  }
+
   return (
     <section className="trust-audit-panel" aria-labelledby="trust-audit-title">
       <header className="trust-audit-panel__header">
@@ -90,9 +190,11 @@ export default function AuditPanel({ organizationId, token }: Props) {
           <h2 id="trust-audit-title">Kurumsal işlem kaydı</h2>
           <p>Yönetim işlemleri zaman damgalı olarak kaydedilir. Kayıtlar değiştirilemez ve yalnız yetkili yöneticiler tarafından görüntülenir.</p>
         </div>
-        <Button type="button" variant="secondary" size="sm" onClick={() => void load()} disabled={loading}>
-          <Icon name="refresh" /> Yenile
-        </Button>
+        <div className="trust-audit-panel__actions">
+          <Button type="button" variant="secondary" size="sm" onClick={downloadCsv} disabled={loading || events.length === 0}>CSV indir</Button>
+          <Button type="button" variant="secondary" size="sm" onClick={() => window.print()} disabled={loading || events.length === 0}>Yazdır / PDF</Button>
+          <Button type="button" variant="secondary" size="sm" onClick={() => void load()} disabled={loading}><Icon name="refresh" /> Yenile</Button>
+        </div>
       </header>
 
       <div className="trust-audit-panel__summary" aria-label="Denetim özeti">
@@ -116,6 +218,28 @@ export default function AuditPanel({ organizationId, token }: Props) {
           ))}
         </ol>
       ) : null}
+
+      <section className="trust-mfa-card" aria-labelledby="trust-mfa-title">
+        <div className="trust-mfa-card__copy">
+          <span><Icon name="secure" /> KRİTİK İŞLEM KORUMASI</span>
+          <h3 id="trust-mfa-title">Yönetici MFA politikası</h3>
+          <p>Etkinleştirildiğinde davet, rol, çalışan durumu, sahiplik devri ve kurumsal içerik işlemleri ek doğrulama olmadan tamamlanamaz.</p>
+        </div>
+        <div className="trust-mfa-card__status">
+          <StatusBadge tone={security?.requireMfaForCriticalActions ? "success" : "neutral"}>{security?.requireMfaForCriticalActions ? "Kritik işlemlerde MFA aktif" : "Politika kapalı"}</StatusBadge>
+          <small>Oturum seviyesi: {security?.assuranceLevel === "aal2" ? "MFA doğrulandı" : "Temel doğrulama"}</small>
+        </div>
+        {security?.migrationPending ? <p className="trust-mfa-card__notice">Bu politika için migration henüz hedef veritabanına uygulanmadı.</p> : null}
+        {securityError ? <p className="trust-mfa-card__notice" role="status">{securityError}</p> : null}
+        {!security?.migrationPending && security?.assuranceLevel !== "aal2" && !enrollment ? (
+          <Button type="button" variant="secondary" size="sm" onClick={() => void startMfaEnrollment()} disabled={securityBusy}><Icon name="secure" /> Authenticator kur</Button>
+        ) : null}
+        {enrollment ? <div className="trust-mfa-card__enrollment">
+          <img src={enrollment.qrCode} alt="Authenticator kurulum QR kodu" width={148} height={148} />
+          <div><strong>QR kodu Authenticator uygulamasıyla tarayın</strong><p>Tarayamazsanız kurulum anahtarı: <code>{enrollment.secret}</code></p><label>6 haneli kod<input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={verificationCode} onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="000000" /></label><Button type="button" size="sm" onClick={() => void verifyMfa()} disabled={securityBusy}>Doğrula</Button></div>
+        </div> : null}
+        {security?.canManagePolicy && !security?.migrationPending ? <label className="trust-mfa-card__toggle"><input type="checkbox" checked={security.requireMfaForCriticalActions} onChange={(event) => void updatePolicy(event.target.checked)} disabled={securityBusy || security.assuranceLevel !== "aal2"} /><span>Bu şirket için kritik işlemlerde MFA zorunlu</span></label> : null}
+      </section>
     </section>
   );
 }

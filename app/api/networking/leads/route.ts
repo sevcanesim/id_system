@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { scoreLead } from "../../../../lib/networking/catalog";
 import { normalizeContactPhone } from "../../../../lib/networking/contact-phone";
+import { queueOrganizationWebhookEvent } from "../../../../lib/organizations/webhook-integrations";
 import { consumeDistributedRateLimit, requestIp } from "../../../../lib/security/rate-limit";
 import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 
@@ -113,6 +114,18 @@ export async function POST(request: NextRequest) {
     { lead_id: createdLead.id, kind: "QR_SCAN", payload: { source: submission.source } },
     { lead_id: createdLead.id, kind: "CONTACT_SHARED", payload: { email: normalizedEmail } },
   ]);
+
+  await queueOrganizationWebhookEvent(supabaseAdmin, cardProfile.organization_id, "LEAD_CREATED", {
+    leadId: createdLead.id,
+    fullName: submission.fullName,
+    email: normalizedEmail,
+    phone: normalizedPhone.value,
+    company: submission.company || null,
+    position: submission.position || null,
+    source: submission.source,
+    score: leadScore,
+    status: "NEW",
+  });
 
   return NextResponse.json({ ok: true, leadId: createdLead.id });
 }

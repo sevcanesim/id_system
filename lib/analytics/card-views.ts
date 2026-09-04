@@ -38,7 +38,19 @@ function shouldIgnoreView(host: string, userAgent: string) {
   return AUTOMATED_AGENT.test(userAgent);
 }
 
-export async function logCardView(profileId: string): Promise<void> {
+export type CardTrafficSource = "QR" | "NFC" | "EVENT" | "SHARE" | "DIRECT";
+
+type ViewAttribution = {
+  source?: CardTrafficSource;
+  campaign?: string | null;
+};
+
+function safeCampaign(value: string | null | undefined) {
+  const normalized = value?.trim().replace(/\s+/g, " ");
+  return normalized && /^[\p{L}\p{N} _.-]{1,64}$/u.test(normalized) ? normalized : null;
+}
+
+export async function logCardView(profileId: string, attribution: ViewAttribution = {}): Promise<void> {
   try {
     const headerList = await headers();
     const host = headerList.get("host") || "";
@@ -72,6 +84,8 @@ export async function logCardView(profileId: string): Promise<void> {
       city: decodeGeoValue(city),
       referrer,
       visitor_fingerprint: fingerprint,
+      source: attribution.source || "DIRECT",
+      campaign: safeCampaign(attribution.campaign),
     });
   } catch {}
 }

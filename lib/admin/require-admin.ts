@@ -1,26 +1,13 @@
 import type { User } from "@supabase/supabase-js";
 import type { NextRequest } from "next/server";
+import { assuranceLevelFromToken, type AuthenticatorAssuranceLevel } from "../auth/assurance";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../supabase/server-admin";
-
-type AuthenticatorAssuranceLevel = "aal1" | "aal2" | null;
 
 type VerifiedSuperAdmin = {
   user: User;
   admin: ReturnType<typeof getSupabaseAdminClient>;
   aal: AuthenticatorAssuranceLevel;
 };
-
-function assuranceLevelFromToken(token: string): AuthenticatorAssuranceLevel {
-  try {
-    const [, payload] = token.split(".");
-    if (!payload) return null;
-    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
-    const decoded = JSON.parse(Buffer.from(normalized, "base64").toString("utf8")) as { aal?: unknown };
-    return decoded.aal === "aal2" ? "aal2" : decoded.aal === "aal1" ? "aal1" : null;
-  } catch {
-    return null;
-  }
-}
 
 /** Confirms the session belongs to a Super Admin without requiring MFA yet. */
 export async function requireSuperAdminIdentity(request: NextRequest): Promise<VerifiedSuperAdmin | null> {

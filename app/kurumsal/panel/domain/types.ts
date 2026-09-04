@@ -123,6 +123,17 @@ export type CardAnalytics = {
   periodStart?: string;
   periodEnd?: string;
   byDay?: Array<{ date: string; count: number }>;
+  attribution?: {
+    available: boolean;
+    bySource: Array<{ source: string; count: number }>;
+    byCampaign: Array<{ campaign: string; count: number }>;
+  };
+  funnel?: {
+    views: number;
+    contentInteractions: number;
+    leads: number;
+    meetings: number;
+  };
   content?: {
     totalInteractions: number;
     clicks: number;

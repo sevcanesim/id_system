@@ -11551,10 +11551,36 @@ article[id] {
   color: #17120c;
 }
 .checkout-company-fields {
+  min-width: 0;
+  margin: 8px 0 0;
+  padding: 14px;
+  border: 1px solid var(--border-gold);
+  border-radius: 12px;
+  background: var(--gold-dim);
+}
+.checkout-company-fields legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 6px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+}
+.checkout-company-fields legend .yi-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--gold-hi);
+}
+.checkout-company-fields > p {
+  margin: 4px 0 12px;
+  color: var(--ink-2);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.checkout-company-fields__grid {
   display: grid;
   gap: 12px;
-  margin-top: 4px;
-  padding-top: 4px;
 }
 .checkout-company-kicker {
   margin: 8px 0 0;
@@ -16877,7 +16903,6 @@ body:has(.p6-auth-page) .public-site-chrome .yi-nav-backdrop {
     gap: 12px;
   }
 }
-
 
 
 

@@ -361,7 +361,36 @@
 }
 
 .cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
   margin-bottom: var(--space-5);
+}
+
+.yenomiId {
+  display: grid;
+  flex: 0 0 auto;
+  gap: .2rem;
+  min-width: 10.5rem;
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--brand-gold) 38%, var(--border));
+  border-radius: var(--radius-sm);
+  background: var(--brand-gold-soft);
+}
+
+.yenomiId span {
+  color: var(--brand-gold-deep);
+  font-size: var(--type-xs);
+  font-weight: 750;
+  letter-spacing: .08em;
+}
+
+.yenomiId strong {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--type-body-sm);
+  letter-spacing: .02em;
 }
 
 .formGrid {
@@ -526,6 +555,10 @@
   .emptyInline,
   .orderHead {
     align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cardHeader {
     flex-direction: column;
   }
 

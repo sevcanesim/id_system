@@ -10,6 +10,22 @@ export type Org = {
     name: string;
     slug: string;
     status: string;
+    /** Returned only for an active OWNER or HR membership. */
+    corporate_id?: string | null;
+    legal_name?: string | null;
+    tax_id_type?: "VKN" | "TCKN" | null;
+    tax_number?: string | null;
+    tax_office?: string | null;
+    mersis_number?: string | null;
+    trade_registry_number?: string | null;
+    billing_address?: string | null;
+    billing_city?: string | null;
+    billing_district?: string | null;
+    billing_postal_code?: string | null;
+    billing_country_code?: string | null;
+    billing_email?: string | null;
+    billing_phone?: string | null;
+    authorized_person_name?: string | null;
   } | null;
   organization_subscriptions?: Array<{
     seat_limit: number;

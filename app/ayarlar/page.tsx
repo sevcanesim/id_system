@@ -216,6 +216,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [yenomiId, setYenomiId] = useState("");
   const [accountSnapshot, setAccountSnapshot] = useState<AccountSnapshot>({ name: "", email: "" });
   const [password, setPassword] = useState("");
   const [accountMessage, setAccountMessage] = useState("");
@@ -232,7 +233,11 @@ export default function SettingsPage() {
     let cancelled = false;
     void (async () => {
       const supabase = getSupabaseBrowserClient();
-      const { data } = await supabase?.auth.getUser() || { data: { user: null } };
+      if (!supabase) {
+        if (!cancelled) router.replace("/giris?next=%2Fayarlar");
+        return;
+      }
+      const { data } = await supabase.auth.getUser();
       if (cancelled) return;
       if (!data.user) {
         router.replace("/giris?next=%2Fayarlar");
@@ -245,6 +250,13 @@ export default function SettingsPage() {
       setName(nextName);
       setAccountSnapshot({ name: nextName, email: nextEmail });
       setBrowserLabel(currentBrowserLabel());
+
+      const { data: account } = await supabase
+        .from("user_accounts")
+        .select("yenomi_id")
+        .eq("id", data.user.id)
+        .maybeSingle();
+      if (!cancelled) setYenomiId(typeof account?.yenomi_id === "string" ? account.yenomi_id : "");
 
       const { data: sessionData } = await supabase?.auth.getSession() || { data: { session: null } };
       const accessToken = sessionData.session?.access_token;
@@ -489,6 +501,7 @@ export default function SettingsPage() {
                     <h2>Profilini güncel tut</h2>
                     <p>Giriş ve hesap iletişim bilgilerinizi yönetin.</p>
                   </div>
+                  {yenomiId ? <div className={styles.yenomiId} aria-label={`Yenomi ID: ${yenomiId}`}><span>YENOMI ID</span><strong>{yenomiId}</strong></div> : null}
                 </div>
                 <div className={styles.formGrid}>
                   <Field label="Ad Soyad">

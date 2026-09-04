@@ -409,18 +409,22 @@ export default function CheckoutPage() {
                 <section className={`checkout-step ${activeStep === "buyer" ? "open" : ""} ${buyerComplete ? "complete" : ""}`}>
                   <button type="button" className="checkout-step-trigger" onClick={() => setActiveStep("buyer")}>
                     <span className="checkout-step-icon"><Icon name="contact" /></span>
-                    <span><strong>Alıcı Bilgileri</strong><small>{hasCorporatePackage ? "Sipariş, fatura ve şirket bilgileri" : "Sipariş ve fatura bilgileri"}</small></span>
+                    <span><strong>{hasCorporatePackage ? "Fatura ve şirket bilgileri" : "Alıcı Bilgileri"}</strong><small>{hasCorporatePackage ? "Sipariş sahibi ve değiştirilemez kurumsal kayıt" : "Sipariş ve fatura bilgileri"}</small></span>
                   </button>
                   {activeStep === "buyer" && <div className="checkout-step-body">
                     <label>Ad Soyad<input required autoComplete="name" value={form.recipientName} onChange={(event) => update("recipientName", event.target.value)} /></label>
                     <label>Telefon<input required inputMode="tel" autoComplete="tel" value={form.phone} onChange={(event) => update("phone", normalizeTrPhone(event.target.value))} /></label>
                     <label>E-posta<input required type="email" autoComplete="email" value={form.email} onChange={(event) => !isAuthenticated && update("email", event.target.value)} readOnly={isAuthenticated} /></label>
                     <label>T.C. kimlik numarası<input required inputMode="numeric" maxLength={11} name="iyzico-identity" autoComplete="off" autoCorrect="off" spellCheck={false} aria-describedby="identity-note" value={form.identityNumber} onChange={(event) => update("identityNumber", event.target.value.replace(/\D/g, ""))} /><small id="identity-note">iyzico ödemesi için zorunlu. Yenomi kaydetmez.</small></label>
-                    {hasCorporatePackage ? <div className="checkout-company-fields">
-                      <label>Şirket unvanı<input required autoComplete="organization" value={form.companyName} onChange={(event) => update("companyName", event.target.value)} /></label>
-                      <label>Vergi kimlik no<input required inputMode="numeric" maxLength={11} autoComplete="off" value={form.companyTaxNumber} onChange={(event) => update("companyTaxNumber", event.target.value.replace(/\D/g, ""))} /></label>
-                      <label>Vergi dairesi<input required autoComplete="off" value={form.companyTaxOffice} onChange={(event) => update("companyTaxOffice", event.target.value)} /></label>
-                    </div> : null}
+                    {hasCorporatePackage ? <fieldset className="checkout-company-fields" aria-describedby="company-billing-note">
+                      <legend><Icon name="building" />Kurumsal fatura bilgileri</legend>
+                      <p id="company-billing-note">Ödeme tamamlandığında bu kayıt şirketine aktarılır; kurumsal panelden sonradan değiştirilemez.</p>
+                      <div className="checkout-company-fields__grid">
+                        <label>Şirket unvanı<input required autoComplete="organization" value={form.companyName} onChange={(event) => update("companyName", event.target.value)} /></label>
+                        <label>Vergi kimlik no<input required inputMode="numeric" maxLength={11} autoComplete="off" value={form.companyTaxNumber} onChange={(event) => update("companyTaxNumber", event.target.value.replace(/\D/g, ""))} /></label>
+                        <label>Vergi dairesi<input required autoComplete="off" value={form.companyTaxOffice} onChange={(event) => update("companyTaxOffice", event.target.value)} /></label>
+                      </div>
+                    </fieldset> : null}
                     <button type="button" className="checkout-next" onClick={advanceBuyer}>{digitalOnlyCart ? "Fatura adresine geç" : "Teslimatı doğrula"} <Icon name="chevronRight" /></button>
                   </div>}
                 </section>

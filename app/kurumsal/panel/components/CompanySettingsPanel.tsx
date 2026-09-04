@@ -1,21 +1,32 @@
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import { normalizeTrPhone } from "../../../../lib/form-standards";
 import { Icon } from "../../../icons";
+import { StatusBadge } from "../../../components/ui/DesignSystem";
 
 type Fields = Record<string, string | boolean>;
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "error";
+type LegalProfile = {
+  name: string;
+  corporate_id?: string | null;
+  legal_name?: string | null;
+  tax_id_type?: "VKN" | "TCKN" | null;
+  tax_number?: string | null;
+  tax_office?: string | null;
+  mersis_number?: string | null;
+  trade_registry_number?: string | null;
+  billing_address?: string | null;
+  billing_city?: string | null;
+  billing_district?: string | null;
+  billing_postal_code?: string | null;
+  billing_email?: string | null;
+  billing_phone?: string | null;
+  authorized_person_name?: string | null;
+} | null;
 type Props = {
   fields: Fields;
   setFields: Dispatch<SetStateAction<Fields>>;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
-  organizationName: string;
-  savedOrganizationName: string;
-  onOrganizationNameChange: (value: string) => void;
-  onSaveOrganizationName: () => void | Promise<void>;
-  canRenameOrganization: boolean;
-  organizationNameBusy: boolean;
-  organizationNameError: string | null;
-  organizationNameSaved: boolean;
+  legalProfile: LegalProfile;
   profileBusy: boolean;
   profileDirty: boolean;
   profileSaved: boolean;
@@ -48,30 +59,13 @@ export default function CompanySettingsPanel({
   fields,
   setFields,
   onSubmit,
-  organizationName,
-  savedOrganizationName,
-  onOrganizationNameChange,
-  onSaveOrganizationName,
-  canRenameOrganization,
-  organizationNameBusy,
-  organizationNameError,
-  organizationNameSaved,
+  legalProfile,
   profileBusy,
   profileDirty,
   profileSaved,
   profileError,
 }: Props) {
   const update = (key: string, value: string) => setFields((current) => ({ ...current, [key]: value }));
-  const nameDirty = organizationName.trim() !== savedOrganizationName.trim();
-  const nameState: SaveState = organizationNameBusy
-    ? "saving"
-    : organizationNameError
-      ? "error"
-      : nameDirty
-        ? "dirty"
-        : organizationNameSaved
-          ? "saved"
-          : "idle";
   const profileState: SaveState = profileBusy
     ? "saving"
     : profileError
@@ -81,8 +75,13 @@ export default function CompanySettingsPanel({
         : profileSaved
           ? "saved"
           : "idle";
-  const nameStatus = saveCopy(nameState, organizationNameError);
   const profileStatus = saveCopy(profileState, profileError);
+  const legalName = legalProfile?.legal_name?.trim() || legalProfile?.name || "Kayıt bulunamadı";
+  const inferredTaxIdType = legalProfile?.tax_number?.replace(/\D/g, "").length === 11 ? "TCKN" : "VKN";
+  const taxIdType = legalProfile?.tax_id_type || inferredTaxIdType;
+  const taxNumber = legalProfile?.tax_number?.trim() || "Kayıt bulunamadı";
+  const taxOffice = legalProfile?.tax_office?.trim() || "Kayıt bulunamadı";
+  const recordComplete = Boolean(legalProfile?.name?.trim() && legalProfile?.tax_number?.trim() && legalProfile?.tax_office?.trim());
 
   return (
     <form className="business-company-settings" onSubmit={onSubmit}>
@@ -90,40 +89,34 @@ export default function CompanySettingsPanel({
         <div>
           <span>KURUMSAL KİMLİK</span>
           <h2>Şirket bilgileri</h2>
-          <p>Resmi ad, iletişim ve alan politikaları aynı çalışma alanında yönetilir. Logo ve marka görünümü Marka & Şablon sekmesinden uygulanır.</p>
+          <p>Resmî şirket kaydı tüm kurumsal kartlar ve ticari işlemler için tek kaynaktır. İletişim ve alan politikalarını aşağıdan yönetebilirsin.</p>
         </div>
         <button type="submit" disabled={profileBusy || !profileDirty}>
-          {profileBusy ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
+          {profileBusy ? "Kaydediliyor..." : "Politikaları Kaydet"}
         </button>
       </header>
       {profileStatus ? <p className="org-save-status" data-state={profileState} role="status">{profileStatus}</p> : null}
 
       <div className="company-settings-grid">
-        <section>
-          <h3>Şirket kimliği</h3>
-          <label>
-            Şirket adı
-            <input
-              value={organizationName}
-              onChange={(event) => onOrganizationNameChange(event.target.value)}
-              placeholder="Şirketinizin adı"
-              maxLength={80}
-              disabled={!canRenameOrganization}
-            />
-          </label>
-          {canRenameOrganization ? (
-            <button
-              type="button"
-              className="org-name-save"
-              onClick={() => void onSaveOrganizationName()}
-              disabled={organizationNameBusy || organizationName.trim().length < 2 || !nameDirty}
-            >
-              {organizationNameBusy ? "Kaydediliyor..." : "Şirket Adını Kaydet"}
-            </button>
-          ) : (
-            <small className="optional-label">Bu alanı yalnızca şirket sahibi değiştirebilir.</small>
-          )}
-          {nameStatus ? <p className="org-save-status" data-state={nameState} role="status">{nameStatus}</p> : null}
+        <section className="company-legal-profile">
+          <div className="company-legal-profile__heading">
+            <div>
+              <h3>Resmî şirket kaydı</h3>
+              <p>Aktivasyon sırasında kaydedilen bu bilgiler şirket genelinde geçerlidir ve değiştirilemez.</p>
+            </div>
+            <StatusBadge tone={recordComplete ? "success" : "warning"} className="company-legal-profile__status">
+              <Icon name="lock" />{recordComplete ? "Sabit kayıt" : "Kayıt eksik"}
+            </StatusBadge>
+          </div>
+          <dl>
+            {legalProfile?.corporate_id ? <div><dt>Yenomi Şirket ID</dt><dd>{legalProfile.corporate_id}</dd></div> : null}
+            <div><dt>Şirket unvanı</dt><dd>{legalName}</dd></div>
+            <div><dt>Vergi kimliği</dt><dd>{taxIdType} · {taxNumber}</dd></div>
+            <div><dt>Vergi dairesi</dt><dd>{taxOffice}</dd></div>
+            {legalProfile?.mersis_number ? <div><dt>MERSİS no</dt><dd>{legalProfile.mersis_number}</dd></div> : null}
+            {legalProfile?.trade_registry_number ? <div><dt>Ticaret sicil no</dt><dd>{legalProfile.trade_registry_number}</dd></div> : null}
+          </dl>
+          {!recordComplete ? <p className="company-legal-profile__notice"><Icon name="alert-circle" />Resmî kayıt eksik. Değiştirilemez kayıtların tamamlanması için destek ekibiyle iletişime geçin.</p> : null}
         </section>
         <section>
           <h3>Kurumsal iletişim</h3>

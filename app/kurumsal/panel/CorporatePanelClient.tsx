@@ -79,10 +79,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     primaryColor: "#17121f",
     logoUrl: "",
   });
-  const [orgNameDraft, setOrgNameDraft] = useState("");
-  const [orgNameBusy, setOrgNameBusy] = useState(false);
-  const [orgNameError, setOrgNameError] = useState<string | null>(null);
-  const [orgNameSaved, setOrgNameSaved] = useState(false);
   const [profileBusy, setProfileBusy] = useState(false);
   const [profileDirty, setProfileDirty] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -732,39 +728,6 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
 
   const org = orgs.find((item) => item.organization_id === selected);
   const subscription = org?.organization_subscriptions?.[0];
-  useEffect(() => {
-    setOrgNameDraft(org?.organizations?.name || "");
-  }, [org?.organizations?.name]);
-
-  async function renameOrganization() {
-    const name = orgNameDraft.trim();
-    if (!selected || name.length < 2 || name === org?.organizations?.name) return;
-    setOrgNameBusy(true);
-    setOrgNameError(null);
-    setOrgNameSaved(false);
-    const access = await token();
-    const response = await fetch("/api/organizations/rename", {
-      method: "PATCH",
-      headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
-      body: JSON.stringify({ organizationId: selected, name }),
-    });
-    const renamePayload = await response.json();
-    if (response.ok) {
-      setOrgs((current) =>
-        current.map((item) =>
-          item.organization_id === selected && item.organizations
-            ? { ...item, organizations: { ...item.organizations, name: renamePayload.organization.name } }
-            : item,
-        ),
-      );
-      setOrgNameSaved(true);
-      setMessage("Şirket adı güncellendi.");
-    } else {
-      setOrgNameError(renamePayload.error || "Şirket adı güncellenemedi.");
-      setMessage(renamePayload.error || "Şirket adı güncellenemedi.");
-    }
-    setOrgNameBusy(false);
-  }
   const activeMembers = useMemo(
     () => members.filter((member) => member.status === "ACTIVE").length,
     [members],
@@ -1380,18 +1343,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                       setProfileSaved(false);
                     }}
                     onSubmit={saveTemplate}
-                    organizationName={orgNameDraft}
-                    savedOrganizationName={org?.organizations?.name || ""}
-                    onOrganizationNameChange={(value) => {
-                      setOrgNameDraft(value);
-                      setOrgNameSaved(false);
-                      setOrgNameError(null);
-                    }}
-                    onSaveOrganizationName={renameOrganization}
-                    canRenameOrganization={org?.role === "OWNER"}
-                    organizationNameBusy={orgNameBusy}
-                    organizationNameError={orgNameError}
-                    organizationNameSaved={orgNameSaved}
+                    legalProfile={org?.organizations || null}
                     profileBusy={profileBusy}
                     profileDirty={profileDirty}
                     profileSaved={profileSaved}

@@ -323,3 +323,22 @@ body:has(.ds-drawer.v25-employee-drawer) .ds-overlay { background: color-mix(in 
   .v25-employee-drawer [role="tablist"] { display: flex; overflow-x: auto; }
   .v25-employee-drawer [role="tab"] { flex: 0 0 auto; white-space: nowrap; }
 }
+
+/* The legal entity record is readable but intentionally has no edit affordance. */
+.p10-corporate-platform .company-legal-profile { display: grid; align-content: start; gap: var(--space-4); }
+.p10-corporate-platform .company-legal-profile__heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.p10-corporate-platform .company-legal-profile__heading h3 { margin-bottom: var(--space-1); }
+.p10-corporate-platform .company-legal-profile__heading p { margin: 0; }
+.p10-corporate-platform .company-legal-profile__status { flex: 0 0 auto; display: inline-flex; align-items: center; gap: .3125rem; white-space: nowrap; }
+.p10-corporate-platform .company-legal-profile__status .yi-icon { width: .8125rem; height: .8125rem; }
+.p10-corporate-platform .company-legal-profile dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); margin: 0; }
+.p10-corporate-platform .company-legal-profile dl > div { min-width: 0; padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface-canvas); }
+.p10-corporate-platform .company-legal-profile dt { color: var(--text-tertiary); font-size: var(--type-xs); font-weight: 650; }
+.p10-corporate-platform .company-legal-profile dd { margin: .25rem 0 0; overflow-wrap: anywhere; color: var(--text-primary); font-size: var(--type-body-sm); font-weight: 680; }
+.p10-corporate-platform .company-legal-profile__notice { display: flex; align-items: flex-start; gap: var(--space-2); margin: 0; padding: var(--space-3); border: 1px solid color-mix(in srgb, var(--warning) 28%, var(--border)); border-radius: var(--radius-xs); background: var(--warning-subtle); color: var(--text-secondary); font-size: var(--type-sm); line-height: 1.45; }
+.p10-corporate-platform .company-legal-profile__notice .yi-icon { flex: 0 0 auto; width: 1rem; height: 1rem; color: var(--warning); }
+
+@media (max-width: 47.5rem) {
+  .p10-corporate-platform .company-legal-profile__heading { display: grid; }
+  .p10-corporate-platform .company-legal-profile dl { grid-template-columns: 1fr; }
+}

@@ -145,6 +145,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   const [activeTab, setActiveTab] = useState<CorporatePanelTab>("overview");
   const routeTab = CORPORATE_PANEL_ROUTE_TO_TAB[pathname] || null;
   const currentTab: CorporatePanelTab = routeTab || activeTab;
+  const isCardEditorRoute = pathname.startsWith("/kurumsal/panel/kartim");
   useEffect(() => {
     const routed = CORPORATE_PANEL_ROUTE_TO_TAB[pathname];
     const requested = searchParams.get("tab");
@@ -1098,7 +1099,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   };
 
   return (
-    <main id="main-content" className="business-console business-console--compact p10-corporate-platform" data-ui-context="dashboard" lang="tr" translate="no">
+    <main id="main-content" className="business-console business-console--compact p10-corporate-platform" data-ui-context="dashboard" data-card-editor={isCardEditorRoute ? "true" : undefined} lang="tr" translate="no">
       <div className="enterprise-dashboard-shell">
         <IDSidebar
           role={org?.role}
@@ -1134,7 +1135,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
               <span>{(sidebarUser?.full_name || sidebarUser?.email || "Y").split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase()}</span>
             </button>
           </div>
-          {pathname.startsWith("/kurumsal/panel/kartim") ? (
+          {isCardEditorRoute ? (
             children
           ) : (
             <>

@@ -68,20 +68,21 @@
 }
 
 /* “Kartım” is a long-form editor mounted directly in
- * .enterprise-dashboard-main, not in the usual .business-shell. A nested,
- * viewport-height scroll root made trackpad/wheel input unreliable and hid
- * later sections. Let this one route grow with its content so the browser's
- * normal document scroll is the only vertical scroll owner. */
-.p10-corporate-platform:has(.p8-corporate-workspace--decoupled) {
+ * .enterprise-dashboard-main, not in the usual .business-shell. Give that
+ * route an explicit host marker instead of inferring it with :has(), then let
+ * it grow with its content. The browser document is the only scroll owner. */
+.business-console.p10-corporate-platform[data-card-editor="true"] {
   overflow: visible;
 }
 
-.p10-corporate-platform:has(.p8-corporate-workspace--decoupled) .enterprise-dashboard-shell {
+.business-console.p10-corporate-platform[data-card-editor="true"] .enterprise-dashboard-shell {
+  height: auto;
   min-height: 100svh;
   align-items: start;
 }
 
-.p10-corporate-platform:has(.p8-corporate-workspace--decoupled) .enterprise-dashboard-main {
+.business-console.p10-corporate-platform[data-card-editor="true"] .enterprise-dashboard-main {
+  height: auto;
   min-height: 100svh;
   max-height: none;
   display: block;

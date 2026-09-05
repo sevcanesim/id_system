@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { CSSProperties, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { writeSessionCookie } from "../../components/AuthSessionBridge";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
@@ -146,6 +146,16 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   const routeTab = CORPORATE_PANEL_ROUTE_TO_TAB[pathname] || null;
   const currentTab: CorporatePanelTab = routeTab || activeTab;
   const isCardEditorRoute = pathname.startsWith("/kurumsal/panel/kartim");
+  // The card editor is the only route mounted directly in the dashboard main.
+  // Keep this inline contract alongside the CSS marker: it prevents a later
+  // shared-shell stylesheet from turning the long form back into a clipped
+  // viewport-height scroll area.
+  const cardEditorShellStyle: CSSProperties | undefined = isCardEditorRoute
+    ? { height: "auto", minHeight: "100svh", alignItems: "start" }
+    : undefined;
+  const cardEditorMainStyle: CSSProperties | undefined = isCardEditorRoute
+    ? { height: "auto", minHeight: "100svh", maxHeight: "none", display: "block", overflow: "visible" }
+    : undefined;
   useEffect(() => {
     const routed = CORPORATE_PANEL_ROUTE_TO_TAB[pathname];
     const requested = searchParams.get("tab");
@@ -1099,8 +1109,8 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   };
 
   return (
-    <main id="main-content" className="business-console business-console--compact p10-corporate-platform" data-ui-context="dashboard" data-card-editor={isCardEditorRoute ? "true" : undefined} lang="tr" translate="no">
-      <div className="enterprise-dashboard-shell">
+    <main id="main-content" className="business-console business-console--compact p10-corporate-platform" data-ui-context="dashboard" data-card-editor={isCardEditorRoute ? "true" : undefined} style={isCardEditorRoute ? { overflow: "visible" } : undefined} lang="tr" translate="no">
+      <div className="enterprise-dashboard-shell" style={cardEditorShellStyle}>
         <IDSidebar
           role={org?.role}
           ownCardHref={ownCardEditorHref}
@@ -1121,7 +1131,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
           onClose={() => setMobileNavOpen(false)}
           loading={loading || sidebarPermissionsLoading}
         />
-        <section className="enterprise-dashboard-main">
+        <section className="enterprise-dashboard-main" style={cardEditorMainStyle}>
           <div className="enterprise-mobile-commandbar">
             <button type="button" className="enterprise-mobile-menu-button" aria-label={mobileNavOpen ? "Menüyü kapat" : "Menüyü aç"} aria-expanded={mobileNavOpen} onClick={() => setMobileNavOpen((value) => !value)}>
               <Icon name={mobileNavOpen ? "close" : "menu"} />

@@ -1,8 +1,7 @@
 import fs from 'node:fs';
 
-const callback = fs.readFileSync('app/api/payments/iyzico/callback/route.ts','utf8');
+const callback = fs.readFileSync('app/api/payments/paytr/callback/route.ts','utf8');
 const settle = fs.readFileSync('lib/payments/settle-commerce-payment.ts','utf8');
-const recover = fs.readFileSync('app/api/payments/iyzico/recover/route.ts','utf8');
 const paymentFlow = `${callback}\n${settle}`;
 const lifecycle = fs.readFileSync('supabase/migrations/20260814120000_phase18_payment_lifecycle_lock.sql','utf8');
 const reconciliation = fs.readFileSync('supabase/migrations/20260815150000_payment_entitlement_reconciliation.sql','utf8');
@@ -18,14 +17,11 @@ const requiredCallback = [
   'paidSuccessRedirect',
 ];
 for (const marker of requiredCallback) if (!paymentFlow.includes(marker)) throw new Error(`Callback hardening marker missing: ${marker}`);
-if (!settle.includes('retrieveCheckout') || !recover.includes('settlePendingCommercePaymentByOrderId')) {
-  throw new Error('Missed iyzico callbacks must be recoverable via retrieveCheckout settlement');
+if (!callback.includes('verifyPaytrCallbackHash') || !callback.includes('settleCommercePaymentByPaytrCallback')) {
+  throw new Error('PayTR callback must verify its signature and use the atomic commerce settlement path');
 }
-if (!callback.includes('verifyIyzicoCheckoutResult')) {
-  throw new Error('Legacy nfc_orders callback must reuse verifyIyzicoCheckoutResult');
-}
-if (callback.includes('resultAmount === attempt.amount_kurus')) {
-  throw new Error('Do not keep a second inline iyzico amount check in the callback route');
+if (callback.includes('retrieveCheckout') || callback.includes('IYZICO')) {
+  throw new Error('Legacy provider recovery must not remain in the PayTR callback');
 }
 
 const requiredSql = [

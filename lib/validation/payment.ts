@@ -18,9 +18,3 @@ export function isValidTurkishIdentityNumber(value: string): boolean {
 export function isValidIdentityNumber(value: string, type: "TR" | "FOREIGN"): boolean {
   return type === "TR" ? isValidTurkishIdentityNumber(value) : /^[A-Z0-9]{5,20}$/.test(value);
 }
-
-export function iyzicoMoneyToKurus(value: unknown): number | null {
-  const amount = typeof value === "number" ? value : Number(String(value ?? "").replace(",", "."));
-  if (!Number.isFinite(amount) || amount < 0) return null;
-  return Math.round(amount * 100);
-}

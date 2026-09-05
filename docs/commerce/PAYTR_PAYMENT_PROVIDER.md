@@ -2,9 +2,9 @@
 
 ## Amaç
 
-PayTR yapılandırıldığında checkout, T.C. kimlik numarası istemeden PayTR'nin
-barındırılan güvenli ödeme formuna ilerler. iyzico, PayTR yapılandırılana
-kadar geriye dönük uyumlu yedek sağlayıcıdır.
+Checkout T.C. kimlik numarası istemeden PayTR'nin barındırılan güvenli ödeme
+formuna ilerler. Yenomi ID'de tek ödeme sağlayıcısı PayTR'dir; yapılandırma
+eksikse ödeme başlatılmaz.
 
 ## Etkinleştirme
 
@@ -17,9 +17,8 @@ PAYTR_MERCHANT_SALT=
 PAYTR_TEST_MODE=true
 ```
 
-`NEXT_PUBLIC_` öneki kullanmayın. Üç değer birlikte mevcut olduğunda PayTR
-otomatik olarak seçilir; eksikse mevcut iyzico akışı kullanılır. Üretimde
-`PAYTR_TEST_MODE=false` olmalıdır.
+`NEXT_PUBLIC_` öneki kullanmayın. Üç değer birlikte mevcut olmadıkça ödeme
+başlatılmaz. Üretimde `PAYTR_TEST_MODE=false` olmalıdır.
 
 PayTR panelindeki bildirim (callback) adresi şudur:
 
@@ -62,10 +61,9 @@ Yerel sandbox yapılandırmasını anahtar değerlerini göstermeden denetlemek 
 npm run verify:paytr:sandbox
 ```
 
-Üretim denetimi PayTR veya iyzico sağlayıcılarından en az birinin eksiksiz
-tanımlanmasını ister. PayTR önceliklidir; PayTR eksiksiz yapılandırılmışsa
-etkin olmayan iyzico sandbox değişkenleri dağıtımı engellemez. PayTR
-kullanılıyorsa `PAYTR_TEST_MODE=true` üretim denetiminden geçmez.
+Üretim denetimi PayTR yapılandırmasının eksiksiz olmasını ister. Eski ödeme
+sağlayıcısı ortam değişkenleri bulunduğunda dağıtım engellenir.
+`PAYTR_TEST_MODE=true` üretim denetiminden geçmez.
 
 Bu depo gizli PayTR anahtarlarını içermediğinden, gerçek sandbox/canlı ödeme
 doğrulaması çalışma zamanı ortamında yapılmalıdır.

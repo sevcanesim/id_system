@@ -45,16 +45,6 @@ async function authenticate(request: NextRequest) {
   return { id: data.user.id };
 }
 
-async function profileByPublicId(publicId: string) {
-  const admin = getSupabaseAdminClient();
-  const { data } = await admin
-    .from("card_profiles")
-    .select("id,user_id,name,role,company,email,image_url,is_published,card_status,service_expires_at,grace_ends_at,public_id")
-    .eq("public_id", publicId)
-    .maybeSingle();
-  return (data as ProfileCandidate | null) ?? null;
-}
-
 export async function GET(request: NextRequest) {
   try {
     const actor = await authenticate(request);
@@ -78,6 +68,7 @@ export async function GET(request: NextRequest) {
         role: profile.role,
         company: profile.company,
         imageUrl: profile.image_url,
+        publicId: profile.public_id,
       },
     }));
   } catch (error) {
@@ -104,12 +95,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const submission = parsed.data;
+    const actor = await authenticate(request);
+    if (!actor) return noStore(NextResponse.json({ code: "AUTH_REQUIRED" }, { status: 401 }));
     let sourceProfileId: string;
+    const admin = getSupabaseAdminClient();
 
     if (submission.kind === "ACCOUNT") {
-      const actor = await authenticate(request);
-      if (!actor) return noStore(NextResponse.json({ code: "AUTH_REQUIRED" }, { status: 401 }));
-      const admin = getSupabaseAdminClient();
       const { data: sourceProfile } = await admin
         .from("card_profiles")
         .select("id")
@@ -119,12 +110,18 @@ export async function POST(request: NextRequest) {
       if (!sourceProfile) return noStore(NextResponse.json({ code: "SOURCE_PROFILE_NOT_FOUND" }, { status: 403 }));
       sourceProfileId = sourceProfile.id;
     } else {
-      const sourceProfile = await profileByPublicId(submission.sourcePublicId);
-      if (!sourceProfile) return noStore(NextResponse.json({ code: "SOURCE_PROFILE_NOT_FOUND" }, { status: 404 }));
+      // A QR can identify the visitor's own source profile, but never grants
+      // unauthenticated authority to create a connection for somebody else.
+      const { data: sourceProfile } = await admin
+        .from("card_profiles")
+        .select("id")
+        .eq("public_id", submission.sourcePublicId)
+        .eq("user_id", actor.id)
+        .maybeSingle();
+      if (!sourceProfile) return noStore(NextResponse.json({ code: "SOURCE_PROFILE_NOT_FOUND" }, { status: 403 }));
       sourceProfileId = sourceProfile.id;
     }
 
-    const admin = getSupabaseAdminClient();
     const { data, error } = await admin.rpc("create_yenomi_handshake", {
       p_source_profile_id: sourceProfileId,
       p_target_profile_id: submission.targetProfileId,

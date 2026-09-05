@@ -28,7 +28,7 @@ const hygiene = read("scripts/verify-no-secrets.mjs");
 
 check(login.includes("limitAuthLoginIp") && login.includes("auth-login-email"), "login limits IP and email in parallel");
 check(resend.includes("limitActivationResendIp") && resend.includes("limitActivationResendOrder"), "activation resend has IP and order cooldown");
-check(checkout.includes("rejectCheckoutInitializeFlood") && checkout.includes("initializeCheckout"), "checkout throttles before iyzico initialize");
+check(checkout.includes("rejectCheckoutInitializeFlood") && checkout.includes("initializePaytrCheckout"), "checkout throttles before PayTR initialization");
 check(email.includes("sendAbandonedCheckoutEmail") && sql.includes("ABANDONED_CHECKOUT_24H"), "abandoned checkout mail and event types exist");
 check(jobs.includes("sendAbandonedCheckoutReminders") && jobs.includes("notifyOpenFulfillmentIssues"), "ops job sends recovery mail and fulfillment alerts");
 check(cron.includes("authorizeCommerceCron") && (!vercel || vercel.includes("/api/cron/commerce-ops")), "protected cron route stays authorized");

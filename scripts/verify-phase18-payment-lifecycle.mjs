@@ -3,7 +3,7 @@ const read=(p)=>fs.readFileSync(p,"utf8");
 let failed=false; const check=(ok,label)=>{console.log(`${ok?"PASS":"FAIL"}  ${label}`); if(!ok) failed=true;};
 const files=[
   "supabase/migrations/20260814120000_phase18_payment_lifecycle_lock.sql",
-  "app/api/payments/iyzico/callback/route.ts",
+  "app/api/payments/paytr/callback/route.ts",
   "app/odeme/basarili/FulfillmentReviewNotice.tsx",
   "lib/payments/reuse-open-attempt.test.ts",
   "docs/PAYMENT_LIFECYCLE_PHASE18_V25.8.59.md",

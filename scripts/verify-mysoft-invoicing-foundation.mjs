@@ -22,7 +22,7 @@ for (const marker of ["MYSOFT_INVOICING_ENABLED", "MYSOFT_API_BEARER_TOKEN", "MY
   if (!config.includes(marker)) throw new Error(`Mysoft configuration marker missing: ${marker}`);
 }
 
-for (const marker of ["separate Yenomi issuer", "EARSIV", "iyzico", "NEEDS_RECONCILIATION"]) {
+for (const marker of ["separate Yenomi issuer", "EARSIV", "PayTR", "NEEDS_RECONCILIATION"]) {
   if (!runbook.includes(marker)) throw new Error(`Mysoft runbook marker missing: ${marker}`);
 }
 

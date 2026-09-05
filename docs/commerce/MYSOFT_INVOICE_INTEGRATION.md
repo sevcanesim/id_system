@@ -2,11 +2,11 @@
 
 ## Scope
 
-Yenomi creates one invoice job only after an iyzico payment has been
+Yenomi creates one invoice job only after a PayTR payment has been
 atomically confirmed and its `commerce_orders.status` becomes `PAID`.
 The job holds an immutable, minimal invoice snapshot: order totals, buyer and
-shipping information, purchased items and the iyzico payment context. It
-never stores the checkout identity number supplied only to iyzico.
+shipping information, purchased items and the PayTR payment context. Checkout
+does not collect a T.C. kimlik number for payment.
 
 The first document type is **e-Arşiv internet satış faturası**. The final
 dispatch implementation must use Mysoft's current API contract to check the
@@ -18,7 +18,7 @@ buyer’s e-Fatura eligibility before choosing `E_INVOICE` or `E_ARCHIVE`.
    other company’s issuer account, VKN/TCKN, document serial or credentials.
 2. Enable the Yenomi issuer’s e-Arşiv internet sales design and number range
    (`EARSIV` / Internet Sales) with Mysoft and the company’s financial advisor.
-3. Confirm that the iyzico merchant and Mysoft issuer are the same Yenomi legal
+3. Confirm that the PayTR merchant and Mysoft issuer are the same Yenomi legal
    seller.
 4. Obtain a Mysoft sandbox tenant first, then a production tenant and bearer
    token. Store secrets only in the deployment environment—never in this repo,
@@ -52,7 +52,7 @@ requires the explicit feature flag plus every required value.
 ## Job lifecycle
 
 ```text
-iyzico verified payment
+PayTR verified payment
   -> commerce_orders.PAID
   -> PENDING Mysoft invoice job (one per order)
   -> PROCESSING
@@ -72,11 +72,11 @@ must be reconciled with the financial advisor before any document is created.
 Before enabling production dispatch, verify all of the following with a test
 payment and a dedicated Mysoft sandbox tenant:
 
-1. The callback/recovery path creates exactly one job for the same order.
+1. The signed PayTR callback creates exactly one job for the same order.
 2. The generated e-Arşiv document contains the correct issuer, buyer, line
-   items, KDV, total, `iyzico` payment intermediary, payment date, website URL
+   items, KDV, total, `PayTR` payment intermediary, payment date, website URL
    and shipping fields when the product is physical.
-3. Replaying the iyzico callback does not create a second job or document.
+3. Replaying the PayTR callback does not create a second job or document.
 4. A provider timeout is held for reconciliation, not retried blindly.
 5. Cancellation/refund creates the legally appropriate correction flow; the
    issued invoice record is retained.

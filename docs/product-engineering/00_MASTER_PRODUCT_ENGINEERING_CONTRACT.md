@@ -133,7 +133,7 @@ Known baseline characteristics:
 -   TypeScript
 -   React
 -   Supabase
--   iyzico payment integration
+-   PayTR payment integration
 -   Zod
 -   Vitest
 -   Playwright

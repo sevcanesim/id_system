@@ -12,14 +12,12 @@ function mustNotInclude(haystack, needle, message) {
   if (haystack.includes(needle)) throw new Error(message);
 }
 
-const recover = read("app/api/payments/iyzico/recover/route.ts");
-const recoverAuth = read("lib/payments/recover-authorization.ts");
+const paytrCallback = read("app/api/payments/paytr/callback/route.ts");
+const callbackReceipts = read("lib/payments/payment-callback-receipts.ts");
 const middleware = read("middleware.ts");
 const rateLimit = read("lib/security/rate-limit.ts");
 const nextConfig = read("next.config.ts");
 const activation = read("app/aktivasyon/ActivationClient.tsx");
-const webhook = read("app/api/payments/iyzico/webhook/route.ts");
-const webhookSecret = read("lib/payments/iyzico-webhook-secret.ts");
 const analytics = read("lib/analytics.ts");
 const vitestConfig = read("vitest.config.ts");
 const playwrightConfig = read("playwright.config.ts");
@@ -33,12 +31,10 @@ const organizationLinkOpen = read("app/api/organization-links/[id]/open/route.ts
 const organizationLinkManager = read("app/api/organizations/links/route.ts");
 const organizationLinkUpload = read("app/api/organizations/links/upload/route.ts");
 
-mustInclude(recoverAuth, "owner-required", "Recover intent must distinguish cookie possession from a body UUID.");
-mustInclude(recoverAuth, "ownerMayRecover", "Guest orders must not recover from a body UUID.");
-mustInclude(recover, "resolveRecoverIntent", "Recover route must use the recover authorization helper.");
-mustInclude(recover, "resolveRequestUserId", "Body-only recover must require an authenticated owner.");
-mustInclude(recover, 'status: 401', "Unauthenticated body-only recover must 401.");
-mustNotInclude(recover, "resolveRecoverOrderId(readPendingOrderId", "Recover must not settle cookie-or-body without an owner check.");
+mustInclude(paytrCallback, "verifyPaytrCallbackHash", "PayTR callback must verify its signature before settlement.");
+mustInclude(paytrCallback, "recordPaytrCallbackReceived", "PayTR callbacks must leave a durable receipt.");
+mustInclude(paytrCallback, "CALLBACK_RETRY", "PayTR callback failures must be retried by the provider.");
+mustInclude(callbackReceipts, "providerReferenceHash", "Callback receipts must not retain raw provider references.");
 
 mustInclude(rateLimit, "failClosed", "Distributed limiter must support fail-closed mode.");
 mustInclude(rateLimit, "unavailable: true", "Fail-closed limiter must surface unavailability.");
@@ -112,11 +108,6 @@ mustInclude(activation, "pagehide", "Activation token must clear from sessionSto
 mustInclude(activation, "event.persisted", "Activation pagehide must keep the token for bfcache restore.");
 mustNotInclude(activation, "visibilitychange", "Do not clear the activation token on visibilitychange.");
 
-mustInclude(webhookSecret, "timingSafeEqual", "Webhook secret must compare in constant time.");
-mustInclude(webhookSecret, 'process.env.NODE_ENV !== "production"', "Production webhook must fail closed when the shared secret is missing.");
-mustInclude(webhook, "IYZICO_WEBHOOK_SECRET", "Webhook must honor IYZICO_WEBHOOK_SECRET when set.");
-mustInclude(webhook, "settleCommercePaymentByProviderToken", "Webhook authenticity remains retrieveCheckout settlement.");
-
 const adminOrders = read("app/api/admin/commerce/orders/route.ts");
 const adminCardLink = read("app/api/admin/commerce/card-units/link/route.ts");
 const adminOrganizations = read("app/api/admin/organizations/route.ts");
@@ -176,7 +167,7 @@ mustInclude(grantHardening, "revoke execute on routines from anon, authenticated
 mustInclude(grantHardening, "revoke all on table public.commerce_payment_attempts from anon, authenticated, public", "Payment attempt rows hold provider tokens; Data API must not DML them.");
 mustInclude(grantHardening, "revoke all on table public.activation_tokens from anon, authenticated, public", "Activation secrets must stay service-role.");
 const checkoutRoute = read("app/api/commerce/checkout/route.ts");
-mustInclude(checkoutRoute, "rejectCheckoutInitializeFlood", "Checkout must throttle iyzico initialize calls per IP.");
+mustInclude(checkoutRoute, "rejectCheckoutInitializeFlood", "Checkout must throttle PayTR initialization calls per IP.");
 mustNotInclude(checkoutRoute, "reference: payload.reference, error: orderError", "Checkout must not log raw Supabase error objects.");
 mustNotInclude(checkoutRoute, "reference: payload.reference, error: reserveError", "Checkout must not log raw payment-attempt error objects.");
 

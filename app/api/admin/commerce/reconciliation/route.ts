@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { settlePendingCommercePaymentByOrderId } from "../../../../../lib/payments/settle-commerce-payment";
 import { requireSuperAdmin } from "../../../../../lib/admin/require-admin";
 
 export const runtime = "nodejs";
@@ -11,8 +10,7 @@ const resolveSchema = z.object({
 });
 
 const postSchema = z.object({
-  action: z.enum(["reconcile_paid", "retrieve_iyzico", "expire_stale_awaiting"]).optional().default("reconcile_paid"),
-  orderId: z.string().uuid().optional(),
+  action: z.enum(["reconcile_paid", "expire_stale_awaiting"]).optional().default("reconcile_paid"),
 }).strict();
 
 export async function GET(request: NextRequest) {
@@ -116,22 +114,6 @@ export async function POST(request: NextRequest) {
     if (contentType.includes("application/json")) {
       const parsed = postSchema.safeParse(await request.json().catch(() => ({})));
       if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Geçersiz mutabakat isteği." }, { status: 400 });
-      if (parsed.data.action === "retrieve_iyzico") {
-        if (!parsed.data.orderId) return NextResponse.json({ error: "iyzico çekimi için sipariş kimliği gerekli." }, { status: 400 });
-        const result = await settlePendingCommercePaymentByOrderId(parsed.data.orderId);
-        await context.admin.from("admin_audit_log").insert({
-          actor_user_id: context.user.id,
-          action: "COMMERCE_IYZICO_RETRIEVE",
-          target_table: "commerce_orders",
-          target_id: parsed.data.orderId,
-          after_value: result,
-        });
-        if (result.kind === "not_found") return NextResponse.json({ error: "Sipariş bulunamadı." }, { status: 404 });
-        if (result.kind === "error") return NextResponse.json({ error: "Çekilebilecek bekleyen iyzico denemesi yok.", result }, { status: 409 });
-        if (result.kind === "pending") return NextResponse.json({ ok: true, paid: false, pending: true, result });
-        if (result.kind === "failed") return NextResponse.json({ ok: true, paid: false, pending: false, result });
-        return NextResponse.json({ ok: true, paid: true, pending: false, reviewRequired: result.reviewRequired, result });
-      }
       if (parsed.data.action === "expire_stale_awaiting") {
         const { data, error } = await context.admin.rpc("expire_stale_awaiting_payment_orders", { p_limit: 250 });
         if (error) {

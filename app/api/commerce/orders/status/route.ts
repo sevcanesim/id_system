@@ -62,9 +62,7 @@ export async function GET(request: NextRequest) {
       found: true,
       paid,
       status: data.status,
-      paymentProvider: paymentAttempt?.provider === "PAYTR" || paymentAttempt?.provider === "IYZICO"
-        ? paymentAttempt.provider
-        : null,
+      paymentProvider: paymentAttempt?.provider === "PAYTR" ? "PAYTR" : null,
       activationRequired: paid && !data.user_id && !data.activation_claimed_at,
       corporate: flags.corporate,
       corporateReady: Boolean(flags.corporateReady),

@@ -13,8 +13,18 @@ vi.mock("../../../../../lib/payments/settle-commerce-payment", () => ({
   settleCommercePaymentByPaytrCallback: vi.fn(),
 }));
 
+vi.mock("../../../../../lib/payments/payment-callback-receipts", () => ({
+  recordPaytrCallbackReceived: vi.fn().mockResolvedValue("receipt-hash"),
+  finalizePaytrCallbackReceipt: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("../../../../../lib/observability/system-errors", () => ({
+  recordSystemError: vi.fn().mockResolvedValue(true),
+}));
+
 import { verifyPaytrCallbackHash } from "../../../../../lib/payments/paytr";
 import { settleCommercePaymentByPaytrCallback } from "../../../../../lib/payments/settle-commerce-payment";
+import { finalizePaytrCallbackReceipt } from "../../../../../lib/payments/payment-callback-receipts";
 import { POST } from "./route";
 
 const merchantOid = `PT${"a".repeat(32)}`;
@@ -66,5 +76,18 @@ describe("PayTR callback route", () => {
     expect(response.status).toBe(401);
     await expect(response.text()).resolves.toBe("INVALID_CALLBACK");
     expect(settleCommercePaymentByPaytrCallback).not.toHaveBeenCalled();
+  });
+
+  it("does not acknowledge a callback whose payment state could not be committed", async () => {
+    vi.mocked(settleCommercePaymentByPaytrCallback).mockResolvedValue({ kind: "error", reason: "callback" });
+
+    const response = await POST(callbackRequest());
+
+    expect(response.status).toBe(500);
+    await expect(response.text()).resolves.toBe("CALLBACK_RETRY");
+    expect(finalizePaytrCallbackReceipt).toHaveBeenCalledWith(expect.objectContaining({
+      providerReferenceHash: "receipt-hash",
+      status: "RETRYING",
+    }));
   });
 });

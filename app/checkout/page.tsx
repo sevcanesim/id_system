@@ -28,7 +28,6 @@ type FormState = {
   deliveryNote: string;
   latitude?: number;
   longitude?: number;
-  identityNumber: string;
   companyName: string;
   companyTaxNumber: string;
   companyTaxOffice: string;
@@ -36,7 +35,7 @@ type FormState = {
   personalizationAccepted: boolean;
 };
 
-type PaymentProvider = "PAYTR" | "IYZICO" | null;
+type PaymentProvider = "PAYTR" | null;
 
 const initial: FormState = {
   recipientName: "",
@@ -47,7 +46,6 @@ const initial: FormState = {
   city: "",
   postalCode: "",
   deliveryNote: "",
-  identityNumber: "",
   companyName: "",
   companyTaxNumber: "",
   companyTaxOffice: "",
@@ -82,7 +80,6 @@ export default function CheckoutPage() {
   const [deliveryNoteOpen, setDeliveryNoteOpen] = useState(false);
   const [toast, setToast] = useState("");
   const [organizationTargets, setOrganizationTargets] = useState<Record<string, OrganizationCheckoutTarget>>({});
-  const [privacyMask, setPrivacyMask] = useState(false);
   const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>(null);
   const portalPurchase = items.some((item) => requiresPortalAccountSku(item.variantSku));
   const portalLoginHref = `/giris?portal=${items.some((item) => isCorporatePackageSku(item.variantSku)) ? "business" : "individual"}&purchase=portal&next=%2Fcheckout`;
@@ -96,8 +93,7 @@ export default function CheckoutPage() {
       })
       .then((config) => {
         setLegalVersions(config.legalVersions);
-        const provider = config?.payment?.provider;
-        setPaymentProvider(provider === "PAYTR" || provider === "IYZICO" ? provider : null);
+        setPaymentProvider(config?.payment?.provider === "PAYTR" ? "PAYTR" : null);
       })
       .catch(() => setMessage("Hukuk sürümleri DB’den yüklenemedi; ödeme başlatılamaz."));
   }, []);
@@ -152,7 +148,6 @@ export default function CheckoutPage() {
         setForm((current) => ({
           ...current,
           ...draft.form,
-          identityNumber: "",
           distanceSalesAccepted: false,
           personalizationAccepted: false,
         }));
@@ -173,30 +168,6 @@ export default function CheckoutPage() {
     router.replace(portalLoginHref);
   }, [checkoutReady, portalLoginHref, requiresPortalLogin, router]);
 
-  useEffect(() => {
-    const wipeIdentity = () => setForm((current) => (current.identityNumber ? { ...current, identityNumber: "" } : current));
-    const onVisibilityChange = () => {
-      const hidden = document.visibilityState !== "visible";
-      setPrivacyMask(hidden);
-      if (hidden) wipeIdentity();
-    };
-    const onBlur = () => setPrivacyMask(true);
-    const onFocus = () => {
-      if (document.visibilityState === "visible") setPrivacyMask(false);
-    };
-
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    window.addEventListener("pagehide", wipeIdentity);
-    window.addEventListener("blur", onBlur);
-    window.addEventListener("focus", onFocus);
-    return () => {
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      window.removeEventListener("pagehide", wipeIdentity);
-      window.removeEventListener("blur", onBlur);
-      window.removeEventListener("focus", onFocus);
-    };
-  }, []);
-
   const total = useMemo(
     () => items.reduce((sum, item) => sum + item.unitPriceKurus * item.quantity, 0),
     [items],
@@ -211,8 +182,7 @@ export default function CheckoutPage() {
   const hasCorporatePackage = items.some((item) => isCorporatePackageSku(item.variantSku));
   const hasNetworkMailCreditPack = items.some((item) => item.variantSku?.startsWith("YENOMI-NETWORK-MAIL-"));
   const digitalOnlyCart = items.length > 0 && items.every((item) => isDigitalOnlySku(item.variantSku));
-  const usesIyzico = paymentProvider === "IYZICO";
-  const paymentProviderName = paymentProvider === "IYZICO" ? "iyzico" : "PayTR";
+  const paymentProviderName = "PayTR";
   const corporateNetworkMailOrganizationIds = [...new Set(items
     .filter((item) => item.variantSku?.startsWith("YENOMI-NETWORK-MAIL-"))
     .map((item) => item.configuration?.organizationId)
@@ -224,10 +194,6 @@ export default function CheckoutPage() {
     ? organizationTargets[corporateNetworkMailOrganizationId]
     : null;
   const isCorporateNetworkMailPurchase = hasNetworkMailCreditPack && Boolean(corporateNetworkMailOrganizationId);
-  // Only iyzico's physical checkout requires an identity number. Digital
-  // products (including Network Mail) never collect it in Yenomi.
-  const requiresIdentityNumber = usesIyzico && !digitalOnlyCart;
-
   useEffect(() => {
     if (!isCorporateNetworkMailPurchase || !corporateNetworkMailTarget) return;
     setForm((current) => ({
@@ -260,7 +226,6 @@ export default function CheckoutPage() {
   const buyerComplete = form.recipientName.trim().length >= 3
     && /^\S+@\S+\.\S+$/.test(form.email.trim())
     && form.phone.replace(/\D/g, "").length >= 10
-    && (!requiresIdentityNumber || form.identityNumber.length === 11)
     && companyComplete;
   const shippingComplete = isCorporateNetworkMailPurchase
     ? corporateBillingProfileComplete
@@ -273,7 +238,6 @@ export default function CheckoutPage() {
     if (form.recipientName.trim().length < 3) return "Ad soyad bilgisini kontrol et.";
     if (form.phone.replace(/\D/g, "").length < 10) return "Telefon numaranı kontrol et.";
     if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) return "Geçerli bir e-posta adresi gir.";
-    if (requiresIdentityNumber && form.identityNumber.length !== 11) return "T.C. kimlik numarası 11 haneli olmalı.";
     if (hasCorporatePackage) {
       const parsed = parseCompanyBilling({ name: form.companyName, taxNumber: form.companyTaxNumber, taxOffice: form.companyTaxOffice });
       if (!parsed.ok) return parsed.error;
@@ -412,7 +376,7 @@ export default function CheckoutPage() {
         headers,
         body: JSON.stringify({
           items: items.map((item) => ({ productSlug: item.productId, variantSku: item.variantSku, quantity: item.quantity, configuration: item.configuration })),
-          customer: { name: form.recipientName.trim(), email: form.email.trim().toLowerCase(), phone: form.phone, identityNumber: form.identityNumber },
+          customer: { name: form.recipientName.trim(), email: form.email.trim().toLowerCase(), phone: form.phone },
           company: hasCorporatePackage ? { name: form.companyName.trim(), taxNumber: form.companyTaxNumber, taxOffice: form.companyTaxOffice.trim() } : undefined,
           shipping: {
             recipientName: form.recipientName.trim(),
@@ -446,7 +410,6 @@ export default function CheckoutPage() {
       if (!checkout.paymentPageUrl) throw new Error("Ödeme sayfası oluşturulamadı.");
       if (checkout.orderId) setPendingCheckoutOrderId(checkout.orderId);
       track("payment_start", { orderId: checkout.orderId, reused: Boolean(checkout.reused) });
-      update("identityNumber", "");
       window.location.href = checkout.paymentPageUrl;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Ödeme başlatılamadı.";
@@ -456,20 +419,11 @@ export default function CheckoutPage() {
     }
   }
 
-  const isCheckoutState = privacyMask || !checkoutReady || requiresPortalLogin || !items.length;
+  const isCheckoutState = !checkoutReady || requiresPortalLogin || !items.length;
 
   return (
     <main id="main-content" className={`checkout-page p5-checkout-page yi-footer-compact${isCheckoutState ? " checkout-page--state" : ""}`}>
-      {privacyMask ? (
-        <section className="checkout-shell checkout-confirm-shell" aria-live="polite">
-          <div className="cart-empty checkout-empty-state">
-            <Icon name="shield" />
-            <h2>Ödeme bilgileri gizlendi.</h2>
-            <p>Bu sekmeye döndüğünüzde işlem ekranı yeniden görünür. Hassas ödeme bilgileri güvenlik için temizlendi.</p>
-          </div>
-        </section>
-      ) : (
-        <section className="checkout-shell checkout-confirm-shell">
+      <section className="checkout-shell checkout-confirm-shell">
           <div className="checkout-heading checkout-heading-compact">
             <h1>{hasCorporatePackage ? "Kurumsal ödemeyi tamamla." : hasNetworkMailCreditPack ? "Network Mail paketini tamamla." : digitalOnlyCart ? "Dijital ödemeyi tamamla." : "Ödemeyi tamamla."}</h1>
             <p>{paymentProviderName} ile güvenle öde. {hasCorporatePackage ? `Fatura ve teslimatı doğrula. Son adımda ${paymentProviderName} kartını alır; Yenomi saklamaz.` : isCorporateNetworkMailPurchase ? "Şirketinin kayıtlı cari/fatura profili bu siparişe uygulanır. Kart bilgisi yalnız ödeme sağlayıcısında işlenir." : hasNetworkMailCreditPack ? "Fatura bilgilerini doğrula. Ödeme onaylanınca Network Mail kredilerin Premium hesabına eklenir." : digitalOnlyCart ? `Fatura ili ve ilçesini doğrula. Teslimat adresi yok. Kart numarası ${paymentProviderName}’da işlenir.` : `Alıcı ve teslimatı doğrula. Kart numarası ${paymentProviderName}’da işlenir; Yenomi’de saklanmaz.`}</p>
@@ -513,7 +467,6 @@ export default function CheckoutPage() {
                     <label>Ad Soyad<input required autoComplete="name" value={form.recipientName} onChange={(event) => update("recipientName", event.target.value)} /></label>
                     <label>Telefon<input required inputMode="tel" autoComplete="tel" value={form.phone} onChange={(event) => update("phone", normalizeTrPhone(event.target.value))} /></label>
                     <label>E-posta<input required type="email" autoComplete="email" value={form.email} onChange={(event) => !isAuthenticated && update("email", event.target.value)} readOnly={isAuthenticated} /></label>
-                    {requiresIdentityNumber ? <label>T.C. kimlik numarası<input required inputMode="numeric" maxLength={11} name="iyzico-identity" autoComplete="off" autoCorrect="off" spellCheck={false} aria-describedby="identity-note" value={form.identityNumber} onChange={(event) => update("identityNumber", event.target.value.replace(/\D/g, ""))} /><small id="identity-note">iyzico ödemesi için zorunlu. Yenomi kaydetmez.</small></label> : null}
                     {isCorporateNetworkMailPurchase ? <fieldset className="checkout-company-fields" aria-describedby="corporate-billing-note">
                       <legend><Icon name="building" />Kayıtlı şirket fatura profili</legend>
                       <p id="corporate-billing-note">Bu bilgiler şirketinin cari kaydından gelir ve ödeme sırasında değiştirilemez.</p>
@@ -612,8 +565,7 @@ export default function CheckoutPage() {
           {toast ? <div role="status">{toast}</div> : null}
           {hasPremiumUpgrade || hasBusinessCapacity || organizationTargets ? null : null}
           <button type="button" hidden onClick={() => router.refresh()} aria-hidden="true" />
-        </section>
-      )}
+      </section>
     </main>
   );
 }

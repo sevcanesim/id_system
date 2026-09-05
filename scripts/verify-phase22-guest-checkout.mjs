@@ -3,9 +3,8 @@ import { readFileSync } from "node:fs";
 const api = readFileSync("app/api/commerce/checkout/route.ts", "utf8");
 const page = readFileSync("app/checkout/page.tsx", "utf8");
 const cart = readFileSync("app/sepet/page.tsx", "utf8");
-const callback = readFileSync("app/api/payments/iyzico/callback/route.ts", "utf8");
+const callback = readFileSync("app/api/payments/paytr/callback/route.ts", "utf8");
 const settle = readFileSync("lib/payments/settle-commerce-payment.ts", "utf8");
-const recover = readFileSync("app/api/payments/iyzico/recover/route.ts", "utf8");
 const status = readFileSync("app/api/commerce/orders/status/route.ts", "utf8");
 const success = readFileSync("app/odeme/basarili/OrderResultGate.tsx", "utf8");
 const activationAction = readFileSync("app/odeme/basarili/ActivationAction.tsx", "utf8");
@@ -48,25 +47,14 @@ for (const token of callbackContracts) {
   if (!paymentFlow.includes(token)) throw new Error(`Missing guest activation callback contract: ${token}`);
 }
 
-if (!callback.includes("settleCommercePaymentByProviderToken") || !recover.includes("settlePendingCommercePaymentByOrderId")) {
-  throw new Error("Callback and recover must share the commerce settlement path.");
-}
-if (!recover.includes("resolveRecoverIntent") || !recover.includes("readPendingOrderId") || !recover.includes("resolveRequestUserId") || !recover.includes("ownerMayRecover")) {
-  throw new Error("Recover must bind to the pending-order cookie when present and otherwise require the authenticated owner.");
-}
-if (!success.includes('credentials: "same-origin"')) {
-  throw new Error("Success recover must send the pending-order cookie.");
+if (!callback.includes("settleCommercePaymentByPaytrCallback") || !callback.includes("verifyPaytrCallbackHash")) {
+  throw new Error("PayTR callback must be signature-verified and settle through the atomic commerce path.");
 }
 if (status.includes("retrieveCheckout") || status.includes("settlePendingCommercePaymentByOrderId")) {
   throw new Error("Order status GET must stay side-effect free.");
 }
-if (!success.includes("/api/payments/iyzico/recover") || !success.includes("reviewRequired && !data.activationRequired")) {
-  throw new Error("Success page must recover missed callbacks and authenticated claim failures.");
-}
-
-const webhook = readFileSync("app/api/payments/iyzico/webhook/route.ts", "utf8");
-if (!webhook.includes("settleCommercePaymentByProviderToken") || !webhook.includes("failIfUnpaid: false")) {
-  throw new Error("iyzico webhook must settle by provider token without failing an in-flight checkout.");
+if (success.includes("/api/payments/iyzico/recover") || !success.includes("reviewRequired && !data.activationRequired")) {
+  throw new Error("Success page must keep payment state read-only and surface authenticated claim failures.");
 }
 if (!api.includes("stampPhysicalProductionConfig") || !api.includes("applyPendingOrderCookie")) {
   throw new Error("Checkout must stamp physical production config and persist a pending-order cookie.");
@@ -95,8 +83,8 @@ if (!activationAction.includes("/api/commerce/activation/resend")) {
   throw new Error("Guest success CTA must offer activation resend.");
 }
 const middleware = readFileSync("middleware.ts", "utf8");
-if (!middleware.includes('"/checkout"') || !middleware.includes('"/aktivasyon"') || !middleware.includes('"/api/auth/session"') || !middleware.includes('"/api/payments/iyzico/recover"') || !middleware.includes('"/api/payments/iyzico/webhook"') || !middleware.includes('"/api/commerce/orders/pending"')) {
-  throw new Error("Middleware must match checkout, activation, auth session, iyzico recover/webhook, and pending-order routes.");
+if (!middleware.includes('"/checkout"') || !middleware.includes('"/aktivasyon"') || !middleware.includes('"/api/auth/session"') || !middleware.includes('"/api/payments/paytr/callback"') || !middleware.includes('"/api/commerce/orders/pending"')) {
+  throw new Error("Middleware must match checkout, activation, auth session, PayTR callback, and pending-order routes.");
 }
 const session = readFileSync("app/api/auth/session/route.ts", "utf8");
 const sessionHelper = readFileSync("lib/auth/http-only-session.ts", "utf8");

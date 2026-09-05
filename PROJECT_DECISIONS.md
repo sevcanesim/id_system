@@ -88,7 +88,7 @@ The current codebase already contains commerce, fulfillment and shipping-address
 
 ## 5. Payments
 
-**Primary payment provider:** iyzico.
+**Primary payment provider:** PayTR.
 
 Payment integration must remain behind a provider abstraction so Stripe or another provider can be introduced without changing checkout/domain rules.
 
@@ -321,7 +321,7 @@ Visual regressions are not automatically treated as failures: each difference mu
 The following are intentionally deferred until the relevant feature phase:
 
 - International shipping/tax matrix.
-- Automated recurring iyzico billing.
+- Automated recurring PayTR billing.
 - Self-service enterprise provisioning.
 - Final support SLA/ticket taxonomy.
 - Full invoice PDF generation contract.

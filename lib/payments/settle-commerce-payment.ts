@@ -2,14 +2,10 @@ import { createHash, randomBytes } from "crypto";
 import { loadCommerceOrderKind } from "../commerce/order-kind";
 import { COMMERCIAL_PRICING } from "../config/commercial";
 import { sendActivationEmail, sendOrderReadyEmail } from "../email/resend";
-import { isTerminalIyzicoDecline, verifyIyzicoCheckoutResult } from "./callback-verification";
 import { publicSiteUrl } from "./config";
 import { CORPORATE_POST_PURCHASE_HREF, INDIVIDUAL_POST_PURCHASE_HREF } from "../commerce/post-purchase";
-import { retrieveCheckout } from "./iyzico";
 import { sanitizeProviderPayload } from "./sanitize-provider-payload";
 import { getSupabaseAdminClient } from "../supabase/server-admin";
-
-const PAID_ORDER_STATUSES = new Set(["PAID", "PREPARING", "SHIPPED", "COMPLETED"]);
 
 export type CommerceSettleResult =
   | { kind: "not_found" }
@@ -178,41 +174,6 @@ async function finishPaidOrder(
   return { kind: "paid", orderId: processed.order_id, reviewRequired };
 }
 
-async function settleLoadedAttempt(
-  admin: AdminClient,
-  commerceAttempt: CommerceAttempt,
-  providerToken: string,
-  options: { failIfUnpaid: boolean },
-): Promise<CommerceSettleResult> {
-  if (commerceAttempt.status === "PAID") {
-    const recovered = await recoverPaidCommerceOrder(admin, commerceAttempt.order_id);
-    return { kind: "paid", orderId: commerceAttempt.order_id, reviewRequired: recovered.reviewRequired };
-  }
-
-  const result = await retrieveCheckout(providerToken);
-  const paid = verifyIyzicoCheckoutResult(
-    {
-      orderId: commerceAttempt.order_id,
-      amountKurus: commerceAttempt.amount_kurus,
-      currency: commerceAttempt.currency,
-      conversationId: commerceAttempt.conversation_id,
-    },
-    result,
-  );
-
-  if (!paid && !options.failIfUnpaid && !isTerminalIyzicoDecline(result)) {
-    return { kind: "pending", orderId: commerceAttempt.order_id };
-  }
-
-  return settleVerifiedProviderPayment(admin, commerceAttempt, {
-    paid,
-    providerPaymentId: result?.paymentId ?? commerceAttempt.provider_payment_id ?? null,
-    errorCode: paid ? null : String(result?.errorCode || "PAYMENT_VERIFICATION_FAILED"),
-    errorMessage: paid ? null : String(result?.errorMessage || "Ödeme doğrulanamadı."),
-    rawResult: { ...result, provider: "IYZICO" },
-  });
-}
-
 async function settleVerifiedProviderPayment(
   admin: AdminClient,
   commerceAttempt: CommerceAttempt,
@@ -273,24 +234,6 @@ async function settleVerifiedProviderPayment(
   return { kind: "error", reason: "callback" };
 }
 
-export async function settleCommercePaymentByProviderToken(
-  token: string,
-  options: { failIfUnpaid?: boolean } = {},
-): Promise<CommerceSettleResult> {
-  if (!token) return { kind: "error", reason: "attempt" };
-  const failIfUnpaid = options.failIfUnpaid !== false;
-  const admin = getSupabaseAdminClient();
-  const { data: commerceAttempt } = await admin
-    .from("commerce_payment_attempts")
-    .select("id,order_id,provider,status,amount_kurus,currency,conversation_id,provider_payment_id,provider_token")
-    .eq("provider_token", token)
-    .eq("provider", "IYZICO")
-    .maybeSingle();
-
-  if (!commerceAttempt) return { kind: "not_found" };
-  return settleLoadedAttempt(admin, commerceAttempt, token, { failIfUnpaid });
-}
-
 export async function settleCommercePaymentByPaytrCallback(input: {
   merchantOid: string;
   paid: boolean;
@@ -323,31 +266,4 @@ export async function settleCommercePaymentByPaytrCallback(input: {
       errorMessage: input.errorMessage ?? null,
     },
   });
-}
-
-export async function settlePendingCommercePaymentByOrderId(orderId: string): Promise<CommerceSettleResult> {
-  const admin = getSupabaseAdminClient();
-  const { data: order } = await admin.from("commerce_orders").select("id,status").eq("id", orderId).maybeSingle();
-  if (!order) return { kind: "not_found" };
-  if (PAID_ORDER_STATUSES.has(String(order.status))) {
-    const recovered = await recoverPaidCommerceOrder(admin, order.id);
-    return { kind: "paid", orderId: order.id, reviewRequired: recovered.reviewRequired };
-  }
-
-  const { data: attempt } = await admin
-    .from("commerce_payment_attempts")
-    .select("id,order_id,provider,status,amount_kurus,currency,conversation_id,provider_payment_id,provider_token")
-    .eq("order_id", orderId)
-    .eq("status", "PENDING")
-    .not("provider_token", "is", null)
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!attempt?.provider_token) return { kind: "error", reason: "attempt" };
-  // PayTR is confirmed by its signed server-to-server callback. There is no
-  // browser recovery endpoint that may safely promote a pending PayTR order.
-  if (attempt.provider === "PAYTR") return { kind: "pending", orderId };
-  if (attempt.provider !== "IYZICO") return { kind: "error", reason: "attempt" };
-  return settleLoadedAttempt(admin, attempt, attempt.provider_token, { failIfUnpaid: false });
 }

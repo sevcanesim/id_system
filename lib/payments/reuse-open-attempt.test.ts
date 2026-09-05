@@ -30,6 +30,16 @@ describe("decideOpenPaymentAttempt", () => {
       status: "PENDING",
       request_fingerprint: "fingerprint",
       payment_page_url: null,
-    }, "fingerprint")).toBe("conflict");
+      updated_at: new Date(1_000).toISOString(),
+    }, "fingerprint", 2_000)).toBe("conflict");
+  });
+
+  it("releases only a stale initialization without a hosted payment page", () => {
+    expect(decideOpenPaymentAttempt({
+      status: "PENDING",
+      request_fingerprint: "fingerprint",
+      payment_page_url: null,
+      updated_at: new Date(1_000).toISOString(),
+    }, "fingerprint", 122_000)).toBe("abandon");
   });
 });

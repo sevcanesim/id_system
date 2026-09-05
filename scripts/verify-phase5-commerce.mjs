@@ -51,18 +51,18 @@ check(phase5Doc.includes("app/canonical.css") && !phase5Doc.includes("`app/comme
 
 check(product.includes('className="nfc-product-page"'), "NFC product uses the live product-page scope");
 check(/fiziksel NFC \+ QR kart.*güncellenebilir/i.test(productLayout), "NFC product explains physical + digital package");
-check(productPurchase.includes("1 yıl") && productPurchase.includes("Türkiye içi kargo dahil"), "product inclusion and delivery remain explicit");
+check(productPurchase.includes("1 yıl") && productPurchase.includes("COMMERCIAL_FULFILLMENT.domesticShipping") && productPurchase.includes("COMMERCIAL_FULFILLMENT.handover"), "product inclusion and delivery remain explicit");
 check(productPurchase.includes("AddToCartButton") && productPurchase.includes('id="nfc-hero-price-row"'), "product exposes add-to-cart purchase path");
 check(!product.includes("AppFooter") && !product.includes("AppHeader"), "product flow does not remount public chrome");
 
-check(cart.includes('className="cart-page') && cart.includes("p5-cart-page"), "cart keeps Phase 5 cart scope");
+check(cart.includes("cart-page") && cart.includes("p5-cart-page"), "cart keeps Phase 5 cart scope");
 check(cart.includes("KDV dahil") && cart.includes("Ücretsiz"), "cart exposes tax and shipping summary");
 check(cart.includes("Ödemeye geç"), "cart has one clear checkout conversion action");
 check(cart.includes("yi-footer-compact"), "cart uses compact legal footer");
 check(cart.includes('disabled={item.quantity <= 1}'), "cart quantity decrement is disabled at minimum quantity");
 
-check(checkout.includes('className="checkout-page') && checkout.includes("p5-checkout-page"), "checkout keeps Phase 5 checkout scope");
-check(checkout.includes("paymentProviderName") && checkout.includes("usesIyzico") && checkout.includes('paymentProvider === "PAYTR"'), "checkout sets an active provider expectation and preserves iyzico fallback validation");
+check(checkout.includes("checkout-page") && checkout.includes("p5-checkout-page"), "checkout keeps Phase 5 checkout scope");
+check(checkout.includes('type PaymentProvider = "PAYTR" | null') && checkout.includes('config?.payment?.provider === "PAYTR"') && !checkout.includes("IYZICO"), "checkout exposes a PayTR-only provider expectation");
 check(checkout.includes("checkout-summary-total") && checkout.includes("checkout-summary-benefits"), "checkout retains persistent order-value summary");
 check(checkout.includes("Mesafeli Satış Sözleşmesini") && checkout.includes("KVKK"), "checkout retains legal approval and privacy access");
 check(checkout.includes("yi-footer-compact"), "checkout uses compact legal footer");

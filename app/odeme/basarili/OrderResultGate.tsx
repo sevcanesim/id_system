@@ -13,7 +13,7 @@ import PaymentSuccessShare from "./PaymentSuccessShare";
 type VerifyState = "checking" | "verified" | "invalid";
 type OrderStatusPayload = {
   paid?: boolean;
-  paymentProvider?: "PAYTR" | "IYZICO" | null;
+  paymentProvider?: "PAYTR" | null;
   activationRequired?: boolean;
   corporate?: boolean;
   corporateReady?: boolean;
@@ -66,18 +66,8 @@ export default function OrderResultGate() {
 
         while (active && attempts < 4 && (!data?.paid || (data.corporate && !data.corporateReady))) {
           attempts++;
-          // PayTR's signed server-to-server callback is the only state
-          // transition. Keep polling its read-only order status; never let a
-          // browser redirect attempt to recover or settle a PayTR payment.
-          if (data.paymentProvider === "IYZICO") {
-            await fetch("/api/payments/iyzico/recover", {
-              method: "POST",
-              credentials: "same-origin",
-              headers: { "content-type": "application/json" },
-              body: JSON.stringify({ orderId }),
-            }).catch(() => null);
-          }
-
+          // PayTR'nin imzalı sunucu callback'i tek durum otoritesidir.
+          // Tarayıcı yalnızca sonucu okur; asla ödeme durumunu değiştirmez.
           await new Promise((resolve) => setTimeout(resolve, attempts * 750));
           if (!active) return;
           data = await verifyPaid();
@@ -135,12 +125,6 @@ export default function OrderResultGate() {
 
   async function retryFulfillment() {
     if (!orderId) throw new Error("Sipariş bulunamadı.");
-    await fetch("/api/payments/iyzico/recover", {
-      method: "POST",
-      credentials: "same-origin",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ orderId }),
-    });
     const statusResponse = await fetch(`/api/commerce/orders/status?order=${encodeURIComponent(orderId)}`, { cache: "no-store" });
     const data = await (statusResponse.ok ? statusResponse.json() : {}) as OrderStatusPayload;
     setCorporate(Boolean(data.corporate));

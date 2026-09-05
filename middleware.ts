@@ -19,8 +19,6 @@ const UPLOAD_PATH = "/api/organizations/links/upload";
 const FAIL_CLOSED_SCOPES = new Set([
   "auth-login",
   "checkout",
-  "legacy-checkout",
-  "iyzico-recover",
   "activation",
   "claim",
 ]);
@@ -39,9 +37,6 @@ function ruleFor(pathname: string, method: string): LimitRule | null {
   if (pathname === "/api/commerce/entitlements") return { limit: 30, windowMs: 60_000, scope: "entitlements" };
   if (pathname === "/api/organizations/members" && method !== "GET") return { limit: 20, windowMs: 60_000, scope: "organization-members" };
   if (pathname === "/api/organizations/invites" && method !== "GET") return { limit: 10, windowMs: 60_000, scope: "organization-invites" };
-  if (pathname === "/api/payments/iyzico/checkout") return { limit: 3, windowMs: 60_000, scope: "legacy-checkout" };
-  if (pathname === "/api/payments/iyzico/recover") return { limit: 8, windowMs: 60_000, scope: "iyzico-recover" };
-  if (pathname === "/api/payments/iyzico/webhook") return { limit: 30, windowMs: 60_000, scope: "iyzico-webhook" };
   if (pathname === "/api/payments/paytr/callback") return { limit: 30, windowMs: 60_000, scope: "paytr-callback" };
   if (pathname === "/api/commerce/orders/pending") return { limit: 20, windowMs: 60_000, scope: "pending-order" };
   if (pathname === "/api/networking/inbox" && method !== "GET") return { limit: 12, windowMs: 60_000, scope: "network-mail-inbox" };

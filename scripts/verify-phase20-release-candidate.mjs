@@ -28,7 +28,6 @@ const required = [
   "docs/PRODUCTION_RELEASE_PHASE20_V25.8.61_RC3.md",
   "audit/PHASE20_RELEASE_CANDIDATE_AUDIT.json",
   "scripts/verify-production-env.mjs",
-  "scripts/verify-iyzico-sandbox-env.mjs",
   "scripts/verify-paytr-sandbox-env.mjs",
   "scripts/create-release-package.mjs",
   "scripts/verify-share-archive.mjs",
@@ -44,16 +43,16 @@ const lock = JSON.parse(fs.readFileSync("package-lock.json", "utf8"));
 versionAtLeast(pkg.version, "25.8.61") ? pass("package version retains Phase 20 RC or later") : fail("package version retains Phase 20 RC or later");
 lock.version === pkg.version && lock.packages?.[""]?.version === pkg.version ? pass("lockfile version matches package") : fail("lockfile version matches package");
 
-for (const script of ["verify:phase20:rc", "verify:phase20:runtime", "verify:phase20:staging", "verify:phase20:production", "verify:phase20:sandbox", "verify:paytr:sandbox", "release:rc", "package:safe", "verify:pre-share"]) {
+for (const script of ["verify:phase20:rc", "verify:phase20:runtime", "verify:phase20:staging", "verify:phase20:production", "verify:paytr:sandbox", "release:rc", "package:safe", "verify:pre-share"]) {
   pkg.scripts?.[script] ? pass(`release script registered: ${script}`) : fail(`release script registered: ${script}`);
 }
 
 const envExample = fs.readFileSync(".env.example", "utf8");
-for (const key of ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SITE_URL", "SUPABASE_SERVICE_ROLE_KEY", "IYZICO_BASE_URL", "PAYTR_MERCHANT_ID"]) {
+for (const key of ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SITE_URL", "SUPABASE_SERVICE_ROLE_KEY", "PAYTR_MERCHANT_ID", "PAYTR_MERCHANT_KEY", "PAYTR_MERCHANT_SALT"]) {
   envExample.includes(`${key}=`) ? pass(`local env contract documented: ${key}`) : fail(`local env contract documented: ${key}`);
 }
 const productionEnv = fs.readFileSync("scripts/verify-production-env.mjs", "utf8");
-productionEnv.includes("PRODUCTION_SUPABASE_PROJECT_REF") && productionEnv.includes("PAYTR_MERCHANT_ID") && productionEnv.includes("IYZICO_BASE_URL")
+productionEnv.includes("PRODUCTION_SUPABASE_PROJECT_REF") && productionEnv.includes("PAYTR_MERCHANT_ID") && productionEnv.includes("PAYTR_MERCHANT_KEY") && productionEnv.includes("PAYTR_MERCHANT_SALT")
   ? pass("production env gate requires project isolation and a live payment provider")
   : fail("production env gate requires project isolation and a live payment provider");
 

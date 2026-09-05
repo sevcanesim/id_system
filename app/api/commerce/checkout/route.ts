@@ -1,13 +1,10 @@
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import Iyzipay from "iyzipay";
 import { z } from "zod";
-import { initializeCheckout } from "../../../../lib/payments/iyzico";
 import { getActivePaymentProvider, publicSiteUrl } from "../../../../lib/payments/config";
 import { createPaytrMerchantOid, initializePaytrCheckout } from "../../../../lib/payments/paytr";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
-import { canManageTemplates, canPurchaseCorporateCommerce, isOrganizationRole } from "../../../../lib/organizations/permissions";
-import { isValidIdentityNumber, normalizeIdentityNumber } from "../../../../lib/validation/payment";
+import { canPurchaseCorporateCommerce, isOrganizationRole } from "../../../../lib/organizations/permissions";
 import { publicError } from "../../../../lib/errors";
 import {
   createCheckoutFingerprint,
@@ -15,6 +12,7 @@ import {
   normalizeIdempotencyKey,
 } from "../../../../lib/payments/idempotency";
 import { getDatabaseLegalVersions } from "../../../../lib/config/database";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
 import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, isDigitalOnlySku, isPremiumUpgradeSku, requiresPortalAccountSku } from "../../../../lib/config/commercial";
 import { corporateCheckoutLive, corporatePackageBySku, isDirectCheckoutBlocked, isNetworkMailCreditPackSku } from "../../../../lib/commerce/packages";
 import { parseCompanyBilling } from "../../../../lib/validation/company";
@@ -38,10 +36,6 @@ function checkoutSchema(legalVersions: Awaited<ReturnType<typeof getDatabaseLega
     name: z.string().trim().min(2).max(120),
     email: z.string().trim().email(),
     phone: z.string().trim().min(10).max(30),
-    // PayTR's hosted checkout does not require an identity number. The active
-    // provider decides whether this value is required after parsing.
-    identityNumber: z.string().trim().max(20).optional().default(""),
-    identityType: z.enum(["TR", "FOREIGN"]).default("TR"),
   }),
   shipping: z.object({
     recipientName: z.string().trim().min(2).max(120),
@@ -129,11 +123,6 @@ function corporateBillingProfile(organizationId: string, organization: Record<st
   };
 }
 
-function splitName(value: string) {
-  const parts = value.trim().split(/\s+/);
-  return { name: parts[0] || "Müşteri", surname: parts.slice(1).join(" ") || "Yenomi" };
-}
-
 function jsonWithPendingOrder(body: object, init?: { status?: number }) {
   const response = NextResponse.json(body, init);
   const record = body as { orderId?: unknown; resetOrder?: unknown };
@@ -148,6 +137,7 @@ function duplicateAttemptResponse(attempt: {
   status: string;
   request_fingerprint: string | null;
   payment_page_url: string | null;
+  updated_at?: string | null;
 }, fingerprint: string) {
   if (attempt.request_fingerprint !== fingerprint) {
     return jsonWithPendingOrder({ ...publicError("IDEMPOTENCY_CONFLICT"), retryable: true, resetOrder: true }, { status: 409 });
@@ -169,6 +159,8 @@ function duplicateAttemptResponse(attempt: {
 }
 
 export async function POST(request: NextRequest) {
+  const requestId = request.headers.get("x-request-id");
+  let observabilityUserId: string | null = null;
   try {
     const flooded = await rejectCheckoutInitializeFlood(request);
     if (flooded) return flooded;
@@ -201,13 +193,13 @@ export async function POST(request: NextRequest) {
       const { data: authData } = await auth.auth.getUser(bearer);
       if (authData.user?.id && authData.user.email) {
         authenticatedUserId = authData.user.id;
+        observabilityUserId = authData.user.id;
         normalizedEmail = authData.user.email.toLowerCase();
         if (body.customer.email.toLowerCase() !== normalizedEmail) {
           return NextResponse.json({ error: "Sipariş e-postası giriş yaptığın hesapla eşleşmelidir." }, { status: 403 });
         }
       }
     }
-    const identityNumber = normalizeIdentityNumber(body.customer.identityNumber, body.customer.identityType);
 
     const admin = getSupabaseAdminClient();
     const slugs = [...new Set(body.items.map((item) => item.productSlug))];
@@ -242,15 +234,6 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    // Identity number is never collected for a digital service. This keeps
-    // Network Mail checkout free of T.C./passport data even if an older
-    // iyzico configuration is explicitly selected for other products.
-    const paymentRequiresIdentityNumber = paymentProvider === "IYZICO"
-      && calculated.some((item) => !isDigitalOnlySku(item.variant.sku));
-    if (paymentRequiresIdentityNumber && !isValidIdentityNumber(identityNumber, body.customer.identityType)) {
-      return NextResponse.json({ error: body.customer.identityType === "TR" ? "Geçerli bir T.C. kimlik numarası gir." : "Geçerli bir pasaport numarası gir." }, { status: 400 });
-    }
-
     if (!authenticatedUserId && calculated.some((item) => requiresPortalAccountSku(item.variant.sku))) {
       return NextResponse.json({
         code: "ACCOUNT_REQUIRED",
@@ -284,7 +267,7 @@ export async function POST(request: NextRequest) {
         .eq("organization_id", organizationId)
         .eq("user_id", authenticatedUserId)
         .maybeSingle();
-      if (!authenticatedUserId || !membership || !isOrganizationRole(membership.role) || !canManageTemplates(membership.role, membership.status)) {
+      if (!authenticatedUserId || !membership || !isOrganizationRole(membership.role) || !canPurchaseCorporateCommerce(membership.role, membership.status)) {
         return NextResponse.json({ error: "Ek kullanıcı paketi satın almak için kurumsal hesabınla giriş yapmalısın." }, { status: 403 });
       }
       const { data: activeSubscription } = await admin
@@ -529,8 +512,6 @@ export async function POST(request: NextRequest) {
       customer: {
         name: body.customer.name,
         phone: body.customer.phone,
-        identityType: paymentRequiresIdentityNumber ? body.customer.identityType : "",
-        identityNumber: paymentRequiresIdentityNumber ? identityNumber : "",
       },
       shipping,
       consents: body.consents,
@@ -726,7 +707,7 @@ export async function POST(request: NextRequest) {
 
     const { data: openAttempt } = await admin
       .from("commerce_payment_attempts")
-      .select("id,order_id,status,request_fingerprint,payment_page_url")
+      .select("id,order_id,status,request_fingerprint,payment_page_url,updated_at")
       .eq("order_id", order.id)
       .eq("status", "PENDING")
       .order("created_at", { ascending: false })
@@ -751,7 +732,7 @@ export async function POST(request: NextRequest) {
     const conversationId = randomUUID();
     // PayTR requires a merchant order id before its hosted session is created;
     // persist that opaque id first so only the signed callback can settle it.
-    const paytrMerchantOid = paymentProvider === "PAYTR" ? createPaytrMerchantOid() : null;
+    const paytrMerchantOid = createPaytrMerchantOid();
     const { data: reservedAttempt, error: reserveError } = await admin
       .from("commerce_payment_attempts")
       .insert({
@@ -774,130 +755,69 @@ export async function POST(request: NextRequest) {
       if (racedAttempt) return duplicateAttemptResponse(racedAttempt, fingerprint);
       const payload = publicError("PAYMENT_IN_PROGRESS");
       console.error("payment attempt reservation failed", { reference: payload.reference, code: reserveError?.code });
+      void recordSystemError({
+        source: "COMMERCE_CHECKOUT",
+        errorCode: "PAYMENT_ATTEMPT_RESERVATION_FAILED",
+        message: "A PayTR payment attempt could not be reserved.",
+        requestId,
+        userId: observabilityUserId,
+        details: { reference: payload.reference, databaseCode: reserveError?.code ?? null },
+      });
       return NextResponse.json(payload, { status: 409 });
     }
 
-    if (paymentProvider === "PAYTR") {
-      const userIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-        || request.headers.get("x-real-ip")?.trim()
-        || "127.0.0.1";
-      const paytrCheckout = await initializePaytrCheckout({
-        merchantOid: paytrMerchantOid!,
-        userIp,
-        email: normalizedEmail,
-        userName: body.customer.name,
-        userAddress: company
-          ? `${company.name}, ${shipping.addressLine}, ${shipping.district}, ${shipping.city}`
-          : `${shipping.addressLine}, ${shipping.district}, ${shipping.city}`,
-        userPhone: body.customer.phone,
-        amountKurus: totalKurus,
-        basketItems: calculated.map((item) => ({
-          name: item.product.name,
-          unitPriceKurus: item.unitPriceKurus,
-          quantity: item.quantity,
-        })),
-        merchantOkUrl: `${publicSiteUrl}/odeme/basarili?order=${encodeURIComponent(order.id)}`,
-        merchantFailUrl: `${publicSiteUrl}/odeme/basarisiz?order=${encodeURIComponent(order.id)}`,
-      });
-
-      if (!paytrCheckout.ok) {
-        await admin.from("commerce_payment_attempts").update({
-          status: "FAILED",
-          error_code: paytrCheckout.errorCode,
-          error_message: paytrCheckout.errorMessage,
-          updated_at: new Date().toISOString(),
-        }).eq("id", reservedAttempt.id);
-        const payload = publicError("PAYMENT_UNAVAILABLE");
-        console.error("payment checkout rejected", { reference: payload.reference, provider: paymentProvider, errorCode: paytrCheckout.errorCode, orderId: order.id });
-        return jsonWithPendingOrder({ ...payload, orderId: order.id, retryable: true }, { status: 502 });
-      }
-
-      const paymentPageUrl = `${publicSiteUrl}/odeme/paytr?token=${encodeURIComponent(paytrCheckout.token)}`;
-      await admin.from("commerce_payment_attempts").update({
-        payment_page_url: paymentPageUrl,
-        updated_at: new Date().toISOString(),
-      }).eq("id", reservedAttempt.id);
-
-      return jsonWithPendingOrder({
-        orderId: order.id,
-        orderNumber: order.order_number,
-        paymentPageUrl,
-        retried: Boolean(body.retryOrderId),
-      });
-    }
-
-    const money = (totalKurus / 100).toFixed(2);
-    const person = splitName(body.customer.name);
-    const checkout = await initializeCheckout({
-      locale: Iyzipay.LOCALE.TR,
-      conversationId,
-      price: money,
-      paidPrice: money,
-      currency: Iyzipay.CURRENCY.TRY,
-      basketId: order.id,
-      paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
-      callbackUrl: `${publicSiteUrl}/api/payments/iyzico/callback`,
-      enabledInstallments: [1, 2, 3, 6, 9],
-      buyer: {
-        id: order.id,
-        name: person.name,
-        surname: person.surname,
-        gsmNumber: body.customer.phone,
-        email: body.customer.email,
-        identityNumber,
-        registrationAddress: shipping.addressLine,
-        ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1",
-        city: shipping.city,
-        country: "Türkiye",
-        zipCode: shipping.postalCode || "00000",
-      },
-      shippingAddress: {
-        contactName: shipping.recipientName,
-        city: shipping.city,
-        country: "Türkiye",
-        address: `${shipping.addressLine}, ${shipping.district}`,
-        zipCode: shipping.postalCode || "00000",
-      },
-      billingAddress: {
-        contactName: company ? company.name : shipping.recipientName,
-        city: shipping.city,
-        country: "Türkiye",
-        address: company
-          ? `${company.name}, VN ${company.taxNumber}, ${company.taxOffice}. ${shipping.addressLine}, ${shipping.district}`
-          : `${shipping.addressLine}, ${shipping.district}`,
-        zipCode: shipping.postalCode || "00000",
-      },
+    const userIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+      || request.headers.get("x-real-ip")?.trim()
+      || "127.0.0.1";
+    const paytrCheckout = await initializePaytrCheckout({
+      merchantOid: paytrMerchantOid,
+      userIp,
+      email: normalizedEmail,
+      userName: body.customer.name,
+      userAddress: company
+        ? `${company.name}, ${shipping.addressLine}, ${shipping.district}, ${shipping.city}`
+        : `${shipping.addressLine}, ${shipping.district}, ${shipping.city}`,
+      userPhone: body.customer.phone,
+      amountKurus: totalKurus,
       basketItems: calculated.map((item) => ({
-        id: item.variant.sku,
         name: item.product.name,
-        category1: "Yenomi ID",
-        itemType: isDigitalOnlySku(item.variant.sku) ? "VIRTUAL" : "PHYSICAL",
-        price: (item.lineTotalKurus / 100).toFixed(2),
+        unitPriceKurus: item.unitPriceKurus,
+        quantity: item.quantity,
       })),
+      merchantOkUrl: `${publicSiteUrl}/odeme/basarili?order=${encodeURIComponent(order.id)}`,
+      merchantFailUrl: `${publicSiteUrl}/odeme/basarisiz?order=${encodeURIComponent(order.id)}`,
     });
 
-    if (checkout?.status !== "success" || !checkout?.token || !checkout.paymentPageUrl) {
+    if (!paytrCheckout.ok) {
       await admin.from("commerce_payment_attempts").update({
         status: "FAILED",
-        error_code: checkout?.errorCode || null,
-        error_message: checkout?.errorMessage || "Checkout başlatılamadı",
+        error_code: paytrCheckout.errorCode,
+        error_message: paytrCheckout.errorMessage,
         updated_at: new Date().toISOString(),
       }).eq("id", reservedAttempt.id);
       const payload = publicError("PAYMENT_UNAVAILABLE");
-      console.error("iyzico checkout rejected", { reference: payload.reference, errorCode: checkout?.errorCode, orderId: order.id });
+      console.error("payment checkout rejected", { reference: payload.reference, provider: paymentProvider, errorCode: paytrCheckout.errorCode, orderId: order.id });
+      void recordSystemError({
+        source: "COMMERCE_CHECKOUT",
+        errorCode: paytrCheckout.errorCode || "PAYTR_INITIALIZATION_FAILED",
+        message: "PayTR hosted payment initialization was rejected.",
+        requestId,
+        userId: observabilityUserId,
+        details: { reference: payload.reference, orderId: order.id },
+      });
       return jsonWithPendingOrder({ ...payload, orderId: order.id, retryable: true }, { status: 502 });
     }
 
+    const paymentPageUrl = `${publicSiteUrl}/odeme/paytr?token=${encodeURIComponent(paytrCheckout.token)}`;
     await admin.from("commerce_payment_attempts").update({
-      provider_token: checkout.token,
-      payment_page_url: checkout.paymentPageUrl,
+      payment_page_url: paymentPageUrl,
       updated_at: new Date().toISOString(),
     }).eq("id", reservedAttempt.id);
 
     return jsonWithPendingOrder({
       orderId: order.id,
       orderNumber: order.order_number,
-      paymentPageUrl: checkout.paymentPageUrl,
+      paymentPageUrl,
       retried: Boolean(body.retryOrderId),
     });
   } catch (error) {
@@ -905,6 +825,14 @@ export async function POST(request: NextRequest) {
     console.error("commerce checkout error", {
       reference: payload.reference,
       message: error instanceof Error ? error.message : "UNKNOWN",
+    });
+    void recordSystemError({
+      source: "COMMERCE_CHECKOUT",
+      errorCode: "COMMERCE_CHECKOUT_UNHANDLED",
+      message: "The checkout request could not be completed.",
+      requestId,
+      userId: observabilityUserId,
+      details: { reference: payload.reference },
     });
     return NextResponse.json(payload, { status: 500 });
   }

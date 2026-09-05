@@ -7,7 +7,7 @@ import QRCode from "qrcode";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { isSupabaseConfigured } from "../../lib/supabase/config";
 import { formatTryFromKurus, getNfcOrderTotalKurus, NFC_PRODUCT } from "../../lib/config/product";
-import { highestReachableNfcOrderStep, normalizeIdentityNumber, validateNfcOrderStep } from "../../lib/validation/nfc-order";
+import { highestReachableNfcOrderStep, validateNfcOrderStep } from "../../lib/validation/nfc-order";
 import OrderLocationMap from "../components/OrderLocationMap";
 import { Icon } from "../icons";
 import { NfcCardFront, NfcCardBack } from "../components/ui/NfcCardArt";
@@ -18,7 +18,7 @@ import { cardShareUrl } from "../../lib/public-card/urls";
 import { clearPendingCheckoutOrderId, getOrCreateCheckoutIdempotencyKey, lookupPendingCheckoutOrder, rotateCheckoutIdempotencyKey, setPendingCheckoutOrderId, setCheckoutReturnPath } from "../../lib/payments/browser-checkout";
 // v22: Bu sayfa artık yalnızca ürünü KİŞİSELLEŞTİRİYOR (renk, isim, teslimat).
 // Ödeme ve sipariş oluşturma tek boru hattından geçsin diye
-// /api/commerce/checkout kullanılıyor — eski createOrder() + /api/payments/iyzico/checkout
+// /api/commerce/checkout kullanılıyor — eski createOrder() + ayrı ödeme route'u
 // (nfc_orders tablosu, entitlement/aktivasyon sistemine hiç girmiyordu) kaldırıldı.
 
 type FormData = {
@@ -33,8 +33,6 @@ type FormData = {
   postalCode: string;
   quantity: number;
   note: string;
-  identityNumber: string;
-  identityType: "TR" | "FOREIGN";
   latitude: number | null;
   longitude: number | null;
   mapUrl: string;
@@ -43,7 +41,7 @@ type FormData = {
 
 const initial: FormData = {
   cardColor: "BLACK", printName: "", printTitle: "", phone: "", email: "",
-  addressLine: "", district: "", city: "", postalCode: "", quantity: 1, note: "", identityNumber: "", identityType: "TR", latitude: null, longitude: null, mapUrl: ""
+  addressLine: "", district: "", city: "", postalCode: "", quantity: 1, note: "", latitude: null, longitude: null, mapUrl: ""
 };
 
 export default function NfcOrderPage() {
@@ -63,10 +61,8 @@ export default function NfcOrderPage() {
   const [activeStep, setActiveStep] = useState(1);
   const [mapExpanded, setMapExpanded] = useState(false);
   const [legalVersions, setLegalVersions] = useState<{ distanceSales: string; personalization: string; privacy: string } | null>(null);
-  const [paymentProvider, setPaymentProvider] = useState<"PAYTR" | "IYZICO" | null>(null);
-
-  const usesIyzico = paymentProvider === "IYZICO";
-  const paymentProviderName = usesIyzico ? "iyzico" : "PayTR";
+  const [paymentProvider, setPaymentProvider] = useState<"PAYTR" | null>(null);
+  const paymentProviderName = "PayTR";
 
   const publicCardUrl = useMemo(() => publicId ? cardShareUrl(publicId) : "", [publicId]);
 
@@ -101,7 +97,7 @@ export default function NfcOrderPage() {
       })
       .then((data) => {
         setLegalVersions(data.legalVersions);
-        setPaymentProvider(data?.payment?.provider === "IYZICO" ? "IYZICO" : "PAYTR");
+        setPaymentProvider(data?.payment?.provider === "PAYTR" ? "PAYTR" : null);
       })
       .catch(() => setMessage("Hukuk sürümleri DB’den yüklenemedi; ödeme başlatılamaz."));
   }, []);
@@ -114,12 +110,6 @@ export default function NfcOrderPage() {
         }
       })
       .catch(() => undefined);
-  }, []);
-
-  useEffect(() => {
-    const wipeIdentity = () => setForm((current) => (current.identityNumber ? { ...current, identityNumber: "" } : current));
-    window.addEventListener("pagehide", wipeIdentity);
-    return () => window.removeEventListener("pagehide", wipeIdentity);
   }, []);
 
   useEffect(() => {
@@ -196,7 +186,12 @@ export default function NfcOrderPage() {
     if (!legalVersions) { setMessage("Hukuk sürümleri DB’den yüklenmeden ödeme başlatılamaz."); return; }
     const consentVersions = legalVersions;
     setSubmitting(true);
-    const finalValidationError = validateNfcOrderStep(5, form, Boolean(publicId), usesIyzico);
+    if (!paymentProvider) {
+      setSubmitting(false);
+      setMessage("PayTR güvenli ödeme servisi şu anda hazır değil. Lütfen kısa süre sonra tekrar dene.");
+      return;
+    }
+    const finalValidationError = validateNfcOrderStep(5, form, Boolean(publicId));
     if (finalValidationError) {
       setSubmitting(false);
       setMessage(finalValidationError);
@@ -219,7 +214,6 @@ export default function NfcOrderPage() {
       setMessage("Hesabın değişti gibi görünüyor. Bilgilerini kontrol edip tekrar dene.");
       return;
     }
-    const identityNumber = normalizeIdentityNumber(form.identityNumber, form.identityType);
     // Token'ı tazele: form birkaç dakika sürebiliyor, arka planda yenilenmemiş bir
     // token "Oturum doğrulanamadı" hatasıyla ödemeyi boşuna reddedebiliyordu.
     await supabase.auth.refreshSession().catch(() => null);
@@ -256,8 +250,6 @@ export default function NfcOrderPage() {
           name: form.printName.trim() || "Yenomi Müşteri",
           email: form.email.trim(),
           phone: form.phone.trim(),
-          identityNumber: usesIyzico ? identityNumber : "",
-          identityType: usesIyzico ? form.identityType : "",
         },
         shipping: {
           recipientName: form.printName.trim() || "Yenomi Müşteri",
@@ -291,7 +283,6 @@ export default function NfcOrderPage() {
       return;
     }
     if (result.orderId) setPendingCheckoutOrderId(result.orderId);
-    update("identityNumber", "");
     window.location.assign(result.paymentPageUrl);
   }
 
@@ -301,8 +292,8 @@ export default function NfcOrderPage() {
   }, [loading, userId]);
 
   const currentStepError = useMemo(
-    () => validateNfcOrderStep(activeStep, form, Boolean(publicId), usesIyzico),
-    [activeStep, form, publicId, usesIyzico]
+    () => validateNfcOrderStep(activeStep, form, Boolean(publicId)),
+    [activeStep, form, publicId]
   );
   const highestReachableStep = useMemo(
     () => highestReachableNfcOrderStep(form, Boolean(publicId)),
@@ -383,7 +374,6 @@ export default function NfcOrderPage() {
           <div className="pane-heading"><span>03</span><div><h3>İletişim bilgileri</h3><p>Yalnızca teslimat ve sipariş iletişimi için kullanılır.</p></div></div>
           <div className="field-grid"><label>Ad Soyad<input required value={form.printName} onChange={(e)=>update("printName",e.target.value)}/></label><label>Telefon<input required type="tel" inputMode="tel" autoComplete="tel" value={form.phone} onChange={(e)=>update("phone",normalizeTrPhone(e.target.value))} placeholder="+90 5xx xxx xx xx"/></label></div>
           <label>E-posta<input required type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} value={form.email} onChange={(e)=>update("email",e.target.value)} onBlur={()=>update("email",normalizeEmailField(form.email))} placeholder="ornek@firma.com"/></label>
-          {usesIyzico ? <div className="identity-heads-up"><Icon name="id" /><span><strong>Ödeme adımında bir şey daha isteyeceğiz: </strong>Ödeme sağlayıcısı doğrulama için T.C. kimlik veya pasaport numaranı zorunlu tutuyor. Bu bilgi yalnızca ödeme sağlayıcısına iletilir, veritabanımıza kaydedilmez.</span></div> : null}
         </section>}
 
         {activeStep === 4 && <section className="wizard-pane">
@@ -400,7 +390,7 @@ export default function NfcOrderPage() {
 
         {activeStep === 5 && <section className="wizard-pane">
           <div className="pane-heading"><span>05</span><div><h3>Güvenli ödeme</h3><p>Siparişini kontrol et; ödeme {paymentProviderName}&apos;ın güvenli sayfasında tamamlanacak.</p></div></div>
-          {usesIyzico ? <><div className="identity-toggle" role="group" aria-label="Kimlik türü"><button type="button" aria-pressed={form.identityType==="TR"} className={form.identityType==="TR"?"active":""} onClick={()=>update("identityType","TR")}>Türkiye vatandaşı</button><button type="button" aria-pressed={form.identityType==="FOREIGN"} className={form.identityType==="FOREIGN"?"active":""} onClick={()=>update("identityType","FOREIGN")}>Yabancı kullanıcı</button></div><label>{form.identityType==="TR"?"T.C. kimlik numarası":"Pasaport numarası"}<input required inputMode={form.identityType==="TR"?"numeric":"text"} autoComplete="off" value={form.identityNumber} onChange={(e)=>update("identityNumber",normalizeIdentityNumber(e.target.value, form.identityType))}/><small>Ödeme doğrulaması için zorunlu. Yenomi kaydetmez.</small></label><div className="payment-privacy-note"><strong>Neden isteniyor?</strong><span>Ödeme sağlayıcısı bu bilgiyi doğrulama için zorunlu tutar. Veritabanımıza kaydedilmez.</span></div></> : <div className="payment-privacy-note"><strong>Gizlilik notu</strong><span>Kart bilgilerin {paymentProviderName}&apos;ın güvenli sayfasında işlenir; Yenomi&apos;de saklanmaz.</span></div>}
+          <div className="payment-privacy-note"><strong>Gizlilik notu</strong><span>Kart bilgilerin {paymentProviderName}&apos;ın güvenli sayfasında işlenir; Yenomi&apos;de saklanmaz.</span></div>
           <div className="stripe-summary"><div><span>NFC Kart</span><b>{formatTryFromKurus(getNfcOrderTotalKurus(form.quantity))}</b></div><div><span>Kargo</span><b>Ücretsiz</b></div><div className="total"><span>Toplam</span><b>{formatTryFromKurus(getNfcOrderTotalKurus(form.quantity))}</b></div></div>
           <label className="consent-check"><input type="checkbox" checked={distanceSalesAccepted} onChange={(e)=>setDistanceSalesAccepted(e.target.checked)} /><span><Link href="/mesafeli-satis-sozlesmesi" target="_blank">Mesafeli Satış Sözleşmesi ve Ön Bilgilendirme Formu</Link>&apos;nu okudum ve kabul ediyorum.</span></label>
           <label className="consent-check"><input type="checkbox" checked={personalizationAccepted} onChange={(e)=>setPersonalizationAccepted(e.target.checked)} /><span>Siparişimin ad, unvan, QR bağlantısı ve seçtiğim üretim bilgileriyle bana özel hazırlanacağını; kişiselleştirilmiş ürünlere ilişkin koşulların <Link href="/mesafeli-satis-sozlesmesi" target="_blank">sözleşmede</Link> ayrıca açıklandığını okudum ve kabul ediyorum.</span></label>

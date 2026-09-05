@@ -11,7 +11,7 @@
 - Framework: Next.js App Router
 - Language: TypeScript
 - Database/Auth: Supabase
-- Payment provider: iyzico
+- Payment provider: PayTR
 - Unit test runner: Vitest
 - E2E/visual/quality runner: Playwright
 - Database migrations: 52 files at baseline
@@ -89,8 +89,7 @@ Commerce and lifecycle boundaries currently include:
 - `/api/commerce/entitlements`
 - `/api/commerce/orders`
 - `/api/commerce/orders/status`
-- `/api/payments/iyzico/checkout`
-- `/api/payments/iyzico/callback`
+- `/api/payments/paytr/callback`
 - `/api/cards`
 - `/api/profiles/save`
 

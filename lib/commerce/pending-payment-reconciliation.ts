@@ -1,49 +1,45 @@
-import { settlePendingCommercePaymentByOrderId } from "../payments/settle-commerce-payment";
 import { getSupabaseAdminClient } from "../supabase/server-admin";
 
-const MIN_PENDING_AGE_MS = 15 * 60 * 1000;
+const MIN_PENDING_AGE_MS = 2 * 60 * 1000;
 const MAX_BATCH = 100;
 
+/**
+ * PayTR is settled only by its signed callback. This job never attempts to
+ * infer a payment result; it releases initialization leases for attempts
+ * whose hosted payment URL was never persisted after a process failure.
+ */
 export async function reconcileAwaitingProviderPayments(now = Date.now()) {
   const admin = getSupabaseAdminClient();
   const cutoff = new Date(now - MIN_PENDING_AGE_MS).toISOString();
 
   const { data: attempts, error } = await admin
     .from("commerce_payment_attempts")
-    .select("order_id,updated_at,commerce_orders!inner(status)")
+    .select("id,order_id")
     .eq("status", "PENDING")
-    .not("provider_token", "is", null)
-    .eq("commerce_orders.status", "AWAITING_PAYMENT")
+    .eq("provider", "PAYTR")
+    .is("payment_page_url", null)
     .lte("updated_at", cutoff)
     .order("updated_at", { ascending: true })
     .limit(MAX_BATCH);
 
   if (error) throw error;
-  if (!attempts?.length) return { scanned: 0, paid: 0, pending: 0, failed: 0, errors: 0 };
+  if (!attempts?.length) return { scanned: 0, released: 0, errors: 0 };
 
-  let paid = 0;
-  let pending = 0;
-  let failed = 0;
-  let errors = 0;
-  const seen = new Set<string>();
+  const ids = attempts.map((attempt) => attempt.id);
+  const { data: releasedRows, error: releaseError } = await admin
+    .from("commerce_payment_attempts")
+    .update({
+      status: "FAILED",
+      idempotency_key: null,
+      error_code: "PAYTR_INITIALIZATION_EXPIRED",
+      error_message: "Hosted ödeme oturumu oluşturulamadı; yeni deneme güvenle başlatılabilir.",
+      updated_at: new Date(now).toISOString(),
+    })
+    .in("id", ids)
+    .eq("status", "PENDING")
+    .is("payment_page_url", null)
+    .select("id");
+  if (releaseError) throw releaseError;
 
-  for (const attempt of attempts) {
-    if (seen.has(attempt.order_id)) continue;
-    seen.add(attempt.order_id);
-    try {
-      const result = await settlePendingCommercePaymentByOrderId(attempt.order_id);
-      if (result.kind === "paid") paid += 1;
-      else if (result.kind === "pending") pending += 1;
-      else if (result.kind === "failed") failed += 1;
-      else errors += 1;
-    } catch (error) {
-      errors += 1;
-      console.error("pending payment reconciliation failed", {
-        orderId: attempt.order_id,
-        message: error instanceof Error ? error.message : "UNKNOWN",
-      });
-    }
-  }
-
-  return { scanned: seen.size, paid, pending, failed, errors };
+  return { scanned: ids.length, released: releasedRows?.length ?? 0, errors: 0 };
 }

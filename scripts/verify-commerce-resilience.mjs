@@ -37,7 +37,7 @@ const persistedDraft = checkoutRoute.slice(draftStart, draftEnd);
 assert(!persistedDraft.includes("identityNumber"), "identity number is persisted in abandoned checkout snapshot");
 assert(!persistedDraft.includes("distanceSalesAccepted"), "distance-sales acceptance is persisted in abandoned checkout snapshot");
 assert(!persistedDraft.includes("personalizationAccepted"), "personalization acceptance is persisted in abandoned checkout snapshot");
-assert(checkoutPage.includes('identityNumber: ""'), "checkout restore does not clear identity number");
+assert(!checkoutPage.includes("identityNumber"), "checkout no longer collects or restores a Turkish identity number");
 assert(checkoutPage.includes("distanceSalesAccepted: false") && checkoutPage.includes("personalizationAccepted: false"), "checkout restore does not require fresh legal acceptance");
 assert(resumeSecret.includes("CHECKOUT_RESUME_SECRET"), "checkout resume does not use a dedicated signing secret");
 assert(!resumeSecret.includes("SUPABASE_SERVICE_ROLE_KEY"), "checkout resume signing is coupled to the Supabase service-role key");

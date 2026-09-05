@@ -12,7 +12,8 @@ type PhysicalCardState = {
 
 type UseProfileCardActionsOptions = {
   profileId: string | null;
-  slug: string;
+  /** Immutable opaque id used by QR/NFC and the canonical public URL. */
+  publicId: string;
   publicUrl: string;
   qrDataUrl?: string;
   shareTitle?: string;
@@ -26,7 +27,7 @@ type UseProfileCardActionsOptions = {
 
 export function useProfileCardActions({
   profileId,
-  slug,
+  publicId,
   publicUrl,
   qrDataUrl = "",
   shareTitle = "Yenomi ID",
@@ -66,14 +67,14 @@ export function useProfileCardActions({
     if (!qrDataUrl) return false;
     const anchor = document.createElement("a");
     anchor.href = qrDataUrl;
-    anchor.download = `${slug || "yenomi-id"}-qr.png`;
+    anchor.download = `${publicId || "yenomi-id"}-qr.png`;
     anchor.click();
     return true;
-  }, [qrDataUrl, slug]);
+  }, [publicId, qrDataUrl]);
 
   const togglePublished = useCallback(async () => {
     const supabase = getSupabaseBrowserClient();
-    if (!supabase || !profileId || !slug) return false;
+    if (!supabase || !profileId || !publicId) return false;
     setBusy(true);
     onMessage?.("");
     try {
@@ -90,12 +91,12 @@ export function useProfileCardActions({
       }
       onPublishedChange?.(nextStatus);
       onMessage?.(nextStatus ? "Kartvizitin yeniden yayınlandı." : "Kartvizitin yayından kaldırıldı.");
-      if (nextStatus) track("profile_publish", { slug });
+      if (nextStatus) track("profile_publish", { publicId });
       return true;
     } finally {
       setBusy(false);
     }
-  }, [isPublished, onMessage, onPublishedChange, profileId, slug]);
+  }, [isPublished, onMessage, onPublishedChange, profileId, publicId]);
 
   const toggleLostMode = useCallback(async () => {
     const supabase = getSupabaseBrowserClient();

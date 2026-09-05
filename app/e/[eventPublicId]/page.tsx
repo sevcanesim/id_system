@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import PublicProfileProtection from "../../components/security/PublicProfileProtection";
 import PublicCardWithNetworking from "../../components/public/PublicCardWithNetworking";
@@ -10,6 +11,9 @@ import { logCardView } from "../../../lib/analytics/card-views";
 import { getPublicCompanyVerification } from "../../../lib/organizations/verified-company";
 
 export const dynamic = "force-dynamic";
+// Event attribution links are contextual analytics routes, not indexable
+// public-profile addresses.
+export const metadata: Metadata = { robots: { index: false, follow: false, noarchive: true, nosnippet: true } };
 
 type EventLinkRow = {
   id: string;
@@ -49,7 +53,7 @@ export default async function EventAttributionPage({ params }: { params: Promise
       <PublicProfileProtection profileId={card.public_id || card.id.slice(0, 8)} generatedAt={new Date().toISOString()} />
       <PublicCardWithNetworking
         data={{ ...rowToCardData(card), links }}
-        slug={card.slug}
+        slug={card.slug ?? undefined}
         publicId={card.public_id}
         branding={branding}
         profileId={card.id}

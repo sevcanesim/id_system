@@ -7,7 +7,7 @@ import { Button, StatusBadge } from "../../../components/ui/DesignSystem";
 import { Drawer, Tabs } from "../../../components/ui/Interactive";
 import CardTemplate, { type CardBranding } from "../../../CardTemplate";
 import { DEPARTMENT_OPTIONS, TITLE_OPTIONS, normalizeEmailField } from "../../../../lib/form-standards";
-import type { MemberActionTarget, MemberCardStatus } from "../domain/types";
+import type { MemberActionTarget, MemberCardStatus, MemberProfile } from "../domain/types";
 import { memberStatusLabel, physicalCardLabel } from "../../../../lib/organizations/lifecycle";
 import type { MemberStatus, PhysicalCardStatus } from "../../../../lib/organizations/lifecycle";
 import { isOrganizationRole } from "../../../../lib/organizations/permissions";
@@ -23,24 +23,6 @@ type PhysicalCard = {
   lostAt: string | null;
   disabledAt: string | null;
   replacedByCardId: string | null;
-};
-
-type MemberProfile = {
-  id: string;
-  slug: string;
-  name: string;
-  role: string;
-  company: string | null;
-  phone: string | null;
-  whatsapp: string | null;
-  email: string | null;
-  website: string | null;
-  linkedin: string | null;
-  instagram: string | null;
-  location: string | null;
-  image_url: string | null;
-  is_published: boolean;
-  updated_at: string;
 };
 
 type ViewedProfile = {
@@ -548,6 +530,7 @@ export default function EmployeeDrawer({
                     <CardTemplate
                       preview
                       slug={profile.slug}
+                      publicId={profile.public_id}
                       branding={branding}
                       corporateRole={isOrganizationRole(drawerMember.role) ? drawerMember.role : null}
                       data={{

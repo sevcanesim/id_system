@@ -91,7 +91,8 @@ export type PhysicalCardProductionSummary = Partial<Record<PhysicalCardOperation
 
 export type MemberProfile = {
   id: string;
-  slug: string;
+  slug: string | null;
+  public_id: string | null;
   name: string;
   role: string;
   company: string | null;

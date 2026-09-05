@@ -182,8 +182,8 @@ export default function MyCardsPage() {
   const missingProfileFields = useMemo(() => primary ? PROFILE_FIELDS.filter((field) => !primary[field]).map((field) => PROFILE_FIELD_LABELS[field]) : [], [primary]);
   const currentStep = processStep(process?.operations_status);
   const canManageLostMode = Boolean(physicalCard && process?.operations_status === "DELIVERED");
-  const profileUrl = primary?.slug ? cardShareUrl(primary.slug) : "";
-  const displayProfileUrl = primary?.slug ? `yenomi.id/p/${primary.slug}` : "yenomi.id/p/...";
+  const profileUrl = primary?.public_id ? cardShareUrl(primary.public_id) : "";
+  const displayProfileUrl = primary?.public_id ? `yenomi.id/p/${primary.public_id}` : "yenomi.id/p/...";
 
   useEffect(() => {
     if (!profileUrl) { setQrDataUrl(""); return; }

@@ -1,13 +1,16 @@
 import type { EditableCardData } from "../app/CardTemplate";
-import { cardQrUrl, cardShareUrl, publicCardOrigin } from "./public-card/urls";
+import { cardShareUrl, publicCardOrigin } from "./public-card/urls";
 
 export type CardProfileRow = {
   id: string;
   user_id?: string;
   organization_id?: string | null;
   entitlement_id?: string | null;
-  slug: string;
+  /** Optional custom alias. The permanent public address is `public_id`. */
+  slug: string | null;
   public_id?: string | null;
+  /** Defaults to false; enabled only after the profile owner opts in. */
+  search_indexing_enabled?: boolean;
   name: string;
   role: string;
   company: string | null;
@@ -102,7 +105,7 @@ export function createVCard(profile: CardProfileRow) {
     profile.linkedin ? `X-SOCIALPROFILE;TYPE=linkedin:${profile.linkedin}` : "",
     profile.instagram ? `X-SOCIALPROFILE;TYPE=instagram:${profile.instagram}` : "",
     profile.location ? `URL;TYPE=location:${profile.location}` : "",
-    `URL;TYPE=profile:${profile.slug ? cardShareUrl(profile.slug) : profile.public_id ? cardQrUrl(profile.public_id) : publicCardOrigin()}`,
+    `URL;TYPE=profile:${profile.public_id ? cardShareUrl(profile.public_id) : publicCardOrigin()}`,
     "END:VCARD"
   ].filter(Boolean);
   return `${lines.join("\r\n")}\r\n`;

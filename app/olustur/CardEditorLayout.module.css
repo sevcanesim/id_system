@@ -333,7 +333,7 @@
 }
 
 /* Polish only: the data model, six section order and preview components stay untouched. */
-.editorSurface :global(.p8-form input:not([type="file"])),
+.editorSurface :global(.p8-form input:not([type="file"]):not([type="checkbox"])),
 .editorSurface :global(.p8-form select),
 .editorSurface :global(.p8-form textarea) {
   border-color: rgba(0, 0, 0, .12);
@@ -342,7 +342,7 @@
   transition: border-color .18s ease, box-shadow .18s ease;
 }
 
-.editorSurface :global(.p8-form input:not([type="file"]):focus),
+.editorSurface :global(.p8-form input:not([type="file"]):not([type="checkbox"]):focus),
 .editorSurface :global(.p8-form select:focus),
 .editorSurface :global(.p8-form textarea:focus) {
   outline: none;

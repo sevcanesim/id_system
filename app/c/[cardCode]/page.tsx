@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import PublicCardWithNetworking from "../../components/public/PublicCardWithNetworking";
 import PublicProfileProtection from "../../components/security/PublicProfileProtection";
@@ -11,6 +12,8 @@ import { getPublicCompanyVerification } from "../../../lib/organizations/verifie
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+// Legacy physical-card codes must never become crawlable profile URLs.
+export const metadata: Metadata = { robots: { index: false, follow: false, noarchive: true, nosnippet: true } };
 
 type CardRow = {
   status: "UNASSIGNED" | "ACTIVE" | "LOST" | "DISABLED";
@@ -64,7 +67,7 @@ export default async function PhysicalCardRoute({ params }: { params: Promise<{ 
       <PublicProfileProtection profileId={profile.public_id || profile.id.slice(0, 8)} generatedAt={new Date().toISOString()} />
       <PublicCardWithNetworking
         data={{ ...rowToCardData(profile), links }}
-        slug={profile.slug}
+        slug={profile.slug ?? undefined}
         publicId={profile.public_id}
         branding={branding}
         profileId={profile.id}

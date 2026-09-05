@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
 
   let profileQuery = ctx.admin
     .from("card_profiles")
-    .select("id,slug,name,role,company,phone,whatsapp,email,website,linkedin,instagram,location,image_url,bio,is_published,updated_at")
+    .select("id,slug,public_id,name,role,company,phone,whatsapp,email,website,linkedin,instagram,location,image_url,bio,is_published,updated_at")
     .eq("user_id", member.user_id);
 
   if (profileIds.length) {

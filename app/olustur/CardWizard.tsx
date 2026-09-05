@@ -22,7 +22,6 @@ import { useProfileCardActions } from "../hooks/useProfileCardActions";
 
 import {
   calculateProfileCompletion,
-  createProfileSlug,
   ensureRealImage,
   formatMissingItemsText,
   isSupportedImageMimeType,
@@ -87,9 +86,9 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
   const [newCardEntitlementId, setNewCardEntitlementId] = useState<string | null>(null);
   const [profileSlug, setProfileSlug] = useState("");
   const [publicId, setPublicId] = useState("");
+  const [searchIndexingEnabled, setSearchIndexingEnabled] = useState(false);
   const [englishRole, setEnglishRole] = useState("");
   const [englishAbout, setEnglishAbout] = useState("");
-  const [slugTouched, setSlugTouched] = useState(false);
   const [slugStatus, setSlugStatus] = useState<"idle" | "checking" | "available" | "unavailable" | "invalid">("idle");
   const [slugMessage, setSlugMessage] = useState("");
   const [slugSuggestions, setSlugSuggestions] = useState<string[]>([]);
@@ -134,6 +133,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
     englishRole: string;
     englishAbout: string;
     slug: string;
+    searchIndexingEnabled: boolean;
   } | null>(null);
 
   const router = useRouter();
@@ -149,8 +149,8 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
   const canManageCorporateTemplate = ["OWNER", "ADMIN"].includes(orgLock?.membershipRole.toUpperCase() || "");
   const profileCardActions = useProfileCardActions({
     profileId,
-    slug: profileSlug,
-    publicUrl: cardShareUrl(profileSlug || ""),
+    publicId,
+    publicUrl: publicId ? cardShareUrl(publicId) : "",
     shareTitle: data.name || "Yenomi ID",
     isPublished,
     onPublishedChange: setIsPublished,
@@ -174,9 +174,10 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
       data.bio !== baseline.data.bio ||
       englishRole !== baseline.englishRole ||
       englishAbout !== baseline.englishAbout ||
-      profileSlug !== baseline.slug
+      profileSlug !== baseline.slug ||
+      searchIndexingEnabled !== baseline.searchIndexingEnabled
     );
-  }, [data, englishRole, englishAbout, profileSlug, baseline]);
+  }, [data, englishRole, englishAbout, profileSlug, searchIndexingEnabled, baseline]);
 
   const { setIsDirty: setContextDirty, guardLinkClick } = useUnsavedChanges();
 
@@ -269,11 +270,15 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
 
   useEffect(() => {
     if (!phoneTestOpen) return;
-    const shareUrl = cardShareUrl(profileSlug || publicId || "yenomi-id");
+    const shareUrl = publicId ? cardShareUrl(publicId) : "";
+    if (!shareUrl) {
+      setPhoneTestQrDataUrl("");
+      return;
+    }
     QRCode.toDataURL(shareUrl, { width: 360, margin: 2, errorCorrectionLevel: "H" })
       .then(setPhoneTestQrDataUrl)
       .catch(() => setPhoneTestQrDataUrl(""));
-  }, [phoneTestOpen, profileSlug, publicId]);
+  }, [phoneTestOpen, publicId]);
 
   useEffect(() => {
     try {
@@ -415,7 +420,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
           const imageUrl = profile.image_url ?? "";
           setOriginalImageUrl(imageUrl);
           setProfileSlug(profile.slug ?? "");
-          setSlugTouched(true);
+          setSearchIndexingEnabled(Boolean(profile.search_indexing_enabled));
           setData({
             name: profile.name ?? "", role: profile.role ?? "", company: profile.company ?? "",
             phone: profile.phone ?? "", whatsapp: profile.whatsapp ?? "", email: profile.email ?? "",
@@ -439,6 +444,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
             englishRole: localeRole,
             englishAbout: localeAbout,
             slug: profile.slug ?? "",
+            searchIndexingEnabled: Boolean(profile.search_indexing_enabled),
           });
         } else {
           const metadata = user.user_metadata ?? {};
@@ -460,6 +466,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
             englishRole: "",
             englishAbout: "",
             slug: "",
+            searchIndexingEnabled: false,
           });
         }
 
@@ -512,6 +519,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
               englishRole: "",
               englishAbout: "",
               slug: "",
+              searchIndexingEnabled: false,
             });
             return finalData;
           });
@@ -531,14 +539,11 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
   }, [router, businessOrganizationId, brandSettingsRequested, isBusinessCard, isNewCard, mode, requestedProfileId]);
 
   useEffect(() => {
-    if (!slugTouched && data.name.trim()) setProfileSlug(createProfileSlug(data.name));
-  }, [data.name, slugTouched]);
-
-  useEffect(() => {
     const candidate = normalizeProfileSlug(profileSlug);
     if (!candidate) {
       setSlugStatus("idle");
       setSlugMessage("");
+      setSlugSuggestions([]);
       return;
     }
     const validationError = validateProfileSlug(candidate);
@@ -550,11 +555,11 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
     const supabase = getSupabaseBrowserClient();
     if (!supabase) {
       setSlugStatus("available");
-      setSlugMessage("Bağlantı yayınlama sırasında kesinleştirilecek.");
+      setSlugMessage("Özel adres yayınlama sırasında kesinleştirilecek.");
       return;
     }
     setSlugStatus("checking");
-    setSlugMessage("Bağlantı kontrol ediliyor...");
+    setSlugMessage("Özel adres kontrol ediliyor...");
     const timer = window.setTimeout(async () => {
       const { data: available, error } = await supabase.rpc("is_card_slug_available", {
         candidate,
@@ -562,16 +567,16 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
       });
       if (error) {
         setSlugStatus("idle");
-        setSlugMessage("Uygunluk yayınlama sırasında kontrol edilecek.");
+        setSlugMessage("Özel adresin uygunluğu yayınlama sırasında kontrol edilecek.");
         return;
       }
       if (available) {
         setSlugStatus("available");
-        setSlugMessage("Bu bağlantı kullanılabilir.");
+        setSlugMessage("Bu özel adres kullanılabilir.");
         setSlugSuggestions([]);
       } else {
         setSlugStatus("unavailable");
-        setSlugMessage("Bu bağlantı daha önce alınmış.");
+        setSlugMessage("Bu özel adres daha önce alınmış.");
         setSlugSuggestions([`${candidate}-2`, `${candidate}-kart`, `${candidate}${userId?.slice(0, 4) || "01"}`]);
       }
     }, 450);
@@ -583,7 +588,6 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
   }
 
   function updateSlug(value: string) {
-    setSlugTouched(true);
     setProfileSlug(normalizeProfileSlug(value));
   }
 
@@ -813,8 +817,8 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
   function validateForm() {
     if (data.name.trim().length < 2) return "Ad soyad alanı zorunlu.";
     if (data.role.trim().length < 2) return "Ünvan alanı zorunlu.";
-    const slug = normalizeProfileSlug(profileSlug || createProfileSlug(data.name));
-    return validateProfileSlug(slug);
+    const alias = normalizeProfileSlug(profileSlug);
+    return alias ? validateProfileSlug(alias) : null;
   }
 
   async function publish() {
@@ -840,13 +844,15 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
       }
       if (supabase && currentUserId) {
         uploaded = await uploadImageIfNeeded(currentUserId);
-        const slug = normalizeProfileSlug(profileSlug || createProfileSlug(data.name));
-        const { data: available, error: availabilityError } = await supabase.rpc("is_card_slug_available", { candidate: slug, current_profile_id: profileId });
-        if (!availabilityError && !available) {
-          setSlugStatus("unavailable");
-          setSlugMessage("Bu bağlantı kullanılıyor. Aşağıdaki alternatiflerden birini seç.");
-          setSlugSuggestions([`${slug}-2`, `${slug}-kart`, `${slug}${currentUserId.slice(0, 4)}`]);
-          throw new Error("Kartvizit bağlantısı uygun değil.");
+        const slug = normalizeProfileSlug(profileSlug);
+        if (slug) {
+          const { data: available, error: availabilityError } = await supabase.rpc("is_card_slug_available", { candidate: slug, current_profile_id: profileId });
+          if (!availabilityError && !available) {
+            setSlugStatus("unavailable");
+            setSlugMessage("Bu özel adres kullanılıyor. Aşağıdaki alternatiflerden birini seç.");
+            setSlugSuggestions([`${slug}-2`, `${slug}-kart`, `${slug}${currentUserId.slice(0, 4)}`]);
+            throw new Error("Özel Yenomi adresi uygun değil.");
+          }
         }
         const { data: sessionData } = await supabase.auth.getSession();
         const accessToken = sessionData.session?.access_token;
@@ -868,7 +874,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
             profileId: profileId || null,
             organizationId: isBusinessCard ? businessOrganizationId : null,
             patch: {
-              slug,
+              slug: slug || null,
               entitlement_id: profileId ? undefined : newCardEntitlementId || undefined,
               name: data.name.trim(),
               role: data.role.trim(),
@@ -883,11 +889,12 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
               image_url: uploaded.url || null,
               bio: data.bio?.trim() || null,
               is_published: true,
+              search_indexing_enabled: searchIndexingEnabled,
             },
           }),
         });
         const savePayload = await saveResponse.json().catch(() => ({}));
-        const saved = savePayload.profile as { id: string } | undefined;
+        const saved = savePayload.profile as { id: string; public_id?: string | null } | undefined;
         const saveError = saveResponse.ok ? null : (savePayload.error as string | undefined) || "Kartvizit kaydedilemedi.";
 
         if (!saveError && saved && !profileId) setProfileId(saved.id);
@@ -902,15 +909,15 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
           }
         }
         if (saveError) {
-          // Eş zamanlı iki kullanıcı aynı bağlantıyı seçip aynı anda yayınlarsa,
+          // Eş zamanlı iki kullanıcı aynı özel adresi seçip aynı anda yayınlarsa,
           // istemci tarafı ön kontrolü (yukarıda) geçse bile veritabanının
           // "slug unique" kısıtı ikinci isteği reddeder. Ham Postgres hatası
           // yerine kullanıcı dostu bir mesaj göster.
           if (savePayload.code === "SLUG_TAKEN") {
             setSlugStatus("unavailable");
-            setSlugMessage("Bu bağlantı az önce başka biri tarafından alındı. Aşağıdaki alternatiflerden birini seç.");
+            setSlugMessage("Bu özel adres az önce başka biri tarafından alındı. Aşağıdaki alternatiflerden birini seç.");
             setSlugSuggestions([`${slug}-2`, `${slug}-kart`, `${slug}${currentUserId.slice(0, 4)}`]);
-            throw new Error("Kartvizit bağlantısı az önce alındı. Lütfen farklı bir bağlantı seç.");
+            throw new Error("Özel Yenomi adresi az önce alındı. Lütfen farklı bir adres seç.");
           }
           if (savePayload.code === "TITLE_NOT_IN_CATALOG") {
             setMessage("Bu ünvan şirketin pozisyon listesinde yok. Listeden bir ünvan seç ya da 'Listede yok, talep et' ile İK'dan iste.");
@@ -931,6 +938,8 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
         await deletePreviousImageIfNeeded(originalImageUrl, uploaded.path);
         setOriginalImageUrl(uploaded.url);
         setData((current) => ({ ...current, image: uploaded?.url ?? current.image }));
+        if (saved?.public_id) setPublicId(saved.public_id);
+        if (savePayload.warning) notify({ message: savePayload.warning as string, tone: "warning" });
         if (saved) {
           const { error: localeError } = await supabase.from("card_profile_locales").upsert({
             profile_id: saved.id,
@@ -945,7 +954,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
           }
         }
         if (!isBusinessCard) localStorage.setItem("yenomi-card-draft", JSON.stringify(sanitizeCardDraft({ ...data, image: uploaded?.url ?? data.image })));
-        localStorage.setItem("yenomi-card-slug", slug);
+        localStorage.removeItem("yenomi-card-slug");
         setProfileSlug(slug);
         setIsPublished(true);
         setBaseline({
@@ -953,6 +962,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
           englishRole: englishRole.trim(),
           englishAbout: englishAbout.trim(),
           slug,
+          searchIndexingEnabled,
         });
       } else if (isSupabaseConfigured) {
         const message = "Kalıcı yayın için önce giriş yapmalısın. Taslağın bu tarayıcıya kaydedildi.";
@@ -1122,14 +1132,17 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
         </section>
 
         <section id="p8-links" className="p8-section-card">
-          <div className="p8-section-heading"><span>05</span><div><h2>Bağlantılar</h2><p>Web sitenizi ve kalıcı Yenomi ID adresinizi yönetin.</p></div></div>
+          <div className="p8-section-heading"><span>05</span><div><h2>Bağlantılar</h2><p>Web sitenizi yönetin; kalıcı kart adresiniz kişisel veriden türetilmez.</p></div></div>
           <div className="p8-field-grid">
             <Field label="Web Sitesi"><Input type="url" value={data.website} onChange={(e) => update("website", e.target.value)} placeholder="https://firma.com" inputMode="url" autoCapitalize="none" spellCheck={false} {...bindTarget("social")}/></Field>
-            <Field label="Yenomi ID" help="Paylaşım adresi /p/{slug} şeklindedir. QR kimliği ayrı ve sabittir; slug değişince QR yeniden basılmaz.">
-              <div className="p8-slug-field"><span>yenomi.id/p/</span><Input value={profileSlug} onChange={(e) => updateSlug(e.target.value)} onBlur={() => setProfileSlug(normalizeProfileSlug(profileSlug))} placeholder="adsoyad" minLength={3} maxLength={40}/></div>
+            <Field label="Kalıcı kart adresi" help="NFC ve QR kodunuz bu rastgele kimliğe bağlıdır; adınız, e-postanız veya iç UUID'niz burada kullanılmaz.">
+              <div className="p8-slug-field"><span>yenomi.id/p/</span><Input value={publicId || "İlk kayıtta otomatik oluşturulur"} readOnly aria-label="Kalıcı kart adresi" /></div>
             </Field>
           </div>
-          <div className={`p8-slug-feedback p8-slug-feedback--${slugStatus}`} aria-live="polite"><span>{slugMessage || "Ad-soyadından otomatik önerilir; yayınlamadan önce değiştirebilirsiniz."}</span>{slugTouched && <Button size="sm" variant="secondary" onClick={() => { setSlugTouched(false); setProfileSlug(createProfileSlug(data.name)); }}>Otomatik Öner</Button>}</div>
+          <Field label="Özel Yenomi adresi" help="İsteğe bağlı kısa adres. Değiştirmeniz veya kaldırmanız NFC/QR kartınızı etkilemez.">
+            <div className="p8-slug-field"><span>yenomi.id/</span><Input value={profileSlug} onChange={(e) => updateSlug(e.target.value)} onBlur={() => setProfileSlug(normalizeProfileSlug(profileSlug))} placeholder="sevcan" minLength={3} maxLength={40}/></div>
+          </Field>
+          <div className={`p8-slug-feedback p8-slug-feedback--${slugStatus}`} aria-live="polite"><span>{slugMessage || "İsterseniz markanıza uygun kısa bir özel adres seçebilirsiniz. Boş bırakırsanız yalnızca gizliliği koruyan kalıcı kart adresiniz kullanılır."}</span>{profileSlug && <Button size="sm" variant="secondary" onClick={() => setProfileSlug("")}>Özel adresi kaldır</Button>}</div>
           {slugSuggestions.length > 0 && <div className="p8-slug-suggestions" aria-label="Uygun bağlantı önerileri">{slugSuggestions.map((suggestion) => <button type="button" key={suggestion} onClick={() => updateSlug(suggestion)}>{suggestion}</button>)}</div>}
         </section>
 
@@ -1165,6 +1178,16 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
           <Field label="Hakkında (EN)" help={`${englishAbout.length}/280 karakter`}>
             <Textarea value={englishAbout} onChange={(e) => setEnglishAbout(e.target.value)} maxLength={280} rows={4} placeholder="Uluslararası etkinlikler için kısa İngilizce tanıtım." />
           </Field>
+          <section className="p8-privacy-card" aria-label="Arama motoru görünürlüğü">
+            <div>
+              <strong>Arama motoru görünürlüğü</strong>
+              <p>Varsayılan olarak kapalıdır. Kapalıyken profil bağlantısını bilenler kartınızı açabilir, ancak Google gibi arama motorlarına indeksleme izni verilmez.</p>
+            </div>
+            <label className="p8-privacy-toggle">
+              <input type="checkbox" checked={searchIndexingEnabled} onChange={(event) => setSearchIndexingEnabled(event.target.checked)} />
+              <span>Profilimin arama motorlarında bulunmasına izin ver</span>
+            </label>
+          </section>
         </section>
 
         {auditNotice && <div className="p8-msg p8-msg--info" role="status">{auditNotice}</div>}
@@ -1234,7 +1257,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
               </div>
             </div>
             <div className="p8-preview-acts">
-              {isPublished && profileSlug && <a className="yi-btn yi-btn--secondary" href={cardShareUrl(profileSlug)} target="_blank" rel="noopener noreferrer"><Icon name="external" /> Canlı profili aç</a>}
+              {isPublished && publicId && <a className="yi-btn yi-btn--secondary" href={cardShareUrl(publicId)} target="_blank" rel="noopener noreferrer"><Icon name="external" /> Canlı profili aç</a>}
               <Button size="sm" variant="secondary" onClick={() => setPhoneTestOpen(true)}>
                 <Icon name="qr" /> Telefonda Test Et
               </Button>
@@ -1246,15 +1269,15 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
         <section className="p8-url-card">
           <div>
             <h3>Kart bağlantınız</h3>
-            <p>Paylaşım adresi okunabilir slug kullanır. QR kimliği ayrıdır ve değişmez.</p>
+            <p>Bu tek, rastgele adres NFC ve QR kodunuzun değişmez hedefidir.</p>
           </div>
           <div className="p8-url-row">
-            <span>yenomi.id/p/{profileSlug || "yenomi-id"}</span>
-            <Button size="sm" variant="secondary" onClick={() => void profileCardActions.copyLink()}>
+            <span>{publicId ? cardShareUrl(publicId) : "İlk kayıtta otomatik oluşturulur"}</span>
+            <Button size="sm" variant="secondary" disabled={!publicId} onClick={() => void profileCardActions.copyLink()}>
               <Icon name="copy" /> Kopyala
             </Button>
           </div>
-          {publicId && <p>QR kimliği: /p/{publicId}</p>}
+          {profileSlug && <p>Özel adres: yenomi.id/{profileSlug} → kalıcı kart adresinize yönlenir.</p>}
         </section>
 
         <section className="p8-note">
@@ -1284,7 +1307,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
             ) : (
               <div className="p8-qr-placeholder">QR hazırlanıyor...</div>
             )}
-            <span className="p8-purl">{cardShareUrl(profileSlug || publicId || "yenomi-id")}</span>
+            <span className="p8-purl">{publicId ? cardShareUrl(publicId) : "Kart adresi hazırlanıyor..."}</span>
           </>
         ) : (
           <div className="p8-phone-test-unpublished">

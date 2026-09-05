@@ -43,7 +43,7 @@ export type CardBranding = {
 type Props = {
   data: EditableCardData;
   preview?: boolean;
-  slug?: string;
+  slug?: string | null;
   publicId?: string | null;
   extras?: ReactNode;
   saveLabel?: { title: string; subtitle: string };

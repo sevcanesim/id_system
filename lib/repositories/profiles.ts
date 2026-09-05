@@ -21,7 +21,7 @@ import { normalizeCardSlug, validateCardSlug } from "../validation/slug";
  */
 
 const PROFILE_COLUMNS =
-  "id,user_id,organization_id,entitlement_id,slug,public_id,name,role,company,phone,whatsapp,email,website,linkedin,instagram,location,image_url,bio,is_published,card_status,service_started_at,service_expires_at,grace_ends_at";
+  "id,user_id,organization_id,entitlement_id,slug,public_id,name,role,company,phone,whatsapp,email,website,linkedin,instagram,location,image_url,bio,is_published,card_status,service_started_at,service_expires_at,grace_ends_at,search_indexing_enabled";
 
 type PublicPhysicalState = "NOT_PHYSICAL" | "ACTIVE" | "LOST" | "DISABLED";
 

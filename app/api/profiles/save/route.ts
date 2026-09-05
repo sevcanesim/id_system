@@ -19,7 +19,9 @@ const schema = z.object({
   profileId: z.string().uuid().nullable().optional(),
   organizationId: z.string().uuid().nullable().optional(),
   patch: z.object({
-    slug: z.string().optional(),
+    // A vanity alias is optional. `null` explicitly removes a previously
+    // chosen alias; the immutable public_id remains the card's real address.
+    slug: z.string().nullable().optional(),
     entitlement_id: z.string().uuid().optional(),
     name: z.string().trim().min(1),
     role: z.string().trim().min(1),
@@ -34,6 +36,7 @@ const schema = z.object({
     image_url: z.string().trim().optional().nullable(),
     bio: z.string().trim().max(280).optional().nullable(),
     is_published: z.boolean().optional(),
+    search_indexing_enabled: z.boolean().optional(),
   }),
 });
 
@@ -48,6 +51,13 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message || "Geçersiz kart bilgisi." }, { status: 400 });
 
   const patch = { ...parsed.data.patch } as Record<string, unknown>;
+  const requestedSlug = patch.slug;
+  const requestedSearchIndexing = patch.search_indexing_enabled;
+  // These two values are applied after the existing guarded RPC writes the
+  // core profile. The RPC predates optional aliases/privacy controls, while
+  // this route already owns authenticated writes to the user's own profile.
+  delete patch.search_indexing_enabled;
+  if (requestedSlug === null) delete patch.slug;
   if (typeof patch.slug === "string") {
     const normalizedSlug = normalizeCardSlug(patch.slug);
     const slugError = validateCardSlug(normalizedSlug);
@@ -74,7 +84,7 @@ export async function POST(request: NextRequest) {
     p_organization_id: parsed.data.organizationId || null,
     p_patch: patch,
   });
-  const result = data as { ok?: boolean; code?: string; profile?: { id: string } } | null;
+  const result = data as { ok?: boolean; code?: string; profile?: { id: string; public_id?: string | null } } | null;
   if (error || !result?.ok) {
     const code = result?.code;
     if (code === "TITLE_NOT_IN_CATALOG") {
@@ -95,5 +105,27 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ error: "Kartvizit kaydedilemedi.", code }, { status: 500 });
   }
+  const profileId = result.profile?.id;
+  const postSavePatch: { slug?: null; search_indexing_enabled?: boolean } = {};
+  if (requestedSlug === null) postSavePatch.slug = null;
+  if (typeof requestedSearchIndexing === "boolean") postSavePatch.search_indexing_enabled = requestedSearchIndexing;
+
+  if (profileId && Object.keys(postSavePatch).length > 0) {
+    const { data: updated, error: postSaveError } = await admin
+      .from("card_profiles")
+      .update(postSavePatch)
+      .eq("id", profileId)
+      .eq("user_id", authData.user.id)
+      .select("id,public_id,slug,search_indexing_enabled")
+      .maybeSingle();
+    if (postSaveError || !updated) {
+      return NextResponse.json({
+        profile: result.profile,
+        warning: "Kart kaydedildi; gizlilik tercihi ayrıca kaydedilemedi. Lütfen tekrar deneyin.",
+      });
+    }
+    return NextResponse.json({ profile: { ...result.profile, ...updated } });
+  }
+
   return NextResponse.json({ profile: result.profile });
 }

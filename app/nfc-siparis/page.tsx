@@ -14,7 +14,7 @@ import { NfcCardFront, NfcCardBack } from "../components/ui/NfcCardArt";
 import { fetchOwnProfile } from "../../lib/repositories/profiles";
 import { track } from "../../lib/analytics";
 import { TURKEY_CITIES, normalizeEmailField, normalizeTrPhone } from "../../lib/form-standards";
-import { publicCardOrigin } from "../../lib/public-card/urls";
+import { cardShareUrl } from "../../lib/public-card/urls";
 import { clearPendingCheckoutOrderId, getOrCreateCheckoutIdempotencyKey, lookupPendingCheckoutOrder, rotateCheckoutIdempotencyKey, setPendingCheckoutOrderId, setCheckoutReturnPath } from "../../lib/payments/browser-checkout";
 // v22: Bu sayfa artık yalnızca ürünü KİŞİSELLEŞTİRİYOR (renk, isim, teslimat).
 // Ödeme ve sipariş oluşturma tek boru hattından geçsin diye
@@ -52,7 +52,7 @@ export default function NfcOrderPage() {
   const [distanceSalesAccepted, setDistanceSalesAccepted] = useState(false);
   const [personalizationAccepted, setPersonalizationAccepted] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);
-  const [slug, setSlug] = useState("");
+  const [publicId, setPublicId] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -64,10 +64,7 @@ export default function NfcOrderPage() {
   const [mapExpanded, setMapExpanded] = useState(false);
   const [legalVersions, setLegalVersions] = useState<{ distanceSales: string; personalization: string; privacy: string } | null>(null);
 
-  const publicCardUrl = useMemo(() => {
-    const base = publicCardOrigin();
-    return slug ? `${base}/${slug}` : base;
-  }, [slug]);
+  const publicCardUrl = useMemo(() => publicId ? cardShareUrl(publicId) : "", [publicId]);
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -79,10 +76,10 @@ export default function NfcOrderPage() {
       }
       setUserId(data.user.id);
       const { data: profile } = await fetchOwnProfile(supabase, data.user.id);
-      track("order_start", { hasPublishedProfile: Boolean(profile?.slug) });
+      track("order_start", { hasPublishedProfile: Boolean(profile?.public_id) });
       if (profile) {
         setProfileId(profile.id);
-        setSlug(profile.slug);
+        setPublicId(profile.public_id || "");
         setForm((current) => ({ ...current, printName: profile.name ?? "", printTitle: profile.role ?? "", phone: profile.phone ?? "", email: profile.email ?? data.user?.email ?? "" }));
       } else {
         setForm((current) => ({ ...current, email: data.user?.email ?? "" }));
@@ -119,11 +116,11 @@ export default function NfcOrderPage() {
   }, []);
 
   useEffect(() => {
-    if (!slug) { setQrPreview(""); return; }
+    if (!publicId) { setQrPreview(""); return; }
     QRCode.toDataURL(publicCardUrl, { width: 360, margin: 1, errorCorrectionLevel: "H" })
       .then(setQrPreview)
       .catch(() => setQrPreview(""));
-  }, [publicCardUrl, slug]);
+  }, [publicCardUrl, publicId]);
 
   function update<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -192,7 +189,7 @@ export default function NfcOrderPage() {
     if (!legalVersions) { setMessage("Hukuk sürümleri DB’den yüklenmeden ödeme başlatılamaz."); return; }
     const consentVersions = legalVersions;
     setSubmitting(true);
-    const finalValidationError = validateNfcOrderStep(5, form, Boolean(slug));
+    const finalValidationError = validateNfcOrderStep(5, form, Boolean(publicId));
     if (finalValidationError) {
       setSubmitting(false);
       setMessage(finalValidationError);
@@ -246,7 +243,7 @@ export default function NfcOrderPage() {
           productSlug: NFC_PRODUCT.slug,
           variantSku: NFC_PRODUCT.defaultOfferSku,
           quantity: form.quantity,
-          configuration: { cardColor: "BLACK", printName: form.printName.trim(), printTitle: form.printTitle.trim(), profileId, profileSlug: slug || null },
+          configuration: { cardColor: "BLACK", printName: form.printName.trim(), printTitle: form.printTitle.trim(), profileId, profilePublicId: publicId || null },
         }],
         customer: {
           name: form.printName.trim() || "Yenomi Müşteri",
@@ -297,12 +294,12 @@ export default function NfcOrderPage() {
   }, [loading, userId]);
 
   const currentStepError = useMemo(
-    () => validateNfcOrderStep(activeStep, form, Boolean(slug)),
-    [activeStep, form, slug]
+    () => validateNfcOrderStep(activeStep, form, Boolean(publicId)),
+    [activeStep, form, publicId]
   );
   const highestReachableStep = useMemo(
-    () => highestReachableNfcOrderStep(form, Boolean(slug)),
-    [form, slug]
+    () => highestReachableNfcOrderStep(form, Boolean(publicId)),
+    [form, publicId]
   );
 
   if (loading) return <main className="order-page"><div className="result-empty"><h1>Sipariş ekranı yükleniyor.</h1></div></main>;

@@ -8,7 +8,7 @@ import { fetchPublicCardByToken } from "../../../lib/repositories/profiles";
 import { logCardView } from "../../../lib/analytics/card-views";
 import { fetchCardBranding, fetchOrganizationLinks } from "../../../lib/organizations/card-branding";
 import { fetchCardLocaleOverlays } from "../../../lib/public-card/locales";
-import { cardSharePath, looksLikePublicId } from "../../../lib/public-card/urls";
+import { cardSharePath } from "../../../lib/public-card/urls";
 import { getPublicCompanyVerification } from "../../../lib/organizations/verified-company";
 
 type PageProps = {
@@ -27,7 +27,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { publicId } = await params;
   const { data: profile } = await getProfile(publicId);
   if (!profile) return { robots: { index: false, follow: false, noarchive: true } };
-  const canonical = profile.slug ? cardSharePath(profile.slug) : `/p/${profile.public_id}`;
+  if (!profile.public_id) return { robots: { index: false, follow: false, noarchive: true, nosnippet: true } };
+  const canonical = cardSharePath(profile.public_id);
   if ((profile.card_status !== "ACTIVE" || !isCardProfileServiceActive(profile))) {
     return {
       title: "Yenomi ID",
@@ -40,7 +41,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${profile.name} | Yenomilabs`,
     description,
-    robots: { index: false, follow: false, noarchive: true, nosnippet: true },
+    robots: profile.search_indexing_enabled
+      ? { index: true, follow: true }
+      : { index: false, follow: false, noarchive: true, nosnippet: true },
     alternates: { canonical },
   };
 }
@@ -49,9 +52,12 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
   const { publicId: token } = await params;
   const { data: profile, redirectedFrom } = await getProfile(token);
   if (!profile) notFound();
-  if (redirectedFrom && profile.slug) permanentRedirect(cardSharePath(profile.slug));
-  if (!looksLikePublicId(token) && profile.slug && token !== profile.slug) {
-    permanentRedirect(cardSharePath(profile.slug));
+  if (!profile.public_id) notFound();
+  // `/p/{public_id}` is the only canonical public card route. This keeps
+  // older `/p/{slug}` cards working without making a name-derived URL the
+  // active sharing surface.
+  if (redirectedFrom || token !== profile.public_id) {
+    permanentRedirect(cardSharePath(profile.public_id));
   }
   if (profile.card_status === "LOST") {
     return (
@@ -90,7 +96,7 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
       <PublicProfileProtection profileId={profile.public_id || profile.id.slice(0, 8)} generatedAt={new Date().toISOString()} />
       <PublicCardWithNetworking
         data={{ ...rowToCardData(profile), links }}
-        slug={profile.slug}
+        slug={profile.slug ?? undefined}
         publicId={profile.public_id}
         branding={branding}
         profileId={profile.id}

@@ -41,20 +41,32 @@ export function publicCardHost(origin?: string) {
   return new URL(publicCardOrigin(origin)).host;
 }
 
-export function cardSharePath(slug: string) {
-  return `${SHARE_PREFIX}/${slug}`;
-}
-
-export function cardQrPath(publicId: string) {
+/**
+ * Canonical public card route. It deliberately accepts only the opaque,
+ * immutable public id — never a name-derived alias or an internal UUID.
+ */
+export function cardPublicPath(publicId: string) {
   return `${SHARE_PREFIX}/${publicId}`;
 }
 
-export function cardShareUrl(slug: string, origin?: string) {
-  return `${publicCardOrigin(origin)}${cardSharePath(slug)}`;
+export function cardSharePath(publicId: string) {
+  return cardPublicPath(publicId);
+}
+
+export function cardQrPath(publicId: string) {
+  return cardPublicPath(publicId);
+}
+
+export function cardPublicUrl(publicId: string, origin?: string) {
+  return `${publicCardOrigin(origin)}${cardPublicPath(publicId)}`;
+}
+
+export function cardShareUrl(publicId: string, origin?: string) {
+  return cardPublicUrl(publicId, origin);
 }
 
 export function cardQrUrl(publicId: string, origin?: string) {
-  return `${publicCardOrigin(origin)}${cardQrPath(publicId)}`;
+  return cardPublicUrl(publicId, origin);
 }
 
 export function cardVcardPath(publicId: string) {
@@ -74,7 +86,10 @@ export function looksLikePublicId(token: string) {
 }
 
 export function createOpaquePublicId() {
-  const bytes = new Uint8Array(8);
+  // 9 random bytes encode to exactly 12 base64 characters. Map the two
+  // non-URL-safe characters into the alphanumeric alphabet so the result is
+  // compact, opaque, and valid in /p/{public_id} without escaping.
+  const bytes = new Uint8Array(9);
   crypto.getRandomValues(bytes);
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "A").replace(/\//g, "a");
 }

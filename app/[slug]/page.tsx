@@ -25,10 +25,10 @@ async function getRedirectTarget(slug: string): Promise<string | null> {
   if (!redirectRow?.profile_id) return null;
   const { data: profile } = await supabase
     .from("card_profiles")
-    .select("slug,is_published")
+    .select("public_id,is_published")
     .eq("id", redirectRow.profile_id)
     .maybeSingle();
-  return profile?.is_published && profile.slug ? profile.slug : null;
+  return profile?.is_published && profile.public_id ? profile.public_id : null;
 }
 
 async function getPublishedProfile(slug: string): Promise<CardProfileRow | null> {
@@ -43,23 +43,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const databaseProfile = await getPublishedProfile(slug);
   if (databaseProfile) {
+    const publicId = databaseProfile.public_id;
+    if (!publicId) return { robots: { index: false, follow: false, noarchive: true, nosnippet: true } };
     if ((databaseProfile.card_status !== "ACTIVE" || !isCardProfileServiceActive(databaseProfile))) {
       return {
         title: "Yenomi ID",
         description: "Bu profil şu anda kullanıma açık değil.",
         robots: { index: false, follow: false, noarchive: true, nosnippet: true },
-        alternates: { canonical: cardSharePath(databaseProfile.slug) },
+        alternates: { canonical: cardSharePath(publicId) },
       };
     }
     const description = `${databaseProfile.name} — ${[databaseProfile.role, databaseProfile.company].filter(Boolean).join(" | ")} dijital kartviziti.`;
     return {
       title: `${databaseProfile.name} | Yenomilabs`,
       description,
-      robots: { index: false, follow: false, noarchive: true, nosnippet: true },
-      alternates: { canonical: `/${databaseProfile.slug}` },
+      robots: databaseProfile.search_indexing_enabled
+        ? { index: true, follow: true }
+        : { index: false, follow: false, noarchive: true, nosnippet: true },
+      alternates: { canonical: cardSharePath(publicId) },
       openGraph: {
         type: "profile",
-        url: cardShareUrl(databaseProfile.slug),
+        url: cardShareUrl(publicId),
         title: `${databaseProfile.name} | Yenomilabs`,
         description,
         images: databaseProfile.image_url ? [databaseProfile.image_url] : [],
@@ -103,7 +107,8 @@ export default async function ProfilePage({ params }: PageProps) {
   const databaseProfile = await getPublishedProfile(slug);
 
   if (databaseProfile) {
-    permanentRedirect(cardSharePath(databaseProfile.slug));
+    if (!databaseProfile.public_id) notFound();
+    permanentRedirect(cardSharePath(databaseProfile.public_id));
   }
 
   const profile = profiles[slug];

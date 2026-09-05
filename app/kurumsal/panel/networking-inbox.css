@@ -15,17 +15,24 @@
 .p11-networking-lead__contact a:hover{color:var(--gold-hi)}
 .p11-networking-lead__timeline{display:flex;flex-wrap:wrap;gap:7px}
 .p11-networking-lead__timeline span{display:inline-flex;align-items:center;min-height:26px;padding:0 9px;border-radius:999px;background:var(--gold-dim);color:var(--gold-hi);font-size:11px;font-weight:650}
-.p11-networking-lead__footer{display:grid;grid-template-columns:minmax(150px,.7fr) minmax(210px,1fr) auto;gap:10px;align-items:end}
+.p11-networking-lead__footer{display:grid;grid-template-columns:minmax(150px,.42fr) minmax(260px,1.58fr);gap:12px;align-items:start}
 .p11-networking-field{display:grid;gap:5px;min-width:0}
 .p11-networking-field>span{font-size:10.5px;font-weight:750;letter-spacing:.04em;color:var(--ink-3);text-transform:uppercase}
-.p11-networking-field select{width:100%;height:42px;padding:0 34px 0 11px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--ink);font:inherit;font-size:12.5px}
-.p11-networking-quick-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.p11-networking-field select,.p11-networking-field input,.p11-networking-field textarea{width:100%;padding:0 11px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--ink);font:inherit;font-size:12.5px}
+.p11-networking-field select,.p11-networking-field input{height:42px}
+.p11-networking-field textarea{min-height:94px;padding-block:10px;resize:vertical;line-height:1.45}
+.p11-networking-field select:focus,.p11-networking-field input:focus,.p11-networking-field textarea:focus{outline:2px solid color-mix(in srgb,var(--gold) 42%,transparent);outline-offset:1px;border-color:var(--gold-hi)}
+.p11-networking-compose{display:grid;grid-template-columns:1fr;gap:8px;min-width:0}
+.p11-networking-compose__heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.p11-networking-compose__heading>span{font-size:10.5px;font-weight:750;letter-spacing:.04em;color:var(--ink-3);text-transform:uppercase}
+.p11-networking-compose__heading small{min-width:0;color:var(--ink-3);font-size:11.5px;overflow-wrap:anywhere}
+.p11-networking-quick-actions{grid-column:1/-1;display:flex;align-items:center;justify-content:flex-start;gap:7px;flex-wrap:wrap;padding-top:2px}
 .p11-networking-action{min-height:42px;padding:0 13px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--ink-2);font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;white-space:nowrap}
 .p11-networking-action:hover{border-color:var(--border-strong);color:var(--ink)}
 .p11-networking-action--primary{border-color:var(--gold-hi);background:var(--gold);color:#fff}
 .p11-networking-action--primary:hover{background:var(--gold-hi);color:#fff}
 .p11-networking-action:disabled{opacity:.45;cursor:not-allowed}
 .p11-mail-credits{min-width:138px}
-@media(max-width:900px){.p11-networking-lead__footer{grid-template-columns:1fr 1fr}.p11-networking-quick-actions{grid-column:1/-1;justify-content:flex-start}}
-@media(max-width:640px){.p11-networking-header{display:grid;gap:14px}.p11-mail-credits{width:100%;min-width:0}.p11-networking-lead{padding:16px 14px;gap:13px}.p11-networking-lead__top{gap:10px}.p11-networking-lead__status{font-size:10.5px}.p11-networking-lead__footer{grid-template-columns:1fr}.p11-networking-quick-actions{grid-column:auto;display:grid;grid-template-columns:1fr 1fr}.p11-networking-action--primary{grid-column:1/-1}.p11-networking-action{min-height:44px}.p11-networking-field select{height:44px}}
+@media(max-width:900px){.p11-networking-lead__footer{grid-template-columns:1fr}.p11-networking-quick-actions{grid-column:auto;justify-content:flex-start}}
+@media(max-width:640px){.p11-networking-header{display:grid;gap:14px}.p11-mail-credits{width:100%;min-width:0}.p11-networking-lead{padding:16px 14px;gap:13px}.p11-networking-lead__top{gap:10px}.p11-networking-lead__status{font-size:10.5px}.p11-networking-quick-actions{display:grid;grid-template-columns:1fr 1fr}.p11-networking-action--primary{grid-column:1/-1}.p11-networking-action{min-height:44px}.p11-networking-field select,.p11-networking-field input{height:44px}.p11-networking-compose__heading{display:grid;gap:3px}}
 @media(max-width:390px){.p11-networking-lead__top{display:grid}.p11-networking-lead__status{justify-self:start}.p11-networking-quick-actions{grid-template-columns:1fr}.p11-networking-action--primary{grid-column:auto}}

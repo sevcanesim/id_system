@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { FOLLOW_UP_SCENARIOS } from "../../../../lib/commerce/packages";
 import { EmptyState, LoadingState } from "../../../components/ui/States";
 import { StatusBadge } from "../../../components/ui/DesignSystem";
 import { Icon } from "../../../icons";
@@ -59,6 +58,7 @@ type EventLink = {
 };
 
 type Timeline = { lead_id: string; kind: string; created_at: string };
+type EmailDraft = { subject: string; message: string };
 
 const STATUS_LABELS: Record<string, string> = {
   NEW: "Yeni",
@@ -130,7 +130,7 @@ export default function NetworkingPanel({
   const [credits, setCredits] = useState(0);
   const [creditLimit, setCreditLimit] = useState(0);
   const [loaded, setLoaded] = useState(false);
-  const [templates, setTemplates] = useState<Record<string, string>>({});
+  const [drafts, setDrafts] = useState<Record<string, EmailDraft>>({});
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [eventForm, setEventForm] = useState({ name: "", location: "", booth: "", profileId: "" });
@@ -174,7 +174,7 @@ export default function NetworkingPanel({
 
   async function post(body: Record<string, unknown>) {
     const access = await token();
-    if (!access) return;
+    if (!access) return false;
     setBusy(true);
     setMessage("");
     try {
@@ -184,11 +184,51 @@ export default function NetworkingPanel({
         body: JSON.stringify(variant === "individual" ? body : { organizationId, ...body }),
       });
       const payload = await response.json();
-      if (!response.ok) setMessage(payload.error || "İşlem tamamlanamadı.");
-      else await load();
+      if (!response.ok) {
+        setMessage(payload.error || "İşlem tamamlanamadı.");
+        return false;
+      }
+      await load();
+      return true;
     } finally {
       setBusy(false);
     }
+  }
+
+  function updateDraft(leadId: string, patch: Partial<EmailDraft>) {
+    setDrafts((current) => ({
+      ...current,
+      [leadId]: { subject: current[leadId]?.subject || "", message: current[leadId]?.message || "", ...patch },
+    }));
+  }
+
+  function validDraft(leadId: string) {
+    const draft = drafts[leadId];
+    return Boolean(draft && draft.subject.trim().length >= 2 && draft.message.trim().length >= 2);
+  }
+
+  async function sendCustomEmail(leadId: string) {
+    const draft = drafts[leadId];
+    if (!draft || draft.subject.trim().length < 2 || draft.message.trim().length < 2) {
+      setMessage("Göndermeden önce e-posta konusu ve mesajını yazın.");
+      return;
+    }
+    const sent = await post({ action: "send_followup", leadId, subject: draft.subject, message: draft.message });
+    if (sent) {
+      setDrafts((current) => ({ ...current, [leadId]: { subject: "", message: "" } }));
+      setMessage("Kişisel e-posta taslağınız Network Mail ile gönderildi.");
+    }
+  }
+
+  function openEmailClient(lead: Lead) {
+    const draft = drafts[lead.id];
+    if (!draft || draft.subject.trim().length < 2 || draft.message.trim().length < 2) {
+      setMessage("E-posta uygulamasını açmadan önce konu ve mesajınızı yazın.");
+      return;
+    }
+    const query = new URLSearchParams({ subject: draft.subject.trim(), body: draft.message.trim() });
+    window.location.href = `mailto:${lead.email}?${query.toString()}`;
+    setMessage("E-posta uygulamanız açıldı. Gönderimi uygulamanızda tamamlayın; Network Mail kredisi kullanılmadı.");
   }
 
   async function createEvent(event: FormEvent) {
@@ -216,7 +256,7 @@ export default function NetworkingPanel({
           <p>
             {view === "leads"
               ? variant === "individual"
-                ? "Bir kişi kartındaki formdan iletişim bilgisini paylaştığında burada görünür. Durumunu güncelleyebilir, hazır bir mesaj seçip Network Mail ile takip edebilirsin."
+                ? "Bir kişi kartındaki formdan iletişim bilgisini paylaştığında burada görünür. Durumunu güncelleyebilir, kendi e-posta taslağını hazırlayıp Network Mail ile takip edebilirsin."
                 : "Kartınız üzerinden iletişim bilgilerini paylaşan kişileri burada takip edin ve sonraki adımı siz yönetin."
               : view === "events"
                 ? "Etkinliklerinizi ve kartlarınıza bağlı etkinlik QR’lerini yönetin."
@@ -231,7 +271,7 @@ export default function NetworkingPanel({
       </header>
       {loaded && view === "leads" && variant === "individual" && (
         <p className="p11-networking-message" role="note">
-          <strong>Network Mail nasıl çalışır?</strong> Her gönderim 1 kredi kullanır; gönderen Yenomi ID olur ve yanıtlar doğrulanmış e-posta adresine gelir. Göndermeden önce kişiye uygun hazır mesajı seçebilirsin.
+          <strong>Network Mail nasıl çalışır?</strong> Her gönderim 1 kredi kullanır; gönderen Yenomi ID olur ve yanıtlar doğrulanmış e-posta adresine gelir. Konu ve mesajını kendin yazıp gönderebilirsin.
         </p>
       )}
       {message && <p className="p11-networking-message" role="status">{message}</p>}
@@ -292,18 +332,35 @@ export default function NetworkingPanel({
                         {LEAD_STATUSES.map((status) => <option key={status} value={status}>{STATUS_LABELS[status] || status}</option>)}
                       </select>
                     </label>
-                    <label className="p11-networking-field p11-networking-field--grow">
-                      <span>E-posta</span>
-                      <select
-                        aria-label="Follow-up senaryosu"
-                        value={templates[lead.id] || "EVENT_MET"}
-                        onChange={(event) => setTemplates((current) => ({ ...current, [lead.id]: event.target.value }))}
-                      >
-                        {FOLLOW_UP_SCENARIOS.map((scenario) => <option key={scenario.code} value={scenario.code}>{scenario.label}</option>)}
-                      </select>
-                    </label>
+                    <div className="p11-networking-compose">
+                      <div className="p11-networking-compose__heading">
+                        <span>E-posta taslağı</span>
+                        <small>Alıcı: {lead.email}</small>
+                      </div>
+                      <label className="p11-networking-field">
+                        <span>Konu</span>
+                        <input
+                          aria-label="E-posta konusu"
+                          maxLength={180}
+                          placeholder="E-postanın konusu"
+                          value={drafts[lead.id]?.subject || ""}
+                          onChange={(event) => updateDraft(lead.id, { subject: event.target.value })}
+                        />
+                      </label>
+                      <label className="p11-networking-field">
+                        <span>Mesaj</span>
+                        <textarea
+                          aria-label="E-posta mesajı"
+                          maxLength={4000}
+                          placeholder={`Merhaba ${lead.full_name},`}
+                          value={drafts[lead.id]?.message || ""}
+                          onChange={(event) => updateDraft(lead.id, { message: event.target.value })}
+                        />
+                      </label>
+                    </div>
                     <div className="p11-networking-quick-actions">
-                      <button className="p11-networking-action p11-networking-action--primary" type="button" disabled={busy || credits < 1} onClick={() => void post({ action: "send_followup", leadId: lead.id, template: templates[lead.id] || "EVENT_MET" })}><Icon name="mail" />E-posta Gönder</button>
+                      <button className="p11-networking-action p11-networking-action--primary" type="button" disabled={busy || credits < 1 || !validDraft(lead.id)} onClick={() => void sendCustomEmail(lead.id)}><Icon name="mail" />Network Mail ile gönder</button>
+                      <button className="p11-networking-action" type="button" disabled={busy || !validDraft(lead.id)} onClick={() => openEmailClient(lead)}><Icon name="external" />E-posta uygulamamda aç</button>
                       {phone && (
                         <a className="p11-networking-action" href={`https://wa.me/${phone}?text=${encodeURIComponent(`Merhaba ${lead.full_name}, bugün tanıştığımıza memnun oldum. İletişimde kalmak istedim.`)}`} target="_blank" rel="noreferrer"><Icon name="external" />WhatsApp</a>
                       )}

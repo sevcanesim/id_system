@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { isIndividualPremiumPackage } from "../../../../lib/commerce/packages";
 import { LEAD_STATUSES, scoreLabel } from "../../../../lib/networking/catalog";
-import { countMailSentToday, NETWORK_FOLLOWUP_TEMPLATES, sendDebitedNetworkFollowUp } from "../../../../lib/networking/follow-up";
+import { countMailSentToday, sendDebitedNetworkFollowUp } from "../../../../lib/networking/follow-up";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 
 export const runtime = "nodejs";
@@ -10,7 +10,8 @@ export const runtime = "nodejs";
 const followUpSchema = z.object({
   action: z.literal("send_followup"),
   leadId: z.string().uuid(),
-  template: z.enum(NETWORK_FOLLOWUP_TEMPLATES).default("EVENT_MET"),
+  subject: z.string().trim().min(2).max(180),
+  message: z.string().trim().min(2).max(4000),
 });
 
 const leadStatusSchema = z.object({
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
       admin,
       ledger: { kind: "individual", userId: actor.userId },
       lead: { id: lead.id, email: lead.email, full_name: lead.full_name },
-      template: parsed.data.template,
+      mail: { subject: parsed.data.subject, message: parsed.data.message },
       sender: { email: actor.email, emailConfirmedAt: actor.emailConfirmedAt },
       displayName,
       sentToday: await countMailSentToday(admin, (ownedLeads || []).map((row) => row.id)),

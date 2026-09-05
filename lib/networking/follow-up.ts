@@ -4,19 +4,6 @@ import type { getSupabaseAdminClient } from "../supabase/server-admin";
 
 type AdminClient = ReturnType<typeof getSupabaseAdminClient>;
 
-export const NETWORK_FOLLOWUP_TEMPLATES = [
-  "EVENT_BEFORE",
-  "EVENT_MET",
-  "OFFER",
-  "AFTER_MEETING",
-  "PRESENTATION",
-  "EVENT_THANKS",
-  "PRODUCT_INFO",
-  "CUSTOM",
-] as const;
-
-export type NetworkFollowUpTemplate = (typeof NETWORK_FOLLOWUP_TEMPLATES)[number];
-
 export type NetworkFollowUpResult =
   | { ok: true; remaining: number }
   | { ok: false; status: number; error: string; reason?: string };
@@ -55,7 +42,7 @@ export async function sendDebitedNetworkFollowUp(input: {
   admin: AdminClient;
   ledger: { kind: "organization"; organizationId: string } | { kind: "individual"; userId: string };
   lead: { id: string; email: string; full_name: string };
-  template: NetworkFollowUpTemplate;
+  mail: { subject: string; message: string };
   sender: { email?: string | null; emailConfirmedAt?: string | Date | null };
   displayName: string;
   sentToday: number;
@@ -111,8 +98,8 @@ export async function sendDebitedNetworkFollowUp(input: {
   const sent = await sendNetworkingFollowUpEmail({
     to: input.lead.email,
     organizationName: input.displayName,
-    leadName: input.lead.full_name,
-    template: input.template,
+    subject: input.mail.subject,
+    message: input.mail.message,
     replyTo: sender.replyTo,
   }).catch((error) => {
     console.error("network follow-up provider error", error);
@@ -122,7 +109,7 @@ export async function sendDebitedNetworkFollowUp(input: {
   if (!sent.sent) {
     await refundConsumedCredit(input.admin, refundLedger, preview.debit);
     const message = sent.reason === "RESEND_API_KEY_MISSING"
-      ? "Tanıtım maili gönderilemedi: e-posta servisi yapılandırılmamış. Kredi düşülmedi."
+      ? "Network Mail servisi yapılandırılmamış. Taslağınızı e-posta uygulamanızda açarak kredi kullanmadan gönderebilirsiniz."
       : "Tanıtım maili gönderilemedi. Kredi iade edildi.";
     return { ok: false, status: 503, error: message, reason: sent.reason };
   }
@@ -132,7 +119,9 @@ export async function sendDebitedNetworkFollowUp(input: {
     lead_id: input.lead.id,
     kind: "MAIL_SENT",
     payload: {
-      template: input.template,
+      template: "CUSTOM",
+      subject: input.mail.subject,
+      messagePreview: input.mail.message.slice(0, 240),
       credited: true,
       ledger: input.ledger.kind === "organization" ? "NETWORK" : "INDIVIDUAL_PREMIUM",
       debit: preview.debit,

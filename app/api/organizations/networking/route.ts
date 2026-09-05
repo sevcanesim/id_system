@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireOrganizationRole } from "../../../../lib/organizations/authorization";
 import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 import { LEAD_STATUSES, scoreLabel } from "../../../../lib/networking/catalog";
-import { countMailSentToday, NETWORK_FOLLOWUP_TEMPLATES, sendDebitedNetworkFollowUp } from "../../../../lib/networking/follow-up";
+import { countMailSentToday, sendDebitedNetworkFollowUp } from "../../../../lib/networking/follow-up";
 import { createOpaquePublicId } from "../../../../lib/public-card/urls";
 import { queueOrganizationWebhookEvent } from "../../../../lib/organizations/webhook-integrations";
 
@@ -30,7 +30,8 @@ const followUpSchema = z.object({
   action: z.literal("send_followup"),
   organizationId: z.string().uuid(),
   leadId: z.string().uuid(),
-  template: z.enum(NETWORK_FOLLOWUP_TEMPLATES).default("EVENT_MET"),
+  subject: z.string().trim().min(2).max(180),
+  message: z.string().trim().min(2).max(4000),
 });
 
 const meetingSchema = z.object({
@@ -147,7 +148,7 @@ export async function POST(request: NextRequest) {
       admin,
       ledger: { kind: "organization", organizationId: parsed.data.organizationId },
       lead: { id: lead.id, email: lead.email, full_name: lead.full_name },
-      template: parsed.data.template,
+      mail: { subject: parsed.data.subject, message: parsed.data.message },
       sender: { email: actor.email, emailConfirmedAt: actor.emailConfirmedAt },
       displayName: org?.name || "Yenomi",
       sentToday: await countMailSentToday(admin, leadIds),

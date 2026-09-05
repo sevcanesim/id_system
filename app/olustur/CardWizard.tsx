@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChangeEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import CardTemplate from "../CardTemplate";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
@@ -35,7 +35,11 @@ import {
   type UploadedImage,
 } from "./domain/profile-editor";
 import type { CardBranding, CardTemplateLink } from "../CardTemplate";
-import { fetchOrganizationIdentity, type OrgLock } from "./domain/organization-identity";
+import {
+  fetchOrganizationIdentity,
+  type CorporateTemplateSettings,
+  type OrgLock,
+} from "./domain/organization-identity";
 import { cardShareUrl } from "../../lib/public-card/urls";
 
 const CARD_SECTIONS = [
@@ -100,7 +104,17 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
   const [accessState, setAccessState] = useState<"checking" | "allowed" | "denied">("checking");
   const [orgLock, setOrgLock] = useState<OrgLock | null>(null);
   const [orgBranding, setOrgBranding] = useState<CardBranding | null>(null);
+  const [corporateTemplate, setCorporateTemplate] = useState<CorporateTemplateSettings | null>(null);
   const [orgLinks, setOrgLinks] = useState<CardTemplateLink[]>([]);
+  const [brandSettingsOpen, setBrandSettingsOpen] = useState(false);
+  const [brandSettingsBusy, setBrandSettingsBusy] = useState(false);
+  const [brandSettingsMessage, setBrandSettingsMessage] = useState("");
+  const [brandSettings, setBrandSettings] = useState({
+    name: "Kurumsal standart",
+    primaryColor: "#17121f",
+    logoUrl: "",
+  });
+  const brandSettingsRequestHandled = useRef(false);
   const [titleRequestOpen, setTitleRequestOpen] = useState(false);
   const [titleRequestValue, setTitleRequestValue] = useState("");
   const [titleRequestBusy, setTitleRequestBusy] = useState(false);
@@ -127,10 +141,12 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
   const requestedProfileId = searchParams.get("id");
   const isNewCard = searchParams.get("new") === "1";
   const businessOrganizationId = searchParams.get("organizationId");
+  const brandSettingsRequested = searchParams.get("brandSettings") === "1";
   // Kurumsal panel rotası, sorgu parametreleri yüklenirken veya yönlendirici
   // güncellenirken bireysel editöre düşmemelidir. Rota bu modu açıkça
   // sabitlediğinde URL yalnızca organizasyon kimliğini taşır.
   const isBusinessCard = mode === "corporate" || (searchParams.get("business") === "1" && Boolean(businessOrganizationId));
+  const canManageCorporateTemplate = ["OWNER", "ADMIN"].includes(orgLock?.membershipRole.toUpperCase() || "");
   const profileCardActions = useProfileCardActions({
     profileId,
     slug: profileSlug,
@@ -454,7 +470,36 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
         if (identity) {
           setOrgLock(identity.lock);
           setOrgBranding(identity.branding);
+          setCorporateTemplate(identity.template);
           setOrgLinks(identity.links);
+          // Legacy template bookmarks arrive without an organization id. Once
+          // the authorized membership is known, canonicalize the URL so later
+          // saves remain in the corporate workspace instead of falling back to
+          // the personal Kartım route.
+          if (isBusinessCard && !businessOrganizationId) {
+            const params = new URLSearchParams({
+              business: "1",
+              organizationId: identity.lock.organizationId,
+            });
+            if (requestedProfileId) params.set("id", requestedProfileId);
+            if (isNewCard) params.set("new", "1");
+            if (brandSettingsRequested) params.set("brandSettings", "1");
+            router.replace(`${mode === "corporate" ? "/kurumsal/panel/kartim" : "/olustur"}?${params.toString()}`);
+          }
+          if (
+            brandSettingsRequested &&
+            !brandSettingsRequestHandled.current &&
+            ["OWNER", "ADMIN"].includes(identity.lock.membershipRole.toUpperCase())
+          ) {
+            brandSettingsRequestHandled.current = true;
+            setBrandSettings({
+              name: identity.template.name,
+              primaryColor: identity.template.primaryColor,
+              logoUrl: identity.template.logoUrl,
+            });
+            setBrandSettingsMessage("");
+            setBrandSettingsOpen(true);
+          }
           setData((current) => {
             const filledGaps = Object.fromEntries(
               Object.entries(identity.suggestedValues).filter(
@@ -483,7 +528,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
       setAccessState("denied");
       router.replace("/giris?portal=business");
     });
-  }, [router, businessOrganizationId, isBusinessCard, isNewCard, requestedProfileId]);
+  }, [router, businessOrganizationId, brandSettingsRequested, isBusinessCard, isNewCard, mode, requestedProfileId]);
 
   useEffect(() => {
     if (!slugTouched && data.name.trim()) setProfileSlug(createProfileSlug(data.name));
@@ -540,6 +585,95 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
   function updateSlug(value: string) {
     setSlugTouched(true);
     setProfileSlug(normalizeProfileSlug(value));
+  }
+
+  function openCorporateBrandSettings() {
+    if (!corporateTemplate) return;
+    setBrandSettings({
+      name: corporateTemplate.name,
+      primaryColor: corporateTemplate.primaryColor,
+      logoUrl: corporateTemplate.logoUrl,
+    });
+    setBrandSettingsMessage("");
+    setBrandSettingsOpen(true);
+  }
+
+  async function saveCorporateBrandSettings() {
+    if (!orgLock || !canManageCorporateTemplate) return;
+
+    const name = brandSettings.name.trim();
+    const primaryColor = brandSettings.primaryColor.trim();
+    const logoUrl = brandSettings.logoUrl.trim();
+    if (name.length < 2) {
+      setBrandSettingsMessage("Kart standardı adı en az 2 karakter olmalı.");
+      return;
+    }
+    if (!/^#[0-9a-fA-F]{6}$/.test(primaryColor)) {
+      setBrandSettingsMessage("Ana renk #RRGGBB biçiminde olmalı.");
+      return;
+    }
+    if (logoUrl && !/^https:\/\//i.test(logoUrl)) {
+      setBrandSettingsMessage("Logo adresi HTTPS ile başlamalı.");
+      return;
+    }
+
+    setBrandSettingsBusy(true);
+    setBrandSettingsMessage("");
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data: sessionData } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) throw new Error("Oturum bulunamadı.");
+
+      const response = await fetch("/api/organizations/templates", {
+        method: corporateTemplate?.id ? "PATCH" : "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify(corporateTemplate?.id
+          ? {
+              action: "UPDATE",
+              templateId: corporateTemplate.id,
+              name,
+              primaryColor,
+              logoUrl,
+            }
+          : {
+              organizationId: orgLock.organizationId,
+              name,
+              primaryColor,
+              logoUrl,
+              isDefault: true,
+            }),
+      });
+      const payload = await response.json().catch(() => ({})) as {
+        error?: string;
+        template?: { id?: string; name?: string | null; primary_color?: string | null; logo_url?: string | null };
+      };
+      if (!response.ok) throw new Error(payload.error || "Şirket kart standardı kaydedilemedi.");
+
+      const saved = payload.template;
+      const nextTemplate: CorporateTemplateSettings = {
+        id: saved?.id || corporateTemplate?.id || null,
+        name: saved?.name?.trim() || name,
+        primaryColor: saved?.primary_color || primaryColor,
+        logoUrl: saved?.logo_url || logoUrl,
+      };
+      setCorporateTemplate(nextTemplate);
+      setOrgBranding({
+        logoUrl: nextTemplate.logoUrl || null,
+        primaryColor: nextTemplate.primaryColor || null,
+        companyName: orgLock.organizationName || null,
+        variant: "ESSENTIAL",
+      });
+      setBrandSettings(nextTemplate);
+      setBrandSettingsMessage("Şirket kart standardı kaydedildi. Bu görünüm ekip kartlarına uygulanır.");
+      notify({ message: "Şirket kart standardı güncellendi.", tone: "success" });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Şirket kart standardı kaydedilemedi.";
+      setBrandSettingsMessage(errorMessage);
+      notify({ message: errorMessage, tone: "error" });
+    } finally {
+      setBrandSettingsBusy(false);
+    }
   }
 
 
@@ -1001,6 +1135,22 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
 
         <section id="p8-appearance" className="p8-section-card">
           <div className="p8-section-heading"><span>06</span><div><h2>Profil Görünümü &amp; Uluslararası Katman</h2><p>Fotoğraf, kısa biyografi ve İngilizce içerik ile kartınızın ilk izlenimini tamamlayın.</p></div></div>
+          {isBusinessCard && orgLock && (
+            <section className="p8-corporate-brand-card" aria-label="Şirket kart standardı">
+              <div>
+                <span>ŞİRKET KART STANDARDI</span>
+                <h3>{corporateTemplate?.name || "Kurumsal standart"}</h3>
+                <p>Logo ve ana renk ekipteki tüm dijital kartlarda ortak kullanılır.</p>
+              </div>
+              {canManageCorporateTemplate ? (
+                <Button size="sm" variant="secondary" onClick={openCorporateBrandSettings} disabled={!corporateTemplate}>
+                  <Icon name="pencil" /> Marka ayarlarını düzenle
+                </Button>
+              ) : (
+                <span className="p8-governance-help"><Icon name="lock" /> Şirket tarafından yönetiliyor</span>
+              )}
+            </section>
+          )}
           <div className="p8-photo-row">
             <div className="p8-photo-preview" aria-hidden="true">{data.image ? <img src={data.image} alt="" /> : <span>{data.name.trim().split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "Y"}</span>}</div>
             <div className="p8-photo-actions"><strong>Profil fotoğrafı</strong><p>JPG, PNG veya WebP · en fazla 5 MB · en az 240 × 240 px.</p><label className="ds-button ds-button--secondary p8-file-button">Fotoğraf Seç<input type="file" accept="image/jpeg,image/png,image/webp" onChange={imageChange} onFocus={() => setActivePreviewTarget("photo")} onBlur={() => setActivePreviewTarget(null)}/></label>{data.image && <Button size="sm" variant="ghost" onClick={() => { update("image", ""); setImageMessage(""); }}>Fotoğrafı Kaldır</Button>}{imageMessage && <span className="p8-field-error" role="alert">{imageMessage}</span>}</div>
@@ -1142,6 +1292,56 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
             <p>Telefonda test edebilmek için önce <strong>"Kaydet ve Yayınla"</strong> düğmesi ile profilinizi yayınlayın.</p>
           </div>
         )}
+      </div>
+    </Modal>
+
+    <Modal open={brandSettingsOpen} title="Şirket kart standardı" onClose={() => !brandSettingsBusy && setBrandSettingsOpen(false)}>
+      <div className="p8-brand-modal">
+        <p>Bu ayarlar şirketinizdeki tüm dijital kartların ortak marka görünümünü belirler. Kişisel profil bilgilerini değiştirmez.</p>
+        <Field label="Kart standardı adı" help="Yönetim içi tanımlama için kullanılır.">
+          <Input
+            value={brandSettings.name}
+            onChange={(event) => setBrandSettings((current) => ({ ...current, name: event.target.value }))}
+            maxLength={80}
+            autoComplete="off"
+          />
+        </Field>
+        <Field label="Ana renk" help="HEX biçiminde marka rengi.">
+          <div className="p8-brand-color-input">
+            <input
+              type="color"
+              aria-label="Ana renk seçici"
+              value={/^#[0-9a-fA-F]{6}$/.test(brandSettings.primaryColor) ? brandSettings.primaryColor : "#17121f"}
+              onChange={(event) => setBrandSettings((current) => ({ ...current, primaryColor: event.target.value }))}
+            />
+            <Input
+              value={brandSettings.primaryColor}
+              onChange={(event) => setBrandSettings((current) => ({ ...current, primaryColor: event.target.value }))}
+              inputMode="text"
+              maxLength={7}
+              spellCheck={false}
+              aria-label="Ana renk HEX değeri"
+            />
+          </div>
+        </Field>
+        <Field label="Logo URL" help="İsteğe bağlı. HTTPS adresi kullanın; şeffaf PNG veya SVG önerilir.">
+          <Input
+            type="url"
+            value={brandSettings.logoUrl}
+            onChange={(event) => setBrandSettings((current) => ({ ...current, logoUrl: event.target.value }))}
+            placeholder="https://firma.com/logo.svg"
+            inputMode="url"
+            autoCapitalize="none"
+            spellCheck={false}
+          />
+        </Field>
+        {brandSettingsMessage && <p className="p8-brand-message" role="status">{brandSettingsMessage}</p>}
+        <div className="p8-brand-modal-actions">
+          <Button variant="secondary" onClick={() => setBrandSettingsOpen(false)} disabled={brandSettingsBusy}>Vazgeç</Button>
+          <Button variant="primary" onClick={() => void saveCorporateBrandSettings()} disabled={brandSettingsBusy}>
+            {brandSettingsBusy ? "Kaydediliyor..." : "Şirket standardını kaydet"}
+          </Button>
+        </div>
       </div>
     </Modal>
   </div>;

@@ -1078,6 +1078,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   const ownCardEditorHref = selected
     ? `/kurumsal/panel/kartim?business=1&organizationId=${encodeURIComponent(selected)}${sidebarCardProfile?.profileId ? `&id=${encodeURIComponent(sidebarCardProfile.profileId)}` : "&new=1"}`
     : "/kurumsal/panel/calisanlar";
+  const ownCardBrandSettingsHref = `${ownCardEditorHref}${ownCardEditorHref.includes("?") ? "&" : "?"}brandSettings=1`;
   const templatePreviewMember =
     members.find((member) => member.status === "ACTIVE") || members[0];
   const templatePreviewBranding: CardBranding = {
@@ -1251,6 +1252,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                     openMemberDrawer={openMemberDrawer}
                     relativeTime={relativeTime}
                     onEditOwnCard={() => router.push(ownCardEditorHref)}
+                    onEditCorporateBranding={() => router.push(ownCardBrandSettingsHref)}
                     onExportCsv={exportAnalyticsCsv}
                   />
                 )}
@@ -1379,7 +1381,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                       if (selected) void loadCardAnalytics(selected, undefined, days);
                     }}
                     onViewOwnCard={() => router.push(ownCardEditorHref)}
-                    onShareSettings={() => openTab("templates")}
+                    onShareSettings={() => router.push(ownCardEditorHref)}
                   />
                 )}
                 {currentTab === "leads" && canManageNetworking && (

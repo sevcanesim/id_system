@@ -18,6 +18,14 @@ export type OrgLock = {
   titleRequest: { requestedTitle: string; status: "PENDING" | "APPROVED" | "REJECTED"; note: string | null } | null;
 };
 
+/** The one active company-wide card standard, available from Kartım. */
+export type CorporateTemplateSettings = {
+  id: string | null;
+  name: string;
+  primaryColor: string;
+  logoUrl: string;
+};
+
 type CardData = EditableCardData;
 
 type OrganizationIdentity = {
@@ -25,6 +33,7 @@ type OrganizationIdentity = {
   lockedValues: Partial<CardData>;
   suggestedValues: Partial<CardData>;
   branding: CardBranding;
+  template: CorporateTemplateSettings;
   links: CardTemplateLink[];
 };
 
@@ -86,7 +95,13 @@ export async function fetchOrganizationIdentity(
     ]);
 
     const templateRow = templateResponse.ok
-      ? ((await templateResponse.json()).templates?.[0] as { fields?: Record<string, string | boolean>; primary_color?: string | null; logo_url?: string | null } | undefined)
+      ? ((await templateResponse.json()).templates?.[0] as {
+          id?: string;
+          name?: string | null;
+          fields?: Record<string, string | boolean>;
+          primary_color?: string | null;
+          logo_url?: string | null;
+        } | undefined)
       : undefined;
     const fields = templateRow?.fields ?? {};
     const self = selfResponse.ok
@@ -139,11 +154,19 @@ export async function fetchOrganizationIdentity(
       variant: "ESSENTIAL" as CardBranding["variant"],
     };
 
+    const template: CorporateTemplateSettings = {
+      id: templateRow?.id ?? null,
+      name: templateRow?.name?.trim() || "Kurumsal standart",
+      primaryColor: templateRow?.primary_color || "#17121f",
+      logoUrl: templateRow?.logo_url || "",
+    };
+
     return {
       lock,
       lockedValues,
       suggestedValues,
       branding,
+      template,
       links: organizationLinks.filter(isAvailableToCard).map(toCardTemplateLink),
     };
   } catch {

@@ -39,6 +39,7 @@ type Props = {
   openMemberDrawer: (member: Member) => void;
   relativeTime: (value: string) => string;
   onEditOwnCard: () => void;
+  onEditCorporateBranding: () => void;
   onExportCsv: () => void;
 };
 
@@ -114,6 +115,7 @@ export default function OverviewPanel({
   onInvite,
   openMemberDrawer,
   relativeTime,
+  onEditCorporateBranding,
   onExportCsv,
 }: Props) {
   const activeMembers = members.filter((member) => member.status !== "LEFT" && member.status !== "INVITED");
@@ -231,7 +233,7 @@ export default function OverviewPanel({
         <div className="cp-overview-v2__quick-actions" aria-label="Hızlı işlemler">
           {canInvite && <button type="button" className="cp-overview-v2__primary" onClick={onInvite}><Icon name="plus" /> Çalışan davet et</button>}
           {canOpen("cards") && <button type="button" className="cp-overview-v2__secondary" onClick={() => openTab("cards")}><Icon name="contact" /> Kart ata</button>}
-          {canOpen("templates") && <button type="button" className="cp-overview-v2__secondary" onClick={() => openTab("templates")}><Icon name="pencil" /> Şablon belirle</button>}
+          {canManageLicenses && <button type="button" className="cp-overview-v2__secondary" onClick={onEditCorporateBranding}><Icon name="pencil" /> Kart standardı</button>}
         </div>
       </header>
 

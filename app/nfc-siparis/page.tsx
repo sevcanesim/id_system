@@ -63,6 +63,10 @@ export default function NfcOrderPage() {
   const [activeStep, setActiveStep] = useState(1);
   const [mapExpanded, setMapExpanded] = useState(false);
   const [legalVersions, setLegalVersions] = useState<{ distanceSales: string; personalization: string; privacy: string } | null>(null);
+  const [paymentProvider, setPaymentProvider] = useState<"PAYTR" | "IYZICO" | null>(null);
+
+  const usesIyzico = paymentProvider === "IYZICO";
+  const paymentProviderName = usesIyzico ? "iyzico" : "PayTR";
 
   const publicCardUrl = useMemo(() => publicId ? cardShareUrl(publicId) : "", [publicId]);
 
@@ -95,7 +99,10 @@ export default function NfcOrderPage() {
         if (!response.ok) throw new Error("config unavailable");
         return response.json();
       })
-      .then((data) => setLegalVersions(data.legalVersions))
+      .then((data) => {
+        setLegalVersions(data.legalVersions);
+        setPaymentProvider(data?.payment?.provider === "IYZICO" ? "IYZICO" : "PAYTR");
+      })
       .catch(() => setMessage("Hukuk sürümleri DB’den yüklenemedi; ödeme başlatılamaz."));
   }, []);
 
@@ -189,7 +196,7 @@ export default function NfcOrderPage() {
     if (!legalVersions) { setMessage("Hukuk sürümleri DB’den yüklenmeden ödeme başlatılamaz."); return; }
     const consentVersions = legalVersions;
     setSubmitting(true);
-    const finalValidationError = validateNfcOrderStep(5, form, Boolean(publicId));
+    const finalValidationError = validateNfcOrderStep(5, form, Boolean(publicId), usesIyzico);
     if (finalValidationError) {
       setSubmitting(false);
       setMessage(finalValidationError);
@@ -249,8 +256,8 @@ export default function NfcOrderPage() {
           name: form.printName.trim() || "Yenomi Müşteri",
           email: form.email.trim(),
           phone: form.phone.trim(),
-          identityNumber,
-          identityType: form.identityType,
+          identityNumber: usesIyzico ? identityNumber : "",
+          identityType: usesIyzico ? form.identityType : "",
         },
         shipping: {
           recipientName: form.printName.trim() || "Yenomi Müşteri",
@@ -294,8 +301,8 @@ export default function NfcOrderPage() {
   }, [loading, userId]);
 
   const currentStepError = useMemo(
-    () => validateNfcOrderStep(activeStep, form, Boolean(publicId)),
-    [activeStep, form, publicId]
+    () => validateNfcOrderStep(activeStep, form, Boolean(publicId), usesIyzico),
+    [activeStep, form, publicId, usesIyzico]
   );
   const highestReachableStep = useMemo(
     () => highestReachableNfcOrderStep(form, Boolean(publicId)),
@@ -328,7 +335,7 @@ export default function NfcOrderPage() {
         <div className="product-stage-copy">
           <span className="section-kicker">YENOMI NFC + QR KARTVİZİT</span>
           <h1>Kartı kişiselleştir.<br/>Kimliği kilitle.</h1>
-          <p>Rengi seç, QR’ı bağla, teslimatı yaz. Ödeme iyzico’da; kart numarası Yenomi’de saklanmaz.</p>
+          <p>Rengi seç, QR&apos;ı bağla, teslimatı yaz. Ödeme {paymentProviderName}&apos;ın güvenli sayfasında tamamlanır; kart numarası Yenomi&apos;de saklanmaz.</p>
         </div>
 
         <div className="stacked-card-preview" aria-label="Kart ön ve arka yüz önizlemesi">
@@ -376,7 +383,7 @@ export default function NfcOrderPage() {
           <div className="pane-heading"><span>03</span><div><h3>İletişim bilgileri</h3><p>Yalnızca teslimat ve sipariş iletişimi için kullanılır.</p></div></div>
           <div className="field-grid"><label>Ad Soyad<input required value={form.printName} onChange={(e)=>update("printName",e.target.value)}/></label><label>Telefon<input required type="tel" inputMode="tel" autoComplete="tel" value={form.phone} onChange={(e)=>update("phone",normalizeTrPhone(e.target.value))} placeholder="+90 5xx xxx xx xx"/></label></div>
           <label>E-posta<input required type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} value={form.email} onChange={(e)=>update("email",e.target.value)} onBlur={()=>update("email",normalizeEmailField(form.email))} placeholder="ornek@firma.com"/></label>
-          <div className="identity-heads-up"><Icon name="id" /><span><strong>Ödeme adımında bir şey daha isteyeceğiz: </strong>iyzico, ödemeni doğrulamak için T.C. kimlik veya pasaport numaranı zorunlu tutuyor. Bu bilgi yalnızca ödeme sağlayıcısına iletilir, veritabanımıza kaydedilmez.</span></div>
+          {usesIyzico ? <div className="identity-heads-up"><Icon name="id" /><span><strong>Ödeme adımında bir şey daha isteyeceğiz: </strong>Ödeme sağlayıcısı doğrulama için T.C. kimlik veya pasaport numaranı zorunlu tutuyor. Bu bilgi yalnızca ödeme sağlayıcısına iletilir, veritabanımıza kaydedilmez.</span></div> : null}
         </section>}
 
         {activeStep === 4 && <section className="wizard-pane">
@@ -392,10 +399,8 @@ export default function NfcOrderPage() {
         </section>}
 
         {activeStep === 5 && <section className="wizard-pane">
-          <div className="pane-heading"><span>05</span><div><h3>Güvenli ödeme</h3><p>Siparişini kontrol et ve iyzico ile tamamla.</p></div></div>
-          <div className="identity-toggle" role="group" aria-label="Kimlik türü"><button type="button" aria-pressed={form.identityType==="TR"} className={form.identityType==="TR"?"active":""} onClick={()=>update("identityType","TR")}>Türkiye vatandaşı</button><button type="button" aria-pressed={form.identityType==="FOREIGN"} className={form.identityType==="FOREIGN"?"active":""} onClick={()=>update("identityType","FOREIGN")}>Yabancı kullanıcı</button></div>
-          <label>{form.identityType==="TR"?"T.C. kimlik numarası":"Pasaport numarası"}<input required inputMode={form.identityType==="TR"?"numeric":"text"} autoComplete="off" value={form.identityNumber} onChange={(e)=>update("identityNumber",normalizeIdentityNumber(e.target.value, form.identityType))}/><small>iyzico ödemesi için zorunlu. Yenomi kaydetmez.</small></label>
-          <div className="payment-privacy-note"><strong>Neden isteniyor?</strong><span>iyzico bu bilgiyi ödeme doğrulaması için zorunlu tutar. Veritabanımıza kaydedilmez.</span></div>
+          <div className="pane-heading"><span>05</span><div><h3>Güvenli ödeme</h3><p>Siparişini kontrol et; ödeme {paymentProviderName}&apos;ın güvenli sayfasında tamamlanacak.</p></div></div>
+          {usesIyzico ? <><div className="identity-toggle" role="group" aria-label="Kimlik türü"><button type="button" aria-pressed={form.identityType==="TR"} className={form.identityType==="TR"?"active":""} onClick={()=>update("identityType","TR")}>Türkiye vatandaşı</button><button type="button" aria-pressed={form.identityType==="FOREIGN"} className={form.identityType==="FOREIGN"?"active":""} onClick={()=>update("identityType","FOREIGN")}>Yabancı kullanıcı</button></div><label>{form.identityType==="TR"?"T.C. kimlik numarası":"Pasaport numarası"}<input required inputMode={form.identityType==="TR"?"numeric":"text"} autoComplete="off" value={form.identityNumber} onChange={(e)=>update("identityNumber",normalizeIdentityNumber(e.target.value, form.identityType))}/><small>Ödeme doğrulaması için zorunlu. Yenomi kaydetmez.</small></label><div className="payment-privacy-note"><strong>Neden isteniyor?</strong><span>Ödeme sağlayıcısı bu bilgiyi doğrulama için zorunlu tutar. Veritabanımıza kaydedilmez.</span></div></> : <div className="payment-privacy-note"><strong>Gizlilik notu</strong><span>Kart bilgilerin {paymentProviderName}&apos;ın güvenli sayfasında işlenir; Yenomi&apos;de saklanmaz.</span></div>}
           <div className="stripe-summary"><div><span>NFC Kart</span><b>{formatTryFromKurus(getNfcOrderTotalKurus(form.quantity))}</b></div><div><span>Kargo</span><b>Ücretsiz</b></div><div className="total"><span>Toplam</span><b>{formatTryFromKurus(getNfcOrderTotalKurus(form.quantity))}</b></div></div>
           <label className="consent-check"><input type="checkbox" checked={distanceSalesAccepted} onChange={(e)=>setDistanceSalesAccepted(e.target.checked)} /><span><Link href="/mesafeli-satis-sozlesmesi" target="_blank">Mesafeli Satış Sözleşmesi ve Ön Bilgilendirme Formu</Link>&apos;nu okudum ve kabul ediyorum.</span></label>
           <label className="consent-check"><input type="checkbox" checked={personalizationAccepted} onChange={(e)=>setPersonalizationAccepted(e.target.checked)} /><span>Siparişimin ad, unvan, QR bağlantısı ve seçtiğim üretim bilgileriyle bana özel hazırlanacağını; kişiselleştirilmiş ürünlere ilişkin koşulların <Link href="/mesafeli-satis-sozlesmesi" target="_blank">sözleşmede</Link> ayrıca açıklandığını okudum ve kabul ediyorum.</span></label>
@@ -405,9 +410,9 @@ export default function NfcOrderPage() {
         {message&&<div className="auth-message">{message}</div>}
         <div className="wizard-actions">
           {activeStep>1?<button type="button" className="secondary" onClick={previousStep}>Önceki adım</button>:<Link className="secondary-link" href="/kartim">Kartıma dön</Link>}
-          {activeStep<5?<button type="button" className="primary" onClick={nextStep}>{["Kimliği bağla","İletişime geç","Teslimatı yaz","Ödemeyi kilitle"][activeStep-1]} →</button>:<button className="primary" disabled={submitting||!legalVersions||!distanceSalesAccepted||!personalizationAccepted}>{submitting?"Güvenli ödeme açılıyor...":"iyzico ile güvenle öde →"}</button>}
+          {activeStep<5?<button type="button" className="primary" onClick={nextStep}>{["Kimliği bağla","İletişime geç","Teslimatı yaz","Ödemeyi kilitle"][activeStep-1]} →</button>:<button className="primary" disabled={submitting||!legalVersions||!distanceSalesAccepted||!personalizationAccepted}>{submitting?"Güvenli ödeme açılıyor...":`${paymentProviderName} ile güvenle öde →`}</button>}
         </div>
-        <small className="secure-caption">Güvenli ödeme altyapısı iyzico tarafından sağlanır.</small>
+        <small className="secure-caption">Güvenli ödeme altyapısı {paymentProviderName} tarafından sağlanır.</small>
       </form>
     </section>
   </main>;

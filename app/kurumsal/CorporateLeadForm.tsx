@@ -39,7 +39,7 @@ export default function CorporateLeadForm({ plan = "GENEL", compact = false }: P
       if (!response.ok) throw new Error(payload.error || "Talep gönderilemedi.");
       form.reset();
       setStatus("success");
-      setMessage("Talebiniz alındı. Ekibimiz 1 iş günü içinde sizinle iletişime geçecek.");
+      setMessage("Talebinizi aldık. Ekibimiz 1 iş günü içinde sizinle iletişime geçecek.");
     } catch (error) {
       setStatus("error");
       setMessage(error instanceof Error ? error.message : "Talep gönderilemedi. Lütfen tekrar deneyin.");
@@ -68,7 +68,7 @@ export default function CorporateLeadForm({ plan = "GENEL", compact = false }: P
       </FormGrid>
       <div className="corporate-lead-actions">
         <Button type="submit" variant="primary" disabled={status === "loading"} className="corporate-cta">
-          {status === "loading" ? "Gönderiliyor…" : "Teklif Al"} <span aria-hidden>→</span>
+          {status === "loading" ? "Gönderiliyor…" : "Kurulumunu Planla"} <span aria-hidden>→</span>
         </Button>
         <span className="corporate-lead-note">1 iş günü içinde dönüş · ödeme veya kart bilgisi istenmez</span>
       </div>

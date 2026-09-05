@@ -37,20 +37,24 @@ export default function GizlilikPage() {
           <h2>1. Veri Sorumlusu</h2>
           <p>
             6698 sayılı Kişisel Verilerin Korunması Kanunu (&ldquo;KVKK&rdquo;) uyarınca, Yenomi ID markasını
-            işleten <strong>{legal.tradeName}</strong> (&ldquo;Yenomilabs&rdquo;, &ldquo;biz&rdquo;)
+            hizmetini sunan <strong>{legal.tradeName}</strong> (&ldquo;Yenomi ID&rdquo;, &ldquo;Yenomilabs&rdquo;,
+            &ldquo;biz&rdquo;)
             veri sorumlusu sıfatıyla hareket etmektedir.
           </p>
           <table>
             <tbody>
-              <tr><th>Unvan</th><td>{legal.tradeName}</td></tr>
-              <tr><th>MERSİS No</th><td>{legal.mersisNumber}</td></tr>
+              <tr><th>Hizmet sağlayıcı</th><td>{legal.tradeName}</td></tr>
+              <tr><th>İşletme tipi</th><td>{legal.entityType}</td></tr>
+              <tr><th>Marka</th><td>{legal.brandLine}</td></tr>
               <tr><th>Vergi Dairesi</th><td>{legal.taxOffice}</td></tr>
-              <tr><th>Vergi No</th><td>{legal.taxNumber}</td></tr>
+              {legal.taxNumber ? <tr><th>Vergi No</th><td>{legal.taxNumber}</td></tr> : null}
+              {legal.mersisNumber ? <tr><th>MERSİS No</th><td>{legal.mersisNumber}</td></tr> : null}
+              {legal.tradeRegistryNumber ? <tr><th>Ticaret Sicil No</th><td>{legal.tradeRegistryNumber}</td></tr> : null}
               <tr><th>Adres</th><td>{legal.address}</td></tr>
               <tr><th>Yetkili</th><td>{legal.authorizedPerson}</td></tr>
               <tr><th>Telefon</th><td>{legal.phone}</td></tr>
               <tr><th>E-posta</th><td>{legal.email}</td></tr>
-              <tr><th>Web</th><td>{legal.website}</td></tr>
+              {legal.website ? <tr><th>Web</th><td>{legal.website}</td></tr> : null}
             </tbody>
           </table>
         </section>
@@ -63,7 +67,7 @@ export default function GizlilikPage() {
             <li><strong>Hesap verileri:</strong> e-posta/şifre veya LinkedIn ile giriş bilgileri, oturum kayıtları.</li>
             <li><strong>Kartvizit içeriği:</strong> profil fotoğrafı, kart üzerinde göstermeyi tercih ettiğiniz her türlü bilgi.</li>
             <li><strong>Sipariş ve teslimat verileri:</strong> teslimat adresi, konum bilgisi (adres doğrulama için), sipariş içeriği.</li>
-            <li><strong>Ödeme verileri:</strong> ödeme, iyzico altyapısı üzerinden doğrudan işlenir; kart numarası gibi hassas ödeme verileri bizim sunucularımızda veya veritabanımızda saklanmaz.</li>
+            <li><strong>Ödeme verileri:</strong> ödeme, {legal.paymentProvider} altyapısı üzerinden doğrudan işlenir; kart numarası gibi hassas ödeme verileri bizim sunucularımızda veya veritabanımızda saklanmaz.</li>
             <li><strong>Teknik veriler:</strong> IP adresi, tarayıcı bilgisi, çerez kimlikleri, ziyaret/etkileşim kayıtları.</li>
           </ul>
         </section>
@@ -74,7 +78,7 @@ export default function GizlilikPage() {
             <li>Hesabınızı oluşturmak, doğrulamak ve güvenliğini sağlamak,</li>
             <li>Dijital kartvizit profilinizi yayınlamak ve QR/NFC ile erişilebilir kılmak,</li>
             <li>NFC kart siparişlerini almak, üretmek ve kargolamak,</li>
-            <li>Ödeme işlemlerini iyzico altyapısı üzerinden güvenli şekilde gerçekleştirmek,</li>
+            <li>Ödeme işlemlerini {legal.paymentProvider} altyapısı üzerinden güvenli şekilde gerçekleştirmek,</li>
             <li>Yasal yükümlülükleri (fatura, mesafeli satış, tüketici hakları) yerine getirmek,</li>
             <li>Hizmet kalitesini ölçmek, hataları tespit etmek ve güvenliği sağlamak (hız sınırlama, kötüye kullanım tespiti dahil).</li>
           </ul>
@@ -94,7 +98,8 @@ export default function GizlilikPage() {
           <p>Hizmeti sunabilmek için verileriniz sınırlı ölçüde şu hizmet sağlayıcılarla paylaşılır:</p>
           <ul>
             <li><strong>Supabase</strong> — hesap, profil ve sipariş verilerinin barındırıldığı veritabanı ve kimlik doğrulama altyapısı.</li>
-            <li><strong>iyzico</strong> — ödeme işlemlerinin güvenli şekilde alınması.</li>
+            <li><strong>{legal.paymentProvider}</strong> — ödeme işlemlerinin güvenli şekilde alınması.</li>
+            <li><strong>{legal.invoiceProvider}</strong> — e-Fatura ve e-Arşiv süreçlerinin yürütülmesi.</li>
             <li><strong>Kargo firması</strong> — NFC kart siparişlerinin teslimatı için ad, adres ve telefon bilgisi.</li>
             <li><strong>LinkedIn</strong> — LinkedIn ile giriş yapmayı tercih ederseniz, kimlik doğrulama amacıyla.</li>
           </ul>

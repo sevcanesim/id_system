@@ -274,7 +274,7 @@ export default function DashboardShell({
               <h2 id="purchase-gate-title">Dijital kimliğini oluşturmak için kartını seç</h2>
               <p>Bu alan, aktif Yenomi ID hizmetin olduğunda kullanıma açılır. NFC + QR kartını satın alarak profilini oluşturabilir ve bağlantılarını yönetmeye başlayabilirsin.</p>
               <div className={styles.purchaseGateActions}>
-                <Link className="yi-btn yi-btn--primary" href={INDIVIDUAL_PRODUCT_PURCHASE_HREF}>NFC Kartını Satın Al</Link>
+                <Link className="yi-btn yi-btn--primary" href={INDIVIDUAL_PRODUCT_PURCHASE_HREF}>Kartını Oluştur</Link>
                 <Link className="yi-btn yi-btn--secondary" href="/ayarlar">Hesap & Abonelik</Link>
               </div>
             </section>

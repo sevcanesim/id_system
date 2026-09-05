@@ -91,10 +91,10 @@ export default async function CorporatePage({
           </p>
           <div className="corporate-hero-actions">
             <a href="#kapasite" className="corporate-cta">
-              Paketleri Gör <span aria-hidden="true">→</span>
+              Ekibin için paketi seç <span aria-hidden="true">→</span>
             </a>
             <a href="/kurumsal?plan=ENTERPRISE#teklif" className="home-mockup__link-secondary">
-              100+ kişi için teklif al <span aria-hidden="true">→</span>
+              100+ kişi için kurulumu planla <span aria-hidden="true">→</span>
             </a>
           </div>
         </div>
@@ -140,8 +140,8 @@ export default async function CorporatePage({
           <span className="section-kicker">YILLIK KURUMSAL SİSTEM</span>
           <h2 id="business-pricing-title">Önce ekip ölçeğinizi seçin.</h2>
           <p>
-            Tüm paketlerde aynı kurumsal yönetim özellikleri bulunur. Önce kararınızı üç ölçekten birine indirin; ayrıntılı
-            kapasite seçeneklerini hemen altında karşılaştırın.
+            Tüm paketlerde aynı kurumsal yönetim standardı bulunur. Önce ekibinizin ölçeğini seçin; ayrıntılı
+            kapasite seçeneklerini hemen aşağıda karşılaştırın.
           </p>
         </div>
 
@@ -276,10 +276,10 @@ export default async function CorporatePage({
       <section className="corporate-lead-section" id="teklif" aria-labelledby="corporate-lead-title">
         <div className="corporate-lead-copy">
           <span className="section-kicker">100+ KİŞİ · ÖZEL KURULUM</span>
-          <h2 id="corporate-lead-title">Daha büyük ekipler için birlikte planlayalım.</h2>
+          <h2 id="corporate-lead-title">Daha büyük ekibiniz için doğru kurulumu birlikte planlayalım.</h2>
           <p>
-            100+ çalışan, özel entegrasyon veya kuruma özel yapılandırma ihtiyacınızı paylaşın. Size uygun kurulum ve
-            fiyatlandırmayla dönüş yapalım.
+            100+ çalışan, özel entegrasyon veya kuruma özel yapılandırma ihtiyacınızı paylaşın. Sizin için doğru kurulum ve
+            fiyatlandırma seçeneğiyle geri dönelim.
           </p>
           <div className="corporate-lead-trust-signals">
             <span>1 iş günü içinde dönüş</span>
@@ -298,7 +298,7 @@ export default async function CorporatePage({
         </div>
         <div className="corporate-final-cta__actions">
           <a href="#kapasite" className="corporate-cta">
-            Paketleri Gör <span aria-hidden="true">→</span>
+            Ekibin için paketi seç <span aria-hidden="true">→</span>
           </a>
           <a href="/kurumsal?plan=ENTERPRISE#teklif" className="home-mockup__link-secondary">
             100+ kişi için teklif al <span aria-hidden="true">→</span>

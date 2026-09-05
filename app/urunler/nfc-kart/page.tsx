@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { COMMERCIAL_COPY } from "../../../lib/config/commercial";
+import { COMMERCIAL_COPY, COMMERCIAL_FULFILLMENT } from "../../../lib/config/commercial";
 import { NFC_PRODUCT } from "../../../lib/config/product";
 import NfcPurchasePanel from "./NfcPurchasePanel";
 import NfcIncludesPanel from "./NfcIncludesPanel";
@@ -22,7 +22,7 @@ const benefits = [
 const faq = [
   [`Premium ${COMMERCIAL_COPY.premiumPrice}’ye ne dahil?`, "1 kişiselleştirilmiş NFC + QR kart, canlı dijital profil, kişi yönetimi, toplantı ve sunum araçları, 100 Network Mail kredisi, ilk yıl Premium erişimi ve Türkiye içi standart kargo dahildir."],
   ["2. yılda ne öderim?", `Premium erişimi ${COMMERCIAL_COPY.premiumRenewalPrice}/yıl, Bireysel erişimi ${COMMERCIAL_COPY.renewalPrice}/yıl üzerinden yenilenir. Yenilemede yeni fiziksel kart gönderilmez; mevcut kartın ve QR bağlantın kullanılmaya devam eder.`],
-  ["Kart kaç günde hazırlanır?", "Sipariş ve profil bilgileriniz tamamlandıktan sonra kartınız 2 iş günü içinde hazırlanıp kargoya teslim edilir."],
+  ["Kartım ne zaman kargoya verilir?", `Sipariş ve profil bilgileriniz tamamlandıktan sonra kartınız ${COMMERCIAL_FULFILLMENT.handover.toLocaleLowerCase()}.`],
   ["Bilgilerimi değiştirebilir miyim?", "Evet. Aktif kullanım süren boyunca telefon, unvan, şirket, bağlantılar ve diğer profil bilgilerini istediğin kadar güncelleyebilirsin."],
   ["NFC her telefonda çalışır mı?", "NFC destekli çoğu modern telefonda çalışır. NFC kapalıysa veya desteklenmiyorsa kart üzerindeki sabit QR kod kullanılabilir."],
   ["Kartımı kaybedersem ne olur?", "Panelden kartı kayıp moduna alabilirsin. Gerekirse aynı profile bağlı yedek kart sipariş edebilirsin."],
@@ -45,8 +45,8 @@ export default async function NfcKartPage({
       <main id="main-content" className="nfc-product-page">
         <PublicPageTitle
           kicker="YENOMI ID · NFC + QR KART"
-          title={<>Kart bir kez basılır.<br />Kimliğin her gün güncel kalır.</>}
-          description="NFC veya QR ile paylaş. Bilgilerin değişince kartı yenileme; kaybolursa panelden kapat. Premium ile tanıştığın kişileri ve takibini de tek yerde yönet."
+          title={<>Kartın aynı kalır.<br />Profesyonel kimliğin güncel kalır.</>}
+          description="NFC veya QR ile anında paylaş. Bilgilerin değiştiğinde kartını değil, profilini güncelle; Premium ile yeni bağlantılarını da tek yerden yönet."
           className="public-page-title--product"
         />
 
@@ -54,7 +54,7 @@ export default async function NfcKartPage({
           <div className="yi-container nfc-product-hero__grid">
             <div className="nfc-product-hero__copy">
               <span className="nfc-kicker">PAKETİNİ SEÇ</span>
-              <p className="nfc-product-hero__body">Premium önerilen paket. Yalnızca güncellenebilir NFC + QR kartvizit istiyorsan Bireysel’i seçebilirsin.</p>
+              <p className="nfc-product-hero__body">Premium, kartvizitten sonra bağlantıyı yönetmek isteyenler için. Sade ve güncellenebilir bir dijital kartvizit için Bireysel&apos;i seçebilirsin.</p>
               <NfcPurchasePanel product={NFC_PRODUCT} accessRequired={accessRequired} />
             </div>
             <div className="nfc-product-hero__visual">

@@ -18,7 +18,7 @@ export function MobileStickyCta() {
         className="home-mockup__button home-mockup__button--gold"
         href="/urunler/nfc-kart?paket=premium"
       >
-        Premium’u Seç
+        Premium ile Başla
       </Link>
     </aside>
   );

@@ -43,25 +43,25 @@ const siteOrigin = publicCardOrigin();
 export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin),
   title: {
-    default: "Yenomi ID | Kartvizitin güncel kalsın",
+    default: "Yenomi ID | Tanışmanın devamı sende kalsın",
     template: "%s | Yenomi ID",
   },
-  description: "NFC + QR kartvizit. Unvanın değişince kartı yenilemezsin. Kendin için al, ekibin için yönet. Güvenli ödeme altyapısı ile tamamla.",
+  description: "NFC + QR dijital kartvizit. Kendini anında tanıt, bilgilerini güncel tut ve bağlantılarını doğru zamanda takip et.",
   applicationName: "Yenomi ID",
   icons: { icon: "/favicon.ico", apple: "/apple-touch-icon.png" },
   openGraph: {
     type: "website",
     locale: "tr_TR",
     siteName: "Yenomi ID",
-    title: "Yenomi ID | Kartvizitin güncel kalsın",
-    description: "NFC + QR kartvizit. Unvanın değişince kartı yenilemezsin. Kendin için al, ekibin için yönet. Kart numarası Yenomi’de saklanmaz.",
+    title: "Yenomi ID | Tanışmanın devamı sende kalsın",
+    description: "NFC + QR dijital kartvizit. Kendini anında tanıt, bilgilerini güncel tut ve bağlantılarını güvenle yönet.",
     url: siteOrigin,
     images: ["/images/yenomilabs-share.png"],
   },
   twitter: {
     card: "summary",
-    title: "Yenomi ID | Kartvizitin güncel kalsın",
-    description: "NFC + QR kartvizit. Kendin için al, ekibin için yönet. Kart numarası Yenomi’de saklanmaz.",
+    title: "Yenomi ID | Tanışmanın devamı sende kalsın",
+    description: "NFC + QR dijital kartvizit. Kendini anında tanıt, bilgilerini güncel tut ve bağlantılarını güvenle yönet.",
     images: ["/images/yenomilabs-share.png"],
   },
 };

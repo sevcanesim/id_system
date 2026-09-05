@@ -5,7 +5,7 @@ import AddToCartButton from "../../components/AddToCartButton";
 import { ProductVariantSelector } from "../../components/ui/ProductVariantSelector";
 import type { CatalogProduct } from "../../../lib/config/product";
 import { formatTryFromKurus } from "../../../lib/config/product";
-import { COMMERCIAL_PRICING, COMMERCIAL_SKUS } from "../../../lib/config/commercial";
+import { COMMERCIAL_FULFILLMENT, COMMERCIAL_PRICING, COMMERCIAL_SKUS } from "../../../lib/config/commercial";
 import { INDIVIDUAL_PLAN, INDIVIDUAL_PREMIUM_PLAN } from "../../../lib/commerce/packages";
 import { Icon } from "../../icons";
 import MobileBuyBar from "./MobileBuyBar";
@@ -34,7 +34,7 @@ export default function NfcPurchasePanel({
   const productName = selectedVariant
     ? `${packageName} — ${selectedVariant.name}`
     : packageName;
-  const ctaLabel = packageId === "premium" ? "Premium’u Seç →" : "NFC Kartı Satın Al →";
+  const ctaLabel = packageId === "premium" ? "Premium ile Başla →" : "Kartını Oluştur →";
   const configuration = useMemo(
     () => selectedVariant
       ? { variantId: selectedVariant.id, variantName: selectedVariant.name, packageCode: packageId === "premium" ? INDIVIDUAL_PREMIUM_PLAN.code : INDIVIDUAL_PLAN.code }
@@ -76,8 +76,8 @@ export default function NfcPurchasePanel({
         {accessRequired
           ? "Yedek veya replacement kart için aktif bir Yenomi ID hizmetin gerekir. Aşağıdan ilk kartını alabilirsin; ödeme sunucuda yeniden doğrulanır."
           : packageId === "premium"
-            ? "Premium: NFC kart + 1 yıl platform üyeliği + 100 Network Mail. Tek seferlik ödeme. Kart numarası güvenli ödeme sağlayıcısında işlenir."
-            : "Tek seferlik ödeme, 1 yıl platform üyeliği dahil. Hesabın varsa sipariş bağlanır. Kart numarası Yenomi sunucularında tutulmaz."}
+            ? "Premium: NFC kart, 1 yıl platform erişimi ve 100 Network Mail. Tek seferlik ödeme; kart bilgilerin PayTR&apos;ın güvenli sayfasında işlenir."
+            : "Tek seferlik ödeme ve 1 yıl platform erişimi dahil. Kart bilgilerin PayTR&apos;ın güvenli sayfasında işlenir; Yenomi sunucularında saklanmaz."}
       </p>
 
       <div className="nfc-price-row" id="nfc-hero-price-row">
@@ -99,11 +99,11 @@ export default function NfcPurchasePanel({
       </div>
 
       <div className="nfc-trust-row" aria-label="Güven ve güvenlik">
-        <span><Icon name="lock" /> SSL şifreli ödeme</span>
-        <span><Icon name="shield" /> Kartın Yenomi’de saklanmaz</span>
-        <span><Icon name="truck" /> Türkiye içi kargo dahil</span>
-        <span><Icon name="clock" /> 2 iş gününde hazırlık</span>
-        <span><Icon name="refresh" /> 14 gün cayma hakkı</span>
+        <span><Icon name="lock" /> PayTR ile şifreli ödeme</span>
+        <span><Icon name="shield" /> Kart bilgilerin Yenomi&apos;de saklanmaz</span>
+        <span><Icon name="truck" /> {COMMERCIAL_FULFILLMENT.domesticShipping}</span>
+        <span><Icon name="clock" /> {COMMERCIAL_FULFILLMENT.handover}</span>
+        <span><Icon name="headset" /> {COMMERCIAL_FULFILLMENT.supportResponse}</span>
       </div>
 
       <MobileBuyBar

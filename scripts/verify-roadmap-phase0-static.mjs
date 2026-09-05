@@ -25,8 +25,12 @@ if (/hello@yenomilabs\.com/i.test(refundPage)) {
   throw new Error('İade/iptal sayfasında eski hardcoded destek e-postası kaldı.');
 }
 const prodVerifier = fs.readFileSync('scripts/verify-production-env.mjs','utf8');
-for (const key of ['LEGAL_TAX_OFFICE','LEGAL_AUTHORIZED_PERSON','LEGAL_PHONE','LEGAL_WEBSITE']) {
+for (const key of ['LEGAL_ENTITY_TYPE','LEGAL_TAX_OFFICE','LEGAL_AUTHORIZED_PERSON','LEGAL_PHONE','LEGAL_WEBSITE','LEGAL_PAYMENT_PROVIDER','LEGAL_INVOICE_PROVIDER']) {
   if (!prodVerifier.includes(`'${key}'`)) throw new Error(`Production legal env gate eksik: ${key}`);
+}
+const legalIdentity = fs.readFileSync('lib/config/legal-identity.ts','utf8');
+if (/OPSOLA|6440962576|0644096257600001|\+90 555 834 2672|www\.opsola\.com/i.test(legalIdentity)) {
+  throw new Error('Yenomi ID hukuk kimliğinde başka bir işletmeye ait fallback bulunamaz.');
 }
 
 console.log('Roadmap Faz 0 static sözleşmesi BAŞARILI.');

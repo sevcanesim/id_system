@@ -119,7 +119,7 @@ export default function OrderResultGate() {
         <p>Bağlantı geçersiz olabilir veya ödeme henüz kilitlenmemiş olabilir. Çekim olduysa siparişlerimden durumu gör; olmadıysa aynı siparişi yeniden dene.</p>
         <div className="order-success-actions">
           <Link href="/siparislerim">Siparişlerimi Gör</Link>
-          <Link className="secondary" href="/urunler/nfc-kart">NFC Kartı Satın Al</Link>
+          <Link className="secondary" href="/urunler/nfc-kart">Kartını Oluştur</Link>
         </div>
       </section>
     );

@@ -46,6 +46,13 @@ export const COMMERCIAL_SKUS = {
   REPLACEMENT_CARD: COMMERCIAL_PRICING.REPLACEMENT_CARD.sku,
 } as const;
 
+/** Customer-facing fulfilment promises; use this copy consistently. */
+export const COMMERCIAL_FULFILLMENT = {
+  domesticShipping: "Türkiye içi ücretsiz kargo",
+  handover: "2 iş günü içinde kargoya teslim",
+  supportResponse: "1 iş günü içinde dönüş",
+} as const;
+
 export function isPhysicalBundleSku(sku: string | undefined): boolean { return sku === COMMERCIAL_SKUS.INITIAL || sku === COMMERCIAL_SKUS.PREMIUM; }
 export function isRenewalSku(sku: string | undefined): boolean { return sku === COMMERCIAL_SKUS.RENEWAL || sku === COMMERCIAL_SKUS.PREMIUM_RENEWAL; }
 export function isPremiumUpgradeSku(sku: string | undefined): boolean { return sku === COMMERCIAL_SKUS.PREMIUM_UPGRADE; }

@@ -11,9 +11,9 @@ export function FinalCtaSection() {
       aria-labelledby="final-title"
     >
       <span className="home-mockup__kicker">ÖNERİLEN · PREMIUM</span>
-      <h2 id="final-title">Tanışma kartvizitte bitmesin.</h2>
+      <h2 id="final-title">Her tanışmayı kalıcı bir bağlantıya dönüştür.</h2>
       <p>
-        NFC + QR kartvizit, kişi yönetimi ve 100 Network Mail tek pakette.
+        NFC + QR kartvizit, kişi yönetimi ve 100 Network Mail; iş ilişkinizin ilk anından sonraki adımına kadar yanında.
       </p>
       <div className="home-sales-final-offer">
         <strong>{premiumPrice}</strong>
@@ -26,7 +26,7 @@ export function FinalCtaSection() {
           className="home-mockup__button home-mockup__button--gold"
           href="/urunler/nfc-kart?paket=premium"
         >
-          Premium’u Seç <span aria-hidden>→</span>
+          Premium ile Başla <span aria-hidden>→</span>
         </Link>
       </div>
     </section>

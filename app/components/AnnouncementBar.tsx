@@ -1,9 +1,10 @@
 import { Icon, type IconName } from "../icons";
+import { COMMERCIAL_FULFILLMENT } from "../../lib/config/commercial";
 
 const ITEMS: ReadonlyArray<{ label: string; icon: IconName }> = [
-  { label: "Türkiye içi kargo dahil", icon: "box" },
-  { label: "2 iş gününde hazırlanır", icon: "clock" },
-  { label: "Güvenli ödeme", icon: "lock" },
+  { label: COMMERCIAL_FULFILLMENT.domesticShipping, icon: "box" },
+  { label: COMMERCIAL_FULFILLMENT.handover, icon: "clock" },
+  { label: "PayTR ile güvenli ödeme", icon: "lock" },
 ];
 
 export default function AnnouncementBar() {

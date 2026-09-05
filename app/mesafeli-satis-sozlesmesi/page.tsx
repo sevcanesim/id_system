@@ -25,7 +25,7 @@ export default function MesafeliSatisPage() {
         <section>
           <h2>1. Taraflar</h2>
           <p>
-            <strong>Satıcı:</strong> {legal.tradeName}, {legal.address}, Vergi Dairesi: {legal.taxOffice}, Vergi No: {legal.taxNumber}, MERSİS No: {legal.mersisNumber}, Yetkili: {legal.authorizedPerson}, Telefon: {legal.phone}, E-posta: {legal.email} (&ldquo;Satıcı&rdquo;).<br />
+            <strong>Satıcı / hizmet sağlayıcı:</strong> {legal.tradeName} ({legal.entityType}), marka: {legal.brandLine}, {legal.address}, Vergi Dairesi: {legal.taxOffice}{legal.taxNumber ? `, Vergi No: ${legal.taxNumber}` : ""}{legal.mersisNumber ? `, MERSİS No: ${legal.mersisNumber}` : ""}{legal.tradeRegistryNumber ? `, Ticaret Sicil No: ${legal.tradeRegistryNumber}` : ""}, Yetkili: {legal.authorizedPerson}, Telefon: {legal.phone}, E-posta: {legal.email}, e-Fatura / e-Arşiv sağlayıcısı: {legal.invoiceProvider} (&ldquo;Satıcı&rdquo;).<br />
             <strong>Alıcı:</strong> Sipariş sırasında bilgileri girilen, Yenomi ID hesabı üzerinden sipariş
             veren kişi (&ldquo;Alıcı&rdquo;/&ldquo;Tüketici&rdquo;).
           </p>
@@ -44,7 +44,7 @@ export default function MesafeliSatisPage() {
         <section>
           <h2>3. Fiyat ve Ödeme</h2>
           <p>
-            Ürün bedeli, sipariş anında ekranda gösterilen ve iyzico güvenli ödeme altyapısı üzerinden
+            Ürün bedeli, sipariş anında ekranda gösterilen ve {legal.paymentProvider} güvenli ödeme altyapısı üzerinden
             tahsil edilen tutardır. Kargo, aksi belirtilmedikçe Türkiye geneli ücretsizdir. Fiyata yasal
             KDV dahildir.
           </p>
@@ -54,7 +54,7 @@ export default function MesafeliSatisPage() {
           <h2>4. Teslimat</h2>
           <p>
             Ürün, sipariş onayında belirtilen adrese, ödeme onaylandıktan sonra anlaşmalı kargo firması
-            aracılığıyla makul süre içinde gönderilir. Teslimat süresi sipariş takip ekranında ve
+            aracılığıyla 2 iş günü içinde kargoya teslim edilir. Teslimat süresi sipariş takip ekranında ve
             e-postayla bildirilir. Mücbir sebep hâllerinde teslimat süresi uzayabilir; Alıcı bu durumda
             bilgilendirilir.
           </p>

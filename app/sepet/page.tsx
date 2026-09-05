@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { cartItemPresentation, readCart, removeCartItem, setCartOwner, updateCartItemQuantity, writeCart, type CartItem } from "../../lib/cart";
 import { COMMERCIAL_PRICING, isCorporatePackageSku, requiresPortalAccountSku } from "../../lib/config/commercial";
 import { formatTryFromKurus } from "../../lib/config/product";
-import { INDIVIDUAL_PREMIUM_PLAN } from "../../lib/commerce/packages";
+import { INDIVIDUAL_PLAN, INDIVIDUAL_PREMIUM_PLAN } from "../../lib/commerce/packages";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { EmptyState } from "../components/ui/States";
 import { ButtonLink } from "../components/ui/DesignSystem";
@@ -48,7 +48,7 @@ export default function CartPage() {
               icon="cart"
               title={`Premium · ${formatTryFromKurus(INDIVIDUAL_PREMIUM_PLAN.priceKurus)}`}
               description={audience === "corporate" ? "NFC + QR kart, kişi yönetimi, toplantı ve sunum araçları, 100 Network Mail ve ilk yıl Premium erişimi dahil. Ek kurumsal kart kapasitesini Kartlar alanından yönetebilirsin." : "NFC + QR kart, kişi yönetimi, toplantı ve sunum araçları, 100 Network Mail ve ilk yıl Premium erişimi dahil."}
-              action={<div className="ds-empty-actions"><Link className="ds-button ds-button--primary" href="/urunler/nfc-kart?paket=premium">Premium’u İncele</Link>{audience === "corporate" ? <Link className="home-mockup__link-secondary" href="/kurumsal/panel/kartlar">Kurumsal kartlar</Link> : <><Link className="home-mockup__link-secondary" href="/urunler/nfc-kart?paket=individual">Bireysel · ₺1.490</Link><Link className="home-mockup__link-secondary" href="/kurumsal">Kurumsal paketler</Link></>}</div>}
+              action={<div className="ds-empty-actions"><Link className="ds-button ds-button--primary" href="/urunler/nfc-kart?paket=premium">Premium ile Başla</Link>{audience === "corporate" ? <Link className="home-mockup__link-secondary" href="/kurumsal/panel/kartlar">Kurumsal kartlar</Link> : <><Link className="home-mockup__link-secondary" href="/urunler/nfc-kart?paket=individual">Bireysel · {formatTryFromKurus(INDIVIDUAL_PLAN.priceKurus)}</Link><Link className="home-mockup__link-secondary" href="/kurumsal">Kurumsal paketler</Link></>}</div>}
             />
           ) : (
             <div className="yi-cart-layout">

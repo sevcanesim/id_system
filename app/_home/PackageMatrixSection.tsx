@@ -43,7 +43,7 @@ const mobilePackages = [
     price: premiumPrice,
     valueIndex: 2,
     href: "/urunler/nfc-kart?paket=premium",
-    action: "Premium’u Seç",
+    action: "Premium ile Başla",
   },
   {
     name: "Kurumsal",
@@ -137,7 +137,7 @@ export function PackageMatrixSection() {
             </span>
             <span role="cell">
               <Link href="/urunler/nfc-kart?paket=premium">
-                Premium’u Seç →
+                Premium ile Başla →
               </Link>
             </span>
             <span role="cell">

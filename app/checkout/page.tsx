@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { readCart, writeCart, type CartItem } from "../../lib/cart";
 import { formatTryFromKurus } from "../../lib/config/product";
-import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, isDigitalOnlySku, isPhysicalBundleSku, isPremiumUpgradeSku, isRenewalSku, requiresPortalAccountSku } from "../../lib/config/commercial";
+import { COMMERCIAL_FULFILLMENT, COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, isDigitalOnlySku, isPhysicalBundleSku, isPremiumUpgradeSku, isRenewalSku, requiresPortalAccountSku } from "../../lib/config/commercial";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { Icon } from "../icons";
 import { Button } from "../components/ui/DesignSystem";
@@ -211,7 +211,7 @@ export default function CheckoutPage() {
   const hasCorporatePackage = items.some((item) => isCorporatePackageSku(item.variantSku));
   const digitalOnlyCart = items.length > 0 && items.every((item) => isDigitalOnlySku(item.variantSku));
   const usesIyzico = paymentProvider === "IYZICO";
-  const paymentProviderName = paymentProvider === "PAYTR" ? "PayTR" : "iyzico";
+  const paymentProviderName = paymentProvider === "IYZICO" ? "iyzico" : "PayTR";
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -424,14 +424,14 @@ export default function CheckoutPage() {
             </div>
             <div className="checkout-trust-row checkout-trust-row-compact" aria-label="Sipariş avantajları">
               <span><Icon name="shield" />{paymentProviderName} ile güvenle öde</span>
-              {!digitalOnlyCart && <span><Icon name="truck" />Ücretsiz kargo</span>}
-              {hasInitialBundle && <span><Icon name="clock" />Ana kart 2 iş gününde hazırlanır</span>}
+              {!digitalOnlyCart && <span><Icon name="truck" />{COMMERCIAL_FULFILLMENT.domesticShipping}</span>}
+              {hasInitialBundle && <span><Icon name="clock" />Ana kart {COMMERCIAL_FULFILLMENT.handover.toLocaleLowerCase()}</span>}
               {hasDigitalMembership && <span><Icon name="shield" />1 yıl platform üyeliği dahil</span>}
               {hasExtraCard && <span><Icon name="shield" />Mevcut Yenomi ID hizmetine bağlı</span>}
               {hasRenewal && <span><Icon name="shield" />Yalnız dijital hizmet yenilemesi</span>}
               {hasReplacement && <span><Icon name="shield" />Mevcut profilin korunur</span>}
               {hasCorporatePackage && <span><Icon name="building" />Kurumsal fatura: unvan, vergi no, vergi dairesi</span>}
-              {hasCorporatePackage && <span><Icon name="clock" />NFC kartlar 2 iş gününde hazırlanır</span>}
+              {hasCorporatePackage && <span><Icon name="clock" />NFC kartlar {COMMERCIAL_FULFILLMENT.handover.toLocaleLowerCase()}</span>}
               {hasCorporatePackage && <span><Icon name="shield" />1 yıllık kurumsal sistem</span>}
             </div>
           </div>
@@ -441,7 +441,7 @@ export default function CheckoutPage() {
           ) : requiresPortalLogin ? (
             <div className="cart-empty" role="status"><h2>Giriş sayfasına yönlendiriliyorsun…</h2><p>Portal erişimi içeren paketler ödeme öncesinde hesabınla eşleştirilir. Sepetin korunur.</p></div>
           ) : !items.length ? (
-            <div className="cart-empty"><h2>Kartın henüz sepette değil.</h2><Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart">NFC Kartı Satın Al</Link></div>
+            <div className="cart-empty"><h2>Kartın henüz sepette değil.</h2><Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart">Kartını Oluştur</Link></div>
           ) : (
             <form onSubmit={submit} className="checkout-layout checkout-layout-confirm" noValidate>
               <div className="checkout-accordion">

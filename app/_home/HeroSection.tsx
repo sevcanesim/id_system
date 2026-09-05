@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { formatTryFromKurus } from "../../lib/config/product";
 import { INDIVIDUAL_PREMIUM_PLAN } from "../../lib/commerce/packages";
+import { COMMERCIAL_FULFILLMENT } from "../../lib/config/commercial";
 import { Icon } from "../icons";
 import { YenomiProductVisual } from "../ui/YenomiProductVisual";
 
 const premiumPrice = formatTryFromKurus(INDIVIDUAL_PREMIUM_PLAN.priceKurus);
 
 const heroTrust = [
-  "Türkiye içi kargo dahil",
-  "2 iş gününde hazırlanır",
+  COMMERCIAL_FULFILLMENT.domesticShipping,
+  COMMERCIAL_FULFILLMENT.handover,
   "Uygulama gerekmez",
   "KAYIP MODU · Kaybolursa erişimi kapat",
 ];
@@ -24,26 +25,26 @@ export function HeroSection() {
           <i aria-hidden="true" /> YENOMI ID PREMIUM · NFC + QR
         </span>
         <h1 id="home-title">
-          Bir kez basılır.
+          Kartın konuşsun.
           <br />
-          <span>Tanışma orada bitmez.</span>
+          <span>Sen bağlantıda kal.</span>
         </h1>
         <p>
-          Kartını paylaş, yeni bağlantını kaydet ve tanışma sonrasındaki
-          takibi tek yerden sürdür.
+          NFC veya QR ile kendini anında tanıt; yeni bağlantılarını tek
+          merkezden yönet ve doğru zamanda takipte kal.
         </p>
         <div className="home-mockup__actions home-premium__hero-actions home-sales-actions">
           <Link
             className="home-mockup__button home-mockup__button--gold home-mockup__button--primary"
             href="/urunler/nfc-kart?paket=premium"
           >
-            Premium’u Al <span aria-hidden>→</span>
+            Premium ile Başla <span aria-hidden>→</span>
           </Link>
           <Link
             className="home-premium__hero-secondary"
             href="#paths-title"
           >
-            Tüm paketleri gör <span aria-hidden>↓</span>
+            Sana uygun paketi gör <span aria-hidden>↓</span>
           </Link>
         </div>
         <div className="home-sales-offer">

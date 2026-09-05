@@ -27,14 +27,14 @@ export function HowItWorksBoard() {
         <div className="yi-container how-simple-hero__grid">
           <div className="how-simple-hero__copy">
             <span className="section-kicker">NASIL ÇALIŞIR?</span>
-            <h1 id="how-title">Kartını paylaş.<br />Tanışmayı devam&nbsp;ettir.</h1>
-            <p>Yenomi ID Premium yalnızca dijital kartvizit değildir. NFC + QR ile paylaşımın ardından kişi yönetimi, toplantı, sunum ve Network Mail ile profesyonel takip akışını sürdürür.</p>
+            <h1 id="how-title">Kartını paylaş.<br />Bağlantıyı büyüt.</h1>
+            <p>Yenomi ID Premium, dijital kartvizitin ötesine geçer. NFC + QR paylaşımından sonra kişileri, toplantıları, sunumları ve takibi aynı akışta tutar.</p>
             <div className="how-simple-hero__offer">
               <strong>{premiumPrice}</strong>
               <span>1 yıl · NFC + QR · 100 Network Mail · Türkiye içi kargo</span>
             </div>
             <div className="how-simple-actions">
-              <Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart?paket=premium">Premium’u Seç →</Link>
+              <Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart?paket=premium">Premium ile Başla →</Link>
               <Link className="how-simple-text-link" href="#adimlar">4 adımı gör ↓</Link>
             </div>
           </div>
@@ -73,8 +73,8 @@ export function HowItWorksBoard() {
           <div className="how-simple-premium__intro">
             <span className="section-kicker">NEDEN PREMIUM?</span>
             <h2 id="premium-title">Kartvizitten fazlasını kullananlar için.</h2>
-            <p>Standart NFC kart paylaşımı çözer. Premium, paylaşım sonrasında başlayan networking ve satış takibini de Yenomi ID içine alır.</p>
-            <Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart?paket=premium">Premium’u İncele →</Link>
+            <p>Standart NFC kart paylaşımı çözer. Premium, paylaşım sonrasında başlayan networking ve satış takibini de Yenomi ID içinde tutar.</p>
+            <Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart?paket=premium">Premium&apos;u yakından gör →</Link>
           </div>
           <div className="how-simple-benefits">
             {premiumBenefits.map((benefit) => (
@@ -112,7 +112,7 @@ export function HowItWorksBoard() {
           <div className="how-simple-final__buy">
             <strong>{premiumPrice}</strong>
             <span>1 yıl dahil</span>
-            <Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart?paket=premium">Premium’u Seç →</Link>
+            <Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart?paket=premium">Premium ile Başla →</Link>
           </div>
         </div>
       </section>

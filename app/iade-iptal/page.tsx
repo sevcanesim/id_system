@@ -66,7 +66,7 @@ export default function IadeIptalPage() {
           <h2>İade Süreci Nasıl İşler?</h2>
           <ol>
             <li><a href={`mailto:${legal.email}`} className="legal-link">{legal.email}</a> adresine sipariş numaranızla birlikte talebinizi iletin.</li>
-            <li>Talebiniz en geç 2 iş günü içinde değerlendirilir ve size dönüş yapılır.</li>
+            <li>Talebiniz en geç 1 iş günü içinde değerlendirilir ve size dönüş yapılır.</li>
             <li>Onaylanan iadelerde bedel, ödemenin yapıldığı yönteme 14 gün içinde iade edilir.</li>
           </ol>
         </section>

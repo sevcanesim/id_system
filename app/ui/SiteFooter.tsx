@@ -9,7 +9,7 @@ function FooterContent() {
       <div className="yi-footer__premium-grid">
         <div className="yi-footer__premium-brand">
           <Brand compact />
-          <p>NFC + QR dijital kartvizit. Kartın aynı kalır, bilgilerin güncel kalır.</p>
+          <p>Bir kez tanıt. Bilgilerin değişse de bağlantın güncel kalsın.</p>
         </div>
 
         <nav className="yi-footer__premium-column" aria-label="Ürün">
@@ -36,8 +36,8 @@ function FooterContent() {
       </div>
 
       <div className="yi-footer__premium-base">
-        <span>© 2026 Yenomi ID</span>
-        <span>Yenomilabs ürünü</span>
+        <span>© 2026 Yenomilabs</span>
+        <span>Yenomi ID — by Yenomilabs</span>
       </div>
     </>
   );

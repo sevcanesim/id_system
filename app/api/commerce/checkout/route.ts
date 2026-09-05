@@ -91,6 +91,44 @@ type CalculatedItem = {
   configuration?: Record<string, unknown>;
 };
 
+type CorporateBillingProfile = {
+  organizationId: string;
+  name: string;
+  taxNumber: string;
+  taxOffice: string;
+  addressLine: string;
+  city: string;
+  district: string;
+  postalCode: string;
+  email: string;
+  phone: string;
+};
+
+function text(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function corporateBillingProfile(organizationId: string, organization: Record<string, unknown>): CorporateBillingProfile | null {
+  const name = text(organization.legal_name) || text(organization.name);
+  const taxNumber = text(organization.tax_number).replace(/\D/g, "");
+  const addressLine = text(organization.billing_address) || text(organization.legal_address);
+  const city = text(organization.billing_city) || text(organization.city);
+  const district = text(organization.billing_district) || text(organization.district);
+  if (!name || !taxNumber || !addressLine || !city || !district) return null;
+  return {
+    organizationId,
+    name,
+    taxNumber,
+    taxOffice: text(organization.tax_office),
+    addressLine,
+    city,
+    district,
+    postalCode: text(organization.billing_postal_code),
+    email: text(organization.billing_email),
+    phone: text(organization.billing_phone),
+  };
+}
+
 function splitName(value: string) {
   const parts = value.trim().split(/\s+/);
   return { name: parts[0] || "Müşteri", surname: parts.slice(1).join(" ") || "Yenomi" };
@@ -170,9 +208,6 @@ export async function POST(request: NextRequest) {
       }
     }
     const identityNumber = normalizeIdentityNumber(body.customer.identityNumber, body.customer.identityType);
-    if (paymentProvider === "IYZICO" && !isValidIdentityNumber(identityNumber, body.customer.identityType)) {
-      return NextResponse.json({ error: body.customer.identityType === "TR" ? "Geçerli bir T.C. kimlik numarası gir." : "Geçerli bir pasaport numarası gir." }, { status: 400 });
-    }
 
     const admin = getSupabaseAdminClient();
     const slugs = [...new Set(body.items.map((item) => item.productSlug))];
@@ -206,6 +241,15 @@ export async function POST(request: NextRequest) {
         configuration: item.configuration,
       };
     });
+
+    // Identity number is never collected for a digital service. This keeps
+    // Network Mail checkout free of T.C./passport data even if an older
+    // iyzico configuration is explicitly selected for other products.
+    const paymentRequiresIdentityNumber = paymentProvider === "IYZICO"
+      && calculated.some((item) => !isDigitalOnlySku(item.variant.sku));
+    if (paymentRequiresIdentityNumber && !isValidIdentityNumber(identityNumber, body.customer.identityType)) {
+      return NextResponse.json({ error: body.customer.identityType === "TR" ? "Geçerli bir T.C. kimlik numarası gir." : "Geçerli bir pasaport numarası gir." }, { status: 400 });
+    }
 
     if (!authenticatedUserId && calculated.some((item) => requiresPortalAccountSku(item.variant.sku))) {
       return NextResponse.json({
@@ -324,6 +368,7 @@ export async function POST(request: NextRequest) {
     if (networkMailItems.length && networkMailItems.length !== calculated.length) {
       return NextResponse.json({ error: "Network Mail kredi paketleri ayrı bir siparişte alınır." }, { status: 400 });
     }
+    let organizationBilling: CorporateBillingProfile | null = null;
     if (networkMailItems.length) {
       const organizationIds = networkMailItems.map((item) => item.configuration?.organizationId);
       const organizationCreditPurchase = organizationIds.some((value) => value != null);
@@ -355,6 +400,18 @@ export async function POST(request: NextRequest) {
           .maybeSingle();
         if (!activeSubscription) {
           return NextResponse.json({ error: "Şirket Network Mail kredisi yalnız aktif kurumsal aboneliklerde kullanılabilir." }, { status: 409 });
+        }
+        const { data: organization, error: organizationError } = await admin
+          .from("organizations")
+          .select("id,name,legal_name,tax_number,tax_office,billing_address,billing_city,billing_district,billing_postal_code,billing_email,billing_phone,legal_address,city,district")
+          .eq("id", organizationId)
+          .maybeSingle();
+        if (organizationError || !organization) {
+          return NextResponse.json({ error: "Şirketin fatura profili doğrulanamadı. Lütfen kısa süre sonra yeniden dene." }, { status: 409 });
+        }
+        organizationBilling = corporateBillingProfile(organizationId, organization as Record<string, unknown>);
+        if (!organizationBilling) {
+          return NextResponse.json({ error: "Şirketin kayıtlı fatura profili eksik. Şirket Sahibi, resmî unvan ve fatura adresini tamamlamalıdır." }, { status: 409 });
         }
         for (const item of networkMailItems) {
           item.configuration = { ...(item.configuration || {}), organizationId, creditScope: "ORGANIZATION" };
@@ -394,14 +451,25 @@ export async function POST(request: NextRequest) {
       }
     }
     const digitalOnlyCart = calculated.length > 0 && calculated.every((item) => isDigitalOnlySku(item.variant.sku));
+    const shippingSource = organizationBilling
+      ? {
+          ...body.shipping,
+          recipientName: body.customer.name,
+          phone: organizationBilling.phone || body.customer.phone,
+          addressLine: organizationBilling.addressLine,
+          district: organizationBilling.district,
+          city: organizationBilling.city,
+          postalCode: organizationBilling.postalCode || null,
+        }
+      : body.shipping;
     const shipping = {
-      ...body.shipping,
+      ...shippingSource,
       addressLine: digitalOnlyCart
-        ? digitalServiceBillingAddress(body.shipping.city, body.shipping.addressLine)
-        : body.shipping.addressLine.trim(),
-      latitude: digitalOnlyCart ? null : body.shipping.latitude ?? null,
-      longitude: digitalOnlyCart ? null : body.shipping.longitude ?? null,
-      deliveryNote: digitalOnlyCart ? null : body.shipping.deliveryNote || null,
+        ? digitalServiceBillingAddress(shippingSource.city, shippingSource.addressLine)
+        : shippingSource.addressLine.trim(),
+      latitude: digitalOnlyCart ? null : shippingSource.latitude ?? null,
+      longitude: digitalOnlyCart ? null : shippingSource.longitude ?? null,
+      deliveryNote: digitalOnlyCart ? null : shippingSource.deliveryNote || null,
     };
     if (!digitalOnlyCart && shipping.addressLine.length < 8) {
       return NextResponse.json({ error: "Teslimat adresini daha ayrıntılı yaz." }, { status: 400 });
@@ -445,7 +513,11 @@ export async function POST(request: NextRequest) {
     const companyBilling = corporateItems[0]
       ? parseCompanyBilling(body.company)
       : null;
-    const company = companyBilling?.ok ? companyBilling.company : null;
+    const company = companyBilling?.ok
+      ? companyBilling.company
+      : organizationBilling
+        ? { name: organizationBilling.name, taxNumber: organizationBilling.taxNumber, taxOffice: organizationBilling.taxOffice }
+        : null;
 
     const subtotalKurus = calculated.reduce((sum, item) => sum + item.lineTotalKurus, 0);
     const shippingKurus = 0;
@@ -457,8 +529,8 @@ export async function POST(request: NextRequest) {
       customer: {
         name: body.customer.name,
         phone: body.customer.phone,
-        identityType: paymentProvider === "IYZICO" ? body.customer.identityType : "",
-        identityNumber: paymentProvider === "IYZICO" ? identityNumber : "",
+        identityType: paymentRequiresIdentityNumber ? body.customer.identityType : "",
+        identityNumber: paymentRequiresIdentityNumber ? identityNumber : "",
       },
       shipping,
       consents: body.consents,
@@ -569,6 +641,31 @@ export async function POST(request: NextRequest) {
       });
       if (addressError) {
         await admin.from("commerce_orders").delete().eq("id", order.id);
+        return NextResponse.json(publicError("ORDER_CREATE_FAILED"), { status: 500 });
+      }
+
+      // The organization profile is the live source of truth. Every order
+      // also receives an immutable copy so later profile corrections never
+      // rewrite the invoice history or a previous payment attempt.
+      const { error: billingProfileError } = await admin.from("commerce_order_billing_profiles").insert({
+        order_id: order.id,
+        billing_type: organizationBilling ? "CORPORATE" : "INDIVIDUAL",
+        organization_id: organizationBilling?.organizationId || null,
+        legal_name: organizationBilling?.name || body.customer.name.trim(),
+        tax_number: organizationBilling?.taxNumber || null,
+        tax_office: organizationBilling?.taxOffice || null,
+        contact_name: body.customer.name.trim(),
+        email: organizationBilling?.email || normalizedEmail,
+        phone: organizationBilling?.phone || body.customer.phone,
+        address_line: shipping.addressLine,
+        district: shipping.district,
+        city: shipping.city,
+        postal_code: shipping.postalCode || null,
+        country_code: "TR",
+      });
+      if (billingProfileError) {
+        await admin.from("commerce_orders").delete().eq("id", order.id);
+        console.error("commerce billing profile snapshot error", { orderId: order.id, code: billingProfileError.code });
         return NextResponse.json(publicError("ORDER_CREATE_FAILED"), { status: 500 });
       }
 

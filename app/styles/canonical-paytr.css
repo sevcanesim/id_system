@@ -5,8 +5,10 @@
 .public-site--checkout .paytr-checkout-heading h1,.public-site--checkout .paytr-checkout-card--invalid h1{margin:0 0 var(--space-3);color:var(--text-primary);font-family:var(--font-display);font-size:clamp(32px,4vw,48px);line-height:1;letter-spacing:-.045em}
 .public-site--checkout .paytr-checkout-heading>p:not(.paytr-checkout-kicker),.public-site--checkout .paytr-checkout-card--invalid>p{margin:0;color:var(--text-secondary);font-size:var(--type-body-sm);line-height:var(--line-height-relaxed)}
 .public-site--checkout .paytr-checkout-card{overflow:hidden;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface-card);box-shadow:var(--shadow-md)}
-.public-site--checkout .paytr-checkout-frame{display:block;width:100%;min-height:760px;border:0;background:var(--surface-card)}
+.public-site--checkout .paytr-iframe-wrap{position:relative;min-height:420px}
+.public-site--checkout .paytr-checkout-frame{display:block;width:100%;min-height:680px;border:0;background:var(--surface-card)}
+.public-site--checkout .paytr-iframe-loading{position:absolute;z-index:1;top:var(--space-5);right:var(--space-5);margin:0;padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:var(--surface-card);box-shadow:var(--shadow-sm);color:var(--text-secondary);font-size:var(--type-xs);font-weight:700}
 .public-site--checkout .paytr-checkout-footnote{margin:var(--space-4) auto 0;max-width:640px;color:var(--text-secondary);font-size:var(--type-sm);line-height:var(--line-height-body);text-align:center}
 .public-site--checkout .paytr-checkout-card--invalid{max-width:580px;margin-inline:auto;padding:clamp(28px,5vw,48px);text-align:center}
 .public-site--checkout .paytr-checkout-card--invalid .yi-btn{margin-top:var(--space-6)}
-@media(max-width:640px){.public-site--checkout .paytr-checkout-shell{width:min(calc(100% - 24px),960px);padding-top:var(--space-8)}.public-site--checkout .paytr-checkout-frame{min-height:720px}.public-site--checkout .paytr-checkout-card{border-radius:var(--radius-md)}}
+@media(max-width:640px){.public-site--checkout .paytr-checkout-shell{width:min(calc(100% - 24px),960px);padding-top:var(--space-8)}.public-site--checkout .paytr-checkout-frame{min-height:620px}.public-site--checkout .paytr-iframe-loading{top:var(--space-3);right:var(--space-3)}.public-site--checkout .paytr-checkout-card{border-radius:var(--radius-md)}}

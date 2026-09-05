@@ -6,6 +6,7 @@ const PAYTR_IFRAME_URL = "https://www.paytr.com/odeme/guvenli";
 const PAYTR_NO_INSTALLMENT = "0";
 const PAYTR_MAX_INSTALLMENT = "0";
 const PAYTR_CURRENCY = "TL";
+const PAYTR_IFRAME_V2 = "1";
 
 export type PaytrBasketItem = {
   name: string;
@@ -131,6 +132,9 @@ export async function initializePaytrCheckout(input: PaytrTokenRequest) {
     currency: PAYTR_CURRENCY,
     test_mode: testMode,
     lang: "tr",
+    // PayTR's current hosted checkout uses the V2 iframe contract. The
+    // corresponding parent-page resizer is loaded only on /odeme/paytr.
+    iframe_v2: PAYTR_IFRAME_V2,
   });
 
   try {

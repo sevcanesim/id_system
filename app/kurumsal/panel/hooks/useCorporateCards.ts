@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createExcelCsv } from "../../../../lib/csv";
 import type { CardAnalytics, PhysicalCard, MemberCardStatus, PhysicalCardProductionSummary } from "../domain/types";
 import type { CorporatePanelTab } from "../domain/navigation";
 import { fetchWithPanelTimeout } from "../domain/runtime";
@@ -78,10 +79,7 @@ export function useCorporateCards(
       ...(cardAnalytics.attribution?.byCampaign || []).map((item) => ["Kampanya", item.campaign, item.count, ""]),
       ...(cardAnalytics.content?.byLink || []).map((item) => ["İçerik", item.label, item.count, item.downloads]),
     ];
-    const csv = rows
-      .map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(","))
-      .join("\n");
-    const url = URL.createObjectURL(new Blob(["﻿", csv], { type: "text/csv;charset=utf-8" }));
+    const url = URL.createObjectURL(new Blob([createExcelCsv(rows)], { type: "text/csv;charset=utf-8" }));
     const anchor = document.createElement("a");
     anchor.href = url;
     const periodName = cardAnalytics.periodStart && cardAnalytics.periodEnd

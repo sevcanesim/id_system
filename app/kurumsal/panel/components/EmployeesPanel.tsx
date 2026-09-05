@@ -309,6 +309,17 @@ export default function EmployeesPanel(props: Props) {
     setPendingInviteEmail(email);
   }
 
+  function downloadBulkInviteTemplate() {
+    const url = URL.createObjectURL(new Blob([BULK_INVITE_CSV_TEMPLATE], { type: "text/csv;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "yenomi-toplu-davet-sablonu.csv";
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
   function sortBy(next: SortKey) {
     if (sortKey === next) setSortDirection((value) => value === "asc" ? "desc" : "asc");
     else { setSortKey(next); setSortDirection("asc"); }
@@ -472,7 +483,7 @@ export default function EmployeesPanel(props: Props) {
           <div className="p11-invite-panel">
             <header><div><strong>CSV ile toplu davet</strong><p>E-posta ve ad soyad zorunludur. Ünvan, departman ve rol isteğe bağlıdır.</p></div><button type="button" onClick={onCloseBulkInvite} aria-label="Toplu daveti kapat"><Icon name="close" /></button></header>
             <div className="p11-invite-actions">
-              <a download="yenomi-toplu-davet-sablonu.csv" href={`data:text/csv;charset=utf-8,${encodeURIComponent(BULK_INVITE_CSV_TEMPLATE)}`}><Icon name="box" /> Şablon indir</a>
+              <button type="button" className="p11-secondary" onClick={downloadBulkInviteTemplate}><Icon name="box" /> Excel uyumlu şablon indir</button>
               <label><Icon name="box" /> CSV seç<input type="file" accept=".csv,text/csv" onChange={(event) => { const file = event.target.files?.[0]; if (file) void onBulkInviteFile(file); event.target.value = ""; }} /></label>
             </div>
             {bulkInvitePreview && <div className="p11-bulk-preview"><p><strong>{bulkInvitePreview.fileName}</strong> · {bulkInvitePreview.rows.length} geçerli · {bulkInvitePreview.errors.length} hatalı</p>{bulkInvitePreview.errors.length > 0 && <ul>{bulkInvitePreview.errors.slice(0, 8).map((item) => <li key={item.line}>Satır {item.line}: {item.error}</li>)}</ul>}{bulkInvitePreview.rows.length > 0 && <><div className="p11-bulk-invite-table" role="region" aria-label="Toplu davet önizlemesi" tabIndex={0}><table><thead><tr><th>Ad Soyad</th><th>E-posta</th><th>Departman</th><th>Ünvan</th><th>Rol</th></tr></thead><tbody>{bulkInvitePreview.rows.slice(0, 12).map((row) => <tr key={`${row.line}-${row.email}`}><td>{row.fullName || "—"}</td><td>{row.email}</td><td>{row.department || "—"}</td><td>{row.title || "—"}</td><td>{row.role}</td></tr>)}</tbody></table></div>{bulkInvitePreview.rows.length > 12 && <p className="p11-bulk-more">İlk 12 kayıt gösteriliyor. Toplam {bulkInvitePreview.rows.length} geçerli kayıt.</p>}<button type="button" disabled={bulkInviteBusy} onClick={() => void onSubmitBulkInvite()}>{bulkInviteBusy ? "Gönderiliyor…" : `${bulkInvitePreview.rows.length} çalışanı davet et`}</button></>}</div>}

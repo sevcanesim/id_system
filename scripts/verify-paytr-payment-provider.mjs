@@ -14,15 +14,26 @@ const callback = read("app/api/payments/paytr/callback/route.ts");
 const settlement = read("lib/payments/settle-commerce-payment.ts");
 const csp = read("lib/security/content-security-policy.ts");
 const migration = read("supabase/migrations/20260905093000_paytr_payment_provider.sql");
+const iframe = read("app/odeme/paytr/PaytrIframe.tsx");
 
 check(config.includes('type ActivePaymentProvider = "PAYTR" | "IYZICO"'), "provider selection has an explicit PayTR/iyzico contract");
 check(config.includes("if (isPaytrConfigured) return \"PAYTR\""), "PayTR is preferred only when fully configured");
-check(checkout.includes('paymentProvider === "IYZICO" && !isValidIdentityNumber'), "identity number is required only for iyzico");
+check(
+  checkout.includes('paymentRequiresIdentityNumber = paymentProvider === "IYZICO"')
+    && checkout.includes("!isDigitalOnlySku(item.variant.sku)"),
+  "identity number is never collected for PayTR or digital-only checkout",
+);
 check(checkout.includes("initializePaytrCheckout") && checkout.includes("provider: paymentProvider"), "server reserves and initializes the selected provider");
-check(paytr.includes("createHmac(\"sha256\", input.merchantKey)") && paytr.includes("PAYTR_TOKEN_URL"), "PayTR token creation is server-signed");
+check(
+  paytr.includes("createHmac(\"sha256\", input.merchantKey)")
+    && paytr.includes("PAYTR_TOKEN_URL")
+    && paytr.includes("iframe_v2: PAYTR_IFRAME_V2"),
+  "PayTR V2 token creation is server-signed",
+);
 check(callback.includes("verifyPaytrCallbackHash") && callback.includes('callbackOk()'), "callback verifies its signature before acknowledging");
 check(callback.includes("settleCommercePaymentByPaytrCallback") && settlement.includes('attempt.provider === "PAYTR"'), "PayTR completion uses the provider-safe settlement path");
 check(csp.includes("https://www.paytr.com"), "CSP explicitly permits the PayTR hosted iframe");
+check(iframe.includes("iframeResizer.min.js?v2") && iframe.includes("iFrameResize"), "checkout uses PayTR V2's official responsive iframe resizer");
 check(migration.includes("when 'PAYTR' then 'PayTR ödeme doğrulandı'") && migration.includes("for update"), "payment history remains provider-aware and atomic");
 
 if (failed) process.exit(1);

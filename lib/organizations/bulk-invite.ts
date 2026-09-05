@@ -1,4 +1,4 @@
-import { parseCsv } from "../csv";
+import { createExcelCsv, parseCsv } from "../csv";
 import { normalizeEmailField } from "../form-standards";
 
 export type BulkInviteRole = "ADMIN" | "HR" | "EMPLOYEE";
@@ -150,8 +150,11 @@ export function parseBulkInviteCsv(text: string): BulkInviteParseResult {
   return { rows, errors, duplicateEmails };
 }
 
-export const BULK_INVITE_CSV_TEMPLATE =
-  "E-posta,Ad,Soyad,Ünvan,Departman,Rol\nmehmet.yilmaz@firma.com,Mehmet,Yılmaz,Satış Uzmanı,Satış,Çalışan\nayse.kaya@firma.com,Ayşe,Kaya,İnsan Kaynakları Uzmanı,İnsan Kaynakları,İK\n";
+export const BULK_INVITE_CSV_TEMPLATE = createExcelCsv([
+  ["E-posta", "Ad", "Soyad", "Ünvan", "Departman", "Rol"],
+  ["mehmet.yilmaz@firma.com", "Mehmet", "Yılmaz", "Satış Uzmanı", "Satış", "Çalışan"],
+  ["ayse.kaya@firma.com", "Ayşe", "Kaya", "İnsan Kaynakları Uzmanı", "İnsan Kaynakları", "İK"],
+]);
 
 export const BULK_INVITE_MAX_ROWS = 200;
 

@@ -10,7 +10,13 @@ vi.mock("./config", () => ({
   },
 }));
 
-import { createPaytrTokenHash, createPaytrUserBasket, paytrIframeUrl, verifyPaytrCallbackHash } from "./paytr";
+import {
+  createPaytrMerchantOid,
+  createPaytrTokenHash,
+  createPaytrUserBasket,
+  paytrIframeUrl,
+  verifyPaytrCallbackHash,
+} from "./paytr";
 
 describe("PayTR payment primitives", () => {
   it("creates the documented token HMAC without leaking credentials into the basket", () => {
@@ -41,5 +47,13 @@ describe("PayTR payment primitives", () => {
     expect(verifyPaytrCallbackHash({ merchantOid, status, totalAmount, hash })).toBe(true);
     expect(verifyPaytrCallbackHash({ merchantOid, status, totalAmount: "249001", hash })).toBe(false);
     expect(paytrIframeUrl("a/b?c")).toBe("https://www.paytr.com/odeme/guvenli/a%2Fb%3Fc");
+  });
+
+  it("creates opaque, non-sequential merchant order ids", () => {
+    const first = createPaytrMerchantOid();
+    const second = createPaytrMerchantOid();
+    expect(first).toMatch(/^PT[a-f0-9]{32}$/);
+    expect(second).toMatch(/^PT[a-f0-9]{32}$/);
+    expect(first).not.toBe(second);
   });
 });

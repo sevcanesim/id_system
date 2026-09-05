@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ACCESS_COOKIE, readSessionCookie } from "../../../../../../../lib/auth/http-only-session";
+import { createExcelCsv } from "../../../../../../../lib/csv";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../../../lib/supabase/server-admin";
 
 const MANAGEMENT_ROLES = new Set(["OWNER", "ADMIN", "HR"]);
-
-function csvCell(value: unknown) {
-  let text = String(value ?? "");
-  if (/^[=+\-@]/.test(text)) text = `'${text}`;
-  return `"${text.replaceAll('"', '""')}"`;
-}
 
 async function authenticatedUser(request: NextRequest) {
   const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
@@ -68,7 +63,7 @@ export async function GET(
       row.error_message || (row.email_sent === false ? "Davet oluşturuldu ancak e-posta gönderilemedi." : ""),
     ]),
   ];
-  const csv = `\uFEFF${csvRows.map((row) => row.map(csvCell).join(",")).join("\n")}`;
+  const csv = createExcelCsv(csvRows);
 
   return new NextResponse(csv, {
     status: 200,

@@ -20,7 +20,7 @@ export function buildContentSecurityPolicy(
 ): string {
   const connectSrc = `'self' ${supabaseConnectSources()} https://maps.googleapis.com`;
   const evalSrc = options?.allowUnsafeEval ? " 'unsafe-eval'" : "";
-  const scriptSrc = `'self' 'nonce-${nonce}' 'strict-dynamic'${evalSrc}`;
+  const scriptSrc = `'self' 'nonce-${nonce}' 'strict-dynamic' https://www.paytr.com${evalSrc}`;
   return [
     "default-src 'self'",
     `script-src ${scriptSrc}`,

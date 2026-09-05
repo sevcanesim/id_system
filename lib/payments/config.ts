@@ -21,14 +21,21 @@ export const isPaytrConfigured = Boolean(
 
 export type ActivePaymentProvider = "PAYTR" | "IYZICO";
 
+function requestedPaymentProvider() {
+  const value = process.env.PAYMENT_PROVIDER?.trim().toUpperCase();
+  return value === "PAYTR" || value === "IYZICO" ? value : null;
+}
+
 /**
- * PayTR is the preferred provider because its hosted payment flow does not
- * require a Turkish identity number. iyzico remains a safe fallback until
- * the PayTR merchant credentials are configured in the deployment.
+ * Yenomi's supported hosted checkout is PayTR, so a payment page never asks
+ * the customer for a Turkish identity number. iyzico can be enabled only by
+ * an explicit operational override while legacy orders are being retired.
  */
 export function getActivePaymentProvider(): ActivePaymentProvider | null {
+  const requested = requestedPaymentProvider();
+  if (requested === "IYZICO") return isIyzicoConfigured ? "IYZICO" : null;
+  if (requested === "PAYTR") return isPaytrConfigured ? "PAYTR" : null;
   if (isPaytrConfigured) return "PAYTR";
-  if (isIyzicoConfigured) return "IYZICO";
   return null;
 }
 

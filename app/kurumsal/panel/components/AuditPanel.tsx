@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Icon } from "../../../icons";
 import { Button, StatusBadge } from "../../../components/ui/DesignSystem";
 import { EmptyState, LoadingState } from "../../../components/ui/States";
+import { createExcelCsv } from "../../../../lib/csv";
 import { getSupabaseBrowserClient } from "../../../../lib/supabase/browser";
 
 type AuditEvent = {
@@ -52,11 +53,6 @@ function actionIcon(action: string) {
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
-}
-
-function csvCell(value: string | number | null | undefined) {
-  const text = String(value ?? "");
-  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
 export default function AuditPanel({ organizationId, token }: Props) {
@@ -124,7 +120,7 @@ export default function AuditPanel({ organizationId, token }: Props) {
       ["Tarih", "İşlem", "Açıklama", "Yapan", "Rol"],
       ...events.map((event) => [formatDate(event.occurred_at), event.action, event.summary, event.actor_name, roleLabel[event.actor_role]]),
     ];
-    const blob = new Blob([`\uFEFF${rows.map((row) => row.map(csvCell).join(",")).join("\n")}`], { type: "text/csv;charset=utf-8" });
+    const blob = new Blob([createExcelCsv(rows)], { type: "text/csv;charset=utf-8" });
     const href = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = href;

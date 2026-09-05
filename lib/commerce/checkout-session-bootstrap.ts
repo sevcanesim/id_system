@@ -25,13 +25,28 @@ type CheckoutBuyerFields = {
   postalCode: string;
 };
 
+export type OrganizationCheckoutTarget = {
+  name: string;
+  role: string;
+  legalName: string;
+  taxNumber: string;
+  taxOffice: string;
+  billingAddress: string;
+  billingCity: string;
+  billingDistrict: string;
+  billingPostalCode: string;
+  billingEmail: string;
+  billingPhone: string;
+  authorizedPersonName: string;
+};
+
 export async function bootstrapAuthenticatedCheckout<T extends CheckoutBuyerFields>(
   session: CheckoutSession | null,
   surface: {
     setForm: (updater: (current: T) => T) => void;
     setItems: (lines: ReturnType<typeof readCart>) => void;
     setIsAuthenticated: (value: boolean) => void;
-    setOrganizationTargets: (value: Record<string, { name: string; role: string }>) => void;
+    setOrganizationTargets: (value: Record<string, OrganizationCheckoutTarget>) => void;
     setCheckoutReady: (value: boolean) => void;
   },
 ) {
@@ -64,12 +79,26 @@ export async function bootstrapAuthenticatedCheckout<T extends CheckoutBuyerFiel
 
   if (lastPaidOrder) surface.setForm((current) => mergeCheckoutPrefill(current, lastPaidOrder));
   if (memberships) {
-    const managedOrgs: Record<string, { name: string; role: string }> = {};
+    const managedOrgs: Record<string, OrganizationCheckoutTarget> = {};
     for (const membership of memberships.organizations || []) {
       if (organizationIds.includes(membership.organization_id)) {
+        const organization = membership.organizations || {};
         managedOrgs[membership.organization_id] = {
-          name: membership.organizations?.name || "Kurumsal hesap",
+          name: organization.name || "Kurumsal hesap",
           role: membership.role || "",
+          legalName: organization.legal_name || organization.name || "",
+          taxNumber: organization.tax_number || "",
+          taxOffice: organization.tax_office || "",
+          // Older organizations can still have their verified activation
+          // address in the legacy fields. Read it as a one-way compatibility
+          // fallback; checkout always treats this profile as server-owned.
+          billingAddress: organization.billing_address || organization.legal_address || "",
+          billingCity: organization.billing_city || organization.city || "",
+          billingDistrict: organization.billing_district || organization.district || "",
+          billingPostalCode: organization.billing_postal_code || "",
+          billingEmail: organization.billing_email || "",
+          billingPhone: organization.billing_phone || "",
+          authorizedPersonName: organization.authorized_person_name || "",
         };
       }
     }

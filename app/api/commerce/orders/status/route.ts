@@ -14,7 +14,8 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
  * Public, unauthenticated order-status check used by the /odeme/basarili and
  * /odeme/basarisiz result pages so they can verify a payment before showing
  * success content. Deliberately returns only a coarse status enum plus
- * boolean flags (activationRequired, corporate, corporateReady, reviewRequired) — never
+ * boolean flags (activationRequired, corporate, corporateReady, reviewRequired) and the
+ * non-sensitive payment provider — never
  * email, amount, items, company name, user id, or any other order detail —
  * so it stays safe to call without auth for a guest checkout flow. The order
  * id itself is already a public, unguessable UUID that the payment callback
@@ -44,6 +45,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ found: false, paid: false, status: null }, { status: 404 });
     }
 
+    const { data: paymentAttempt } = await admin
+      .from("commerce_payment_attempts")
+      .select("provider")
+      .eq("order_id", orderId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
     const paid = PAID_STATUSES.has(String(data.status));
     const flags = paid
       ? await loadCommerceOrderKind(admin, orderId)
@@ -53,6 +62,9 @@ export async function GET(request: NextRequest) {
       found: true,
       paid,
       status: data.status,
+      paymentProvider: paymentAttempt?.provider === "PAYTR" || paymentAttempt?.provider === "IYZICO"
+        ? paymentAttempt.provider
+        : null,
       activationRequired: paid && !data.user_id && !data.activation_claimed_at,
       corporate: flags.corporate,
       corporateReady: Boolean(flags.corporateReady),

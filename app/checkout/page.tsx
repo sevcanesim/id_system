@@ -14,7 +14,7 @@ import { parseCompanyBilling } from "../../lib/validation/company";
 import { track } from "../../lib/analytics";
 import { safeClientMessage } from "../../lib/errors";
 import { clearPendingCheckoutOrderId, getOrCreateCheckoutIdempotencyKey, lookupPendingCheckoutOrder, rotateCheckoutIdempotencyKey, setPendingCheckoutOrderId, setCheckoutReturnPath } from "../../lib/payments/browser-checkout";
-import { bootstrapAuthenticatedCheckout } from "../../lib/commerce/checkout-session-bootstrap";
+import { bootstrapAuthenticatedCheckout, type OrganizationCheckoutTarget } from "../../lib/commerce/checkout-session-bootstrap";
 import { parseCheckoutResumeDraft } from "../../lib/commerce/checkout-resume-draft";
 
 type FormState = {
@@ -81,7 +81,7 @@ export default function CheckoutPage() {
   const [activeStep, setActiveStep] = useState<"buyer" | "shipping" | "approval">("buyer");
   const [deliveryNoteOpen, setDeliveryNoteOpen] = useState(false);
   const [toast, setToast] = useState("");
-  const [organizationTargets, setOrganizationTargets] = useState<Record<string, { name: string; role: string }>>({});
+  const [organizationTargets, setOrganizationTargets] = useState<Record<string, OrganizationCheckoutTarget>>({});
   const [privacyMask, setPrivacyMask] = useState(false);
   const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>(null);
   const portalPurchase = items.some((item) => requiresPortalAccountSku(item.variantSku));
@@ -213,6 +213,33 @@ export default function CheckoutPage() {
   const digitalOnlyCart = items.length > 0 && items.every((item) => isDigitalOnlySku(item.variantSku));
   const usesIyzico = paymentProvider === "IYZICO";
   const paymentProviderName = paymentProvider === "IYZICO" ? "iyzico" : "PayTR";
+  const corporateNetworkMailOrganizationIds = [...new Set(items
+    .filter((item) => item.variantSku?.startsWith("YENOMI-NETWORK-MAIL-"))
+    .map((item) => item.configuration?.organizationId)
+    .filter((organizationId): organizationId is string => typeof organizationId === "string"))];
+  const corporateNetworkMailOrganizationId = corporateNetworkMailOrganizationIds.length === 1
+    ? corporateNetworkMailOrganizationIds[0]
+    : null;
+  const corporateNetworkMailTarget = corporateNetworkMailOrganizationId
+    ? organizationTargets[corporateNetworkMailOrganizationId]
+    : null;
+  const isCorporateNetworkMailPurchase = hasNetworkMailCreditPack && Boolean(corporateNetworkMailOrganizationId);
+  // Only iyzico's physical checkout requires an identity number. Digital
+  // products (including Network Mail) never collect it in Yenomi.
+  const requiresIdentityNumber = usesIyzico && !digitalOnlyCart;
+
+  useEffect(() => {
+    if (!isCorporateNetworkMailPurchase || !corporateNetworkMailTarget) return;
+    setForm((current) => ({
+      ...current,
+      recipientName: current.recipientName || corporateNetworkMailTarget.authorizedPersonName,
+      phone: current.phone || (corporateNetworkMailTarget.billingPhone ? normalizeTrPhone(corporateNetworkMailTarget.billingPhone) : ""),
+      addressLine: current.addressLine || corporateNetworkMailTarget.billingAddress,
+      district: current.district || corporateNetworkMailTarget.billingDistrict,
+      city: current.city || corporateNetworkMailTarget.billingCity,
+      postalCode: current.postalCode || corporateNetworkMailTarget.billingPostalCode,
+    }));
+  }, [corporateNetworkMailTarget, isCorporateNetworkMailPurchase]);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -223,12 +250,21 @@ export default function CheckoutPage() {
     taxNumber: form.companyTaxNumber,
     taxOffice: form.companyTaxOffice,
   }).ok;
+  const corporateBillingProfileComplete = !isCorporateNetworkMailPurchase || Boolean(
+    corporateNetworkMailTarget?.legalName
+    && corporateNetworkMailTarget.taxNumber
+    && corporateNetworkMailTarget.billingAddress
+    && corporateNetworkMailTarget.billingCity
+    && corporateNetworkMailTarget.billingDistrict,
+  );
   const buyerComplete = form.recipientName.trim().length >= 3
     && /^\S+@\S+\.\S+$/.test(form.email.trim())
     && form.phone.replace(/\D/g, "").length >= 10
-    && (!usesIyzico || form.identityNumber.length === 11)
+    && (!requiresIdentityNumber || form.identityNumber.length === 11)
     && companyComplete;
-  const shippingComplete = digitalOnlyCart
+  const shippingComplete = isCorporateNetworkMailPurchase
+    ? corporateBillingProfileComplete
+    : digitalOnlyCart
     ? Boolean(form.city.trim() && form.district.trim())
     : form.addressLine.trim().length >= 10 && !!form.district.trim() && !!form.city.trim();
   const approvalComplete = form.distanceSalesAccepted && form.personalizationAccepted;
@@ -237,7 +273,7 @@ export default function CheckoutPage() {
     if (form.recipientName.trim().length < 3) return "Ad soyad bilgisini kontrol et.";
     if (form.phone.replace(/\D/g, "").length < 10) return "Telefon numaranı kontrol et.";
     if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) return "Geçerli bir e-posta adresi gir.";
-    if (usesIyzico && form.identityNumber.length !== 11) return "T.C. kimlik numarası 11 haneli olmalı.";
+    if (requiresIdentityNumber && form.identityNumber.length !== 11) return "T.C. kimlik numarası 11 haneli olmalı.";
     if (hasCorporatePackage) {
       const parsed = parseCompanyBilling({ name: form.companyName, taxNumber: form.companyTaxNumber, taxOffice: form.companyTaxOffice });
       if (!parsed.ok) return parsed.error;
@@ -246,6 +282,11 @@ export default function CheckoutPage() {
   }
 
   function shippingError() {
+    if (isCorporateNetworkMailPurchase) {
+      return corporateBillingProfileComplete
+        ? ""
+        : "Şirketin kayıtlı fatura profili eksik. Şirket Sahibi, kurumsal fatura bilgilerini tamamlamalıdır.";
+    }
     if (digitalOnlyCart) {
       if (!form.city.trim() || !form.district.trim()) return "Fatura için şehir ve ilçe alanlarını tamamla.";
       return "";
@@ -351,6 +392,20 @@ export default function CheckoutPage() {
       };
       if (sessionData.session?.access_token) headers.authorization = `Bearer ${sessionData.session.access_token}`;
 
+      const checkoutAddress = isCorporateNetworkMailPurchase && corporateNetworkMailTarget
+        ? {
+            addressLine: form.addressLine || corporateNetworkMailTarget.billingAddress,
+            district: form.district || corporateNetworkMailTarget.billingDistrict,
+            city: form.city || corporateNetworkMailTarget.billingCity,
+            postalCode: form.postalCode || corporateNetworkMailTarget.billingPostalCode || null,
+          }
+        : {
+            addressLine: form.addressLine,
+            district: form.district,
+            city: form.city,
+            postalCode: form.postalCode || null,
+          };
+
       const response = await fetch("/api/commerce/checkout", {
         method: "POST",
         credentials: "same-origin",
@@ -362,10 +417,10 @@ export default function CheckoutPage() {
           shipping: {
             recipientName: form.recipientName.trim(),
             phone: form.phone,
-            addressLine: digitalOnlyCart ? digitalServiceBillingAddress(form.city, form.addressLine) : form.addressLine.trim(),
-            district: form.district.trim(),
-            city: form.city.trim(),
-            postalCode: form.postalCode || null,
+            addressLine: digitalOnlyCart ? digitalServiceBillingAddress(checkoutAddress.city, checkoutAddress.addressLine) : checkoutAddress.addressLine.trim(),
+            district: checkoutAddress.district.trim(),
+            city: checkoutAddress.city.trim(),
+            postalCode: checkoutAddress.postalCode,
             deliveryNote: digitalOnlyCart ? null : form.deliveryNote || null,
             latitude: digitalOnlyCart ? null : form.latitude ?? null,
             longitude: digitalOnlyCart ? null : form.longitude ?? null,
@@ -415,7 +470,7 @@ export default function CheckoutPage() {
         <section className="checkout-shell checkout-confirm-shell">
           <div className="checkout-heading checkout-heading-compact">
             <h1>{hasCorporatePackage ? "Kurumsal ödemeyi tamamla." : hasNetworkMailCreditPack ? "Network Mail paketini tamamla." : digitalOnlyCart ? "Dijital ödemeyi tamamla." : "Ödemeyi tamamla."}</h1>
-            <p>{paymentProviderName} ile güvenle öde. {hasCorporatePackage ? `Fatura ve teslimatı doğrula. Son adımda ${paymentProviderName} kartını alır; Yenomi saklamaz.` : hasNetworkMailCreditPack ? "Fatura bilgilerini doğrula. Ödeme onaylanınca Network Mail kredilerin Premium hesabına eklenir." : digitalOnlyCart ? `Fatura ili ve ilçesini doğrula. Teslimat adresi yok. Kart numarası ${paymentProviderName}’da işlenir.` : `Alıcı ve teslimatı doğrula. Kart numarası ${paymentProviderName}’da işlenir; Yenomi’de saklanmaz.`}</p>
+            <p>{paymentProviderName} ile güvenle öde. {hasCorporatePackage ? `Fatura ve teslimatı doğrula. Son adımda ${paymentProviderName} kartını alır; Yenomi saklamaz.` : isCorporateNetworkMailPurchase ? "Şirketinin kayıtlı cari/fatura profili bu siparişe uygulanır. Kart bilgisi yalnız ödeme sağlayıcısında işlenir." : hasNetworkMailCreditPack ? "Fatura bilgilerini doğrula. Ödeme onaylanınca Network Mail kredilerin Premium hesabına eklenir." : digitalOnlyCart ? `Fatura ili ve ilçesini doğrula. Teslimat adresi yok. Kart numarası ${paymentProviderName}’da işlenir.` : `Alıcı ve teslimatı doğrula. Kart numarası ${paymentProviderName}’da işlenir; Yenomi’de saklanmaz.`}</p>
             <div className="checkout-account-note" role="status">
               {isAuthenticated ? (
                 <><Icon name="check" /> Hesabın bağlı. Siparişin hesabına otomatik eklenir.</>
@@ -450,13 +505,23 @@ export default function CheckoutPage() {
                 <section className={`checkout-step ${activeStep === "buyer" ? "open" : ""} ${buyerComplete ? "complete" : ""}`}>
                   <button type="button" className="checkout-step-trigger" onClick={() => setActiveStep("buyer")}>
                     <span className="checkout-step-icon"><Icon name="contact" /></span>
-                    <span><strong>{hasCorporatePackage ? "Fatura ve şirket bilgileri" : "Alıcı Bilgileri"}</strong><small>{hasCorporatePackage ? "Sipariş sahibi ve değiştirilemez kurumsal kayıt" : "Sipariş ve fatura bilgileri"}</small></span>
+                    <span><strong>{hasCorporatePackage ? "Fatura ve şirket bilgileri" : isCorporateNetworkMailPurchase ? "Sipariş sorumlusu ve şirket profili" : "Alıcı Bilgileri"}</strong><small>{hasCorporatePackage ? "Sipariş sahibi ve değiştirilemez kurumsal kayıt" : isCorporateNetworkMailPurchase ? "Sorumlu kişi ve şirketin kayıtlı cari bilgileri" : "Sipariş ve fatura bilgileri"}</small></span>
                   </button>
                   {activeStep === "buyer" && <div className="checkout-step-body">
                     <label>Ad Soyad<input required autoComplete="name" value={form.recipientName} onChange={(event) => update("recipientName", event.target.value)} /></label>
                     <label>Telefon<input required inputMode="tel" autoComplete="tel" value={form.phone} onChange={(event) => update("phone", normalizeTrPhone(event.target.value))} /></label>
                     <label>E-posta<input required type="email" autoComplete="email" value={form.email} onChange={(event) => !isAuthenticated && update("email", event.target.value)} readOnly={isAuthenticated} /></label>
-                    {usesIyzico ? <label>T.C. kimlik numarası<input required inputMode="numeric" maxLength={11} name="iyzico-identity" autoComplete="off" autoCorrect="off" spellCheck={false} aria-describedby="identity-note" value={form.identityNumber} onChange={(event) => update("identityNumber", event.target.value.replace(/\D/g, ""))} /><small id="identity-note">iyzico ödemesi için zorunlu. Yenomi kaydetmez.</small></label> : null}
+                    {requiresIdentityNumber ? <label>T.C. kimlik numarası<input required inputMode="numeric" maxLength={11} name="iyzico-identity" autoComplete="off" autoCorrect="off" spellCheck={false} aria-describedby="identity-note" value={form.identityNumber} onChange={(event) => update("identityNumber", event.target.value.replace(/\D/g, ""))} /><small id="identity-note">iyzico ödemesi için zorunlu. Yenomi kaydetmez.</small></label> : null}
+                    {isCorporateNetworkMailPurchase ? <fieldset className="checkout-company-fields" aria-describedby="corporate-billing-note">
+                      <legend><Icon name="building" />Kayıtlı şirket fatura profili</legend>
+                      <p id="corporate-billing-note">Bu bilgiler şirketinin cari kaydından gelir ve ödeme sırasında değiştirilemez.</p>
+                      {corporateNetworkMailTarget ? <div className="checkout-company-fields__grid">
+                        <label>Resmî unvan<input value={corporateNetworkMailTarget.legalName} readOnly /></label>
+                        <label>Vergi no<input value={corporateNetworkMailTarget.taxNumber} readOnly /></label>
+                        <label>Vergi dairesi<input value={corporateNetworkMailTarget.taxOffice || "Kayıtlı değil"} readOnly /></label>
+                        <label>Fatura adresi<input value={[corporateNetworkMailTarget.billingAddress, corporateNetworkMailTarget.billingDistrict, corporateNetworkMailTarget.billingCity].filter(Boolean).join(", ") || "Kayıtlı değil"} readOnly /></label>
+                      </div> : <p>Şirket fatura profili doğrulanıyor…</p>}
+                    </fieldset> : null}
                     {hasCorporatePackage ? <fieldset className="checkout-company-fields" aria-describedby="company-billing-note">
                       <legend><Icon name="building" />Kurumsal fatura bilgileri</legend>
                       <p id="company-billing-note">Ödeme tamamlandığında bu kayıt şirketine aktarılır; kurumsal panelden sonradan değiştirilemez.</p>
@@ -476,7 +541,10 @@ export default function CheckoutPage() {
                     <span><strong>{digitalOnlyCart ? "Fatura adresi" : "Teslimat"}</strong><small>{digitalOnlyCart ? "Ödeme ve fatura doğrulaması için" : "Türkiye içi ücretsiz teslimat"}</small></span>
                   </button>
                   {activeStep === "shipping" && <div className="checkout-step-body">
-                    {digitalOnlyCart ? <>
+                    {isCorporateNetworkMailPurchase ? <div className="checkout-company-fields" aria-live="polite">
+                      <strong><Icon name="building" />Kayıtlı fatura adresi</strong>
+                      {corporateNetworkMailTarget ? <p>{[corporateNetworkMailTarget.billingAddress, corporateNetworkMailTarget.billingDistrict, corporateNetworkMailTarget.billingCity, corporateNetworkMailTarget.billingPostalCode].filter(Boolean).join(", ") || "Şirket fatura profili eksik."}</p> : <p>Şirket fatura profili doğrulanıyor…</p>}
+                    </div> : digitalOnlyCart ? <>
                       <label>Şehir<select required value={form.city} onChange={(event) => { update("city", event.target.value); update("district", ""); }}><option value="">Şehir seç</option>{TURKEY_CITIES.map((city) => <option key={city} value={city}>{city}</option>)}</select></label>
                       <label>İlçe<input required autoComplete="address-level2" value={form.district} onChange={(event) => update("district", event.target.value)} /></label>
                     </> : <>

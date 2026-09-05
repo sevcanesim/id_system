@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { paytrIframeUrl } from "../../../lib/payments/paytr";
+import PaytrIframe from "./PaytrIframe";
 
 type PaytrCheckoutPageProps = {
   searchParams: Promise<{ token?: string | string[] }>;
@@ -36,13 +36,7 @@ export default async function PaytrCheckoutPage({ searchParams }: PaytrCheckoutP
           <p>Kart bilgilerin PayTR&apos;ın güvenli ödeme sayfasında işlenir; Yenomi kart bilgilerini saklamaz.</p>
         </header>
         <div className="paytr-checkout-card">
-          <iframe
-            className="paytr-checkout-frame"
-            src={paytrIframeUrl(token)}
-            title="PayTR güvenli ödeme"
-            allow="payment"
-            referrerPolicy="no-referrer"
-          />
+          <PaytrIframe token={token} />
         </div>
         <p className="paytr-checkout-footnote">Ödeme tamamlandığında siparişin, PayTR&apos;ın güvenli onayından sonra işleme alınır.</p>
       </section>

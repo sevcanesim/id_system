@@ -13,6 +13,7 @@ import PaymentSuccessShare from "./PaymentSuccessShare";
 type VerifyState = "checking" | "verified" | "invalid";
 type OrderStatusPayload = {
   paid?: boolean;
+  paymentProvider?: "PAYTR" | "IYZICO" | null;
   activationRequired?: boolean;
   corporate?: boolean;
   corporateReady?: boolean;
@@ -65,12 +66,17 @@ export default function OrderResultGate() {
 
         while (active && attempts < 4 && (!data?.paid || (data.corporate && !data.corporateReady))) {
           attempts++;
-          await fetch("/api/payments/iyzico/recover", {
-            method: "POST",
-            credentials: "same-origin",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ orderId }),
-          }).catch(() => null);
+          // PayTR's signed server-to-server callback is the only state
+          // transition. Keep polling its read-only order status; never let a
+          // browser redirect attempt to recover or settle a PayTR payment.
+          if (data.paymentProvider === "IYZICO") {
+            await fetch("/api/payments/iyzico/recover", {
+              method: "POST",
+              credentials: "same-origin",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ orderId }),
+            }).catch(() => null);
+          }
 
           await new Promise((resolve) => setTimeout(resolve, attempts * 750));
           if (!active) return;

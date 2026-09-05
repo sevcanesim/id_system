@@ -62,7 +62,7 @@ check(cart.includes("yi-footer-compact"), "cart uses compact legal footer");
 check(cart.includes('disabled={item.quantity <= 1}'), "cart quantity decrement is disabled at minimum quantity");
 
 check(checkout.includes('className="checkout-page') && checkout.includes("p5-checkout-page"), "checkout keeps Phase 5 checkout scope");
-check(checkout.includes("iyzico ile güvenle öde") && checkout.includes("Kart numarası iyzico"), "checkout sets concrete provider expectation");
+check(checkout.includes("paymentProviderName") && checkout.includes("usesIyzico") && checkout.includes('paymentProvider === "PAYTR"'), "checkout sets an active provider expectation and preserves iyzico fallback validation");
 check(checkout.includes("checkout-summary-total") && checkout.includes("checkout-summary-benefits"), "checkout retains persistent order-value summary");
 check(checkout.includes("Mesafeli Satış Sözleşmesini") && checkout.includes("KVKK"), "checkout retains legal approval and privacy access");
 check(checkout.includes("yi-footer-compact"), "checkout uses compact legal footer");

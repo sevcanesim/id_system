@@ -40,7 +40,7 @@ export default function PaymentRetryActions() {
       }
       setRecoverMessage(
         data.pending
-          ? "Ödeme henüz iyzico’da tamamlanmamış görünüyor. Kartından çekim olduysa birkaç saniye sonra tekrar dene."
+          ? "Ödeme sağlayıcısından onay henüz gelmedi. Kartından çekim olduysa birkaç saniye sonra tekrar dene."
           : "Ödeme doğrulanamadı. Aynı sipariş için yeni bir ödeme denemesi başlatabilirsin.",
       );
     } catch {

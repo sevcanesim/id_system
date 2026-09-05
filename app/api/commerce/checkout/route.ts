@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import Iyzipay from "iyzipay";
 import { z } from "zod";
 import { initializeCheckout } from "../../../../lib/payments/iyzico";
-import { isIyzicoConfigured, publicSiteUrl } from "../../../../lib/payments/config";
+import { getActivePaymentProvider, publicSiteUrl } from "../../../../lib/payments/config";
+import { createPaytrMerchantOid, initializePaytrCheckout } from "../../../../lib/payments/paytr";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 import { canManageTemplates, isOrganizationRole } from "../../../../lib/organizations/permissions";
 import { isValidIdentityNumber, normalizeIdentityNumber } from "../../../../lib/validation/payment";
@@ -37,7 +38,9 @@ function checkoutSchema(legalVersions: Awaited<ReturnType<typeof getDatabaseLega
     name: z.string().trim().min(2).max(120),
     email: z.string().trim().email(),
     phone: z.string().trim().min(10).max(30),
-    identityNumber: z.string().trim().min(5).max(20),
+    // PayTR's hosted checkout does not require an identity number. The active
+    // provider decides whether this value is required after parsing.
+    identityNumber: z.string().trim().max(20).optional().default(""),
     identityType: z.enum(["TR", "FOREIGN"]).default("TR"),
   }),
   shipping: z.object({
@@ -131,7 +134,8 @@ export async function POST(request: NextRequest) {
   try {
     const flooded = await rejectCheckoutInitializeFlood(request);
     if (flooded) return flooded;
-    if (!isIyzicoConfigured) return NextResponse.json(publicError("PAYMENT_UNAVAILABLE"), { status: 503 });
+    const paymentProvider = getActivePaymentProvider();
+    if (!paymentProvider) return NextResponse.json(publicError("PAYMENT_UNAVAILABLE"), { status: 503 });
 
     const idempotencyKey = normalizeIdempotencyKey(request.headers.get("x-idempotency-key"));
     if (!isValidIdempotencyKey(idempotencyKey)) {
@@ -166,7 +170,7 @@ export async function POST(request: NextRequest) {
       }
     }
     const identityNumber = normalizeIdentityNumber(body.customer.identityNumber, body.customer.identityType);
-    if (!isValidIdentityNumber(identityNumber, body.customer.identityType)) {
+    if (paymentProvider === "IYZICO" && !isValidIdentityNumber(identityNumber, body.customer.identityType)) {
       return NextResponse.json({ error: body.customer.identityType === "TR" ? "Geçerli bir T.C. kimlik numarası gir." : "Geçerli bir pasaport numarası gir." }, { status: 400 });
     }
 
@@ -369,7 +373,12 @@ export async function POST(request: NextRequest) {
       items: body.items,
       email: normalizedEmail,
       totalKurus,
-      customer: { name: body.customer.name, phone: body.customer.phone, identityType: body.customer.identityType, identityNumber },
+      customer: {
+        name: body.customer.name,
+        phone: body.customer.phone,
+        identityType: paymentProvider === "IYZICO" ? body.customer.identityType : "",
+        identityNumber: paymentProvider === "IYZICO" ? identityNumber : "",
+      },
       shipping,
       consents: body.consents,
       company: company ?? {},
@@ -562,6 +571,9 @@ export async function POST(request: NextRequest) {
     }
 
     const conversationId = randomUUID();
+    // PayTR requires a merchant order id before its hosted session is created;
+    // persist that opaque id first so only the signed callback can settle it.
+    const paytrMerchantOid = paymentProvider === "PAYTR" ? createPaytrMerchantOid() : null;
     const { data: reservedAttempt, error: reserveError } = await admin
       .from("commerce_payment_attempts")
       .insert({
@@ -570,6 +582,8 @@ export async function POST(request: NextRequest) {
         amount_kurus: totalKurus,
         currency: "TRY",
         conversation_id: conversationId,
+        provider: paymentProvider,
+        provider_token: paytrMerchantOid,
         request_fingerprint: fingerprint,
         idempotency_key: idempotencyKey,
       })
@@ -583,6 +597,55 @@ export async function POST(request: NextRequest) {
       const payload = publicError("PAYMENT_IN_PROGRESS");
       console.error("payment attempt reservation failed", { reference: payload.reference, code: reserveError?.code });
       return NextResponse.json(payload, { status: 409 });
+    }
+
+    if (paymentProvider === "PAYTR") {
+      const userIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+        || request.headers.get("x-real-ip")?.trim()
+        || "127.0.0.1";
+      const paytrCheckout = await initializePaytrCheckout({
+        merchantOid: paytrMerchantOid!,
+        userIp,
+        email: normalizedEmail,
+        userName: body.customer.name,
+        userAddress: company
+          ? `${company.name}, ${shipping.addressLine}, ${shipping.district}, ${shipping.city}`
+          : `${shipping.addressLine}, ${shipping.district}, ${shipping.city}`,
+        userPhone: body.customer.phone,
+        amountKurus: totalKurus,
+        basketItems: calculated.map((item) => ({
+          name: item.product.name,
+          unitPriceKurus: item.unitPriceKurus,
+          quantity: item.quantity,
+        })),
+        merchantOkUrl: `${publicSiteUrl}/odeme/basarili?order=${encodeURIComponent(order.id)}`,
+        merchantFailUrl: `${publicSiteUrl}/odeme/basarisiz?order=${encodeURIComponent(order.id)}`,
+      });
+
+      if (!paytrCheckout.ok) {
+        await admin.from("commerce_payment_attempts").update({
+          status: "FAILED",
+          error_code: paytrCheckout.errorCode,
+          error_message: paytrCheckout.errorMessage,
+          updated_at: new Date().toISOString(),
+        }).eq("id", reservedAttempt.id);
+        const payload = publicError("PAYMENT_UNAVAILABLE");
+        console.error("payment checkout rejected", { reference: payload.reference, provider: paymentProvider, errorCode: paytrCheckout.errorCode, orderId: order.id });
+        return jsonWithPendingOrder({ ...payload, orderId: order.id, retryable: true }, { status: 502 });
+      }
+
+      const paymentPageUrl = `${publicSiteUrl}/odeme/paytr?token=${encodeURIComponent(paytrCheckout.token)}`;
+      await admin.from("commerce_payment_attempts").update({
+        payment_page_url: paymentPageUrl,
+        updated_at: new Date().toISOString(),
+      }).eq("id", reservedAttempt.id);
+
+      return jsonWithPendingOrder({
+        orderId: order.id,
+        orderNumber: order.order_number,
+        paymentPageUrl,
+        retried: Boolean(body.retryOrderId),
+      });
     }
 
     const money = (totalKurus / 100).toFixed(2);

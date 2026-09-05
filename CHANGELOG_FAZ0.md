@@ -1,5 +1,20 @@
 # FAZ 0 — Temel Doğruluk Düzeltmeleri
 
+## PayTR hosted ödeme sağlayıcısı — 5 Eylül 2026
+
+- PayTR, gerekli üç sunucu anahtarı yapılandırıldığında tercih edilen hosted
+  ödeme sağlayıcısı olarak eklendi; iyzico yapılandırılmamış PayTR için güvenli
+  yedek akış olmaya devam ediyor.
+- PayTR akışında T.C. kimlik numarası UI ve sunucu doğrulamasında istenmiyor.
+  iyzico akışının mevcut kimlik numarası kontrolü değişmedi.
+- Ödeme sonucu yalnız imzalı PayTR callback'i ve atomik veritabanı işlemiyle
+  kesinleşiyor; tarayıcı yönlendirmesi bir siparişi ödeme durumuna geçiremez.
+- Uygulama gizli PayTR anahtarlarını içermiyor. Sandbox/canlı callback smoke
+  testi, anahtarlar ve internete açık callback URL'si yapılandırıldıktan sonra
+  hedef ortamda yapılmalı.
+
+---
+
 Bu değişiklikler `yenomi-id-corporate-panel-only-fix.zip` üzerine uygulandı.
 Her madde izole tutuldu; birbirinin veya mevcut kodun işini ezmedi.
 `npx tsc --noEmit` proje genelinde 0 hata ile temiz geçti (doğrulama

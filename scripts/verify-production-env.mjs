@@ -23,9 +23,6 @@ const required = [
   'NEXT_PUBLIC_SITE_URL',
   'SUPABASE_SERVICE_ROLE_KEY',
   'PRODUCTION_SUPABASE_PROJECT_REF',
-  'IYZICO_API_KEY',
-  'IYZICO_SECRET_KEY',
-  'IYZICO_BASE_URL',
   'UPSTASH_REDIS_REST_URL',
   'UPSTASH_REDIS_REST_TOKEN',
   'LEGAL_TRADE_NAME',
@@ -57,14 +54,23 @@ const siteUrl = String(env.NEXT_PUBLIC_SITE_URL).replace(/\/$/, '');
 const supabaseUrl = String(env.NEXT_PUBLIC_SUPABASE_URL).replace(/\/$/, '');
 const productionRef = String(env.PRODUCTION_SUPABASE_PROJECT_REF).trim();
 const redisUrl = String(env.UPSTASH_REDIS_REST_URL).replace(/\/$/, '');
-const iyzicoBase = String(env.IYZICO_BASE_URL).replace(/\/$/, '');
+const iyzicoKeys = ['IYZICO_API_KEY', 'IYZICO_SECRET_KEY', 'IYZICO_BASE_URL'];
+const paytrKeys = ['PAYTR_MERCHANT_ID', 'PAYTR_MERCHANT_KEY', 'PAYTR_MERCHANT_SALT'];
+const configured = (keys) => keys.every((key) => String(env[key] || '').trim());
+const partiallyConfigured = (keys) => keys.some((key) => String(env[key] || '').trim()) && !configured(keys);
+const hasIyzico = configured(iyzicoKeys);
+const hasPaytr = configured(paytrKeys);
 
 if (!/^https:\/\//.test(siteUrl) || /localhost|127\.0\.0\.1/i.test(siteUrl)) fail('NEXT_PUBLIC_SITE_URL gerçek HTTPS production domain olmalı.');
 if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(supabaseUrl)) fail('NEXT_PUBLIC_SUPABASE_URL geçerli Supabase HTTPS URL olmalı.');
 if (!/^[a-z0-9]{20}$/i.test(productionRef)) fail('PRODUCTION_SUPABASE_PROJECT_REF 20 karakterli project ref olmalı.');
 if (!supabaseUrl.includes(`https://${productionRef}.supabase.co`)) fail('Production Supabase URL ile project ref eşleşmiyor.');
 if (!/^https:\/\//.test(redisUrl)) fail('UPSTASH_REDIS_REST_URL HTTPS olmalı.');
-if (iyzicoBase !== 'https://api.iyzipay.com') fail('Production IYZICO_BASE_URL https://api.iyzipay.com olmalı; sandbox production gate için kabul edilmez.');
+if (partiallyConfigured(iyzicoKeys)) fail(`IYZICO sağlayıcı yapılandırması eksik: ${iyzicoKeys.filter((key) => !String(env[key] || '').trim()).join(', ')}`);
+if (partiallyConfigured(paytrKeys)) fail(`PayTR sağlayıcı yapılandırması eksik: ${paytrKeys.filter((key) => !String(env[key] || '').trim()).join(', ')}`);
+if (!hasIyzico && !hasPaytr) fail('Production için en az bir ödeme sağlayıcısı (PayTR veya iyzico) eksiksiz yapılandırılmalı.');
+if (hasIyzico && !hasPaytr && String(env.IYZICO_BASE_URL).replace(/\/$/, '') !== 'https://api.iyzipay.com') fail('Production IYZICO_BASE_URL https://api.iyzipay.com olmalı; sandbox production gate için kabul edilmez.');
+if (hasPaytr && String(env.PAYTR_TEST_MODE).toLowerCase() === 'true') fail('Production PAYTR_TEST_MODE=true olamaz.');
 if (env.ALLOW_STAGING_MUTATIONS === 'true') fail('Production ortamında ALLOW_STAGING_MUTATIONS=true olamaz.');
 if (String(env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY).trim() === String(env.SUPABASE_SERVICE_ROLE_KEY).trim()) fail('Publishable key ile service-role key aynı olamaz.');
 if (String(env.LEGAL_CONTENT_APPROVED).toLowerCase() !== 'true') fail('LEGAL_CONTENT_APPROVED=true olmadan production yayın yapılamaz.');

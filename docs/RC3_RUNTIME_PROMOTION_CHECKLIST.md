@@ -26,9 +26,11 @@ Bu dosya yalnızca hedef ortamda üretilebilen kanıtları takip eder. Kod/stati
 - [ ] Authenticated mobile baselines üretildi/doğrulandı.
 - [ ] Diff artifact yok veya review edilip açıkça onaylandı.
 
-## iyzico sandbox
+## Ödeme sağlayıcısı sandbox
 
-- [ ] `IYZICO_BASE_URL=https://sandbox-api.iyzipay.com`.
+- [ ] iyzico kullanılacaksa `IYZICO_BASE_URL=https://sandbox-api.iyzipay.com`.
+- [ ] PayTR kullanılacaksa üç merchant anahtarı tanımlı ve `PAYTR_TEST_MODE=true`.
+- [ ] Seçilen sağlayıcının imzalı callback'i HTTPS üzerinden ulaşılabilir.
 - [ ] Sandbox API key/secret staging environment'ta mevcut.
 - [ ] Payment initialize PASS.
 - [ ] Callback staging domain'e ulaştı.
@@ -43,7 +45,8 @@ Bu dosya yalnızca hedef ortamda üretilebilen kanıtları takip eder. Kod/stati
 - [ ] Production environment approval alındı.
 - [ ] `npm run verify:phase20:production` PASS.
 - [ ] Production Supabase project ref ve URL eşleşiyor.
-- [ ] Production iyzico base URL `https://api.iyzipay.com`.
+- [ ] iyzico production base URL'si (etkinse) `https://api.iyzipay.com`.
+- [ ] PayTR production ortamında (etkinse) `PAYTR_TEST_MODE=false`.
 - [ ] `ALLOW_STAGING_MUTATIONS` production'da aktif değil.
 - [ ] Production Vercel build PASS.
 - [ ] Deploy sonrası smoke test PASS.

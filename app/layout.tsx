@@ -15,6 +15,7 @@ import "./ui-contract-v25.css";
 import "./public-header-unified.css";
 import "./public-system.css";
 import "./styles/canonical-public.css";
+import "./styles/canonical-paytr.css";
 import "./styles/canonical-account.css";
 import "./styles/canonical-corporate.css";
 import "./styles/canonical-auth.css";

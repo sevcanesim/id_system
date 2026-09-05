@@ -23,11 +23,20 @@ type AdminClient = ReturnType<typeof getSupabaseAdminClient>;
 type CommerceAttempt = {
   id: string;
   order_id: string;
+  provider: string;
   status: string;
   amount_kurus: number;
   currency: string;
   conversation_id: string;
   provider_payment_id: string | null;
+};
+
+type VerifiedProviderPayment = {
+  paid: boolean;
+  providerPaymentId?: string | null;
+  errorCode?: string | null;
+  errorMessage?: string | null;
+  rawResult: unknown;
 };
 
 async function isGuestCommerceOrder(admin: AdminClient, orderId: string) {
@@ -195,6 +204,25 @@ async function settleLoadedAttempt(
     return { kind: "pending", orderId: commerceAttempt.order_id };
   }
 
+  return settleVerifiedProviderPayment(admin, commerceAttempt, {
+    paid,
+    providerPaymentId: result?.paymentId ?? commerceAttempt.provider_payment_id ?? null,
+    errorCode: paid ? null : String(result?.errorCode || "PAYMENT_VERIFICATION_FAILED"),
+    errorMessage: paid ? null : String(result?.errorMessage || "Ödeme doğrulanamadı."),
+    rawResult: { ...result, provider: "IYZICO" },
+  });
+}
+
+async function settleVerifiedProviderPayment(
+  admin: AdminClient,
+  commerceAttempt: CommerceAttempt,
+  verification: VerifiedProviderPayment,
+): Promise<CommerceSettleResult> {
+  if (commerceAttempt.status === "PAID") {
+    const recovered = await recoverPaidCommerceOrder(admin, commerceAttempt.order_id);
+    return { kind: "paid", orderId: commerceAttempt.order_id, reviewRequired: recovered.reviewRequired };
+  }
+
   const rawActivationToken = randomBytes(32).toString("hex");
   const activationTokenHash = createHash("sha256").update(rawActivationToken).digest("hex");
   const activationExpiresAt = new Date();
@@ -202,11 +230,11 @@ async function settleLoadedAttempt(
 
   const { data: processedRows, error: processError } = await admin.rpc("process_commerce_payment_callback", {
     p_attempt_id: commerceAttempt.id,
-    p_paid: paid,
-    p_provider_payment_id: result?.paymentId ?? commerceAttempt.provider_payment_id ?? null,
-    p_error_code: paid ? null : String(result?.errorCode || "PAYMENT_VERIFICATION_FAILED"),
-    p_error_message: paid ? null : String(result?.errorMessage || "Ödeme doğrulanamadı."),
-    p_raw_result: sanitizeProviderPayload(result),
+    p_paid: verification.paid,
+    p_provider_payment_id: verification.providerPaymentId ?? commerceAttempt.provider_payment_id ?? null,
+    p_error_code: verification.paid ? null : verification.errorCode || "PAYMENT_VERIFICATION_FAILED",
+    p_error_message: verification.paid ? null : verification.errorMessage || "Ödeme doğrulanamadı.",
+    p_raw_result: sanitizeProviderPayload(verification.rawResult),
     p_activation_token_hash: activationTokenHash,
     p_activation_expires_at: activationExpiresAt.toISOString(),
   });
@@ -217,7 +245,7 @@ async function settleLoadedAttempt(
       orderId: commerceAttempt.order_id,
       message: processError.message,
     });
-    if (paid) {
+    if (verification.paid) {
       const { error: issueError } = await admin.rpc("record_commerce_fulfillment_issue", {
         p_order_id: commerceAttempt.order_id,
         p_order_item_id: null,
@@ -254,12 +282,47 @@ export async function settleCommercePaymentByProviderToken(
   const admin = getSupabaseAdminClient();
   const { data: commerceAttempt } = await admin
     .from("commerce_payment_attempts")
-    .select("id,order_id,status,amount_kurus,currency,conversation_id,provider_payment_id,provider_token")
+    .select("id,order_id,provider,status,amount_kurus,currency,conversation_id,provider_payment_id,provider_token")
     .eq("provider_token", token)
+    .eq("provider", "IYZICO")
     .maybeSingle();
 
   if (!commerceAttempt) return { kind: "not_found" };
   return settleLoadedAttempt(admin, commerceAttempt, token, { failIfUnpaid });
+}
+
+export async function settleCommercePaymentByPaytrCallback(input: {
+  merchantOid: string;
+  paid: boolean;
+  totalAmountKurus: number;
+  status: string;
+  errorCode?: string | null;
+  errorMessage?: string | null;
+}) : Promise<CommerceSettleResult> {
+  const admin = getSupabaseAdminClient();
+  const { data: commerceAttempt } = await admin
+    .from("commerce_payment_attempts")
+    .select("id,order_id,provider,status,amount_kurus,currency,conversation_id,provider_payment_id,provider_token")
+    .eq("provider_token", input.merchantOid)
+    .eq("provider", "PAYTR")
+    .maybeSingle();
+
+  if (!commerceAttempt) return { kind: "not_found" };
+  if (commerceAttempt.amount_kurus !== input.totalAmountKurus) return { kind: "error", reason: "callback" };
+  return settleVerifiedProviderPayment(admin, commerceAttempt, {
+    paid: input.paid,
+    providerPaymentId: input.merchantOid,
+    errorCode: input.paid ? null : input.errorCode || "PAYTR_PAYMENT_FAILED",
+    errorMessage: input.paid ? null : input.errorMessage || "Ödeme doğrulanamadı.",
+    rawResult: {
+      provider: "PAYTR",
+      merchantOid: input.merchantOid,
+      status: input.status,
+      totalAmount: input.totalAmountKurus,
+      errorCode: input.errorCode ?? null,
+      errorMessage: input.errorMessage ?? null,
+    },
+  });
 }
 
 export async function settlePendingCommercePaymentByOrderId(orderId: string): Promise<CommerceSettleResult> {
@@ -273,7 +336,7 @@ export async function settlePendingCommercePaymentByOrderId(orderId: string): Pr
 
   const { data: attempt } = await admin
     .from("commerce_payment_attempts")
-    .select("id,order_id,status,amount_kurus,currency,conversation_id,provider_payment_id,provider_token")
+    .select("id,order_id,provider,status,amount_kurus,currency,conversation_id,provider_payment_id,provider_token")
     .eq("order_id", orderId)
     .eq("status", "PENDING")
     .not("provider_token", "is", null)
@@ -282,5 +345,9 @@ export async function settlePendingCommercePaymentByOrderId(orderId: string): Pr
     .maybeSingle();
 
   if (!attempt?.provider_token) return { kind: "error", reason: "attempt" };
+  // PayTR is confirmed by its signed server-to-server callback. There is no
+  // browser recovery endpoint that may safely promote a pending PayTR order.
+  if (attempt.provider === "PAYTR") return { kind: "pending", orderId };
+  if (attempt.provider !== "IYZICO") return { kind: "error", reason: "attempt" };
   return settleLoadedAttempt(admin, attempt, attempt.provider_token, { failIfUnpaid: false });
 }

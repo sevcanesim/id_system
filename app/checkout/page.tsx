@@ -37,6 +37,8 @@ type FormState = {
   personalizationAccepted: boolean;
 };
 
+type PaymentProvider = "PAYTR" | "IYZICO" | null;
+
 const initial: FormState = {
   recipientName: "",
   email: "",
@@ -83,6 +85,7 @@ export default function CheckoutPage() {
   const [toast, setToast] = useState("");
   const [organizationTargets, setOrganizationTargets] = useState<Record<string, { name: string; role: string }>>({});
   const [privacyMask, setPrivacyMask] = useState(false);
+  const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>("IYZICO");
   const portalPurchase = items.some((item) => requiresPortalAccountSku(item.variantSku));
   const portalLoginHref = `/giris?portal=${items.some((item) => isCorporatePackageSku(item.variantSku)) ? "business" : "individual"}&purchase=portal&next=%2Fcheckout`;
   const requiresPortalLogin = portalPurchase && !isAuthenticated;
@@ -93,7 +96,11 @@ export default function CheckoutPage() {
         if (!response.ok) throw new Error("config unavailable");
         return response.json();
       })
-      .then((config) => setLegalVersions(config.legalVersions))
+      .then((config) => {
+        setLegalVersions(config.legalVersions);
+        const provider = config?.payment?.provider;
+        setPaymentProvider(provider === "PAYTR" || provider === "IYZICO" ? provider : null);
+      })
       .catch(() => setMessage("Hukuk sürümleri DB’den yüklenemedi; ödeme başlatılamaz."));
   }, []);
 
@@ -152,7 +159,7 @@ export default function CheckoutPage() {
           personalizationAccepted: false,
         }));
         setActiveStep("buyer");
-        setToast("Sepetin ve teslimat bilgilerin geri yüklendi. Kimlik numaranı ve onaylarını yeniden girerek devam edebilirsin.");
+        setToast("Sepetin ve teslimat bilgilerin geri yüklendi. Onaylarını yeniden vererek güvenli ödemeye devam edebilirsin.");
         window.history.replaceState(null, "", "/checkout");
       } catch (error) {
         setMessage(error instanceof Error ? error.message : "Sipariş taslağı yüklenemedi.");
@@ -205,6 +212,8 @@ export default function CheckoutPage() {
   const hasBusinessCapacity = items.some((item) => typeof item.configuration?.organizationId === "string" && !isCorporatePackageSku(item.variantSku));
   const hasCorporatePackage = items.some((item) => isCorporatePackageSku(item.variantSku));
   const digitalOnlyCart = items.length > 0 && items.every((item) => isDigitalOnlySku(item.variantSku));
+  const usesIyzico = paymentProvider === "IYZICO";
+  const paymentProviderName = paymentProvider === "PAYTR" ? "PayTR" : "iyzico";
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -215,7 +224,11 @@ export default function CheckoutPage() {
     taxNumber: form.companyTaxNumber,
     taxOffice: form.companyTaxOffice,
   }).ok;
-  const buyerComplete = form.recipientName.trim().length >= 3 && /^\S+@\S+\.\S+$/.test(form.email.trim()) && form.phone.replace(/\D/g, "").length >= 10 && form.identityNumber.length === 11 && companyComplete;
+  const buyerComplete = form.recipientName.trim().length >= 3
+    && /^\S+@\S+\.\S+$/.test(form.email.trim())
+    && form.phone.replace(/\D/g, "").length >= 10
+    && (!usesIyzico || form.identityNumber.length === 11)
+    && companyComplete;
   const shippingComplete = digitalOnlyCart
     ? Boolean(form.city.trim() && form.district.trim())
     : form.addressLine.trim().length >= 10 && !!form.district.trim() && !!form.city.trim();
@@ -225,7 +238,7 @@ export default function CheckoutPage() {
     if (form.recipientName.trim().length < 3) return "Ad soyad bilgisini kontrol et.";
     if (form.phone.replace(/\D/g, "").length < 10) return "Telefon numaranı kontrol et.";
     if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) return "Geçerli bir e-posta adresi gir.";
-    if (form.identityNumber.length !== 11) return "T.C. kimlik numarası 11 haneli olmalı.";
+    if (usesIyzico && form.identityNumber.length !== 11) return "T.C. kimlik numarası 11 haneli olmalı.";
     if (hasCorporatePackage) {
       const parsed = parseCompanyBilling({ name: form.companyName, taxNumber: form.companyTaxNumber, taxOffice: form.companyTaxOffice });
       if (!parsed.ok) return parsed.error;
@@ -316,6 +329,7 @@ export default function CheckoutPage() {
     setMessage("");
     if (!items.length) return setMessage("Sepetin boş.");
     if (!legalVersions) return setMessage("Hukuk sürümleri DB’den yüklenmeden ödeme başlatılamaz.");
+    if (!paymentProvider) return setMessage("Ödeme sağlayıcısı şu anda hazır değil. Lütfen kısa süre sonra tekrar dene.");
 
     const validationMessage = validate();
     if (validationMessage) return setMessage(validationMessage);
@@ -396,14 +410,14 @@ export default function CheckoutPage() {
           <div className="cart-empty">
             <Icon name="shield" />
             <h2>Ödeme bilgileri gizlendi.</h2>
-            <p>Bu sekmeye döndüğünüzde işlem ekranı yeniden görünür. T.C. kimlik numarası güvenlik için temizlendi.</p>
+            <p>Bu sekmeye döndüğünüzde işlem ekranı yeniden görünür. Hassas ödeme bilgileri güvenlik için temizlendi.</p>
           </div>
         </section>
       ) : (
         <section className="checkout-shell checkout-confirm-shell">
           <div className="checkout-heading checkout-heading-compact">
             <h1>{hasCorporatePackage ? "Kurumsal ödemeyi tamamla." : digitalOnlyCart ? "Dijital ödemeyi tamamla." : "Ödemeyi tamamla."}</h1>
-            <p>iyzico ile güvenle öde. {hasCorporatePackage ? "Fatura ve teslimatı doğrula. Son adımda iyzico kartını alır; Yenomi saklamaz." : digitalOnlyCart ? "Fatura ili ve ilçesini doğrula. Teslimat adresi yok. Kart numarası iyzico’da işlenir." : "Alıcı ve teslimatı doğrula. Kart numarası iyzico’da işlenir; Yenomi’de saklanmaz."}</p>
+            <p>{paymentProviderName} ile güvenle öde. {hasCorporatePackage ? `Fatura ve teslimatı doğrula. Son adımda ${paymentProviderName} kartını alır; Yenomi saklamaz.` : digitalOnlyCart ? `Fatura ili ve ilçesini doğrula. Teslimat adresi yok. Kart numarası ${paymentProviderName}’da işlenir.` : `Alıcı ve teslimatı doğrula. Kart numarası ${paymentProviderName}’da işlenir; Yenomi’de saklanmaz.`}</p>
             <div className="checkout-account-note" role="status">
               {isAuthenticated ? (
                 <><Icon name="check" /> Hesabın bağlı. Siparişin hesabına otomatik eklenir.</>
@@ -412,7 +426,7 @@ export default function CheckoutPage() {
               )}
             </div>
             <div className="checkout-trust-row checkout-trust-row-compact" aria-label="Sipariş avantajları">
-              <span><Icon name="shield" />iyzico ile güvenle öde</span>
+              <span><Icon name="shield" />{paymentProviderName} ile güvenle öde</span>
               {!digitalOnlyCart && <span><Icon name="truck" />Ücretsiz kargo</span>}
               {hasInitialBundle && <span><Icon name="clock" />Ana kart 2 iş gününde hazırlanır</span>}
               {hasDigitalMembership && <span><Icon name="shield" />1 yıl platform üyeliği dahil</span>}
@@ -443,7 +457,7 @@ export default function CheckoutPage() {
                     <label>Ad Soyad<input required autoComplete="name" value={form.recipientName} onChange={(event) => update("recipientName", event.target.value)} /></label>
                     <label>Telefon<input required inputMode="tel" autoComplete="tel" value={form.phone} onChange={(event) => update("phone", normalizeTrPhone(event.target.value))} /></label>
                     <label>E-posta<input required type="email" autoComplete="email" value={form.email} onChange={(event) => !isAuthenticated && update("email", event.target.value)} readOnly={isAuthenticated} /></label>
-                    <label>T.C. kimlik numarası<input required inputMode="numeric" maxLength={11} name="iyzico-identity" autoComplete="off" autoCorrect="off" spellCheck={false} aria-describedby="identity-note" value={form.identityNumber} onChange={(event) => update("identityNumber", event.target.value.replace(/\D/g, ""))} /><small id="identity-note">iyzico ödemesi için zorunlu. Yenomi kaydetmez.</small></label>
+                    {usesIyzico ? <label>T.C. kimlik numarası<input required inputMode="numeric" maxLength={11} name="iyzico-identity" autoComplete="off" autoCorrect="off" spellCheck={false} aria-describedby="identity-note" value={form.identityNumber} onChange={(event) => update("identityNumber", event.target.value.replace(/\D/g, ""))} /><small id="identity-note">iyzico ödemesi için zorunlu. Yenomi kaydetmez.</small></label> : null}
                     {hasCorporatePackage ? <fieldset className="checkout-company-fields" aria-describedby="company-billing-note">
                       <legend><Icon name="building" />Kurumsal fatura bilgileri</legend>
                       <p id="company-billing-note">Ödeme tamamlandığında bu kayıt şirketine aktarılır; kurumsal panelden sonradan değiştirilemez.</p>
@@ -480,7 +494,7 @@ export default function CheckoutPage() {
                 <section className={`checkout-step ${activeStep === "approval" ? "open" : ""} ${approvalComplete ? "complete" : ""}`}>
                   <button type="button" className="checkout-step-trigger" onClick={() => buyerComplete && shippingComplete && setActiveStep("approval")} disabled={!buyerComplete || !shippingComplete}>
                     <span className="checkout-step-icon"><Icon name="shield" /></span>
-                    <span><strong>Onay ve ödeme</strong><small>Kart bilgisi iyzico’da girilir</small></span>
+                    <span><strong>Onay ve ödeme</strong><small>Kart bilgisi {paymentProviderName}’da girilir</small></span>
                   </button>
                   {activeStep === "approval" && <div className="checkout-step-body">
                     <label className="checkout-consent">
@@ -516,7 +530,7 @@ export default function CheckoutPage() {
                   <strong>{formatTryFromKurus(total)}</strong>
                 </div>
                 <div className="checkout-summary-benefits">
-                  <span><Icon name="check" /> iyzico ile güvenle öde</span>
+                  <span><Icon name="check" /> {paymentProviderName} ile güvenle öde</span>
                   <span><Icon name="check" /> 1 yıl platform üyeliği dahil</span>
                   {!digitalOnlyCart && <span><Icon name="check" /> Türkiye içi kargo dahil</span>}
                   <span><Icon name="check" /> Kart numarası Yenomi’de saklanmaz</span>

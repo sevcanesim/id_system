@@ -8,7 +8,7 @@ import AppFooter from "./AppFooter";
 export type HeaderVariant = "marketing" | "commerce" | "support-legal" | "auth" | "checkout";
 
 function resolveHeaderVariant(pathname: string): HeaderVariant {
-  if (pathname === "/checkout" || pathname.startsWith("/checkout/") || pathname === "/nfc-siparis") {
+  if (pathname === "/checkout" || pathname.startsWith("/checkout/") || pathname === "/nfc-siparis" || pathname === "/odeme/paytr") {
     return "checkout";
   }
   if (pathname === "/giris" || pathname.startsWith("/giris/")) {
@@ -33,6 +33,7 @@ function resolveHeaderVariant(pathname: string): HeaderVariant {
 }
 
 function isPublicSiteSurface(pathname: string) {
+  if (pathname === "/odeme/paytr") return true;
   const excluded = [
     /^\/admin(?:\/|$)/,
     /^\/kurumsal\/panel(?:\/|$)/,

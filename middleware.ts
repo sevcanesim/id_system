@@ -42,6 +42,7 @@ function ruleFor(pathname: string, method: string): LimitRule | null {
   if (pathname === "/api/payments/iyzico/checkout") return { limit: 3, windowMs: 60_000, scope: "legacy-checkout" };
   if (pathname === "/api/payments/iyzico/recover") return { limit: 8, windowMs: 60_000, scope: "iyzico-recover" };
   if (pathname === "/api/payments/iyzico/webhook") return { limit: 30, windowMs: 60_000, scope: "iyzico-webhook" };
+  if (pathname === "/api/payments/paytr/callback") return { limit: 30, windowMs: 60_000, scope: "paytr-callback" };
   if (pathname === "/api/commerce/orders/pending") return { limit: 20, windowMs: 60_000, scope: "pending-order" };
   if (pathname === "/api/networking/inbox" && method !== "GET") return { limit: 12, windowMs: 60_000, scope: "network-mail-inbox" };
   return null;

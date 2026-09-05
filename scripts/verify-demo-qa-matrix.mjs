@@ -85,7 +85,7 @@ for (const invite of DEMO_INVITE_FIXTURES) {
   }
 }
 
-if (DEMO_IDENTITY_COLLISION.emailPrefix === "demo.ayni.isim." && DEMO_IDENTITY_COLLISION.displayName === "Ahmet Yılmaz") {
+if (DEMO_IDENTITY_COLLISION.emailPrefix === "qa26.ayni.isim." && DEMO_IDENTITY_COLLISION.displayName === "Ahmet Yılmaz") {
   pass("identity collision registry");
 } else {
   fail("identity collision registry drifted");
@@ -114,7 +114,7 @@ const knownNoAuth = new Set([
 ]);
 if (fs.existsSync(localQaHelperPath)) {
   const qaHelper = fs.readFileSync(localQaHelperPath, "utf8");
-  const qaEmails = [...qaHelper.matchAll(/email:\s*"(demo\.[^"]+@yenomi\.test)"/g)].map((match) => match[1]);
+  const qaEmails = [...qaHelper.matchAll(/email:\s*"(qa26\.[^"]+@yenomi\.test)"/g)].map((match) => match[1]);
   for (const email of new Set(qaEmails)) {
     if (loginEmails.has(email) || knownNoAuth.has(email)) pass(`local QA helper email ${email}`);
     else fail(`local QA helper invented ${email}`);
@@ -124,7 +124,7 @@ if (fs.existsSync(localQaHelperPath)) {
 }
 
 // Programmatic verification of domain fixtures between matrix & seed
-if (DEMO_IDENTITY_COLLISION.emailPrefix === "demo.ayni.isim." && seed.includes("identityCollision")) {
+if (DEMO_IDENTITY_COLLISION.emailPrefix === "qa26.ayni.isim." && seed.includes("identityCollision")) {
   pass("same-name identity pair");
 } else fail("same-name identity pair");
 
@@ -159,8 +159,19 @@ else fail("empty company is owner-only");
 if (seed.includes("limit: 10, used: 6")) pass("partial occupancy 6/10");
 else fail("partial occupancy 6/10");
 
-if (seed.includes("demo.calisan.dijital@yenomi.test again")) pass("duplicate-email is a procedure against an existing member");
+if (seed.includes("Duplicate-email is a procedure against the existing digital-card fixture")) pass("duplicate-email is a procedure against an existing member");
 else fail("duplicate-email is a procedure against an existing member");
+
+const allFixtureEmails = [
+  ...DEMO_LOGIN_USERS.map((user) => user.email),
+  ...DEMO_GUEST_ORDERS.map((guest) => guest.email),
+  ...DEMO_INVITE_FIXTURES.map((invite) => invite.email),
+];
+if (allFixtureEmails.every((email) => email.startsWith("qa26."))) {
+  pass("legacy demo.* addresses are never reseeded");
+} else {
+  fail("every canonical fixture must use the qa26.* namespace");
+}
 
 if (seed.includes("no lead domain table exists yet")) pass("lead remains an explicit product gap");
 else fail("lead remains an explicit product gap");
@@ -212,6 +223,12 @@ if (seed.includes('normalized.endsWith("@yenomi.test")') && seed.includes('eq("a
   fail("reset must cover all persisted test identities");
 }
 
+if (seed.includes('startsWith("demo.")') && seed.includes("Eski demo.* giriş doğrulaması: 0 hesap kaldı.")) {
+  pass("reset proves retired demo.* logins are absent");
+} else {
+  fail("reset must verify retired demo.* logins are absent");
+}
+
 if (seed.includes("user_id: null")) pass("guest orders stay unclaimed");
 else fail("guest orders stay unclaimed");
 
@@ -221,7 +238,7 @@ else fail("activation token derived at apply");
 if (seed.includes("allocate_corporate_id")) pass("demo orgs allocate corporate_id");
 else fail("demo orgs allocate corporate_id");
 
-const departmentManager = DEMO_LOGIN_USERS.find((u) => u.email === "demo.departman.yonetici@yenomi.test");
+const departmentManager = DEMO_LOGIN_USERS.find((u) => u.key === "departmentManager");
 if (departmentManager?.role === "EMPLOYEE" && departmentManager.department === "Satış") {
   pass("department-manager fixture records the current role-model gap explicitly");
 } else {

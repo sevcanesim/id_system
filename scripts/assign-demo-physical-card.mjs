@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import fs from "node:fs";
 import path from "node:path";
+import { DEMO_LOGIN_USERS } from "../tests/fixtures/demo-user-matrix.mjs";
 
 function readEnv(filePath) {
   if (!fs.existsSync(filePath)) return {};
@@ -20,9 +21,10 @@ const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SECRET_KEY;
 if (!url || !serviceKey) throw new Error("Supabase URL ve service role/secret key gerekli.");
 
 const supabase = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
-const OWNER_EMAIL = "demo.corp5.full@yenomi.test";
+const OWNER_EMAIL = DEMO_LOGIN_USERS.find((user) => user.key === "corp5Full")?.email;
 const ORG_SLUG = "demo-sirket-5-tam";
 const CARD_CODE = "YN-DEMO5FULL001";
+if (!OWNER_EMAIL) throw new Error("corp5Full demo kimliği matriste bulunamadı.");
 
 const { data: organization, error: orgError } = await supabase
   .from("organizations")

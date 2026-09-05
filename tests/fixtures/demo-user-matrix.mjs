@@ -4,10 +4,15 @@
  * Never import this module from `app/` — production must not ship demo fixtures.
  */
 
+// `demo.*@yenomi.test` was the retired first-generation fixture namespace.
+// New fixtures live under a separate namespace, so a reset makes every legacy
+// login unavailable instead of silently recreating it with the same password.
+const QA_EMAIL_NAMESPACE = "qa26.";
+
 export const DEMO_LOGIN_USERS = [
   {
     key: "superAdmin",
-    email: "demo.superadmin@yenomi.test",
+    email: "qa26.superadmin@yenomi.test",
     name: "Demo Super Admin",
     kind: "SUPER_ADMIN",
     loginScope: "BOTH",
@@ -16,7 +21,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "cardPending",
-    email: "demo.card.pending@yenomi.test",
+    email: "qa26.card.pending@yenomi.test",
     name: "Kart Bilgisi Bekleyen",
     kind: "INDIVIDUAL_PENDING",
     loginScope: "INDIVIDUAL",
@@ -27,7 +32,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "cardComplete",
-    email: "demo.card.complete@yenomi.test",
+    email: "qa26.card.complete@yenomi.test",
     name: "Kartı Hazır Kullanıcı",
     kind: "INDIVIDUAL_COMPLETE",
     loginScope: "INDIVIDUAL",
@@ -39,7 +44,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "corp5Full",
-    email: "demo.corp5.full@yenomi.test",
+    email: "qa26.corp5.full@yenomi.test",
     name: "Demo 5 Tam Dolu",
     kind: "CORPORATE_OWNER",
     loginScope: "CORPORATE",
@@ -55,7 +60,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "corp5Three",
-    email: "demo.corp5.three@yenomi.test",
+    email: "qa26.corp5.three@yenomi.test",
     name: "Demo 5 İki Boş",
     kind: "CORPORATE_OWNER",
     loginScope: "CORPORATE",
@@ -70,7 +75,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "corp10Full",
-    email: "demo.corp10.full@yenomi.test",
+    email: "qa26.corp10.full@yenomi.test",
     name: "Demo 10 Tam Dolu",
     kind: "CORPORATE_OWNER",
     loginScope: "CORPORATE",
@@ -85,7 +90,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "corp2FullA",
-    email: "demo.corp2.full-a@yenomi.test",
+    email: "qa26.corp2.full-a@yenomi.test",
     name: "Demo 2 Tam Dolu A",
     kind: "CORPORATE_OWNER",
     loginScope: "CORPORATE",
@@ -100,7 +105,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "corp2One",
-    email: "demo.corp2.one@yenomi.test",
+    email: "qa26.corp2.one@yenomi.test",
     name: "Demo 2 Bir Boş",
     kind: "CORPORATE_OWNER",
     loginScope: "CORPORATE",
@@ -115,7 +120,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "corp2Upgrade",
-    email: "demo.corp2.full-upgrade@yenomi.test",
+    email: "qa26.corp2.full-upgrade@yenomi.test",
     name: "Demo 2 Paket Yükseltme",
     kind: "CORPORATE_OWNER",
     loginScope: "CORPORATE",
@@ -130,7 +135,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trIndividualEmpty",
-    email: "demo.bireysel.bos@yenomi.test",
+    email: "qa26.bireysel.bos@yenomi.test",
     name: "Bireysel Portal Kullanıcısı",
     kind: "INDIVIDUAL_REGISTERED",
     loginScope: "INDIVIDUAL",
@@ -139,7 +144,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trIndividualActive",
-    email: "demo.bireysel.aktif@yenomi.test",
+    email: "qa26.bireysel.aktif@yenomi.test",
     name: "Bireysel Aktif Kullanıcı",
     kind: "INDIVIDUAL_COMPLETE",
     loginScope: "INDIVIDUAL",
@@ -151,7 +156,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trOwner",
-    email: "demo.kurumsal.yonetici@yenomi.test",
+    email: "qa26.kurumsal.yonetici@yenomi.test",
     name: "Kurumsal Yönetici",
     kind: "CORPORATE_OWNER",
     loginScope: "CORPORATE",
@@ -166,7 +171,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trAdmin",
-    email: "demo.kurumsal.admin@yenomi.test",
+    email: "qa26.kurumsal.admin@yenomi.test",
     name: "Kurumsal Admin",
     kind: "CORPORATE_ADMIN",
     loginScope: "CORPORATE",
@@ -181,7 +186,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trHr",
-    email: "demo.ik.yonetici@yenomi.test",
+    email: "qa26.ik.yonetici@yenomi.test",
     name: "İnsan Kaynakları Yöneticisi",
     kind: "CORPORATE_HR",
     loginScope: "CORPORATE",
@@ -196,7 +201,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "departmentManager",
-    email: "demo.departman.yonetici@yenomi.test",
+    email: "qa26.departman.yonetici@yenomi.test",
     name: "Departman Yöneticisi",
     kind: "CORPORATE_DEPARTMENT_MANAGER",
     loginScope: "CORPORATE",
@@ -211,7 +216,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trRegistered",
-    email: "demo.calisan.kayit@yenomi.test",
+    email: "qa26.calisan.kayit@yenomi.test",
     name: "Hesabını Oluşturmuş Çalışan",
     kind: "CORPORATE_EMPLOYEE",
     loginScope: "CORPORATE",
@@ -226,7 +231,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trNoCard",
-    email: "demo.calisan.kartyok@yenomi.test",
+    email: "qa26.calisan.kartyok@yenomi.test",
     name: "Dijital Kartı Oluşturulmamış",
     kind: "CORPORATE_EMPLOYEE",
     loginScope: "CORPORATE",
@@ -241,7 +246,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trDigital",
-    email: "demo.calisan.dijital@yenomi.test",
+    email: "qa26.calisan.dijital@yenomi.test",
     name: "Dijital Kart Hazır",
     kind: "CORPORATE_EMPLOYEE",
     loginScope: "CORPORATE",
@@ -257,7 +262,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trAssigned",
-    email: "demo.calisan.atanmis@yenomi.test",
+    email: "qa26.calisan.atanmis@yenomi.test",
     name: "Fiziksel Kart Atanmış",
     kind: "CORPORATE_EMPLOYEE",
     loginScope: "CORPORATE",
@@ -273,7 +278,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trLost",
-    email: "demo.calisan.kayip@yenomi.test",
+    email: "qa26.calisan.kayip@yenomi.test",
     name: "Kayıp Kart",
     kind: "CORPORATE_EMPLOYEE",
     loginScope: "CORPORATE",
@@ -289,7 +294,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trBackup",
-    email: "demo.calisan.yedek@yenomi.test",
+    email: "qa26.calisan.yedek@yenomi.test",
     name: "Yedek Kartlı Kullanıcı",
     kind: "CORPORATE_EMPLOYEE",
     loginScope: "CORPORATE",
@@ -308,7 +313,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trSuspended",
-    email: "demo.calisan.pasif@yenomi.test",
+    email: "qa26.calisan.pasif@yenomi.test",
     name: "Pasif Çalışan",
     kind: "CORPORATE_EMPLOYEE",
     loginScope: "CORPORATE",
@@ -324,7 +329,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trLeft",
-    email: "demo.calisan.ayrildi@yenomi.test",
+    email: "qa26.calisan.ayrildi@yenomi.test",
     name: "İşten Ayrılan Çalışan",
     kind: "CORPORATE_EMPLOYEE",
     loginScope: "CORPORATE",
@@ -340,7 +345,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trFullOwner",
-    email: "demo.kurumsal.dolu@yenomi.test",
+    email: "qa26.kurumsal.dolu@yenomi.test",
     name: "Tam Kapasite Şirket Yöneticisi",
     kind: "CORPORATE_OWNER",
     loginScope: "CORPORATE",
@@ -354,7 +359,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trEmptyOwner",
-    email: "demo.kurumsal.bos@yenomi.test",
+    email: "qa26.kurumsal.bos@yenomi.test",
     name: "Yeni Kurumsal Müşteri",
     kind: "CORPORATE_OWNER",
     loginScope: "CORPORATE",
@@ -368,7 +373,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trPartialOwner",
-    email: "demo.kurumsal.eksik@yenomi.test",
+    email: "qa26.kurumsal.eksik@yenomi.test",
     name: "Kısmen Dolu Şirket Yöneticisi",
     kind: "CORPORATE_OWNER",
     loginScope: "CORPORATE",
@@ -382,7 +387,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trTemplateOwner",
-    email: "demo.kurumsal.template@yenomi.test",
+    email: "qa26.kurumsal.template@yenomi.test",
     name: "Şablon Test Yöneticisi",
     kind: "CORPORATE_OWNER",
     loginScope: "CORPORATE",
@@ -396,7 +401,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trLeadOwner",
-    email: "demo.kurumsal.lead@yenomi.test",
+    email: "qa26.kurumsal.lead@yenomi.test",
     name: "Lead Test Yöneticisi",
     kind: "CORPORATE_OWNER",
     loginScope: "CORPORATE",
@@ -410,7 +415,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "multiOrgUser",
-    email: "demo.multi.org@yenomi.test",
+    email: "qa26.multi.org@yenomi.test",
     name: "İki Şirketli Yönetici",
     kind: "MULTI_ORG_ADMIN",
     loginScope: "CORPORATE",
@@ -435,7 +440,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trIndividualPremium",
-    email: "demo.bireysel.premium@yenomi.test",
+    email: "qa26.bireysel.premium@yenomi.test",
     name: "Bireysel Premium Kullanıcı",
     kind: "INDIVIDUAL_PREMIUM",
     loginScope: "INDIVIDUAL",
@@ -447,7 +452,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trIndividualExpired",
-    email: "demo.bireysel.suresi.dolmus@yenomi.test",
+    email: "qa26.bireysel.suresi.dolmus@yenomi.test",
     name: "Süresi Dolmuş Bireysel",
     kind: "INDIVIDUAL_EXPIRED",
     loginScope: "INDIVIDUAL",
@@ -458,7 +463,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trIndividualLost",
-    email: "demo.bireysel.kayip@yenomi.test",
+    email: "qa26.bireysel.kayip@yenomi.test",
     name: "Kayıp Kart Bireysel",
     kind: "INDIVIDUAL_LOST",
     loginScope: "INDIVIDUAL",
@@ -470,7 +475,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trIndividualBackup",
-    email: "demo.bireysel.yedek@yenomi.test",
+    email: "qa26.bireysel.yedek@yenomi.test",
     name: "Yedek Kart Bireysel",
     kind: "INDIVIDUAL_BACKUP",
     loginScope: "INDIVIDUAL",
@@ -485,7 +490,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trIndividualClaimMismatch",
-    email: "demo.bireysel.claim.mismatch@yenomi.test",
+    email: "qa26.bireysel.claim.mismatch@yenomi.test",
     name: "Claim Eşleşmeyen Kullanıcı",
     kind: "INDIVIDUAL_CLAIM_MISMATCH",
     loginScope: "INDIVIDUAL",
@@ -495,7 +500,7 @@ export const DEMO_LOGIN_USERS = [
   },
   {
     key: "trIndividualForeign",
-    email: "demo.bireysel.yabanci@yenomi.test",
+    email: "qa26.bireysel.yabanci@yenomi.test",
     name: "Yabancı Checkout Kullanıcısı",
     kind: "INDIVIDUAL_FOREIGN",
     loginScope: "INDIVIDUAL",
@@ -507,7 +512,7 @@ export const DEMO_LOGIN_USERS = [
 
 export const DEMO_GUEST_ORDERS = [
   {
-    email: "demo.bireysel.aktivasyon.bekler@yenomi.test",
+    email: "qa26.bireysel.aktivasyon.bekler@yenomi.test",
     kind: "GUEST_ACTIVATION_PENDING",
     audience: "individual",
     orderNumber: "YI-DEMO-GUEST-AKTIVASYON",
@@ -517,7 +522,7 @@ export const DEMO_GUEST_ORDERS = [
     intent: "PAID misafir siparişi; Auth yok; aktivasyon token’ı apply anında türetilir.",
   },
   {
-    email: "demo.bireysel.claim.siparis@yenomi.test",
+    email: "qa26.bireysel.claim.siparis@yenomi.test",
     kind: "GUEST_CLAIM_MISMATCH_ORDER",
     audience: "individual",
     orderNumber: "YI-DEMO-GUEST-CLAIM",
@@ -527,7 +532,7 @@ export const DEMO_GUEST_ORDERS = [
     intent: "Misafir e-posta siparişi; claim.mismatch kullanıcısı bunu sahiplenemez.",
   },
   {
-    email: "demo.kurumsal.misafir.paid@yenomi.test",
+    email: "qa26.kurumsal.misafir.paid@yenomi.test",
     kind: "GUEST_CORPORATE_PAID",
     audience: "corporate",
     orderNumber: "YI-DEMO-GUEST-CORP",
@@ -540,7 +545,7 @@ export const DEMO_GUEST_ORDERS = [
 
 export const DEMO_INVITE_FIXTURES = [
   {
-    email: "demo.calisan.davet@yenomi.test",
+    email: "qa26.calisan.davet@yenomi.test",
     kind: "INVITE_PENDING",
     organizationSlug: "demo-qa-uctan-uca",
     role: "EMPLOYEE",
@@ -550,7 +555,7 @@ export const DEMO_INVITE_FIXTURES = [
     intent: "Aktif davet; Auth user yok; login başarısız olmalı.",
   },
   {
-    email: "demo.calisan.davet.expired@yenomi.test",
+    email: "qa26.calisan.davet.expired@yenomi.test",
     kind: "INVITE_EXPIRED",
     organizationSlug: "demo-qa-uctan-uca",
     role: "EMPLOYEE",
@@ -561,7 +566,7 @@ export const DEMO_INVITE_FIXTURES = [
     intent: "Süresi dolmuş davet.",
   },
   {
-    email: "demo.calisan.davet.revoked@yenomi.test",
+    email: "qa26.calisan.davet.revoked@yenomi.test",
     kind: "INVITE_REVOKED",
     organizationSlug: "demo-qa-uctan-uca",
     role: "EMPLOYEE",
@@ -575,7 +580,7 @@ export const DEMO_INVITE_FIXTURES = [
 
 export const DEMO_IDENTITY_COLLISION = {
   displayName: "Ahmet Yılmaz",
-  emailPrefix: "demo.ayni.isim.",
+  emailPrefix: `${QA_EMAIL_NAMESPACE}ayni.isim.`,
   organizationSlug: "demo-qa-uctan-uca",
   suffixes: ["a", "b"],
   intent: "Aynı görünen ad, farklı e-posta; kimlik çarpışması.",

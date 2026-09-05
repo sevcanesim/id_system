@@ -15,7 +15,7 @@ export default function PaymentSuccessPage() {
       <Suspense fallback={null}>
         <PaymentSuccessHeader fallbackActions={PAYMENT_SUCCESS_ACTIONS} />
       </Suspense>
-      <Suspense fallback={<section className="order-success p5-order-success" aria-busy="true"><span className="section-kicker">SİPARİŞ DOĞRULANIYOR</span><h1>Ödeme durumun kontrol ediliyor…</h1></section>}>
+      <Suspense fallback={<section className="order-success p5-order-success transaction-state-card" aria-busy="true"><span className="section-kicker">SİPARİŞ DOĞRULANIYOR</span><h1>Ödeme durumun kontrol ediliyor…</h1></section>}>
         <OrderResultGate />
       </Suspense>
       <AppFooter variant="compact" />

@@ -597,7 +597,7 @@ for (const scenario of corporateScenarios) {
   }
 
   // Active invite fixture
-  const activeInvite = inviteFixtures.find((i) => i.email === "demo.calisan.davet@yenomi.test");
+  const activeInvite = inviteFixtures.find((i) => i.kind === "INVITE_PENDING");
   if (activeInvite) {
     const { data: invitedMember, error: invitedError } = await supabase.from("organization_members").upsert({
       organization_id: qaOrg.id, email: activeInvite.email, full_name: "Davet Bekleyen Çalışan",
@@ -673,7 +673,7 @@ for (const scenario of corporateScenarios) {
     }, { onConflict: "organization_id,email" }).throwOnError();
   }
 
-  // Duplicate-email is a procedure against an existing member: demo.calisan.dijital@yenomi.test again
+  // Duplicate-email is a procedure against the existing digital-card fixture.
 
   // Unassigned physical stock on the org the Turkish owner actually opens.
   for (const code of ["YN-QASTOCK0001A", "YN-QASTOCK0002A"]) {
@@ -877,6 +877,15 @@ const guestActivationUrls = [];
     variantSku: corporateGuest.variantSku || "YENOMI-CORP-2",
   });
   guestActivationUrls.push({ email: corporateGuest.email, orderNumber: corporateGuest.orderNumber, url: `/aktivasyon?token=${encodeURIComponent(seededCorp.token.raw)}` });
+}
+
+if (resetDemo) {
+  const finalAuthUsers = await listAllAuthUsers();
+  const retiredLegacyUsers = finalAuthUsers.filter((user) => String(user.email || "").toLowerCase().startsWith("demo."));
+  if (retiredLegacyUsers.length) {
+    throw new Error(`Temiz reset başarısız: ${retiredLegacyUsers.length} eski demo.* girişi hâlâ mevcut.`);
+  }
+  console.log("Eski demo.* giriş doğrulaması: 0 hesap kaldı.");
 }
 
 console.log("Demo/QA seed tamamlandı.");

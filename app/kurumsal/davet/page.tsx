@@ -34,8 +34,8 @@ export default function InvitePage() {
   return (
     <main id="main-content" className="corporate-invite-page" data-ui-context="public">
       <AppHeader showDefaultCta={false} />
-      <section className="corporate-invite-shell">
-        <div className="corporate-invite-card" role="status" aria-live="polite">
+      <section className="corporate-invite-shell corporate-invite-shell--compact">
+        <div className="corporate-invite-card corporate-invite-card--compact" role="status" aria-live="polite">
           <span className="corporate-invite-kicker">KURUMSAL DAVET</span>
 
           {state.status === "checking" && <>

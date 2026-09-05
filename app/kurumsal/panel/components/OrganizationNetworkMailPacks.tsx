@@ -3,13 +3,62 @@
 import AddToCartButton from "../../../components/AddToCartButton";
 import { Icon } from "../../../icons";
 import { formatTryFromKurus, NFC_PRODUCT } from "../../../../lib/config/product";
-import { NETWORK_MAIL_CREDIT_PACKS } from "../../../../lib/commerce/packages";
+import { BUSINESS_SEAT_PACKS, NETWORK_MAIL_CREDIT_PACKS } from "../../../../lib/commerce/packages";
 import styles from "./OrganizationNetworkMailPacks.module.css";
 
 type Props = {
   organizationId: string;
   purchaseAllowed?: boolean;
 };
+
+const SEAT_PACK_PRODUCT_SLUG = "yenomi-business-seat-pack";
+
+/**
+ * Capacity packs attach to the existing organization and its active term.
+ * They must not reuse the public corporate-package checkout, which creates a
+ * new organization from a tax profile and is therefore intentionally blocked
+ * for an already active company.
+ */
+export function OrganizationCapacityPacks({ organizationId, purchaseAllowed = true }: Props) {
+  return (
+    <section className={styles.section} aria-labelledby="organization-capacity-packs-title">
+      <header className={styles.header}>
+        <div>
+          <span className={styles.eyebrow}><Icon name="contact" /> KURUMSAL KAPASİTE</span>
+          <h3 id="organization-capacity-packs-title">Ekibini büyüt, mevcut dönemini koru.</h3>
+          <p>Yeni kullanıcı lisansları ve kişi sayısı kadar NFC kart bu şirkete eklenir. Mevcut abonelik ve yenileme dönemin değişmez.</p>
+        </div>
+        <span className={styles.scope}><Icon name="building" /> Şirket kapasitesi</span>
+      </header>
+
+      <div className={`${styles.grid} ${styles.capacityGrid}`}>
+        {BUSINESS_SEAT_PACKS.map((pack) => (
+          <article className={styles.pack} key={pack.sku}>
+            <span className={styles.packKicker}>EK KAPASİTE</span>
+            <strong>+{pack.seats} kullanıcı</strong>
+            <p>{pack.seats} yeni kullanıcı lisansı ve {pack.seats} kişilik NFC kart kapasitesi.</p>
+            <div className={styles.action}>
+              <span>{formatTryFromKurus(pack.priceKurus)}</span>
+              {purchaseAllowed ? (
+                <AddToCartButton
+                  productId={SEAT_PACK_PRODUCT_SLUG}
+                  variantSku={pack.sku}
+                  kind="BUSINESS_CARD"
+                  name={pack.name}
+                  unitPriceKurus={pack.priceKurus}
+                  configuration={{ organizationId, seatCount: pack.seats }}
+                  label="Kapasite ekle"
+                  className={styles.addButton}
+                />
+              ) : <span className={styles.restricted}>Satın alma yetkisi Şirket Sahibinde</span>}
+            </div>
+          </article>
+        ))}
+      </div>
+      <p className={styles.notice}><Icon name="lock" /> Ödeme onaylandığında yeni lisanslar ve atanabilir kartlar otomatik olarak bu şirkete eklenir.</p>
+    </section>
+  );
+}
 
 /**
  * Network Mail credits always belong to one organization. The organization id

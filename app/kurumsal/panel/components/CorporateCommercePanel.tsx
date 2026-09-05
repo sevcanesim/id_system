@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Icon } from "../../../icons";
 import { EmptyState, LoadingState } from "../../../components/ui/States";
 import { formatTryFromKurus } from "../../../../lib/config/product";
-import OrganizationNetworkMailPacks from "./OrganizationNetworkMailPacks";
+import OrganizationNetworkMailPacks, { OrganizationCapacityPacks } from "./OrganizationNetworkMailPacks";
 import styles from "./CorporateCommercePanel.module.css";
 
 type Order = {
@@ -87,6 +87,7 @@ export default function CorporateCommercePanel({ organizationId, token, purchase
         <span className={styles.access}><Icon name="lock" /> Sınırlı erişim</span>
       </header>
 
+      <OrganizationCapacityPacks organizationId={organizationId} purchaseAllowed={purchaseAllowed} />
       <OrganizationNetworkMailPacks organizationId={organizationId} purchaseAllowed={purchaseAllowed} />
 
       <section className={styles.history} aria-labelledby="corporate-order-history-title">

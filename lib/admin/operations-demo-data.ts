@@ -12,9 +12,9 @@ const ahead = (days: number) => new Date(Date.now() + days * 24 * 60 * 60 * 1000
 
 export function createAdminOperationsDemoData(): OperationsPayload {
   const users = [
-    ["10000000-0000-4000-8000-000000000001", "Ayşe Yılmaz", "ayse.demo@yenomi.test"],
-    ["10000000-0000-4000-8000-000000000002", "Mert Demir", "mert.demo@yenomi.test"],
-    ["10000000-0000-4000-8000-000000000003", "Elif Kaya", "elif.demo@yenomi.test"],
+    ["10000000-0000-4000-8000-000000000001", "Ayşe Yılmaz", "qa26.operations.ayse@yenomi.test"],
+    ["10000000-0000-4000-8000-000000000002", "Mert Demir", "qa26.operations.mert@yenomi.test"],
+    ["10000000-0000-4000-8000-000000000003", "Elif Kaya", "qa26.operations.elif@yenomi.test"],
   ] as const;
 
   const card = (n: number, status: string, name: string, email: string, extra: Record<string, unknown> = {}) => ({
@@ -35,11 +35,11 @@ export function createAdminOperationsDemoData(): OperationsPayload {
 
   return {
     printQueue: [
-      card(1, "PRINT_PENDING", "Ayşe Yılmaz", "ayse.demo@yenomi.test"),
-      card(2, "PRINTING", "Mert Demir", "mert.demo@yenomi.test"),
-      card(3, "SHIPPING_PENDING", "Elif Kaya", "elif.demo@yenomi.test"),
-      card(4, "IN_TRANSIT", "Can Arslan", "can.demo@yenomi.test", { carrier: "Yurtiçi Kargo", tracking_number: "DEMO-784521963" }),
-      card(5, "OUT_FOR_DELIVERY", "Selin Koç", "selin.demo@yenomi.test", { carrier: "Aras Kargo", tracking_number: "DEMO-458721369" }),
+      card(1, "PRINT_PENDING", "Ayşe Yılmaz", "qa26.operations.ayse@yenomi.test"),
+      card(2, "PRINTING", "Mert Demir", "qa26.operations.mert@yenomi.test"),
+      card(3, "SHIPPING_PENDING", "Elif Kaya", "qa26.operations.elif@yenomi.test"),
+      card(4, "IN_TRANSIT", "Can Arslan", "qa26.operations.can@yenomi.test", { carrier: "Yurtiçi Kargo", tracking_number: "DEMO-784521963" }),
+      card(5, "OUT_FOR_DELIVERY", "Selin Koç", "qa26.operations.selin@yenomi.test", { carrier: "Aras Kargo", tracking_number: "DEMO-458721369" }),
     ],
     premiumUsers: users.map(([userId, name, email], index) => ({
       id: `30000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,

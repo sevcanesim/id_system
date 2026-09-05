@@ -36,7 +36,7 @@ export default function CartPage() {
 
   return (
     <div className="yi-site">
-      <main id="main-content" className="cart-page p5-cart-page yi-section yi-section--light yi-cart-page yi-footer-compact">
+      <main id="main-content" className={`cart-page p5-cart-page yi-section yi-section--light yi-cart-page yi-footer-compact${!items.length ? " cart-page--empty" : ""}`}>
         <div className="yi-container">
           <div className="yi-page-head">
             <span>SEPET</span>

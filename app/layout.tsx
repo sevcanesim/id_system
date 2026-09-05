@@ -31,6 +31,7 @@ import "./styles/home-products-responsive.css";
 import "./styles/canonical-package-matrix.css";
 import "./styles/unified-sidebar.css";
 import "./typography-system.css";
+import "./styles/canonical-transaction-states.css";
 import HashScrollHandler from "./components/HashScrollHandler";
 import AuthSessionBridge from "./components/AuthSessionBridge";
 import MobilePurchaseDockController from "./components/MobilePurchaseDockController";

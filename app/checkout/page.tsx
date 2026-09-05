@@ -456,11 +456,13 @@ export default function CheckoutPage() {
     }
   }
 
+  const isCheckoutState = privacyMask || !checkoutReady || requiresPortalLogin || !items.length;
+
   return (
-    <main id="main-content" className="checkout-page p5-checkout-page yi-footer-compact">
+    <main id="main-content" className={`checkout-page p5-checkout-page yi-footer-compact${isCheckoutState ? " checkout-page--state" : ""}`}>
       {privacyMask ? (
         <section className="checkout-shell checkout-confirm-shell" aria-live="polite">
-          <div className="cart-empty">
+          <div className="cart-empty checkout-empty-state">
             <Icon name="shield" />
             <h2>Ödeme bilgileri gizlendi.</h2>
             <p>Bu sekmeye döndüğünüzde işlem ekranı yeniden görünür. Hassas ödeme bilgileri güvenlik için temizlendi.</p>
@@ -494,11 +496,11 @@ export default function CheckoutPage() {
           </div>
 
           {!checkoutReady ? (
-            <div className="cart-empty"><h2>Sipariş yükleniyor…</h2><p>Henüz bir ödeme alınmadı. Sepetin kontrol ediliyor.</p></div>
+            <div className="cart-empty checkout-empty-state"><h2>Sipariş yükleniyor…</h2><p>Henüz bir ödeme alınmadı. Sepetin kontrol ediliyor.</p></div>
           ) : requiresPortalLogin ? (
-            <div className="cart-empty" role="status"><h2>Giriş sayfasına yönlendiriliyorsun…</h2><p>Portal erişimi içeren paketler ödeme öncesinde hesabınla eşleştirilir. Sepetin korunur.</p></div>
+            <div className="cart-empty checkout-empty-state" role="status"><h2>Giriş sayfasına yönlendiriliyorsun…</h2><p>Portal erişimi içeren paketler ödeme öncesinde hesabınla eşleştirilir. Sepetin korunur.</p></div>
           ) : !items.length ? (
-            <div className="cart-empty"><h2>Kartın henüz sepette değil.</h2><Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart">Kartını Oluştur</Link></div>
+            <div className="cart-empty checkout-empty-state"><h2>Kartın henüz sepette değil.</h2><Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart">Kartını Oluştur</Link></div>
           ) : (
             <form onSubmit={submit} className="checkout-layout checkout-layout-confirm" noValidate>
               <div className="checkout-accordion">

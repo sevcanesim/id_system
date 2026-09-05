@@ -16,7 +16,7 @@ export default async function PaytrCheckoutPage({ searchParams }: PaytrCheckoutP
     return (
       <main id="main-content" className="checkout-page p5-checkout-page yi-footer-compact">
         <section className="paytr-checkout-shell">
-          <div className="paytr-checkout-card paytr-checkout-card--invalid">
+          <div className="paytr-checkout-card paytr-checkout-card--invalid transaction-state-card">
             <p className="paytr-checkout-kicker">GÜVENLİ ÖDEME</p>
             <h1>Ödeme oturumu bulunamadı.</h1>
             <p>Güvenli ödeme bağlantısı geçerli değil veya süresi dolmuş olabilir. Sepetinden yeni bir ödeme oturumu oluşturabilirsin.</p>

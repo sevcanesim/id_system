@@ -930,11 +930,11 @@ Do not invent random demo users for every task.
 
 Examples include:
 
--   `demo.superadmin@yenomi.test`
--   `demo.card.pending@yenomi.test`
--   `demo.card.complete@yenomi.test`
--   `demo.bireysel.bos@yenomi.test`
--   `demo.bireysel.aktif@yenomi.test`
+-   `qa26.superadmin@yenomi.test`
+-   `qa26.card.pending@yenomi.test`
+-   `qa26.card.complete@yenomi.test`
+-   `qa26.bireysel.bos@yenomi.test`
+-   `qa26.bireysel.aktif@yenomi.test`
 -   corporate owner/admin/member scenarios
 -   invitation pending/expired/revoked scenarios
 -   card lifecycle scenarios

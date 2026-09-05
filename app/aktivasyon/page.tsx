@@ -5,7 +5,7 @@ import ActivationClient from "./ActivationClient";
 function ActivationLoading({ hasToken }: { hasToken: boolean }) {
   return (
     <main id="main-content" className="activation-page p5-activation-page p6-activation-page" aria-busy="true">
-      <section className="activation-shell" aria-live="polite">
+      <section className="activation-shell activation-shell--compact" aria-live="polite">
         <span className="section-kicker">HESABI BAĞLA</span>
         <h1>{hasToken ? "Aktivasyon hazırlanıyor…" : "Siparişini hesabına bağla."}</h1>
         <p>{hasToken ? "Sipariş bağlantın kontrol ediliyor." : "Aktivasyon bağlantısı yok. E-postandaki bağlantıyı kullan veya yeni bağlantı iste."}</p>

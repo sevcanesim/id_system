@@ -1,0 +1,211 @@
+/*
+ * Transaction state surfaces
+ *
+ * Empty carts, payment states, activation and invite results deliberately use
+ * one quiet content measure. They are not product pages: the next decision is
+ * the only thing that should command the screen.
+ */
+
+:root {
+  --transaction-content-width: 47.5rem;
+  --transaction-radius: 1.375rem;
+  --transaction-border: #e6e2d8;
+}
+
+.cart-page--empty {
+  min-height: auto;
+  padding-block: clamp(2.5rem, 5vw, 4.5rem);
+}
+
+.cart-page--empty .yi-container {
+  width: min(calc(100% - 3rem), var(--transaction-content-width));
+}
+
+.cart-page--empty .yi-page-head {
+  margin: 0 0 1.5rem;
+}
+
+.cart-page--empty .yi-page-head h1 {
+  max-width: 42rem;
+  margin-bottom: .5rem;
+  font-size: clamp(2.25rem, 4vw, 3.25rem);
+  line-height: .98;
+  letter-spacing: -.045em;
+}
+
+.cart-page--empty .yi-page-head p {
+  max-width: 36rem;
+  margin: 0;
+  font-size: clamp(1rem, 1.4vw, 1.125rem);
+}
+
+.cart-page--empty .ds-empty {
+  min-height: 0;
+  padding: clamp(2rem, 4vw, 2.75rem);
+  border: 1px solid var(--transaction-border);
+  border-radius: var(--transaction-radius);
+  background: rgba(255, 255, 255, .76);
+  box-shadow: 0 .75rem 2.5rem rgba(45, 38, 27, .06);
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+}
+
+.cart-page--empty .ds-empty h2 {
+  max-width: 37rem;
+  margin: .75rem 0 .625rem;
+  font-size: clamp(1.75rem, 3.1vw, 2.25rem);
+  line-height: 1.06;
+  letter-spacing: -.035em;
+}
+
+.cart-page--empty .ds-empty p {
+  max-width: 35rem;
+  margin: 0;
+  font-size: .9375rem;
+  line-height: 1.6;
+}
+
+.cart-page--empty .ds-empty-actions {
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.checkout-page--state .checkout-shell {
+  width: min(calc(100% - 3rem), var(--transaction-content-width));
+  padding-block: clamp(2.5rem, 5vw, 4.5rem);
+}
+
+.checkout-page--state .checkout-heading {
+  max-width: 42rem;
+  margin: 0 auto 1.5rem;
+}
+
+.checkout-page--state .checkout-heading h1 {
+  font-size: clamp(2.25rem, 4vw, 3.25rem);
+  line-height: .98;
+  letter-spacing: -.045em;
+}
+
+.checkout-empty-state {
+  width: 100%;
+  margin: 0 auto;
+  padding: clamp(2rem, 4vw, 2.75rem);
+  border-color: var(--transaction-border);
+  border-radius: var(--transaction-radius);
+  background: rgba(255, 255, 255, .76);
+  box-shadow: 0 .75rem 2.5rem rgba(45, 38, 27, .06);
+}
+
+.checkout-empty-state h2 {
+  margin: 0 0 .625rem;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  line-height: 1.06;
+  letter-spacing: -.035em;
+}
+
+.checkout-empty-state p {
+  max-width: 35rem;
+  margin: 0 auto;
+  font-size: .9375rem;
+  line-height: 1.6;
+}
+
+.transaction-state-card,
+.activation-shell--compact,
+.corporate-invite-card--compact {
+  width: min(calc(100% - 3rem), var(--transaction-content-width));
+  margin: clamp(2.5rem, 5vw, 4.5rem) auto;
+  padding: clamp(2rem, 4vw, 2.75rem);
+  border-color: var(--transaction-border);
+  border-radius: var(--transaction-radius);
+  background: rgba(255, 255, 255, .76);
+  box-shadow: 0 .75rem 2.5rem rgba(45, 38, 27, .06);
+}
+
+.transaction-state-card h1,
+.activation-shell--compact h1,
+.corporate-invite-card--compact h1 {
+  margin: .625rem 0;
+  font-size: clamp(2rem, 3.6vw, 2.75rem);
+  line-height: 1.02;
+  letter-spacing: -.04em;
+  text-wrap: balance;
+}
+
+.transaction-state-card > p,
+.activation-shell--compact > p,
+.corporate-invite-card--compact > p {
+  max-width: 38rem;
+  margin-inline: auto;
+  font-size: .9375rem;
+  line-height: 1.6;
+}
+
+.activation-shell--compact {
+  text-align: left;
+}
+
+.activation-shell--compact > p {
+  margin-inline: 0;
+}
+
+.activation-shell--compact .activation-resend {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+}
+
+.corporate-invite-shell--compact {
+  width: auto;
+  margin: 0;
+}
+
+.corporate-invite-card--compact {
+  text-align: left;
+}
+
+.corporate-invite-card--compact > p {
+  margin-left: 0;
+}
+
+.public-site--checkout .paytr-checkout-card--invalid.transaction-state-card {
+  max-width: var(--transaction-content-width);
+  margin-block: clamp(2.5rem, 5vw, 4.5rem);
+  padding: clamp(2rem, 4vw, 2.75rem);
+}
+
+.public-site--checkout .paytr-checkout-card--invalid.transaction-state-card h1 {
+  font-size: clamp(2rem, 3.6vw, 2.75rem);
+}
+
+@media (max-width: 40rem) {
+  .cart-page--empty,
+  .checkout-page--state .checkout-shell {
+    padding-block: 2rem;
+  }
+
+  .cart-page--empty .yi-container,
+  .checkout-page--state .checkout-shell,
+  .transaction-state-card,
+  .activation-shell--compact,
+  .corporate-invite-card--compact {
+    width: min(calc(100% - 2rem), var(--transaction-content-width));
+  }
+
+  .cart-page--empty .ds-empty,
+  .checkout-empty-state,
+  .transaction-state-card,
+  .activation-shell--compact,
+  .corporate-invite-card--compact,
+  .public-site--checkout .paytr-checkout-card--invalid.transaction-state-card {
+    padding: 1.5rem;
+    border-radius: 1.125rem;
+  }
+
+  .transaction-state-card,
+  .activation-shell--compact,
+  .corporate-invite-card--compact,
+  .public-site--checkout .paytr-checkout-card--invalid.transaction-state-card {
+    margin-block: 2rem;
+  }
+}

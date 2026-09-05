@@ -47,7 +47,7 @@ QR / NFC
 ```
 
 - Mevcut `public.corporate_leads` tablosu `/kurumsal` satış formu içindir. Bu CRM/networking lead deposu **o tabloyu yeniden kullanmaz.**
-- `demo.kurumsal.lead@yenomi.test` bir fixture’dır; eksik CRM modülünün yer tutucusudur, çalışan ürün değildir.
+- `qa26.kurumsal.lead@yenomi.test` bir fixture’dır; eksik CRM modülünün yer tutucusudur, çalışan ürün değildir.
 
 Orta blokta geçen ayrı **“İletişim QR → [Şirket Adı] ile iletişim kurun”** sayfası kapanış kararıyla ana yol olmaktan çıkar. Ana kişi QR’si mevcut kartı açar. Event bağlamı kişi URL’sini değiştirmez; ayrı `/e/{eventPublicId}` attribution katmanıdır, sonunda aynı dijital karta gider.
 

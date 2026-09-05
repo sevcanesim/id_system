@@ -109,7 +109,7 @@ export default function OrderResultGate() {
 
   if (state === "checking") {
     return (
-      <section className="order-success p5-order-success" aria-busy="true" aria-live="polite">
+      <section className="order-success p5-order-success transaction-state-card" aria-busy="true" aria-live="polite">
         <span className="section-kicker">SİPARİŞ DOĞRULANIYOR</span>
         <h1>Ödeme durumun kontrol ediliyor…</h1>
         <p>Bu birkaç saniye sürebilir, lütfen sayfadan ayrılma.</p>
@@ -119,7 +119,7 @@ export default function OrderResultGate() {
 
   if (state === "invalid") {
     return (
-      <section className="order-success p5-order-success" role="alert">
+      <section className="order-success p5-order-success transaction-state-card" role="alert">
         <span className="section-kicker">DOĞRULANAMADI</span>
         <h1>Bu siparişi doğrulayamadık.</h1>
         <p>Bağlantı geçersiz olabilir veya ödeme henüz kilitlenmemiş olabilir. Çekim olduysa siparişlerimden durumu gör; olmadıysa aynı siparişi yeniden dene.</p>

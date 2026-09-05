@@ -25,6 +25,7 @@ function readEnv(filePath) {
 const env = { ...readEnv(path.resolve(".env.local")), ...process.env };
 const apply = process.argv.includes("--apply");
 const allowNonEmpty = process.argv.includes("--allow-non-empty");
+const resetDemo = process.argv.includes("--reset-demo");
 const url = env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL;
 const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SECRET_KEY;
 const password = env.DEMO_SEED_PASSWORD;
@@ -70,26 +71,191 @@ if (!apply) {
   for (const user of demoUsers) console.log(`- ${user.email} (${user.kind})`);
   for (const guest of guestOrders) console.log(`- ${guest.email} (${guest.kind}, Auth user yok)`);
   for (const scenario of corporateScenarios) console.log(`- ${scenario.name}: ${scenario.used}/${scenario.limit} koltuk, ${scenario.limit - scenario.used} boş`);
-  console.log("Uygulamak için: DEMO_SEED_PASSWORD='...' npm run seed:demo -- --apply");
+  if (resetDemo) console.log("--reset-demo seçildi: apply sırasında tüm TEST / @yenomi.test demo kayıtları ve bağlı demo verisi silinip kanonik set yeniden kurulacak.");
+  console.log("Uygulamak için: DEMO_SEED_PASSWORD='...' npm run seed:demo -- --apply --reset-demo");
   process.exit(0);
 }
 
 async function assertSchema() {
-  for (const table of ["admin_users", "products", "product_variants", "commerce_orders", "commerce_order_items", "entitlements", "card_profiles", "business_plans", "organizations", "organization_members", "organization_subscriptions", "commerce_order_consents", "user_accounts", "physical_cards", "organization_invites", "organization_card_templates", "card_view_events", "activation_tokens"]) {
+  for (const table of ["admin_users", "admin_access_grants", "admin_audit_log", "products", "product_variants", "commerce_orders", "commerce_order_items", "entitlements", "card_profiles", "business_plans", "organizations", "organization_members", "organization_subscriptions", "commerce_order_consents", "user_accounts", "physical_cards", "commerce_physical_card_units", "organization_invites", "organization_invite_job_audit", "organization_card_templates", "card_view_events", "activation_tokens", "commerce_invoice_jobs", "individual_network_mail_credit_grants", "organization_network_mail_credit_grants", "profile_custom_url_entitlements", "organization_audit_events", "network_mail_adjustment_ledger", "system_error_logs"]) {
     const { error } = await supabase.from(table).select("*", { head: true, count: "exact" });
     if (error) throw new Error(`Migration eksik (${table}): ${error.message}`);
   }
 }
 
+function isDemoTestEmail(email) {
+  const normalized = String(email || "").trim().toLowerCase();
+  return normalized.endsWith("@yenomi.test");
+}
+
+async function listAllAuthUsers() {
+  const all = [];
+  for (let page = 1; ; page += 1) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 200 });
+    if (error) throw error;
+    all.push(...data.users);
+    if (data.users.length < 200) return all;
+  }
+}
+
+function isMissingOptionalTable(error) {
+  return /Could not find the table .* in the schema cache/i.test(String(error?.message || error));
+}
+
+async function deleteByIds(table, column, ids, { optional = false } = {}) {
+  if (!ids.length) return;
+  const { error } = await supabase.from(table).delete().in(column, ids);
+  if (error && optional && isMissingOptionalTable(error)) {
+    console.log(`Opsiyonel demo geçmiş tablosu yok, atlandı: ${table}`);
+    return;
+  }
+  if (error) throw new Error(`${table}.${column} demo temizliği başarısız: ${error.message}`);
+}
+
+async function resetDemoFixtures(allAuthUsers) {
+  // Test kimliği iki bağımsız işaretle tanınır: test domain'i ve persisted
+  // TEST account_type. Böylece eskiden farklı adlandırılmış fixture'lar da
+  // kalmaz; gerçek domain ve gerçek kullanıcılar kapsama girmez.
+  const testAccountsResult = await supabase.from("user_accounts").select("id,email").eq("account_type", "TEST");
+  if (testAccountsResult.error) throw testAccountsResult.error;
+  const demoUserIdSet = new Set([
+    ...(testAccountsResult.data || []).map((account) => account.id),
+    ...allAuthUsers.filter((user) => isDemoTestEmail(user.email)).map((user) => user.id),
+  ]);
+  const demoUserIds = [...demoUserIdSet];
+  const demoAuthUsers = allAuthUsers.filter((user) => demoUserIdSet.has(user.id));
+
+  const [orgResult, membersResult] = await Promise.all([
+    supabase.from("organizations").select("id,slug,name"),
+    supabase.from("organization_members").select("id,organization_id,user_id,email"),
+  ]);
+  if (orgResult.error) throw orgResult.error;
+  if (membersResult.error) throw membersResult.error;
+  const membersByOrganization = new Map();
+  for (const member of membersResult.data || []) {
+    const current = membersByOrganization.get(member.organization_id) || [];
+    current.push(member);
+    membersByOrganization.set(member.organization_id, current);
+  }
+  const demoOrganizations = (orgResult.data || []).filter((organization) => {
+    const members = membersByOrganization.get(organization.id) || [];
+    // Görünür şirket adı serbest metindir; gerçek bir "QA" ya da "Test"
+    // kelimesi yüzünden silme kapsamına girmemelidir. Yalnız fixture slug'ı
+    // veya tamamı test kimliklerinden oluşan tenant güvenilir işarettir.
+    const markedFixtureSlug = /^(demo|test|qa)[-_]/i.test(organization.slug);
+    const allMembersAreTest = members.length > 0 && members.every((member) =>
+      demoUserIdSet.has(member.user_id) || isDemoTestEmail(member.email)
+    );
+    return markedFixtureSlug || allMembersAreTest;
+  });
+  const demoOrganizationIds = demoOrganizations.map((organization) => organization.id);
+  const demoMemberIds = (membersResult.data || [])
+    .filter((member) => demoOrganizationIds.includes(member.organization_id) || demoUserIdSet.has(member.user_id) || isDemoTestEmail(member.email))
+    .map((member) => member.id);
+
+  const [profilesResult, cardsResult, ordersResult, entitlementsResult] = await Promise.all([
+    supabase.from("card_profiles").select("id,user_id,organization_id"),
+    supabase.from("physical_cards").select("id,owner_user_id,owner_profile_id,organization_id,entitlement_id,replaced_by_card_id"),
+    supabase.from("commerce_orders").select("id,user_id,guest_email"),
+    supabase.from("entitlements").select("id,user_id,order_item_id"),
+  ]);
+  if (profilesResult.error) throw profilesResult.error;
+  if (cardsResult.error) throw cardsResult.error;
+  if (ordersResult.error) throw ordersResult.error;
+  if (entitlementsResult.error) throw entitlementsResult.error;
+
+  const demoProfiles = (profilesResult.data || []).filter((profile) => demoUserIds.includes(profile.user_id) || demoOrganizationIds.includes(profile.organization_id));
+  const demoProfileIds = demoProfiles.map((profile) => profile.id);
+  const demoCards = (cardsResult.data || []).filter((card) =>
+    demoUserIds.includes(card.owner_user_id) || demoProfileIds.includes(card.owner_profile_id) || demoOrganizationIds.includes(card.organization_id)
+  );
+  const demoCardIds = demoCards.map((card) => card.id);
+  const demoOrders = (ordersResult.data || []).filter((order) => demoUserIds.includes(order.user_id) || isDemoTestEmail(order.guest_email));
+  const demoOrderIds = demoOrders.map((order) => order.id);
+
+  let demoOrderItemIds = [];
+  if (demoOrderIds.length) {
+    const itemsResult = await supabase.from("commerce_order_items").select("id").in("order_id", demoOrderIds);
+    if (itemsResult.error) throw itemsResult.error;
+    demoOrderItemIds = (itemsResult.data || []).map((item) => item.id);
+  }
+  const demoEntitlementIds = (entitlementsResult.data || [])
+    .filter((entitlement) => demoUserIdSet.has(entitlement.user_id) || demoOrderItemIds.includes(entitlement.order_item_id))
+    .map((entitlement) => entitlement.id);
+
+  console.log(`Demo reset kapsamı: ${demoAuthUsers.length} Auth kullanıcısı, ${demoOrganizations.length} organizasyon, ${demoMemberIds.length} üyelik/davet, ${demoOrders.length} sipariş, ${demoCards.length} fiziksel kart.`);
+
+  // Restrict ilişkileri önce kaldırılır. Bu fonksiyon yalnızca --reset-demo
+  // ile ve staging/local korumaları geçtikten sonra çalışır.
+  const optionalHistory = { optional: true };
+  await deleteByIds("profile_custom_url_entitlements", "order_item_id", demoOrderItemIds, optionalHistory);
+  await deleteByIds("profile_custom_url_entitlements", "profile_id", demoProfileIds, optionalHistory);
+  await deleteByIds("individual_network_mail_credit_grants", "order_item_id", demoOrderItemIds, optionalHistory);
+  await deleteByIds("individual_network_mail_credit_grants", "user_id", demoUserIds, optionalHistory);
+  await deleteByIds("individual_network_mail_credit_grants", "entitlement_id", demoEntitlementIds, optionalHistory);
+  await deleteByIds("organization_network_mail_credit_grants", "order_item_id", demoOrderItemIds, optionalHistory);
+  await deleteByIds("commerce_invoice_jobs", "order_id", demoOrderIds, optionalHistory);
+  await deleteByIds("organization_network_mail_credit_grants", "organization_id", demoOrganizationIds, optionalHistory);
+  // organization_links silinirken sürüm trigger'ı yeni bir geçmiş satırı
+  // üretir. Önce önceki geçmişi, sonra bağlantıyı, ardından trigger'ın
+  // ürettiği son geçmişi kaldırmak organizasyon silme sırasını korur.
+  await deleteByIds("organization_link_versions", "organization_id", demoOrganizationIds, optionalHistory);
+  await deleteByIds("organization_links", "organization_id", demoOrganizationIds, optionalHistory);
+  await deleteByIds("organization_link_versions", "organization_id", demoOrganizationIds, optionalHistory);
+  await deleteByIds("organization_audit_events", "organization_id", demoOrganizationIds, optionalHistory);
+  await deleteByIds("organization_invite_job_audit", "organization_id", demoOrganizationIds, optionalHistory);
+  await deleteByIds("organization_invite_job_audit", "actor_user_id", demoUserIds, optionalHistory);
+  await deleteByIds("network_mail_adjustment_ledger", "user_id", demoUserIds, optionalHistory);
+  await deleteByIds("network_mail_adjustment_ledger", "organization_id", demoOrganizationIds, optionalHistory);
+  await deleteByIds("network_mail_adjustment_ledger", "entitlement_id", demoEntitlementIds, optionalHistory);
+  await deleteByIds("system_error_logs", "user_id", demoUserIds, optionalHistory);
+  await deleteByIds("system_error_logs", "organization_id", demoOrganizationIds, optionalHistory);
+  await deleteByIds("admin_audit_log", "actor_user_id", demoUserIds, optionalHistory);
+  await deleteByIds("admin_access_grants", "user_id", demoUserIds);
+  await deleteByIds("admin_access_grants", "organization_id", demoOrganizationIds);
+
+  // Test super-admin'in gerçek bir hesaba erişim tanımladığı olağandışı bir
+  // kayıt varsa sessizce silmeyiz: temizliği durdurup operatöre bildiririz.
+  if (demoUserIds.length) {
+    const externalGrantResult = await supabase.from("admin_access_grants").select("id").or(
+      `created_by.in.(${demoUserIds.join(",")}),revoked_by.in.(${demoUserIds.join(",")})`
+    );
+    if (externalGrantResult.error) throw externalGrantResult.error;
+    if ((externalGrantResult.data || []).length) {
+      throw new Error("Demo super-admin tarafından gerçek hesaba verilmiş erişim kaydı bulundu. Bu kayıtlar manuel olarak gerçek bir operatöre devredilmeden demo temizliği tamamlanamaz.");
+    }
+  }
+
+  if (demoCardIds.length) {
+    const { error: unitsError } = await supabase.from("commerce_physical_card_units").update({ physical_card_id: null }).in("physical_card_id", demoCardIds);
+    if (unitsError) throw unitsError;
+    const unpin = await supabase.from("physical_cards").update({ replaced_by_card_id: null }).in("replaced_by_card_id", demoCardIds);
+    if (unpin.error) throw unpin.error;
+    await deleteByIds("physical_cards", "id", demoCardIds);
+  }
+  await deleteByIds("card_profiles", "id", demoProfileIds);
+  await deleteByIds("commerce_orders", "id", demoOrderIds);
+  await deleteByIds("organization_members", "id", demoMemberIds);
+  await deleteByIds("organizations", "id", demoOrganizationIds);
+
+  for (const user of demoAuthUsers) {
+    const { error } = await supabase.auth.admin.deleteUser(user.id);
+    if (error) throw new Error(`Demo Auth kullanıcısı silinemedi (${user.email}): ${error.message}`);
+  }
+}
+
 await assertSchema();
-const { data: listed, error: listError } = await supabase.auth.admin.listUsers({ page: 1, perPage: 200 });
-if (listError) throw listError;
-const foreignUsers = listed.users.filter((user) => !user.email?.endsWith("@yenomi.test"));
+let listed = await listAllAuthUsers();
+if (resetDemo) {
+  await resetDemoFixtures(listed);
+  listed = await listAllAuthUsers();
+}
+const foreignUsers = listed.filter((user) => !user.email?.endsWith("@yenomi.test"));
 if (foreignUsers.length && !allowNonEmpty) {
   throw new Error(`DB boş değil: ${foreignUsers.length} demo dışı Auth kullanıcısı var. Bilerek devam için --allow-non-empty kullan.`);
 }
 
-const authByEmail = new Map(listed.users.map((user) => [user.email?.toLowerCase(), user]));
+const authByEmail = new Map(listed.map((user) => [user.email?.toLowerCase(), user]));
 const users = {};
 for (const spec of demoUsers) {
   let user = authByEmail.get(spec.email.toLowerCase());
@@ -122,74 +288,30 @@ for (const spec of demoUsers.filter((u) => u.isAdmin)) {
   await supabase.from("admin_users").upsert({ user_id: users[spec.key].id }, { onConflict: "user_id" }).throwOnError();
 }
 
-await supabase.from("products").upsert({ slug: "nfc-business-card", name: "Yenomi ID NFC + QR Kart", kind: "NFC_PHYSICAL_CARD", description: "Fiziksel NFC kart, kişisel QR ve dijital kartvizit erişimi", is_active: true }, { onConflict: "slug" }).throwOnError();
-const { data: baseProduct, error: baseProductError } = await supabase.from("products").select("id").eq("slug", "nfc-business-card").single();
-if (baseProductError) throw baseProductError;
-await supabase.from("product_variants").upsert({ product_id: baseProduct.id, sku: "YENOMI-NFC-CARD-ANNUAL", name: "Yenomi ID — NFC Kart", price_kurus: 149000, billing_period: "YEARLY", metadata: { fulfillment_kind: "INITIAL_BUNDLE", digital_service_included: true, physical_card_count: 1, service_days: 365, shipping_included: true, country: "TR", preparation_business_days: 2, package_code: "INDIVIDUAL" }, is_active: true }, { onConflict: "sku" }).throwOnError();
-const { data: initialVariant, error: initialVariantError } = await supabase.from("product_variants").select("id,product_id,sku,price_kurus,billing_period").eq("sku", "YENOMI-NFC-CARD-ANNUAL").single();
-if (initialVariantError) throw initialVariantError;
-// Legacy Digital plans remain readable for existing accounts, but cannot be sold again.
-await supabase.from("product_variants").upsert({ product_id: initialVariant.product_id, sku: "YENOMI-DIGITAL-ANNUAL", name: "Yenomi ID Dijital Kartvizit", price_kurus: 79900, billing_period: "YEARLY", metadata: { fulfillment_kind: "DIGITAL_INITIAL", digital_service_included: true, physical_card_count: 0, service_days: 365, shipping_included: false, package_code: "INDIVIDUAL_DIGITAL" }, is_active: false }, { onConflict: "sku" }).throwOnError();
-await supabase.from("product_variants").upsert({ product_id: initialVariant.product_id, sku: "YENOMI-NFC-PREMIUM-ANNUAL", name: "Yenomi ID Premium — NFC + 100 Network Mail", price_kurus: 249000, billing_period: "YEARLY", metadata: { fulfillment_kind: "INITIAL_BUNDLE", digital_service_included: true, physical_card_count: 1, service_days: 365, shipping_included: true, country: "TR", preparation_business_days: 2, package_code: "INDIVIDUAL_PREMIUM", network_mail_credits: 100 }, is_active: true }, { onConflict: "sku" }).throwOnError();
-await supabase.from("product_variants").upsert({ product_id: initialVariant.product_id, sku: "YENOMI-PREMIUM-RENEWAL-ANNUAL", name: "Yenomi ID Premium — 1 Yıl Yenileme", price_kurus: 59900, billing_period: "YEARLY", metadata: { fulfillment_kind: "DIGITAL_RENEWAL", digital_service_included: true, physical_card_count: 0, service_days: 365, requires_active_or_expired_entitlement: true, shipping_included: false, package_code: "INDIVIDUAL_PREMIUM", network_mail_credits: 100 }, is_active: true }, { onConflict: "sku" }).throwOnError();
-await supabase.from("product_variants").upsert({ product_id: initialVariant.product_id, sku: "YENOMI-PREMIUM-UPGRADE", name: "Yenomi ID Premium yükseltme", price_kurus: 100000, billing_period: "ONE_TIME", metadata: { fulfillment_kind: "PREMIUM_UPGRADE", digital_service_included: false, physical_card_count: 0, requires_active_entitlement: true, shipping_included: false, package_code: "INDIVIDUAL_PREMIUM", network_mail_credits: 100 }, is_active: true }, { onConflict: "sku" }).throwOnError();
-await supabase.from("product_variants").upsert({ product_id: initialVariant.product_id, sku: "YENOMI-NFC-EXTRA", name: "Yenomi ID Yedek Kart", price_kurus: 39900, billing_period: "ONE_TIME", metadata: { fulfillment_kind: "EXTRA_CARD", digital_service_included: false, physical_card_count: 1, requires_active_entitlement: true, shipping_included: true, country: "TR" }, is_active: true }, { onConflict: "sku" }).throwOnError();
-await supabase.from("product_variants").upsert({ product_id: initialVariant.product_id, sku: "YENOMI-NFC-REPLACEMENT", name: "Yenomi ID Değişim Kartı", price_kurus: 34900, billing_period: "ONE_TIME", metadata: { fulfillment_kind: "REPLACEMENT_CARD", digital_service_included: false, physical_card_count: 1, requires_lost_card: true, requires_active_entitlement: true, term_basis: "ACTIVE_ENTITLEMENT", shipping_included: true, country: "TR" }, is_active: true }, { onConflict: "sku" }).throwOnError();
-
-await supabase.from("products").upsert({ slug: "yenomi-business", name: "Yenomi ID Kurumsal Paket", kind: "BUSINESS_CARD", description: "Yıllık kurumsal sistem: NFC kart, çalışan profilleri, şirket paneli ve Network Mail.", is_active: true }, { onConflict: "slug" }).throwOnError();
-const { data: corporateProduct, error: corporateProductError } = await supabase.from("products").select("id").eq("slug", "yenomi-business").single();
-if (corporateProductError) throw corporateProductError;
-const corporateLadder = [
-  { sku: "YENOMI-CORP-2", name: "Kurumsal 2", price: 349000, seats: 2, code: "CORP-2" },
-  { sku: "YENOMI-CORP-3", name: "Kurumsal 3", price: 499000, seats: 3, code: "CORP-3" },
-  { sku: "YENOMI-CORP-5", name: "Kurumsal 5", price: 749000, seats: 5, code: "CORP-5" },
-  { sku: "YENOMI-CORP-10", name: "Kurumsal 10", price: 1290000, seats: 10, code: "CORP-10" },
-  { sku: "YENOMI-CORP-25", name: "Kurumsal 25", price: 2990000, seats: 25, code: "CORP-25" },
-  { sku: "YENOMI-CORP-50", name: "Kurumsal 50", price: 5490000, seats: 50, code: "CORP-50" },
-  { sku: "YENOMI-CORP-100", name: "Kurumsal 100", price: 9990000, seats: 100, code: "CORP-100" },
-];
-for (const pack of corporateLadder) {
-  await supabase.from("product_variants").upsert({
-    product_id: corporateProduct.id,
-    sku: pack.sku,
-    name: pack.name,
-    price_kurus: pack.price,
-    billing_period: "YEARLY",
-    metadata: {
-      fulfillment_kind: "CORPORATE_PACKAGE",
-      digital_service_included: true,
-      physical_card_count: pack.seats,
-      seat_count: pack.seats,
-      service_days: 365,
-      shipping_included: true,
-      country: "TR",
-      preparation_business_days: 2,
-      package_code: pack.code,
-      network_mail_credits: pack.seats * 100,
-    },
-    is_active: true,
-  }, { onConflict: "sku" }).throwOnError();
+// Demo verisi ticari kataloğu asla değiştirmez. Varyantlar ve planlar önce
+// ortamın gerçek katalog verisinden doğrulanır; fiyatlar yalnızca oradan okunur.
+const requiredVariantSkus = new Set([
+  "YENOMI-NFC-CARD-ANNUAL",
+  "YENOMI-NFC-PREMIUM-ANNUAL",
+  ...guestOrders.map((order) => order.variantSku),
+]);
+const variantsResult = await supabase.from("product_variants").select("id,sku,product_id,price_kurus").in("sku", [...requiredVariantSkus]);
+if (variantsResult.error) throw variantsResult.error;
+const catalogVariants = new Map((variantsResult.data || []).map((variant) => [variant.sku, variant]));
+for (const sku of requiredVariantSkus) {
+  if (!catalogVariants.has(sku)) throw new Error(`Demo seed için aktif katalog varyantı eksik: ${sku}`);
 }
-await supabase.from("product_variants").update({ is_active: false }).in("sku", ["YENOMI-CORP-4", "YENOMI-CORP-20", "YENOMI-CORP-75"]).throwOnError();
-for (const pack of corporateLadder) {
-  await supabase.from("business_plans").update({ annual_price_kurus: pack.price, monthly_price_kurus: null, is_active: true }).eq("code", pack.code).throwOnError();
-}
-await supabase.from("business_plans").update({ is_active: false }).in("code", ["CORP-4", "CORP-20", "CORP-75"]).throwOnError();
-await supabase.from("business_plans").update({ annual_price_kurus: 1290000 }).eq("code", "STARTER").throwOnError();
-await supabase.from("business_plans").update({ annual_price_kurus: 2990000 }).eq("code", "GROWTH").throwOnError();
-await supabase.from("business_plans").update({ annual_price_kurus: 5490000 }).eq("code", "BUSINESS").throwOnError();
-await supabase.from("product_variants").update({ is_active: false }).in("sku", ["YENOMI-BUSINESS-SEATS-2", "YENOMI-BUSINESS-SEATS-3"]).throwOnError();
-const seatPacks = [
-  { sku: "YENOMI-BUSINESS-SEATS-1", price: 229000 },
-  { sku: "YENOMI-BUSINESS-SEATS-5", price: 949000 },
-  { sku: "YENOMI-BUSINESS-SEATS-10", price: 1699000 },
-];
-for (const pack of seatPacks) {
-  await supabase.from("product_variants").update({ price_kurus: pack.price, is_active: true }).eq("sku", pack.sku).throwOnError();
-}
-
-const { data: product, error: productError } = await supabase.from("products").select("id,slug,name,kind").eq("slug", "nfc-business-card").single();
+const baseVariant = catalogVariants.get("YENOMI-NFC-CARD-ANNUAL");
+const { data: product, error: productError } = await supabase.from("products").select("id,slug,name,kind").eq("id", baseVariant.product_id).single();
 if (productError) throw productError;
+
+const requiredPlanCodes = new Set(["CORP-50", ...corporateScenarios.map((scenario) => scenario.plan), "CORP-5", "CORP-10"]);
+const plansResult = await supabase.from("business_plans").select("id,code").in("code", [...requiredPlanCodes]);
+if (plansResult.error) throw plansResult.error;
+const catalogPlans = new Map((plansResult.data || []).map((plan) => [plan.code, plan]));
+for (const code of requiredPlanCodes) {
+  if (!catalogPlans.has(code)) throw new Error(`Demo seed için kurumsal plan eksik: ${code}`);
+}
 
 async function seedIndividualUser(spec) {
   if (!spec.orderNumber && !spec.entitlement && !spec.profile) return;
@@ -292,13 +414,14 @@ async function seedIndividualUser(spec) {
   }
 
   if (profile && spec.cards?.length) {
-    for (const card of spec.cards) {
+    for (const [index, card] of spec.cards.entries()) {
       const existingCard = await supabase.from("physical_cards").select("id").eq("card_code", card.code).maybeSingle();
       if (existingCard.error) throw existingCard.error;
       const cardPayload = {
         owner_profile_id: profile.id,
         owner_user_id: user.id,
         organization_id: null,
+        entitlement_id: index === 0 ? entitlement.id : null,
         activated_at: now.toISOString(),
         status: card.status,
       };
@@ -393,26 +516,19 @@ for (const scenario of corporateScenarios) {
   else await supabase.from("organization_subscriptions").insert(subscriptionPayload).throwOnError();
   for (let index = 2; index <= scenario.used; index += 1) {
     const workerEmail = `koltuk${index}.${scenario.slug}@yenomi.test`;
-    let worker = authByEmail.get(workerEmail);
-    if (!worker) {
-      const created = await supabase.auth.admin.createUser({
-        email: workerEmail,
-        password,
-        email_confirm: true,
-        user_metadata: { full_name: `Demo Çalışan ${index}`, demo_scenario: "CORPORATE_ACTIVE_SEAT" },
-      });
-      if (created.error || !created.data.user) throw new Error(`Kurumsal demo çalışanı oluşturulamadı (${workerEmail}): ${created.error?.message}`);
-      worker = created.data.user;
-      authByEmail.set(workerEmail, worker);
-    } else {
-      const updated = await supabase.auth.admin.updateUserById(worker.id, { password, email_confirm: true, user_metadata: { ...worker.user_metadata, full_name: `Demo Çalışan ${index}`, demo_scenario: "CORPORATE_ACTIVE_SEAT" } });
-      if (updated.error || !updated.data.user) throw new Error(`Kurumsal demo çalışanı güncellenemedi (${workerEmail}): ${updated.error?.message}`);
-      worker = updated.data.user;
-      authByEmail.set(workerEmail, worker);
-    }
-    await supabase.from("user_accounts").update({ account_type: "TEST", test_login_scope: "CORPORATE" }).eq("id", worker.id).throwOnError();
-    await supabase.from("organization_members").upsert({ organization_id: organization.id, user_id: worker.id, email: workerEmail, full_name: `Demo Çalışan ${index}`, title: "Demo Çalışan", department: index % 2 ? "Satış" : "Operasyon", role: "EMPLOYEE", status: "ACTIVE" }, { onConflict: "organization_id,email" }).throwOnError();
-    await ensureCorporateDemoProfile(worker, organization, `${scenario.slug}-calisan-${index}`);
+    // Kapasite testindeki koltuklar giriş hesabı değildir. Böylece matriste
+    // görünmeyen kullanıcı hesapları üretmeden gerçek seat-reservation
+    // davranışını (INVITED de lisans tüketir) sınarız.
+    await supabase.from("organization_members").upsert({
+      organization_id: organization.id,
+      user_id: null,
+      email: workerEmail,
+      full_name: `Demo Koltuk ${index}`,
+      title: "Davet bekliyor",
+      department: index % 2 ? "Satış" : "Operasyon",
+      role: "EMPLOYEE",
+      status: "INVITED",
+    }, { onConflict: "organization_id,email" }).throwOnError();
   }
 
   const activityMembers = [
@@ -432,99 +548,9 @@ for (const scenario of corporateScenarios) {
   }
 }
 
-// Complete corporate member/card lifecycle matrix driven from canonical DEMO_LOGIN_USERS
-{
-  const owner = users.lifecycleOwner;
-  const { data: organization, error: orgError } = await supabase.from("organizations").select("id,name").eq("slug", "demo-yasam-dongusu").single();
-  if (orgError) throw orgError;
-
-  const lifecycleUsers = demoUsers.filter((u) => u.organizationSlug === "demo-yasam-dongusu" && u.key !== "lifecycleOwner");
-  
-  // Pending invite fixture
-  const lifecycleInviteFixture = inviteFixtures.find((i) => i.email === "demo.lifecycle.invited@yenomi.test");
-  if (lifecycleInviteFixture) {
-    const { data: lifecycleInvitedMember, error: lifecycleInvitedError } = await supabase.from("organization_members").upsert({
-      organization_id: organization.id,
-      email: lifecycleInviteFixture.email,
-      full_name: "Davet Bekleyen Kullanıcı",
-      title: lifecycleInviteFixture.title,
-      department: lifecycleInviteFixture.department,
-      role: lifecycleInviteFixture.role,
-      status: lifecycleInviteFixture.status,
-    }, { onConflict: "organization_id,email" }).select("id").single();
-    if (lifecycleInvitedError) throw lifecycleInvitedError;
-    await supabase.from("organization_invites").delete().eq("member_id", lifecycleInvitedMember.id).is("used_at", null);
-    await supabase.from("organization_invites").insert({
-      organization_id: organization.id,
-      member_id: lifecycleInvitedMember.id,
-      token_hash: "qa-invite-lifecycle-" + lifecycleInvitedMember.id.replaceAll("-", ""),
-      expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
-    }).throwOnError();
-  }
-
-  for (const spec of lifecycleUsers) {
-    const user = users[spec.key];
-    await supabase.from("organization_members").upsert({
-      organization_id: organization.id,
-      user_id: user.id,
-      email: user.email,
-      full_name: user.name,
-      title: spec.title,
-      department: spec.department,
-      role: spec.role || "EMPLOYEE",
-      status: spec.status || "ACTIVE",
-    }, { onConflict: "organization_id,email" }).throwOnError();
-
-    let profile = null;
-    if (spec.profile) {
-      const cardStatus = spec.status === "LEFT" || spec.status === "SUSPENDED" || spec.cards?.some((c) => c.status === "DISABLED")
-        ? "SUSPENDED"
-        : spec.cards?.some((c) => c.status === "LOST")
-        ? "LOST"
-        : "ACTIVE";
-      profile = await ensureCorporateDemoProfile(user, organization, spec.profile.slug, spec.title, spec.profile.isPublished !== false, cardStatus);
-    }
-
-    if (profile && spec.cards?.length) {
-      for (const card of spec.cards) {
-        const existingCard = await supabase.from("physical_cards").select("id").eq("card_code", card.code).maybeSingle();
-        if (existingCard.error) throw existingCard.error;
-        const cardPayload = {
-          owner_profile_id: profile.id,
-          owner_user_id: user.id,
-          organization_id: organization.id,
-          activated_at: new Date().toISOString(),
-          status: card.status,
-        };
-        if (!existingCard.data) {
-          await supabase.from("physical_cards").insert({ card_code: card.code, ...cardPayload }).throwOnError();
-        } else {
-          await supabase.from("physical_cards").update(cardPayload).eq("id", existingCard.data.id).throwOnError();
-        }
-      }
-    }
-  }
-
-  const inventoryCode = "YN-LIFEUNASSGN1";
-  const inventory = await supabase.from("physical_cards").select("id").eq("card_code", inventoryCode).maybeSingle();
-  if (inventory.error) throw inventory.error;
-  if (!inventory.data) {
-    await supabase.from("physical_cards").insert({
-      card_code: inventoryCode,
-      organization_id: organization.id,
-      status: "UNASSIGNED",
-    }).throwOnError();
-  }
-}
-
 // Deterministic end-to-end QA organization driven from canonical DEMO_LOGIN_USERS
 {
-  await supabase.from("business_plans").upsert({
-    code: "DEMO-50", name: "Demo QA 50", seat_limit: 50, annual_price_kurus: 0,
-    features: ["QA_ONLY"], is_active: true,
-  }, { onConflict: "code" }).throwOnError();
-  const { data: plan, error: planError } = await supabase.from("business_plans").select("id").eq("code", "DEMO-50").single();
-  if (planError) throw planError;
+  const plan = catalogPlans.get("CORP-50");
   const qaOrg = await ensureOrganization({ slug: "demo-qa-uctan-uca", name: "Demo Şirket / Uçtan Uca QA" });
   const existingSub = await supabase.from("organization_subscriptions").select("id").eq("organization_id", qaOrg.id).limit(1).maybeSingle();
   const subPayload = { organization_id: qaOrg.id, plan_id: plan.id, status: "ACTIVE", starts_at: new Date().toISOString(), expires_at: new Date(Date.now() + 365 * 86400000).toISOString(), seat_limit: 50 };
@@ -695,14 +721,13 @@ for (const scenario of [
   { key: "trTemplateOwner", slug: "demo-tr-template", name: "Demo TR / Şablon", limit: 5, used: 1 },
   { key: "trLeadOwner", slug: "demo-tr-lead", name: "Demo TR / Lead (Modül Bekliyor)", limit: 5, used: 1 },
 ]) {
-  const planCode = scenario.limit === 10 ? "DEMO-10" : "DEMO-5";
-  const plan = await supabase.from("business_plans").select("id").eq("code", planCode).single();
-  if (plan.error) throw plan.error;
+  const planCode = scenario.limit === 10 ? "CORP-10" : "CORP-5";
+  const plan = catalogPlans.get(planCode);
   const org = await ensureOrganization({ slug: scenario.slug, name: scenario.name });
   const owner = users[scenario.key];
   await supabase.from("organization_members").upsert({ organization_id: org.id, user_id: owner.id, email: owner.email, full_name: owner.name, title: "Şirket Sahibi", department: "Yönetim", role: "OWNER", status: "ACTIVE" }, { onConflict: "organization_id,email" }).throwOnError();
   const sub = await supabase.from("organization_subscriptions").select("id").eq("organization_id", org.id).limit(1).maybeSingle();
-  const subPayload = { organization_id: org.id, plan_id: plan.data.id, status: "ACTIVE", starts_at: new Date().toISOString(), expires_at: new Date(Date.now() + 365 * 86400000).toISOString(), seat_limit: scenario.limit };
+  const subPayload = { organization_id: org.id, plan_id: plan.id, status: "ACTIVE", starts_at: new Date().toISOString(), expires_at: new Date(Date.now() + 365 * 86400000).toISOString(), seat_limit: scenario.limit };
   if (sub.data) await supabase.from("organization_subscriptions").update(subPayload).eq("id", sub.data.id).throwOnError();
   else await supabase.from("organization_subscriptions").insert(subPayload).throwOnError();
   for (let i = 2; i <= scenario.used; i++) await supabase.from("organization_members").upsert({ organization_id: org.id, email: `koltuk${i}.${scenario.slug}@yenomi.test`, full_name: `Demo Çalışan ${i}`, title: "Çalışan", department: "Operasyon", role: "EMPLOYEE", status: "INVITED" }, { onConflict: "organization_id,email" }).throwOnError();

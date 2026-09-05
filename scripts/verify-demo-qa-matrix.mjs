@@ -11,6 +11,7 @@ import {
 
 const root = process.cwd();
 const seed = fs.readFileSync(path.join(root, "scripts/seed-demo-scenarios.mjs"), "utf8");
+const e2eFixtureVerifier = fs.readFileSync(path.join(root, "scripts/verify-e2e-fixtures.mjs"), "utf8");
 const typedRegistry = fs.readFileSync(path.join(root, "tests/fixtures/demo-user-matrix.ts"), "utf8");
 const docs = fs.readFileSync(path.join(root, "DEMO_TEST_USERS.md"), "utf8");
 const baseline = fs.readFileSync(path.join(root, "docs/product-engineering/01_CURRENT_ARCHITECTURE_BASELINE.md"), "utf8");
@@ -130,8 +131,14 @@ if (DEMO_IDENTITY_COLLISION.emailPrefix === "demo.ayni.isim." && seed.includes("
 if (seed.includes("identityCollision.displayName")) pass("same-name display collision");
 else fail("same-name display collision");
 
-if (seed.includes("YN-LIFEUNASSGN1")) pass("lifecycle unassigned stock");
-else fail("lifecycle unassigned stock");
+if (!seed.includes("demo.lifecycle.")) pass("legacy lifecycle demo accounts are not reseeded");
+else fail("legacy lifecycle demo accounts must not be reseeded");
+
+if (!e2eFixtureVerifier.includes("YN-LIFE") && !e2eFixtureVerifier.includes("demo.lifecycle.")) {
+  pass("E2E verifier no longer expects retired lifecycle fixtures");
+} else {
+  fail("E2E verifier must not expect retired lifecycle fixtures");
+}
 
 if (seed.includes("YN-QASTOCK0001A")) pass("QA org unassigned stock");
 else fail("QA org unassigned stock");
@@ -181,8 +188,29 @@ if (indBackupUser?.cards?.some((c) => c.code === "YN-INDYEDKALT01") && seed.incl
   pass("individual backup card pair");
 } else fail("individual backup card pair");
 
-if (seed.includes("YENOMI-NFC-EXTRA")) pass("spare card SKU upsert");
-else fail("spare card SKU upsert");
+if (seed.includes("catalogVariants") && !seed.includes('from("product_variants").upsert')) {
+  pass("seed reads the catalog without rewriting product variants");
+} else {
+  fail("seed must read product variants instead of rewriting the catalog");
+}
+
+if (!seed.includes('from("business_plans").upsert') && !seed.includes('from("business_plans").update')) {
+  pass("seed does not rewrite commercial plans");
+} else {
+  fail("seed must not rewrite commercial plans");
+}
+
+if (seed.includes("const resetDemo") && seed.includes("function isDemoTestEmail") && seed.includes("resetDemoFixtures") && seed.includes("--reset-demo")) {
+  pass("scoped reset only runs when explicitly requested");
+} else {
+  fail("seed needs an explicit scoped --reset-demo flow");
+}
+
+if (seed.includes('normalized.endsWith("@yenomi.test")') && seed.includes('eq("account_type", "TEST")')) {
+  pass("reset scope covers every test-domain and TEST account fixture");
+} else {
+  fail("reset must cover all persisted test identities");
+}
 
 if (seed.includes("user_id: null")) pass("guest orders stay unclaimed");
 else fail("guest orders stay unclaimed");
@@ -192,6 +220,13 @@ else fail("activation token derived at apply");
 
 if (seed.includes("allocate_corporate_id")) pass("demo orgs allocate corporate_id");
 else fail("demo orgs allocate corporate_id");
+
+const departmentManager = DEMO_LOGIN_USERS.find((u) => u.email === "demo.departman.yonetici@yenomi.test");
+if (departmentManager?.role === "EMPLOYEE" && departmentManager.department === "Satış") {
+  pass("department-manager fixture records the current role-model gap explicitly");
+} else {
+  fail("department-manager fixture must not pretend unsupported scoped permissions exist");
+}
 
 if (/\bYenomiDemo\d+!/.test(seed) || /\bYenomiDemo\d+!/.test(docs)) {
   fail("seed/docs must not embed the demo password");

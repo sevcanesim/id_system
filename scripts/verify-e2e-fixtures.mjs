@@ -234,7 +234,7 @@ for (const userSpec of demoUsers.filter((u) => u.cards?.length)) {
 }
 
 // Unassigned inventory stock checks
-for (const unassignedCode of ["YN-LIFEUNASSGN1", "YN-QASTOCK0001A", "YN-QASTOCK0002A"]) {
+for (const unassignedCode of ["YN-QASTOCK0001A", "YN-QASTOCK0002A"]) {
   const card = cardCodeMap.get(unassignedCode);
   if (!card) {
     fail(`Stok kartı eksik: ${unassignedCode}`);

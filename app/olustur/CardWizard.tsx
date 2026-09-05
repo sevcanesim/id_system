@@ -51,7 +51,10 @@ const HR_AUDIT_NOTICE = "Değişiklikler İK ve Sistem Yöneticisine bildirildi"
 const HR_AUDIT_NOTICE_KEY = "yenomi:card-editor:hr-audit";
 
 function scrollCardEditorSection(element: HTMLElement, behavior: ScrollBehavior) {
-  const panelScroller = element.closest<HTMLElement>(".business-shell");
+  // Most panel routes render inside .business-shell, while the dedicated
+  // “Kartım” route is mounted directly in the dashboard main area. Resolve
+  // both so section navigation always moves the actual scroll container.
+  const panelScroller = element.closest<HTMLElement>(".business-shell, .enterprise-dashboard-main");
 
   if (panelScroller) {
     const offset = 20;
@@ -166,7 +169,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
     const sectionIds = CARD_SECTIONS.map((sec) => sec.id);
     const elements = sectionIds.map((id) => document.getElementById(id)).filter(Boolean);
     if (!elements.length) return;
-    const root = document.querySelector(".p8-editor")?.closest(".business-shell");
+    const root = document.querySelector(".p8-editor")?.closest<HTMLElement>(".business-shell, .enterprise-dashboard-main") ?? null;
 
     const observer = new IntersectionObserver(
       (entries) => {

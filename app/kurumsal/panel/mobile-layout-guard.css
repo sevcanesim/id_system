@@ -82,6 +82,19 @@
   scrollbar-gutter: stable;
 }
 
+/* “Kartım” is routed directly into .enterprise-dashboard-main instead of
+ * .business-shell. The dashboard main area normally clips child routes to the
+ * viewport, which left the editor's later sections unreachable. Make it the
+ * single, explicit vertical scroll root for this route. */
+.p10-corporate-platform .enterprise-dashboard-main:has(.p8-corporate-workspace--decoupled) {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+
 @container (max-width: 64rem) {
   .p10-corporate-platform .p11-employees .p11-toolbar {
     flex-wrap: wrap;

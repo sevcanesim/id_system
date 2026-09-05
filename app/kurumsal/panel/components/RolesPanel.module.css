@@ -1,5 +1,6 @@
 .roleHub {
   gap: 24px;
+  container-type: inline-size;
 }
 
 .header {
@@ -484,5 +485,123 @@
 
   .securityAlert {
     grid-template-columns: 1fr;
+  }
+}
+
+/* The panel can be narrow even on a desktop viewport when the persistent
+ * corporate navigation is open. Switch to the existing accessible cards by
+ * the workspace width, rather than asking users to horizontally scroll. */
+@container (max-width: 64rem) {
+  .scrollHint {
+    display: none;
+  }
+
+  .desktopMatrix {
+    display: none;
+  }
+
+  .mobileMatrix {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .mobileRoleCard {
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-card);
+  }
+
+  .roleHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  .roleHeader > span {
+    display: grid;
+    width: var(--space-10);
+    height: var(--space-10);
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: var(--radius-sm);
+    background: var(--surface-accent);
+  }
+
+  .roleHeader > div,
+  .capabilities span {
+    min-width: 0;
+  }
+
+  .roleHeader strong,
+  .roleHeader small {
+    display: block;
+  }
+
+  .roleHeader small {
+    margin-top: var(--space-1);
+    color: var(--text-secondary);
+  }
+
+  .mobileCategory h4 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 7px;
+    color: #5b5042;
+    font-size: 10px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  .mobileCategory h4 svg {
+    width: 14px;
+    height: 14px;
+    color: #9b7427;
+  }
+
+  .capabilities {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .capabilities li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-2);
+    align-items: center;
+    min-height: var(--control-height-md);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    background: var(--surface-accent);
+  }
+
+  .capabilities span {
+    overflow-wrap: anywhere;
+  }
+
+  .capabilities b {
+    color: #747069;
+    font-size: var(--type-xs);
+    white-space: nowrap;
+  }
+
+  .capabilities b[data-allowed="true"] {
+    color: #28764f;
+  }
+
+  .mobileRoleLink {
+    width: fit-content;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
   }
 }

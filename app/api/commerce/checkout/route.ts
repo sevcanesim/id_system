@@ -184,11 +184,19 @@ export async function POST(request: NextRequest) {
 
     if (productError || !products) return NextResponse.json(publicError("ORDER_CREATE_FAILED"), { status: 500 });
 
-    const calculated: CalculatedItem[] = body.items.map((item) => {
+    const unavailableItem = body.items.find((item) => {
       const product = products.find((row) => row.slug === item.productSlug);
       const variants = (product?.product_variants || []) as ProductVariant[];
-      const variant = variants.find((row) => row.is_active && row.sku === item.variantSku);
-      if (!product || !variant) throw new Error(`Product unavailable: ${item.productSlug}`);
+      return !product || !variants.some((row) => row.is_active && row.sku === item.variantSku);
+    });
+    if (unavailableItem) {
+      return NextResponse.json(publicError("PRODUCT_UNAVAILABLE"), { status: 409 });
+    }
+
+    const calculated: CalculatedItem[] = body.items.map((item) => {
+      const product = products.find((row) => row.slug === item.productSlug)!;
+      const variants = (product.product_variants || []) as ProductVariant[];
+      const variant = variants.find((row) => row.is_active && row.sku === item.variantSku)!;
       return {
         product: { id: product.id, slug: product.slug, name: product.name, kind: product.kind },
         variant,

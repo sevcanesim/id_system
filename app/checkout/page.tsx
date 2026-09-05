@@ -9,7 +9,6 @@ import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, i
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { Icon } from "../icons";
 import { Button } from "../components/ui/DesignSystem";
-import { useNotice } from "../components/ui/NotificationCenter";
 import { TURKEY_CITIES, normalizeTrPhone } from "../../lib/form-standards";
 import { parseCompanyBilling } from "../../lib/validation/company";
 import { track } from "../../lib/analytics";
@@ -71,7 +70,6 @@ function checkoutFailureMessage(payload: unknown): string {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { notify } = useNotice();
   const [items, setItems] = useState<CartItem[]>([]);
   const [form, setForm] = useState<FormState>(initial);
   const [busy, setBusy] = useState(false);
@@ -85,7 +83,7 @@ export default function CheckoutPage() {
   const [toast, setToast] = useState("");
   const [organizationTargets, setOrganizationTargets] = useState<Record<string, { name: string; role: string }>>({});
   const [privacyMask, setPrivacyMask] = useState(false);
-  const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>("IYZICO");
+  const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>(null);
   const portalPurchase = items.some((item) => requiresPortalAccountSku(item.variantSku));
   const portalLoginHref = `/giris?portal=${items.some((item) => isCorporatePackageSku(item.variantSku)) ? "business" : "individual"}&purchase=portal&next=%2Fcheckout`;
   const requiresPortalLogin = portalPurchase && !isAuthenticated;
@@ -397,7 +395,6 @@ export default function CheckoutPage() {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Ödeme başlatılamadı.";
       setMessage(errorMessage);
-      notify({ title: "Ödeme başlatılamadı", message: errorMessage, tone: "error" });
     } finally {
       setBusy(false);
     }

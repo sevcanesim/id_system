@@ -8,6 +8,7 @@ export type PublicErrorCode =
   | "ACTIVATION_FAILED"
   | "ORDER_CREATE_FAILED"
   | "ORDER_UPDATE_FAILED"
+  | "PRODUCT_UNAVAILABLE"
   | "PAYMENT_IN_PROGRESS"
   | "IDEMPOTENCY_CONFLICT"
   | "ORDER_ALREADY_PAID"
@@ -24,6 +25,7 @@ const DEFAULT_MESSAGES: Record<PublicErrorCode, string> = {
   ACTIVATION_FAILED: "Aktivasyon şu anda tamamlanamıyor. Lütfen yeniden dene.",
   ORDER_CREATE_FAILED: "Sipariş şu anda oluşturulamıyor. Lütfen yeniden dene.",
   ORDER_UPDATE_FAILED: "Sipariş şu anda güncellenemiyor. Lütfen yeniden dene.",
+  PRODUCT_UNAVAILABLE: "Seçtiğin paket şu anda satışa açık değil. Sepete dönüp paketi yeniden seç.",
   PAYMENT_IN_PROGRESS: "Ödeme isteğin işleniyor. Lütfen birkaç saniye bekleyip yeniden dene.",
   IDEMPOTENCY_CONFLICT: "Bu ödeme isteği farklı sipariş bilgileriyle daha önce kullanılmış. Lütfen sayfayı yenileyip yeniden dene.",
   ORDER_ALREADY_PAID: "Bu siparişin ödemesi zaten tamamlanmış.",

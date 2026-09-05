@@ -55,3 +55,59 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* The permanent sidebar reduces the usable workspace on laptops. These
+ * content-width breakpoints keep dense panel data in its card view even when
+ * the browser viewport itself is wider than a traditional mobile breakpoint. */
+.p10-corporate-platform .p11-employees,
+.p10-corporate-platform .corporate-template-studio {
+  container-type: inline-size;
+}
+
+@container (max-width: 64rem) {
+  .p10-corporate-platform .p11-employees .p11-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .p10-corporate-platform .p11-employees .p11-search,
+  .p10-corporate-platform .p11-employees .p11-filter-control {
+    min-width: 0;
+    flex: 1 1 12rem;
+  }
+
+  .p10-corporate-platform .p11-employees .p11-table-wrap {
+    display: none;
+  }
+
+  .p10-corporate-platform .p11-employees .p11-mobile-list {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-2) 0 0;
+  }
+}
+
+@container (max-width: 68rem) {
+  .p10-corporate-platform .corporate-template-studio__header {
+    display: grid;
+    gap: 12px;
+  }
+
+  .p10-corporate-platform .corporate-template-studio__status {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .p10-corporate-platform .corporate-template-studio__workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .p10-corporate-platform .corporate-template-preview {
+    position: relative;
+    top: auto;
+    order: initial;
+  }
+
+  .p10-corporate-platform .corporate-template-preview__stage {
+    min-height: 500px;
+  }
+}

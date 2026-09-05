@@ -21,6 +21,14 @@ const source = fs.readFileSync(path.join(root, 'lib/config/commercial.ts'), 'utf
 const expected = new Map();
 for (const match of source.matchAll(/sku:\s*"([A-Z0-9-]+)",\s*priceKurus:\s*([\d_]+)/g)) expected.set(match[1], Number(match[2].replaceAll('_', '')));
 const packages = fs.readFileSync(path.join(root, 'lib/commerce/packages.ts'), 'utf8');
+for (const [planName, sku] of [
+  ['INDIVIDUAL_PLAN', 'YENOMI-NFC-CARD-ANNUAL'],
+  ['INDIVIDUAL_PREMIUM_PLAN', 'YENOMI-NFC-PREMIUM-ANNUAL'],
+]) {
+  const match = packages.match(new RegExp(`export const ${planName} = \\{[^}]*priceKurus:\\s*([\\d_]+)`, 's'));
+  if (!match) throw new Error(`${planName} fiyatı packages.ts içinde bulunamadı.`);
+  expected.set(sku, Number(match[1].replaceAll('_', '')));
+}
 for (const match of packages.matchAll(/code:\s*"(CORP-\d+)",\s*name:\s*"[^"]+",\s*seats:\s*\d+,\s*priceKurus:\s*([\d_]+)/g)) {
   expected.set(`YENOMI-${match[1]}`, Number(match[2].replaceAll('_', '')));
 }
@@ -49,9 +57,9 @@ for (const sku of skus) {
   if (sku === 'YENOMI-NFC-EXTRA' && (row.billing_period !== 'ONE_TIME' || metadata.requires_active_entitlement !== true)) { console.error(`✗ ${sku}: tek seferlik/aktif hak kuralı eksik`); failed = true; continue; }
   if (sku === 'YENOMI-DIGITAL-RENEWAL-ANNUAL' && (metadata.fulfillment_kind !== 'DIGITAL_RENEWAL' || Number(metadata.physical_card_count) !== 0)) { console.error(`✗ ${sku}: dijital yenileme kapsamı hatalı`); failed = true; continue; }
   if (sku === 'YENOMI-DIGITAL-ANNUAL' && (metadata.fulfillment_kind !== 'DIGITAL_INITIAL' || Number(metadata.physical_card_count) !== 0 || metadata.shipping_included !== false)) { console.error(`✗ ${sku}: dijital ilk satın alma kapsamı hatalı`); failed = true; continue; }
-  if (sku === 'YENOMI-NFC-PREMIUM-ANNUAL' && (metadata.fulfillment_kind !== 'INITIAL_BUNDLE' || Number(metadata.network_mail_credits) !== 500)) { console.error(`✗ ${sku}: Premium Network Mail hakkı hatalı`); failed = true; continue; }
-  if (sku === 'YENOMI-PREMIUM-RENEWAL-ANNUAL' && (metadata.fulfillment_kind !== 'DIGITAL_RENEWAL' || Number(metadata.physical_card_count) !== 0 || Number(metadata.network_mail_credits) !== 500)) { console.error(`✗ ${sku}: Premium yenileme kapsamı hatalı`); failed = true; continue; }
-  if (sku === 'YENOMI-PREMIUM-UPGRADE' && (metadata.fulfillment_kind !== 'PREMIUM_UPGRADE' || Number(metadata.physical_card_count) !== 0 || Number(metadata.network_mail_credits) !== 500)) { console.error(`✗ ${sku}: Premium yükseltme kapsamı hatalı`); failed = true; continue; }
+  if (sku === 'YENOMI-NFC-PREMIUM-ANNUAL' && (metadata.fulfillment_kind !== 'INITIAL_BUNDLE' || Number(metadata.network_mail_credits) !== 100)) { console.error(`✗ ${sku}: Premium Network Mail hakkı hatalı`); failed = true; continue; }
+  if (sku === 'YENOMI-PREMIUM-RENEWAL-ANNUAL' && (metadata.fulfillment_kind !== 'DIGITAL_RENEWAL' || Number(metadata.physical_card_count) !== 0 || Number(metadata.network_mail_credits) !== 100)) { console.error(`✗ ${sku}: Premium yenileme kapsamı hatalı`); failed = true; continue; }
+  if (sku === 'YENOMI-PREMIUM-UPGRADE' && (metadata.fulfillment_kind !== 'PREMIUM_UPGRADE' || Number(metadata.physical_card_count) !== 0 || Number(metadata.network_mail_credits) !== 100)) { console.error(`✗ ${sku}: Premium yükseltme kapsamı hatalı`); failed = true; continue; }
   if (sku === 'YENOMI-NFC-REPLACEMENT' && metadata.fulfillment_kind !== 'REPLACEMENT_CARD') { console.error(`✗ ${sku}: replacement kapsamı hatalı`); failed = true; continue; }
   if (sku.startsWith('YENOMI-CORP-') && (metadata.fulfillment_kind !== 'CORPORATE_PACKAGE' || Number(metadata.physical_card_count) <= 0 || metadata.shipping_included !== true)) { console.error(`✗ ${sku}: kurumsal paket kapsamı hatalı`); failed = true; continue; }
   console.log(`✓ ${sku}: ${row.price_kurus} kuruş`);

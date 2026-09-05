@@ -50,6 +50,19 @@ const CARD_SECTIONS = [
 const HR_AUDIT_NOTICE = "Değişiklikler İK ve Sistem Yöneticisine bildirildi";
 const HR_AUDIT_NOTICE_KEY = "yenomi:card-editor:hr-audit";
 
+function scrollCardEditorSection(element: HTMLElement, behavior: ScrollBehavior) {
+  const panelScroller = element.closest<HTMLElement>(".business-shell");
+
+  if (panelScroller) {
+    const offset = 20;
+    const top = panelScroller.scrollTop + element.getBoundingClientRect().top - panelScroller.getBoundingClientRect().top - offset;
+    panelScroller.scrollTo({ top: Math.max(0, top), behavior });
+    return;
+  }
+
+  element.scrollIntoView({ block: "start", behavior });
+}
+
 export default function CardWizard() {
   const { notify } = useNotice();
   const [data, setData] = useState<CardData>(INITIAL_CARD_DATA);
@@ -150,6 +163,7 @@ export default function CardWizard() {
     const sectionIds = CARD_SECTIONS.map((sec) => sec.id);
     const elements = sectionIds.map((id) => document.getElementById(id)).filter(Boolean);
     if (!elements.length) return;
+    const root = document.querySelector(".p8-editor")?.closest(".business-shell");
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -161,7 +175,7 @@ export default function CardWizard() {
           }
         }
       },
-      { rootMargin: "-90px 0px -40% 0px", threshold: [0.1, 0.4] },
+      { root, rootMargin: "-24px 0px -40% 0px", threshold: [0.1, 0.4] },
     );
 
     elements.forEach((el) => el && observer.observe(el));
@@ -177,17 +191,36 @@ export default function CardWizard() {
     }
   }, [activeSection]);
 
+  useEffect(() => {
+    if (accessState !== "allowed" || typeof window === "undefined") return;
+
+    const scrollToHash = () => {
+      const id = decodeURIComponent(window.location.hash.replace(/^#/, ""));
+      if (!CARD_SECTIONS.some((section) => section.id === id)) return;
+
+      window.requestAnimationFrame(() => {
+        const element = document.getElementById(id);
+        if (!element) return;
+        scrollCardEditorSection(element, "auto");
+        setActiveSection(id as (typeof CARD_SECTIONS)[number]["id"]);
+      });
+    };
+
+    scrollToHash();
+    window.addEventListener("hashchange", scrollToHash);
+    window.addEventListener("popstate", scrollToHash);
+    return () => {
+      window.removeEventListener("hashchange", scrollToHash);
+      window.removeEventListener("popstate", scrollToHash);
+    };
+  }, [accessState]);
+
   const handleSectionClick = (event: React.MouseEvent<HTMLAnchorElement>, id: (typeof CARD_SECTIONS)[number]["id"]) => {
     event.preventDefault();
     const element = document.getElementById(id);
     if (element) {
       const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      // The corporate shell has persistent navigation beside the editor. Scroll
-      // the document explicitly so an overflow wrapper can never swallow an
-      // in-page section jump.
-      const offset = 20;
-      const top = window.scrollY + element.getBoundingClientRect().top - offset;
-      window.scrollTo({ top: Math.max(0, top), behavior: prefersReduced ? "auto" : "smooth" });
+      scrollCardEditorSection(element, prefersReduced ? "auto" : "smooth");
       setActiveSection(id);
       if (typeof window !== "undefined" && window.history?.pushState) {
         window.history.pushState(null, "", `#${id}`);

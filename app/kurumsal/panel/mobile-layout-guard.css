@@ -67,11 +67,19 @@
   container-type: inline-size;
 }
 
-/* A card profile can be substantially taller than the dashboard. It must
- * retain document scrolling rather than being clipped by the app shell. */
-.p10-corporate-platform:has(.p8-corporate-workspace--decoupled),
+/* The corporate shell owns the vertical scroll area. Let the card editor use
+ * that area too: it preserves the fixed sidebar and makes section links,
+ * mouse-wheel scrolling and direct #section links agree on one scroll root. */
 .p10-corporate-platform:has(.p8-corporate-workspace--decoupled) .enterprise-dashboard-main {
-  overflow: visible;
+  overflow: hidden;
+}
+
+.p10-corporate-platform:has(.p8-corporate-workspace--decoupled) .business-shell {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
 }
 
 @container (max-width: 64rem) {

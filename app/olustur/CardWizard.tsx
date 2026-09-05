@@ -200,9 +200,17 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
   useEffect(() => {
     if (typeof document === "undefined") return;
     const activeTab = document.querySelector(`.p8-section-nav a[aria-current="true"]`);
-    if (activeTab) {
+    const sectionNav = activeTab?.closest<HTMLElement>(".p8-section-nav");
+    if (activeTab && sectionNav) {
       const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      activeTab.scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth", block: "nearest", inline: "center" });
+      // `Element.scrollIntoView()` also scrolls the document. When the active
+      // section changes while a user is reading the long form, that pulled the
+      // viewport back to the tab strip at the top. Only the horizontally
+      // scrollable tab rail needs centering here.
+      const tabRect = activeTab.getBoundingClientRect();
+      const navRect = sectionNav.getBoundingClientRect();
+      const left = sectionNav.scrollLeft + tabRect.left - navRect.left - (sectionNav.clientWidth - tabRect.width) / 2;
+      sectionNav.scrollTo({ left: Math.max(0, left), behavior: prefersReduced ? "auto" : "smooth" });
     }
   }, [activeSection]);
 

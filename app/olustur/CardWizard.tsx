@@ -63,7 +63,7 @@ function scrollCardEditorSection(element: HTMLElement, behavior: ScrollBehavior)
   element.scrollIntoView({ block: "start", behavior });
 }
 
-export default function CardWizard() {
+export default function CardWizard({ mode }: { mode?: "corporate" | "individual" }) {
   const { notify } = useNotice();
   const [data, setData] = useState<CardData>(INITIAL_CARD_DATA);
   const [userId, setUserId] = useState<string | null>(null);
@@ -115,7 +115,10 @@ export default function CardWizard() {
   const requestedProfileId = searchParams.get("id");
   const isNewCard = searchParams.get("new") === "1";
   const businessOrganizationId = searchParams.get("organizationId");
-  const isBusinessCard = searchParams.get("business") === "1" && Boolean(businessOrganizationId);
+  // Kurumsal panel rotası, sorgu parametreleri yüklenirken veya yönlendirici
+  // güncellenirken bireysel editöre düşmemelidir. Rota bu modu açıkça
+  // sabitlediğinde URL yalnızca organizasyon kimliğini taşır.
+  const isBusinessCard = mode === "corporate" || (searchParams.get("business") === "1" && Boolean(businessOrganizationId));
   const profileCardActions = useProfileCardActions({
     profileId,
     slug: profileSlug,
@@ -871,6 +874,10 @@ export default function CardWizard() {
   );
 
   const previewData = isBusinessCard ? { ...deferredData, links: orgLinks } : deferredData;
+  // The corporate brand response arrives after the editor's first paint. Its
+  // template belongs to the published corporate profile; applying it here was
+  // replacing the personal, minimal card preview after a short delay.
+  const previewBranding = isBusinessCard ? null : orgBranding;
   const preview = (
     <div className="p8-preview-stage">
       <CardTemplate
@@ -878,7 +885,7 @@ export default function CardWizard() {
         preview
         slug={profileSlug}
         publicId={publicId || null}
-        branding={orgBranding}
+        branding={previewBranding}
         activePreviewTarget={activePreviewTarget}
       />
     </div>
@@ -1049,7 +1056,7 @@ export default function CardWizard() {
                     <><Icon name="edit" /> Minimal önizleme — henüz yayınlanmadı (kaydedilmemiş değişiklikler var)</>
                     )
                   ) : isPublished ? (
-                    <><Icon name="check" /> {isBusinessCard ? "Kurumsal şablonla bireysel kart görünümü" : "Canlı bireysel kart görünümü"}</>
+                    <><Icon name="check" /> {isBusinessCard ? "Minimal bireysel kart görünümü" : "Canlı bireysel kart görünümü"}</>
                   ) : (
                     <><Icon name="clock" /> Henüz yayınlanmadı</>
                   )}

@@ -10,6 +10,8 @@ import { fetchCardBranding, fetchOrganizationLinks } from "../../../lib/organiza
 import { fetchCardLocaleOverlays } from "../../../lib/public-card/locales";
 import { cardSharePath } from "../../../lib/public-card/urls";
 import { getPublicCompanyVerification } from "../../../lib/organizations/verified-company";
+import { Icon } from "../../icons";
+import styles from "./PublicCardUnavailable.module.css";
 
 type PageProps = {
   params: Promise<{ publicId: string }>;
@@ -64,22 +66,24 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
       <PublicCardUnavailable
         title="Bu kart kayıp olarak bildirildi."
         detail="Kart sahibinin kişisel bilgileri güvenlik nedeniyle gösterilmiyor."
+        stateLabel="KAYIP KART GÜVENLİK MODU"
+        note="Kart sahibi kartını yeniden etkinleştirene kadar bu bağlantıdaki bilgiler gizli tutulur."
       />
     );
   }
   if (!isCardProfileServiceActive(profile)) {
     return (
       <PublicCardUnavailable
-        title="Bu profil şu anda aktif değil."
-        detail="Dijital profil şu anda kullanılamıyor. Daha sonra tekrar deneyebilirsiniz."
+        title="Bu dijital kart şu an kullanıma açık değil."
+        detail="Kart sahibi erişimini yeniden başlattığında, aynı bağlantı otomatik olarak yeniden çalışır."
       />
     );
   }
   if (profile.card_status === "SUSPENDED" || profile.card_status === "REFUNDED") {
     return (
       <PublicCardUnavailable
-        title="Bu profil şu anda aktif değil."
-        detail="Profil yeniden etkinleştirildiğinde aynı bağlantı tekrar açılacaktır."
+        title="Bu dijital kart şu an kullanıma açık değil."
+        detail="Kart sahibi erişimini yeniden başlattığında, aynı bağlantı otomatik olarak yeniden çalışır."
       />
     );
   }
@@ -110,14 +114,34 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
   );
 }
 
-function PublicCardUnavailable({ title, detail }: { title: string; detail: string }) {
+function PublicCardUnavailable({
+  title,
+  detail,
+  stateLabel = "PROFİL GEÇİCİ OLARAK KAPALI",
+  note = "Aynı QR ve NFC bağlantısı, profil yeniden açıldığında çalışmaya devam eder.",
+}: {
+  title: string;
+  detail: string;
+  stateLabel?: string;
+  note?: string;
+}) {
   return (
-    <main id="main-content" className="profile-state-page p12-profile-state">
-      <section>
-        <span>YENOMI ID</span>
-        <h1>{title}</h1>
+    <main id="main-content" className={styles.page}>
+      <section className={styles.card} aria-labelledby="public-card-unavailable-title">
+        <div className={styles.brand} aria-label="Yenomi ID">
+          <span className={styles.brandMark} aria-hidden="true">Y</span>
+          <span>YENOMI ID</span>
+        </div>
+        <div className={styles.iconFrame} aria-hidden="true">
+          <Icon name="lock" />
+        </div>
+        <span className={styles.eyebrow}>{stateLabel}</span>
+        <h1 id="public-card-unavailable-title">{title}</h1>
         <p>{detail}</p>
-        <a className="home-mockup__link-secondary" href="/">Ana sayfaya dön</a>
+        <a className={styles.action} href="/">
+          Yenomi ID&apos;yi keşfet <span aria-hidden="true"><Icon name="chevronRight" /></span>
+        </a>
+        <small className={styles.note}>{note}</small>
       </section>
     </main>
   );

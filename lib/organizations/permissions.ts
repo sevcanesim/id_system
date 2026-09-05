@@ -37,6 +37,17 @@ export function canManageNetworking(role: OrganizationRole, status: string) {
   return status === "ACTIVE" && (NETWORKING_MANAGER_ROLES as readonly string[]).includes(role);
 }
 
+// Commercial history exposes invoice and payment information. It is kept out
+// of operational administrator accounts: only the legal owner and HR can
+// inspect it, while only the owner may initiate a new paid transaction.
+export function canViewCorporateCommerce(role: OrganizationRole, status: string) {
+  return status === "ACTIVE" && (role === "OWNER" || role === "HR");
+}
+
+export function canPurchaseCorporateCommerce(role: OrganizationRole, status: string) {
+  return status === "ACTIVE" && role === "OWNER";
+}
+
 // Legal/tax and billing identity affects invoices and commercial records.
 // It is intentionally stricter than operational administration: only the
 // organization owner may maintain this legally binding profile.

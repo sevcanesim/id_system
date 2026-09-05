@@ -1,0 +1,186 @@
+.page {
+  position: relative;
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  overflow: hidden;
+  padding: var(--section-space-md) var(--page-gutter);
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--brand-gold-soft) 76%, transparent), transparent 34rem),
+    linear-gradient(180deg, var(--surface-card) 0%, var(--surface-canvas) 100%);
+}
+
+.page::before,
+.page::after {
+  position: absolute;
+  width: min(70vw, 780px);
+  height: min(70vw, 780px);
+  border: 1px solid color-mix(in srgb, var(--brand-gold) 14%, transparent);
+  border-radius: var(--radius-full);
+  content: "";
+  pointer-events: none;
+}
+
+.page::before {
+  top: min(-38vw, -390px);
+  left: min(-22vw, -220px);
+}
+
+.page::after {
+  right: min(-28vw, -280px);
+  bottom: min(-46vw, -460px);
+}
+
+.card {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: min(100%, 580px);
+  justify-items: center;
+  padding: clamp(var(--space-8), 5vw, var(--space-16));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--surface-card) 94%, transparent);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-primary);
+  font-size: var(--type-xs);
+  font-weight: 700;
+  letter-spacing: .14em;
+}
+
+.brandMark {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--brand-gold) 45%, transparent);
+  border-radius: var(--radius-sm);
+  background: var(--surface-dark);
+  color: var(--brand-gold-soft);
+  font-family: var(--font-display);
+  font-size: var(--type-sm);
+  letter-spacing: 0;
+}
+
+.iconFrame {
+  display: grid;
+  width: 60px;
+  height: 60px;
+  margin-top: var(--space-10);
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--brand-gold) 38%, transparent);
+  border-radius: var(--radius-full);
+  background: var(--brand-gold-soft);
+  color: var(--brand-gold-deep);
+}
+
+.iconFrame svg {
+  width: 25px;
+  height: 25px;
+}
+
+.eyebrow {
+  margin-top: var(--space-5);
+  color: var(--brand-gold-deep);
+  font-size: var(--type-xs);
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.card h1 {
+  max-width: 11ch;
+  margin: var(--space-4) 0 0;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: clamp(32px, 4.2vw, 48px);
+  font-weight: 700;
+  letter-spacing: -.055em;
+  line-height: var(--line-height-tight);
+}
+
+.card p {
+  max-width: 40ch;
+  margin: var(--space-5) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--type-body);
+  line-height: var(--line-height-body);
+}
+
+.action {
+  display: inline-flex;
+  min-height: var(--control-height-lg);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-8);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--surface-dark);
+  color: var(--text-inverse);
+  font-size: var(--type-body-sm);
+  font-weight: 700;
+  text-decoration: none;
+  transition: background var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-standard);
+}
+
+.action:hover {
+  background: var(--brand-gold-hover);
+  transform: translateY(-1px);
+}
+
+.action:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand-gold) 45%, transparent);
+  outline-offset: 3px;
+}
+
+.action svg {
+  width: 17px;
+  height: 17px;
+}
+
+.note {
+  max-width: 42ch;
+  margin-top: var(--space-6);
+  color: var(--text-tertiary);
+  font-size: var(--type-sm);
+  line-height: var(--line-height-snug);
+}
+
+@media (max-width: 639px) {
+  .page {
+    align-items: center;
+    padding-block: var(--space-6);
+  }
+
+  .card {
+    padding: var(--space-8) var(--space-5);
+    border-radius: var(--radius-lg);
+  }
+
+  .iconFrame {
+    width: 52px;
+    height: 52px;
+    margin-top: var(--space-8);
+  }
+
+  .card p {
+    font-size: var(--type-body-sm);
+  }
+
+  .action {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action {
+    transition: none;
+  }
+}

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { ORGANIZATION_ROLES, canManageOrganizationLegalProfile } from "../lib/organizations/permissions";
+import {
+  ORGANIZATION_ROLES,
+  canManageOrganizationLegalProfile,
+  canPurchaseCorporateCommerce,
+  canViewCorporateCommerce,
+} from "../lib/organizations/permissions";
 
 describe("organization legal profile permissions", () => {
   it("allows only an active owner to change tax and billing identity", () => {
@@ -15,5 +20,20 @@ describe("organization legal profile permissions", () => {
 
   it("exposes only the supported organization roles", () => {
     expect(ORGANIZATION_ROLES).toEqual(["OWNER", "ADMIN", "HR", "EMPLOYEE"]);
+  });
+});
+
+describe("corporate commerce permissions", () => {
+  it("exposes invoices and commercial history only to the owner and HR", () => {
+    expect(canViewCorporateCommerce("OWNER", "ACTIVE")).toBe(true);
+    expect(canViewCorporateCommerce("HR", "ACTIVE")).toBe(true);
+    expect(canViewCorporateCommerce("ADMIN", "ACTIVE")).toBe(false);
+    expect(canViewCorporateCommerce("EMPLOYEE", "ACTIVE")).toBe(false);
+  });
+
+  it("permits a paid company purchase only for the active owner", () => {
+    expect(canPurchaseCorporateCommerce("OWNER", "ACTIVE")).toBe(true);
+    expect(canPurchaseCorporateCommerce("HR", "ACTIVE")).toBe(false);
+    expect(canPurchaseCorporateCommerce("OWNER", "SUSPENDED")).toBe(false);
   });
 });

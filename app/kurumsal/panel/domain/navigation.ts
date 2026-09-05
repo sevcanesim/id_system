@@ -15,6 +15,7 @@ export const CORPORATE_PANEL_TABS = [
   "leads",
   "events",
   "meetings",
+  "commerce",
   "organization",
   "settings",
 ] as const;
@@ -34,6 +35,7 @@ export const CORPORATE_PANEL_ROUTE_TO_TAB: Record<string, CorporatePanelTab> = {
   "/kurumsal/panel/leadler": "leads",
   "/kurumsal/panel/etkinlikler": "events",
   "/kurumsal/panel/gorusmeler": "meetings",
+  "/kurumsal/panel/satin-almalar": "commerce",
   "/kurumsal/panel/organizasyon": "organization",
   "/kurumsal/panel/ayarlar": "settings",
 };
@@ -61,6 +63,7 @@ export const CORPORATE_PANEL_TAB_ORDER: readonly CorporatePanelTab[] = [
   "leads",
   "events",
   "meetings",
+  "commerce",
 ];
 
 export const CORPORATE_PANEL_TAB_META: Record<CorporatePanelTab, { label: string; icon: IconName; group?: string; loadingLabel: string }> = {
@@ -78,6 +81,7 @@ export const CORPORATE_PANEL_TAB_META: Record<CorporatePanelTab, { label: string
   leads: { label: "Leadler", icon: "mail", group: "NETWORKING", loadingLabel: "Leadler yükleniyor" },
   events: { label: "Etkinlikler", icon: "clock", group: "NETWORKING", loadingLabel: "Etkinlikler yükleniyor" },
   meetings: { label: "Görüşmeler", icon: "headset", group: "NETWORKING", loadingLabel: "Görüşmeler yükleniyor" },
+  commerce: { label: "Abonelik & Satın Almalar", icon: "box", group: "TİCARİ", loadingLabel: "Satın alma geçmişi yükleniyor" },
 };
 
 /** Sidebar görünürlüğü ile sunucu yetkilendirmesinin aynı rol dilini kullanması için tek kaynak. */

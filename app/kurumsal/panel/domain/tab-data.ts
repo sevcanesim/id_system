@@ -25,6 +25,7 @@ const TAB_DATA_RESOURCES: Record<CorporatePanelTab, readonly CorporatePanelDataR
   leads: ["members", "memberCardStatuses"],
   events: ["members", "memberCardStatuses"],
   meetings: ["members", "memberCardStatuses"],
+  commerce: [],
 };
 
 export function corporatePanelDataResources(tab: CorporatePanelTab) {

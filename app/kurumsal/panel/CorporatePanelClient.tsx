@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties, FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { CSSProperties, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { writeSessionCookie } from "../../components/AuthSessionBridge";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
@@ -29,6 +29,7 @@ import AuditPanel from "./components/AuditPanel";
 import IntegrationsPanel from "./components/IntegrationsPanel";
 import OverviewPanel from "./components/OverviewPanel";
 import NetworkingPanel from "./components/NetworkingPanel";
+import CorporateCommercePanel from "./components/CorporateCommercePanel";
 import type {
   BulkInvitePreview,
   BulkInviteResults,
@@ -190,11 +191,11 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   const [memberEditBusy, setMemberEditBusy] = useState(false);
   const [currentUserId, setCurrentUserId] = useState("");
 
-  async function token() {
+  const token = useCallback(async () => {
     const { accessToken, userId } = await getBrowserSession();
     if (userId) setCurrentUserId(userId);
     return accessToken;
-  }
+  }, []);
 
   const {
     jobTitles,
@@ -793,6 +794,8 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       ? null
       : Math.max(0, subscription.seat_limit - usedSeats);
   const canManageLicenses = org?.role === "OWNER" || org?.role === "ADMIN";
+  const canViewCorporateCommerce = org?.role === "OWNER" || org?.role === "HR";
+  const canPurchaseCorporateCommerce = org?.role === "OWNER";
   const canInvite = availableSeats == null || availableSeats > 0;
   const unassignedPhysicalCards = useMemo(
     () => countMembersWithoutPhysicalAssignment(members, physicalCards),
@@ -999,6 +1002,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     leads: "/kurumsal/panel/leadler",
     events: "/kurumsal/panel/etkinlikler",
     meetings: "/kurumsal/panel/gorusmeler",
+    commerce: "/kurumsal/panel/satin-almalar",
     organization: "/kurumsal/panel/organizasyon",
     settings: "/kurumsal/panel/ayarlar",
   };
@@ -1015,6 +1019,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     leads: { title: "Leadler", description: "Karttan düşen networking lead’lerini, mail ve görüşme takibini yönet.", icon: "mail" },
     events: { title: "Etkinlik kampanyaları", description: "Fuar ve saha temaslarını ekibe, QR kullanımına ve gelen lead’lere göre izleyin.", icon: "clock" },
     meetings: { title: "Görüşmeler", description: "Online ve yüz yüze görüşme taleplerini kabul et, alternatif öner veya reddet.", icon: "headset" },
+    commerce: { title: "Abonelik & Satın Almalar", description: "Şirketin paket, kredi, sipariş ve fatura kayıtlarını yetki sınırlarıyla yönetin.", icon: "box" },
     organization: { title: "Organizasyon", description: "Şirket kimliği, alan politikaları ve ünvan standardını yönet.", icon: "building" },
     settings: { title: "Ayarlar", description: "Sık değişmeyen kurumsal yönetim alanlarına ulaş.", icon: "adjustments" },
   };
@@ -1392,6 +1397,20 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                 )}
                 {currentTab === "meetings" && canManageNetworking && (
                   <NetworkingPanel view="meetings" organizationId={selected} token={token} members={members} memberCardStatuses={memberCardStatuses} />
+                )}
+                {currentTab === "commerce" && (
+                  canViewCorporateCommerce && selected ? (
+                    <CorporateCommercePanel
+                      organizationId={selected}
+                      token={token}
+                      purchaseAllowed={canPurchaseCorporateCommerce}
+                    />
+                  ) : (
+                    <ErrorState
+                      title="Ticari kayıtlara erişim yok"
+                      description="Paket, sipariş ve fatura kayıtları yalnız Şirket Sahibi ile İK tarafından görüntülenebilir."
+                    />
+                  )
                 )}
                 {currentTab === "settings" && (
                   <section className="p10-domain-panel p10-settings-hub">

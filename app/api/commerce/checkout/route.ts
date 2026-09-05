@@ -6,7 +6,7 @@ import { initializeCheckout } from "../../../../lib/payments/iyzico";
 import { getActivePaymentProvider, publicSiteUrl } from "../../../../lib/payments/config";
 import { createPaytrMerchantOid, initializePaytrCheckout } from "../../../../lib/payments/paytr";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
-import { canManageTemplates, isOrganizationRole } from "../../../../lib/organizations/permissions";
+import { canManageTemplates, canPurchaseCorporateCommerce, isOrganizationRole } from "../../../../lib/organizations/permissions";
 import { isValidIdentityNumber, normalizeIdentityNumber } from "../../../../lib/validation/payment";
 import { publicError } from "../../../../lib/errors";
 import {
@@ -325,34 +325,73 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Network Mail kredi paketleri ayrı bir siparişte alınır." }, { status: 400 });
     }
     if (networkMailItems.length) {
-      const nowIso = new Date().toISOString();
-      const [{ data: premiumEntitlement }, { data: premiumGrant }] = await Promise.all([
-        admin
-          .from("entitlements")
-          .select("id,expires_at,grace_ends_at")
+      const organizationIds = networkMailItems.map((item) => item.configuration?.organizationId);
+      const organizationCreditPurchase = organizationIds.some((value) => value != null);
+
+      if (organizationCreditPurchase) {
+        if (organizationIds.some((value) => typeof value !== "string" || !/^[0-9a-f-]{36}$/i.test(value))) {
+          return NextResponse.json({ error: "Network Mail paketi için geçerli bir şirket seçilmedi." }, { status: 400 });
+        }
+        const uniqueOrganizationIds = [...new Set(organizationIds as string[])];
+        if (uniqueOrganizationIds.length !== 1) {
+          return NextResponse.json({ error: "Bir Network Mail siparişi yalnız bir şirket bakiyesine eklenebilir." }, { status: 400 });
+        }
+        const organizationId = uniqueOrganizationIds[0];
+        const { data: membership } = await admin
+          .from("organization_members")
+          .select("role,status")
+          .eq("organization_id", organizationId)
           .eq("user_id", authenticatedUserId)
-          .eq("package_code", "INDIVIDUAL_PREMIUM")
+          .maybeSingle();
+        if (!authenticatedUserId || !membership || !isOrganizationRole(membership.role) || !canPurchaseCorporateCommerce(membership.role, membership.status)) {
+          return NextResponse.json({ error: "Şirket Network Mail kredisi satın alma yetkisi yalnız Şirket Sahibindedir." }, { status: 403 });
+        }
+        const { data: activeSubscription } = await admin
+          .from("organization_subscriptions")
+          .select("id")
+          .eq("organization_id", organizationId)
           .eq("status", "ACTIVE")
-          .order("expires_at", { ascending: false, nullsFirst: false })
           .limit(1)
-          .maybeSingle(),
-        admin
-          .from("admin_access_grants")
-          .select("id,starts_at,expires_at")
-          .eq("user_id", authenticatedUserId)
-          .eq("scope", "INDIVIDUAL")
-          .eq("package_code", "INDIVIDUAL_PREMIUM")
-          .eq("status", "ACTIVE")
-          .order("expires_at", { ascending: false, nullsFirst: false })
-          .limit(1)
-          .maybeSingle(),
-      ]);
-      const premiumIsActive = premiumEntitlement
-        && (!premiumEntitlement.expires_at || premiumEntitlement.expires_at > nowIso || (premiumEntitlement.grace_ends_at && premiumEntitlement.grace_ends_at > nowIso));
-      const premiumGrantIsActive = premiumGrant
-        && premiumGrant.starts_at <= nowIso
-        && (!premiumGrant.expires_at || premiumGrant.expires_at > nowIso);
-      if (!premiumIsActive && !premiumGrantIsActive) return NextResponse.json({ error: "Network Mail paketi yalnız aktif Premium hesaplara açıktır. Önce Premium’a yükselt." }, { status: 403 });
+          .maybeSingle();
+        if (!activeSubscription) {
+          return NextResponse.json({ error: "Şirket Network Mail kredisi yalnız aktif kurumsal aboneliklerde kullanılabilir." }, { status: 409 });
+        }
+        for (const item of networkMailItems) {
+          item.configuration = { ...(item.configuration || {}), organizationId, creditScope: "ORGANIZATION" };
+        }
+      } else {
+        const nowIso = new Date().toISOString();
+        const [{ data: premiumEntitlement }, { data: premiumGrant }] = await Promise.all([
+          admin
+            .from("entitlements")
+            .select("id,expires_at,grace_ends_at")
+            .eq("user_id", authenticatedUserId)
+            .eq("package_code", "INDIVIDUAL_PREMIUM")
+            .eq("status", "ACTIVE")
+            .order("expires_at", { ascending: false, nullsFirst: false })
+            .limit(1)
+            .maybeSingle(),
+          admin
+            .from("admin_access_grants")
+            .select("id,starts_at,expires_at")
+            .eq("user_id", authenticatedUserId)
+            .eq("scope", "INDIVIDUAL")
+            .eq("package_code", "INDIVIDUAL_PREMIUM")
+            .eq("status", "ACTIVE")
+            .order("expires_at", { ascending: false, nullsFirst: false })
+            .limit(1)
+            .maybeSingle(),
+        ]);
+        const premiumIsActive = premiumEntitlement
+          && (!premiumEntitlement.expires_at || premiumEntitlement.expires_at > nowIso || (premiumEntitlement.grace_ends_at && premiumEntitlement.grace_ends_at > nowIso));
+        const premiumGrantIsActive = premiumGrant
+          && premiumGrant.starts_at <= nowIso
+          && (!premiumGrant.expires_at || premiumGrant.expires_at > nowIso);
+        if (!premiumIsActive && !premiumGrantIsActive) return NextResponse.json({ error: "Network Mail paketi yalnız aktif Premium hesaplara açıktır. Önce Premium’a yükselt." }, { status: 403 });
+        for (const item of networkMailItems) {
+          item.configuration = { ...(item.configuration || {}), creditScope: "INDIVIDUAL" };
+        }
+      }
     }
     const digitalOnlyCart = calculated.length > 0 && calculated.every((item) => isDigitalOnlySku(item.variant.sku));
     const shipping = {

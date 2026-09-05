@@ -66,6 +66,53 @@ export async function POST(request: NextRequest) {
   }
 
   const admin = getSupabaseAdminClient();
+  let existingProfile: { id: string; slug: string | null } | null = null;
+  if (parsed.data.profileId) {
+    const { data, error } = await admin
+      .from("card_profiles")
+      .select("id,slug")
+      .eq("id", parsed.data.profileId)
+      .eq("user_id", authData.user.id)
+      .maybeSingle();
+    if (error) return NextResponse.json({ error: "Kart profili kontrol edilemedi." }, { status: 500 });
+    if (!data) return NextResponse.json({ error: "Kart profili bulunamadı.", code: "NOT_FOUND" }, { status: 404 });
+    existingProfile = data;
+  }
+
+  // A readable alias is intentionally not a free identifier. Existing aliases
+  // were migrated as LEGACY grants, so ordinary profile saves preserve them.
+  // We only require the capability when the value actually changes; removing
+  // an alias stays available as a privacy-preserving action.
+  if (typeof requestedSlug === "string") {
+    const requestedNormalized = normalizeCardSlug(requestedSlug);
+    const existingNormalized = existingProfile?.slug ? normalizeCardSlug(existingProfile.slug) : null;
+    const isChangingAlias = requestedNormalized !== existingNormalized;
+    if (isChangingAlias) {
+      if (!existingProfile) {
+        return NextResponse.json({
+          error: "Özel Yenomi adresi, satışa açıldığında katalogdan etkinleştirilebilir. Kalıcı kart adresiniz hazır olduğunda NFC ve QR hedefiniz değişmeden kalır.",
+          code: "CUSTOM_URL_ENTITLEMENT_REQUIRED",
+        }, { status: 403 });
+      }
+      const now = new Date().toISOString();
+      const { data: customUrlEntitlement, error: entitlementError } = await admin
+        .from("profile_custom_url_entitlements")
+        .select("id")
+        .eq("profile_id", existingProfile.id)
+        .eq("status", "ACTIVE")
+        .lte("starts_at", now)
+        .or(`expires_at.is.null,expires_at.gt.${now}`)
+        .maybeSingle();
+      if (entitlementError) return NextResponse.json({ error: "Özel adres hakkı kontrol edilemedi." }, { status: 500 });
+      if (!customUrlEntitlement) {
+        return NextResponse.json({
+          error: "Bu özel adres için etkin bir kullanım hakkı yok. Kalıcı kart adresiniz kullanılmaya devam eder.",
+          code: "CUSTOM_URL_ENTITLEMENT_REQUIRED",
+        }, { status: 403 });
+      }
+    }
+  }
+
   if (!parsed.data.profileId && !parsed.data.organizationId) {
     const { data: individualProfiles, error: profileLookupError } = await admin
       .from("card_profiles")

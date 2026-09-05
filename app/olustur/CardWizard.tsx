@@ -29,7 +29,6 @@ import {
   sanitizeCardDraft,
   normalizeProfileSlug,
   storagePathFromPublicUrl,
-  validateProfileSlug,
   type CardData,
   type UploadedImage,
 } from "./domain/profile-editor";
@@ -89,9 +88,6 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
   const [searchIndexingEnabled, setSearchIndexingEnabled] = useState(false);
   const [englishRole, setEnglishRole] = useState("");
   const [englishAbout, setEnglishAbout] = useState("");
-  const [slugStatus, setSlugStatus] = useState<"idle" | "checking" | "available" | "unavailable" | "invalid">("idle");
-  const [slugMessage, setSlugMessage] = useState("");
-  const [slugSuggestions, setSlugSuggestions] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [imageMessage, setImageMessage] = useState("");
@@ -553,57 +549,8 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
     });
   }, [router, businessOrganizationId, brandSettingsRequested, isBusinessCard, isNewCard, mode, requestedProfileId]);
 
-  useEffect(() => {
-    const candidate = normalizeProfileSlug(profileSlug);
-    if (!candidate) {
-      setSlugStatus("idle");
-      setSlugMessage("");
-      setSlugSuggestions([]);
-      return;
-    }
-    const validationError = validateProfileSlug(candidate);
-    if (validationError) {
-      setSlugStatus("invalid");
-      setSlugMessage(validationError);
-      return;
-    }
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) {
-      setSlugStatus("available");
-      setSlugMessage("Özel adres yayınlama sırasında kesinleştirilecek.");
-      return;
-    }
-    setSlugStatus("checking");
-    setSlugMessage("Özel adres kontrol ediliyor...");
-    const timer = window.setTimeout(async () => {
-      const { data: available, error } = await supabase.rpc("is_card_slug_available", {
-        candidate,
-        current_profile_id: profileId,
-      });
-      if (error) {
-        setSlugStatus("idle");
-        setSlugMessage("Özel adresin uygunluğu yayınlama sırasında kontrol edilecek.");
-        return;
-      }
-      if (available) {
-        setSlugStatus("available");
-        setSlugMessage("Bu özel adres kullanılabilir.");
-        setSlugSuggestions([]);
-      } else {
-        setSlugStatus("unavailable");
-        setSlugMessage("Bu özel adres daha önce alınmış.");
-        setSlugSuggestions([`${candidate}-2`, `${candidate}-kart`, `${candidate}${userId?.slice(0, 4) || "01"}`]);
-      }
-    }, 450);
-    return () => window.clearTimeout(timer);
-  }, [profileId, profileSlug, userId]);
-
   function update(field: keyof CardData, value: string) {
     setData((current) => ({ ...current, [field]: value }));
-  }
-
-  function updateSlug(value: string) {
-    setProfileSlug(normalizeProfileSlug(value));
   }
 
   function openCorporateBrandSettings() {
@@ -832,8 +779,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
   function validateForm() {
     if (data.name.trim().length < 2) return "Ad soyad alanı zorunlu.";
     if (data.role.trim().length < 2) return "Ünvan alanı zorunlu.";
-    const alias = normalizeProfileSlug(profileSlug);
-    return alias ? validateProfileSlug(alias) : null;
+    return null;
   }
 
   async function publish() {
@@ -860,15 +806,6 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
       if (supabase && currentUserId) {
         uploaded = await uploadImageIfNeeded(currentUserId);
         const slug = normalizeProfileSlug(profileSlug);
-        if (slug) {
-          const { data: available, error: availabilityError } = await supabase.rpc("is_card_slug_available", { candidate: slug, current_profile_id: profileId });
-          if (!availabilityError && !available) {
-            setSlugStatus("unavailable");
-            setSlugMessage("Bu özel adres kullanılıyor. Aşağıdaki alternatiflerden birini seç.");
-            setSlugSuggestions([`${slug}-2`, `${slug}-kart`, `${slug}${currentUserId.slice(0, 4)}`]);
-            throw new Error("Özel Yenomi adresi uygun değil.");
-          }
-        }
         const { data: sessionData } = await supabase.auth.getSession();
         const accessToken = sessionData.session?.access_token;
         if (!accessToken) throw new Error("Oturum bulunamadı. Lütfen tekrar giriş yap.");
@@ -924,15 +861,11 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
           }
         }
         if (saveError) {
-          // Eş zamanlı iki kullanıcı aynı özel adresi seçip aynı anda yayınlarsa,
-          // istemci tarafı ön kontrolü (yukarıda) geçse bile veritabanının
-          // "slug unique" kısıtı ikinci isteği reddeder. Ham Postgres hatası
-          // yerine kullanıcı dostu bir mesaj göster.
+          // Eski bir özel adres artık başka bir profile geçtiyse ham Postgres
+          // hatasını göstermeyiz. Yeni/değiştirilen adresler ayrıca kullanım
+          // hakkı ile korunur.
           if (savePayload.code === "SLUG_TAKEN") {
-            setSlugStatus("unavailable");
-            setSlugMessage("Bu özel adres az önce başka biri tarafından alındı. Aşağıdaki alternatiflerden birini seç.");
-            setSlugSuggestions([`${slug}-2`, `${slug}-kart`, `${slug}${currentUserId.slice(0, 4)}`]);
-            throw new Error("Özel Yenomi adresi az önce alındı. Lütfen farklı bir adres seç.");
+            throw new Error("Özel Yenomi adresi az önce alındı. Lütfen destek ekibiyle iletişime geç.");
           }
           if (savePayload.code === "TITLE_NOT_IN_CATALOG") {
             setMessage("Bu ünvan şirketin pozisyon listesinde yok. Listeden bir ünvan seç ya da 'Listede yok, talep et' ile İK'dan iste.");
@@ -1035,10 +968,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
 
   const publishDisabled =
     saving ||
-    (isAlreadyPublished && !isDirty) ||
-    slugStatus === "checking" ||
-    slugStatus === "unavailable" ||
-    slugStatus === "invalid";
+    (isAlreadyPublished && !isDirty);
 
   const saveStatusBadge = (
     <span className={`p8-save-status p8-save-status--${saving ? "saving" : isDirty ? "dirty" : "saved"}`} role="status">
@@ -1154,11 +1084,12 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
               <div className="p8-slug-field"><span>yenomi.id/p/</span><Input value={publicId || "İlk kayıtta otomatik oluşturulur"} readOnly aria-label="Kalıcı kart adresi" /></div>
             </Field>
           </div>
-          <Field label="Özel Yenomi adresi" help="İsteğe bağlı kısa adres. Değiştirmeniz veya kaldırmanız NFC/QR kartınızı etkilemez.">
-            <div className="p8-slug-field"><span>yenomi.id/</span><Input value={profileSlug} onChange={(e) => updateSlug(e.target.value)} onBlur={() => setProfileSlug(normalizeProfileSlug(profileSlug))} placeholder="sevcan" minLength={3} maxLength={40}/></div>
-          </Field>
-          <div className={`p8-slug-feedback p8-slug-feedback--${slugStatus}`} aria-live="polite"><span>{slugMessage || "İsterseniz markanıza uygun kısa bir özel adres seçebilirsiniz. Boş bırakırsanız yalnızca gizliliği koruyan kalıcı kart adresiniz kullanılır."}</span>{profileSlug && <Button size="sm" variant="secondary" onClick={() => setProfileSlug("")}>Özel adresi kaldır</Button>}</div>
-          {slugSuggestions.length > 0 && <div className="p8-slug-suggestions" aria-label="Uygun bağlantı önerileri">{slugSuggestions.map((suggestion) => <button type="button" key={suggestion} onClick={() => updateSlug(suggestion)}>{suggestion}</button>)}</div>}
+          {profileSlug ? <>
+            <Field label="Özel Yenomi adresi" help="Okunabilir adresiniz korunur. NFC ve QR hedefiniz yine gizliliği koruyan kalıcı kart adresidir.">
+              <div className="p8-slug-field"><span>yenomi.id/</span><Input value={profileSlug} readOnly aria-label="Özel Yenomi adresi" /></div>
+            </Field>
+            <div className="p8-slug-feedback p8-slug-feedback--idle" aria-live="polite"><span>Özel adres değişikliği, satışa açıldığında katalogdaki kullanım hakkınızla etkinleşir. Arama motoru görünürlüğü tercihiniz bundan bağımsızdır.</span></div>
+          </> : <div className="p8-slug-feedback p8-slug-feedback--idle" aria-live="polite"><span>Özel Yenomi adresi yakında katalogdan etkinleştirilecek. Bu sırada NFC ve QR kartınız, yalnızca size ait kalıcı rastgele kart adresini kullanır.</span></div>}
         </section>
 
         <section id="p8-appearance" className="p8-section-card">

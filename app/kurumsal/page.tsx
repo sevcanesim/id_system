@@ -6,6 +6,7 @@ import {
   corporateCheckoutLive,
   corporatePackageSku,
   corporateRenewalPriceKurus,
+  networkMailGrant,
 } from "../../lib/commerce/packages";
 import { formatTryFromKurus } from "../../lib/config/product";
 import CorporateLeadForm from "./CorporateLeadForm";
@@ -201,7 +202,11 @@ export default async function CorporatePage({
                         {isRecommended && <span className="corporate-tier-badge">En Çok Tercih Edilen</span>}
                       </div>
                     </th>
-                    <td>{plan.seats} kullanıcı + {plan.seats} NFC kart + kurumsal panel</td>
+                    <td>
+                      {plan.seats} kullanıcı + {plan.seats} NFC kart + kurumsal panel
+                      <br />
+                      <small>{networkMailGrant(plan.seats).toLocaleString("tr-TR")} Network Mail kredisi / yıl dahil</small>
+                    </td>
                     <td className="is-num corporate-price-primary">
                       <strong>{formatTryFromKurus(plan.priceKurus)}</strong>
                       <span className="corporate-price-period"> / ilk yıl</span>
@@ -236,7 +241,7 @@ export default async function CorporatePage({
 
         <p className="corporate-pack-note">
           <strong>İlk 12 ay:</strong> seçilen kullanıcı sayısı kadar NFC kart, kurumsal platform erişimi ve Türkiye içi kargo
-          dahildir. <strong>12 ay tamamlandıktan sonra:</strong> yenileme dönemi başlar; mevcut kartlar kullanılmaya devam eder ve
+          ile kişi başı 100 Network Mail kredisi dahildir. <strong>12 ay tamamlandıktan sonra:</strong> yenileme dönemi başlar; mevcut kartlar kullanılmaya devam eder ve
           yeni fiziksel kart gönderilmez.
         </p>
       </section>

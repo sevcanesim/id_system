@@ -165,12 +165,12 @@ export default function EmployeeDrawer({
       detail: drawerMember.status === "INVITED" ? "Bekleniyor" : "Tamamlandı",
     },
     {
-      label: "Dijital kart",
+      label: "Dijital profil",
       done: Boolean(cardState?.hasDigitalCard),
       detail: cardState?.hasDigitalCard ? (cardState.published ? "Yayında" : "Taslak hazır") : "Oluşturulmadı",
     },
     {
-      label: "Fiziksel kart",
+      label: "Fiziksel NFC kart",
       done: assignedCards.length > 0,
       detail: assignedCards.length ? `${assignedCards[0].cardCodeMasked} · ${assignedCards[0].status}` : "Atanmadı",
     },
@@ -202,7 +202,10 @@ export default function EmployeeDrawer({
     viewLoading === drawerMember.id ? "Kart önizlemesi" : previewReady ? "Kart hazır" : "Kart henüz oluşturulmadı";
   const roleSummary = drawerMember.role === "OWNER" ? "Şirket Sahibi" : roleLabel(drawerMember.role);
   const statusSummary = memberStatusLabel(drawerMember.status);
-  const digitalCardSummary = cardState?.published ? "Dijital kart yayında" : cardState?.hasDigitalCard ? "Dijital kart taslak" : null;
+  const digitalCardSummary = cardState?.published ? "Dijital profil yayında" : cardState?.hasDigitalCard ? "Dijital profil taslak" : "Dijital profil oluşturulmadı";
+  const physicalCardSummary = assignedCards.length
+    ? `NFC kart ${physicalCardLabel(assignedCards[0].status).toLocaleLowerCase("tr-TR")}`
+    : "NFC kart atanmamış";
 
   return (
     <Drawer open title="Çalışan Detay" className="v25-employee-drawer" onClose={closeDrawer}>
@@ -213,7 +216,7 @@ export default function EmployeeDrawer({
           <small>{drawerMember.email}</small>
           <span>
             {roleSummary} · {statusSummary}
-            {digitalCardSummary ? ` · ${digitalCardSummary}` : ""}
+            {` · ${digitalCardSummary} · ${physicalCardSummary}`}
           </span>
           {(drawerMember.title || drawerMember.department) && (
             <span>
@@ -224,6 +227,15 @@ export default function EmployeeDrawer({
           )}
         </div>
       </div>
+
+      <section className="v25-status-summary" aria-label="Kart ve erişim özeti">
+        <header><small>KART VE ERİŞİM ÖZETİ</small></header>
+        <dl>
+          <div className={cardState?.published ? "is-active" : ""}><dt>Dijital profil</dt><dd>{cardState?.published ? "Yayında" : cardState?.hasDigitalCard ? "Taslak hazır" : "Oluşturulmadı"}</dd></div>
+          <div className={assignedCards.length ? "is-active" : ""}><dt>Fiziksel NFC kart</dt><dd>{assignedCards.length ? physicalCardLabel(assignedCards[0].status) : "Atanmamış"}</dd></div>
+          <div className={drawerMember.status === "ACTIVE" ? "is-active" : ""}><dt>Hesap erişimi</dt><dd>{statusSummary}</dd></div>
+        </dl>
+      </section>
 
       <div className="v25-drawer-workspace">
         <div className="v25-drawer-main">
@@ -423,7 +435,7 @@ export default function EmployeeDrawer({
                 <div>
                   <small>ERİŞİM VE DURUM</small>
                   <h3>Çalışan durumu</h3>
-                  <p>Davet, dijital kart ve fiziksel kart aşamalarının tek görünümü.</p>
+                  <p>Davet, dijital profil ve fiziksel NFC kart aşamalarının tek görünümü.</p>
                 </div>
                 <Icon name="analytics" />
               </div>

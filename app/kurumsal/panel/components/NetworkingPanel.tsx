@@ -329,7 +329,7 @@ export default function NetworkingPanel({
         <p className="p11-networking-message" role="status">
           {variant === "individual"
             ? "E-posta göndermek için Network Mail kredisi gerekir."
-            : "Network Mail bakiyesi yok. Yeni kredi şirket lisansından tanımlanır."}
+            : "Network Mail bakiyesi yok. Şirket Sahibi veya İK, Abonelik & Satın Almalar alanından uygun kredi paketini inceleyebilir."}
         </p>
       )}
       {!loaded && <LoadingState label={view === "leads" ? "Leadler yükleniyor" : view === "events" ? "Etkinlikler yükleniyor" : "Görüşmeler yükleniyor"} />}

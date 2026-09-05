@@ -50,11 +50,20 @@ const CARD_SECTIONS = [
 const HR_AUDIT_NOTICE = "Değişiklikler İK ve Sistem Yöneticisine bildirildi";
 const HR_AUDIT_NOTICE_KEY = "yenomi:card-editor:hr-audit";
 
+function getCardEditorScrollRoot(element: HTMLElement | null) {
+  const panelScroller = element?.closest<HTMLElement>(".business-shell, .enterprise-dashboard-main") ?? null;
+  if (!panelScroller || typeof window === "undefined") return null;
+
+  const { overflowY } = window.getComputedStyle(panelScroller);
+  const isScrollable = /auto|scroll|overlay/.test(overflowY) && panelScroller.scrollHeight > panelScroller.clientHeight;
+  return isScrollable ? panelScroller : null;
+}
+
 function scrollCardEditorSection(element: HTMLElement, behavior: ScrollBehavior) {
-  // Most panel routes render inside .business-shell, while the dedicated
-  // “Kartım” route is mounted directly in the dashboard main area. Resolve
-  // both so section navigation always moves the actual scroll container.
-  const panelScroller = element.closest<HTMLElement>(".business-shell, .enterprise-dashboard-main");
+  // Ordinary panel routes use .business-shell, while the long-form “Kartım”
+  // editor intentionally uses document scrolling. Only scroll an ancestor
+  // when it is a real scroll container; otherwise use the browser viewport.
+  const panelScroller = getCardEditorScrollRoot(element);
 
   if (panelScroller) {
     const offset = 20;
@@ -169,7 +178,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
     const sectionIds = CARD_SECTIONS.map((sec) => sec.id);
     const elements = sectionIds.map((id) => document.getElementById(id)).filter(Boolean);
     if (!elements.length) return;
-    const root = document.querySelector(".p8-editor")?.closest<HTMLElement>(".business-shell, .enterprise-dashboard-main") ?? null;
+    const root = getCardEditorScrollRoot(document.querySelector<HTMLElement>(".p8-editor"));
 
     const observer = new IntersectionObserver(
       (entries) => {

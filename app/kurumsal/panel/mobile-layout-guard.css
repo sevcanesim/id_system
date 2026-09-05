@@ -67,32 +67,25 @@
   container-type: inline-size;
 }
 
-/* The corporate shell owns the vertical scroll area. Let the card editor use
- * that area too: it preserves the fixed sidebar and makes section links,
- * mouse-wheel scrolling and direct #section links agree on one scroll root. */
+/* “Kartım” is a long-form editor mounted directly in
+ * .enterprise-dashboard-main, not in the usual .business-shell. A nested,
+ * viewport-height scroll root made trackpad/wheel input unreliable and hid
+ * later sections. Let this one route grow with its content so the browser's
+ * normal document scroll is the only vertical scroll owner. */
+.p10-corporate-platform:has(.p8-corporate-workspace--decoupled) {
+  overflow: visible;
+}
+
+.p10-corporate-platform:has(.p8-corporate-workspace--decoupled) .enterprise-dashboard-shell {
+  min-height: 100svh;
+  align-items: start;
+}
+
 .p10-corporate-platform:has(.p8-corporate-workspace--decoupled) .enterprise-dashboard-main {
-  overflow: hidden;
-}
-
-.p10-corporate-platform:has(.p8-corporate-workspace--decoupled) .business-shell {
-  overflow-x: hidden;
-  overflow-y: auto;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: stable;
-}
-
-/* “Kartım” is routed directly into .enterprise-dashboard-main instead of
- * .business-shell. The dashboard main area normally clips child routes to the
- * viewport, which left the editor's later sections unreachable. Make it the
- * single, explicit vertical scroll root for this route. */
-.p10-corporate-platform .enterprise-dashboard-main:has(.p8-corporate-workspace--decoupled) {
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior-y: contain;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: stable;
+  min-height: 100svh;
+  max-height: none;
+  display: block;
+  overflow: visible;
 }
 
 @container (max-width: 64rem) {

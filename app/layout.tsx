@@ -18,6 +18,7 @@ import "./styles/canonical-public.css";
 import "./styles/canonical-paytr.css";
 import "./styles/canonical-account.css";
 import "./styles/canonical-corporate.css";
+import "./styles/canonical-corporate-responsive.css";
 import "./styles/canonical-auth.css";
 import "./styles/canonical-motion.css";
 import "./styles/canonical-footer.css";

@@ -1,0 +1,260 @@
+# Güvenlik ve İş Sürekliliği Teslim Yol Haritası
+
+Bu belge, kaynak kod denetimindeki bulguları uygulama sırasına bağlar. Bir madde **kodda tamamlandı** olarak yazılsa bile, ilgili migration staging ve production veritabanında uygulanmadan canlıda tamamlanmış sayılmaz.
+
+## 6 Eylül 2026 uygulama durumu
+
+| Alan | Durum | Kanıt / sonraki adım |
+| --- | --- | --- |
+| P0.1, P0.2, P0.5, P0.6 | Uygulandı | `20260906120000`, `20260906130000` ve `20260906140000` migration'ları bağlı Supabase projesine uygulandı; `supabase db push --dry-run` uzak veritabanının güncel olduğunu doğruluyor. |
+| P0.3 | Kaynakta tamam | PayTR sandbox callback tekrar/yanlış-imza senaryoları gerçek sağlayıcıyla kanıtlanmalı. |
+| P0.4 | Kaynakta tamam | Tip, derleme ve statik kalite kontrolleri geçiyor. Chromium bu çalışma ortamının macOS sandbox kısıtı nedeniyle başlatılamadığından tarayıcı E2E'si yerel CI veya staging'de çalıştırılmalı. |
+| P0.7 | Açık yayın engeli | Tarayıcıdaki Supabase token yaşam döngüsünü BFF modeline taşıma henüz yapılmadı; bu madde kapanmadan yüksek gizlilik iddiasıyla yayın yapılmaz. |
+| Production env | Engelli | PayTR, Redis, `CRON_SECRET` ve hukuk onay değişkenleri tanımlı değil; `verify:production-env` bu nedenle bilinçli olarak başarısız. |
+
+Bu durum, bağlı Supabase projesinin production olduğu anlamına gelmez. Ortam kimliği ve production değişkenleri doğrulanmadan production onayı verilmez.
+
+## Faz P0 — Veri sınırı ve ödeme sürekliliği
+
+### P0.1 Kurumsal kart ile profilin aynı organizasyona ait olması
+
+**Risk:** Aynı kullanıcıya ait kişisel veya başka bir şirkete bağlı profil, kurumsal fiziksel karta bağlanabiliyordu. Bu, şirket panelinde yanlış kimliğin görünmesine ve profil verisinin yanlış şirkete açılmasına yol açabilirdi.
+
+**Kodda tamamlandı:**
+
+- `physical_cards` için tetikleyici, `owner_profile_id`, `owner_user_id` ve `organization_id` ilişkisini veritabanında doğrular.
+- Eşleştirme endpointi doğrudan tablo güncellemez; kilit alan ve sonucu döndüren `link_own_corporate_card_profile` RPC'sini çağırır.
+- Kart aktivasyon RPC'si, profil organizasyonu ile kart organizasyonunu eşit tutar.
+- Yönetici önizlemesi, kart durumları ve kurumsal analitik artık şirket adı benzetimi yerine yalnız `organization_id` kullanır.
+
+**Canlıya alma sırası:**
+
+1. Staging'de `20260906120000_p0_corporate_card_profile_integrity.sql` migration'ını uygula.
+2. Migration `CORPORATE_CARD_PROFILE_INTEGRITY_REPAIR_REQUIRED` ile durursa, hata veren kart/profil kayıtlarını bir kereye mahsus doğrulanmış organizasyon ilişkisiyle düzelt; migration'ı atlama veya trigger'ı devre dışı bırakma.
+3. Her kurumsal rol için kişisel profil, aynı şirket profili ve başka şirket profiliyle eşleştirme denemesi yap. Yalnız aynı şirket profili başarılı olmalıdır.
+4. Production'da migration sonrası aynı sorguların kayıt altına alınmış sonucu olmadan P0.1 kapatılmaz.
+
+### P0.2 Tarayıcıdan doğrudan profil yazımını kapatma
+
+**Risk:** Eski RLS politikaları profil satırına doğrudan `INSERT/UPDATE/DELETE` izni veriyordu. İstemci arayüzündeki kilitli alanlar, doğrudan Data API çağrısıyla aşılabilirdi.
+
+**Kodda tamamlandı:**
+
+- Eski profil DML politikaları ve `anon/authenticated` DML yetkileri migration ile kaldırılır.
+- Profil kaydı, mevcut yetki denetimli `POST /api/profiles/save` akışında kalır.
+- Yayın durumu için sahiplik kontrolü yapan `POST /api/profiles/publication` endpointi eklendi.
+- Eski istemci repository'sindeki doğrudan profil ekleme/güncelleme fonksiyonları kaldırıldı.
+
+**Canlı doğrulama:**
+
+1. Staging'de normal kullanıcı access token'ı ile `card_profiles` için doğrudan DML çağrılarının reddedildiğini doğrula.
+2. Kart oluşturma, düzenleme, yayınla/yayından kaldır akışlarının API üzerinden başarılı olduğunu doğrula.
+3. Supabase SQL Editor'de `information_schema.role_table_grants` üzerinden `anon` ve `authenticated` için `card_profiles` DML ayrıcalığının bulunmadığını kayda al.
+
+### P0.3 PayTR callback ve cron giriş kapıları
+
+**Risk:** İmzalı ödeme callback'i IP temelli limiter yüzünden reddedilebilir; üretimde CRON_SECRET eksikliği yayın öncesi yakalanmayabilirdi.
+
+**Kodda tamamlandı:**
+
+- PayTR callback rotası middleware IP hız limitinden çıkarıldı. Callback tarafında imza doğrulama, callback makbuzu ve idempotent settlement zorunluluğu korunur.
+- İstek kimliği artık kullanıcı tarafından gönderilen `x-request-id` değeriyle devralınmaz; middleware tarafından üretilir.
+- Production ortam denetimine `CRON_SECRET` eklendi.
+
+**Canlı doğrulama:**
+
+1. PayTR sandbox'ta aynı callback'i iki kez gönder: yalnız bir ödeme/entitlement oluşmalı, iki callback makbuzu izlenebilmelidir.
+2. Yanlış hash ile callback gönder: işlem yapılmamalı ve sağlayıcıya retry edilebilir hata dönmelidir.
+3. CRON_SECRET olmadan production deployment doğrulamasının başarısız olduğunu; doğru secret ile cron rotasının yalnız yetkili çağrıya açık olduğunu doğrula.
+
+### P0.4 Kurumsal mobil stil zinciri
+
+**Sorun:** `mobile-layout-guard.css` route layout'a doğrudan import edildiği için kanonik stil denetimi ve runtime qualification duruyordu.
+
+**Kodda tamamlandı:**
+
+- Stil, `app/styles/canonical-corporate-responsive.css` altına taşındı.
+- Root layout üzerinden tek kanonik import zincirine alındı.
+- UI denetimi yeni kanonik modülü zorunlu katman olarak doğrular.
+
+**Kapanış kriteri:** `npm run verify:runtime-qualification` tam olarak geçmeli; bu komut geçmeden P0 mobil kalite maddesi kapanmaz.
+
+### P0.5 Ödeme devam bağlantısını kısa ömürlü ve tek kullanımlık yapmak
+
+**Risk:** Önceki akışta e-posta, tarayıcı geçmişi veya proxy kaydına düşen yedi günlük URL token'ı sipariş taslağındaki iletişim ve fatura verisini doğrudan okuyabiliyordu.
+
+**Kodda tamamlandı:**
+
+- `commerce_checkout_resume_codes` yalnız hash saklar; ham kod veritabanına, loga veya istemci saklamasına yazılmaz.
+- Kod 15 dakika geçerlidir ve atomik `redeemed_at is null` koşuluyla ilk kullanımda tüketilir.
+- Kullanımdan sonra endpoint 303 ile temiz `/checkout` adresine geçer; taslak yalnız on dakikalık, `HttpOnly`, dar path'li devam çereziyle bir kez okunur.
+- Ödeme devamı ve terk edilen sepet e-postaları yeni kodu üretir; sipariş taslağının yedi günlük saklama süresi ile URL yetkisinin süresi birbirinden ayrılmıştır.
+
+**Canlı doğrulama:**
+
+1. Aynı devam URL'sini iki farklı tarayıcıda aç: yalnız ilkinde taslak yüklenmeli.
+2. 15 dakika geçmiş kod, temiz URL'deki devam çerezi ve ödeme alınmış sipariş için taslak okunmamalı.
+3. CDN/Vercel erişim loglarında `resume` sorgu parametresinin maskelendiğini veya saklama süresinin güvenlik politikasına uygun olduğunu doğrula.
+
+### P0.6 Anonim profil verisi ve eski slug yönlendirmeleri
+
+**Risk:** Eski public RLS/RPC yolları, kartın dahili profil UUID'sini ve eski slug yönlendirme satırlarını doğrudan Data API üzerinden açabiliyordu.
+
+**Kodda tamamlandı:**
+
+- Public sayfalar profil, eski slug ve fiziksel kart durumunu yalnız Next.js sunucusundaki service-role gateway üzerinden çözer.
+- Anonim erişim için `card_profiles`, `card_profile_slug_redirects`, `card_profile_locales` SELECT izinleri ile eski public profil RPC'leri kaldırıldı.
+- Public networking formu dahili profil UUID'si yerine yalnız rastgele `public_id` gönderir; sunucu hedefi kendi içinde çözer.
+
+**Canlı doğrulama:**
+
+1. Anon JWT ile `card_profiles`, `card_profile_slug_redirects` ve `card_profile_locales` SELECT denemeleri reddedilmeli.
+2. `/p/{public_id}`, eski `/slug` ve eski slug vCard yönlendirmesi çalışmalı; sayfa HTML'i ve ağ istekleri profil UUID'si taşımamalı.
+3. Event link çözümleme RPC'si ve eski public profil RPC'leri anon/authenticated rollerinde çalışmamalı.
+
+### P0.7 Tarayıcı oturumunu BFF modeline taşımak — açık release blocker
+
+**Risk:** Mevcut Supabase SDK, istemci tarafındaki okuma akışları için access ve refresh token'ı JavaScript belleğine kuruyor. `HttpOnly` cookie kullanımı disk saklamasını azaltır; ancak refresh token'ın tarayıcı heap'ine hiç çıkmamasını sağlamaz.
+
+**Neden bu değişiklik bu pakette tamamlanmadı:** Sadece `/api/auth/session` yanıtını değiştirmek, mevcut tarayıcı tabanlı Supabase sorgularını token yenilenmesi sırasında sessizce kırar. Güvenli çözüm, tüm kullanıcı sorgularını BFF/API katmanına geçirip Supabase browser client'ını özel veriden çıkarmaktır; ara çözüm “sahte refresh token” kullanmak güvenilir değildir.
+
+**Zorunlu sonraki uygulama:**
+
+1. Kullanıcıya ait her `SupabaseClient` sorgusunu server route/repository üzerinden taşı.
+2. `/api/auth/session` GET yanıtından refresh token'ı kaldır; yalnız BFF'nin kullandığı HttpOnly cookie kalsın.
+3. OAuth/recovery callback'lerini sunucu callback route'una taşı; URL hash token'larını ilk yanıtta temizle.
+4. Tarayıcı heap, Local Storage, Session Storage ve Network yanıtlarında refresh token olmadığına dair E2E + DevTools denetim kanıtı olmadan production onayı verme.
+
+## Faz P1 — Dayanıklılık ve işletim görünürlüğü
+
+### P1.1 Dayanıklı teslimat kutusu (outbox)
+
+**Risk:** Ödeme başarılı olup e-posta veya Mysoft fatura gönderimi hata verirse, işlem durumu ile teslimat durumu ayrışabilir.
+
+**Yapılacaklar:**
+
+1. `commerce_outbox` tablosunu ekle: `id`, `aggregate_type`, `aggregate_id`, `event_type`, `payload`, `status`, `attempt_count`, `next_attempt_at`, `locked_at`, `last_error_code`, `delivered_at`.
+2. Ödeme settlement transaction'ında entitlements, fatura ve bildirim görevlerini aynı transaction içinde outbox'a yaz.
+3. Cron worker, `FOR UPDATE SKIP LOCKED` ve süreli lease ile görevleri almalı; exponential backoff kullanmalı.
+4. Sağlayıcı idempotency anahtarını outbox event id'sinden üretmeli. Ham kredi kartı, token veya PII hata metni saklanmamalı.
+5. Super Admin'de başarısız/tekrar bekleyen görevler, retry ve audit trail gösterilmeli.
+
+**DoD:** Ağ kesintisi simülasyonunda ödeme bir kez kapanır; e-posta/fatura daha sonra tekrar deneyerek tek kez teslim edilir.
+
+### P1.2 Mysoft fatura adapter'ı
+
+**Risk:** Faturalama çağrıları sağlayıcı ayrıntılarına bağlı ve eksik kaldığında ticari kayıt ile e-arşiv kaydı tutarsız olabilir.
+
+**Yapılacaklar:**
+
+1. `InvoiceProvider` arayüzü tanımla: `createInvoice`, `getInvoiceStatus`, `cancelInvoice`.
+2. Mysoft adapter'ını yalnız sunucu ortamında çalıştır; erişim anahtarlarını loglama veya istemciye gönderme.
+3. Fatura numarası, sağlayıcı referansı, durum geçişi ve PDF erişimini ayrı `commerce_invoices` tablosunda sakla.
+4. Fatura PDF'ini private storage'da sakla ve yalnız yetkili kullanıcıya süreli signed URL üret.
+
+**DoD:** Aynı order için birden fazla fatura oluşmuyor; sağlayıcı timeout'u outbox retry ile telafi ediliyor.
+
+### P1.3 Cron lease, metrik ve alarm
+
+**Risk:** Serverless cron aynı işi çakışarak çalıştırabilir; başarısız olduğunda görünmeden kalabilir.
+
+**Yapılacaklar:**
+
+1. `job_runs` ve `job_leases` tabloları ekle; job adı için tek aktif lease kuralı koy.
+2. Her cron çalışmasında `started_at`, `finished_at`, `result`, `processed_count`, `error_code` kaydet.
+3. Son başarılı çalışmanın yaşını izleyen uptime alarmı kur.
+4. Alarm, Super Admin operasyon merkezinde görünmeli; e-posta/pager kanalı kararını operasyon sahibi vermeli.
+
+**DoD:** Aynı cron paralel tetiklendiğinde yalnız biri iş alır; başarısız run görünür ve alarm üretir.
+
+### P1.4 Super Admin operasyon merkezi
+
+**Risk:** Sipariş, entitlement, fatura, hata ve kullanıcı durumları ayrı yerlerde kalırsa destek işlemi tahminle yürür.
+
+**Yapılacaklar:**
+
+1. `public_id`, kullanıcı UUID, sipariş numarası ve organizasyonla arama yapabilen tek bir operasyon görünümü ekle.
+2. Değişiklik yapan her admin eyleminde actor, sebep, önce/sonra özet, request id ve zaman damgası audit kaydına yazılsın.
+3. Vergi no, vergi dairesi ve cari bilgileri için rol bazlı yazma izni; alan seviyesinde maskeli gösterim uygula.
+4. Kullanıcıya yalnız güvenli hata referansı göster; teknik stack, token ve SQL hata metni yalnız erişim kontrollü logda kalsın.
+
+**DoD:** Bir destek görevlisi, tek aramayla kullanıcının yetkili olduğu veriyi; Super Admin ise denetim izini görebilir.
+
+### P1.5 Katalog, aktivasyon ve log dayanıklılığı
+
+**Yapılacaklar:**
+
+1. Fiyatı tek DB katalog kaynağından oku; checkout sırasında ürün/fiyat/katalog sürümü snapshot'ını siparişe yaz. Kod içindeki parasal değerler yalnız test fixture'ında kalmalı.
+2. Aktivasyonu `activation_provisioning_jobs` saga'sına taşı: `USER_CREATED`, `PROFILE_CREATED`, `FINALIZED`, `COMPENSATED`; yarım işleri cron ile uzlaştır.
+3. Merkezi logger dışında veri taşıyan `console.*` kullanma. Token, authorization, e-posta, telefon, adres, query string ve ham hata nesnesini logger katmanında maskele.
+4. `system_error_logs` için 30–90 günlük onaylı retention, purge/anonymization işi ve immutable operasyon audit'i uygula.
+5. `x-forwarded-for` için tek güvenilir proxy standardı belirle; diğer istemci başlıklarını rate limit kimliği olarak kullanma.
+
+**DoD:** Fiyat ayrışması, yarım aktivasyon, tekrar eden cron ve PII taşıyan hata logu için otomatik regresyon testi bulunur.
+
+### P1.6 Görsel, konum ve analitik veri minimizasyonu
+
+**Yapılacaklar:**
+
+1. `profile-images` bucket'ını private yap; yüklemede magic-byte/MIME/boyut kontrolü, yeniden encode ve EXIF/GPS temizliği uygula.
+2. Public kart yalnız kısa ömürlü signed görsel URL kullanmalı; dış `image_url` kaynaklarını güvenli import/proxy olmadan render etmemeli.
+3. Analitikte ayrı `ANALYTICS_FINGERPRINT_KEY`, query string'siz referer, kısa retention ve opt-out/silme akışı kullan.
+4. IP konumu ve reverse geocode işlemlerini açık kullanıcı aksiyonuna bağla; koordinat hassasiyetini düşür, veri işleyen envanterine ekle.
+
+**DoD:** Kart kapatıldığında profil görseli erişimi kesilir; analitik/log kayıtlarında ham IP, query token veya EXIF konumu bulunmaz.
+
+### P1.7 Migration defteri onarımı
+
+**Risk:** Bağlı Supabase projesinin geçmiş migration defterinde `024` ve `20260830` kimlikleri local/remote eşleştirmesinde ayrışıyor. Yeni P0 migration'ları normal `db push` akışıyla uygulanabildi; yine de bu eski ayrışma, gelecekte migration denetiminin güvenilirliğini düşürür.
+
+**Yapılacaklar:**
+
+1. Remote `supabase_migrations.schema_migrations` kayıtlarını ve aynı kimlikli local SQL dosyalarının içerik hash'lerini değişiklik kaydıyla karşılaştır.
+2. Aynı şema değişikliğini temsil ettikleri kanıtlanmadan `migration repair` çalıştırma; ne remote geçmişi ne local SQL dosyası silinmeli.
+3. Eşdeğer kayıt doğrulanırsa, onaylı bakım penceresinde yalnız ilgili kayıt için repair uygula ve `supabase migration list` çıktısını audit'e ekle.
+4. `verify:migration-drift` komutunu güncel Supabase CLI tablosunu da ayrıştıracak şekilde test et; remote up-to-date dry-run'ı tek başına history doğrulaması sayma.
+
+**DoD:** Local ve remote migration defteri tam eşleşir; drift komutu parse hatası vermeden sıfır uyuşmazlık raporlar.
+
+## Faz P2 — Saldırı yüzeyi ve gizlilik sertleştirmesi
+
+### P2.1 Webhook/SSRF ve egress kontrolü
+
+**Yapılacaklar:** DNS çözümlemesi sonrası private, loopback, link-local ve IPv6 özel ağ IP'lerini reddeden doğrulama; redirect sonrası her hedefi yeniden doğrulama; allowlist tabanlı egress proxy; kısa timeout ve response boyutu sınırı.
+
+### P2.2 Oturum ve hassas veri yaşam döngüsü
+
+**Yapılacaklar:** P0.7 BFF geçişinden sonra cihaz/oturum listeleme ve iptal ekranı; ödeme/aktivasyon ekranları için `no-store`, referrer politikası ve geri dönüş temizliği; hassas bilgileri varsayılan gizli gösterip açık kullanıcı aksiyonuyla kısa süre görünür kılma. Web uygulamasında ekran görüntüsü veya kaydını kesin engelleme vaadi verme.
+
+### P2.3 Gizlilik istekleri ve indeksleme
+
+**Yapılacaklar:** Arama motoru indeksleme tercihini sürümlü kayıtla tut; varsayılan kapalı; veri erişim/silme talepleri için durum makinesi, kanıt, SLA ve audit log ekle. Kişiselleştirilmiş ürün iadesi hakkında kesin hukuki metin üretme; hukuk onayı olmadan politika yayınlama.
+
+### P2.4 API politika katmanı
+
+**Yapılacaklar:** Tüm API route'larında ortak input şeması, auth, yetki, rate-limit, request-id, güvenli hata ve audit middleware'i kullan. İstemcinin verdiği request id'yi izleme korelasyonu için kabul etme; yalnız `client_request_id` olarak ayrı ve doğrulanmış biçimde saklama.
+
+### P2.5 Entegrasyon egress ve güvenlik gözlemlenebilirliği
+
+**Yapılacaklar:** CSP ihlal raporlama endpoint'i; `connect-src`/`img-src` allowlist'i; webhook DNS rebinding, IPv4/IPv6 private ağ, metadata IP ve redirect reddi; egress proxy; sağlayıcı yanıt gövdesi ve URL'sini loglamayan hata modeli. Gerçek cihazda PayTR iframe trafiğinin yalnız PayTR origin'ine gittiğini doğrula.
+
+## Ticari karar bekleyen alanlar
+
+Şu kararlar verilmeden fiyat veya hukuk metni hard-code edilmez:
+
+- Fiyatların KDV dahil/hariç sunumu ve Enterprise paketinin açık fiyatı mı, teklif usulü mü olacağı.
+- Özel URL'nin tek seferlik/yıllık bedeli ve kurumsal satın alma yetkisi.
+- İade/iptal politikasının hukuk onaylı sürümü.
+- Mysoft üretim erişimi, PayTR production/sandbox referansları ve operasyon alarmı alacak kanal.
+
+## Tek komutla kaynak doğrulaması
+
+Kaynak düzeyindeki P0 kontratı için:
+
+```bash
+npm run verify:p0:static
+npm run verify:runtime-qualification
+npm run test:unit
+```
+
+Bu komutların başarısı yalnız repository durumunu kanıtlar. Production kapanışı ayrıca migration uygulama kanıtı, PayTR sandbox callback kanıtı, cron job run kanıtı ve rol/RLS kontrol çıktısı gerektirir.

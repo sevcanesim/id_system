@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createCheckoutResumeToken } from "../../../../../../lib/commerce/checkout-resume";
+import { checkoutResumeCodeExpiry, createCheckoutResumeCode, hashCheckoutResumeCode } from "../../../../../../lib/commerce/checkout-resume";
 import { publicError } from "../../../../../../lib/errors";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../../lib/supabase/server-admin";
 
@@ -51,14 +51,20 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ error: "Bu siparişin güvenli ödeme taslağı artık mevcut değil. Sepetten yeniden ödeme başlatabilirsin." }, { status: 410 });
   }
 
-  const resumeToken = createCheckoutResumeToken(order.id, session.expires_at);
-  if (!resumeToken) {
-    console.error("order payment resume token could not be created", { orderId });
+  const resumeCode = createCheckoutResumeCode();
+  const { error: resumeCodeError } = await admin.from("commerce_checkout_resume_codes").upsert({
+    order_id: order.id,
+    code_hash: hashCheckoutResumeCode(resumeCode),
+    expires_at: checkoutResumeCodeExpiry().toISOString(),
+    redeemed_at: null,
+  }, { onConflict: "order_id" });
+  if (resumeCodeError) {
+    console.error("order payment resume code could not be created", { orderId, code: resumeCodeError.code });
     return NextResponse.json({ error: "Ödeme devam bağlantısı oluşturulamadı." }, { status: 503 });
   }
 
   return NextResponse.json(
-    { href: `/checkout?resume=${encodeURIComponent(resumeToken)}` },
+    { href: `/checkout?resume=${encodeURIComponent(resumeCode)}` },
     { headers: { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer" } },
   );
 }

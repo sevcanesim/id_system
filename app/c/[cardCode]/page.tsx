@@ -53,6 +53,7 @@ export default async function PhysicalCardRoute({ params }: { params: Promise<{ 
   const profile = rawProfile as CardProfileRow | null;
 
   if (!profile || !profile.is_published) return <CardState title="Bu Yenomi profili şu anda aktif değildir." />;
+  if (!profile.public_id) return <CardState title="Bu Yenomi profili şu anda aktif değildir." />;
   if (profile.card_status === "LOST") return <CardState title="Bu Yenomi kartı kayıp olarak bildirilmiştir." />;
   if (profile.card_status !== "ACTIVE" || !isCardProfileServiceActive(profile)) return <CardState title="Bu Yenomi profili şu anda aktif değildir." />;
 
@@ -64,13 +65,13 @@ export default async function PhysicalCardRoute({ params }: { params: Promise<{ 
 
   return (
     <main className="p12-public-card-page">
-      <PublicProfileProtection profileId={profile.public_id || profile.id.slice(0, 8)} generatedAt={new Date().toISOString()} />
+      <PublicProfileProtection profileId={profile.public_id} generatedAt={new Date().toISOString()} />
       <PublicCardWithNetworking
         data={{ ...rowToCardData(profile), links }}
         slug={profile.slug ?? undefined}
         publicId={profile.public_id}
         branding={branding}
-        profileId={profile.id}
+        profilePublicId={profile.public_id}
         profileName={profile.name}
         organizationName={profile.company || branding?.companyName}
         companyVerification={companyVerification}

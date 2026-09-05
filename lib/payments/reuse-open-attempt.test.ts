@@ -12,7 +12,7 @@ describe("decideOpenPaymentAttempt", () => {
     }, "fingerprint")).toBe("none");
   });
 
-  it("reuses only the same fingerprint with an available payment page", () => {
+  it("reuses a live PENDING session only for the same fingerprint", () => {
     expect(decideOpenPaymentAttempt({
       status: "PENDING",
       request_fingerprint: "fingerprint",

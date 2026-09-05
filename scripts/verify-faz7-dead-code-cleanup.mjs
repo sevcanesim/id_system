@@ -94,7 +94,7 @@ for (const relative of [
   const absolute = path.join(root, relative);
   if (fs.existsSync(absolute)) appEntries.push(path.resolve(absolute));
 }
-const middleware = path.join(root, "middleware.ts");
+const middleware = path.join(root, "proxy.ts");
 if (fs.existsSync(middleware)) {
   const text = fs.readFileSync(middleware, "utf8");
   importPattern.lastIndex = 0;

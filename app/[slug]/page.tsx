@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 
 import { notFound, permanentRedirect } from "next/navigation";
-import { getPublicSupabaseClient } from "../../lib/supabase/public";
 import { isCardProfileServiceActive, type CardProfileRow } from "../../lib/card-profile";
-import { fetchProfileBySlug } from "../../lib/repositories/profiles";
+import { fetchPublicCardByToken } from "../../lib/repositories/public-profiles";
 import { cardSharePath, cardShareUrl } from "../../lib/public-card/urls";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -11,27 +10,8 @@ type PageProps = { params: Promise<{ slug: string }> };
 export const dynamic = "force-dynamic";
 
 
-async function getRedirectTarget(slug: string): Promise<string | null> {
-  const supabase = getPublicSupabaseClient();
-  if (!supabase) return null;
-  const { data: redirectRow } = await supabase
-    .from("card_profile_slug_redirects")
-    .select("profile_id")
-    .eq("old_slug", slug)
-    .maybeSingle();
-  if (!redirectRow?.profile_id) return null;
-  const { data: profile } = await supabase
-    .from("card_profiles")
-    .select("public_id,is_published")
-    .eq("id", redirectRow.profile_id)
-    .maybeSingle();
-  return profile?.is_published && profile.public_id ? profile.public_id : null;
-}
-
 async function getPublishedProfile(slug: string): Promise<CardProfileRow | null> {
-  const supabase = getPublicSupabaseClient();
-  if (!supabase) return null;
-  const { data, error } = await fetchProfileBySlug(supabase, slug);
+  const { data, error } = await fetchPublicCardByToken(slug);
   if (error) return null;
   return data;
 }
@@ -87,7 +67,5 @@ export default async function ProfilePage({ params }: PageProps) {
     permanentRedirect(cardSharePath(databaseProfile.public_id));
   }
 
-  const redirectTarget = await getRedirectTarget(slug);
-  if (redirectTarget) permanentRedirect(cardSharePath(redirectTarget));
   notFound();
 }

@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { CardProfileRow } from "../card-profile";
-import { normalizeCardSlug, validateCardSlug } from "../validation/slug";
 
 /**
  * `card_profiles` tablosuna erişimi tek yerde toplar. Sayfa bileşenleri
@@ -22,24 +21,6 @@ import { normalizeCardSlug, validateCardSlug } from "../validation/slug";
 
 const PROFILE_COLUMNS =
   "id,user_id,organization_id,entitlement_id,slug,public_id,name,role,company,phone,whatsapp,email,website,linkedin,instagram,location,image_url,bio,is_published,card_status,service_started_at,service_expires_at,grace_ends_at,search_indexing_enabled";
-
-type PublicPhysicalState = "NOT_PHYSICAL" | "ACTIVE" | "LOST" | "DISABLED";
-
-async function applyPublicPhysicalState(
-  supabase: SupabaseClient,
-  profile: CardProfileRow | null
-): Promise<{ data: CardProfileRow | null; error: string | null }> {
-  if (!profile) return { data: null, error: null };
-  const { data, error } = await supabase.rpc("get_public_profile_physical_state", {
-    p_profile_id: profile.id,
-  });
-  if (error) return { data: null, error: error.message };
-
-  const state = data as PublicPhysicalState | null;
-  if (state === "LOST") return { data: { ...profile, card_status: "LOST" }, error: null };
-  if (state === "DISABLED") return { data: { ...profile, card_status: "SUSPENDED" }, error: null };
-  return { data: profile, error: null };
-}
 
 export async function fetchOwnProfiles(
   supabase: SupabaseClient,
@@ -90,128 +71,4 @@ export async function fetchOwnProfileByOrganizationId(
     .limit(1)
     .maybeSingle();
   return { data: (data as CardProfileRow | null) ?? null, error: error?.message ?? null };
-}
-
-export async function fetchProfileBySlug(
-  supabase: SupabaseClient,
-  slug: string
-): Promise<{ data: CardProfileRow | null; error: string | null }> {
-  const { data, error } = await supabase.rpc("get_public_card_profile", {
-    p_slug: slug,
-    p_public_id: null,
-  });
-  if (error) return { data: null, error: error.message };
-  const profile = Array.isArray(data) ? data[0] : data;
-  return applyPublicPhysicalState(supabase, (profile as CardProfileRow | null) ?? null);
-}
-
-export async function fetchProfileByPublicId(
-  supabase: SupabaseClient,
-  publicId: string
-): Promise<{ data: CardProfileRow | null; error: string | null }> {
-  const { data, error } = await supabase.rpc("get_public_card_profile", {
-    p_slug: null,
-    p_public_id: publicId,
-  });
-  if (error) return { data: null, error: error.message };
-  const profile = Array.isArray(data) ? data[0] : data;
-  return applyPublicPhysicalState(supabase, (profile as CardProfileRow | null) ?? null);
-}
-
-export async function fetchPublicCardByToken(
-  supabase: SupabaseClient,
-  token: string
-): Promise<{ data: CardProfileRow | null; redirectedFrom?: string; error: string | null }> {
-  const byId = await fetchProfileByPublicId(supabase, token);
-  if (byId.data) return byId;
-  const bySlug = await fetchProfileBySlug(supabase, token);
-  if (bySlug.data) return bySlug;
-  const { data: redirectRow } = await supabase
-    .from("card_profile_slug_redirects")
-    .select("profile_id")
-    .eq("old_slug", token)
-    .maybeSingle();
-  if (!redirectRow?.profile_id) return { data: null, error: bySlug.error ?? byId.error };
-  const { data: profile, error: profileError } = await supabase
-    .from("card_profiles")
-    .select(PROFILE_COLUMNS)
-    .eq("id", redirectRow.profile_id)
-    .maybeSingle();
-  if (profileError) return { data: null, error: profileError.message };
-  if (!profile) return { data: null, error: null };
-  const checked = await applyPublicPhysicalState(supabase, profile as CardProfileRow);
-  return { data: checked.data, redirectedFrom: token, error: checked.error };
-}
-
-export async function setProfilePublished(
-  supabase: SupabaseClient,
-  userId: string,
-  profileId: string,
-  isPublished: boolean
-): Promise<{ error: string | null }> {
-  const { data, error } = await supabase
-    .from("card_profiles")
-    .update({ is_published: isPublished })
-    .eq("id", profileId)
-    .eq("user_id", userId)
-    .select("id,is_published")
-    .maybeSingle();
-  if (error) return { error: error.message };
-  if (!data) return { error: "Kart durumu veritabanında güncellenmedi. Lütfen oturumunu yenileyip tekrar dene." };
-  if (Boolean(data.is_published) !== isPublished) return { error: "Kart durumu doğrulanamadı. Lütfen tekrar dene." };
-  return { error: null };
-}
-
-/**
- * Direct `card_profiles` insert/update plus slug-redirect writes.
- * `profileId` updates that row (with owner check); `null` inserts a new
- * profile instead of upserting on `user_id`.
- *
- * Live CardWizard saves go through `POST /api/profiles/save` → RPC
- * `save_own_card_profile` (service role), which enforces org field locks
- * and the title catalog. Do not call this from the wizard — that would
- * bypass server authorization.
- */
-export async function upsertProfile(
-  supabase: SupabaseClient,
-  userId: string,
-  profileId: string | null,
-  patch: Partial<Omit<CardProfileRow, "id" | "user_id">>
-): Promise<{ data: { id: string } | null; error: string | null }> {
-  if (typeof patch.slug === "string") {
-    const normalizedSlug = normalizeCardSlug(patch.slug);
-    const slugError = validateCardSlug(normalizedSlug);
-    if (slugError) return { data: null, error: slugError };
-    patch = { ...patch, slug: normalizedSlug };
-  }
-  if (profileId) {
-    if (typeof patch.slug === "string") {
-      const { data: current } = await supabase
-        .from("card_profiles")
-        .select("slug")
-        .eq("id", profileId)
-        .eq("user_id", userId)
-        .maybeSingle();
-      if (current?.slug && current.slug !== patch.slug) {
-        await supabase.from("card_profile_slug_redirects").upsert({
-          old_slug: current.slug,
-          profile_id: profileId,
-        });
-      }
-    }
-    const { data, error } = await supabase
-      .from("card_profiles")
-      .update(patch)
-      .eq("id", profileId)
-      .eq("user_id", userId)
-      .select("id")
-      .maybeSingle();
-    return { data: (data as { id: string } | null) ?? null, error: error?.message ?? null };
-  }
-  const { data, error } = await supabase
-    .from("card_profiles")
-    .insert({ user_id: userId, ...patch })
-    .select("id")
-    .maybeSingle();
-  return { data: (data as { id: string } | null) ?? null, error: error?.message ?? null };
 }

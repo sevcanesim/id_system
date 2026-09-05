@@ -1,41 +1,58 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "crypto";
 
-const RESUME_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const RESUME_SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const RESUME_CODE_TTL_MS = 15 * 60 * 1000;
+const CONTINUATION_TTL_MS = 10 * 60 * 1000;
+
+export const CHECKOUT_CONTINUATION_COOKIE = "yenomi-checkout-continuation";
 
 function resumeSecret() {
   return process.env.CHECKOUT_RESUME_SECRET || "";
 }
 
-function signature(orderId: string, expiresAtMs: number) {
+function sign(value: string) {
   const secret = resumeSecret();
   if (!secret) return null;
-  return createHmac("sha256", secret).update(`${orderId}.${expiresAtMs}`).digest("base64url");
+  return createHmac("sha256", secret).update(value).digest("base64url");
 }
 
-export function checkoutResumeExpiry(now = Date.now()) {
-  return new Date(now + RESUME_TTL_MS);
-}
-
-export function createCheckoutResumeToken(orderId: string, expiresAt: string | Date) {
-  const expiresAtMs = new Date(expiresAt).getTime();
-  if (!Number.isFinite(expiresAtMs)) return null;
-  const signed = signature(orderId, expiresAtMs);
-  return signed ? `${orderId}.${expiresAtMs}.${signed}` : null;
-}
-
-export function verifyCheckoutResumeToken(token: string, now = Date.now()) {
-  const parts = token.split(".");
-  if (parts.length !== 3) return null;
-  const [orderId, rawExpiry, provided] = parts;
-  if (!/^[0-9a-f-]{36}$/i.test(orderId || "")) return null;
-  const expiresAtMs = Number(rawExpiry);
-  if (!Number.isFinite(expiresAtMs) || expiresAtMs <= now) return null;
-  const expected = signature(orderId, expiresAtMs);
-  if (!expected || !provided) return null;
-
+function signaturesMatch(expected: string, provided: string) {
   const expectedBuffer = Buffer.from(expected);
   const providedBuffer = Buffer.from(provided);
-  if (expectedBuffer.length !== providedBuffer.length) return null;
-  if (!timingSafeEqual(expectedBuffer, providedBuffer)) return null;
+  return expectedBuffer.length === providedBuffer.length && timingSafeEqual(expectedBuffer, providedBuffer);
+}
+
+export function checkoutResumeSessionExpiry(now = Date.now()) {
+  return new Date(now + RESUME_SESSION_TTL_MS);
+}
+
+export function checkoutResumeCodeExpiry(now = Date.now()) {
+  return new Date(now + RESUME_CODE_TTL_MS);
+}
+
+export function createCheckoutResumeCode() {
+  return randomBytes(32).toString("base64url");
+}
+
+export function hashCheckoutResumeCode(code: string) {
+  return createHash("sha256").update(code).digest("hex");
+}
+
+export function createCheckoutContinuation(orderId: string, now = Date.now()) {
+  const expiresAtMs = now + CONTINUATION_TTL_MS;
+  const payload = `${orderId}.${expiresAtMs}`;
+  const signature = sign(payload);
+  return signature ? `${payload}.${signature}` : null;
+}
+
+export function verifyCheckoutContinuation(value: string, now = Date.now()) {
+  const parts = value.split(".");
+  if (parts.length !== 3) return null;
+  const [orderId, rawExpiry, providedSignature] = parts;
+  if (!/^[0-9a-f-]{36}$/i.test(orderId || "")) return null;
+  const expiresAtMs = Number(rawExpiry);
+  if (!Number.isFinite(expiresAtMs) || expiresAtMs <= now || !providedSignature) return null;
+  const expectedSignature = sign(`${orderId}.${expiresAtMs}`);
+  if (!expectedSignature || !signaturesMatch(expectedSignature, providedSignature)) return null;
   return { orderId, expiresAt: new Date(expiresAtMs).toISOString() };
 }

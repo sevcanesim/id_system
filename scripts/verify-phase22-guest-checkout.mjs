@@ -24,8 +24,7 @@ for (const token of apiContracts) {
 const pageContracts = [
   "const [checkoutReady, setCheckoutReady]",
   "const [isAuthenticated, setIsAuthenticated]",
-  "Hesap açmadan güvenli ödeme yapabilirsin",
-  "siparişini bu e-posta ile hesabına bağlayabilirsin",
+  "Hesap açmadan ilerleyebilirsin; siparişini daha sonra bu e-posta ile hesabına bağlayabilirsin.",
   "headers.authorization",
   "const mergedCart = readCart();",
 ];
@@ -33,7 +32,7 @@ for (const token of pageContracts) {
   if (!page.includes(token)) throw new Error(`Missing guest checkout UI contract: ${token}`);
 }
 
-if (!cart.includes("Hesap açmadan ödeme yapabilirsin")) {
+if (!cart.includes("Hesap açmadan ilerleyebilirsin")) {
   throw new Error("Cart must explain guest payment timing.");
 }
 
@@ -82,9 +81,12 @@ if (!success.includes("activationRequired") || !success.includes("Siparişin hen
 if (!activationAction.includes("/api/commerce/activation/resend")) {
   throw new Error("Guest success CTA must offer activation resend.");
 }
-const middleware = readFileSync("middleware.ts", "utf8");
-if (!middleware.includes('"/checkout"') || !middleware.includes('"/aktivasyon"') || !middleware.includes('"/api/auth/session"') || !middleware.includes('"/api/payments/paytr/callback"') || !middleware.includes('"/api/commerce/orders/pending"')) {
-  throw new Error("Middleware must match checkout, activation, auth session, PayTR callback, and pending-order routes.");
+const middleware = readFileSync("proxy.ts", "utf8");
+if (!middleware.includes('"/checkout"') || !middleware.includes('"/aktivasyon"') || !middleware.includes('"/api/auth/session"') || !middleware.includes('"/api/commerce/orders/pending"')) {
+  throw new Error("Middleware must match checkout, activation, auth session, and pending-order routes.");
+}
+if (middleware.includes('scope: "paytr-callback"')) {
+  throw new Error("Signature-verified PayTR callback must not be rejected by an IP limiter.");
 }
 const session = readFileSync("app/api/auth/session/route.ts", "utf8");
 const sessionHelper = readFileSync("lib/auth/http-only-session.ts", "utf8");

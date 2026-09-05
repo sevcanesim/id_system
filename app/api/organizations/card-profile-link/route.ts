@@ -14,27 +14,24 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: "Geçersiz kart eşleştirmesi." }, { status: 400 });
 
   const admin = getSupabaseAdminClient();
-  const { data: member } = await admin.from("organization_members")
-    .select("id,status")
-    .eq("organization_id", parsed.data.organizationId)
-    .eq("user_id", data.user.id)
-    .eq("status", "ACTIVE")
-    .maybeSingle();
-  if (!member) return NextResponse.json({ error: "Bu şirkette aktif üyeliğin yok." }, { status: 403 });
+  const { data: result, error } = await admin.rpc("link_own_corporate_card_profile", {
+    p_actor_user_id: data.user.id,
+    p_organization_id: parsed.data.organizationId,
+    p_profile_id: parsed.data.profileId,
+  });
+  const outcome = result as { ok?: boolean; code?: string; linked_cards?: number } | null;
 
-  const { data: profile } = await admin.from("card_profiles")
-    .select("id")
-    .eq("id", parsed.data.profileId)
-    .eq("user_id", data.user.id)
-    .maybeSingle();
-  if (!profile) return NextResponse.json({ error: "Kart profili bulunamadı." }, { status: 404 });
+  if (error || !outcome?.ok) {
+    if (outcome?.code === "FORBIDDEN") return NextResponse.json({ error: "Bu şirkette aktif üyeliğin yok." }, { status: 403 });
+    if (outcome?.code === "PROFILE_ORGANIZATION_MISMATCH") {
+      return NextResponse.json({ error: "Bu profil seçilen şirkete ait değil." }, { status: 409 });
+    }
+    if (outcome?.code === "PROFILE_NOT_FOUND") return NextResponse.json({ error: "Kart profili bulunamadı." }, { status: 404 });
+    if (outcome?.code === "NO_UNLINKED_CARD") {
+      return NextResponse.json({ error: "Bu hesap için eşleştirilecek kurumsal fiziksel kart bulunamadı." }, { status: 409 });
+    }
+    return NextResponse.json({ error: "Fiziksel kart profille eşleştirilemedi." }, { status: 500 });
+  }
 
-  const { error } = await admin.from("physical_cards")
-    .update({ owner_profile_id: parsed.data.profileId })
-    .eq("organization_id", parsed.data.organizationId)
-    .eq("owner_user_id", data.user.id)
-    .is("owner_profile_id", null);
-  if (error) return NextResponse.json({ error: "Fiziksel kart profille eşleştirilemedi." }, { status: 500 });
-
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, linkedCards: outcome.linked_cards ?? 0 });
 }

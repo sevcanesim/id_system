@@ -18,7 +18,7 @@ export default defineConfig({
   webServer: useExternalServer
     ? undefined
     : {
-        command: "npm run dev -- --hostname 127.0.0.1",
+        command: "npm run build && npm run start -- --hostname 127.0.0.1",
         url: baseURL,
         reuseExistingServer: true,
         timeout: 120_000,

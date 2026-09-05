@@ -14,6 +14,12 @@ describe("organization lifecycle", () => {
     ])).toBe("ACTIVE");
   });
 
+  it("returns REPLACED when every historical card has a replacement", () => {
+    expect(getPhysicalCardState([
+      { status: "LOST", replacedByCardId: "replacement-card" },
+    ])).toBe("REPLACED");
+  });
+
   it("derives disabled digital profiles from lifecycle status", () => {
     expect(getDigitalProfileState({
       hasDigitalCard: true,

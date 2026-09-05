@@ -10,7 +10,7 @@ import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 export const runtime = "nodejs";
 
 const leadSubmissionSchema = z.object({
-  profileId: z.string().uuid(),
+  profilePublicId: z.string().trim().regex(/^[A-Za-z0-9]{8,32}$/),
   visitorId: z.string().min(8).max(80),
   eventId: z.string().uuid().optional(),
   eventLinkId: z.string().uuid().optional(),
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
   const { data: cardProfile } = await supabaseAdmin
     .from("card_profiles")
     .select("id,organization_id,user_id,is_published,card_status")
-    .eq("id", submission.profileId)
+    .eq("public_id", submission.profilePublicId)
     .maybeSingle();
 
   if (!cardProfile || !cardProfile.is_published || cardProfile.card_status !== "ACTIVE") {

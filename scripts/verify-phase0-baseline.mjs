@@ -26,7 +26,7 @@ const requiredScripts = ["typecheck", "test", "build", "verify:secrets"];
 for (const s of requiredScripts) ok(Boolean(pkg.scripts?.[s]), `release script exists: ${s}`);
 
 const requiredFiles = [
-  "tsconfig.json", "next.config.ts", "middleware.ts", ".env.example", "tests/README.md",
+  "tsconfig.json", "next.config.ts", "proxy.ts", ".env.example", "tests/README.md",
 ];
 for (const f of requiredFiles) ok(fs.existsSync(path.join(root, f)), `baseline file exists: ${f}`);
 

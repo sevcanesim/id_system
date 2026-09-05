@@ -51,7 +51,7 @@ type ContactForm = {
 };
 
 type InstantIdentity = {
-  profileId: string;
+  publicId: string;
   name: string;
   role: string;
   company: string | null;
@@ -172,7 +172,7 @@ function getVisitorId() {
 }
 
 export default function NetworkingCapture({
-  profileId,
+  profilePublicId,
   profileName,
   organizationName,
   eventId,
@@ -182,7 +182,7 @@ export default function NetworkingCapture({
   locale: localeProp,
   onLocaleChange,
 }: {
-  profileId: string;
+  profilePublicId: string;
   profileName: string;
   organizationName?: string | null;
   eventId?: string | null;
@@ -249,7 +249,7 @@ export default function NetworkingCapture({
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          profileId,
+          profilePublicId,
           visitorId: getVisitorId(),
           eventId: eventId || undefined,
           source: eventId ? "EVENT" : source,
@@ -278,7 +278,7 @@ export default function NetworkingCapture({
     }
   }
 
-  async function createHandshake(input: { kind: "ACCOUNT"; sourceProfileId: string } | { kind: "QR"; sourcePublicId: string }) {
+  async function createHandshake(input: { kind: "ACCOUNT" } | { kind: "QR"; sourcePublicId: string }) {
     const headers: Record<string, string> = { "content-type": "application/json" };
     if (input.kind === "ACCOUNT") {
       const { accessToken } = await getBrowserSession();
@@ -292,7 +292,7 @@ export default function NetworkingCapture({
         headers,
         body: JSON.stringify({
           ...input,
-          targetProfileId: profileId,
+          targetPublicId: profilePublicId,
           source,
           locale,
           eventId: eventId || null,
@@ -313,7 +313,7 @@ export default function NetworkingCapture({
     if (!identity || instantSubmitting) return;
     setInstantSubmitting(true);
     setErrorMessage("");
-    const result = await createHandshake({ kind: "ACCOUNT", sourceProfileId: identity.profileId });
+    const result = await createHandshake({ kind: "ACCOUNT" });
     if (!result.ok) setErrorMessage(result.error || instantConnectErrorMessage("HANDSHAKE_FAILED", locale));
     setInstantSubmitting(false);
   }
@@ -353,7 +353,7 @@ export default function NetworkingCapture({
         <>
           {identityLoading ? (
             <div className="p12-instant-connect-skeleton" aria-hidden="true"><Skeleton height={156} /></div>
-          ) : identity && identity.profileId !== profileId ? (
+          ) : identity && identity.publicId !== profilePublicId ? (
             <section className="p12-instant-connect" aria-labelledby="p12-instant-connect-title">
               <header><Icon name="bolt" /><strong id="p12-instant-connect-title">{copy.instantTitle}</strong></header>
               <div className="p12-instant-connect__identity">

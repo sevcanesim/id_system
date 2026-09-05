@@ -21,7 +21,7 @@ import { applyPendingOrderCookie } from "../../../../lib/payments/pending-order-
 import { stampPhysicalProductionConfig } from "../../../../lib/commerce/production-config";
 import { findExistingCheckoutAttempt } from "../../../../lib/payments/checkout-idempotency-lookup";
 import { rejectCheckoutInitializeFlood } from "../../../../lib/security/route-rate-limits";
-import { checkoutResumeExpiry } from "../../../../lib/commerce/checkout-resume";
+import { checkoutResumeSessionExpiry } from "../../../../lib/commerce/checkout-resume";
 
 export const runtime = "nodejs";
 
@@ -666,7 +666,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const resumeExpiresAt = checkoutResumeExpiry();
+    const resumeExpiresAt = checkoutResumeSessionExpiry();
     const { error: resumeSessionError } = await admin.from("commerce_checkout_sessions").upsert({
       order_id: order.id,
       expires_at: resumeExpiresAt.toISOString(),

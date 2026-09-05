@@ -68,8 +68,7 @@ export async function GET(request: NextRequest) {
   const userIds = (members || []).map((member) => member.user_id).filter((id): id is string => Boolean(id));
   if (userIds.length === 0) return NextResponse.json({ totalViews: 0, last30DaysViews: 0, windowDays, periodDays: windowDays, byCountry: [], byCard: [], byDay: [], content: { totalInteractions: 0, clicks: 0, downloads: 0, byLink: [] } });
 
-  const [{ data: organization }, { data: assignedCards, error: cardsError }] = await Promise.all([
-    ctx.admin.from("organizations").select("name").eq("id", organizationId).maybeSingle(),
+  const [{ data: assignedCards, error: cardsError }] = await Promise.all([
     ctx.admin.from("physical_cards").select("owner_profile_id").eq("organization_id", organizationId).not("owner_profile_id", "is", null),
   ]);
   if (cardsError) return NextResponse.json({ error: "Kurumsal kart eşleşmeleri yüklenemedi." }, { status: 500 });
@@ -78,19 +77,22 @@ export async function GET(request: NextRequest) {
   const profileMap = new Map<string, { id: string; name: string; slug: string | null; user_id: string }>();
 
   if (assignedProfileIds.length) {
-    const { data: assignedProfiles, error } = await ctx.admin.from("card_profiles").select("id,name,slug,user_id").in("id", assignedProfileIds);
+    const { data: assignedProfiles, error } = await ctx.admin
+      .from("card_profiles")
+      .select("id,name,slug,user_id")
+      .in("id", assignedProfileIds)
+      .eq("organization_id", organizationId);
     if (error) return NextResponse.json({ error: "Kartlar yüklenemedi." }, { status: 500 });
     for (const profile of assignedProfiles || []) profileMap.set(profile.id, profile);
   }
 
-  // Dijital profil fiziksel karta henüz bağlanmamışsa yalnızca aynı şirket adıyla
-  // oluşturulmuş profili dahil et. Böylece çalışanın kişisel/başka şirket kartı
-  // kurumsal istatistiğe karışmaz.
-  if (organization?.name) {
-    const { data: corporateProfiles, error } = await ctx.admin.from("card_profiles").select("id,name,slug,user_id").in("user_id", userIds).ilike("company", organization.name);
-    if (error) return NextResponse.json({ error: "Kurumsal kartlar yüklenemedi." }, { status: 500 });
-    for (const profile of corporateProfiles || []) profileMap.set(profile.id, profile);
-  }
+  const { data: corporateProfiles, error: profileError } = await ctx.admin
+    .from("card_profiles")
+    .select("id,name,slug,user_id")
+    .in("user_id", userIds)
+    .eq("organization_id", organizationId);
+  if (profileError) return NextResponse.json({ error: "Kurumsal kartlar yüklenemedi." }, { status: 500 });
+  for (const profile of corporateProfiles || []) profileMap.set(profile.id, profile);
 
   const profiles = Array.from(profileMap.values());
   const profileIds = profiles.map((profile) => profile.id);

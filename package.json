@@ -61,7 +61,7 @@
     "verify:phase20:rc2": "node scripts/verify-phase20-rc2-contracts.mjs",
     "verify:phase20:rc3": "node scripts/verify-phase20-rc3-contracts.mjs",
     "verify:p0:gates": "node scripts/verify-p0-release-gates.mjs",
-    "verify:p0:static": "npm run verify:ui-system && npm run verify:p0:gates",
+    "verify:p0:static": "npm run verify:ui-system && npm run verify:security-hardening && npm run verify:p0:corporate-integrity && npm run verify:p0:gates",
     "verify:release-artifact": "node scripts/verify-release-artifact.mjs",
     "verify:p0:local": "npm run verify:p0:static && npm run verify:secrets && npm run typecheck && npm run build && npm run release:package && npm run verify:release-artifact",
     "verify:faz0:static": "npm run verify:faz0:contract && npm run verify:p0:static && npm run verify:phase20:rc",
@@ -132,6 +132,7 @@
     "verify:user-identity-types": "node scripts/verify-user-identity-types.mjs",
     "verify:typography": "node scripts/verify-typography-system.mjs",
     "verify:p0:corporate-resilience": "node scripts/verify-p0-corporate-resilience.mjs",
+    "verify:p0:corporate-integrity": "node scripts/verify-p0-corporate-profile-integrity.mjs",
     "verify:premium-components": "node scripts/verify-premium-components-v45.mjs",
     "verify:panel-master": "node scripts/verify-panel-master-contract.mjs",
     "test:unit": "vitest run",
@@ -143,7 +144,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.53.0",
-    "next": "^15.3.2",
+    "next": "16.3.4",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -161,5 +162,8 @@
   "engines": {
     "node": ">=20.11.0 <23",
     "npm": ">=10.0.0"
+  },
+  "overrides": {
+    "nanoid": "3.3.18"
   }
 }

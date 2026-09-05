@@ -121,6 +121,11 @@ export default function CheckoutPage() {
   useEffect(() => {
     let cancelled = false;
     const resumeToken = new URLSearchParams(window.location.search).get("resume");
+    if (resumeToken) {
+      window.location.replace(`/api/commerce/checkout/resume?token=${encodeURIComponent(resumeToken)}`);
+      return () => { cancelled = true; };
+    }
+
     void (async () => {
       const supabase = getSupabaseBrowserClient();
       const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
@@ -129,15 +134,16 @@ export default function CheckoutPage() {
         setItems,
         setIsAuthenticated,
         setOrganizationTargets,
-        setCheckoutReady: resumeToken ? () => undefined : setCheckoutReady,
+        setCheckoutReady: () => undefined,
       });
-      if (cancelled || !resumeToken) return;
+      if (cancelled) return;
 
       try {
-        const response = await fetch(`/api/commerce/checkout/resume?token=${encodeURIComponent(resumeToken)}`, {
+        const response = await fetch("/api/commerce/checkout/resume", {
           credentials: "same-origin",
           cache: "no-store",
         });
+        if (response.status === 404) return;
         const payload = await response.json();
         if (!response.ok) throw new Error(payload.error || "Sipariş taslağı yüklenemedi.");
         const draft = parseCheckoutResumeDraft(payload.draft);

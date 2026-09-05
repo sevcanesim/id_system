@@ -13,16 +13,13 @@ export const runtime = "nodejs";
 const publicProfileId = z.string().trim().regex(/^[A-Za-z0-9]{8,32}$/);
 const sourceSchema = z.enum(INSTANT_CONNECT_SOURCES);
 const baseSchema = z.object({
-  targetProfileId: z.string().uuid(),
+  targetPublicId: publicProfileId,
   source: sourceSchema,
   locale: z.enum(["tr", "en"]).default("tr"),
   eventId: z.string().uuid().nullable().optional(),
   eventLinkId: z.string().uuid().nullable().optional(),
 });
-const accountHandshakeSchema = baseSchema.extend({
-  kind: z.literal("ACCOUNT"),
-  sourceProfileId: z.string().uuid(),
-});
+const accountHandshakeSchema = baseSchema.extend({ kind: z.literal("ACCOUNT") });
 const qrHandshakeSchema = baseSchema.extend({
   kind: z.literal("QR"),
   sourcePublicId: publicProfileId,
@@ -58,17 +55,18 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: true });
     if (error) return noStore(NextResponse.json({ error: "Profiliniz şu anda okunamıyor." }, { status: 503 }));
 
-    const profile = ((data as ProfileCandidate[] | null) ?? []).find(isInstantConnectProfileEligible);
-    if (!profile) return noStore(NextResponse.json({ identity: null }));
+    const profile = ((data as ProfileCandidate[] | null) ?? []).find(
+      (candidate) => Boolean(candidate.public_id) && isInstantConnectProfileEligible(candidate),
+    );
+    if (!profile?.public_id) return noStore(NextResponse.json({ identity: null }));
 
     return noStore(NextResponse.json({
       identity: {
-        profileId: profile.id,
+        publicId: profile.public_id,
         name: profile.name,
         role: profile.role,
         company: profile.company,
         imageUrl: profile.image_url,
-        publicId: profile.public_id,
       },
     }));
   } catch (error) {
@@ -101,12 +99,12 @@ export async function POST(request: NextRequest) {
     const admin = getSupabaseAdminClient();
 
     if (submission.kind === "ACCOUNT") {
-      const { data: sourceProfile } = await admin
+      const { data: sourceProfiles } = await admin
         .from("card_profiles")
-        .select("id")
-        .eq("id", submission.sourceProfileId)
+        .select("id,user_id,name,role,company,email,image_url,is_published,card_status,service_expires_at,grace_ends_at,public_id")
         .eq("user_id", actor.id)
-        .maybeSingle();
+        .order("created_at", { ascending: true });
+      const sourceProfile = ((sourceProfiles as ProfileCandidate[] | null) ?? []).find(isInstantConnectProfileEligible);
       if (!sourceProfile) return noStore(NextResponse.json({ code: "SOURCE_PROFILE_NOT_FOUND" }, { status: 403 }));
       sourceProfileId = sourceProfile.id;
     } else {
@@ -122,9 +120,18 @@ export async function POST(request: NextRequest) {
       sourceProfileId = sourceProfile.id;
     }
 
+    const { data: targetProfile } = await admin
+      .from("card_profiles")
+      .select("id,user_id,name,role,company,email,image_url,is_published,card_status,service_expires_at,grace_ends_at,public_id")
+      .eq("public_id", submission.targetPublicId)
+      .maybeSingle();
+    if (!targetProfile || !isInstantConnectProfileEligible(targetProfile as ProfileCandidate)) {
+      return noStore(NextResponse.json({ code: "TARGET_PROFILE_NOT_FOUND" }, { status: 404 }));
+    }
+
     const { data, error } = await admin.rpc("create_yenomi_handshake", {
       p_source_profile_id: sourceProfileId,
-      p_target_profile_id: submission.targetProfileId,
+      p_target_profile_id: targetProfile.id,
       p_source: submission.source,
       p_locale: submission.locale,
       p_event_id: submission.eventId || null,

@@ -14,7 +14,7 @@ function mustNotInclude(haystack, needle, message) {
 
 const paytrCallback = read("app/api/payments/paytr/callback/route.ts");
 const callbackReceipts = read("lib/payments/payment-callback-receipts.ts");
-const middleware = read("middleware.ts");
+const middleware = read("proxy.ts");
 const rateLimit = read("lib/security/rate-limit.ts");
 const nextConfig = read("next.config.ts");
 const activation = read("app/aktivasyon/ActivationClient.tsx");

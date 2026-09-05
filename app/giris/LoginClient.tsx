@@ -138,7 +138,7 @@ export default function LoginClient({
     if (!isSupabaseConfigured) return showMessage(`Supabase bağlantısı kurulamadı: ${supabaseConfigIssue}`, "error");
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return showMessage("Giriş hizmeti şu anda kullanılamıyor.", "error");
-    setRememberedLogin(rememberMe, email ? normalizeEmail(email) : undefined);
+    setRememberedLogin(rememberMe);
     setLoading(true);
     const redirectTo = loginRedirectPath();
     const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
@@ -153,7 +153,7 @@ export default function LoginClient({
     if (!isSupabaseConfigured) return showMessage(`Supabase bağlantısı kurulamadı: ${supabaseConfigIssue}`, "error");
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return showMessage("Giriş hizmeti şu anda kullanılamıyor.", "error");
-    setRememberedLogin(rememberMe, email ? normalizeEmail(email) : undefined);
+    setRememberedLogin(rememberMe);
     setLoading(true);
     const redirectTo = loginRedirectPath();
     let { error } = await supabase.auth.signInWithOAuth({ provider: "linkedin_oidc", options: { redirectTo, scopes: "openid profile email" } });
@@ -213,7 +213,7 @@ export default function LoginClient({
     if (!isSupabaseConfigured) return showMessage(`Supabase bağlantısı kurulamadı: ${supabaseConfigIssue}`, "error");
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return showMessage("Giriş hizmeti şu anda kullanılamıyor.", "error");
-    setRememberedLogin(rememberMe, normalizedEmail);
+    setRememberedLogin(rememberMe);
     setLoading(true);
     setEmail(normalizedEmail);
 

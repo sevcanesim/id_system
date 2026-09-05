@@ -1,5 +1,5 @@
 import { abandonedEventType, classifyAbandonedWave } from "./abandoned-checkout";
-import { createCheckoutResumeToken } from "./checkout-resume";
+import { checkoutResumeCodeExpiry, createCheckoutResumeCode, hashCheckoutResumeCode } from "./checkout-resume";
 import { sendAbandonedCheckoutEmail, sendOpsFulfillmentAlertEmail } from "../email/resend";
 import { publicSiteUrl } from "../payments/config";
 import { getSupabaseAdminClient } from "../supabase/server-admin";
@@ -80,14 +80,24 @@ export async function sendAbandonedCheckoutReminders(admin: AdminClient, now = D
       continue;
     }
 
-    const expiresAt = resumeByOrder.get(order.id);
-    const resumeToken = expiresAt ? createCheckoutResumeToken(order.id, expiresAt) : null;
+    const hasResumeSession = resumeByOrder.has(order.id);
+    let resumeCode: string | null = null;
+    if (hasResumeSession) {
+      const candidateCode = createCheckoutResumeCode();
+      const { error: resumeCodeError } = await admin.from("commerce_checkout_resume_codes").upsert({
+        order_id: order.id,
+        code_hash: hashCheckoutResumeCode(candidateCode),
+        expires_at: checkoutResumeCodeExpiry(now).toISOString(),
+        redeemed_at: null,
+      }, { onConflict: "order_id" });
+      if (!resumeCodeError) resumeCode = candidateCode;
+    }
     const eventType = abandonedEventType(wave);
     const outbound = await sendAbandonedCheckoutEmail({
       to: order.guest_email,
       orderNumber: order.order_number,
-      checkoutUrl: resumeToken
-        ? `${publicSiteUrl}/checkout?resume=${encodeURIComponent(resumeToken)}`
+      checkoutUrl: resumeCode
+        ? `${publicSiteUrl}/checkout?resume=${encodeURIComponent(resumeCode)}`
         : `${publicSiteUrl}/checkout`,
       wave,
     });

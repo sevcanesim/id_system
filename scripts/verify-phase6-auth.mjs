@@ -54,7 +54,7 @@ check(login.includes('event === "PASSWORD_RECOVERY"'), "Supabase password recove
 check(login.includes("updateUser({ password })"), "recovered password update implemented");
 check(login.includes("validateSignupPassword(password)"), "existing password policy reused for recovery/signup");
 check(login.includes("showPassword") && login.includes("Şifreyi göster") && login.includes("Şifreyi gizle"), "password visibility toggle is available across auth password fields");
-check(checkout.includes("Hesap açmadan güvenli ödeme yapabilirsin") && checkout.includes("siparişini bu e-posta ile hesabına bağlayabilirsin"), "checkout guests retain an explicit no-account recovery path");
+check(checkout.includes("Hesap açmadan ilerleyebilirsin") && checkout.includes("siparişini daha sonra bu e-posta ile hesabına bağlayabilirsin"), "checkout guests retain an explicit no-account recovery path");
 check(!/className="p6-auth-submit"[\s\S]{0,500}<Icon name="external"/.test(login), "auth submit actions do not use external-link semantics");
 check(login.includes("resolveLoginDestination") && portalGuard.includes('from("user_accounts")'), "existing account authorization is retained before workspace routing");
 check(login.includes("setCartOwner(result.data.session.user.id"), "cart ownership claim retained after authentication");
@@ -73,7 +73,7 @@ check(sessionHelper.includes('REFRESH_COOKIE = "yenomi-refresh-token"') && sessi
 check(sessionHelper.includes("grant_type=refresh_token"), "expired access tokens are rotated through GoTrue refresh");
 const authBridge = read("app/components/AuthSessionBridge.tsx");
 check(authBridge.includes("refresh_token") && authBridge.includes("INITIAL_SESSION"), "auth bridge writes refresh cookies and does not clear cookies on an empty initial session");
-check(read("middleware.ts").includes("resolveMiddlewareSession"), "middleware refreshes HttpOnly session cookies when the access token has expired");
+check(read("proxy.ts").includes("resolveMiddlewareSession"), "proxy refreshes HttpOnly session cookies when the access token has expired");
 check(accountRouter.includes('from("user_accounts")') && accountRouter.includes('account_type'), "account router resolves the canonical user account type before portal routing");
 check(accountRouter.includes('ACCOUNT_ROUTE_CORPORATE = "/kurumsal/panel"') && accountRouter.includes('ACCOUNT_ROUTE_INDIVIDUAL = "/kartim"') && accountRouter.includes('ACCOUNT_ROUTE_SERVER = "/hesabim"') && account.includes("resolveServerAccountDestination"), "account router preserves DB-backed corporate routing while making the active card workspace canonical for individual accounts");
 check(accountRouter.includes("resolveLoginDestination") && accountRouter.includes("_portal") && account.includes("resolveServerAccountDestination"), "login and account pages route through the authoritative server account router");

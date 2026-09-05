@@ -4,13 +4,12 @@ import { isSupabaseConfigured, supabaseAnonKey, supabaseUrl } from "./config";
 let client: SupabaseClient | null = null;
 let restorePromise: Promise<void> | null = null;
 const REMEMBER_SESSION_KEY = "yenomi-remember-session";
-const REMEMBERED_EMAIL_KEY = "yenomi-remembered-email";
 
 /**
  * In-memory Map used as supabase-js `auth.storage`. persistSession stays true
  * so the SDK refreshes the heap session, but nothing is written to
  * localStorage/sessionStorage. Legacy `sb-*-auth-token` keys are purged on
- * restore. Remember-me may store only a non-secret email preference.
+ * restore. Remember-me stores only a non-secret preference flag.
  */
 function memoryAuthStorage() {
   const map = new Map<string, string>();
@@ -129,23 +128,15 @@ function wrapAuthUntilRestored(target: SupabaseClient, restored: Promise<void>) 
   }) as typeof target.auth.getUser;
 }
 
-export function setRememberedLogin(remember: boolean, email?: string) {
+export function setRememberedLogin(remember: boolean) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(REMEMBER_SESSION_KEY, String(remember));
-  if (remember && email) window.localStorage.setItem(REMEMBERED_EMAIL_KEY, email);
-  else if (!remember) window.localStorage.removeItem(REMEMBERED_EMAIL_KEY);
 }
 
 export function getRememberedLogin() {
   if (typeof window === "undefined") return { remember: false, email: "" };
   const remember = window.localStorage.getItem(REMEMBER_SESSION_KEY) === "true";
-  const storedEmail = window.localStorage.getItem(REMEMBERED_EMAIL_KEY) ?? "";
-  // Demo/test identities must never appear as a production-facing login default.
-  if (storedEmail.toLowerCase().endsWith("@yenomi.test")) {
-    window.localStorage.removeItem(REMEMBERED_EMAIL_KEY);
-    return { remember, email: "" };
-  }
-  return { remember, email: storedEmail };
+  return { remember, email: "" };
 }
 
 export async function hydrateBrowserSessionFromCookies(): Promise<boolean> {

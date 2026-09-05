@@ -70,6 +70,7 @@ const required = [
   "app/styles/canonical-public.css",
   "app/styles/canonical-account.css",
   "app/styles/canonical-corporate.css",
+  "app/styles/canonical-corporate-responsive.css",
   "app/styles/canonical-auth.css",
   "app/styles/canonical-motion.css",
   "app/styles/canonical-responsive-final.css",
@@ -80,8 +81,10 @@ const required = [
 const approvedModules = [
   "app/styles/canonical-foundation.css",
   "app/styles/canonical-public.css",
+  "app/styles/canonical-paytr.css",
   "app/styles/canonical-products.css",
   "app/styles/canonical-corporate.css",
+  "app/styles/canonical-corporate-responsive.css",
   "app/styles/canonical-account.css",
   "app/styles/canonical-commerce.css",
   "app/styles/canonical-auth.css",
@@ -91,6 +94,7 @@ const approvedModules = [
   "app/styles/canonical-responsive-production.css",
   "app/styles/canonical-footer.css",
   "app/styles/canonical-package-matrix.css",
+  "app/styles/canonical-transaction-states.css",
 ];
 
 const missingRequired = required.filter((file) => !fs.existsSync(path.join(root, file)) || !layoutCssImports.includes(file));

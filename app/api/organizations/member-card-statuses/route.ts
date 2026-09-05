@@ -27,8 +27,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Kart durumlarını görme yetkin yok." }, { status: 403 });
   }
 
-  const [{ data: organization }, { data: members, error: memberError }, { data: cards, error: cardError }, { data: invites, error: inviteError }] = await Promise.all([
-    ctx.admin.from("organizations").select("name").eq("id", organizationId).maybeSingle(),
+  const [{ data: members, error: memberError }, { data: cards, error: cardError }, { data: invites, error: inviteError }] = await Promise.all([
     // LEFT is intentionally included: historical members still have digital,
     // physical and invitation lifecycle states that must remain auditable.
     ctx.admin.from("organization_members").select("id,user_id,status,department").eq("organization_id", organizationId),
@@ -40,7 +39,11 @@ export async function GET(request: NextRequest) {
   const userIds = (members || []).map((m) => m.user_id).filter(Boolean) as string[];
   let profiles: Array<{id:string;user_id:string;organization_id:string|null;slug:string;company:string|null;is_published:boolean;card_status:string|null}> = [];
   if (userIds.length) {
-    const { data, error } = await ctx.admin.from("card_profiles").select("id,user_id,organization_id,slug,company,is_published,card_status").in("user_id", userIds);
+    const { data, error } = await ctx.admin
+      .from("card_profiles")
+      .select("id,user_id,organization_id,slug,company,is_published,card_status")
+      .in("user_id", userIds)
+      .eq("organization_id", organizationId);
     if (error) return NextResponse.json({ error: "Dijital kart durumları yüklenemedi." }, { status: 500 });
     profiles = data || [];
   }
@@ -56,9 +59,7 @@ export async function GET(request: NextRequest) {
     const linkedProfileIds = new Set(memberCards.map((card) => card.owner_profile_id).filter(Boolean));
     const matchingProfiles = profiles.filter((profile) => profile.user_id === member.user_id && (
       linkedProfileIds.has(profile.id) ||
-      profile.organization_id === organizationId ||
-      // Compatibility fallback for pre-Phase-19 rows that have not been backfilled yet.
-      (!profile.organization_id && organization?.name && profile.company?.toLocaleLowerCase("tr") === organization.name.toLocaleLowerCase("tr"))
+      profile.organization_id === organizationId
     ));
     const profile = matchingProfiles.find((p) => p.is_published) || matchingProfiles[0] || null;
     const digitalProfileState = getDigitalProfileState(profile ? {

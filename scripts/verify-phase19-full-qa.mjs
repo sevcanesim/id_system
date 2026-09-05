@@ -29,7 +29,7 @@ const checks = [
   ["corporate edit context guard", migration.includes("ORG_CONTEXT_REQUIRED") && profileSave.includes("ORG_CONTEXT_REQUIRED")],
   ["offboarding organization scope", migration.includes("user_id=v_member.user_id and organization_id=p_organization_id")],
   ["member preview organization scope", memberProfile.includes('.eq("organization_id", organizationId)')],
-  ["seat reservation stays sequential at the invite API", bulkInvite.includes("reserve_organization_invitation") && /SIRAYLA|sequential/i.test(bulkInvite)],
+  ["seat reservation stays sequential at the invite API", bulkInvite.includes("for (let index = 0") && bulkInvite.includes('await ctx.admin.rpc("reserve_organization_invitation"')],
   ["invite seat count keeps suspended licenses locked", fs.readFileSync("supabase/migrations/20260822200000_seat_limit_counts_suspended.sql", "utf8").includes("status <> 'LEFT'")],
   ["invite expiry and revoke remain domain states", lifecycle.includes('if (invitation.revokedAt) return "REVOKED"') && lifecycle.includes("EXPIRED")],
   ["replacement terminal regression contract", lifecycleTest.includes("replacedByCardId") && lifecycleTest.includes("REPLACED")],

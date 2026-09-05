@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   // production builds.
   devIndicators: false,
   experimental: {
-    middlewareClientMaxBodySize: "21mb",
+    proxyClientMaxBodySize: "21mb",
   },
   allowedDevOrigins: ["127.0.0.1", "localhost"],
   productionBrowserSourceMaps: false,

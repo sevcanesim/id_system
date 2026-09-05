@@ -3,7 +3,6 @@
 import { useCallback, useState } from "react";
 import { track } from "../../lib/analytics";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
-import { setProfilePublished } from "../../lib/repositories/profiles";
 
 type PhysicalCardState = {
   id: string;
@@ -78,15 +77,24 @@ export function useProfileCardActions({
     setBusy(true);
     onMessage?.("");
     try {
-      const { data: authData } = await supabase.auth.getUser();
-      if (!authData.user) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
         onMessage?.("Bu işlem için giriş yapmalısın.");
         return false;
       }
       const nextStatus = !isPublished;
-      const { error } = await setProfilePublished(supabase, authData.user.id, profileId, nextStatus);
-      if (error) {
-        onMessage?.(error);
+      const response = await fetch("/api/profiles/publication", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ profileId, isPublished: nextStatus }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null) as { error?: string } | null;
+        onMessage?.(payload?.error || "Kart durumu güncellenemedi.");
         return false;
       }
       onPublishedChange?.(nextStatus);

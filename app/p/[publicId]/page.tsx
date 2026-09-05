@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import PublicProfileProtection from "../../components/security/PublicProfileProtection";
 import PublicCardWithNetworking from "../../components/public/PublicCardWithNetworking";
-import { getPublicSupabaseClient } from "../../../lib/supabase/public";
 import { isCardProfileServiceActive, rowToCardData } from "../../../lib/card-profile";
-import { fetchPublicCardByToken } from "../../../lib/repositories/profiles";
+import { fetchPublicCardByToken } from "../../../lib/repositories/public-profiles";
 import { logCardView } from "../../../lib/analytics/card-views";
 import { fetchCardBranding, fetchOrganizationLinks } from "../../../lib/organizations/card-branding";
 import { fetchCardLocaleOverlays } from "../../../lib/public-card/locales";
 import { cardSharePath } from "../../../lib/public-card/urls";
 import { getPublicCompanyVerification } from "../../../lib/organizations/verified-company";
+import { getSupabaseAdminClient } from "../../../lib/supabase/server-admin";
 import { Icon } from "../../icons";
 import styles from "./PublicCardUnavailable.module.css";
 
@@ -20,9 +20,7 @@ type PageProps = {
 export const dynamic = "force-dynamic";
 
 async function getProfile(token: string) {
-  const supabase = getPublicSupabaseClient();
-  if (!supabase) return { data: null, redirectedFrom: undefined as string | undefined };
-  return fetchPublicCardByToken(supabase, token);
+  return fetchPublicCardByToken(token);
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -93,17 +91,16 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
   const branding = await fetchCardBranding(profile.user_id);
   const links = await fetchOrganizationLinks(profile.user_id, profile.id, profile.organization_id);
   const companyVerification = await getPublicCompanyVerification(profile.organization_id);
-  const supabase = getPublicSupabaseClient();
-  const locales = supabase ? await fetchCardLocaleOverlays(supabase, profile.id) : [];
+  const locales = await fetchCardLocaleOverlays(getSupabaseAdminClient(), profile.id);
   return (
     <main id="main-content" className="p12-public-card-page">
-      <PublicProfileProtection profileId={profile.public_id || profile.id.slice(0, 8)} generatedAt={new Date().toISOString()} />
+      <PublicProfileProtection profileId={profile.public_id} generatedAt={new Date().toISOString()} />
       <PublicCardWithNetworking
         data={{ ...rowToCardData(profile), links }}
         slug={profile.slug ?? undefined}
         publicId={profile.public_id}
         branding={branding}
-        profileId={profile.id}
+        profilePublicId={profile.public_id}
         profileName={profile.name}
         organizationName={profile.company || branding?.companyName}
         companyVerification={companyVerification}

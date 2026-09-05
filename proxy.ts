@@ -37,7 +37,6 @@ function ruleFor(pathname: string, method: string): LimitRule | null {
   if (pathname === "/api/commerce/entitlements") return { limit: 30, windowMs: 60_000, scope: "entitlements" };
   if (pathname === "/api/organizations/members" && method !== "GET") return { limit: 20, windowMs: 60_000, scope: "organization-members" };
   if (pathname === "/api/organizations/invites" && method !== "GET") return { limit: 10, windowMs: 60_000, scope: "organization-invites" };
-  if (pathname === "/api/payments/paytr/callback") return { limit: 30, windowMs: 60_000, scope: "paytr-callback" };
   if (pathname === "/api/commerce/orders/pending") return { limit: 20, windowMs: 60_000, scope: "pending-order" };
   if (pathname === "/api/networking/inbox" && method !== "GET") return { limit: 12, windowMs: 60_000, scope: "network-mail-inbox" };
   return null;
@@ -69,9 +68,9 @@ function withCsp(response: NextResponse, requestId: string, nonce = createReques
   return response;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  const requestId = request.headers.get("x-request-id") || crypto.randomUUID();
+  const requestId = crypto.randomUUID();
   const nonce = createRequestNonce();
 
   if (pathname === "/nfc-siparis" || pathname.startsWith("/nfc-siparis/")) {

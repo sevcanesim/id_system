@@ -12,7 +12,7 @@ export default function PublicCardWithNetworking({
   slug,
   publicId,
   branding,
-  profileId,
+  profilePublicId,
   profileName,
   organizationName,
   eventId,
@@ -26,7 +26,7 @@ export default function PublicCardWithNetworking({
   slug?: string;
   publicId?: string | null;
   branding?: CardBranding | null;
-  profileId: string;
+  profilePublicId: string;
   profileName: string;
   organizationName?: string | null;
   eventId?: string | null;
@@ -59,7 +59,7 @@ export default function PublicCardWithNetworking({
             <div><strong>Doğrulanmış kurumsal kimlik</strong><small>{companyVerification.companyName || organizationName || "Bu kuruluş"} için Yenomi resmi kayıt kontrolü tamamlandı.</small></div>
           </section> : null}
           <NetworkingCapture
-            profileId={profileId}
+            profilePublicId={profilePublicId}
             profileName={profileName}
             organizationName={organizationName}
             eventId={eventId}

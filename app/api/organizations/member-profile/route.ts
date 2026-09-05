@@ -71,15 +71,11 @@ export async function GET(request: NextRequest) {
   let profileQuery = ctx.admin
     .from("card_profiles")
     .select("id,slug,public_id,name,role,company,phone,whatsapp,email,website,linkedin,instagram,location,image_url,bio,is_published,updated_at")
-    .eq("user_id", member.user_id);
+    .eq("user_id", member.user_id)
+    .eq("organization_id", organizationId);
 
   if (profileIds.length) {
     profileQuery = profileQuery.in("id", profileIds);
-  } else {
-    // Phase 19: corporate profiles are explicitly organization-bound. This
-    // prevents another card owned by the same auth user from leaking into a
-    // manager preview before any physical NFC card has been assigned.
-    profileQuery = profileQuery.eq("organization_id", organizationId);
   }
 
   const { data: profiles, error: profileError } = await profileQuery.order("updated_at", { ascending: false });

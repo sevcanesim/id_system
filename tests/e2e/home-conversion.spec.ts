@@ -8,16 +8,18 @@ import { expect, test } from "@playwright/test";
 
 const PREMIUM_HREF = "/urunler/nfc-kart?paket=premium";
 
-test("hero primary CTA links to the Premium package", async ({ page }) => {
+test("hero primary CTA makes the individual Premium level explicit", async ({ page }) => {
   await page.goto("/");
   const heroCta = page.locator(".home-sales-actions a.home-mockup__button--primary");
   await expect(heroCta).toBeVisible();
+  await expect(heroCta).toHaveText(/Bireysel Premium’u İncele/);
   await expect(heroCta).toHaveAttribute("href", PREMIUM_HREF);
 });
 
-test("final CTA section links to the Premium package", async ({ page }) => {
+test("final CTA section keeps the Premium level explicit", async ({ page }) => {
   await page.goto("/");
   const finalCta = page.locator("section[aria-labelledby='final-title'] a.home-mockup__button");
+  await expect(finalCta).toHaveText(/Bireysel Premium’u Seç/);
   await expect(finalCta).toHaveAttribute("href", PREMIUM_HREF);
 });
 
@@ -48,8 +50,8 @@ test("package comparison table is a real accessible table with three named colum
 
   const headers = table.getByRole("columnheader");
   await expect(headers).toHaveCount(4); // blank feature-label header + Bireysel/Premium/Kurumsal
-  await expect(headers.nth(1)).toHaveText("Bireysel");
-  await expect(headers.nth(2)).toHaveText("Premium");
+  await expect(headers.nth(1)).toHaveText("Bireysel NFC");
+  await expect(headers.nth(2)).toHaveText("Bireysel Premium");
   await expect(headers.nth(3)).toHaveText("Kurumsal");
 });
 

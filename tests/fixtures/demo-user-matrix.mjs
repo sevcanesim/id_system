@@ -405,9 +405,9 @@ export const DEMO_LOGIN_USERS = [
     name: "Lead Test Yöneticisi",
     kind: "CORPORATE_OWNER",
     loginScope: "CORPORATE",
-    intent: "Lead modülü ürün boşluğu; tablo yok.",
+    intent: "Kurumsal lead, etkinlik, görüşme ve takip akışları.",
     organizationSlug: "demo-tr-lead",
-    organizationName: "Demo TR / Lead (Modül Bekliyor)",
+    organizationName: "Demo TR / Lead Yönetimi",
     role: "OWNER",
     status: "ACTIVE",
     title: "Şirket Sahibi",
@@ -595,6 +595,77 @@ export const DEMO_CORPORATE_CAPACITY_SCENARIOS = [
   { owner: "corp2Upgrade", slug: "demo-sirket-2-upgrade", name: "Demo Şirket 2 / Paket Yükseltme", plan: "CORP-2", limit: 2, used: 2, upgrade: true },
 ];
 
+/**
+ * The acceptance contract for an isolated QA project.  Each row names a
+ * concrete account and the persisted evidence that must be visible after a
+ * clean seed.  It deliberately maps product capability to data rather than
+ * relying on a vague "demo user" list: a failed checkout, an expired invite,
+ * or a disabled integration is not useful unless the relevant operator screen
+ * has a deterministic fixture to render.
+ */
+export const DEMO_FEATURE_COVERAGE = [
+  {
+    key: "auth-and-routing",
+    area: "Kimlik ve yönlendirme",
+    account: "qa26.superadmin@yenomi.test",
+    evidence: "Super admin, bireysel, kurumsal, çoklu organizasyon ve portal-only hesap yolları.",
+  },
+  {
+    key: "individual-lifecycle",
+    area: "Bireysel kart yaşam döngüsü",
+    account: "qa26.bireysel.aktif@yenomi.test",
+    evidence: "Bekleyen kurulum, aktif, Premium, süresi dolmuş, kayıp ve yedek kart durumları.",
+  },
+  {
+    key: "corporate-capacity-and-roles",
+    area: "Kurumsal kapasite ve roller",
+    account: "qa26.kurumsal.yonetici@yenomi.test",
+    evidence: "0/5, 3/5, 5/5, 6/10, yükseltme ihtiyacı; OWNER, ADMIN, HR, çalışan ve departman sınırı.",
+  },
+  {
+    key: "invitations-and-identity",
+    area: "Davet ve kimlik",
+    account: "qa26.ik.yonetici@yenomi.test",
+    evidence: "Aktif, süresi dolmuş ve iptal edilmiş davet; aynı görünen adla iki ayrı çalışan.",
+  },
+  {
+    key: "physical-card-operations",
+    area: "Fiziksel kart operasyonu",
+    account: "qa26.calisan.atanmis@yenomi.test",
+    evidence: "Atanmış, atanmamış stok, kayıp, yedek ve değiştirme zinciri.",
+  },
+  {
+    key: "commerce-and-billing",
+    area: "Ödeme, fatura ve cari kayıt",
+    account: "qa26.kurumsal.yonetici@yenomi.test",
+    evidence: "Kurumsal cari snapshot, PayTR PAID/FAILED/PENDING denemeleri, callback alındısı ve Mysoft fatura kuyruğu.",
+  },
+  {
+    key: "network-mail",
+    area: "Network Mail",
+    account: "qa26.kurumsal.yonetici@yenomi.test",
+    evidence: "Kurumsal bakiye, kredi paketi satın alımı ve hareket defteri.",
+  },
+  {
+    key: "networking-crm",
+    area: "Lead, etkinlik ve görüşme",
+    account: "qa26.kurumsal.lead@yenomi.test",
+    evidence: "QR etkinliği, etkinlik bağlantısı, farklı lead durumları, görüşme ve çift taraflı Yenomi bağlantısı.",
+  },
+  {
+    key: "integrations-and-security",
+    area: "Entegrasyon ve güvenlik",
+    account: "qa26.kurumsal.yonetici@yenomi.test",
+    evidence: "Kapalı test webhook'u, teslimat geçmişi, MFA kritik işlem politikası ve organizasyon denetim kaydı.",
+  },
+  {
+    key: "analytics-and-support",
+    area: "Analitik ve destek",
+    account: "qa26.superadmin@yenomi.test",
+    evidence: "Zaman dağılımlı kart görüntüleme kayıtları ve müşteri yerine operatöre görünen sistem hata kayıtları.",
+  },
+];
+
 export function renderDemoTestUsersMarkdown() {
   const lines = [
     "# Yenomi ID — Demo test kullanıcıları",
@@ -604,7 +675,8 @@ export function renderDemoTestUsersMarkdown() {
     "`scripts/seed-demo-scenarios.mjs` aynı kaydı import eder.",
     "",
     "Şifre git’e yazılmaz. Local apply için `.env.local` içinde `DEMO_SEED_PASSWORD` ve `ALLOW_LOCAL_DEMO_SEED=true`.",
-    "Temiz kurulumda `--reset-demo`, tüm `@yenomi.test` hesaplarını, `TEST` kimlik katmanını ve bunlara bağlı demo verisini silip bu matrisi yeniden kurar; gerçek kullanıcı veya katalog verisine dokunmaz.",
+    "Scoped temizlikte `--reset-demo`, tüm `@yenomi.test` hesaplarını, `TEST` kimlik katmanını ve bunlara bağlı demo verisini silip bu matrisi yeniden kurar.",
+    "İzole test projesi tamamen boşaltılacaksa `--reset-isolated-test-project` kullanılır. Bu mod yalnız `TEST_SUPABASE_PROJECT_REF` ile doğrulanmış, production referansından farklı bir projede çalışır; katalog, planlar, yasal dokümanlar ve migration kayıtlarını korur.",
     "Production’da `@yenomi.test` hesabı olamaz (`verify:production:no-demo-users`).",
     "",
     "## Giriş yapılabilen hesaplar",
@@ -656,6 +728,16 @@ export function renderDemoTestUsersMarkdown() {
   }
   lines.push(
     "",
+    "## Özellik kapsamı",
+    "",
+    "| Alan | Başlangıç hesabı | Seed sonrası görülecek kanıt |",
+    "|---|---|---|",
+  );
+  for (const feature of DEMO_FEATURE_COVERAGE) {
+    lines.push(`| ${feature.area} | \`${feature.account}\` | ${feature.evidence} |`);
+  }
+  lines.push(
+    "",
     "## Kimlik çarpışması",
     "",
     `\`${DEMO_IDENTITY_COLLISION.emailPrefix}*\` adresleri görünen adı \`${DEMO_IDENTITY_COLLISION.displayName}\` olan ayrı üyelerdir. ${DEMO_IDENTITY_COLLISION.intent}`,
@@ -664,6 +746,12 @@ export function renderDemoTestUsersMarkdown() {
     "",
     "```bash",
     "ALLOW_LOCAL_DEMO_SEED=true DEMO_SEED_PASSWORD='…' npm run seed:demo -- --apply --reset-demo --allow-non-empty",
+    "```",
+    "",
+    "## İzole test projesini sıfırlama",
+    "",
+    "```bash",
+    "ALLOW_ISOLATED_TEST_PROJECT_RESET=true TEST_SUPABASE_PROJECT_REF='test-project-ref' DEMO_SEED_PASSWORD='…' npm run seed:demo -- --apply --reset-isolated-test-project",
     "```",
     "",
   );

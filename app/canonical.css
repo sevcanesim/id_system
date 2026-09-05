@@ -456,7 +456,10 @@
 .p6-auth-submit:disabled { opacity:.65; }
 .p6-auth-submit:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
 .p6-auth-login-options { display:flex; align-items:center; justify-content:space-between; gap:12px; color:var(--ink-3); font-size:12px; }
-.p6-auth-remember { display:inline-flex; align-items:center; gap:8px; font-weight:650; color:var(--ink-2); }
+/* `.p6-auth-form label` is a grid by default. This nested label is an
+   inline control, so it needs the more-specific selector; otherwise the
+   checkbox and its caption are rendered on separate rows. */
+.p6-auth-form label.p6-auth-remember { display:inline-flex; align-items:center; gap:8px; font-weight:650; color:var(--ink-2); }
 .p6-auth-login-options > button { border:0; background:transparent; color:var(--gold-hi); font-size:12px; font-weight:750; }
 .p6-auth-text-action { min-height:40px; border:0; background:transparent; color:var(--ink-2); font-size:13px; }
 .p6-auth-switch { display:block; width:100%; min-height:44px; margin-top:12px; padding:0; border:0; background:transparent; color:var(--ink-2); font-size:13px; font-weight:650; text-align:center; }

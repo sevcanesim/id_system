@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { HowItWorksBoard } from "./HowItWorksBoard";
 
 export const metadata: Metadata = {
-  title: "Nasıl Çalışır — Yenomi ID Premium",
-  description: "NFC + QR kartını paylaş, kişileri yönet, toplantı ve sunumlarını bağla, Network Mail ile tanışma sonrasını takip et.",
+  title: "Bireysel Premium Nasıl Çalışır",
+  description: "NFC + QR kartını paylaş, canlı profilini güncel tut, bağlantılarını yönet ve Network Mail ile tanışma sonrasını takipte kal.",
 };
 
 export default function HowItWorksPage() {

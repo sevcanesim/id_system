@@ -5,10 +5,10 @@ import { INDIVIDUAL_PREMIUM_PLAN } from "../../lib/commerce/packages";
 import { formatTryFromKurus } from "../../lib/config/product";
 
 const steps: Array<{ number: string; title: string; text: string; icon: IconName }> = [
-  { number: "01", title: "Kartını seç", text: "Premium NFC + QR kartını seç. Fiziksel kartın tek bir kalıcı dijital profile bağlanır.", icon: "nfc" },
+  { number: "01", title: "Seviyeni seç", text: "Bireysel NFC veya Bireysel Premium’u seç. Fiziksel kartın tek bir kalıcı dijital profile bağlanır.", icon: "nfc" },
   { number: "02", title: "Profilini oluştur", text: "İletişim bilgilerini, bağlantılarını, toplantı ve sunum içeriklerini tek profilde yönet.", icon: "id" },
   { number: "03", title: "Dokundur veya okut", text: "Karşı taraf NFC veya QR ile profilini uygulama indirmeden doğrudan tarayıcıda açar.", icon: "qr" },
-  { number: "04", title: "Tanışmayı takip et", text: "Kişiyi kaydet, Network Mail ile takip et; kart kaybolursa erişimi panelden kapat.", icon: "mail" },
+  { number: "04", title: "Bağlantıyı ilerlet", text: "Bireysel Premium’da kişiyi kaydet, Network Mail ile takip et; kart kaybolursa erişimi panelden kapat.", icon: "mail" },
 ];
 
 const premiumBenefits: Array<{ title: string; text: string; icon: IconName }> = [
@@ -26,20 +26,20 @@ export function HowItWorksBoard() {
       <section className="how-simple-hero" aria-labelledby="how-title">
         <div className="yi-container how-simple-hero__grid">
           <div className="how-simple-hero__copy">
-            <span className="section-kicker">NASIL ÇALIŞIR?</span>
-            <h1 id="how-title">Kartını paylaş.<br />Bağlantıyı büyüt.</h1>
-            <p>Yenomi ID Premium, dijital kartvizitin ötesine geçer. NFC + QR paylaşımından sonra kişileri, toplantıları, sunumları ve takibi aynı akışta tutar.</p>
+            <span className="section-kicker">BİREYSEL PREMIUM NASIL ÇALIŞIR?</span>
+            <h1 id="how-title">Kartını paylaş.<br />Bağlantıyı ilerlet.</h1>
+            <p>Yenomi ID Bireysel Premium, fiziksel NFC + QR kartını canlı profil, kişi yönetimi ve takip araçlarıyla tek akışta birleştirir.</p>
             <div className="how-simple-hero__offer">
               <strong>{premiumPrice}</strong>
               <span>1 yıl · NFC + QR · 100 Network Mail · Türkiye içi kargo</span>
             </div>
             <div className="how-simple-actions">
-              <Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart?paket=premium">Premium ile Başla →</Link>
-              <Link className="how-simple-text-link" href="#adimlar">4 adımı gör ↓</Link>
+              <Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart?paket=premium">Bireysel Premium’u Seç →</Link>
+              <Link className="how-simple-text-link" href="#adimlar">Akışı adım adım gör ↓</Link>
             </div>
           </div>
-          <div className="how-simple-hero__visual" aria-label="Yenomi ID Premium ürün görünümü">
-            <div className="how-simple-visual-label">PREMIUM · NFC + QR · CANLI PROFİL</div>
+          <div className="how-simple-hero__visual" aria-label="Bireysel Premium ürün görünümü">
+            <div className="how-simple-visual-label">BİREYSEL PREMIUM · NFC + QR · CANLI PROFİL</div>
             <YenomiProductVisual variant="card" finish="matte" />
             <div className="how-simple-visual-chips" aria-hidden="true"><span>NFC</span><span>QR</span><span>Network Mail</span></div>
           </div>
@@ -51,7 +51,7 @@ export function HowItWorksBoard() {
           <header className="how-simple-section-head">
             <span className="section-kicker">4 ADIMDA YENOMI ID</span>
             <h2 id="steps-title">Karttan tanışma sonrasına tek akış.</h2>
-            <p>Kurulum karmaşası veya uygulama indirme zorunluluğu yok. Kartını oluştur, paylaş ve iletişimi sürdür.</p>
+            <p>Kurulum karmaşası veya uygulama indirme zorunluluğu yok. Kartını oluştur, paylaş ve bağlantıyı kendi ritminde sürdür.</p>
           </header>
           <ol className="how-simple-step-list">
             {steps.map((step) => (
@@ -71,10 +71,10 @@ export function HowItWorksBoard() {
       <section className="how-simple-premium" aria-labelledby="premium-title">
         <div className="yi-container how-simple-premium__grid">
           <div className="how-simple-premium__intro">
-            <span className="section-kicker">NEDEN PREMIUM?</span>
-            <h2 id="premium-title">Kartvizitten fazlasını kullananlar için.</h2>
-            <p>Standart NFC kart paylaşımı çözer. Premium, paylaşım sonrasında başlayan networking ve satış takibini de Yenomi ID içinde tutar.</p>
-            <Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart?paket=premium">Premium&apos;u yakından gör →</Link>
+            <span className="section-kicker">NEDEN BİREYSEL PREMIUM?</span>
+            <h2 id="premium-title">Kartvizitten sonra da görünür kalmak için.</h2>
+            <p>Bireysel NFC paylaşımı çözer. Bireysel Premium, paylaşım sonrasında başlayan bağlantı ve takip akışını da Yenomi ID içinde tutar.</p>
+            <Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart?paket=premium">Bireysel Premium’u İncele →</Link>
           </div>
           <div className="how-simple-benefits">
             {premiumBenefits.map((benefit) => (
@@ -105,14 +105,14 @@ export function HowItWorksBoard() {
       <section className="how-simple-final" aria-labelledby="how-final-title">
         <div className="yi-container how-simple-final__inner">
           <div>
-            <span className="section-kicker">YENOMI ID PREMIUM</span>
-            <h2 id="how-final-title">Bir sonraki tanışmayı takip edebil.</h2>
+            <span className="section-kicker">BİREYSEL PREMIUM</span>
+            <h2 id="how-final-title">Bir sonraki tanışmanın devamı sende olsun.</h2>
             <p>NFC + QR kart, canlı profil, kişi yönetimi, toplantı, sunum ve 100 Network Mail tek pakette.</p>
           </div>
           <div className="how-simple-final__buy">
             <strong>{premiumPrice}</strong>
             <span>1 yıl dahil</span>
-            <Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart?paket=premium">Premium ile Başla →</Link>
+            <Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart?paket=premium">Bireysel Premium’u Seç →</Link>
           </div>
         </div>
       </section>

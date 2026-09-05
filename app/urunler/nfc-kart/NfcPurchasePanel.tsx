@@ -30,11 +30,11 @@ export default function NfcPurchasePanel({
     : COMMERCIAL_PRICING.YENOMI_ID_INITIAL.priceKurus;
   const unitPriceKurus = offerPriceKurus + (selectedVariant?.priceDeltaKurus ?? 0);
   const price = formatTryFromKurus(unitPriceKurus);
-  const packageName = packageId === "premium" ? "Yenomi ID Premium" : "Yenomi ID NFC";
+  const packageName = packageId === "premium" ? "Yenomi ID Bireysel Premium" : "Yenomi ID Bireysel NFC";
   const productName = selectedVariant
     ? `${packageName} — ${selectedVariant.name}`
     : packageName;
-  const ctaLabel = packageId === "premium" ? "Premium ile Başla →" : "Kartını Oluştur →";
+  const ctaLabel = packageId === "premium" ? "Bireysel Premium’u Seç →" : "Bireysel NFC’yi Seç →";
   const configuration = useMemo(
     () => selectedVariant
       ? { variantId: selectedVariant.id, variantName: selectedVariant.name, packageCode: packageId === "premium" ? INDIVIDUAL_PREMIUM_PLAN.code : INDIVIDUAL_PLAN.code }
@@ -49,8 +49,8 @@ export default function NfcPurchasePanel({
           name="product-package"
           label="Paket"
           variants={[
-            { id: "individual", name: INDIVIDUAL_PLAN.name },
-            { id: "premium", name: INDIVIDUAL_PREMIUM_PLAN.name },
+            { id: "individual", name: "Bireysel NFC" },
+            { id: "premium", name: "Bireysel Premium" },
           ]}
           value={packageId}
           onChange={(value) => setPackageId(value === "premium" ? "premium" : "individual")}
@@ -76,14 +76,14 @@ export default function NfcPurchasePanel({
         {accessRequired
           ? "Yedek veya replacement kart için aktif bir Yenomi ID hizmetin gerekir. Aşağıdan ilk kartını alabilirsin; ödeme sunucuda yeniden doğrulanır."
           : packageId === "premium"
-            ? "Premium: NFC kart, 1 yıl platform erişimi ve 100 Network Mail. Tek seferlik ödeme; kart bilgilerin PayTR&apos;ın güvenli sayfasında işlenir."
-            : "Tek seferlik ödeme ve 1 yıl platform erişimi dahil. Kart bilgilerin PayTR&apos;ın güvenli sayfasında işlenir; Yenomi sunucularında saklanmaz."}
+            ? "Bireysel Premium: NFC kart, 1 yıl platform erişimi ve 100 Network Mail. Kart bilgilerin yalnızca PayTR’ın güvenli sayfasında işlenir."
+            : "Bireysel NFC: tek seferlik ödeme ve 1 yıl platform erişimi dahil. Kart bilgilerin yalnızca PayTR’ın güvenli sayfasında işlenir; Yenomi sunucularında saklanmaz."}
       </p>
 
       <div className="nfc-price-row" id="nfc-hero-price-row">
         <div className="nfc-price-tag">
           <strong>{price}</strong>
-          <small>{packageId === "premium" ? "tek seferlik · NFC + 1 yıl + 100 Network Mail" : "tek seferlik · NFC + 1 yıl dahil"}</small>
+          <small>{packageId === "premium" ? "Bireysel Premium · NFC + 1 yıl + 100 Network Mail" : "Bireysel NFC · NFC + 1 yıl dahil"}</small>
         </div>
         <div className="nfc-price-actions">
           <AddToCartButton
@@ -99,8 +99,8 @@ export default function NfcPurchasePanel({
       </div>
 
       <div className="nfc-trust-row" aria-label="Güven ve güvenlik">
-        <span><Icon name="lock" /> PayTR ile şifreli ödeme</span>
-        <span><Icon name="shield" /> Kart bilgilerin Yenomi&apos;de saklanmaz</span>
+        <span><Icon name="lock" /> Ödeme bilgilerin PayTR’da işlenir</span>
+        <span><Icon name="shield" /> Kart numaran Yenomi’de tutulmaz</span>
         <span><Icon name="truck" /> {COMMERCIAL_FULFILLMENT.domesticShipping}</span>
         <span><Icon name="clock" /> {COMMERCIAL_FULFILLMENT.handover}</span>
         <span><Icon name="headset" /> {COMMERCIAL_FULFILLMENT.supportResponse}</span>

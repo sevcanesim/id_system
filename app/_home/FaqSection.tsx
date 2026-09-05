@@ -2,8 +2,8 @@ import Link from "next/link";
 
 const faqItems = [
   [
-    "Premium ne ekliyor?",
-    "Premium; NFC + QR kart ve canlı profile ek olarak toplantı, sunum, kişi yönetimi ve 100 Network Mail kredisi içerir. Tanışma sonrasındaki takip akışını tek üründe toplar.",
+    "Bireysel Premium ne ekliyor?",
+    "Bireysel Premium; NFC + QR kart ve canlı profile ek olarak toplantı, sunum, kişi yönetimi ve 100 Network Mail kredisi içerir. Tanışma sonrasındaki takip akışını tek yerde tutar.",
   ],
   [
     "Uygulama indirmek gerekiyor mu?",
@@ -32,7 +32,7 @@ export function FaqSection() {
     <section className="home-sales-faq" aria-labelledby="faq-title">
       <div className="home-sales-faq-intro">
         <span className="home-mockup__kicker">SIK SORULANLAR</span>
-        <h2 id="faq-title">Satın almadan önce bilmen gerekenler.</h2>
+        <h2 id="faq-title">Karar vermeden önce netleşsin.</h2>
       </div>
       <div className="home-sales-faq-list">
         {faqItems.map(([q, a], i) => (
@@ -46,7 +46,7 @@ export function FaqSection() {
         ))}
       </div>
       <div className="home-sales-support">
-        <Link href="/destek">Yardım merkezine git →</Link>
+        <Link href="/destek">Yanıtı yardım merkezinde bul →</Link>
       </div>
     </section>
   );

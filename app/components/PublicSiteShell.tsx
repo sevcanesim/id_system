@@ -59,8 +59,8 @@ function isPublicSiteSurface(pathname: string) {
 }
 
 function publicHeaderActions(pathname: string) {
-  if (pathname === "/kurumsal") return [{ href: "#business-pricing-title", label: "Paketleri İncele", primary: true }];
-  if (pathname.startsWith("/urunler/nfc-kart")) return [{ href: "/urunler/nfc-kart?paket=premium#nfc-hero-price-row", label: "Premium ile Başla", primary: true }];
+  if (pathname === "/kurumsal") return [{ href: "#business-pricing-title", label: "Kapasiteleri İncele", primary: true }];
+  if (pathname.startsWith("/urunler/nfc-kart")) return [{ href: "/urunler/nfc-kart?paket=premium#nfc-hero-price-row", label: "Bireysel Premium’u İncele", primary: true }];
   return [];
 }
 

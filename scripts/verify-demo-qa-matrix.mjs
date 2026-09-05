@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   DEMO_CORPORATE_CAPACITY_SCENARIOS,
+  DEMO_FEATURE_COVERAGE,
   DEMO_GUEST_ORDERS,
   DEMO_IDENTITY_COLLISION,
   DEMO_INVITE_FIXTURES,
@@ -95,6 +96,23 @@ const fullFive = DEMO_CORPORATE_CAPACITY_SCENARIOS.find((scenario) => scenario.l
 if (fullFive) pass("full 5-seat occupancy is in the matrix");
 else fail("matrix missing 5/5 capacity scenario");
 
+const requiredCoverageKeys = [
+  "auth-and-routing",
+  "individual-lifecycle",
+  "corporate-capacity-and-roles",
+  "invitations-and-identity",
+  "physical-card-operations",
+  "commerce-and-billing",
+  "network-mail",
+  "networking-crm",
+  "integrations-and-security",
+  "analytics-and-support",
+];
+for (const key of requiredCoverageKeys) {
+  if (DEMO_FEATURE_COVERAGE.some((feature) => feature.key === key && feature.account && feature.evidence)) pass(`feature coverage ${key}`);
+  else fail(`feature coverage missing ${key}`);
+}
+
 const appDir = path.join(root, "app");
 function walk(dir, found = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -173,8 +191,21 @@ if (allFixtureEmails.every((email) => email.startsWith("qa26."))) {
   fail("every canonical fixture must use the qa26.* namespace");
 }
 
-if (seed.includes("no lead domain table exists yet")) pass("lead remains an explicit product gap");
-else fail("lead remains an explicit product gap");
+if (seed.includes("seedFeatureSurfaceFixtures") && seed.includes("networking_leads") && seed.includes("networking_handshakes")) {
+  pass("lead, event and handshake fixtures are seeded");
+} else fail("seed must include networking CRM fixtures");
+
+if (seed.includes("commerce_order_billing_profiles") && seed.includes("YI-QA-CORP-MAIL-PAID") && seed.includes("PAYTR")) {
+  pass("corporate billing and PayTR outcome fixtures are seeded");
+} else fail("seed must include corporate billing and PayTR fixtures");
+
+if (seed.includes("organization_integrations") && seed.includes("organization_integration_delivery_jobs") && seed.includes("organization_security_policies")) {
+  pass("integration and security fixtures are seeded");
+} else fail("seed must include integration and security fixtures");
+
+if (seed.includes("card_view_events") && seed.includes("system_error_logs")) {
+  pass("analytics and operator-support fixtures are seeded");
+} else fail("seed must include analytics and support fixtures");
 
 if (seed.includes("Şifre DEMO_SEED_PASSWORD")) pass("password stays out of source");
 else fail("password stays out of source");

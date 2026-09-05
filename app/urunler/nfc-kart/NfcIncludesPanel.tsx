@@ -31,18 +31,18 @@ export default function NfcIncludesPanel() {
     <section className={`nfc-includes${premium ? " nfc-includes--premium" : ""}`}>
       <div className="yi-container nfc-includes__grid">
         <div>
-          <span className="nfc-kicker">{premium ? "PREMIUM’DA AYRICA" : "PAKETE DAHİL"}</span>
-          <h2>{premium ? <>Kartvizitten sonra<br />takibi sürdür.</> : <>Kartın ve profilin.<br />İlk yıl birlikte.</>}</h2>
+          <span className="nfc-kicker">{premium ? "BİREYSEL PREMIUM’DA AYRICA" : "BİREYSEL NFC’YE DAHİL"}</span>
+          <h2>{premium ? <>Kartvizitten sonra<br />bağlantıyı ilerlet.</> : <>Kartın ve profilin.<br />İlk yıl birlikte.</>}</h2>
         </div>
         <ul>
           {items.map((item) => <li key={item}>{item}</li>)}
         </ul>
         <div className="nfc-includes__cta">
-          <span>{premium ? "Premium · ilk yıl" : "Bireysel · ilk yıl"}</span>
+          <span>{premium ? "Bireysel Premium · ilk yıl" : "Bireysel NFC · ilk yıl"}</span>
           <strong>{formatTryFromKurus(priceKurus)}</strong>
           <small>{premium ? `2. yıldan itibaren ${formatTryFromKurus(COMMERCIAL_PRICING.YENOMI_ID_PREMIUM_RENEWAL.priceKurus)}/yıl · yeni kart gerekmez` : `2. yıldan itibaren ${formatTryFromKurus(COMMERCIAL_PRICING.YENOMI_ID_RENEWAL.priceKurus)}/yıl · yeni kart gerekmez`}</small>
           <Link className="home-mockup__link-secondary" href="#nfc-hero-price-row">
-            {premium ? "Premium ile Başla" : "Bireysel ile Başla"}
+            {premium ? "Bireysel Premium’u Seç" : "Bireysel NFC’yi Seç"}
           </Link>
         </div>
       </div>

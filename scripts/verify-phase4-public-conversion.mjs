@@ -9,7 +9,7 @@ check(home.includes("<HeroSection />")&&home.includes("<PackageMatrixSection />"
 check(hero.includes('variant="card"')&&hero.includes('variant="profile"'),"hero renders physical card and live profile specimens");
 check(packageMatrix.includes("BİREYSEL")&&packageMatrix.includes("PREMIUM")&&packageMatrix.includes("KURUMSAL"),"three-way public package IA is explicit");
 check(hero.includes("KAYIP MODU")&&hero.includes("Kaybolursa erişimi kapat"),"lost mode remains a visible secondary trust value");
-check(header.includes('"Premium’u İncele"')&&header.includes('paket=premium')&&header.includes('"/giris"'),"header uses Premium-first CTA and preserves login");
+check(header.includes('"Bireysel Premium’u İncele"')&&header.includes('paket=premium')&&header.includes('"/giris"'),"header uses explicit individual Premium CTA and preserves login");
 check(!header.includes('"NFC Kartı Satın Al"'),"retired NFC-first header CTA stays removed");
 check(publicCss.includes("home-package-matrix__scroll")&&publicCss.includes("var(--public-surface)"),"package matrix stays on warm-light canonical surface");
 check(layout.includes('import "./styles/canonical-package-matrix.css";')&&packageMatrix.includes("home-package-matrix__mobile-cards")&&packageMatrixCss.includes(".home-package-matrix__scroll")&&packageMatrixCss.includes("display: none"),"mobile package comparison replaces the desktop table with readable package cards");

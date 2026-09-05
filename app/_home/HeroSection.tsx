@@ -10,7 +10,7 @@ const premiumPrice = formatTryFromKurus(INDIVIDUAL_PREMIUM_PLAN.priceKurus);
 const heroTrust = [
   COMMERCIAL_FULFILLMENT.domesticShipping,
   COMMERCIAL_FULFILLMENT.handover,
-  "Uygulama gerekmez",
+  "Uygulama indirmeden paylaş",
   "KAYIP MODU · Kaybolursa erişimi kapat",
 ];
 
@@ -22,34 +22,35 @@ export function HeroSection() {
     >
       <div className="home-mockup__copy home-sales-copy">
         <span className="home-premium__hero-pill">
-          <i aria-hidden="true" /> YENOMI ID PREMIUM · NFC + QR
+          <i aria-hidden="true" /> BİREYSEL PREMIUM · NFC + QR
         </span>
         <h1 id="home-title">
-          Kartın konuşsun.
+          İlk izlenimin
           <br />
-          <span>Sen bağlantıda kal.</span>
+          <span>hep güncel kalsın.</span>
         </h1>
         <p>
-          NFC veya QR ile kendini anında tanıt; yeni bağlantılarını tek
-          merkezden yönet ve doğru zamanda takipte kal.
+          NFC + QR kartvizitinle tek dokunuşta paylaş; canlı profilini
+          dilediğinde güncelle. Bireysel Premium ile yeni bağlantılarını da
+          takipte tut.
         </p>
         <div className="home-mockup__actions home-premium__hero-actions home-sales-actions">
           <Link
             className="home-mockup__button home-mockup__button--gold home-mockup__button--primary"
             href="/urunler/nfc-kart?paket=premium"
           >
-            Premium ile Başla <span aria-hidden>→</span>
+            Bireysel Premium’u İncele <span aria-hidden>→</span>
           </Link>
           <Link
             className="home-premium__hero-secondary"
             href="#paths-title"
           >
-            Sana uygun paketi gör <span aria-hidden>↓</span>
+            Paketleri karşılaştır <span aria-hidden>↓</span>
           </Link>
         </div>
         <div className="home-sales-offer">
-          <strong>{premiumPrice} · ilk yıl dahil</strong>
-          <span>NFC + QR kart · kişi yönetimi · 100 Network Mail</span>
+          <strong>Bireysel Premium · {premiumPrice}</strong>
+          <span>NFC + QR kart · ilk yıl erişim · 100 Network Mail</span>
         </div>
         <div className="home-premium__hero-trust home-sales-trust">
           {heroTrust.map((item) => (
@@ -62,10 +63,10 @@ export function HeroSection() {
       </div>
       <div
         className="home-sales-stage"
-        aria-label="Yenomi ID Premium ürün görseli"
+        aria-label="Bireysel Premium ürün görseli"
       >
         <div className="home-sales-stage-label" aria-hidden="true">
-          PREMIUM · NFC + QR · CANLI PROFİL
+          BİREYSEL PREMIUM · NFC + QR · CANLI PROFİL
         </div>
         <div className="home-sales-stage-glow" aria-hidden="true" />
         <div className="home-hero-specimens">

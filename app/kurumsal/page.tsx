@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Icon } from "../icons";
 import AddToCartButton from "../components/AddToCartButton";
 import {
@@ -11,34 +12,39 @@ import {
 import { formatTryFromKurus } from "../../lib/config/product";
 import CorporateLeadForm from "./CorporateLeadForm";
 
+export const metadata: Metadata = {
+  title: "Yenomi Business · Ekip Kimliğini Yönet",
+  description: "Çalışan NFC kartları, canlı profiller, yetkiler ve marka standardı tek bir kurumsal yönetim sisteminde.",
+};
+
 const outcomes = [
-  { value: "Tek panel", label: "Çalışan, kart ve profil yönetimi" },
-  { value: "Anında", label: "Bilgi güncelleme ve kart kapatma" },
-  { value: "Tek standart", label: "Tüm ekipte kurumsal görünüm" },
+  { value: "Tek merkez", label: "Çalışan, kart ve profil yönetimi" },
+  { value: "Anında kontrol", label: "Bilgi güncelleme ve kart kapatma" },
+  { value: "Tutarlı marka", label: "Tüm ekipte kurumsal görünüm" },
 ];
 
 const useCases = [
   {
     icon: "users" as const,
     title: "Satış ve saha ekipleri",
-    text: "Her çalışan aynı kurumsal görünümle paylaşım yapar; iletişim ve şirket bağlantıları tek profilde kalır.",
+    text: "Her çalışan aynı kurumsal görünümle paylaşım yapar; iletişim ve şirket bağlantıları tek bir canlı profilde kalır.",
   },
   {
     icon: "building" as const,
     title: "İK ve yönetim",
-    text: "Yeni çalışanı ekleyin, ünvan ve departmanı güncelleyin; ayrılan personelin erişimini anında kapatın.",
+    text: "Yeni çalışanı ekleyin, ünvan ve departmanı güncelleyin; ayrılan personelin erişimini aynı anda kapatın.",
   },
   {
     icon: "shield" as const,
     title: "Marka kontrolü",
-    text: "Logo, renk, görünür alanlar ve yetkiler merkezden yönetilsin; dağınık kartvizit düzeni oluşmasın.",
+    text: "Logo, renk, görünür alanlar ve yetkiler merkezden yönetilsin; her kartta aynı güven veren marka görünümü kalsın.",
   },
 ];
 
 const steps = [
-  ["01", "Kapasiteyi seçin", "Ekip büyüklüğünüze uygun yıllık paketi seçin."],
-  ["02", "Ekibi sisteme alın", "Çalışanlar, departmanlar, logo ve yetkiler tanımlansın."],
-  ["03", "Kartları kullanıma açın", "NFC + QR kartlar çalışan profillerine bağlansın ve panelden yönetilsin."],
+  ["01", "Kapasiteyi seçin", "Ekip büyüklüğünüze uygun yıllık kapasiteyi seçin."],
+  ["02", "Markanızı kurun", "Çalışanlar, departmanlar, logo ve yetkiler tek merkezde tanımlansın."],
+  ["03", "Ekibinizi yayına alın", "NFC + QR kartlar çalışan profillerine bağlansın ve panelden yönetilsin."],
 ];
 
 const employeeSpecimens = [
@@ -51,20 +57,20 @@ const pricingTiers = [
   {
     name: "Start",
     range: "2–5 kişi",
-    copy: "Küçük ekipler için tam kurumsal panel. 2, 3 veya 5 kişilik kapasiteyle başlayın.",
+    copy: "Küçük ekipler için merkezi başlangıç. 2, 3 veya 5 kişilik kapasiteyle başlayın.",
     href: "#plan-corp-2",
   },
   {
     name: "Business",
     range: "10–25 kişi",
-    copy: "Büyüyen ekipler için en dengeli kapasite. 10 veya 25 kişilik paketlerden seçin.",
+    copy: "Büyüyen ekipler için dengeli kapasite. 10 veya 25 kişilik paketi seçin.",
     href: "#plan-corp-10",
     popular: true,
   },
   {
     name: "Enterprise",
     range: "50+ kişi",
-    copy: "Büyük organizasyonlar için 50 ve 100 kişilik paketler; 100+ ihtiyaçlarda özel teklif.",
+    copy: "Büyük organizasyonlar için 50 ve 100 kişilik paketler; 100+ ekipler için özel kurulum.",
     href: "#plan-corp-50",
   },
 ];
@@ -81,29 +87,29 @@ export default async function CorporatePage({
     <main id="main-content" className="theme-light corporate-page corporate-sales-page corporate-single-page">
       <section className="corporate-single-hero corporate-authentic-hero" aria-labelledby="corporate-single-title">
         <div className="corporate-single-copy">
-          <span className="section-kicker">YENOMI BUSINESS</span>
+          <span className="section-kicker">YENOMI BUSINESS · KURUMSAL DİJİTAL KİMLİK</span>
           <h1 id="corporate-single-title">
-            <span className="corporate-hero-line">Çalışan kartlarını</span>
-            <span className="corporate-hero-line corporate-hero-line--accent">tek panelden yönetin.</span>
+            <span className="corporate-hero-line">Her çalışan</span>
+            <span className="corporate-hero-line corporate-hero-line--accent">markanızla tanışsın.</span>
           </h1>
           <p>
-            Yeni çalışanı ekleyin, bilgileri güncelleyin, ayrılan personelin kartını kapatın. Marka standardı ve çalışan
-            kartları tek merkezde kalsın.
+            NFC + QR kartlar, canlı profiller, yetkiler ve marka standardı tek merkezde kalsın. Ekip değişse de ilk
+            izleniminiz tutarlı kalsın.
           </p>
           <div className="corporate-hero-actions">
             <a href="#kapasite" className="corporate-cta">
-              Ekibin için paketi seç <span aria-hidden="true">→</span>
+              Ekibiniz için kapasiteyi görün <span aria-hidden="true">→</span>
             </a>
             <a href="/kurumsal?plan=ENTERPRISE#teklif" className="home-mockup__link-secondary">
-              100+ kişi için kurulumu planla <span aria-hidden="true">→</span>
+              100+ kişi için uzmanla planla <span aria-hidden="true">→</span>
             </a>
           </div>
         </div>
 
         <aside className="corporate-authentic-proof corporate-hero-specimen" aria-label="Yenomi ID kurumsal yönetim ekranı örneği">
           <div className="corporate-authentic-proof__head">
-            <div className="corporate-specimen-badge">MERKEZİ ÇALIŞAN YÖNETİMİ</div>
-            <strong>Çalışan durumunu ve kart erişimini tek yerden kontrol edin.</strong>
+            <div className="corporate-specimen-badge">MERKEZİ EKİP YÖNETİMİ</div>
+            <strong>Çalışan durumunu, kart erişimini ve marka standardını tek yerden yönetin.</strong>
           </div>
           <div className="corporate-specimen-table">
             <div className="corporate-specimen-table__header">
@@ -139,10 +145,10 @@ export default async function CorporatePage({
       <section className="corporate-pricing-section corporate-single-details" id="kapasite" aria-labelledby="business-pricing-title">
         <div className="corporate-section-heading">
           <span className="section-kicker">YILLIK KURUMSAL SİSTEM</span>
-          <h2 id="business-pricing-title">Önce ekip ölçeğinizi seçin.</h2>
+          <h2 id="business-pricing-title">Ekibiniz büyürken kimliğiniz dağılmasın.</h2>
           <p>
-            Tüm paketlerde aynı kurumsal yönetim standardı bulunur. Önce ekibinizin ölçeğini seçin; ayrıntılı
-            kapasite seçeneklerini hemen aşağıda karşılaştırın.
+            Her kapasitede aynı kurumsal yönetim standardı bulunur. Özellikleri yeniden seçmeyin; yalnızca ekibinizin
+            bugün ihtiyacı olan kapasiteyi belirleyin.
           </p>
         </div>
 
@@ -165,7 +171,7 @@ export default async function CorporatePage({
         <div className="corporate-renewal-alert ds-pricing-card" role="note" aria-label="Yenileme bilgisi">
           <Icon name="clock" />
           <div>
-            <strong>Yenileme ücreti satın alma anında alınmaz.</strong>
+            <strong>Yenileme bugün alınmaz.</strong>
             <span>Yenileme fiyatı ilk 12 aylık kullanım tamamlandıktan sonra, 2. yıl başlarken geçerli olur.</span>
           </div>
         </div>
@@ -223,13 +229,13 @@ export default async function CorporatePage({
                           kind="BUSINESS_CARD"
                           name={plan.name}
                           unitPriceKurus={plan.priceKurus}
-                          label="Paketi Seç"
+                          label={`${plan.seats} kişilik paketi seç`}
                           appearance={isRecommended ? "primary" : "secondary"}
                           className="corporate-plan-text"
                           configuration={{ packageCode: plan.code, seatCount: plan.seats }}
                         />
                       ) : (
-                        <a href={`/kurumsal?plan=${plan.code}#teklif`} className="corporate-plan-text">Teklif Al</a>
+                        <a href={`/kurumsal?plan=${plan.code}#teklif`} className="corporate-plan-text">Kurulumu planla</a>
                       )}
                     </td>
                   </tr>
@@ -241,15 +247,14 @@ export default async function CorporatePage({
 
         <p className="corporate-pack-note">
           <strong>İlk 12 ay:</strong> seçilen kullanıcı sayısı kadar NFC kart, kurumsal platform erişimi ve Türkiye içi kargo
-          ile kişi başı 100 Network Mail kredisi dahildir. <strong>12 ay tamamlandıktan sonra:</strong> yenileme dönemi başlar; mevcut kartlar kullanılmaya devam eder ve
-          yeni fiziksel kart gönderilmez.
+          ile kişi başı 100 Network Mail kredisi dahildir. <strong>12 ay tamamlandıktan sonra:</strong> yenileme dönemi başlar; mevcut kartlar kullanılmaya devam eder, yeni fiziksel kart gönderilmez.
         </p>
       </section>
 
       <section className="corporate-use-cases" id="senaryolar" aria-labelledby="corporate-use-cases-title">
         <div className="corporate-section-heading">
           <span className="section-kicker">NE YÖNETİRSİNİZ?</span>
-          <h2 id="corporate-use-cases-title">Kartı değil, çalışan sistemini yönetin.</h2>
+          <h2 id="corporate-use-cases-title">Kartı değil, ekibinizin ilk izlenimini yönetin.</h2>
         </div>
         <div className="corporate-use-case-grid">
           {useCases.map((item) => (
@@ -265,7 +270,7 @@ export default async function CorporatePage({
       <section className="corporate-steps-section" id="kurulum" aria-labelledby="corporate-steps-title">
         <div className="corporate-section-heading">
           <span className="section-kicker">KURULUM</span>
-          <h2 id="corporate-steps-title">Üç adımda ekibiniz yayında.</h2>
+          <h2 id="corporate-steps-title">Üç net adımda ekip kimliğiniz hazır.</h2>
         </div>
         <ol className="corporate-step-grid">
           {steps.map(([number, title, text]) => (
@@ -281,15 +286,15 @@ export default async function CorporatePage({
       <section className="corporate-lead-section" id="teklif" aria-labelledby="corporate-lead-title">
         <div className="corporate-lead-copy">
           <span className="section-kicker">100+ KİŞİ · ÖZEL KURULUM</span>
-          <h2 id="corporate-lead-title">Daha büyük ekibiniz için doğru kurulumu birlikte planlayalım.</h2>
+          <h2 id="corporate-lead-title">Daha büyük ekibiniz için doğru kurulumu birlikte netleştirelim.</h2>
           <p>
-            100+ çalışan, özel entegrasyon veya kuruma özel yapılandırma ihtiyacınızı paylaşın. Sizin için doğru kurulum ve
-            fiyatlandırma seçeneğiyle geri dönelim.
+            100+ çalışan, özel entegrasyon veya kuruma özel yapılandırma ihtiyacınızı paylaşın. İhtiyacınıza uygun
+            kurulum ve fiyatlandırma seçeneğiyle geri dönelim.
           </p>
           <div className="corporate-lead-trust-signals">
             <span>1 iş günü içinde dönüş</span>
             <span>Ödeme bilgisi istenmez</span>
-            <span>İhtiyaca göre yapılandırma</span>
+            <span>İhtiyacınıza göre net kurulum</span>
           </div>
         </div>
         <CorporateLeadForm plan={selectedPlan} />
@@ -298,15 +303,15 @@ export default async function CorporatePage({
       <section className="corporate-final-cta" id="baslayin" aria-labelledby="corporate-final-title">
         <div className="corporate-final-cta__content">
           <span className="section-kicker">KURUMSAL BAŞLANGIÇ</span>
-          <h2 id="corporate-final-title">Ekibiniz için doğru kapasiteyi seçin.</h2>
-          <p>Özellik karşılaştırmak yerine yalnızca ekip büyüklüğünüzü belirleyin.</p>
+          <h2 id="corporate-final-title">Ekibiniz için doğru başlangıcı bugün netleştirin.</h2>
+          <p>Özellik karşılaştırmak yerine, ekibinizin ihtiyacı olan kapasiteyi seçin.</p>
         </div>
         <div className="corporate-final-cta__actions">
           <a href="#kapasite" className="corporate-cta">
-            Ekibin için paketi seç <span aria-hidden="true">→</span>
+            Kapasiteyi incele <span aria-hidden="true">→</span>
           </a>
           <a href="/kurumsal?plan=ENTERPRISE#teklif" className="home-mockup__link-secondary">
-            100+ kişi için teklif al <span aria-hidden="true">→</span>
+            100+ kişi için kurulum planla <span aria-hidden="true">→</span>
           </a>
         </div>
       </section>

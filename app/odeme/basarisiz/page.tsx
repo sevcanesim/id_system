@@ -12,8 +12,8 @@ export default function PaymentFailedPage() {
       <AppHeader showDefaultCta={false} />
       <section className="order-success payment-failed p5-order-success transaction-state-card">
         <span className="p5-result-icon"><Icon name="alert" /></span><span className="section-kicker">ÖDEME TAMAMLANAMADI</span>
-        <h1>Ödeme tamamlanmadı. Sepetin duruyor.</h1>
-        <p>Kartından çekim olmadıysa ücret alınmaz. Aynı siparişi yeniden denemen yeterli; yeni sepet kurmana gerek yok.</p>
+        <h1>Ödeme tamamlanmadı. Siparişin korunuyor.</h1>
+        <p>Yeni sepet kurmana gerek yok. Siparişinin durumunu kontrol edebilir veya aynı siparişi yeniden deneyebilirsin.</p>
         <Suspense fallback={null}><PaymentRetryActions /></Suspense>
       </section>
       <AppFooter variant="compact" />

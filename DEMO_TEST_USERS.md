@@ -5,7 +5,8 @@ Yenilemek için: `npm run docs:demo-users`.
 `scripts/seed-demo-scenarios.mjs` aynı kaydı import eder.
 
 Şifre git’e yazılmaz. Local apply için `.env.local` içinde `DEMO_SEED_PASSWORD` ve `ALLOW_LOCAL_DEMO_SEED=true`.
-Temiz kurulumda `--reset-demo`, tüm `@yenomi.test` hesaplarını, `TEST` kimlik katmanını ve bunlara bağlı demo verisini silip bu matrisi yeniden kurar; gerçek kullanıcı veya katalog verisine dokunmaz.
+Scoped temizlikte `--reset-demo`, tüm `@yenomi.test` hesaplarını, `TEST` kimlik katmanını ve bunlara bağlı demo verisini silip bu matrisi yeniden kurar.
+İzole test projesi tamamen boşaltılacaksa `--reset-isolated-test-project` kullanılır. Bu mod yalnız `TEST_SUPABASE_PROJECT_REF` ile doğrulanmış, production referansından farklı bir projede çalışır; katalog, planlar, yasal dokümanlar ve migration kayıtlarını korur.
 Production’da `@yenomi.test` hesabı olamaz (`verify:production:no-demo-users`).
 
 ## Giriş yapılabilen hesaplar
@@ -39,7 +40,7 @@ Production’da `@yenomi.test` hesabı olamaz (`verify:production:no-demo-users`
 | `trEmptyOwner` | `qa26.kurumsal.bos@yenomi.test` | CORPORATE_OWNER | CORPORATE | demo-tr-yeni-kurumsal (OWNER) | - | - | Owner-only boş şirket (demo-tr-yeni-kurumsal). |
 | `trPartialOwner` | `qa26.kurumsal.eksik@yenomi.test` | CORPORATE_OWNER | CORPORATE | demo-tr-kismen-dolu (OWNER) | - | - | Kısmi doluluk (6/10). |
 | `trTemplateOwner` | `qa26.kurumsal.template@yenomi.test` | CORPORATE_OWNER | CORPORATE | demo-tr-template (OWNER) | - | - | Kart şablonu kütüphanesi. |
-| `trLeadOwner` | `qa26.kurumsal.lead@yenomi.test` | CORPORATE_OWNER | CORPORATE | demo-tr-lead (OWNER) | - | - | Lead modülü ürün boşluğu; tablo yok. |
+| `trLeadOwner` | `qa26.kurumsal.lead@yenomi.test` | CORPORATE_OWNER | CORPORATE | demo-tr-lead (OWNER) | - | - | Kurumsal lead, etkinlik, görüşme ve takip akışları. |
 | `multiOrgUser` | `qa26.multi.org@yenomi.test` | MULTI_ORG_ADMIN | CORPORATE | demo-qa-uctan-uca (ADMIN) | `qa-multiorguser` | - | İki organizasyonda ADMIN. |
 | `trIndividualPremium` | `qa26.bireysel.premium@yenomi.test` | INDIVIDUAL_PREMIUM | INDIVIDUAL | - | `demo-bireysel-premium` | `YN-INDPREMIUM01` (ACTIVE) | Premium SKU YENOMI-NFC-PREMIUM-ANNUAL, yayınlanmış profil. |
 | `trIndividualExpired` | `qa26.bireysel.suresi.dolmus@yenomi.test` | INDIVIDUAL_EXPIRED | INDIVIDUAL | - | `demo-bireysel-suresi-dolmus` | - | Entitlement EXPIRED; yenileme yüzeyi. |
@@ -77,6 +78,21 @@ Aktivasyon URL’si yalnız `seed:e2e` çıktısında bir kez basılır; token g
 | Demo Şirket 2 / 1 Boş | CORP-2 | 1/2 |
 | Demo Şirket 2 / Paket Yükseltme | CORP-2 | 2/2 |
 
+## Özellik kapsamı
+
+| Alan | Başlangıç hesabı | Seed sonrası görülecek kanıt |
+|---|---|---|
+| Kimlik ve yönlendirme | `qa26.superadmin@yenomi.test` | Super admin, bireysel, kurumsal, çoklu organizasyon ve portal-only hesap yolları. |
+| Bireysel kart yaşam döngüsü | `qa26.bireysel.aktif@yenomi.test` | Bekleyen kurulum, aktif, Premium, süresi dolmuş, kayıp ve yedek kart durumları. |
+| Kurumsal kapasite ve roller | `qa26.kurumsal.yonetici@yenomi.test` | 0/5, 3/5, 5/5, 6/10, yükseltme ihtiyacı; OWNER, ADMIN, HR, çalışan ve departman sınırı. |
+| Davet ve kimlik | `qa26.ik.yonetici@yenomi.test` | Aktif, süresi dolmuş ve iptal edilmiş davet; aynı görünen adla iki ayrı çalışan. |
+| Fiziksel kart operasyonu | `qa26.calisan.atanmis@yenomi.test` | Atanmış, atanmamış stok, kayıp, yedek ve değiştirme zinciri. |
+| Ödeme, fatura ve cari kayıt | `qa26.kurumsal.yonetici@yenomi.test` | Kurumsal cari snapshot, PayTR PAID/FAILED/PENDING denemeleri, callback alındısı ve Mysoft fatura kuyruğu. |
+| Network Mail | `qa26.kurumsal.yonetici@yenomi.test` | Kurumsal bakiye, kredi paketi satın alımı ve hareket defteri. |
+| Lead, etkinlik ve görüşme | `qa26.kurumsal.lead@yenomi.test` | QR etkinliği, etkinlik bağlantısı, farklı lead durumları, görüşme ve çift taraflı Yenomi bağlantısı. |
+| Entegrasyon ve güvenlik | `qa26.kurumsal.yonetici@yenomi.test` | Kapalı test webhook'u, teslimat geçmişi, MFA kritik işlem politikası ve organizasyon denetim kaydı. |
+| Analitik ve destek | `qa26.superadmin@yenomi.test` | Zaman dağılımlı kart görüntüleme kayıtları ve müşteri yerine operatöre görünen sistem hata kayıtları. |
+
 ## Kimlik çarpışması
 
 `qa26.ayni.isim.*` adresleri görünen adı `Ahmet Yılmaz` olan ayrı üyelerdir. Aynı görünen ad, farklı e-posta; kimlik çarpışması.
@@ -85,5 +101,11 @@ Aktivasyon URL’si yalnız `seed:e2e` çıktısında bir kez basılır; token g
 
 ```bash
 ALLOW_LOCAL_DEMO_SEED=true DEMO_SEED_PASSWORD='…' npm run seed:demo -- --apply --reset-demo --allow-non-empty
+```
+
+## İzole test projesini sıfırlama
+
+```bash
+ALLOW_ISOLATED_TEST_PROJECT_RESET=true TEST_SUPABASE_PROJECT_REF='test-project-ref' DEMO_SEED_PASSWORD='…' npm run seed:demo -- --apply --reset-isolated-test-project
 ```
 

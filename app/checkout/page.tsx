@@ -425,17 +425,17 @@ export default function CheckoutPage() {
     <main id="main-content" className={`checkout-page p5-checkout-page yi-footer-compact${isCheckoutState ? " checkout-page--state" : ""}`}>
       <section className="checkout-shell checkout-confirm-shell">
           <div className="checkout-heading checkout-heading-compact">
-            <h1>{hasCorporatePackage ? "Kurumsal ödemeyi tamamla." : hasNetworkMailCreditPack ? "Network Mail paketini tamamla." : digitalOnlyCart ? "Dijital ödemeyi tamamla." : "Ödemeyi tamamla."}</h1>
-            <p>{paymentProviderName} ile güvenle öde. {hasCorporatePackage ? `Fatura ve teslimatı doğrula. Son adımda ${paymentProviderName} kartını alır; Yenomi saklamaz.` : isCorporateNetworkMailPurchase ? "Şirketinin kayıtlı cari/fatura profili bu siparişe uygulanır. Kart bilgisi yalnız ödeme sağlayıcısında işlenir." : hasNetworkMailCreditPack ? "Fatura bilgilerini doğrula. Ödeme onaylanınca Network Mail kredilerin Premium hesabına eklenir." : digitalOnlyCart ? `Fatura ili ve ilçesini doğrula. Teslimat adresi yok. Kart numarası ${paymentProviderName}’da işlenir.` : `Alıcı ve teslimatı doğrula. Kart numarası ${paymentProviderName}’da işlenir; Yenomi’de saklanmaz.`}</p>
+            <h1>{hasCorporatePackage ? "Kurumsal siparişini güvenle tamamla." : hasNetworkMailCreditPack ? "Network Mail paketini güvenle tamamla." : digitalOnlyCart ? "Dijital hizmetini güvenle tamamla." : "Siparişini güvenle tamamla."}</h1>
+            <p>{hasCorporatePackage ? `Fatura ve teslimat bilgilerini doğrula. Kart bilgilerin yalnızca ${paymentProviderName}’ın güvenli ödeme ekranında işlenir; Yenomi’de saklanmaz.` : isCorporateNetworkMailPurchase ? "Şirketinin kayıtlı cari/fatura profili bu siparişe uygulanır. Kart bilgilerin yalnız ödeme sağlayıcısında işlenir." : hasNetworkMailCreditPack ? "Fatura bilgilerini doğrula. Ödeme onaylanınca Network Mail kredilerin hesabına eklenir." : digitalOnlyCart ? `Fatura ili ve ilçesini doğrula. Teslimat adresi yok; kart bilgilerin yalnızca ${paymentProviderName}’da işlenir.` : `Alıcı ve teslimat bilgilerini doğrula. Kart bilgilerin yalnızca ${paymentProviderName}’da işlenir; Yenomi’de saklanmaz.`}</p>
             <div className="checkout-account-note" role="status">
               {isAuthenticated ? (
                 <><Icon name="check" /> Hesabın bağlı. Siparişin hesabına otomatik eklenir.</>
               ) : (
-                <><Icon name="mail" /> Hesap açmadan güvenli ödeme yapabilirsin; siparişini bu e-posta ile hesabına bağlayabilirsin.</>
+                <><Icon name="mail" /> Hesap açmadan ilerleyebilirsin; siparişini daha sonra bu e-posta ile hesabına bağlayabilirsin.</>
               )}
             </div>
             <div className="checkout-trust-row checkout-trust-row-compact" aria-label="Sipariş avantajları">
-              <span><Icon name="shield" />{paymentProviderName} ile güvenle öde</span>
+              <span><Icon name="shield" />Kart bilgilerin yalnızca {paymentProviderName}’da işlenir</span>
               {!digitalOnlyCart && <span><Icon name="truck" />{COMMERCIAL_FULFILLMENT.domesticShipping}</span>}
               {hasInitialBundle && <span><Icon name="clock" />Ana kart {COMMERCIAL_FULFILLMENT.handover.toLocaleLowerCase()}</span>}
               {hasDigitalMembership && <span><Icon name="shield" />1 yıl platform üyeliği dahil</span>}
@@ -461,7 +461,7 @@ export default function CheckoutPage() {
                 <section className={`checkout-step ${activeStep === "buyer" ? "open" : ""} ${buyerComplete ? "complete" : ""}`}>
                   <button type="button" className="checkout-step-trigger" onClick={() => setActiveStep("buyer")}>
                     <span className="checkout-step-icon"><Icon name="contact" /></span>
-                    <span><strong>{hasCorporatePackage ? "Fatura ve şirket bilgileri" : isCorporateNetworkMailPurchase ? "Sipariş sorumlusu ve şirket profili" : "Alıcı Bilgileri"}</strong><small>{hasCorporatePackage ? "Sipariş sahibi ve değiştirilemez kurumsal kayıt" : isCorporateNetworkMailPurchase ? "Sorumlu kişi ve şirketin kayıtlı cari bilgileri" : "Sipariş ve fatura bilgileri"}</small></span>
+                  <span><strong>{hasCorporatePackage ? "Fatura ve şirket bilgileri" : isCorporateNetworkMailPurchase ? "Sipariş sorumlusu ve şirket profili" : "Alıcı bilgileri"}</strong><small>{hasCorporatePackage ? "Sipariş sahibi ve korunan kurumsal kayıt" : isCorporateNetworkMailPurchase ? "Sorumlu kişi ve şirketin kayıtlı cari bilgileri" : "Sipariş ve fatura bilgileri"}</small></span>
                   </button>
                   {activeStep === "buyer" && <div className="checkout-step-body">
                     <label>Ad Soyad<input required autoComplete="name" value={form.recipientName} onChange={(event) => update("recipientName", event.target.value)} /></label>
@@ -527,7 +527,7 @@ export default function CheckoutPage() {
                       <input type="checkbox" checked={form.personalizationAccepted} onChange={(event) => update("personalizationAccepted", event.target.checked)} />
                       <span>Kişiselleştirilmiş ürün koşullarını ve <Link href="/kvkk" target="_blank">KVKK</Link> Aydınlatma Metnini kabul ediyorum.</span>
                     </label>
-                    <button type="submit" className="checkout-pay checkout-pay-button" disabled={busy}>{busy ? "Ödeme hazırlanıyor…" : `${formatTryFromKurus(total)} ile ödemeye geç`}</button>
+                    <button type="submit" className="checkout-pay checkout-pay-button" disabled={busy}>{busy ? "Güvenli ödeme hazırlanıyor…" : `${formatTryFromKurus(total)} ile güvenli ödemeye geç`}</button>
                   </div>}
                 </section>
               </div>
@@ -552,7 +552,7 @@ export default function CheckoutPage() {
                   <strong>{formatTryFromKurus(total)}</strong>
                 </div>
                 <div className="checkout-summary-benefits">
-                  <span><Icon name="check" /> {paymentProviderName} ile güvenle öde</span>
+                  <span><Icon name="check" /> Kart bilgilerin yalnızca {paymentProviderName}’da işlenir</span>
                   {!hasNetworkMailCreditPack && <span><Icon name="check" /> 1 yıl platform üyeliği dahil</span>}
                   {!digitalOnlyCart && <span><Icon name="check" /> Türkiye içi kargo dahil</span>}
                   {hasNetworkMailCreditPack && <span><Icon name="check" /> Kredi satın alımı · teslimat yok</span>}

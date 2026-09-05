@@ -32,18 +32,18 @@ const packageComparisonRows = [
 
 const mobilePackages = [
   {
-    name: "Bireysel",
+    name: "Bireysel NFC",
     price: individualPrice,
     valueIndex: 1,
     href: "/urunler/nfc-kart?paket=individual",
-    action: "Bireysel’i İncele",
+    action: "Bireysel NFC’yi İncele",
   },
   {
-    name: "Premium",
+    name: "Bireysel Premium",
     price: premiumPrice,
     valueIndex: 2,
     href: "/urunler/nfc-kart?paket=premium",
-    action: "Premium ile Başla",
+    action: "Bireysel Premium’u Seç",
   },
   {
     name: "Kurumsal",
@@ -79,12 +79,12 @@ export function PackageMatrixSection() {
     <section className="home-package-matrix" aria-labelledby="paths-title">
       <div className="home-package-matrix__head">
         <span className="home-mockup__kicker">
-          BİREYSEL · PREMIUM · KURUMSAL
+          BİREYSEL NFC · BİREYSEL PREMIUM · KURUMSAL
         </span>
-        <h2 id="paths-title">Hangisi sana uygun?</h2>
+        <h2 id="paths-title">İhtiyacın kadar sade. Etkin olduğunda Premium.</h2>
         <p>
-          Bireysel kartvizit paylaşımı için; Premium networking ve takip
-          için; Kurumsal ekip yönetimi için.
+          Bireysel NFC profesyonel paylaşım için; Bireysel Premium bağlantı ve
+          takip için; Kurumsal ise ekip kimliğini tek merkezden yönetmek için.
         </p>
       </div>
       <div
@@ -103,8 +103,8 @@ export function PackageMatrixSection() {
             role="row"
           >
             <span role="columnheader" aria-label="Özellik" />
-            <strong role="columnheader">Bireysel</strong>
-            <strong role="columnheader">Premium</strong>
+            <strong role="columnheader">Bireysel NFC</strong>
+            <strong role="columnheader">Bireysel Premium</strong>
             <strong role="columnheader">Kurumsal</strong>
           </div>
           {packageComparisonRows.map(([label, a, b, c]) => (
@@ -132,16 +132,16 @@ export function PackageMatrixSection() {
             <span role="rowheader">Seç</span>
             <span role="cell">
               <Link href="/urunler/nfc-kart?paket=individual">
-                Bireysel’i İncele →
+                Bireysel NFC’yi İncele →
               </Link>
             </span>
             <span role="cell">
               <Link href="/urunler/nfc-kart?paket=premium">
-                Premium ile Başla →
+                Bireysel Premium’u Seç →
               </Link>
             </span>
             <span role="cell">
-              <Link href="/kurumsal">Kurumsal Paketler →</Link>
+              <Link href="/kurumsal">Kurumsal çözümü incele →</Link>
             </span>
           </div>
         </div>
@@ -151,7 +151,7 @@ export function PackageMatrixSection() {
         aria-label="Paket karşılaştırması"
       >
         {mobilePackages.map((plan) => (
-          <details key={plan.name} open={plan.name === "Premium"}>
+          <details key={plan.name} open={plan.name === "Bireysel Premium"}>
             <summary>
               <span>
                 <strong>{plan.name}</strong>

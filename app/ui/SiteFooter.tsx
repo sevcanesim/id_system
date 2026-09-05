@@ -9,7 +9,7 @@ function FooterContent() {
       <div className="yi-footer__premium-grid">
         <div className="yi-footer__premium-brand">
           <Brand compact />
-          <p>Bir kez tanıt. Bilgilerin değişse de bağlantın güncel kalsın.</p>
+          <p>Bir kart. Güncel kimlik. Her tanışmada hazır.</p>
         </div>
 
         <nav className="yi-footer__premium-column" aria-label="Ürün">

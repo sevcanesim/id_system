@@ -8,17 +8,17 @@ export function MobileStickyCta() {
   return (
     <aside
       className="home-sales-mobile-cta"
-      aria-label="Premium hızlı satın alma"
+      aria-label="Bireysel Premium hızlı satın alma"
     >
       <div className="home-sales-mobile-cta__copy">
-        <span>ÖNERİLEN · PREMIUM</span>
-        <strong>{premiumPrice} · ilk yıl dahil</strong>
+        <span>ÖNERİLEN · BİREYSEL PREMIUM</span>
+        <strong>{premiumPrice} · ilk yıl erişim dahil</strong>
       </div>
       <Link
         className="home-mockup__button home-mockup__button--gold"
         href="/urunler/nfc-kart?paket=premium"
       >
-        Premium ile Başla
+        Premium’u Seç
       </Link>
     </aside>
   );

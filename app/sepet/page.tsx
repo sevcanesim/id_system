@@ -40,15 +40,15 @@ export default function CartPage() {
         <div className="yi-container">
           <div className="yi-page-head">
             <span>SEPET</span>
-            <h1>{items.length ? "Siparişini kontrol et." : "Sepetin şu anda boş."}</h1>
-            <p>{items.length ? requiresPortalLogin ? "Bu paket portal erişimi içerir. Ödemeden önce giriş yaparak paketi hesabına bağla." : "Hesap açmadan ödeme yapabilirsin. Fiyat ödeme adımında sunucuda doğrulanır; kart numaran Yenomi’de saklanmaz." : "Networking ve profesyonel takip için önerilen paket Premium."}</p>
+            <h1>{items.length ? "Seçimin hazır. Son kez gözden geçir." : "Sepetin şu anda boş."}</h1>
+            <p>{items.length ? requiresPortalLogin ? "Bu paket portal erişimi içerir. Ödemeden önce giriş yaparak paketi hesabına bağla." : "Hesap açmadan ilerleyebilirsin. Fiyat ödeme adımında sunucuda doğrulanır; kart numaran Yenomi’de saklanmaz." : "Güncel kartvizit paylaşımı için Bireysel NFC; bağlantı ve takip için Bireysel Premium’u incele."}</p>
           </div>
           {!items.length ? (
             <EmptyState
               icon="cart"
-              title={`Premium · ${formatTryFromKurus(INDIVIDUAL_PREMIUM_PLAN.priceKurus)}`}
+              title={`Bireysel Premium · ${formatTryFromKurus(INDIVIDUAL_PREMIUM_PLAN.priceKurus)}`}
               description={audience === "corporate" ? "NFC + QR kart, kişi yönetimi, toplantı ve sunum araçları, 100 Network Mail ve ilk yıl Premium erişimi dahil. Ek kurumsal kart kapasitesini Kartlar alanından yönetebilirsin." : "NFC + QR kart, kişi yönetimi, toplantı ve sunum araçları, 100 Network Mail ve ilk yıl Premium erişimi dahil."}
-              action={<div className="ds-empty-actions"><Link className="ds-button ds-button--primary" href="/urunler/nfc-kart?paket=premium">Premium ile Başla</Link>{audience === "corporate" ? <Link className="home-mockup__link-secondary" href="/kurumsal/panel/kartlar">Kurumsal kartlar</Link> : <><Link className="home-mockup__link-secondary" href="/urunler/nfc-kart?paket=individual">Bireysel · {formatTryFromKurus(INDIVIDUAL_PLAN.priceKurus)}</Link><Link className="home-mockup__link-secondary" href="/kurumsal">Kurumsal paketler</Link></>}</div>}
+              action={<div className="ds-empty-actions"><Link className="ds-button ds-button--primary" href="/urunler/nfc-kart?paket=premium">Bireysel Premium’u Seç</Link>{audience === "corporate" ? <Link className="home-mockup__link-secondary" href="/kurumsal/panel/kartlar">Kurumsal kartları yönet</Link> : <><Link className="home-mockup__link-secondary" href="/urunler/nfc-kart?paket=individual">Bireysel NFC · {formatTryFromKurus(INDIVIDUAL_PLAN.priceKurus)}</Link><Link className="home-mockup__link-secondary" href="/kurumsal">Kurumsal çözümleri incele</Link></>}</div>}
             />
           ) : (
             <div className="yi-cart-layout">
@@ -62,9 +62,9 @@ export default function CartPage() {
                 <span>SİPARİŞ ÖZETİ</span>
                 <div className="yi-cart-summary-rows"><div><span>Ürün toplamı</span><b>{formatTryFromKurus(total)}</b></div><div><span>Kargo</span><b>{shippingIncluded ? "Ücretsiz" : formatTryFromKurus(COMMERCIAL_PRICING.DOMESTIC_SHIPPING.priceKurus)}</b></div><div><span>Vergi</span><b>KDV dahil</b></div><div className="total"><span>Toplam</span><b>{formatTryFromKurus(total)}</b></div></div>
                 {requiresPortalLogin ? <p className="yi-cart-account-prompt">Ödemeye geçtiğinde önce hesabına giriş yapman istenir. Girişten sonra sepetin korunur ve ödeme adımına dönersin.</p> : audience === "guest" ? <p className="yi-cart-account-prompt">Hesabın var mı? <Link href="/giris?next=%2Fcheckout">Giriş yap</Link> <span>— siparişini hesabına bağlayalım.</span></p> : null}
-                <p>{requiresPortalLogin ? "Portal erişimi satın alma hesabına tanımlanır." : "Hesap açmadan ödeme yapabilirsin. Siparişin e-posta adresinle otomatik eşleşir."}</p>
-                <ButtonLink href={checkoutHref} variant="primary">Ödemeye geç</ButtonLink>
-                <ButtonLink href="/urunler/nfc-kart?paket=premium" variant="ghost">Paket seçimine dön</ButtonLink>
+                <p>{requiresPortalLogin ? "Portal erişimi satın alma hesabına tanımlanır." : "Hesap açmadan ilerleyebilirsin. Siparişin e-posta adresinle otomatik eşleşir."}</p>
+                <ButtonLink href={checkoutHref} variant="primary">Güvenli ödemeye geç</ButtonLink>
+                <ButtonLink href="/urunler/nfc-kart?paket=premium" variant="ghost">Paketleri yeniden gör</ButtonLink>
               </aside>
             </div>
           )}

@@ -18,9 +18,9 @@ export default async function PaytrCheckoutPage({ searchParams }: PaytrCheckoutP
         <section className="paytr-checkout-shell">
           <div className="paytr-checkout-card paytr-checkout-card--invalid transaction-state-card">
             <p className="paytr-checkout-kicker">GÜVENLİ ÖDEME</p>
-            <h1>Ödeme oturumu bulunamadı.</h1>
-            <p>Güvenli ödeme bağlantısı geçerli değil veya süresi dolmuş olabilir. Sepetinden yeni bir ödeme oturumu oluşturabilirsin.</p>
-            <Link className="yi-btn yi-btn--primary" href="/checkout">Sepete dön</Link>
+            <h1>Güvenli ödeme bağlantın artık geçerli değil.</h1>
+            <p>Bu ödeme oturumu süresi dolmuş ya da tamamlanmış olabilir. Sipariş özetinden yeni bir güvenli ödeme adımı başlatabilirsin.</p>
+            <Link className="yi-btn yi-btn--primary" href="/checkout">Sipariş özetine dön</Link>
           </div>
         </section>
       </main>
@@ -33,12 +33,12 @@ export default async function PaytrCheckoutPage({ searchParams }: PaytrCheckoutP
         <header className="paytr-checkout-heading">
           <p className="paytr-checkout-kicker">GÜVENLİ ÖDEME</p>
           <h1>Ödemeni güvenle tamamla.</h1>
-          <p>Kart bilgilerin PayTR&apos;ın güvenli ödeme sayfasında işlenir; Yenomi kart bilgilerini saklamaz.</p>
+          <p>Kart bilgilerin PayTR’ın güvenli ödeme sayfasında işlenir; Yenomi kart bilgilerini saklamaz.</p>
         </header>
         <div className="paytr-checkout-card">
           <PaytrIframe token={token} />
         </div>
-        <p className="paytr-checkout-footnote">Ödeme tamamlandığında siparişin, PayTR&apos;ın güvenli onayından sonra işleme alınır.</p>
+        <p className="paytr-checkout-footnote">Siparişin, PayTR’ın güvenli ödeme onayı geldikten sonra işleme alınır.</p>
       </section>
     </main>
   );

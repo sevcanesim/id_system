@@ -9,10 +9,10 @@ export function JourneySection() {
     >
       <div className="home-premium__journey-head">
         <span className="home-mockup__kicker">NASIL ÇALIŞIR</span>
-        <h2 id="how-it-works-title">Paylaş. Kaydet. Takip et.</h2>
+        <h2 id="how-it-works-title">Paylaş. Bağlantıyı koru. Takipte kal.</h2>
         <p>
-          Premium, kartvizit paylaşımından tanışma sonrasındaki profesyonel
-          takibe kadar tek akış sunar.
+          Bireysel Premium, ilk dokunuştan tanışma sonrasındaki profesyonel
+          takibe kadar aynı akışta kalır.
         </p>
       </div>
       <ol className="home-premium__journey-steps">
@@ -26,7 +26,7 @@ export function JourneySection() {
         <li>
           <span>02</span>
           <div>
-            <h3>Bağlantıyı kaydet</h3>
+            <h3>Bağlantıyı koru</h3>
             <p>Tanıştığın kişileri ve görüşmelerini tek yerde tut.</p>
           </div>
         </li>
@@ -42,7 +42,7 @@ export function JourneySection() {
         <p>
           <strong>
             <Link href="/nasil-calisir">
-              Nasıl çalıştığını detaylı gör →
+              Akışın tamamını gör →
             </Link>
           </strong>
         </p>

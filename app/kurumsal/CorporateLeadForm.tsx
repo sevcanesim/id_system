@@ -39,7 +39,7 @@ export default function CorporateLeadForm({ plan = "GENEL", compact = false }: P
       if (!response.ok) throw new Error(payload.error || "Talep gönderilemedi.");
       form.reset();
       setStatus("success");
-      setMessage("Talebinizi aldık. Ekibimiz 1 iş günü içinde sizinle iletişime geçecek.");
+      setMessage("Talebinizi aldık. 1 iş günü içinde kurulum ihtiyacınız için dönüş yapacağız.");
     } catch (error) {
       setStatus("error");
       setMessage(error instanceof Error ? error.message : "Talep gönderilemedi. Lütfen tekrar deneyin.");
@@ -53,9 +53,9 @@ export default function CorporateLeadForm({ plan = "GENEL", compact = false }: P
         <Field label="Ad soyad" required><Input name="fullName" required minLength={2} maxLength={120} autoComplete="name" placeholder="Ad Soyad" /></Field>
         <Field label="Kurumsal e-posta" required><Input name="email" type="email" required maxLength={254} autoComplete="email" placeholder="ornek@sirket.com" /></Field>
         <Field label="Şirket" required className="corporate-lead-full"><Input name="company" required minLength={2} maxLength={160} autoComplete="organization" placeholder="Şirket adı" /></Field>
-        <Field label="Paket">
+        <Field label="İlginizi çeken kapasite">
           <Select name="plan" defaultValue={plan === "INDIVIDUAL_PREMIUM" || plan === "CAMPAIGN-MAIL" ? "GENEL" : plan}>
-            <option value="GENEL">İhtiyacıma göre yönlendirin</option>
+            <option value="GENEL">Ekibime uygun kapasiteyi önerin</option>
             {CORPORATE_PACKAGE_LADDER.map((row) => (
               <option key={row.code} value={row.code}>{row.name} — {row.seats} kişi</option>
             ))}
@@ -64,16 +64,16 @@ export default function CorporateLeadForm({ plan = "GENEL", compact = false }: P
           </Select>
         </Field>
         <Field label="Çalışan sayısı"><Select name="employeeCount" defaultValue=""><option value="" disabled>Seçin</option><option value="1-10">1–10</option><option value="11-50">11–50</option><option value="51-250">51–250</option><option value="251-1000">251–1.000</option><option value="1000+">1.000+</option></Select></Field>
-        <Field label="İhtiyacınız" className="corporate-lead-full"><Textarea name="message" maxLength={1000} rows={4} placeholder="Ekip yapınızı, kart adedini veya özel entegrasyon ihtiyacınızı kısaca paylaşın." /></Field>
+        <Field label="Kurulum ihtiyacınız" className="corporate-lead-full"><Textarea name="message" maxLength={1000} rows={4} placeholder="Ekip yapınızı, kart adedini veya özel entegrasyon ihtiyacınızı kısaca paylaşın." /></Field>
       </FormGrid>
       <div className="corporate-lead-actions">
         <Button type="submit" variant="primary" disabled={status === "loading"} className="corporate-cta">
-          {status === "loading" ? "Gönderiliyor…" : "Kurulumunu Planla"} <span aria-hidden>→</span>
+          {status === "loading" ? "Talebiniz hazırlanıyor…" : "Kurulum detayını ilet"} <span aria-hidden>→</span>
         </Button>
         <span className="corporate-lead-note">1 iş günü içinde dönüş · ödeme veya kart bilgisi istenmez</span>
       </div>
       {message && <p className={`corporate-lead-feedback ${status}`} role={status === "error" ? "alert" : "status"}>{message}</p>}
-      <p className="corporate-lead-privacy">Bilgileriniz yalnızca kurumsal ihtiyacınızı değerlendirmek ve sizinle iletişime geçmek için kullanılır.</p>
+      <p className="corporate-lead-privacy">Bilgileriniz yalnızca kurulum ihtiyacınızı değerlendirmek ve sizinle iletişime geçmek için kullanılır.</p>
     </form>
   );
 }

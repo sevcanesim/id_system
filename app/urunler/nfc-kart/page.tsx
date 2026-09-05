@@ -8,19 +8,19 @@ import { PublicPageTitle } from "../../components/PublicPageTitle";
 import { YenomiProductVisual } from "../../ui/YenomiProductVisual";
 
 export const metadata: Metadata = {
-  title: "NFC + QR Kart",
-  description: "Yenomi ID Premium NFC + QR kart, canlı dijital profil ve networking araçları. İlk yıl platform erişimi ve Türkiye içi kargo dahil.",
+  title: "Bireysel NFC ve Premium Kart",
+  description: "NFC + QR kartın, canlı dijital profilin ve Bireysel Premium’da bağlantı takibin aynı sistemde. İlk yıl erişim ve Türkiye içi kargo dahil.",
 };
 
 const benefits = [
-  ["NFC", "Tek dokunuşla aç"],
-  ["QR", "Her telefonda alternatif"],
-  ["Sabit bağlantı", "Bilgin değişir, kartın kalır"],
+  ["NFC", "Tek dokunuşla paylaş"],
+  ["QR", "Her telefonda hazır"],
+  ["Canlı profil", "Bilgin değişir, kartın kalır"],
   ["İlk yıl", "Platform erişimi dahil"],
 ];
 
 const faq = [
-  [`Premium ${COMMERCIAL_COPY.premiumPrice}’ye ne dahil?`, "1 kişiselleştirilmiş NFC + QR kart, canlı dijital profil, kişi yönetimi, toplantı ve sunum araçları, 100 Network Mail kredisi, ilk yıl Premium erişimi ve Türkiye içi standart kargo dahildir."],
+  [`Bireysel Premium ${COMMERCIAL_COPY.premiumPrice}’ye ne dahil?`, "1 kişiselleştirilmiş NFC + QR kart, canlı dijital profil, kişi yönetimi, toplantı ve sunum araçları, 100 Network Mail kredisi, ilk yıl Premium erişimi ve Türkiye içi standart kargo dahildir."],
   ["2. yılda ne öderim?", `Premium erişimi ${COMMERCIAL_COPY.premiumRenewalPrice}/yıl, Bireysel erişimi ${COMMERCIAL_COPY.renewalPrice}/yıl üzerinden yenilenir. Yenilemede yeni fiziksel kart gönderilmez; mevcut kartın ve QR bağlantın kullanılmaya devam eder.`],
   ["Kartım ne zaman kargoya verilir?", `Sipariş ve profil bilgileriniz tamamlandıktan sonra kartınız ${COMMERCIAL_FULFILLMENT.handover.toLocaleLowerCase()}.`],
   ["Bilgilerimi değiştirebilir miyim?", "Evet. Aktif kullanım süren boyunca telefon, unvan, şirket, bağlantılar ve diğer profil bilgilerini istediğin kadar güncelleyebilirsin."],
@@ -44,17 +44,17 @@ export default async function NfcKartPage({
     <NfcPackageProvider initialPackage={initialPackage}>
       <main id="main-content" className="nfc-product-page">
         <PublicPageTitle
-          kicker="YENOMI ID · NFC + QR KART"
-          title={<>Kartın aynı kalır.<br />Profesyonel kimliğin güncel kalır.</>}
-          description="NFC veya QR ile anında paylaş. Bilgilerin değiştiğinde kartını değil, profilini güncelle; Premium ile yeni bağlantılarını da tek yerden yönet."
+          kicker="BİREYSEL NFC + BİREYSEL PREMIUM"
+          title={<>Fiziksel kartın.<br />Canlı dijital kimliğin.</>}
+          description="NFC veya QR ile tek dokunuşta paylaş. Bilgilerin değiştiğinde kartını değil, profilini güncelle; Bireysel Premium ile yeni bağlantılarını da takipte tut."
           className="public-page-title--product"
         />
 
         <section className="nfc-product-hero">
           <div className="yi-container nfc-product-hero__grid">
             <div className="nfc-product-hero__copy">
-              <span className="nfc-kicker">PAKETİNİ SEÇ</span>
-              <p className="nfc-product-hero__body">Premium, kartvizitten sonra bağlantıyı yönetmek isteyenler için. Sade ve güncellenebilir bir dijital kartvizit için Bireysel&apos;i seçebilirsin.</p>
+              <span className="nfc-kicker">SANA UYGUN SEVİYEYİ SEÇ</span>
+              <p className="nfc-product-hero__body">Bireysel NFC, güncel profesyonel kimliğini paylaşmak için. Bireysel Premium, kartvizitten sonra başlayan bağlantı ve takip akışı için.</p>
               <NfcPurchasePanel product={NFC_PRODUCT} accessRequired={accessRequired} />
             </div>
             <div className="nfc-product-hero__visual">
@@ -76,8 +76,8 @@ export default async function NfcKartPage({
 
         <section className="nfc-faq">
           <div className="yi-container">
-            <span className="nfc-kicker">SATIN ALMADAN ÖNCE</span>
-            <h2>Kısa cevaplar.</h2>
+            <span className="nfc-kicker">KARARINI KOLAYLAŞTIR</span>
+            <h2>Bilmen gerekenler, net biçimde.</h2>
             <div className="nfc-faq__list">
               {faq.map(([question, answer]) => <details key={question}><summary>{question}</summary><p>{answer}</p></details>)}
             </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import QRCode from "qrcode";
 import { EmptyState, LoadingState } from "../../../components/ui/States";
 import { StatusBadge } from "../../../components/ui/DesignSystem";
 import { Icon } from "../../../icons";
@@ -23,6 +24,7 @@ type Lead = {
   scoreLabel: string;
   interests: string[];
   created_at: string;
+  event_id?: string | null;
   counterpart?: {
     public_id?: string | null;
     slug?: string | null;
@@ -46,6 +48,9 @@ type EventRow = {
   name: string;
   location: string | null;
   booth: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  created_at: string;
 };
 
 type EventLink = {
@@ -53,6 +58,7 @@ type EventLink = {
   event_id: string;
   profile_id: string;
   public_id: string;
+  created_at?: string;
 };
 
 type Timeline = { lead_id: string; kind: string; created_at: string };
@@ -90,6 +96,7 @@ const TIMELINE_LABELS: Record<string, string> = {
 
 function sourceLabel(source: string) {
   const value = source.toUpperCase();
+  if (value.includes("EVENT")) return "Etkinlik · QR";
   if (value.includes("QR")) return "Yenomi ID · QR";
   if (value.includes("NFC")) return "Yenomi ID · NFC";
   return "Yenomi ID kartı";
@@ -99,6 +106,18 @@ function relativeDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
   return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(date);
+}
+
+function eventDateRange(startsAt: string | null, endsAt: string | null) {
+  const format = (value: string) => new Intl.DateTimeFormat("tr-TR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(value));
+  if (startsAt && endsAt) return `${format(startsAt)} – ${format(endsAt)}`;
+  if (startsAt) return `${format(startsAt)} itibarıyla`;
+  if (endsAt) return `${format(endsAt)} tarihine kadar`;
+  return null;
 }
 
 export default function NetworkingPanel({
@@ -120,6 +139,8 @@ export default function NetworkingPanel({
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [events, setEvents] = useState<EventRow[]>([]);
   const [eventLinks, setEventLinks] = useState<EventLink[]>([]);
+  const [eventLeadCounts, setEventLeadCounts] = useState<Record<string, number>>({});
+  const [eventQrImages, setEventQrImages] = useState<Record<string, string>>({});
   const [timeline, setTimeline] = useState<Timeline[]>([]);
   const [credits, setCredits] = useState(0);
   const [creditLimit, setCreditLimit] = useState(0);
@@ -127,7 +148,8 @@ export default function NetworkingPanel({
   const [drafts, setDrafts] = useState<Record<string, EmailDraft>>({});
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
-  const [eventForm, setEventForm] = useState({ name: "", location: "", booth: "", profileId: "" });
+  const [eventForm, setEventForm] = useState({ name: "", location: "", booth: "", startsAt: "", endsAt: "" });
+  const [eventProfileIds, setEventProfileIds] = useState<Record<string, string>>({});
 
   async function load() {
     const access = await token();
@@ -152,6 +174,7 @@ export default function NetworkingPanel({
       setMeetings(payload.meetings || []);
       setEvents(payload.events || []);
       setEventLinks(payload.eventLinks || []);
+      setEventLeadCounts(payload.eventLeadCounts || {});
       setTimeline(payload.timeline || []);
       setCredits(payload.mailCredits?.mail_credits_remaining ?? 0);
       setCreditLimit(payload.mailCredits?.mail_credit_limit ?? 0);
@@ -165,6 +188,24 @@ export default function NetworkingPanel({
     setLoaded(false);
     void load();
   }, [organizationId, view, variant]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const origin = window.location.origin;
+    void Promise.all(eventLinks.map(async (link) => [
+      link.id,
+      await QRCode.toDataURL(`${origin}${eventAttributionPath(link.public_id)}`, {
+        width: 240,
+        margin: 1,
+        errorCorrectionLevel: "M",
+      }),
+    ] as const)).then((images) => {
+      if (!cancelled) setEventQrImages(Object.fromEntries(images));
+    }).catch(() => {
+      if (!cancelled) setEventQrImages({});
+    });
+    return () => { cancelled = true; };
+  }, [eventLinks]);
 
   async function post(body: Record<string, unknown>) {
     const access = await token();
@@ -216,8 +257,32 @@ export default function NetworkingPanel({
 
   async function createEvent(event: FormEvent) {
     event.preventDefault();
-    await post({ action: "create_event", name: eventForm.name, location: eventForm.location, booth: eventForm.booth });
-    setEventForm((current) => ({ ...current, name: "", location: "", booth: "" }));
+    const created = await post({
+      action: "create_event",
+      name: eventForm.name,
+      location: eventForm.location,
+      booth: eventForm.booth,
+      startsAt: eventForm.startsAt || undefined,
+      endsAt: eventForm.endsAt || undefined,
+    });
+    if (created) setEventForm({ name: "", location: "", booth: "", startsAt: "", endsAt: "" });
+  }
+
+  async function addProfileToEvent(eventId: string) {
+    const profileId = eventProfileIds[eventId];
+    if (!profileId) return;
+    const created = await post({ action: "create_event_link", eventId, profileId });
+    if (created) setEventProfileIds((current) => ({ ...current, [eventId]: "" }));
+  }
+
+  async function copyEventLink(publicId: string) {
+    const url = `${window.location.origin}${eventAttributionPath(publicId)}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setMessage("Etkinlik QR bağlantısı kopyalandı.");
+    } catch {
+      setMessage("Bağlantı kopyalanamadı. QR sayfasını açıp adres çubuğundan kopyalayın.");
+    }
   }
 
   const cardOptions = useMemo(
@@ -228,6 +293,8 @@ export default function NetworkingPanel({
     [memberCardStatuses, members],
   );
 
+  const eventNameById = useMemo(() => new Map(events.map((event) => [event.id, event.name])), [events]);
+
   const leadName = (leadId: string) => leads.find((lead) => lead.id === leadId)?.full_name || "Lead";
 
   return (
@@ -235,14 +302,14 @@ export default function NetworkingPanel({
       <header className="p11-employees-header p11-networking-header">
         <div>
           <span>NETWORKING</span>
-          <h2 id="p11-networking-title">{view === "leads" ? variant === "individual" ? "Kartından gelen bağlantılar" : "Leadler" : view === "events" ? "Etkinlikler" : "Görüşmeler"}</h2>
+          <h2 id="p11-networking-title">{view === "leads" ? variant === "individual" ? "Kartından gelen bağlantılar" : "Leadler" : view === "events" ? "Etkinlik kampanyaları" : "Görüşmeler"}</h2>
           <p>
             {view === "leads"
               ? variant === "individual"
                 ? "Bir kişi kartındaki formdan iletişim bilgisini paylaştığında burada görünür. Durumunu güncelleyebilir, kendi e-posta taslağını hazırlayıp Network Mail ile takip edebilirsin."
                 : "Kartınız üzerinden iletişim bilgilerini paylaşan kişileri burada takip edin ve sonraki adımı siz yönetin."
               : view === "events"
-                ? "Etkinliklerinizi ve kartlarınıza bağlı etkinlik QR’lerini yönetin."
+                ? "Fuar, konferans ve saha buluşmalarında oluşan lead’leri kaynaklarıyla birlikte izlemek için etkinlik kampanyaları oluşturun."
                 : "Networking bağlantılarınız için planlanan görüşmeleri yönetin."}
           </p>
         </div>
@@ -283,7 +350,7 @@ export default function NetworkingPanel({
                       <div>
                         <strong>{lead.full_name}</strong>
                         <span>{[lead.position, lead.company].filter(Boolean).join(" · ") || "Profesyonel bilgi paylaşılmadı"}</span>
-                        <small>{sourceLabel(lead.source)} · {relativeDate(lead.created_at)}</small>
+                        <small>{sourceLabel(lead.source)}{lead.event_id ? ` · ${eventNameById.get(lead.event_id) || "Etkinlik"}` : ""} · {relativeDate(lead.created_at)}</small>
                       </div>
                     </div>
                     <StatusBadge tone={leadStatusTone(lead.status)} className="p11-networking-lead__status">
@@ -374,39 +441,97 @@ export default function NetworkingPanel({
 
       {loaded && view === "events" && (
         <>
+          <aside className="p11-event-campaign-intro" aria-label="Etkinlik kampanyası amacı">
+            <Icon name="analytics" />
+            <div>
+              <strong>Etkinlikte hangi temasların lead’e dönüştüğünü görün.</strong>
+              <p>Bu kampanyaya eklenen çalışan kartlarının QR’ı okutulduğunda, bırakılan iletişim bilgisi Leadler’de etkinlik adı ve kart sahibiyle birlikte kaydedilir.</p>
+            </div>
+          </aside>
           <form className="p11-networking-form" onSubmit={createEvent}>
-            <p className="p11-networking-form-kicker">Yeni etkinlik</p>
-            <label>Etkinlik adı<input required value={eventForm.name} onChange={(event) => setEventForm((current) => ({ ...current, name: event.target.value }))} /></label>
+            <p className="p11-networking-form-kicker">Yeni etkinlik kampanyası</p>
+            <p className="p11-networking-form-copy">Fuar, konferans veya saha buluşması için ayrı bir kaynak oluşturun. Sonraki adımda katılan çalışanların kartlarını bu kampanyaya bağlayacaksınız.</p>
+            <label>Etkinlik adı<input required placeholder="Örn. Web Summit 2026" value={eventForm.name} onChange={(event) => setEventForm((current) => ({ ...current, name: event.target.value }))} /></label>
             <div className="p11-networking-form-row">
               <label>Lokasyon<input value={eventForm.location} onChange={(event) => setEventForm((current) => ({ ...current, location: event.target.value }))} /></label>
               <label>Stand<input value={eventForm.booth} onChange={(event) => setEventForm((current) => ({ ...current, booth: event.target.value }))} /></label>
             </div>
-            <button type="submit" className="ds-button ds-button--primary" disabled={busy}>Etkinlik Oluştur</button>
+            <div className="p11-networking-form-row">
+              <label>Başlangıç <input type="datetime-local" value={eventForm.startsAt} onChange={(event) => setEventForm((current) => ({ ...current, startsAt: event.target.value }))} /></label>
+              <label>Bitiş <input type="datetime-local" value={eventForm.endsAt} onChange={(event) => setEventForm((current) => ({ ...current, endsAt: event.target.value }))} /></label>
+            </div>
+            <button type="submit" className="ds-button ds-button--primary" disabled={busy}>Kampanyayı oluştur</button>
           </form>
           {events.length === 0 ? (
-            <p className="p11-networking-form-hint">Kayıt sonrası kişiye özel etkinlik QR’si üretilir.</p>
-          ) : events.map((eventRow) => (
-            <article className="p11-networking-event" key={eventRow.id}>
-              <div>
-                <strong>{eventRow.name}</strong>
-                <span>{[eventRow.location, eventRow.booth].filter(Boolean).join(" · ") || "Lokasyon yok"}</span>
-              </div>
-              <form onSubmit={(submitEvent) => { submitEvent.preventDefault(); if (eventForm.profileId) void post({ action: "create_event_link", eventId: eventRow.id, profileId: eventForm.profileId }); }}>
-                <label>Kart QR’si
-                  <select required value={eventForm.profileId} onChange={(changeEvent) => setEventForm((current) => ({ ...current, profileId: changeEvent.target.value }))}>
-                    <option value="">Çalışan kartı seçin</option>
-                    {cardOptions.map((option) => <option key={option.profileId} value={option.profileId}>{option.label}</option>)}
-                  </select>
-                </label>
-                <button type="submit" disabled={busy || !eventForm.profileId}>Etkinlik QR’si üret</button>
-              </form>
-              <ul>
-                {eventLinks.filter((link) => link.event_id === eventRow.id).map((link) => (
-                  <li key={link.id}><code>{eventAttributionPath(link.public_id)}</code></li>
-                ))}
-              </ul>
-            </article>
-          ))}
+            <p className="p11-networking-form-hint">Kampanya oluşturduktan sonra etkinlikteki çalışan kartlarını ekleyin. Her QR taraması bu etkinliğe kaynak olarak yazılır.</p>
+          ) : events.map((eventRow) => {
+            const linksForEvent = eventLinks.filter((link) => link.event_id === eventRow.id);
+            const linkedProfileIds = new Set(linksForEvent.map((link) => link.profile_id));
+            const availableCards = cardOptions.filter((option) => !linkedProfileIds.has(option.profileId));
+            const dateRange = eventDateRange(eventRow.starts_at, eventRow.ends_at);
+            const leadCount = eventLeadCounts[eventRow.id] || 0;
+            return (
+              <article className="p11-networking-event p11-event-campaign" key={eventRow.id}>
+                <header className="p11-event-campaign__header">
+                  <div>
+                    <p className="p11-networking-form-kicker">Etkinlik kampanyası</p>
+                    <strong>{eventRow.name}</strong>
+                    <span>{[eventRow.location, eventRow.booth, dateRange].filter(Boolean).join(" · ") || "Tarih ve lokasyon henüz belirtilmedi"}</span>
+                  </div>
+                  <StatusBadge tone={linksForEvent.length ? "success" : "warning"}>
+                    <Icon name={linksForEvent.length ? "check" : "alert"} />
+                    {linksForEvent.length ? "QR dağıtıma hazır" : "Ekip kartı bekliyor"}
+                  </StatusBadge>
+                </header>
+
+                <dl className="p11-event-campaign__metrics">
+                  <div><dt>Bağlı kart</dt><dd>{linksForEvent.length}</dd></div>
+                  <div><dt>Etkinlik leadi</dt><dd>{leadCount}</dd></div>
+                  <div><dt>Kaynak</dt><dd>QR taraması</dd></div>
+                </dl>
+
+                <form className="p11-event-campaign__assign" onSubmit={(submitEvent) => { submitEvent.preventDefault(); void addProfileToEvent(eventRow.id); }}>
+                  <div>
+                    <strong>Katılan ekip kartlarını bağla</strong>
+                    <span>Bu QR ile açılan kartta iletişim bilgisini bırakan kişiler otomatik olarak <b>{eventRow.name}</b> kaynağıyla Leadler’e düşer.</span>
+                  </div>
+                  <label>
+                    <span>Çalışan kartı</span>
+                    <select required value={eventProfileIds[eventRow.id] || ""} onChange={(changeEvent) => setEventProfileIds((current) => ({ ...current, [eventRow.id]: changeEvent.target.value }))} disabled={availableCards.length === 0}>
+                      <option value="">{availableCards.length ? "Kart seçin" : "Eklenebilecek kart yok"}</option>
+                      {availableCards.map((option) => <option key={option.profileId} value={option.profileId}>{option.label}</option>)}
+                    </select>
+                  </label>
+                  <button type="submit" disabled={busy || !eventProfileIds[eventRow.id] || availableCards.length === 0}><Icon name="qr" />Kartı kampanyaya ekle</button>
+                </form>
+
+                {linksForEvent.length === 0 ? (
+                  <p className="p11-event-campaign__empty">Henüz kart bağlı değil. Etkinlikte QR’ı gösterecek çalışanları ekleyin.</p>
+                ) : (
+                  <div className="p11-event-campaign__links" aria-label="Etkinlikte kullanılacak kart QR kodları">
+                    {linksForEvent.map((link) => {
+                      const cardName = cardOptions.find((option) => option.profileId === link.profile_id)?.label || "Çalışan kartı";
+                      const eventPath = eventAttributionPath(link.public_id);
+                      return (
+                        <section className="p11-event-qr" key={link.id}>
+                          {eventQrImages[link.id] ? <img src={eventQrImages[link.id]} alt={`${cardName} için ${eventRow.name} QR kodu`} /> : <div className="p11-event-qr__loading"><Icon name="qr" /></div>}
+                          <div>
+                            <strong>{cardName}</strong>
+                            <span>Etkinlik QR’ı hazır · taramalar bu kampanyaya bağlanır.</span>
+                            <div className="p11-event-qr__actions">
+                              <a href={eventPath} target="_blank" rel="noreferrer"><Icon name="external" />QR sayfasını aç</a>
+                              <button type="button" onClick={() => void copyEventLink(link.public_id)}><Icon name="copy" />Bağlantıyı kopyala</button>
+                            </div>
+                          </div>
+                        </section>
+                      );
+                    })}
+                  </div>
+                )}
+                <a className="p11-event-campaign__leads" href="/kurumsal/panel/leadler"><Icon name="analytics" />Bu etkinliğin leadlerini Leadler’de takip et</a>
+              </article>
+            );
+          })}
         </>
       )}
     </section>

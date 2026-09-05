@@ -23,7 +23,7 @@ export default function CorporateMyCardPage() {
           </div>
         }
       >
-        <CardWizard presentation="individual" />
+      <CardWizard />
       </Suspense>
     </div>
   );

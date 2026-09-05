@@ -60,11 +60,12 @@ export async function GET(request: NextRequest) {
   if (!actor) return NextResponse.json({ error: "Bu alan yalnız şirket yöneticilerine açıktır." }, { status: 403 });
 
   const admin = getSupabaseAdminClient();
-  const [{ data: leads }, { data: events }, { data: meetings }, { data: entitlements }] = await Promise.all([
-    admin.from("networking_leads").select("id,full_name,company,position,city,country,source,status,score,interests,created_at,counterpart:card_profiles!networking_leads_counterpart_profile_id_fkey(public_id,slug)").eq("organization_id", organizationId).order("created_at", { ascending: false }).limit(200),
+  const [{ data: leads }, { data: events }, { data: meetings }, { data: entitlements }, { data: eventLeadRows }] = await Promise.all([
+    admin.from("networking_leads").select("id,full_name,company,position,city,country,source,status,score,interests,created_at,event_id,counterpart:card_profiles!networking_leads_counterpart_profile_id_fkey(public_id,slug)").eq("organization_id", organizationId).order("created_at", { ascending: false }).limit(200),
     admin.from("networking_events").select("*").eq("organization_id", organizationId).order("created_at", { ascending: false }).limit(50),
     admin.from("networking_meetings").select("*").eq("organization_id", organizationId).order("created_at", { ascending: false }).limit(200),
     admin.from("organization_entitlements").select("mail_credits_remaining,mail_credit_limit").eq("organization_id", organizationId).maybeSingle(),
+    admin.from("networking_leads").select("event_id").eq("organization_id", organizationId).not("event_id", "is", null),
   ]);
 
   const eventRows = (events || []) as Array<{ id: string }>;
@@ -77,11 +78,16 @@ export async function GET(request: NextRequest) {
   const { data: timeline } = leadIds.length
     ? await admin.from("networking_lead_events").select("*").in("lead_id", leadIds).order("created_at", { ascending: true })
     : { data: [] };
+  const eventLeadCounts = (eventLeadRows || []).reduce<Record<string, number>>((counts, lead) => {
+    if (lead.event_id) counts[lead.event_id] = (counts[lead.event_id] || 0) + 1;
+    return counts;
+  }, {});
 
   return NextResponse.json({
     leads: leadRows.map((lead) => ({ ...lead, scoreLabel: scoreLabel(lead.score) })),
     events: events || [],
     eventLinks: links || [],
+    eventLeadCounts,
     meetings: meetings || [],
     timeline: timeline || [],
     mailCredits: entitlements || { mail_credits_remaining: 0, mail_credit_limit: 0 },
@@ -120,6 +126,13 @@ export async function POST(request: NextRequest) {
     if (!profile || profile.organization_id !== parsed.data.organizationId) {
       return NextResponse.json({ error: "Kart bu şirkete ait değil." }, { status: 409 });
     }
+    const { data: existingLink } = await admin
+      .from("networking_event_links")
+      .select("*")
+      .eq("event_id", parsed.data.eventId)
+      .eq("profile_id", parsed.data.profileId)
+      .maybeSingle();
+    if (existingLink) return NextResponse.json({ link: existingLink, existing: true });
     const { data, error } = await admin.from("networking_event_links").insert({
       event_id: parsed.data.eventId,
       organization_id: parsed.data.organizationId,

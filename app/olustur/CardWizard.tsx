@@ -50,7 +50,7 @@ const CARD_SECTIONS = [
 const HR_AUDIT_NOTICE = "Değişiklikler İK ve Sistem Yöneticisine bildirildi";
 const HR_AUDIT_NOTICE_KEY = "yenomi:card-editor:hr-audit";
 
-export default function CardWizard({ presentation = "auto" }: { presentation?: "auto" | "individual" }) {
+export default function CardWizard() {
   const { notify } = useNotice();
   const [data, setData] = useState<CardData>(INITIAL_CARD_DATA);
   const [userId, setUserId] = useState<string | null>(null);
@@ -1084,7 +1084,7 @@ export default function CardWizard({ presentation = "auto" }: { presentation?: "
   // "Kartım", profil şirket tarafından yönetilse dahi kişisel bir düzenleme
   // yüzeyidir. Şirket kilitleri ve markası korunur; veri yüklendiğinde kişisel
   // editör kabuğu kurumsal kabukla değiştirilmez.
-  if (!isBusinessCard || presentation === "individual") {
+  if (!isBusinessCard) {
     return <UserPanelShell
       title={profileId ? "Profili Düzenle" : "Profilini Oluştur"}
       description="Dijital kartvizit bilgilerinizi düzenleyin. Kaydettiğiniz değişiklikler aynı QR ve NFC bağlantısında yayınlanır."

@@ -1002,7 +1002,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     integrations: { title: "Entegrasyonlar", description: "Karttan doğan lead ve görüşmeleri CRM’inize güvenli biçimde aktarın.", icon: "link" },
     analytics: { title: "İstatistikler", description: "Kart görüntülenmelerini ve içerik etkileşimlerini gerçek verilerle izle.", icon: "analytics" },
     leads: { title: "Leadler", description: "Karttan düşen networking lead’lerini, mail ve görüşme takibini yönet.", icon: "mail" },
-    events: { title: "Etkinlikler", description: "Etkinlik QR attribution katmanını kişi kartından ayrı tut.", icon: "clock" },
+    events: { title: "Etkinlik kampanyaları", description: "Fuar ve saha temaslarını ekibe, QR kullanımına ve gelen lead’lere göre izleyin.", icon: "clock" },
     meetings: { title: "Görüşmeler", description: "Online ve yüz yüze görüşme taleplerini kabul et, alternatif öner veya reddet.", icon: "headset" },
     organization: { title: "Organizasyon", description: "Şirket kimliği, alan politikaları ve ünvan standardını yönet.", icon: "building" },
     settings: { title: "Ayarlar", description: "Sık değişmeyen kurumsal yönetim alanlarına ulaş.", icon: "adjustments" },

@@ -29,11 +29,13 @@ export default function LoginClient({
   initialPortal,
   initialMode,
   initialMessage,
+  portalPurchaseRequired,
 }: {
   initialNext: string;
   initialPortal: LoginPortal;
   initialMode: AuthMode;
   initialMessage: string;
+  portalPurchaseRequired: boolean;
 }) {
   const router = useRouter();
   const { notify } = useNotice();
@@ -52,6 +54,7 @@ export default function LoginClient({
 
   function loginRedirectPath(mode?: "recovery") {
     const params = new URLSearchParams({ portal: initialPortal, next: returnPath });
+    if (portalPurchaseRequired) params.set("purchase", "portal");
     if (mode) params.set("mode", mode);
     return `${window.location.origin}/giris?${params.toString()}`;
   }
@@ -325,8 +328,8 @@ export default function LoginClient({
       ? "Şifreni yenile"
       : returnPath === "/checkout"
         ? mode === "signup"
-          ? "Siparişini hesaba bağlamak istersen hesap oluştur"
-          : "Siparişini hesaba bağlamak istersen giriş yap"
+          ? portalPurchaseRequired ? "Ödemeye devam etmek için hesap oluştur" : "Siparişini hesaba bağlamak istersen hesap oluştur"
+          : portalPurchaseRequired ? "Ödemeye devam etmek için giriş yap" : "Siparişini hesaba bağlamak istersen giriş yap"
         : mode === "signup"
           ? "Yenomi ID hesabını oluştur"
           : "Hesabına giriş yap";
@@ -336,7 +339,7 @@ export default function LoginClient({
     : mode === "forgot"
       ? "Hesabındaki e-posta adresini yaz. Sana güvenli bir yenileme bağlantısı gönderelim."
       : returnPath === "/checkout"
-        ? "Hesap açmadan ödeme yapabilirsin. Giriş yalnızca siparişi bu e-posta ile hesabına bağlamak içindir."
+        ? portalPurchaseRequired ? "Bu paket portal erişimi içerir. Ödemeye devam etmek için giriş yapmalı veya hesap oluşturmalısın." : "Hesap açmadan ödeme yapabilirsin. Giriş yalnızca siparişi bu e-posta ile hesabına bağlamak içindir."
         : mode === "signup"
           ? "Hesabını oluştur. Çalışma alanın hesabına tanımlanan yetkilere göre otomatik hazırlanır."
           : "E-posta ve şifrenle giriş yap. Doğru çalışma alanına otomatik yönlendirileceksin.";
@@ -377,8 +380,8 @@ export default function LoginClient({
           <div className="p6-auth-form-card">
             {returnPath === "/checkout" && mode !== "recovery" && (
               <div className="p6-checkout-context" role="status">
-                <span>HESAP İSTEĞE BAĞLI</span>
-                <Link href="/checkout">Ödemeye dön — hesap gerekmez</Link>
+                <span>{portalPurchaseRequired ? "PORTAL HESABI ZORUNLU" : "HESAP İSTEĞE BAĞLI"}</span>
+                {portalPurchaseRequired ? <small>Portal erişimi giriş yaptığın hesaba tanımlanır.</small> : <Link href="/checkout">Ödemeye dön — hesap gerekmez</Link>}
               </div>
             )}
             {authAlert}

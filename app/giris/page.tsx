@@ -18,6 +18,7 @@ export default async function LoginPage({
     mode?: string | string[];
     error?: string | string[];
     portal?: string | string[];
+    purchase?: string | string[];
   }>;
 }) {
   const headerList = await headers();
@@ -36,6 +37,7 @@ export default async function LoginPage({
       initialPortal={initialPortal}
       initialMode={initialMode}
       initialMessage={initialMessage}
+      portalPurchaseRequired={firstSearchParam(params.purchase) === "portal"}
     />
   );
 }

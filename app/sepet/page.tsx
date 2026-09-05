@@ -29,7 +29,7 @@ export default function CartPage() {
   const total = useMemo(() => items.reduce((sum, item) => sum + item.unitPriceKurus * item.quantity, 0), [items]);
   const shippingIncluded = COMMERCIAL_PRICING.DOMESTIC_SHIPPING.includedForPhysicalProducts;
   const requiresPortalLogin = audience === "guest" && items.some((item) => requiresPortalAccountSku(item.variantSku));
-  const portalLoginHref = `/giris?portal=${items.some((item) => isCorporatePackageSku(item.variantSku)) ? "business" : "individual"}&next=%2Fcheckout`;
+  const portalLoginHref = `/giris?portal=${items.some((item) => isCorporatePackageSku(item.variantSku)) ? "business" : "individual"}&purchase=portal&next=%2Fcheckout`;
   const checkoutHref = requiresPortalLogin ? portalLoginHref : "/checkout";
   const update = (id: string, quantity: number) => { const next = updateCartItemQuantity(items, id, quantity); writeCart(next); setItems(next); };
   const remove = (id: string) => { const next = removeCartItem(items, id); writeCart(next); setItems(next); };

@@ -84,7 +84,7 @@ export default function CheckoutPage() {
   const [organizationTargets, setOrganizationTargets] = useState<Record<string, { name: string; role: string }>>({});
   const [privacyMask, setPrivacyMask] = useState(false);
   const portalPurchase = items.some((item) => requiresPortalAccountSku(item.variantSku));
-  const portalLoginHref = `/giris?portal=${items.some((item) => isCorporatePackageSku(item.variantSku)) ? "business" : "individual"}&next=%2Fcheckout`;
+  const portalLoginHref = `/giris?portal=${items.some((item) => isCorporatePackageSku(item.variantSku)) ? "business" : "individual"}&purchase=portal&next=%2Fcheckout`;
   const requiresPortalLogin = portalPurchase && !isAuthenticated;
 
   useEffect(() => {

@@ -12,14 +12,15 @@ export type OrganizationAuditAction =
   | "CONTENT_PUBLICATION_CHANGED"
   | "CONTENT_ROLLED_BACK"
   | "CONTENT_REMOVED"
-  | "SECURITY_POLICY_CHANGED";
+  | "SECURITY_POLICY_CHANGED"
+  | "NETWORK_MAIL_THRESHOLD_REACHED";
 
 export type OrganizationAuditEventInput = {
   organizationId: string;
-  actorUserId: string;
-  actorRole: OrganizationRole;
+  actorUserId?: string | null;
+  actorRole: OrganizationRole | "SYSTEM";
   action: OrganizationAuditAction;
-  subjectType: "MEMBER" | "CORPORATE_LINK" | "SECURITY_POLICY";
+  subjectType: "MEMBER" | "CORPORATE_LINK" | "SECURITY_POLICY" | "NETWORK_MAIL";
   subjectId?: string | null;
   summary: string;
   metadata?: Record<string, string | number | boolean | null>;
@@ -36,7 +37,7 @@ export async function recordOrganizationAuditEvent(
 ) {
   const { error } = await admin.from("organization_audit_events").insert({
     organization_id: event.organizationId,
-    actor_user_id: event.actorUserId,
+    actor_user_id: event.actorUserId || null,
     actor_role: event.actorRole,
     action: event.action,
     subject_type: event.subjectType,

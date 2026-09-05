@@ -638,7 +638,10 @@
   }
 }
 
-@media (max-width: 960px) {
+/* A desktop sidebar makes the usable canvas considerably narrower than the
+   viewport. Switch the metric row before its labels and actions compete for
+   the same corner. */
+@media (max-width: 1280px) {
   .cp-overview-v2__metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -753,6 +756,39 @@
   .cp-overview-v2__metrics article {
     min-width: 0;
     padding: 11px;
+  }
+
+  .cp-overview-v2__metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .cp-overview-v2__metrics article,
+  .cp-overview-v2__metrics article:nth-child(2) {
+    border-right: 0;
+  }
+
+  .cp-overview-v2__metrics article:not(:last-child) {
+    border-bottom: 1px solid rgba(36, 29, 23, .08);
+  }
+
+  .cp-overview-v2__metrics article > button {
+    min-height: 108px;
+  }
+
+  .cp-overview-v2__metric-label {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .cp-overview-v2__metric-label > span {
+    overflow-wrap: anywhere;
+  }
+
+  .cp-overview-v2__metrics em {
+    position: static;
+    align-self: stretch;
+    margin-top: auto;
+    text-align: right;
   }
 
   .cp-overview-v2__metrics article > span,

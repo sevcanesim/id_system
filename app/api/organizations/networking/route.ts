@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
 
   const admin = getSupabaseAdminClient();
   const [{ data: leads }, { data: events }, { data: meetings }, { data: entitlements }] = await Promise.all([
-    admin.from("networking_leads").select("*,counterpart:card_profiles!networking_leads_counterpart_profile_id_fkey(public_id,slug)").eq("organization_id", organizationId).order("created_at", { ascending: false }).limit(200),
+    admin.from("networking_leads").select("id,full_name,company,position,city,country,source,status,score,interests,created_at,counterpart:card_profiles!networking_leads_counterpart_profile_id_fkey(public_id,slug)").eq("organization_id", organizationId).order("created_at", { ascending: false }).limit(200),
     admin.from("networking_events").select("*").eq("organization_id", organizationId).order("created_at", { ascending: false }).limit(50),
     admin.from("networking_meetings").select("*").eq("organization_id", organizationId).order("created_at", { ascending: false }).limit(200),
     admin.from("organization_entitlements").select("mail_credits_remaining,mail_credit_limit").eq("organization_id", organizationId).maybeSingle(),

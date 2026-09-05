@@ -137,3 +137,18 @@ export function sendNetworkingFollowUpEmail(input:{to:string;organizationName:st
     replyTo: input.replyTo,
   });
 }
+
+export function sendOrganizationNetworkMailLimitEmail(input: {
+  to: string;
+  organizationName: string;
+  remaining: number;
+}) {
+  const org = escapeHtml(input.organizationName);
+  const remaining = Math.max(0, Math.floor(input.remaining));
+  const panelUrl = `${emailPublicSiteUrl}/kurumsal/panel/leadler`;
+  return sendMail({
+    to: input.to,
+    subject: `Network Mail kullanım hakkınız ${remaining} kaldı — ${input.organizationName}`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto">${emailHeader()}<h1>Network Mail kullanım uyarısı</h1><p><strong>${org}</strong> için Network Mail kullanım hakkı <strong>${remaining}</strong> seviyesine ulaştı.</p><p>Lead takip gönderimlerinin kesintiye uğramaması için kalan kullanım hakkınızı gözden geçirin.</p><p><a href="${panelUrl}" style="display:inline-block;padding:14px 20px;background:#17121f;color:white;text-decoration:none;border-radius:10px">Network Mail kullanımını görüntüle</a></p></div>`,
+  });
+}

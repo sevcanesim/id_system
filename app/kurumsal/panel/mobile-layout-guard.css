@@ -1,0 +1,57 @@
+/* The corporate desktop app has mobile equivalents for dense tables and
+ * management views. Mobile should never depend on horizontal rails to expose
+ * navigation or actions. */
+@media (max-width: 768px) {
+  .p8-section-nav {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+    margin-inline: 0;
+    padding: var(--space-2);
+    border-inline: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+  }
+
+  .p8-section-nav a {
+    min-width: 0;
+    justify-content: center;
+    padding-inline: var(--space-2);
+    white-space: normal;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .v25-employee-drawer [role="tablist"] {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .v25-employee-drawer [role="tab"] {
+    min-width: 0;
+    min-height: 42px;
+    padding-inline: 8px;
+    white-space: normal;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  /* Departman tablosu için zaten bulunan kart görünümünü tüm mobil
+   * aralıkta kullan. Böylece 481-768px arasında tabloyu yatay kaydırmak
+   * gerekmez. */
+  .org-structure__table-wrap {
+    display: none;
+  }
+
+  .org-structure__mobile-list {
+    display: flex;
+  }
+}
+
+@media (max-width: 390px) {
+  .p8-section-nav,
+  .v25-employee-drawer [role="tablist"] {
+    grid-template-columns: 1fr;
+  }
+}

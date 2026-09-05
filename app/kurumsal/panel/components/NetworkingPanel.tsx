@@ -13,8 +13,6 @@ type View = "leads" | "events" | "meetings";
 type Lead = {
   id: string;
   full_name: string;
-  email: string;
-  phone?: string | null;
   company: string | null;
   position?: string | null;
   city: string;
@@ -89,10 +87,6 @@ const TIMELINE_LABELS: Record<string, string> = {
   MEETING_DECLINED: "Görüşme reddedildi",
   MEETING_COMPLETED: "Görüşme tamamlandı",
 };
-
-function cleanPhone(value?: string | null) {
-  return (value || "").replace(/[^\d]/g, "");
-}
 
 function sourceLabel(source: string) {
   const value = source.toUpperCase();
@@ -216,19 +210,8 @@ export default function NetworkingPanel({
     const sent = await post({ action: "send_followup", leadId, subject: draft.subject, message: draft.message });
     if (sent) {
       setDrafts((current) => ({ ...current, [leadId]: { subject: "", message: "" } }));
-      setMessage("Kişisel e-posta taslağınız Network Mail ile gönderildi.");
+      setMessage("E-posta Network Mail ile gönderildi. 1 kredi kullanıldı.");
     }
-  }
-
-  function openEmailClient(lead: Lead) {
-    const draft = drafts[lead.id];
-    if (!draft || draft.subject.trim().length < 2 || draft.message.trim().length < 2) {
-      setMessage("E-posta uygulamasını açmadan önce konu ve mesajınızı yazın.");
-      return;
-    }
-    const query = new URLSearchParams({ subject: draft.subject.trim(), body: draft.message.trim() });
-    window.location.href = `mailto:${lead.email}?${query.toString()}`;
-    setMessage("E-posta uygulamanız açıldı. Gönderimi uygulamanızda tamamlayın; Network Mail kredisi kullanılmadı.");
   }
 
   async function createEvent(event: FormEvent) {
@@ -271,7 +254,7 @@ export default function NetworkingPanel({
       </header>
       {loaded && view === "leads" && variant === "individual" && (
         <p className="p11-networking-message" role="note">
-          <strong>Network Mail nasıl çalışır?</strong> Her gönderim 1 kredi kullanır; gönderen Yenomi ID olur ve yanıtlar doğrulanmış e-posta adresine gelir. Konu ve mesajını kendin yazıp gönderebilirsin.
+          <strong>Network Mail ile gönder.</strong> Konu ve mesajını sen yaz; kaydedilen alıcı e-postası görünmeden güvenle kullanılır ve her gönderimde 1 kredi düşer.
         </p>
       )}
       {message && <p className="p11-networking-message" role="status">{message}</p>}
@@ -291,7 +274,6 @@ export default function NetworkingPanel({
           <div className="p11-networking-list p11-networking-inbox">
             {leads.map((lead) => {
               const eventsForLead = timeline.filter((item) => item.lead_id === lead.id);
-              const phone = cleanPhone(lead.phone);
               const counterpartHref = lead.counterpart?.public_id ? `/p/${lead.counterpart.public_id}` : null;
               return (
                 <article className="p11-networking-lead" key={lead.id}>
@@ -308,11 +290,6 @@ export default function NetworkingPanel({
                       <Icon name={lead.status === "NEW" ? "sparkles" : lead.status === "WON" || lead.status === "QUALIFIED" ? "check" : "mail"} />
                       {STATUS_LABELS[lead.status] || lead.status}
                     </StatusBadge>
-                  </div>
-
-                  <div className="p11-networking-lead__contact">
-                    <a href={`mailto:${lead.email}`}><Icon name="mail" />{lead.email}</a>
-                    {lead.phone && <a href={`tel:${lead.phone}`}><Icon name="phone" />{lead.phone}</a>}
                   </div>
 
                   {eventsForLead.length > 0 && (
@@ -335,7 +312,7 @@ export default function NetworkingPanel({
                     <div className="p11-networking-compose">
                       <div className="p11-networking-compose__heading">
                         <span>E-posta taslağı</span>
-                        <small>Alıcı: {lead.email}</small>
+                        <small>Alıcı e-posta bilgisi kaydedildi</small>
                       </div>
                       <label className="p11-networking-field">
                         <span>Konu</span>
@@ -360,10 +337,6 @@ export default function NetworkingPanel({
                     </div>
                     <div className="p11-networking-quick-actions">
                       <button className="p11-networking-action p11-networking-action--primary" type="button" disabled={busy || credits < 1 || !validDraft(lead.id)} onClick={() => void sendCustomEmail(lead.id)}><Icon name="mail" />Network Mail ile gönder</button>
-                      <button className="p11-networking-action" type="button" disabled={busy || !validDraft(lead.id)} onClick={() => openEmailClient(lead)}><Icon name="external" />E-posta uygulamamda aç</button>
-                      {phone && (
-                        <a className="p11-networking-action" href={`https://wa.me/${phone}?text=${encodeURIComponent(`Merhaba ${lead.full_name}, bugün tanıştığımıza memnun oldum. İletişimde kalmak istedim.`)}`} target="_blank" rel="noreferrer"><Icon name="external" />WhatsApp</a>
-                      )}
                       {counterpartHref && <a className="p11-networking-action" href={counterpartHref}><Icon name="id" />Dijital kartı aç</a>}
                       <a className="p11-networking-action" href="/kurumsal/panel/gorusmeler"><Icon name="clock" />Görüşmeler</a>
                     </div>

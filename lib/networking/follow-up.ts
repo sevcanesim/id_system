@@ -1,5 +1,6 @@
 import { assertNetworkDailyCap, assertVerifiedNetworkMailSender, debitNetworkMail } from "../commerce/packages";
-import { sendNetworkingFollowUpEmail } from "../email/resend";
+import { sendNetworkingFollowUpEmail, sendOrganizationNetworkMailLimitEmail } from "../email/resend";
+import { recordOrganizationAuditEvent } from "../organizations/audit";
 import type { getSupabaseAdminClient } from "../supabase/server-admin";
 
 type AdminClient = ReturnType<typeof getSupabaseAdminClient>;
@@ -15,6 +16,60 @@ type ConsumeRow = {
   entitlement_id?: string;
   code?: string;
 };
+
+const ORGANIZATION_NETWORK_MAIL_ALERT_THRESHOLDS = new Set([20, 10, 3]);
+
+async function notifyOrganizationNetworkMailThreshold(input: {
+  admin: AdminClient;
+  organizationId: string;
+  organizationName: string;
+  remaining: number;
+}) {
+  if (!ORGANIZATION_NETWORK_MAIL_ALERT_THRESHOLDS.has(input.remaining)) return;
+
+  const { data: recipients, error } = await input.admin
+    .from("organization_members")
+    .select("email")
+    .eq("organization_id", input.organizationId)
+    .eq("status", "ACTIVE")
+    .in("role", ["OWNER", "HR"]);
+
+  if (error) {
+    console.error("network mail threshold recipient lookup failed", { organizationId: input.organizationId, code: error.code });
+    return;
+  }
+
+  const recipientEmails = [...new Set(
+    (recipients || [])
+      .map((recipient) => recipient.email?.trim().toLowerCase())
+      .filter((email): email is string => Boolean(email)),
+  )];
+  if (!recipientEmails.length) return;
+
+  const deliveries = await Promise.all(recipientEmails.map(async (to) => {
+    try {
+      return await sendOrganizationNetworkMailLimitEmail({
+        to,
+        organizationName: input.organizationName,
+        remaining: input.remaining,
+      });
+    } catch (sendError) {
+      console.error("network mail threshold alert failed", { organizationId: input.organizationId, remaining: input.remaining, sendError });
+      return { sent: false as const };
+    }
+  }));
+  const sentCount = deliveries.filter((delivery) => delivery.sent).length;
+  if (!sentCount) return;
+
+  await recordOrganizationAuditEvent(input.admin, {
+    organizationId: input.organizationId,
+    actorRole: "SYSTEM",
+    action: "NETWORK_MAIL_THRESHOLD_REACHED",
+    subjectType: "NETWORK_MAIL",
+    summary: `Network Mail kullanım hakkı ${input.remaining} seviyesine ulaştı.`,
+    metadata: { remaining: input.remaining, recipientCount: sentCount },
+  });
+}
 
 async function refundConsumedCredit(
   admin: AdminClient,
@@ -109,7 +164,7 @@ export async function sendDebitedNetworkFollowUp(input: {
   if (!sent.sent) {
     await refundConsumedCredit(input.admin, refundLedger, preview.debit);
     const message = sent.reason === "RESEND_API_KEY_MISSING"
-      ? "Network Mail servisi yapılandırılmamış. Taslağınızı e-posta uygulamanızda açarak kredi kullanmadan gönderebilirsiniz."
+      ? "Network Mail servisi yapılandırılmamış. Gönderim yapılmadı ve kredi iade edildi."
       : "Tanıtım maili gönderilemedi. Kredi iade edildi.";
     return { ok: false, status: 503, error: message, reason: sent.reason };
   }
@@ -127,6 +182,15 @@ export async function sendDebitedNetworkFollowUp(input: {
       debit: preview.debit,
     },
   });
+
+  if (input.ledger.kind === "organization") {
+    await notifyOrganizationNetworkMailThreshold({
+      admin: input.admin,
+      organizationId: input.ledger.organizationId,
+      organizationName: input.displayName,
+      remaining: Number(consumed.remaining ?? 0),
+    });
+  }
 
   return { ok: true, remaining: Number(consumed.remaining ?? 0) };
 }

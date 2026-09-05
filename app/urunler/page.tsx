@@ -8,7 +8,7 @@ import { COMMERCIAL_PRICING, COMMERCIAL_SKUS } from "../../lib/config/commercial
 import { formatTryFromKurus, NFC_PRODUCT } from "../../lib/config/product";
 
 export const metadata: Metadata = { title: "Yenomi ID — Dijital Kartvizit ve Premium Networking", description: "Yenomi ID Premium ile NFC + QR kartvizitinizi kişi yönetimi, toplantı, sunum ve Network Mail araçlarıyla birlikte kullanın." };
-const commerceTrust = [["shield", "iyzico ile güvenli ödeme"], ["clock", "1 yıl platform erişimi"], ["truck", "Türkiye içi kargo dahil"]] as const;
+const commerceTrust = [["shield", "Güvenli ödeme altyapısı"], ["clock", "1 yıl platform erişimi"], ["truck", "Türkiye içi kargo dahil"]] as const;
 
 export default function ProductsPage() {
   return <div className="products-commerce-v3 yi-site"><main id="main-content">

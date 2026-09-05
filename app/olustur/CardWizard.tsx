@@ -182,7 +182,12 @@ export default function CardWizard() {
     const element = document.getElementById(id);
     if (element) {
       const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      element.scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth", block: "start" });
+      // The corporate shell has persistent navigation beside the editor. Scroll
+      // the document explicitly so an overflow wrapper can never swallow an
+      // in-page section jump.
+      const offset = 20;
+      const top = window.scrollY + element.getBoundingClientRect().top - offset;
+      window.scrollTo({ top: Math.max(0, top), behavior: prefersReduced ? "auto" : "smooth" });
       setActiveSection(id);
       if (typeof window !== "undefined" && window.history?.pushState) {
         window.history.pushState(null, "", `#${id}`);

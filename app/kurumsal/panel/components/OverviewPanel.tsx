@@ -43,7 +43,7 @@ type Props = {
 };
 
 type AnalyticsEntry = { date: string; count: number };
-type AnalyticsChartPoint = AnalyticsEntry & { x: number; y: number };
+type AnalyticsChartPoint = AnalyticsEntry & { x: number; y: number; width: number; height: number };
 type PriorityItem = {
   id: string;
   eyebrow: string;
@@ -68,18 +68,21 @@ function formatAnalyticsDate(value: string) {
 
 function buildAnalyticsChart(series: AnalyticsEntry[]) {
   const maximumCount = Math.max(1, ...series.map((entry) => entry.count));
+  const slot = 100 / Math.max(series.length, 1);
+  const gap = series.length > 48 ? 0.2 : 0.55;
+  const width = Math.max(0.45, slot - gap);
   let peakIndex = 0;
 
   const points: AnalyticsChartPoint[] = series.map((entry, index) => {
     if (entry.count > series[peakIndex].count) peakIndex = index;
-    const x = series.length === 1 ? 50 : (index / (series.length - 1)) * 100;
-    const y = 90 - (entry.count / maximumCount) * 72;
-    return { ...entry, x, y };
+    const height = (entry.count / maximumCount) * 72;
+    const x = index * slot + (slot - width) / 2;
+    const y = 92 - height;
+    return { ...entry, x, y, width, height };
   });
 
   return {
     points,
-    polyline: points.map(({ x, y }) => `${x},${y}`).join(" "),
     peak: points[peakIndex],
   };
 }
@@ -137,7 +140,7 @@ export default function OverviewPanel({
   const contentHighlights = analytics?.content?.byLink?.slice(0, 3) ?? [];
   const seatLimit = subscription?.seat_limit ?? 0;
   const capacityPercent = seatLimit > 0 ? Math.min(100, Math.round((usedSeats / seatLimit) * 100)) : 0;
-  const chartAccessibilityLabel = `${analyticsDays} günlük kart görüntülenme eğrisi. ${activeAnalyticsDays} aktif gün, zirve ${analyticsChart.peak.count} görüntülenme.`;
+  const chartAccessibilityLabel = `${analyticsDays} günlük kart görüntülenme dağılımı. ${activeAnalyticsDays} aktif gün, zirve ${analyticsChart.peak.count} görüntülenme.`;
 
   const canOpen = (tab: CorporatePanelTab) => visibleTabs.some(([visibleTab]) => visibleTab === tab);
 
@@ -349,21 +352,19 @@ export default function OverviewPanel({
                   <line className="cp-overview-v2__chart-guide" x1="0" y1="28" x2="100" y2="28" />
                   <line className="cp-overview-v2__chart-guide" x1="0" y1="54" x2="100" y2="54" />
                   <line className="cp-overview-v2__chart-guide" x1="0" y1="80" x2="100" y2="80" />
-                  <polygon className="cp-overview-v2__chart-area" points={`0,96 ${analyticsChart.polyline} 100,96`} />
-                  <polyline className="cp-overview-v2__chart-line" points={analyticsChart.polyline} fill="none" vectorEffect="non-scaling-stroke" />
                   {analyticsChart.points.filter((point) => point.count > 0).map((point) => (
-                    <circle key={point.date} className="cp-overview-v2__chart-point" cx={point.x} cy={point.y} r="1.35">
+                    <rect
+                      key={point.date}
+                      className={`cp-overview-v2__chart-bar${point.date === analyticsChart.peak.date ? " is-peak" : ""}`}
+                      x={point.x}
+                      y={point.y}
+                      width={point.width}
+                      height={point.height}
+                      rx={Math.min(point.width / 2, 0.8)}
+                    >
                       <title>{`${formatAnalyticsDate(point.date)}: ${point.count.toLocaleString("tr-TR")} görüntülenme`}</title>
-                    </circle>
+                    </rect>
                   ))}
-                  <line
-                    className="cp-overview-v2__chart-peak"
-                    x1={analyticsChart.peak.x}
-                    x2={analyticsChart.peak.x}
-                    y1={Math.max(12, analyticsChart.peak.y - 3)}
-                    y2={Math.min(94, analyticsChart.peak.y + 3)}
-                    vectorEffect="non-scaling-stroke"
-                  />
                 </svg>
                 <div className="cp-overview-v2__chart-context" aria-hidden="true">
                   <span>{periodStartLabel}</span>

@@ -60,8 +60,18 @@
  * content-width breakpoints keep dense panel data in its card view even when
  * the browser viewport itself is wider than a traditional mobile breakpoint. */
 .p10-corporate-platform .p11-employees,
+.p10-corporate-platform .p11-analytics,
+.p10-corporate-platform .cp-overview-v2,
+.p10-corporate-platform .org-structure--v2,
 .p10-corporate-platform .corporate-template-studio {
   container-type: inline-size;
+}
+
+/* A card profile can be substantially taller than the dashboard. It must
+ * retain document scrolling rather than being clipped by the app shell. */
+.p10-corporate-platform:has(.p8-corporate-workspace--decoupled),
+.p10-corporate-platform:has(.p8-corporate-workspace--decoupled) .enterprise-dashboard-main {
+  overflow: visible;
 }
 
 @container (max-width: 64rem) {
@@ -109,5 +119,118 @@
 
   .p10-corporate-platform .corporate-template-preview__stage {
     min-height: 500px;
+  }
+}
+
+/* The persistent desktop sidebar removes substantial room from the working
+ * canvas. These panels therefore react to their own available width, not only
+ * to a phone-sized browser viewport. */
+@container (max-width: 64rem) {
+  .p10-corporate-platform .cp-overview-v2 {
+    padding-inline: 16px;
+  }
+
+  .p10-corporate-platform .cp-overview-v2__workspace,
+  .p10-corporate-platform .cp-overview-v2__performance > header {
+    flex-direction: column;
+  }
+
+  .p10-corporate-platform .cp-overview-v2__quick-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .p10-corporate-platform .cp-overview-v2__quick-actions button {
+    flex: 1 1 12rem;
+    justify-content: center;
+  }
+
+  .p10-corporate-platform .cp-overview-v2__priority {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .p10-corporate-platform .cp-overview-v2__priority-actions,
+  .p10-corporate-platform .cp-overview-v2__priority-queue {
+    grid-column: 1 / -1;
+  }
+
+  .p10-corporate-platform .cp-overview-v2__priority-actions,
+  .p10-corporate-platform .cp-overview-v2__priority-actions .cp-overview-v2__primary {
+    width: 100%;
+  }
+
+  .p10-corporate-platform .cp-overview-v2__metrics,
+  .p10-corporate-platform .p11-analytics .p11-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .p10-corporate-platform .cp-overview-v2__metrics article:nth-child(2n),
+  .p10-corporate-platform .p11-analytics .p11-kpis > article:nth-child(2) {
+    border-right: 0;
+  }
+
+  .p10-corporate-platform .cp-overview-v2__metrics article:nth-child(-n + 2),
+  .p10-corporate-platform .p11-analytics .p11-kpis > article:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .p10-corporate-platform .cp-overview-v2__main-grid,
+  .p10-corporate-platform .p11-analytics .p11-analytics-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .p10-corporate-platform .p11-analytics .p11-top-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 18px;
+  }
+
+  .p10-corporate-platform .p11-analytics .p11-top-card > small,
+  .p10-corporate-platform .p11-analytics .p11-top-card > strong,
+  .p10-corporate-platform .p11-analytics .p11-top-card > p {
+    grid-column: 1;
+  }
+
+  .p10-corporate-platform .p11-analytics .p11-top-card > b,
+  .p10-corporate-platform .p11-analytics .p11-top-card > span {
+    grid-column: 2;
+  }
+
+  .p10-corporate-platform .p11-analytics .p11-analytics-rankings {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .p10-corporate-platform .org-structure__table-wrap {
+    display: none;
+  }
+
+  .p10-corporate-platform .org-structure__mobile-list {
+    display: grid;
+    gap: 9px;
+  }
+}
+
+@container (max-width: 42rem) {
+  .p10-corporate-platform .cp-overview-v2__metrics,
+  .p10-corporate-platform .p11-analytics .p11-kpis,
+  .p10-corporate-platform .p11-analytics .p11-analytics-compare,
+  .p10-corporate-platform .p11-analytics .p11-analytics-rankings {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .p10-corporate-platform .cp-overview-v2__metrics article,
+  .p10-corporate-platform .p11-analytics .p11-kpis > article {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .p10-corporate-platform .cp-overview-v2__metrics article:last-child,
+  .p10-corporate-platform .p11-analytics .p11-kpis > article:last-child {
+    border-bottom: 0;
+  }
+
+  .p10-corporate-platform .p11-analytics .v26-chart-tabs {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

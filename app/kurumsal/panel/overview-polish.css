@@ -468,33 +468,14 @@
   vector-effect: non-scaling-stroke;
 }
 
-.cp-overview-v2__chart-line {
-  stroke: #9a7429;
-  stroke-width: 1.5;
-  stroke-linejoin: round;
-  stroke-linecap: round;
+.cp-overview-v2__chart-bar {
+  fill: rgba(163, 123, 44, .68);
+  transition: fill .16s ease, opacity .16s ease;
 }
 
-.cp-overview-v2__chart-area {
-  fill: rgba(163, 123, 44, .12);
-}
-
-.cp-overview-v2__chart-peak {
-  stroke: #6f511d;
-  stroke-width: 4;
-  stroke-linecap: round;
-}
-
-.cp-overview-v2__chart-point {
-  fill: #fff;
-  stroke: #9a7429;
-  stroke-width: 1.2;
-  vector-effect: non-scaling-stroke;
-  transition: r .16s ease;
-}
-
-.cp-overview-v2__chart-point:hover {
-  r: 2.6;
+.cp-overview-v2__chart-bar:hover,
+.cp-overview-v2__chart-bar.is-peak {
+  fill: #9a7429;
 }
 
 .cp-overview-v2__chart-context {

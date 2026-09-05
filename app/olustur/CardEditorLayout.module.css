@@ -2,6 +2,7 @@
   min-width: 0;
   width: 100%;
   color: var(--text-primary);
+  container-type: inline-size;
 }
 
 .editorSurface :global(.p8-editor),
@@ -119,6 +120,48 @@
   white-space: nowrap;
   color: var(--text-secondary);
   font-weight: 650;
+}
+
+/* On the corporate route the permanent navigation makes the editor narrower
+ * than the browser viewport. Keep the form readable rather than retaining a
+ * horizontal section rail or squeezing the card preview beside it. */
+@container (max-width: 64rem) {
+  .editorSurface :global(.p8-corporate-header) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .editorSurface :global(.p8-header-actions) {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .editorSurface :global(.p8-section-nav) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .editorSurface :global(.p8-section-nav a) {
+    min-width: 0;
+    padding-inline: var(--space-2);
+    white-space: normal;
+    text-align: center;
+  }
+
+  .editorSurface :global(.p8-editor-grid) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .editorSurface :global(.p8-preview-column) {
+    position: static;
+    max-width: none;
+  }
+}
+
+@container (max-width: 30rem) {
+  .editorSurface :global(.p8-section-nav) {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .editorSurface :global(.p8-required-hint) {

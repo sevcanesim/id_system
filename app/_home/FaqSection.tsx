@@ -23,7 +23,7 @@ const faqItems = [
   ],
   [
     "Ödeme kartı bilgilerim Yenomi’de tutuluyor mu?",
-    "Hayır. Kart bilgileri Yenomi’de saklanmaz; ödeme iyzico altyapısı üzerinden gerçekleşir.",
+    "Hayır. Kart bilgileri Yenomi’de saklanmaz; ödeme yetkili ödeme kuruluşunun güvenli altyapısında gerçekleşir.",
   ],
 ] as const;
 

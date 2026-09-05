@@ -23,6 +23,20 @@
   min-height: calc(var(--space-30) + var(--space-24) + var(--space-1));
 }
 
+.guide {
+  stroke: color-mix(in srgb, var(--border) 84%, transparent);
+  stroke-width: .55;
+}
+
+.bar,
+.peakBar {
+  fill: color-mix(in srgb, var(--brand-gold, #A37B2C) 62%, transparent);
+}
+
+.peakBar {
+  fill: var(--brand-gold, #A37B2C);
+}
+
 .empty {
   display: grid;
   min-height: calc(var(--space-30) + var(--space-24) + var(--space-1));
@@ -40,6 +54,26 @@
   min-width: 0;
   color: var(--text-secondary);
   font-size: var(--type-sm);
+}
+
+.caption {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: center;
+  min-width: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+}
+
+.caption strong {
+  color: var(--text-primary);
+  font-size: var(--type-sm);
+  text-align: center;
+}
+
+.caption span:last-child {
+  text-align: right;
 }
 
 .footer strong {
@@ -68,6 +102,16 @@
   }
 
   .footer strong {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    text-align: left;
+  }
+
+  .caption {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .caption strong {
     grid-column: 1 / -1;
     grid-row: 1;
     text-align: left;

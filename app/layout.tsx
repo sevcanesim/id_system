@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     default: "Yenomi ID | Kartvizitin güncel kalsın",
     template: "%s | Yenomi ID",
   },
-  description: "NFC + QR kartvizit. Unvanın değişince kartı yenilemezsin. Kendin için al, ekibin için yönet. Ödeme iyzico güvencesinde.",
+  description: "NFC + QR kartvizit. Unvanın değişince kartı yenilemezsin. Kendin için al, ekibin için yönet. Güvenli ödeme altyapısı ile tamamla.",
   applicationName: "Yenomi ID",
   icons: { icon: "/favicon.ico", apple: "/apple-touch-icon.png" },
   openGraph: {

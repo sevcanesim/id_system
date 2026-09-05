@@ -3,7 +3,7 @@ import { Icon, type IconName } from "../icons";
 const ITEMS: ReadonlyArray<{ label: string; icon: IconName }> = [
   { label: "Türkiye içi kargo dahil", icon: "box" },
   { label: "2 iş gününde hazırlanır", icon: "clock" },
-  { label: "Güvenli iyzico ödeme", icon: "lock" },
+  { label: "Güvenli ödeme", icon: "lock" },
 ];
 
 export default function AnnouncementBar() {

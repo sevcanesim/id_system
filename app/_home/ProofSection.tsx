@@ -6,7 +6,7 @@ export function ProofSection() {
         <h2 id="proof-title">Paylaşmak için uygulama gerekmez.</h2>
         <p>
           NFC veya QR ile profil doğrudan açılır. Kartın 2 iş gününde
-          hazırlanır ve ödeme iyzico üzerinden güvenle tamamlanır.
+          hazırlanır ve ödeme güvenli ödeme altyapısı üzerinden tamamlanır.
         </p>
       </div>
       <div className="home-premium__principles">

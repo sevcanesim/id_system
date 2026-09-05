@@ -76,7 +76,7 @@ export default function NfcPurchasePanel({
         {accessRequired
           ? "Yedek veya replacement kart için aktif bir Yenomi ID hizmetin gerekir. Aşağıdan ilk kartını alabilirsin; ödeme sunucuda yeniden doğrulanır."
           : packageId === "premium"
-            ? "Premium: NFC kart + 1 yıl platform üyeliği + 100 Network Mail. Tek seferlik ödeme. Kart numarası iyzico’da kalır."
+            ? "Premium: NFC kart + 1 yıl platform üyeliği + 100 Network Mail. Tek seferlik ödeme. Kart numarası güvenli ödeme sağlayıcısında işlenir."
             : "Tek seferlik ödeme, 1 yıl platform üyeliği dahil. Hesabın varsa sipariş bağlanır. Kart numarası Yenomi sunucularında tutulmaz."}
       </p>
 
@@ -100,7 +100,7 @@ export default function NfcPurchasePanel({
 
       <div className="nfc-trust-row" aria-label="Güven ve güvenlik">
         <span><Icon name="lock" /> SSL şifreli ödeme</span>
-        <span><Icon name="shield" /> Kartın iyzico’da kalır</span>
+        <span><Icon name="shield" /> Kartın Yenomi’de saklanmaz</span>
         <span><Icon name="truck" /> Türkiye içi kargo dahil</span>
         <span><Icon name="clock" /> 2 iş gününde hazırlık</span>
         <span><Icon name="refresh" /> 14 gün cayma hakkı</span>

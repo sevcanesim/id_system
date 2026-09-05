@@ -15,20 +15,44 @@ export async function GET(request: NextRequest) {
 
     const admin = getSupabaseAdminClient();
     const now = new Date().toISOString();
-    const { data: entitlements, error: entitlementError } = await admin
-      .from("entitlements")
-      .select("id,kind,status,starts_at,expires_at,grace_ends_at,order_item_id,package_code,network_mail_limit,network_mail_remaining")
-      .eq("user_id", data.user.id)
-      .in("kind", ["BUSINESS_CARD", "NFC_PHYSICAL_CARD"])
-      .in("status", ["ACTIVE", "EXPIRED", "PENDING_ACTIVATION"])
-      .order("expires_at", { ascending: false, nullsFirst: true });
+    const [{ data: entitlements, error: entitlementError }, { data: adminGrants, error: grantError }] = await Promise.all([
+      admin
+        .from("entitlements")
+        .select("id,kind,status,starts_at,expires_at,grace_ends_at,order_item_id,package_code,network_mail_limit,network_mail_remaining")
+        .eq("user_id", data.user.id)
+        .in("kind", ["BUSINESS_CARD", "NFC_PHYSICAL_CARD"])
+        .in("status", ["ACTIVE", "EXPIRED", "PENDING_ACTIVATION"])
+        .order("expires_at", { ascending: false, nullsFirst: true }),
+      admin
+        .from("admin_access_grants")
+        .select("id,package_code,starts_at,expires_at,network_mail_limit,network_mail_remaining")
+        .eq("user_id", data.user.id)
+        .eq("scope", "INDIVIDUAL")
+        .eq("status", "ACTIVE")
+        .lte("starts_at", now),
+    ]);
 
-    if (entitlementError) {
+    if (entitlementError || grantError) {
       console.error("entitlement lookup failed", entitlementError);
       return NextResponse.json(publicError("ORDER_FETCH_FAILED"), { status: 500 });
     }
 
-    const rows = entitlements ?? [];
+    const activeAdminGrants = (adminGrants ?? [])
+      .filter((grant) => !grant.expires_at || grant.expires_at > now)
+      .map((grant) => ({
+        id: grant.id,
+        kind: "BUSINESS_CARD",
+        status: "ACTIVE",
+        starts_at: grant.starts_at,
+        expires_at: grant.expires_at,
+        grace_ends_at: null,
+        order_item_id: null,
+        package_code: grant.package_code,
+        network_mail_limit: grant.network_mail_limit,
+        network_mail_remaining: grant.network_mail_remaining,
+        source: "ADMIN_GRANT" as const,
+      }));
+    const rows = [...(entitlements ?? []), ...activeAdminGrants];
     const activeEntitlements = rows.filter((item) => {
       if (item.status !== "ACTIVE") return false;
       if (!item.expires_at) return true;

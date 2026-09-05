@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 
 import { notFound, permanentRedirect } from "next/navigation";
-import CardTemplate from "../CardTemplate";
-import { profiles } from "../data";
 import { getPublicSupabaseClient } from "../../lib/supabase/public";
 import { isCardProfileServiceActive, type CardProfileRow } from "../../lib/card-profile";
-import { demoProfileToCardData } from "../../lib/demo-card-profile";
 import { fetchProfileBySlug } from "../../lib/repositories/profiles";
-import { cardSharePath, cardShareUrl, publicCardOrigin } from "../../lib/public-card/urls";
+import { cardSharePath, cardShareUrl } from "../../lib/public-card/urls";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -78,28 +75,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const profile = profiles[slug];
-  if (!profile) return {};
-  return {
-    title: `${profile.name} | Yenomilabs`,
-    description: profile.description,
-    robots: { index: false, follow: false, noarchive: true, nosnippet: true },
-    alternates: { canonical: `/${profile.slug}` },
-    openGraph: {
-      type: "profile",
-      url: `${publicCardOrigin()}/${profile.slug}`,
-      title: `${profile.name} | Yenomilabs`,
-      description: profile.description,
-      images: [profile.image],
-      siteName: "Yenomilabs"
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `${profile.name} | Yenomilabs`,
-      description: profile.description,
-      images: [profile.image]
-    }
-  };
+  return {};
 }
 
 export default async function ProfilePage({ params }: PageProps) {
@@ -111,16 +87,7 @@ export default async function ProfilePage({ params }: PageProps) {
     permanentRedirect(cardSharePath(databaseProfile.public_id));
   }
 
-  const profile = profiles[slug];
-  if (!profile) {
-    const redirectTarget = await getRedirectTarget(slug);
-    if (redirectTarget) permanentRedirect(cardSharePath(redirectTarget));
-    notFound();
-  }
-
-  return (
-    <main id="main-content" className="p12-public-card-page">
-      <CardTemplate data={demoProfileToCardData(profile)} slug={profile.slug} imagePosition={profile.imagePosition} />
-    </main>
-  );
+  const redirectTarget = await getRedirectTarget(slug);
+  if (redirectTarget) permanentRedirect(cardSharePath(redirectTarget));
+  notFound();
 }

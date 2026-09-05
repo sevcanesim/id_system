@@ -191,27 +191,42 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
   };
 
   useEffect(() => {
-    if (accessState !== "allowed") return;
-    const sectionIds = CARD_SECTIONS.map((sec) => sec.id);
-    const elements = sectionIds.map((id) => document.getElementById(id)).filter(Boolean);
-    if (!elements.length) return;
-    const root = getCardEditorScrollRoot(document.querySelector<HTMLElement>(".p8-editor"));
+    if (accessState !== "allowed" || typeof window === "undefined") return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.filter((e) => e.isIntersecting);
-        if (visible.length > 0) {
-          const sorted = visible.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-          if (sorted[0]?.target.id) {
-            setActiveSection(sorted[0].target.id as (typeof CARD_SECTIONS)[number]["id"]);
-          }
-        }
-      },
-      { root, rootMargin: "-24px 0px -40% 0px", threshold: [0.1, 0.4] },
-    );
+    // A short first section can leave the IntersectionObserver viewport before
+    // the reader has reached the next heading. That made "İletişim" look
+    // selected on the first paint. The active tab is now derived from the
+    // last section heading the reader has actually passed.
+    const scrollRoot = getCardEditorScrollRoot(document.querySelector<HTMLElement>(".p8-editor"));
+    const scrollTarget: EventTarget = scrollRoot ?? window;
+    let frame = 0;
 
-    elements.forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
+    const syncActiveSection = () => {
+      frame = 0;
+      const anchor = scrollRoot
+        ? scrollRoot.getBoundingClientRect().top + 132
+        : 132;
+      const passed = CARD_SECTIONS
+        .map((section) => document.getElementById(section.id))
+        .filter((section): section is HTMLElement => Boolean(section))
+        .filter((section) => section.getBoundingClientRect().top <= anchor + 1)
+        .at(-1);
+
+      setActiveSection((passed?.id ?? CARD_SECTIONS[0].id) as (typeof CARD_SECTIONS)[number]["id"]);
+    };
+
+    const scheduleSync = () => {
+      if (!frame) frame = window.requestAnimationFrame(syncActiveSection);
+    };
+
+    syncActiveSection();
+    scrollTarget.addEventListener("scroll", scheduleSync, { passive: true });
+    window.addEventListener("resize", scheduleSync);
+    return () => {
+      scrollTarget.removeEventListener("scroll", scheduleSync);
+      window.removeEventListener("resize", scheduleSync);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, [accessState]);
 
   useEffect(() => {

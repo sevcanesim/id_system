@@ -73,6 +73,7 @@ export default function AdminSecurityDock() {
         <Link className={isActive(pathname, "/admin/overview") ? styles.active : ""} href="/admin/overview">Overview</Link>
         <Link className={isActive(pathname, "/admin") ? styles.active : ""} href="/admin">Satışlar</Link>
         <Link className={isActive(pathname, "/admin/operations") ? styles.active : ""} href="/admin/operations">Operasyon</Link>
+        <Link className={isActive(pathname, "/admin/support") ? styles.active : ""} href="/admin/support">Destek</Link>
         <Link className={isActive(pathname, "/admin/access") ? styles.active : ""} href="/admin/access">Yönetici Erişimi</Link>
         <Link className={isActive(pathname, "/admin/security") ? styles.active : ""} href="/admin/security">Güvenlik</Link>
         <Link className={isActive(pathname, "/admin/devir-rehberi") ? styles.active : ""} href="/admin/devir-rehberi">Devir Rehberi</Link>

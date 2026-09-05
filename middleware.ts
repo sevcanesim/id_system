@@ -10,7 +10,7 @@ import { consumeDistributedRateLimit, requestIp } from "./lib/security/rate-limi
 
 const AUTH_COOKIE = ACCESS_COOKIE;
 const PROTECTED_PAGES = ["/admin", "/kurumsal/panel", "/hesabim", "/siparislerim", "/kartim", "/kartlarim", "/olustur", "/yenile", "/ayarlar", "/istatistikler", "/leadler"];
-const PRIVATE_OR_PROFILE_PREFIXES = ["/admin", "/dashboard", "/giris", "/hesabim", "/kartim", "/kartlarim", "/siparisler", "/siparislerim", "/olustur", "/aktivasyon", "/checkout", "/odeme", "/sepet", "/leadler", "/kurumsal/panel", "/kurumsal/davet", "/p", "/e", "/qr", "/api"];
+const PRIVATE_OR_PROFILE_PREFIXES = ["/admin", "/dashboard", "/giris", "/hesabim", "/kartim", "/kartlarim", "/siparisler", "/siparislerim", "/olustur", "/aktivasyon", "/checkout", "/odeme", "/sepet", "/leadler", "/kurumsal/panel", "/kurumsal/davet", "/e", "/qr", "/api"];
 const JSON_BODY_MAX_BYTES = 100 * 1024;
 const UPLOAD_PATH = "/api/organizations/links/upload";
 // Payment/activation mutations and password login fail closed without Redis in

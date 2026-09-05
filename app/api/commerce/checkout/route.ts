@@ -16,7 +16,7 @@ import {
 } from "../../../../lib/payments/idempotency";
 import { getDatabaseLegalVersions } from "../../../../lib/config/database";
 import { COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, isDigitalOnlySku, isPremiumUpgradeSku, requiresPortalAccountSku } from "../../../../lib/config/commercial";
-import { corporateCheckoutLive, corporatePackageBySku, isDirectCheckoutBlocked } from "../../../../lib/commerce/packages";
+import { corporateCheckoutLive, corporatePackageBySku, isDirectCheckoutBlocked, isNetworkMailCreditPackSku } from "../../../../lib/commerce/packages";
 import { parseCompanyBilling } from "../../../../lib/validation/company";
 import { decideOpenPaymentAttempt } from "../../../../lib/payments/reuse-open-attempt";
 import { applyPendingOrderCookie } from "../../../../lib/payments/pending-order-cookie";
@@ -320,6 +320,40 @@ export async function POST(request: NextRequest) {
     const includesReplacement = calculated.some((item) => ((item.variant.metadata || {}) as Record<string, unknown>).fulfillment_kind === "REPLACEMENT_CARD");
     const includesPremiumRenewal = calculated.some((item) => item.variant.sku === COMMERCIAL_SKUS.PREMIUM_RENEWAL);
     const includesBasicRenewal = calculated.some((item) => item.variant.sku === COMMERCIAL_SKUS.RENEWAL);
+    const networkMailItems = calculated.filter((item) => isNetworkMailCreditPackSku(item.variant.sku));
+    if (networkMailItems.length && networkMailItems.length !== calculated.length) {
+      return NextResponse.json({ error: "Network Mail kredi paketleri ayrı bir siparişte alınır." }, { status: 400 });
+    }
+    if (networkMailItems.length) {
+      const nowIso = new Date().toISOString();
+      const [{ data: premiumEntitlement }, { data: premiumGrant }] = await Promise.all([
+        admin
+          .from("entitlements")
+          .select("id,expires_at,grace_ends_at")
+          .eq("user_id", authenticatedUserId)
+          .eq("package_code", "INDIVIDUAL_PREMIUM")
+          .eq("status", "ACTIVE")
+          .order("expires_at", { ascending: false, nullsFirst: false })
+          .limit(1)
+          .maybeSingle(),
+        admin
+          .from("admin_access_grants")
+          .select("id,starts_at,expires_at")
+          .eq("user_id", authenticatedUserId)
+          .eq("scope", "INDIVIDUAL")
+          .eq("package_code", "INDIVIDUAL_PREMIUM")
+          .eq("status", "ACTIVE")
+          .order("expires_at", { ascending: false, nullsFirst: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+      const premiumIsActive = premiumEntitlement
+        && (!premiumEntitlement.expires_at || premiumEntitlement.expires_at > nowIso || (premiumEntitlement.grace_ends_at && premiumEntitlement.grace_ends_at > nowIso));
+      const premiumGrantIsActive = premiumGrant
+        && premiumGrant.starts_at <= nowIso
+        && (!premiumGrant.expires_at || premiumGrant.expires_at > nowIso);
+      if (!premiumIsActive && !premiumGrantIsActive) return NextResponse.json({ error: "Network Mail paketi yalnız aktif Premium hesaplara açıktır. Önce Premium’a yükselt." }, { status: 403 });
+    }
     const digitalOnlyCart = calculated.length > 0 && calculated.every((item) => isDigitalOnlySku(item.variant.sku));
     const shipping = {
       ...body.shipping,

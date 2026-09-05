@@ -11,6 +11,7 @@ const check = (ok, message) => {
 };
 
 const sql = read("supabase/migrations/20260820010000_network_mail_consume.sql");
+const paidPackSql = read("supabase/migrations/20260905203000_individual_network_mail_packs.sql");
 const followUp = read("lib/networking/follow-up.ts");
 const org = read("app/api/organizations/networking/route.ts");
 const inbox = read("app/api/networking/inbox/route.ts");
@@ -23,6 +24,9 @@ check(sql.includes("refund_organization_network_mail"), "org refund RPC exists")
 check(sql.includes("consume_individual_network_mail"), "individual consume RPC exists");
 check(sql.includes("refund_individual_network_mail"), "individual refund RPC exists");
 check(sql.includes("grant execute on function public.consume_organization_network_mail") && sql.includes("to service_role"), "consume is service_role only");
+check(paidPackSql.includes("individual_network_mail_credit_grants") && paidPackSql.includes("order_item_id uuid not null unique"), "paid Network Mail grants are idempotent per order item");
+check(paidPackSql.includes("grant_paid_individual_network_mail_packs") && paidPackSql.includes("after insert or update of status"), "paid Network Mail grant runs only from order payment state");
+check(paidPackSql.includes("admin_access_grants") && paidPackSql.includes("ledger_kind', 'ADMIN_ACCESS_GRANT"), "complimentary Premium access uses the same Network Mail ledger flow");
 
 const sendFn = followUp.slice(followUp.indexOf("export async function sendDebitedNetworkFollowUp"));
 check(sendFn.includes("consume_organization_network_mail"), "shared sender consumes org ledger");

@@ -209,6 +209,7 @@ export default function CheckoutPage() {
   const hasReplacement = items.some((item) => item.variantSku === COMMERCIAL_SKUS.REPLACEMENT_CARD);
   const hasBusinessCapacity = items.some((item) => typeof item.configuration?.organizationId === "string" && !isCorporatePackageSku(item.variantSku));
   const hasCorporatePackage = items.some((item) => isCorporatePackageSku(item.variantSku));
+  const hasNetworkMailCreditPack = items.some((item) => item.variantSku?.startsWith("YENOMI-NETWORK-MAIL-"));
   const digitalOnlyCart = items.length > 0 && items.every((item) => isDigitalOnlySku(item.variantSku));
   const usesIyzico = paymentProvider === "IYZICO";
   const paymentProviderName = paymentProvider === "IYZICO" ? "iyzico" : "PayTR";
@@ -413,8 +414,8 @@ export default function CheckoutPage() {
       ) : (
         <section className="checkout-shell checkout-confirm-shell">
           <div className="checkout-heading checkout-heading-compact">
-            <h1>{hasCorporatePackage ? "Kurumsal ödemeyi tamamla." : digitalOnlyCart ? "Dijital ödemeyi tamamla." : "Ödemeyi tamamla."}</h1>
-            <p>{paymentProviderName} ile güvenle öde. {hasCorporatePackage ? `Fatura ve teslimatı doğrula. Son adımda ${paymentProviderName} kartını alır; Yenomi saklamaz.` : digitalOnlyCart ? `Fatura ili ve ilçesini doğrula. Teslimat adresi yok. Kart numarası ${paymentProviderName}’da işlenir.` : `Alıcı ve teslimatı doğrula. Kart numarası ${paymentProviderName}’da işlenir; Yenomi’de saklanmaz.`}</p>
+            <h1>{hasCorporatePackage ? "Kurumsal ödemeyi tamamla." : hasNetworkMailCreditPack ? "Network Mail paketini tamamla." : digitalOnlyCart ? "Dijital ödemeyi tamamla." : "Ödemeyi tamamla."}</h1>
+            <p>{paymentProviderName} ile güvenle öde. {hasCorporatePackage ? `Fatura ve teslimatı doğrula. Son adımda ${paymentProviderName} kartını alır; Yenomi saklamaz.` : hasNetworkMailCreditPack ? "Fatura bilgilerini doğrula. Ödeme onaylanınca Network Mail kredilerin Premium hesabına eklenir." : digitalOnlyCart ? `Fatura ili ve ilçesini doğrula. Teslimat adresi yok. Kart numarası ${paymentProviderName}’da işlenir.` : `Alıcı ve teslimatı doğrula. Kart numarası ${paymentProviderName}’da işlenir; Yenomi’de saklanmaz.`}</p>
             <div className="checkout-account-note" role="status">
               {isAuthenticated ? (
                 <><Icon name="check" /> Hesabın bağlı. Siparişin hesabına otomatik eklenir.</>
@@ -429,6 +430,7 @@ export default function CheckoutPage() {
               {hasDigitalMembership && <span><Icon name="shield" />1 yıl platform üyeliği dahil</span>}
               {hasExtraCard && <span><Icon name="shield" />Mevcut Yenomi ID hizmetine bağlı</span>}
               {hasRenewal && <span><Icon name="shield" />Yalnız dijital hizmet yenilemesi</span>}
+              {hasNetworkMailCreditPack && <span><Icon name="mail" />Krediler ödeme onayında hesabına eklenir</span>}
               {hasReplacement && <span><Icon name="shield" />Mevcut profilin korunur</span>}
               {hasCorporatePackage && <span><Icon name="building" />Kurumsal fatura: unvan, vergi no, vergi dairesi</span>}
               {hasCorporatePackage && <span><Icon name="clock" />NFC kartlar {COMMERCIAL_FULFILLMENT.handover.toLocaleLowerCase()}</span>}
@@ -528,8 +530,9 @@ export default function CheckoutPage() {
                 </div>
                 <div className="checkout-summary-benefits">
                   <span><Icon name="check" /> {paymentProviderName} ile güvenle öde</span>
-                  <span><Icon name="check" /> 1 yıl platform üyeliği dahil</span>
+                  {!hasNetworkMailCreditPack && <span><Icon name="check" /> 1 yıl platform üyeliği dahil</span>}
                   {!digitalOnlyCart && <span><Icon name="check" /> Türkiye içi kargo dahil</span>}
+                  {hasNetworkMailCreditPack && <span><Icon name="check" /> Kredi satın alımı · teslimat yok</span>}
                   <span><Icon name="check" /> Kart numarası Yenomi’de saklanmaz</span>
                 </div>
               </aside>

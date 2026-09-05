@@ -46,11 +46,13 @@ const skus = [...expected.keys()];
 const { data, error } = await supabase.from('product_variants').select('sku,price_kurus,billing_period,metadata,is_active').in('sku', skus);
 if (error) throw error;
 const rows = new Map((data || []).map((row) => [row.sku, row]));
+const suspendedSkus = new Set(['YENOMI-DIGITAL-ANNUAL']);
 let failed = false;
 for (const sku of skus) {
   const row = rows.get(sku);
   if (!row) { console.error(`✗ ${sku}: DB varyantı yok`); failed = true; continue; }
-  if (!row.is_active) { console.error(`✗ ${sku}: DB varyantı pasif`); failed = true; continue; }
+  if (!row.is_active && !suspendedSkus.has(sku)) { console.error(`✗ ${sku}: DB varyantı pasif`); failed = true; continue; }
+  if (row.is_active && suspendedSkus.has(sku)) { console.error(`✗ ${sku}: yeni satışa kapatılmalı`); failed = true; continue; }
   if (Number(row.price_kurus) !== expected.get(sku)) { console.error(`✗ ${sku}: kod=${expected.get(sku)} DB=${row.price_kurus}`); failed = true; continue; }
   const metadata = row.metadata || {};
   if (sku === 'YENOMI-NFC-CARD-ANNUAL' && row.billing_period !== 'YEARLY') { console.error(`✗ ${sku}: yıllık dönem eksik`); failed = true; continue; }

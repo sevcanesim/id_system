@@ -47,11 +47,13 @@ export function corporateCheckoutLive(seats: number): boolean { return Number.is
 export const LEGACY_CORPORATE_PLAN_ALIASES = { STARTER: "CORP-10", GROWTH: "CORP-25", BUSINESS: "CORP-50" } as const;
 
 export const NETWORK_MAIL_CREDIT_PACKS = [
-  { sku: "YENOMI-NETWORK-MAIL-100", credits: 100, priceKurus: 14_900, liveCheckout: false },
-  { sku: "YENOMI-NETWORK-MAIL-500", credits: 500, priceKurus: 49_900, liveCheckout: false },
-  { sku: "YENOMI-NETWORK-MAIL-1000", credits: 1_000, priceKurus: 79_900, liveCheckout: false },
-  { sku: "YENOMI-NETWORK-MAIL-5000", credits: 5_000, priceKurus: 299_000, liveCheckout: false },
+  { sku: "YENOMI-NETWORK-MAIL-100", credits: 100, priceKurus: 14_900, liveCheckout: true },
+  { sku: "YENOMI-NETWORK-MAIL-500", credits: 500, priceKurus: 49_900, liveCheckout: true },
+  { sku: "YENOMI-NETWORK-MAIL-1000", credits: 1_000, priceKurus: 79_900, liveCheckout: true },
+  { sku: "YENOMI-NETWORK-MAIL-5000", credits: 5_000, priceKurus: 299_000, liveCheckout: true },
 ] as const;
+export function networkMailCreditPackBySku(sku: string | null | undefined) { return NETWORK_MAIL_CREDIT_PACKS.find((pack) => pack.sku === sku) ?? null; }
+export function isNetworkMailCreditPackSku(sku: string | null | undefined): boolean { return networkMailCreditPackBySku(sku) !== null; }
 export const CAMPAIGN_MAIL_PACKS = [
   { sku: "YENOMI-CAMPAIGN-MAIL-1000", credits: 1_000, priceKurus: 24_900 }, { sku: "YENOMI-CAMPAIGN-MAIL-5000", credits: 5_000, priceKurus: 89_900 }, { sku: "YENOMI-CAMPAIGN-MAIL-10000", credits: 10_000, priceKurus: 149_000 }, { sku: "YENOMI-CAMPAIGN-MAIL-25000", credits: 25_000, priceKurus: 299_000 }, { sku: "YENOMI-CAMPAIGN-MAIL-50000", credits: 50_000, priceKurus: 499_000 }, { sku: "YENOMI-CAMPAIGN-MAIL-100000", credits: 100_000, priceKurus: 849_000 },
 ] as const;
@@ -63,8 +65,8 @@ export function isSeatPackSku(sku: string | null | undefined): boolean { if (!sk
 export const ADMIN_PROVISION_PLAN_CODES = ["DEMO-2","DEMO-5","DEMO-10","STARTER","GROWTH","BUSINESS","ENTERPRISE","CORP-2","CORP-3","CORP-4","CORP-5","CORP-10","CORP-20","CORP-25","CORP-50","CORP-75","CORP-100"] as const;
 export type AdminProvisionPlanCode = (typeof ADMIN_PROVISION_PLAN_CODES)[number];
 export const INDIVIDUAL_PREMIUM_CHECKOUT = { live: true, reason: null } as const;
-export const NETWORK_MAIL_PACK_CHECKOUT = { live: false, reason: "CREDIT_PACK_FULFILLMENT_NOT_LIVE" } as const;
-const BLOCKED_CHECKOUT_FULFILLMENT_KINDS = new Set(["NETWORK_MAIL_CREDIT_PACK", "CAMPAIGN_MAIL_CREDIT_PACK"]);
+export const NETWORK_MAIL_PACK_CHECKOUT = { live: true, reason: null } as const;
+const BLOCKED_CHECKOUT_FULFILLMENT_KINDS = new Set(["CAMPAIGN_MAIL_CREDIT_PACK"]);
 export function isDirectCheckoutBlocked(metadata: Record<string, unknown> | null | undefined): boolean { const kind = metadata?.fulfillment_kind; if (typeof kind === "string" && BLOCKED_CHECKOUT_FULFILLMENT_KINDS.has(kind)) return true; if (metadata?.live_checkout === false) return true; if (metadata?.stage === "COMING_SOON") return true; return false; }
 export function networkMailGrant(seatCount: number): number { if (!Number.isInteger(seatCount) || seatCount < 1) throw new RangeError("seatCount must be an integer ≥ 1"); return seatCount * NETWORK_MAIL_PER_SEAT_ANNUAL; }
 export function perSeatKurus(priceKurus: number, seats: number): number { if (!Number.isInteger(seats) || seats < 1) throw new RangeError("seats must be an integer ≥ 1"); return Math.round(priceKurus / seats); }

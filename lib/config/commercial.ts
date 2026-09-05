@@ -10,6 +10,7 @@ import {
   INDIVIDUAL_PREMIUM_PLAN,
   INDIVIDUAL_PREMIUM_RENEWAL_PLAN,
   INDIVIDUAL_PREMIUM_UPGRADE_PLAN,
+  isNetworkMailCreditPackSku,
   isCorporatePackageSku,
 } from "../commerce/packages";
 
@@ -56,7 +57,7 @@ export const COMMERCIAL_FULFILLMENT = {
 export function isPhysicalBundleSku(sku: string | undefined): boolean { return sku === COMMERCIAL_SKUS.INITIAL || sku === COMMERCIAL_SKUS.PREMIUM; }
 export function isRenewalSku(sku: string | undefined): boolean { return sku === COMMERCIAL_SKUS.RENEWAL || sku === COMMERCIAL_SKUS.PREMIUM_RENEWAL; }
 export function isPremiumUpgradeSku(sku: string | undefined): boolean { return sku === COMMERCIAL_SKUS.PREMIUM_UPGRADE; }
-export function isDigitalOnlySku(sku: string | undefined): boolean { return sku === COMMERCIAL_SKUS.DIGITAL || isRenewalSku(sku) || isPremiumUpgradeSku(sku); }
+export function isDigitalOnlySku(sku: string | undefined): boolean { return sku === COMMERCIAL_SKUS.DIGITAL || isRenewalSku(sku) || isPremiumUpgradeSku(sku) || isNetworkMailCreditPackSku(sku); }
 /**
  * Portal products must be bound to an authenticated account before payment so
  * access, renewal rights and any included credits have an unambiguous owner.

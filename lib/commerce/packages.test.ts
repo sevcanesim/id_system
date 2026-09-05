@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   debitNetworkMail,
   isDirectCheckoutBlocked,
+  isNetworkMailCreditPackSku,
   recommendCorporatePack,
   resolveCorporatePlanCode,
 } from "./packages";
@@ -13,9 +14,12 @@ describe("commercial packages", () => {
     expect(recommendCorporatePack(26)).toMatchObject({ code: "CORP-50", seats: 50 });
   });
 
-  it("blocks unfulfilled credit-pack checkout metadata", () => {
-    expect(isDirectCheckoutBlocked({ fulfillment_kind: "NETWORK_MAIL_CREDIT_PACK" })).toBe(true);
+  it("allows fulfilled Network Mail packs but keeps campaign mail closed", () => {
+    expect(isDirectCheckoutBlocked({ fulfillment_kind: "NETWORK_MAIL_CREDIT_PACK", live_checkout: true })).toBe(false);
+    expect(isDirectCheckoutBlocked({ fulfillment_kind: "CAMPAIGN_MAIL_CREDIT_PACK" })).toBe(true);
     expect(isDirectCheckoutBlocked({ live_checkout: true })).toBe(false);
+    expect(isNetworkMailCreditPackSku("YENOMI-NETWORK-MAIL-100")).toBe(true);
+    expect(isNetworkMailCreditPackSku("YENOMI-CAMPAIGN-MAIL-1000")).toBe(false);
   });
 
   it("does not debit unavailable Network Mail credits", () => {

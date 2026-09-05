@@ -8,7 +8,7 @@ import { Alert, Button, ButtonLink, Card, Field, Input, StatusBadge } from "../c
 import { useNotice } from "../components/ui/NotificationCenter";
 import AddToCartButton from "../components/AddToCartButton";
 import { Icon } from "../icons";
-import { isIndividualPremiumPackage } from "../../lib/commerce/packages";
+import { isIndividualPremiumPackage, NETWORK_MAIL_CREDIT_PACKS } from "../../lib/commerce/packages";
 import { COMMERCIAL_PRICING } from "../../lib/config/commercial";
 import { NFC_PRODUCT, formatTryFromKurus } from "../../lib/config/product";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
@@ -138,6 +138,9 @@ function orderPresentation(order: CommerceOrder) {
     .filter(Boolean);
   const includesSku = (fragment: string) => skus.some((sku) => sku.includes(fragment));
 
+  if (includesSku("NETWORK-MAIL-")) {
+    return { title: "Network Mail kredi paketi", description: "Kredileriniz ödeme onayından sonra Premium hesabınıza eklenir." };
+  }
   if (includesSku("PREMIUM-UPGRADE")) {
     return { title: "Yenomi ID Premium yükseltme", description: "Premium özellikler hesabınıza ekleniyor." };
   }
@@ -316,6 +319,7 @@ export default function SettingsPage() {
 
   const daysLeft = useMemo(() => remainingDays(subscription.entitlement?.expires_at), [subscription.entitlement?.expires_at]);
   const hasPremium = isIndividualPremiumPackage(subscription.entitlement?.package_code);
+  const hasLegacyDigitalPlan = subscription.entitlement?.package_code === "INDIVIDUAL_DIGITAL";
   const hasNetworkMail = (subscription.entitlement?.network_mail_limit || 0) > 0;
   const renewalWindowOpen = daysLeft !== null && daysLeft <= 30;
   const accountDirty = name.trim() !== accountSnapshot.name || email.trim() !== accountSnapshot.email;
@@ -390,8 +394,8 @@ export default function SettingsPage() {
               <p>{subscription.error
                 ? "Hizmet bilgisi şu anda yüklenemedi. Yenileme sayfasından tekrar deneyebilirsiniz."
                 : subscription.entitlement
-                  ? `${hasPremium ? "Premium özellikleriniz" : "Dijital kart hizmetiniz"} aktif durumda.${hasNetworkMail ? ` ${subscription.entitlement.network_mail_remaining ?? 0} Network Mail krediniz kaldı.` : ""}`
-                  : "Aktif hizmetiniz bulunmuyor. Kart ve dijital profil paketlerini inceleyebilirsiniz."}</p>
+                  ? `${hasPremium ? "Premium özellikleriniz" : hasLegacyDigitalPlan ? "Dijital profil hizmetiniz" : "NFC kart hizmetiniz"} aktif durumda.${hasNetworkMail ? ` ${subscription.entitlement.network_mail_remaining ?? 0} Network Mail krediniz kaldı.` : ""}`
+                  : "Aktif hizmetiniz bulunmuyor. NFC kart paketini inceleyerek hesabınızı açabilirsiniz."}</p>
             </div>
             <div className={styles.subscriptionActions}>
               <ButtonLink href="#renewal-options" variant={renewalWindowOpen ? "primary" : "secondary"} size="sm"><Icon name="refresh" /> {renewalWindowOpen ? "Yenileme seçeneklerini aç" : "Hizmeti Yönet"}</ButtonLink>
@@ -409,12 +413,12 @@ export default function SettingsPage() {
           <div className={styles.sectionHeading}>
             <div>
               <span className={styles.sectionEyebrow}><Icon name="refresh" /> ABONELİK</span>
-              <h2 id="renewal-options-title">Plan ve yenileme seçenekleri</h2>
-              <p>Hizmet sürenizi, Premium erişiminizi ve yenileme seçeneklerinizi bu sayfadan yönetin.</p>
+              <h2 id="renewal-options-title">Premium ve Network Mail</h2>
+              <p>Premium erişiminizi, Network Mail bakiyenizi ve yenilemenizi tek bir yerden yönetin.</p>
             </div>
           </div>
 
-          {subscription.loading ? <Card className={styles.emptyInline}><p>Abonelik seçenekleri yükleniyor…</p></Card> : subscription.error ? <Card className={styles.emptyInline}><p>Abonelik seçenekleri şu anda yüklenemedi. Lütfen sayfayı yeniden deneyin.</p></Card> : !subscription.entitlement ? <Card className={styles.emptyInline}><div><strong>Henüz aktif bir paketiniz yok.</strong><p>Dijital kartvizit veya NFC kart paketi seçerek hesabınızı etkinleştirebilirsiniz.</p></div><ButtonLink href="/urunler/nfc-kart" variant="primary">Paketleri İncele</ButtonLink></Card> : (
+          {subscription.loading ? <Card className={styles.emptyInline}><p>Abonelik seçenekleri yükleniyor…</p></Card> : subscription.error ? <Card className={styles.emptyInline}><p>Abonelik seçenekleri şu anda yüklenemedi. Lütfen sayfayı yeniden deneyin.</p></Card> : !subscription.entitlement ? <Card className={styles.emptyInline}><div><strong>Henüz aktif bir paketiniz yok.</strong><p>NFC kart paketini seçerek hesabınızı etkinleştirebilirsiniz.</p></div><ButtonLink href="/urunler/nfc-kart" variant="primary">NFC Kartı İncele</ButtonLink></Card> : (
             <div className={styles.offerGrid}>
               {!hasPremium && <Card className={styles.offerCard}>
                 <div className={styles.offerCopy}>
@@ -460,6 +464,28 @@ export default function SettingsPage() {
               </Card>}
 
               {hasPremium && !renewalWindowOpen && <Card className={styles.emptyInline}><div><strong>Premium hizmetiniz aktif.</strong><p>Yenileme seçeneği, hizmetinizin bitimine 30 gün kala bu alanda açılır.</p></div></Card>}
+
+              {hasPremium && <>
+                <div className={styles.sectionHeading}>
+                  <div>
+                    <span className={styles.sectionEyebrow}><Icon name="mail" /> NETWORK MAIL</span>
+                    <h2>Takip kapasiteni seç</h2>
+                    <p>1 kredi, 1 alıcıya gönderilen kişisel takip e-postasıdır. Paketler yalnız Premium hesabına eklenir.</p>
+                  </div>
+                </div>
+                {NETWORK_MAIL_CREDIT_PACKS.map((pack) => <Card className={styles.offerCard} key={pack.sku}>
+                  <div className={styles.offerCopy}>
+                    <span className={styles.sectionEyebrow}><Icon name="mail" /> NETWORK MAIL</span>
+                    <h3>{pack.credits.toLocaleString("tr-TR")} kredi</h3>
+                    <p>Tanıştığınız kişilere, kaydedilmiş iletişim verisini açığa çıkarmadan kişisel takip e-postası gönderin.</p>
+                  </div>
+                  <div className={styles.offerAction}>
+                    <strong>{formatTryFromKurus(pack.priceKurus)}</strong>
+                    <span>tek seferlik</span>
+                    <AddToCartButton productId={NFC_PRODUCT.slug} variantSku={pack.sku} kind="BUSINESS_CARD" name={`Network Mail — ${pack.credits.toLocaleString("tr-TR")} kredi`} unitPriceKurus={pack.priceKurus} label="Krediyi ekle" className="ds-button ds-button--primary" />
+                  </div>
+                </Card>)}
+              </>}
             </div>
           )}
         </section>

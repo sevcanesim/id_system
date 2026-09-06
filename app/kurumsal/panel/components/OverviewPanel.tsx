@@ -32,6 +32,7 @@ type Props = {
   onPeriodChange: (days: 7 | 30 | 90) => void;
   currentUserId: string | null;
   canManageLicenses: boolean;
+  canPurchaseCorporateCommerce: boolean;
   canInvite: boolean;
   visibleTabs: ReadonlyArray<readonly [CorporatePanelTab, string]>;
   openTab: (tab: CorporatePanelTab) => void;
@@ -109,6 +110,7 @@ export default function OverviewPanel({
   analyticsDays,
   onPeriodChange,
   canManageLicenses,
+  canPurchaseCorporateCommerce,
   canInvite,
   visibleTabs,
   openTab,
@@ -165,11 +167,11 @@ export default function OverviewPanel({
       eyebrow: "KAPASİTE DOLU",
       title: "Yeni çalışan için boş kart kapasitesi yok.",
       copy: `${usedSeats} / ${subscription?.seat_limit ?? "—"} kapasite kullanımda. Yeni çalışan eklemek için kapasite açılması gerekiyor.`,
-      action: canManageLicenses ? "Kapasiteyi artır" : "Ekibi görüntüle",
+      action: canPurchaseCorporateCommerce ? "Kapasiteyi artır" : "Ekibi görüntüle",
       tab: "employees",
       tone: "critical",
       icon: "lock",
-      capacityUpgrade: canManageLicenses,
+      capacityUpgrade: canPurchaseCorporateCommerce,
     });
   }
   if (invitedMembers > 0) {
@@ -271,12 +273,12 @@ export default function OverviewPanel({
 
       <section className="cp-overview-v2__metrics" aria-label="Kurumsal hesap özeti">
         <article data-state={availableSeats === 0 ? "attention" : "neutral"}>
-          <button type="button" onClick={() => canManageLicenses ? window.location.assign("/kurumsal#kapasite") : openTab("employees")}>
+          <button type="button" onClick={() => canPurchaseCorporateCommerce ? window.location.assign("/kurumsal#kapasite") : openTab("employees")}>
             <span className="cp-overview-v2__metric-label"><Icon name="id" /><span>Kart kapasitesi</span></span>
             <strong>{usedSeats}<small> / {subscription?.seat_limit ?? "—"}</small></strong>
             <span className="cp-overview-v2__capacity-progress" aria-label={`Kapasitenin yüzde ${capacityPercent}'i kullanılıyor`}><i style={{ width: `${capacityPercent}%` }} /></span>
             <p>{availableSeats === 0 ? "Kapasite dolu" : `${availableSeats ?? "—"} boş kart`}</p>
-            <em>{canManageLicenses ? "Kapasiteyi artır" : "Ekibi görüntüle"} <span aria-hidden="true">→</span></em>
+            <em>{canPurchaseCorporateCommerce ? "Kapasiteyi artır" : "Ekibi görüntüle"} <span aria-hidden="true">→</span></em>
           </button>
         </article>
         <article data-state={invitedMembers > 0 ? "attention" : "neutral"}>

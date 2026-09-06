@@ -19,6 +19,7 @@ export type SidebarConfigItem = {
 };
 
 const CORPORATE_ADMIN: readonly SidebarRole[] = ["OWNER", "ADMIN"];
+const CORPORATE_OWNER: readonly SidebarRole[] = ["OWNER"];
 const CORPORATE_MANAGEMENT: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR", "HR_MANAGER"];
 const CORPORATE_ADMIN_OR_HR: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR", "HR_MANAGER"];
 const CORPORATE_COMMERCE_VIEWERS: readonly SidebarRole[] = ["OWNER", "HR", "HR_MANAGER"];
@@ -36,7 +37,7 @@ export const CORPORATE_SIDEBAR_CONFIG = [
   { key: "events", href: "/kurumsal/panel/etkinlikler", label: "Etkinlikler", icon: "clock", group: "NETWORKING", roles: CORPORATE_ADMIN },
   { key: "meetings", href: "/kurumsal/panel/gorusmeler", label: "Görüşmeler", icon: "headset", group: "NETWORKING", roles: CORPORATE_ADMIN },
   { key: "commerce", href: "/kurumsal/panel/satin-almalar", label: "Abonelik & Satın Almalar", icon: "box", group: "TİCARİ", roles: CORPORATE_COMMERCE_VIEWERS },
-  { key: "capacity", href: "/kurumsal/panel/lisans", label: "Paket & Kapasite", icon: "box", group: "TİCARİ", roles: CORPORATE_ADMIN },
+  { key: "capacity", href: "/kurumsal/panel/lisans", label: "Paket & Kapasite", icon: "box", group: "TİCARİ", roles: CORPORATE_OWNER },
   { key: "card", href: "/kurumsal/panel/kartim", label: "Kartım", icon: "id", group: "KİŞİSEL" },
   { key: "settings", href: "/kurumsal/panel/ayarlar", label: "Ayarlar", icon: "adjustments", group: "HESAP", roles: CORPORATE_ADMIN },
 ] satisfies readonly SidebarConfigItem[];

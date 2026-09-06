@@ -13,6 +13,7 @@ const forbidText = (source, token, message) => {
 
 const migration = read("supabase/migrations/20260906120000_p0_corporate_card_profile_integrity.sql");
 const linkRoute = read("app/api/organizations/card-profile-link/route.ts");
+const organizationProfileRoute = read("app/api/organizations/profile/route.ts");
 const memberProfileRoute = read("app/api/organizations/member-profile/route.ts");
 const memberStatusesRoute = read("app/api/organizations/member-card-statuses/route.ts");
 const analyticsRoute = read("app/api/organizations/card-analytics/route.ts");
@@ -43,6 +44,9 @@ for (const token of [
 
 requireText(linkRoute, 'rpc("link_own_corporate_card_profile"', "Kart-profil eşleştirmesi atomik RPC kullanmalı.");
 forbidText(linkRoute, '.from("physical_cards")', "Kart-profil eşleştirme route'u fiziksel kartı doğrudan güncellememeli.");
+
+requireText(organizationProfileRoute, "canManageOrganizationLegalProfile", "Şirketin vergi ve fatura kimliği yalnız Şirket Sahibi tarafından okunabilmeli.");
+requireText(organizationProfileRoute, "Resmî şirket ve fatura bilgilerine erişim yalnız Şirket Sahibine aittir.", "Şirket mali kimliği için rol reddi eksik.");
 
 for (const [name, source] of [
   ["member profile", memberProfileRoute],

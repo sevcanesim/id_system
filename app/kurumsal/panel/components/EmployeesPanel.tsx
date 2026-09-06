@@ -142,6 +142,7 @@ type Props = {
   onBulkDepartment: (memberIds: string[], department: string) => Promise<void>;
   canBulkDepartment: boolean;
   canManageLicenses: boolean;
+  canPurchaseCorporateCommerce: boolean;
 };
 
 function isBulkSelectable(member: EmployeeListMember, currentUserId: string) {
@@ -175,7 +176,7 @@ export default function EmployeesPanel(props: Props) {
     setForm, add, currentUserId, onEditOwnCard, initials, roleLabel, relativeTime,
     openMemberDrawer, showBulkInvite, onToggleBulkInvite, onCloseBulkInvite,
     bulkInvitePreview, bulkInviteBusy, bulkInviteResults, onBulkInviteFile,
-    onSubmitBulkInvite, onBulkStatus, onBulkDepartment, canBulkDepartment, canManageLicenses,
+    onSubmitBulkInvite, onBulkStatus, onBulkDepartment, canBulkDepartment, canManageLicenses, canPurchaseCorporateCommerce,
   } = props;
 
   const [sortKey, setSortKey] = useState<SortKey>("name");
@@ -378,7 +379,7 @@ export default function EmployeesPanel(props: Props) {
                   <p>Yeni çalışan eklemek için kart kapasitesini artırın veya kullanılmayan bir kart hakkını boşaltın.</p>
                 </div>
               </div>
-              {canManageLicenses && (
+              {canPurchaseCorporateCommerce && (
                 <a className="p11-attention-cta" href="/kurumsal#kapasite">
                   Kapasiteyi artır
                 </a>

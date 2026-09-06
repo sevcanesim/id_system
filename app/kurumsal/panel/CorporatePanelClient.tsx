@@ -821,8 +821,8 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
             icon: "alert",
             title: "Kart kapasitesi dolu",
             description: "Yeni çalışan eklemek için önce kullanılabilir kart kapasitesi açılması gerekiyor.",
-            action: canManageLicenses ? "Kapasiteyi artır" : "Ekibi görüntüle",
-            tab: canManageLicenses ? "cards" : "employees",
+            action: canPurchaseCorporateCommerce ? "Kapasiteyi artır" : "Ekibi görüntüle",
+            tab: canPurchaseCorporateCommerce ? "cards" : "employees",
           }
         : invitedMembers > 0
           ? {
@@ -1251,6 +1251,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                     }}
                     currentUserId={currentUserId}
                     canManageLicenses={canManageLicenses}
+                    canPurchaseCorporateCommerce={canPurchaseCorporateCommerce}
                     canInvite={canInvite}
                     visibleTabs={tabs}
                     openTab={openTab}
@@ -1321,6 +1322,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                     onBulkDepartment={changeMembersDepartment}
                     canBulkDepartment
                     canManageLicenses={canManageLicenses}
+                    canPurchaseCorporateCommerce={canPurchaseCorporateCommerce}
                   />
                 )}
 

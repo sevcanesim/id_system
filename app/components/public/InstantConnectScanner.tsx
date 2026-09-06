@@ -10,6 +10,7 @@ type BarcodeDetectorConstructor = new (options: { formats: string[] }) => Barcod
 type BarcodeWindow = Window & typeof globalThis & { BarcodeDetector?: BarcodeDetectorConstructor };
 
 export type InstantConnectScannerCopy = {
+  eyebrow: string;
   title: string;
   description: string;
   preparing: string;
@@ -23,20 +24,6 @@ export type InstantConnectScannerCopy = {
   processing: string;
 };
 
-function parsePublicProfileId(value: string) {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  if (/^[A-Za-z0-9]{8,32}$/.test(trimmed)) return trimmed;
-
-  try {
-    const url = new URL(trimmed, window.location.origin);
-    const match = url.pathname.match(/^\/p\/([A-Za-z0-9]{8,32})\/?$/);
-    return match?.[1] ?? null;
-  } catch {
-    return null;
-  }
-}
-
 export default function InstantConnectScanner({
   open,
   copy,
@@ -46,7 +33,7 @@ export default function InstantConnectScanner({
   open: boolean;
   copy: InstantConnectScannerCopy;
   onClose: () => void;
-  onScan: (publicId: string) => Promise<{ ok: boolean; error?: string }>;
+  onScan: (rawValue: string) => Promise<{ ok: boolean; error?: string }>;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -81,15 +68,15 @@ export default function InstantConnectScanner({
       if (videoRef.current) videoRef.current.srcObject = null;
     };
 
-    const submitPublicId = async (publicId: string) => {
+    const submitRawValue = async (rawValue: string) => {
       if (cancelled || scanning) return;
       scanning = true;
       setStatus("processing");
       setError("");
-      stopCamera();
-      const result = await onScanRef.current(publicId);
+      const result = await onScanRef.current(rawValue);
       if (cancelled) return;
       if (result.ok) {
+        stopCamera();
         onClose();
         return;
       }
@@ -133,10 +120,9 @@ export default function InstantConnectScanner({
             if (videoRef.current?.readyState && videoRef.current.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
               const detections = await detector.detect(videoRef.current);
               const rawValue = detections[0]?.rawValue;
-              const publicId = rawValue ? parsePublicProfileId(rawValue) : null;
-              if (publicId) {
-                await submitPublicId(publicId);
-                return;
+              if (rawValue) {
+                await submitRawValue(rawValue);
+                if (scanning) return;
               }
             }
           } catch {
@@ -162,14 +148,14 @@ export default function InstantConnectScanner({
 
   async function submitManual(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const publicId = parsePublicProfileId(manualValue);
-    if (!publicId) {
+    const rawValue = manualValue.trim();
+    if (!rawValue) {
       setError(copy.invalid);
       return;
     }
     setStatus("processing");
     setError("");
-    const result = await onScan(publicId);
+    const result = await onScan(rawValue);
     if (result.ok) {
       onClose();
       return;
@@ -193,7 +179,7 @@ export default function InstantConnectScanner({
     >
       <div className="p12-instant-scanner__header">
         <div>
-          <span className="p12-instant-scanner__eyebrow"><Icon name="qr" /> Yenomi ID</span>
+          <span className="p12-instant-scanner__eyebrow"><Icon name="qr" /> {copy.eyebrow}</span>
           <h2 id="p12-instant-scanner-title">{copy.title}</h2>
           <p>{copy.description}</p>
         </div>

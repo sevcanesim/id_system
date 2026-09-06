@@ -136,8 +136,19 @@
   background: var(--brand-gold-hover);
 }
 
-.p12-public-card-page .p12-instant-connect__qr {
+.p12-public-card-page .p12-connect-methods {
+  display: grid;
+  gap: var(--space-3);
   margin-top: var(--space-3);
+}
+
+.p12-public-card-page .p12-connect-method {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.p12-public-card-page .p12-instant-connect__qr {
+  margin-top: 0;
   border-color: var(--border-strong);
   background: var(--surface-card);
   color: var(--text-primary);
@@ -149,7 +160,143 @@
 }
 
 .p12-public-card-page .p12-instant-connect__qr-description {
-  margin-top: var(--space-2);
+  margin-top: 0;
+}
+
+.p12-public-card-page .p12-instant-connect__qr--external {
+  border-style: dashed;
+  color: var(--text-secondary);
+}
+
+.p12-public-card-page .p12-external-qr-result {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-accent);
+}
+
+.p12-public-card-page .p12-external-qr-result > span {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  background: var(--brand-gold-soft);
+  color: var(--brand-gold-deep);
+}
+
+.p12-public-card-page .p12-external-qr-result > span .yi-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.p12-public-card-page .p12-external-qr-result > div {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.p12-public-card-page .p12-external-qr-result strong {
+  color: var(--text-primary);
+  font-size: var(--type-sm);
+  font-weight: 800;
+}
+
+.p12-public-card-page .p12-external-qr-result p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+  line-height: var(--line-height-body);
+}
+
+.p12-public-card-page .p12-external-qr-result a {
+  grid-column: 2;
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--brand-gold-deep);
+  font-size: var(--type-sm);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.p12-public-card-page .p12-external-qr-result a .yi-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.p12-public-card-page .p12-networking-form-toggle {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: center;
+  margin-top: var(--space-5);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.p12-public-card-page .p12-networking-form-toggle:hover {
+  border-color: var(--brand-gold);
+  background: var(--brand-gold-soft);
+}
+
+.p12-public-card-page .p12-networking-form-toggle__icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--surface-accent);
+  color: var(--brand-gold-deep);
+}
+
+.p12-public-card-page .p12-networking-form-toggle__icon .yi-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.p12-public-card-page .p12-networking-form-toggle > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.p12-public-card-page .p12-networking-form-toggle strong {
+  color: var(--text-primary);
+  font-size: var(--type-sm);
+  font-weight: 800;
+}
+
+.p12-public-card-page .p12-networking-form-toggle small {
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+  line-height: var(--line-height-body);
+}
+
+.p12-public-card-page .p12-networking-form-toggle__action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--brand-gold-deep);
+  font-size: var(--type-xs);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.p12-public-card-page .p12-networking-form-toggle__action .yi-icon {
+  width: 14px;
+  height: 14px;
 }
 
 .p12-public-card-page .p12-networking-form {
@@ -456,8 +603,18 @@
 
 @media (max-width: 430px) {
   .p12-public-card-page .p12-networking-form,
-  .p12-public-card-page .p12-instant-connect {
+  .p12-public-card-page .p12-instant-connect,
+  .p12-public-card-page .p12-networking-form-toggle {
     padding: var(--space-3);
+  }
+
+  .p12-public-card-page .p12-networking-form-toggle {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .p12-public-card-page .p12-networking-form-toggle__action {
+    grid-column: 2;
+    white-space: normal;
   }
 
   .p12-public-card-page .p12-networking-form-actions,

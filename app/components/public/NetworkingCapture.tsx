@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { detectNetworkingLocale, type NetworkingLocale } from "../../../lib/networking/catalog";
 import { instantConnectErrorMessage } from "../../../lib/networking/instant-connect";
 import { normalizeContactPhone } from "../../../lib/networking/contact-phone";
+import { parseExternalQrPayload } from "../../../lib/networking/external-qr-contact";
 import { getBrowserSession } from "../../../lib/auth/get-browser-session";
 import { Avatar, Button, Field, Input, Skeleton } from "../ui/DesignSystem";
 import { Icon } from "../../icons";
@@ -32,14 +33,22 @@ type Copy = {
   instantSuccessTitle: string;
   instantSuccessBody: string;
   instantExistingBody: string;
-  qrSwap: string;
-  qrDescription: string;
+  yenomiQrSwap: string;
+  yenomiQrDescription: string;
+  externalQrSwap: string;
+  externalQrDescription: string;
+  externalLinkTitle: string;
+  externalLinkBody: string;
+  externalLinkOpen: string;
   alternativeTitle: string;
   alternativeBody: string;
+  alternativeOpen: string;
+  alternativeClose: string;
   privacy: string;
   cancel: string;
   done: string;
   scanner: InstantConnectScannerCopy;
+  externalScanner: InstantConnectScannerCopy;
 };
 
 type ContactForm = {
@@ -90,14 +99,22 @@ const COPY: Record<NetworkingLocale, Copy> = {
     instantSuccessTitle: "Kartlar karşılıklı eklendi",
     instantSuccessBody: "{name} ile dijital kartlarınız bağlantılarınıza eklendi.",
     instantExistingBody: "Bu kartla bağlantınız zaten mevcut.",
-    qrSwap: "QR Kod Okutarak Kart Takası Yap",
-    qrDescription: "Kendi Yenomi ID QR kodunuzu okutarak iki kartı karşılıklı ekleyin.",
+    yenomiQrSwap: "Yenomi ID QR kodunu okut",
+    yenomiQrDescription: "Yenomi ID kullanan kişiyle kartlarınızı karşılıklı ekleyin.",
+    externalQrSwap: "Başka kartın QR kodunu okut",
+    externalQrDescription: "vCard, MECARD veya başka bir platformdaki profil bağlantısını okuyun.",
+    externalLinkTitle: "Başka platformdaki kart algılandı",
+    externalLinkBody: "Kart yeni sekmede açılır. İletişim bilgilerinizi bu kart sahibine paylaşmak isterseniz formu ayrıca açabilirsiniz.",
+    externalLinkOpen: "Kartı yeni sekmede aç",
     alternativeTitle: "Alternatif iletişim formu",
     alternativeBody: "Yenomi ID kullanmıyorsanız bilgilerinizi buradan bırakabilirsiniz.",
+    alternativeOpen: "Bilgilerimi form ile paylaş",
+    alternativeClose: "Formu kapat",
     privacy: "Bilgileriniz yalnızca bağlantı kurduğunuz kart sahibiyle paylaşılır.",
     cancel: "Vazgeç",
     done: "Tamam",
     scanner: {
+      eyebrow: "Yenomi ID",
       title: "Yenomi ID QR kodunu okutun",
       description: "Diğer kişinin dijital kartındaki QR kodunu kameraya hizalayın.",
       preparing: "Kamera hazırlanıyor…",
@@ -109,6 +126,20 @@ const COPY: Record<NetworkingLocale, Copy> = {
       privacy: "Kart takası yalnızca yayınlanmış ve aktif Yenomi ID profilleri arasında yapılır.",
       cancel: "Vazgeç",
       processing: "Kartlar ekleniyor…",
+    },
+    externalScanner: {
+      eyebrow: "KART TAKASI",
+      title: "Başka kartın QR kodunu okutun",
+      description: "vCard, MECARD, e-posta, telefon veya profil bağlantısı içeren QR kodunu kameraya hizalayın.",
+      preparing: "Kamera hazırlanıyor…",
+      unsupported: "Kamera kullanılamadı. QR içeriğini aşağıya yapıştırarak devam edebilirsiniz.",
+      manualLabel: "QR içeriğini yapıştırın",
+      manualPlaceholder: "BEGIN:VCARD… veya https://…",
+      manualSubmit: "QR kodunu oku",
+      invalid: "Bu QR kodundan güvenli bir iletişim bilgisi okunamadı.",
+      privacy: "QR içeriği yalnızca cihazınızda okunur; başka platforma otomatik istek gönderilmez.",
+      cancel: "Vazgeç",
+      processing: "QR kodu okunuyor…",
     },
   },
   en: {
@@ -134,14 +165,22 @@ const COPY: Record<NetworkingLocale, Copy> = {
     instantSuccessTitle: "Cards added to both connections",
     instantSuccessBody: "Your digital cards were added to both connections with {name}.",
     instantExistingBody: "You are already connected with this card.",
-    qrSwap: "Scan a QR Code to Exchange Cards",
-    qrDescription: "Scan your Yenomi ID QR code to add both cards to each other’s connections.",
+    yenomiQrSwap: "Scan a Yenomi ID QR code",
+    yenomiQrDescription: "Add both cards to your connections when the other person uses Yenomi ID.",
+    externalQrSwap: "Scan another card’s QR code",
+    externalQrDescription: "Read a vCard, MECARD or profile link from another platform.",
+    externalLinkTitle: "A card from another platform was detected",
+    externalLinkBody: "The card opens in a new tab. You can separately open the form if you would also like to share your details with this card owner.",
+    externalLinkOpen: "Open card in a new tab",
     alternativeTitle: "Alternative contact form",
     alternativeBody: "If you do not use Yenomi ID, you can leave your details here.",
+    alternativeOpen: "Share my details with a form",
+    alternativeClose: "Close form",
     privacy: "Your details are shared only with the card owner you connected with.",
     cancel: "Cancel",
     done: "Done",
     scanner: {
+      eyebrow: "Yenomi ID",
       title: "Scan a Yenomi ID QR code",
       description: "Align the other person’s digital card QR code with the camera.",
       preparing: "Preparing camera…",
@@ -153,6 +192,20 @@ const COPY: Record<NetworkingLocale, Copy> = {
       privacy: "Card exchange is limited to live, published Yenomi ID profiles.",
       cancel: "Cancel",
       processing: "Adding cards…",
+    },
+    externalScanner: {
+      eyebrow: "CARD EXCHANGE",
+      title: "Scan another card’s QR code",
+      description: "Align a QR code containing a vCard, MECARD, email, phone number or profile link with the camera.",
+      preparing: "Preparing camera…",
+      unsupported: "The camera is unavailable. Paste the QR content below to continue.",
+      manualLabel: "Paste QR content",
+      manualPlaceholder: "BEGIN:VCARD… or https://…",
+      manualSubmit: "Read QR code",
+      invalid: "We could not read a safe contact detail from this QR code.",
+      privacy: "QR content is read only on your device; no request is automatically sent to another platform.",
+      cancel: "Cancel",
+      processing: "Reading QR code…",
     },
   },
 };
@@ -168,6 +221,18 @@ function getVisitorId() {
     return newVisitorId;
   } catch {
     return crypto.randomUUID();
+  }
+}
+
+function parseYenomiProfilePublicId(rawValue: string) {
+  const value = rawValue.trim();
+  if (/^[A-Za-z0-9]{8,32}$/.test(value)) return value;
+
+  try {
+    const url = new URL(value, window.location.origin);
+    return url.pathname.match(/^\/p\/([A-Za-z0-9]{8,32})\/?$/)?.[1] || null;
+  } catch {
+    return null;
   }
 }
 
@@ -198,13 +263,15 @@ export default function NetworkingCapture({
   const [identity, setIdentity] = useState<InstantIdentity | null>(null);
   const [identityLoading, setIdentityLoading] = useState(true);
   const [showProfessional, setShowProfessional] = useState(false);
+  const [showContactForm, setShowContactForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [instantSubmitting, setInstantSubmitting] = useState(false);
-  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scannerMode, setScannerMode] = useState<"yenomi" | "external" | null>(null);
   const [status, setStatus] = useState<"form" | "contact-success" | "handshake-success">("form");
   const [statusMessage, setStatusMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [contactForm, setContactForm] = useState<ContactForm>(EMPTY_CONTACT_FORM);
+  const [externalProfileUrl, setExternalProfileUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!localeProp) setInternalLocale(detectNetworkingLocale(navigator.language));
@@ -318,11 +385,50 @@ export default function NetworkingCapture({
     setInstantSubmitting(false);
   }
 
+  async function submitYenomiQr(rawValue: string) {
+    const sourcePublicId = parseYenomiProfilePublicId(rawValue);
+    if (!sourcePublicId) return { ok: false, error: copy.scanner.invalid };
+    return createHandshake({ kind: "QR", sourcePublicId });
+  }
+
+  async function submitExternalQr(rawValue: string) {
+    if (parseYenomiProfilePublicId(rawValue)) {
+      return { ok: false, error: copy.yenomiQrDescription };
+    }
+
+    const payload = parseExternalQrPayload(rawValue);
+    if (!payload) return { ok: false, error: copy.externalScanner.invalid };
+
+    setErrorMessage("");
+    if (payload.kind === "link") {
+      setExternalProfileUrl(payload.url);
+      return { ok: true };
+    }
+
+    setContactForm((currentForm) => ({
+      fullName: payload.contact.fullName || currentForm.fullName,
+      email: payload.contact.email || currentForm.email,
+      phone: payload.contact.phone || currentForm.phone,
+      company: payload.contact.company || currentForm.company,
+      position: payload.contact.position || currentForm.position,
+    }));
+    setShowProfessional(Boolean(payload.contact.company || payload.contact.position));
+    setShowContactForm(true);
+    return { ok: true };
+  }
+
+  function openContactForm() {
+    setExternalProfileUrl(null);
+    setShowContactForm(true);
+  }
+
   function reset() {
     setStatus("form");
     setStatusMessage("");
     setErrorMessage("");
     setShowProfessional(false);
+    setShowContactForm(false);
+    setExternalProfileUrl(null);
   }
 
   return (
@@ -371,46 +477,87 @@ export default function NetworkingCapture({
             </section>
           ) : null}
 
-          <Button type="button" variant="secondary-strong" className="p12-instant-connect__qr" onClick={() => setScannerOpen(true)}>
-            <Icon name="camera" /> {copy.qrSwap}
-          </Button>
-          <p className="p12-instant-connect__qr-description">{copy.qrDescription}</p>
+          <div className="p12-connect-methods" aria-label={copy.title}>
+            <div className="p12-connect-method">
+              <Button type="button" variant="secondary-strong" className="p12-instant-connect__qr" onClick={() => setScannerMode("yenomi")}>
+                <Icon name="camera" /> {copy.yenomiQrSwap}
+              </Button>
+              <p className="p12-instant-connect__qr-description">{copy.yenomiQrDescription}</p>
+            </div>
+            <div className="p12-connect-method">
+              <Button type="button" variant="secondary" className="p12-instant-connect__qr p12-instant-connect__qr--external" onClick={() => setScannerMode("external")}>
+                <Icon name="qr" /> {copy.externalQrSwap}
+              </Button>
+              <p className="p12-instant-connect__qr-description">{copy.externalQrDescription}</p>
+            </div>
+          </div>
+
+          {externalProfileUrl && (
+            <aside className="p12-external-qr-result" role="status">
+              <span aria-hidden="true"><Icon name="external" /></span>
+              <div>
+                <strong>{copy.externalLinkTitle}</strong>
+                <p>{copy.externalLinkBody}</p>
+              </div>
+              <a href={externalProfileUrl} target="_blank" rel="noopener noreferrer nofollow" referrerPolicy="no-referrer">
+                {copy.externalLinkOpen} <Icon name="external" />
+              </a>
+            </aside>
+          )}
+
           {errorMessage && <p className="p12-networking-message" role="alert">{errorMessage}</p>}
 
-          <form className="p12-networking-form" onSubmit={(event) => { event.preventDefault(); void submitContact(); }}>
-            <div className="p12-networking-form__intro">
-              <strong>{copy.alternativeTitle}</strong>
-              <p>{copy.alternativeBody}</p>
-            </div>
-            <div className="p12-networking-fields">
-              <Field label={copy.name} required><Input required maxLength={120} autoComplete="name" value={contactForm.fullName} onChange={(event) => setContactForm((currentForm) => ({ ...currentForm, fullName: event.target.value }))} /></Field>
-              <Field label={copy.email} required><Input required maxLength={254} type="email" autoComplete="email" value={contactForm.email} onChange={(event) => setContactForm((currentForm) => ({ ...currentForm, email: event.target.value }))} /></Field>
-              <Field label={copy.phone}><Input maxLength={40} type="tel" inputMode="tel" autoComplete="tel" value={contactForm.phone} onChange={(event) => setContactForm((currentForm) => ({ ...currentForm, phone: event.target.value }))} /></Field>
-            </div>
-
-            {!showProfessional ? (
-              <button type="button" className="p12-networking-disclosure" onClick={() => setShowProfessional(true)}>{copy.professional}</button>
-            ) : (
-              <div className="p12-networking-fields p12-networking-professional">
-                <Field label={copy.company}><Input maxLength={160} autoComplete="organization" value={contactForm.company} onChange={(event) => setContactForm((currentForm) => ({ ...currentForm, company: event.target.value }))} /></Field>
-                <Field label={copy.position}><Input maxLength={120} autoComplete="organization-title" value={contactForm.position} onChange={(event) => setContactForm((currentForm) => ({ ...currentForm, position: event.target.value }))} /></Field>
+          {!showContactForm ? (
+            <button
+              type="button"
+              className="p12-networking-form-toggle"
+              aria-expanded="false"
+              aria-controls="p12-alternative-contact-form"
+              onClick={openContactForm}
+            >
+              <span className="p12-networking-form-toggle__icon" aria-hidden="true"><Icon name="contact" /></span>
+              <span>
+                <strong>{copy.alternativeTitle}</strong>
+                <small>{copy.alternativeBody}</small>
+              </span>
+              <span className="p12-networking-form-toggle__action">{copy.alternativeOpen} <Icon name="chevronRight" /></span>
+            </button>
+          ) : (
+            <form id="p12-alternative-contact-form" className="p12-networking-form" onSubmit={(event) => { event.preventDefault(); void submitContact(); }}>
+              <div className="p12-networking-form__intro">
+                <strong>{copy.alternativeTitle}</strong>
+                <p>{copy.alternativeBody}</p>
               </div>
-            )}
+              <div className="p12-networking-fields">
+                <Field label={copy.name} required><Input required maxLength={120} autoComplete="name" value={contactForm.fullName} onChange={(event) => setContactForm((currentForm) => ({ ...currentForm, fullName: event.target.value }))} /></Field>
+                <Field label={copy.email} required><Input required maxLength={254} type="email" autoComplete="email" value={contactForm.email} onChange={(event) => setContactForm((currentForm) => ({ ...currentForm, email: event.target.value }))} /></Field>
+                <Field label={copy.phone}><Input maxLength={40} type="tel" inputMode="tel" autoComplete="tel" value={contactForm.phone} onChange={(event) => setContactForm((currentForm) => ({ ...currentForm, phone: event.target.value }))} /></Field>
+              </div>
 
-            <p className="p12-networking-privacy">{copy.privacy}</p>
-            <div className="p12-networking-form-actions">
-              <Button type="submit" variant="primary" disabled={submitting} aria-busy={submitting}>{submitting ? copy.submitting : copy.submit}</Button>
-              <Button type="button" variant="ghost" className="p12-networking-back" onClick={reset} disabled={submitting}>{copy.cancel}</Button>
-            </div>
-          </form>
+              {!showProfessional ? (
+                <button type="button" className="p12-networking-disclosure" onClick={() => setShowProfessional(true)}>{copy.professional}</button>
+              ) : (
+                <div className="p12-networking-fields p12-networking-professional">
+                  <Field label={copy.company}><Input maxLength={160} autoComplete="organization" value={contactForm.company} onChange={(event) => setContactForm((currentForm) => ({ ...currentForm, company: event.target.value }))} /></Field>
+                  <Field label={copy.position}><Input maxLength={120} autoComplete="organization-title" value={contactForm.position} onChange={(event) => setContactForm((currentForm) => ({ ...currentForm, position: event.target.value }))} /></Field>
+                </div>
+              )}
+
+              <p className="p12-networking-privacy">{copy.privacy}</p>
+              <div className="p12-networking-form-actions">
+                <Button type="submit" variant="primary" disabled={submitting} aria-busy={submitting}>{submitting ? copy.submitting : copy.submit}</Button>
+                <Button type="button" variant="ghost" className="p12-networking-back" onClick={() => setShowContactForm(false)} disabled={submitting}>{copy.alternativeClose}</Button>
+              </div>
+            </form>
+          )}
         </>
       )}
 
       <InstantConnectScanner
-        open={scannerOpen}
-        copy={copy.scanner}
-        onClose={() => setScannerOpen(false)}
-        onScan={(sourcePublicId) => createHandshake({ kind: "QR", sourcePublicId })}
+        open={scannerMode !== null}
+        copy={scannerMode === "external" ? copy.externalScanner : copy.scanner}
+        onClose={() => setScannerMode(null)}
+        onScan={scannerMode === "external" ? submitExternalQr : submitYenomiQr}
       />
     </section>
   );

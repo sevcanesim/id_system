@@ -449,7 +449,7 @@ export default function CheckoutPage() {
               {hasRenewal && <span><Icon name="shield" />Yalnız dijital hizmet yenilemesi</span>}
               {hasNetworkMailCreditPack && <span><Icon name="mail" />Krediler ödeme onayında hesabına eklenir</span>}
               {hasReplacement && <span><Icon name="shield" />Mevcut profilin korunur</span>}
-              {hasCorporatePackage && <span><Icon name="building" />Kurumsal fatura: unvan, vergi no, vergi dairesi</span>}
+              {hasCorporatePackage && <span><Icon name="building" />Kurumsal fatura: resmî unvan, 10 haneli VKN, vergi dairesi</span>}
               {hasCorporatePackage && <span><Icon name="clock" />NFC kartlar {COMMERCIAL_FULFILLMENT.handover.toLocaleLowerCase()}</span>}
               {hasCorporatePackage && <span><Icon name="shield" />1 yıllık kurumsal sistem</span>}
             </div>
@@ -485,10 +485,10 @@ export default function CheckoutPage() {
                     </fieldset> : null}
                     {hasCorporatePackage ? <fieldset className="checkout-company-fields" aria-describedby="company-billing-note">
                       <legend><Icon name="building" />Kurumsal fatura bilgileri</legend>
-                      <p id="company-billing-note">Ödeme tamamlandığında bu kayıt şirketine aktarılır; kurumsal panelden sonradan değiştirilemez.</p>
+                      <p id="company-billing-note">Yalnız resmî vergi kaydı olan şirketler kurumsal paket alabilir. T.C. kimlik numarası kabul edilmez; 10 haneli VKN ve vergi dairesi zorunludur. Ödeme tamamlandığında bu kayıt şirketine aktarılır ve kurumsal panelden değiştirilemez.</p>
                       <div className="checkout-company-fields__grid">
                         <label>Şirket unvanı<input required autoComplete="organization" value={form.companyName} onChange={(event) => update("companyName", event.target.value)} /></label>
-                        <label>Vergi kimlik no<input required inputMode="numeric" maxLength={11} autoComplete="off" value={form.companyTaxNumber} onChange={(event) => update("companyTaxNumber", event.target.value.replace(/\D/g, ""))} /></label>
+                        <label>10 haneli VKN<input required inputMode="numeric" maxLength={10} autoComplete="off" value={form.companyTaxNumber} onChange={(event) => update("companyTaxNumber", event.target.value.replace(/\D/g, ""))} /></label>
                         <label>Vergi dairesi<input required autoComplete="off" value={form.companyTaxOffice} onChange={(event) => update("companyTaxOffice", event.target.value)} /></label>
                       </div>
                     </fieldset> : null}

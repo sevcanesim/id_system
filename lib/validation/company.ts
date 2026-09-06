@@ -1,5 +1,3 @@
-import { isValidTurkishIdentityNumber } from "./payment";
-
 export type CompanyBilling = {
   name: string;
   taxNumber: string;
@@ -34,9 +32,7 @@ export function isValidTurkishTaxNumber(value: string): boolean {
 }
 
 export function isValidCompanyTaxNumber(value: string): boolean {
-  if (value.length === 10) return isValidTurkishTaxNumber(value);
-  if (value.length === 11) return isValidTurkishIdentityNumber(value);
-  return false;
+  return value.length === 10 && isValidTurkishTaxNumber(value);
 }
 
 export function parseCompanyBilling(input: unknown): { ok: true; company: CompanyBilling } | { ok: false; error: string } {
@@ -48,7 +44,7 @@ export function parseCompanyBilling(input: unknown): { ok: true; company: Compan
     return { ok: false, error: "Şirket unvanını gir." };
   }
   if (!isValidCompanyTaxNumber(taxNumber)) {
-    return { ok: false, error: "Geçerli bir vergi kimlik numarası gir." };
+    return { ok: false, error: "Kurumsal paket için resmî 10 haneli VKN gir." };
   }
   if (taxOffice.length < 2 || taxOffice.length > 80) {
     return { ok: false, error: "Vergi dairesini gir." };

@@ -408,7 +408,7 @@ export default function LoginClient({
                   <p>{description}</p>
                 </header>
 
-                {mode === "login" && (
+                {(mode === "login" || mode === "signup") && (
                   <div className="p6-auth-socials">
                     <button type="button" onClick={() => void signInWithGoogle()} disabled={busy}>
                       <span className="p6-auth-google" aria-hidden="true">
@@ -419,13 +419,13 @@ export default function LoginClient({
                           <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.97l2.99 2.33C4.66 5.17 6.65 3.58 9 3.58Z"/>
                         </svg>
                       </span>
-                      <span>Google ile devam et</span>
+                      <span>{mode === "signup" ? "Google ile hesap oluştur" : "Google ile devam et"}</span>
                     </button>
-                    <button type="button" onClick={() => void signInWithLinkedIn()} disabled={busy}><span className="p6-auth-linkedin" aria-hidden="true"><Icon name="social" /></span><span>LinkedIn ile devam et</span></button>
+                    <button type="button" onClick={() => void signInWithLinkedIn()} disabled={busy}><span className="p6-auth-linkedin" aria-hidden="true"><Icon name="social" /></span><span>{mode === "signup" ? "LinkedIn ile hesap oluştur" : "LinkedIn ile devam et"}</span></button>
                   </div>
                 )}
 
-                {mode === "login" && <div className="p6-auth-divider"><span>veya e-posta ile</span></div>}
+                {(mode === "login" || mode === "signup") && <div className="p6-auth-divider"><span>veya e-posta ile</span></div>}
 
                 {mode === "forgot" ? (
                   <form className="p6-auth-form" noValidate onSubmit={(event) => { event.preventDefault(); void sendPasswordReset(); }}>

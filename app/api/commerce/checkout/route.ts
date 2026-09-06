@@ -569,25 +569,74 @@ export async function POST(request: NextRequest) {
       }
       order = { id: retryOrder.id, order_number: retryOrder.order_number };
     } else {
-      const { data: createdOrder, error: orderError } = await admin
-        .from("commerce_orders")
-        .insert({
-          guest_email: normalizedEmail,
-          status: "AWAITING_PAYMENT",
-          currency: "TRY",
-          subtotal_kurus: subtotalKurus,
-          shipping_kurus: shippingKurus,
-          total_kurus: totalKurus,
-          customer_name: body.customer.name,
-          customer_phone: body.customer.phone,
-          country_code: "TR",
-          user_id: authenticatedUserId,
-          company_name: company?.name ?? null,
-          tax_number: company?.taxNumber ?? null,
-          tax_office: company?.taxOffice ?? null,
-        })
-        .select("id,order_number")
-        .single();
+      const mapUrl = shipping.latitude != null && shipping.longitude != null
+        ? `https://www.google.com/maps?q=${shipping.latitude},${shipping.longitude}`
+        : null;
+      const { data: orderResult, error: orderError } = await admin.rpc("create_checkout_order", {
+        p_input: {
+          email: normalizedEmail,
+          userId: authenticatedUserId,
+          subtotalKurus,
+          shippingKurus,
+          totalKurus,
+          customerName: body.customer.name,
+          customerPhone: body.customer.phone,
+          companyName: company?.name ?? "",
+          taxNumber: company?.taxNumber ?? "",
+          taxOffice: company?.taxOffice ?? "",
+          items: calculated.map((item) => ({
+            productId: item.product.id,
+            variantId: item.variant.id,
+            productKind: item.product.kind,
+            productName: item.product.name,
+            unitPriceKurus: item.unitPriceKurus,
+            quantity: item.quantity,
+            configuration: stampPhysicalProductionConfig(
+              item.variant.sku,
+              { sku: item.variant.sku, billingPeriod: item.variant.billing_period, ...(item.configuration || {}) },
+              body.customer.name,
+            ),
+          })),
+          shipping: {
+            recipientName: shipping.recipientName,
+            phone: shipping.phone,
+            addressLine: shipping.addressLine,
+            district: shipping.district,
+            city: shipping.city,
+            postalCode: shipping.postalCode || "",
+            latitude: shipping.latitude,
+            longitude: shipping.longitude,
+            mapUrl,
+            deliveryNote: shipping.deliveryNote || "",
+          },
+          billing: {
+            billingType: organizationBilling ? "CORPORATE" : "INDIVIDUAL",
+            organizationId: organizationBilling?.organizationId || "",
+            legalName: organizationBilling?.name || body.customer.name.trim(),
+            taxNumber: organizationBilling?.taxNumber || "",
+            taxOffice: organizationBilling?.taxOffice || "",
+            contactName: body.customer.name.trim(),
+            email: organizationBilling?.email || normalizedEmail,
+            phone: organizationBilling?.phone || body.customer.phone,
+            addressLine: shipping.addressLine,
+            district: shipping.district,
+            city: shipping.city,
+            postalCode: shipping.postalCode || "",
+          },
+          consents: {
+            distanceSalesVersion: body.consents.distanceSalesVersion,
+            personalizationVersion: body.consents.personalizationVersion,
+            privacyVersion: body.consents.privacyVersion,
+            acceptedIp: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "",
+            requestId: request.headers.get("x-request-id") || "",
+          },
+        },
+      });
+      const createdOrder = orderResult && typeof orderResult === "object"
+        && typeof orderResult.orderId === "string"
+        && typeof orderResult.orderNumber === "string"
+        ? { id: orderResult.orderId, order_number: orderResult.orderNumber }
+        : null;
 
       if (orderError || !createdOrder) {
         const payload = publicError("ORDER_CREATE_FAILED");
@@ -604,92 +653,6 @@ export async function POST(request: NextRequest) {
 
       order = createdOrder;
       createdNewOrder = true;
-
-      const { error: itemError } = await admin.from("commerce_order_items").insert(calculated.map((item) => ({
-        order_id: order!.id,
-        product_id: item.product.id,
-        variant_id: item.variant.id,
-        product_kind: item.product.kind,
-        product_name: item.product.name,
-        unit_price_kurus: item.unitPriceKurus,
-        quantity: item.quantity,
-        configuration: stampPhysicalProductionConfig(
-          item.variant.sku,
-          { sku: item.variant.sku, billingPeriod: item.variant.billing_period, ...(item.configuration || {}) },
-          body.customer.name,
-        ),
-      })));
-
-      if (itemError) {
-        await admin.from("commerce_orders").delete().eq("id", order.id);
-        return NextResponse.json(publicError("ORDER_CREATE_FAILED"), { status: 500 });
-      }
-
-      const mapUrl = shipping.latitude != null && shipping.longitude != null
-        ? `https://www.google.com/maps?q=${shipping.latitude},${shipping.longitude}`
-        : null;
-      const { error: addressError } = await admin.from("shipping_addresses").insert({
-        order_id: order.id,
-        recipient_name: shipping.recipientName,
-        phone: shipping.phone,
-        address_line: shipping.addressLine,
-        district: shipping.district,
-        city: shipping.city,
-        postal_code: shipping.postalCode || null,
-        latitude: shipping.latitude,
-        longitude: shipping.longitude,
-        map_url: mapUrl,
-        delivery_note: shipping.deliveryNote,
-        country_code: "TR",
-      });
-      if (addressError) {
-        await admin.from("commerce_orders").delete().eq("id", order.id);
-        return NextResponse.json(publicError("ORDER_CREATE_FAILED"), { status: 500 });
-      }
-
-      const { error: billingProfileError } = await admin.from("commerce_order_billing_profiles").insert({
-        order_id: order.id,
-        billing_type: organizationBilling ? "CORPORATE" : "INDIVIDUAL",
-        organization_id: organizationBilling?.organizationId || null,
-        legal_name: organizationBilling?.name || body.customer.name.trim(),
-        tax_number: organizationBilling?.taxNumber || null,
-        tax_office: organizationBilling?.taxOffice || null,
-        contact_name: body.customer.name.trim(),
-        email: organizationBilling?.email || normalizedEmail,
-        phone: organizationBilling?.phone || body.customer.phone,
-        address_line: shipping.addressLine,
-        district: shipping.district,
-        city: shipping.city,
-        postal_code: shipping.postalCode || null,
-        country_code: "TR",
-      });
-      if (billingProfileError) {
-        await admin.from("commerce_orders").delete().eq("id", order.id);
-        void recordSystemError({
-          source: "COMMERCE_CHECKOUT",
-          errorCode: "BILLING_PROFILE_SNAPSHOT_FAILED",
-          message: "Checkout could not persist its billing snapshot.",
-          requestId,
-          userId: observabilityUserId,
-          details: { databaseCode: billingProfileError.code ?? null },
-        });
-        return NextResponse.json(publicError("ORDER_CREATE_FAILED"), { status: 500 });
-      }
-
-      const { error: consentError } = await admin.from("commerce_order_consents").insert({
-        order_id: order.id,
-        distance_sales_accepted: true,
-        personalization_accepted: true,
-        distance_sales_version: body.consents.distanceSalesVersion,
-        personalization_version: body.consents.personalizationVersion,
-        privacy_version: body.consents.privacyVersion,
-        accepted_ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
-        request_id: request.headers.get("x-request-id") || null,
-      });
-      if (consentError) {
-        await admin.from("commerce_orders").delete().eq("id", order.id);
-        return NextResponse.json(publicError("ORDER_CREATE_FAILED"), { status: 500 });
-      }
     }
 
     const resumeExpiresAt = checkoutResumeSessionExpiry();

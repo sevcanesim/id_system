@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const baseURL = process.env.E2E_BASE_URL || "http://127.0.0.1:3000";
 const useExternalServer = Boolean(process.env.E2E_BASE_URL);
+const e2eDistDir = ".next-playwright";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -18,7 +19,7 @@ export default defineConfig({
   webServer: useExternalServer
     ? undefined
     : {
-        command: "npm run build && npm run start -- --hostname 127.0.0.1",
+        command: `YENOMI_NEXT_DIST_DIR=${e2eDistDir} npm run build && YENOMI_NEXT_DIST_DIR=${e2eDistDir} npm run start -- --hostname 127.0.0.1`,
         url: baseURL,
         reuseExistingServer: true,
         timeout: 120_000,

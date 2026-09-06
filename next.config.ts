@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
+const isolatedDistDir = process.env.YENOMI_NEXT_DIST_DIR?.trim();
+
 const nextConfig: NextConfig = {
+  ...(isolatedDistDir ? { distDir: isolatedDistDir } : {}),
   // The Next.js development toolbar is useful internally, but its floating
   // "N" control overlays the public product chrome in local demos and
   // screenshots. Keep the application surface identical between review and

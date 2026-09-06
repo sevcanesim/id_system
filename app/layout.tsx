@@ -70,7 +70,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
-    <html lang="tr" suppressHydrationWarning={Boolean(nonce)}>
+    <html lang="tr" data-scroll-behavior="smooth" suppressHydrationWarning={Boolean(nonce)}>
       <head />
       <body><a className="yi-skip-link" href="#main-content">Ana içeriğe geç</a><NoticeProvider><AuthSessionBridge /><HashScrollHandler /><PublicSiteShell>{children}</PublicSiteShell></NoticeProvider></body>
     </html>

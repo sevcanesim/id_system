@@ -18,7 +18,9 @@ pass('corporate rich templates remain preview-only',card.indexOf('if (isCorporat
 pass('canonical public card CSS uses no legacy token family',!/var\(--(?:yi|yp|store|brand|ui|y)-/.test(css));
 pass('canonical public card CSS has reduced-motion support',css.includes('prefers-reduced-motion'));
 pass('canonical public card CSS has mobile coverage',css.includes('.p12-public-card-page')&&css.includes('@media (max-width:520px)'));
-for(const file of ['app/p/[publicId]/page.tsx','app/c/[cardCode]/page.tsx','app/[slug]/page.tsx']) pass(`public route uses Phase 12 surface: ${file}`,read(file).includes('p12-public-card-page'));
+for(const file of ['app/p/[publicId]/page.tsx','app/c/[cardCode]/page.tsx']) pass(`public route uses Phase 12 surface: ${file}`,read(file).includes('p12-public-card-page'));
+const legacySlugPage=read('app/[slug]/page.tsx');
+pass('legacy slug route redirects only active cards to the canonical public card',legacySlugPage.includes('databaseProfile.card_status !== "ACTIVE"')&&legacySlugPage.includes('redirect(cardSharePath'));
 const physicalVcard=read('app/c/[cardCode]/vcard/route.ts');
 pass('physical-card vCard route validates active physical card',physicalVcard.includes('card.status !== "ACTIVE"'));
 pass('physical-card vCard route validates published active service',physicalVcard.includes('profile.is_published')&&physicalVcard.includes('isCardProfileServiceActive(profile)'));

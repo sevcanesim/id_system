@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { isCardProfileServiceActive, type CardProfileRow } from "../../lib/card-profile";
 import { fetchPublicCardByToken } from "../../lib/repositories/public-profiles";
 import { cardSharePath, cardShareUrl } from "../../lib/public-card/urls";
@@ -64,7 +64,8 @@ export default async function ProfilePage({ params }: PageProps) {
 
   if (databaseProfile) {
     if (!databaseProfile.public_id) notFound();
-    permanentRedirect(cardSharePath(databaseProfile.public_id));
+    if (databaseProfile.card_status !== "ACTIVE" || !isCardProfileServiceActive(databaseProfile)) notFound();
+    redirect(cardSharePath(databaseProfile.public_id));
   }
 
   notFound();

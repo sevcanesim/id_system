@@ -44,6 +44,8 @@ const profileImageMigration = read("supabase/migrations/20260906150000_private_p
 const profileImageUpload = read("app/api/profile-images/route.ts");
 const ownProfileImage = read("app/api/profile-images/own/route.ts");
 const publicProfileImage = read("app/api/public/profile-images/[publicId]/route.ts");
+const legacyPublicProfilePage = read("app/[slug]/page.tsx");
+const legacyVcard = read("app/[slug]/vcard/route.ts");
 const organizationIntegrations = read("app/api/organizations/integrations/route.ts");
 const webhookDelivery = read("lib/organizations/webhook-integrations.ts");
 const networkingLeadApi = read("app/api/networking/leads/route.ts");
@@ -260,6 +262,11 @@ mustNotInclude(profileImageUpload, "getPublicUrl", "Profile uploads must not iss
 mustInclude(ownProfileImage, "resolveRequestIdentity", "Own profile image access must require an authenticated identity.");
 mustInclude(publicProfileImage, "isCardProfileServiceActive", "Public profile images must stop serving when the card service ends.");
 mustInclude(publicProfileImage, "X-Content-Type-Options", "Profile image responses must prevent MIME sniffing.");
+mustInclude(legacyPublicProfilePage, 'databaseProfile.card_status !== "ACTIVE"', "Legacy slugs must not redirect an inactive or lost card to its public identifier.");
+mustNotInclude(legacyPublicProfilePage, "permanentRedirect", "Legacy slug redirects must not be permanently cached after a card is lost.");
+mustInclude(legacyVcard, 'data.card_status === "ACTIVE"', "Legacy vCard redirects must only resolve active cards.");
+mustInclude(legacyVcard, "isCardProfileServiceActive(data)", "Legacy vCard redirects must respect service expiry.");
+mustInclude(legacyVcard, '"Cache-Control", "private, no-store"', "Legacy vCard redirects must not become a durable cache record.");
 
 mustInclude(organizationIntegrations, "resolvePublicWebhookEndpoint", "Webhook endpoints must be DNS-validated before configuration is stored.");
 mustInclude(webhookDelivery, "resolvePublicWebhookEndpoint", "Webhook delivery must resolve DNS immediately before egress.");

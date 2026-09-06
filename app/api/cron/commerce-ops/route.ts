@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runCommerceOpsJobs } from "../../../../lib/commerce/commerce-ops-jobs";
 import { reconcileAwaitingProviderPayments } from "../../../../lib/commerce/pending-payment-reconciliation";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
+import { runWithOperationalJobLease } from "../../../../lib/operations/job-lease";
 import { authorizeCommerceCron } from "../../../../lib/security/cron-authorization";
 
 export const runtime = "nodejs";
@@ -11,8 +13,16 @@ async function executeCommerceOps(request: NextRequest) {
     return NextResponse.json({ error: "Cron yetkisi gerekli.", code: "CRON_UNAUTHORIZED" }, { status: 401 });
   }
   try {
-    const providerReconciliation = await reconcileAwaitingProviderPayments();
-    const sweep = await runCommerceOpsJobs();
+    const operation = await runWithOperationalJobLease("commerce-ops", async () => {
+      const providerReconciliation = await reconcileAwaitingProviderPayments();
+      const sweep = await runCommerceOpsJobs();
+      return { providerReconciliation, sweep };
+    }, ({ providerReconciliation, sweep }) => {
+      const reconciled = typeof providerReconciliation.scanned === "number" ? providerReconciliation.scanned : 0;
+      return reconciled + sweep.abandoned.scanned + sweep.alerts.open + sweep.corporateLeads.inspected;
+    });
+    if (!operation.acquired) return NextResponse.json({ ok: true, skipped: "LEASE_HELD" });
+    const { providerReconciliation, sweep } = operation.value;
     return NextResponse.json({
       ok: true,
       providerReconciliation,
@@ -21,9 +31,14 @@ async function executeCommerceOps(request: NextRequest) {
       reconciled: sweep.reconciled,
       renewals: sweep.renewals,
       alerts: sweep.alerts,
+      corporateLeads: sweep.corporateLeads,
     });
-  } catch (error) {
-    console.error("commerce ops cron failed", error instanceof Error ? error.message : "UNKNOWN");
+  } catch {
+    void recordSystemError({
+      source: "COMMERCE_OPS_CRON",
+      errorCode: "COMMERCE_OPS_RUN_FAILED",
+      message: "Commerce operations worker failed before completing its run.",
+    });
     return NextResponse.json({ error: "Ticari operasyon işleri çalıştırılamadı." }, { status: 500 });
   }
 }

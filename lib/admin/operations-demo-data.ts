@@ -4,6 +4,9 @@ type OperationsPayload = {
   capacityTerms: Array<Record<string, unknown>>;
   renewalNotices: Array<Record<string, unknown>>;
   mailAdjustments: Array<Record<string, unknown>>;
+  jobRuns: Array<Record<string, unknown>>;
+  privacyRequests: Array<Record<string, unknown>>;
+  corporateLeads: Array<Record<string, unknown>>;
   auditLog: Array<Record<string, unknown>>;
 };
 
@@ -63,6 +66,14 @@ export function createAdminOperationsDemoData(): OperationsPayload {
     mailAdjustments: [
       { id: "80000000-0000-4000-8000-000000000001", user_id: users[0][0], organization_id: null, delta: 10, balance_before: 72, balance_after: 82, reason: "Demo: müşteri hizmetleri kota düzeltmesi", created_at: ago(2) },
       { id: "80000000-0000-4000-8000-000000000002", user_id: users[1][0], organization_id: null, delta: 20, balance_before: 17, balance_after: 37, reason: "Demo: kampanya kredisi", created_at: ago(5) },
+    ],
+    jobRuns: [
+      { id: "81000000-0000-4000-8000-000000000001", job_name: "commerce-ops", status: "SUCCEEDED", started_at: ago(0, 1), finished_at: ago(0, 1), processed_count: 7, error_code: null },
+    ],
+    privacyRequests: [],
+    corporateLeads: [
+      { id: "82000000-0000-4000-8000-000000000001", contact: { fullName: "Ayşe Yılmaz", email: "qa26.operations.ayse@yenomi.test", company: "Atlas Endüstri A.Ş.", employeeCount: "25", message: "Ekip kartları için teklif talebi." }, plan: "BUSINESS", source: "corporate_page", status: "NEW", notificationStatus: "DELIVERED", notificationAttempts: 1, firstNotifiedAt: ago(0, 2), lastNotifiedAt: ago(0, 2), lastNotificationErrorCode: null, createdAt: ago(0, 2), updatedAt: ago(0, 2), encrypted: true },
+      { id: "82000000-0000-4000-8000-000000000002", contact: { fullName: "Mert Demir", email: "qa26.operations.mert@yenomi.test", company: "Nova Lojistik", employeeCount: "50", message: "API ve SSO ihtiyaçlarımızı görüşmek istiyoruz." }, plan: "ENTERPRISE", source: "corporate_page", status: "CONTACTED", notificationStatus: "RETRYABLE", notificationAttempts: 2, firstNotifiedAt: null, lastNotifiedAt: null, lastNotificationErrorCode: "RESEND_503", createdAt: ago(1), updatedAt: ago(1), encrypted: true },
     ],
     auditLog: [
       { id: "90000000-0000-4000-8000-000000000001", actor_user_id: null, action: "PHYSICAL_CARD_START_PRINT", target_table: "commerce_physical_card_units", target_id: "20000000-0000-4000-8000-000000000002", before_value: { status: "PRINT_PENDING" }, after_value: { status: "PRINTING" }, created_at: ago(1, 2) },

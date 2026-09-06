@@ -1,9 +1,11 @@
-import { createHash } from "crypto";
+import { createHmac, randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { consumeDistributedRateLimit, requestIp } from "../../../lib/security/rate-limit";
 import { getSupabaseAdminClient } from "../../../lib/supabase/server-admin";
-import { sendCorporateLeadEmail } from "../../../lib/email/resend";
+import { recordSystemError } from "../../../lib/observability/system-errors";
+import { canEncryptCorporateLeads, encryptCorporateLeadPayload } from "../../../lib/security/corporate-lead-crypto";
+import { deliverCorporateLeadNotifications } from "../../../lib/operations/corporate-lead-notifications";
 
 export const runtime = "nodejs";
 
@@ -31,36 +33,67 @@ export async function POST(request: NextRequest) {
     // Silent honeypot success prevents revealing the anti-spam mechanism.
     if (parsed.data.website) return NextResponse.json({ ok: true });
 
-    const admin = getSupabaseAdminClient();
-    const { data, error } = await admin.from("corporate_leads").insert({
-      full_name: parsed.data.fullName,
-      email: parsed.data.email.toLowerCase(),
-      company: parsed.data.company,
-      employee_count: parsed.data.employeeCount || "Belirtilmedi",
-      message: parsed.data.message || null,
-      plan: parsed.data.plan || "GENEL",
-      source: "corporate_page",
-      ip_hash: ip === "unknown" ? null : createHash("sha256").update(ip).digest("hex"),
-    }).select("id").single();
-
-    if (error) {
-      console.error("corporate lead insert failed", error);
-      return NextResponse.json({ error: "Talep kaydedilemedi. Lütfen tekrar deneyin." }, { status: 503 });
+    if (!canEncryptCorporateLeads()) {
+      void recordSystemError({
+        source: "CORPORATE_LEAD",
+        errorCode: "CORPORATE_LEAD_ENCRYPTION_UNCONFIGURED",
+        message: "Kurumsal teklif talebi şifreleme anahtarı yapılandırılmamış.",
+      });
+      return NextResponse.json({ error: "Talep sistemi şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin." }, { status: 503 });
     }
 
-    const emailResult = await sendCorporateLeadEmail({
-      id: data.id,
+    const leadId = randomUUID();
+    const encryptedPayload = encryptCorporateLeadPayload(leadId, {
       fullName: parsed.data.fullName,
-      email: parsed.data.email,
+      email: parsed.data.email.toLowerCase(),
       company: parsed.data.company,
       employeeCount: parsed.data.employeeCount || "Belirtilmedi",
       message: parsed.data.message || "",
+    });
+    if (!encryptedPayload) {
+      return NextResponse.json({ error: "Talep sistemi şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin." }, { status: 503 });
+    }
+
+    const fingerprintKey = process.env.AUTH_LOG_FINGERPRINT_KEY?.trim();
+    const ipFingerprint = ip === "unknown" || !fingerprintKey
+      ? null
+      : createHmac("sha256", fingerprintKey).update(ip).digest("hex");
+    const admin = getSupabaseAdminClient();
+    const { error } = await admin.from("corporate_leads").insert({
+      id: leadId,
+      encrypted_payload: encryptedPayload,
       plan: parsed.data.plan || "GENEL",
+      source: "corporate_page",
+      ip_hash: ipFingerprint,
     });
 
-    return NextResponse.json({ ok: true, notified: emailResult.sent });
-  } catch (error) {
-    console.error("corporate lead route failed", error);
+    if (error) {
+      void recordSystemError({
+        source: "CORPORATE_LEAD",
+        errorCode: "LEAD_PERSIST_FAILED",
+        message: "Kurumsal talep kaydı oluşturulamadı.",
+      });
+      return NextResponse.json({ error: "Talep kaydedilemedi. Lütfen tekrar deneyin." }, { status: 503 });
+    }
+
+    try {
+      await deliverCorporateLeadNotifications(admin, 1, Date.now(), leadId);
+    } catch {
+      void recordSystemError({
+        source: "CORPORATE_LEAD",
+        errorCode: "LEAD_NOTIFICATION_WORKER_FAILED",
+        message: "Kurumsal teklif bildirimi ilk denemede işlenemedi.",
+        details: { leadId },
+      });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch {
+    void recordSystemError({
+      source: "CORPORATE_LEAD",
+      errorCode: "REQUEST_FAILED",
+      message: "Kurumsal talep isteği işlenemedi.",
+    });
     return NextResponse.json({ error: "Talep işlenemedi. Lütfen tekrar deneyin." }, { status: 500 });
   }
 }

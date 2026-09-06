@@ -119,12 +119,18 @@ export async function sendOpsFulfillmentAlertEmail(input:{
 }
 
 export function sendCorporateLeadEmail(input:{id:string;fullName:string;email:string;company:string;employeeCount:string;message:string;plan:string}) {
+  const recipient = process.env.CORPORATE_LEAD_TO?.trim();
+  if (!recipient) return Promise.resolve({ sent: false as const, reason: "CORPORATE_LEAD_RECIPIENT_MISSING" as const });
   const safe = (value:string) => escapeHtml(value);
   return sendMail({
-    to: process.env.CORPORATE_LEAD_TO || "hello@yenomilabs.com",
+    to: recipient,
     subject: `Yeni Yenomi Business teklif talebi — ${safe(input.company)}`,
     html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto">${emailHeader()}<h1>Yeni kurumsal teklif talebi</h1><p><strong>Talep ID:</strong> ${safe(input.id)}</p><p><strong>Plan:</strong> ${safe(input.plan)}</p><p><strong>Ad soyad:</strong> ${safe(input.fullName)}<br/><strong>E-posta:</strong> ${safe(input.email)}<br/><strong>Şirket:</strong> ${safe(input.company)}<br/><strong>Çalışan sayısı:</strong> ${safe(input.employeeCount)}</p><p><strong>İhtiyaç:</strong><br/>${safe(input.message || "Belirtilmedi").replace(/\n/g,"<br/>")}</p><p>Kaynak: Yenomi Business teklif formu</p></div>`,
   });
+}
+
+export function sendCorporateLeadOpsAlert(leadId: string) {
+  return notifyOpsChannel(`Yeni kurumsal teklif talebi kaydedildi. Lead: ${leadId}`);
 }
 
 export function sendNetworkingFollowUpEmail(input:{to:string;organizationName:string;subject:string;message:string;replyTo?:string}) {

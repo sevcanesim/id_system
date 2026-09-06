@@ -3,6 +3,7 @@ import { checkoutResumeCodeExpiry, createCheckoutResumeCode, hashCheckoutResumeC
 import { sendAbandonedCheckoutEmail, sendOpsFulfillmentAlertEmail } from "../email/resend";
 import { publicSiteUrl } from "../payments/config";
 import { getSupabaseAdminClient } from "../supabase/server-admin";
+import { deliverCorporateLeadNotifications } from "../operations/corporate-lead-notifications";
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 const ABANDONED_BATCH = 40;
@@ -202,5 +203,6 @@ export async function runCommerceOpsJobs() {
   const reconciled = await runPaidOrderReconciliation(admin);
   const renewals = await queueCorporateCapacityRenewals(admin);
   const alerts = await notifyOpenFulfillmentIssues(admin);
-  return { abandoned, expired, reconciled, renewals, alerts };
+  const corporateLeads = await deliverCorporateLeadNotifications(admin);
+  return { abandoned, expired, reconciled, renewals, alerts, corporateLeads };
 }

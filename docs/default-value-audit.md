@@ -28,7 +28,7 @@ göstermek yerine yükleme durumu gösterilmelidir.
 | P0 | Sepete yazılan görünen fiyat ve ürün adı | `app/urunler/page.tsx` içindeki `AddToCartButton` çağrıları | DB teklif snapshot'ı; sunucu ödeme öncesi tekrar doğrular |
 | P1 | Kurumsal şablon adı, renk, varsayılan varyant ve alan kilitleri | `app/kurumsal/panel/CorporatePanelClient.tsx`, `app/kurumsal/panel/components/TemplatesPanel.tsx` | Organizasyona ait `organization_card_templates.fields` |
 | P1 | Kart önizlemesindeki örnek kişi/şirket | `app/CardTemplate.tsx` (`Selin Kaya`, `Yenomi Labs`) | Gerçek `profiles` kaydı; veri yokken skeleton/boş önizleme |
-| P1 | Örnek kişisel profil ve iletişim bilgileri | `app/data.ts` | `profiles` / `profile_links`; üretim derlemesinden örnek veri çıkarılmalı |
+| Tamamlandı | Üretim örnek kişisel profil ve iletişim bilgileri | Eski `app/data.ts` kaldırıldı | Görüntülenecek profil verisi yalnızca `profiles` / `profile_links` üzerinden gelir |
 | P1 | Marka adı, destek/satış e-postası, site URL'si, gönderi politikası | `lib/email/resend.ts`, `lib/config/commercial.ts` | `app_settings` (`site.identity`, `commerce.shipping`) — e-posta sağlayıcı anahtarları hariç |
 | P1 | Kurumsal bağlantı yuvalarının başlık ve açıklamaları | `lib/organizations/card-branding.ts` | `organization_link_slot_definitions` (tablo ve DB-okuma zaten var) |
 | P2 | Networking durumları, ilgi seçenekleri, puan ağırlıkları | `lib/networking/catalog.ts` | Yönetici tarafından değiştirilecekse yeni sürümlü workflow/config tabloları |

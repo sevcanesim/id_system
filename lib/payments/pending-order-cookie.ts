@@ -37,7 +37,6 @@ export function applyPendingOrderCookie(response: NextResponse, orderId: string 
   return response;
 }
 
-/** Resolves which UUID to consider. Does not authorize settlement — see recover-authorization. */
 export function resolveRecoverOrderId(cookieOrderId: string | null, bodyOrderId: string | null): { orderId: string | null; mismatch: boolean } {
   const cookie = cookieOrderId && UUID_RE.test(cookieOrderId) ? cookieOrderId : null;
   const body = bodyOrderId && UUID_RE.test(bodyOrderId) ? bodyOrderId : null;

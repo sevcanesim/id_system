@@ -18,7 +18,6 @@ const memberStatusesRoute = read("app/api/organizations/member-card-statuses/rou
 const analyticsRoute = read("app/api/organizations/card-analytics/route.ts");
 const publicationRoute = read("app/api/profiles/publication/route.ts");
 const profileActions = read("app/hooks/useProfileCardActions.ts");
-const profileRepository = read("lib/repositories/profiles.ts");
 const publicProfileRepository = read("lib/repositories/public-profiles.ts");
 const publicProfileMigration = read("supabase/migrations/20260906140000_private_public_profile_data_gateway.sql");
 const checkoutResumeMigration = read("supabase/migrations/20260906130000_secure_checkout_resume_codes.sql");
@@ -57,8 +56,6 @@ forbidText(analyticsRoute, '.ilike("company", organization.name)', "Kurumsal ana
 
 requireOneOf(publicationRoute, ['.eq("user_id", identity.user.id)', '.eq("user_id", authData.user.id)'], "Yayın durumu route'u profil sahibini doğrulamalı.");
 requireText(profileActions, 'fetch("/api/profiles/publication"', "Tarayıcı yayın durumu değişikliği API üzerinden gitmeli.");
-forbidText(profileRepository, '.from("card_profiles")\n    .update', "Profil repository'si tarayıcıdan doğrudan profil güncellememeli.");
-forbidText(profileRepository, '.from("card_profiles")\n    .insert', "Profil repository'si tarayıcıdan doğrudan profil eklememeli.");
 
 forbidText(middleware, 'scope: "paytr-callback"', "İmzalı PayTR callback'i IP hız limitine takılmamalı.");
 requireText(middleware, "const requestId = crypto.randomUUID();", "İstek kimliği istemci başlığından devralınmamalı.");
@@ -89,7 +86,6 @@ for (const token of [
 }
 requireText(publicProfileRepository, "getSupabaseAdminClient", "Public profil çözümü yalnız sunucu tarafında yapılmalı.");
 requireText(publicProfileRepository, "card_profile_slug_redirects", "Eski slug yönlendirmesi sunucu tarafında çözülmeli.");
-forbidText(profileRepository, "get_public_card_profile", "Tarayıcı repository'si public profil RPC'sini çağırmamalı.");
 requireText(networkingCapture, "profilePublicId", "Public kart istemcisi dahili profil UUID'si taşımamalı.");
 forbidText(networkingCapture, "targetProfileId", "Public bağlantı isteği dahili hedef profil UUID'si göndermemeli.");
 requireText(networkingLeadRoute, "profilePublicId", "Lead kaydı public profil ID üzerinden çözülmeli.");

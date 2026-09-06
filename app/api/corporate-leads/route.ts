@@ -21,9 +21,9 @@ const schema = z.object({
 
 export async function POST(request: NextRequest) {
   const ip = requestIp(request.headers);
-  const limit = await consumeDistributedRateLimit({ key: `corporate-lead:${ip}`, limit: 5, windowMs: 60 * 60 * 1000 });
+  const limit = await consumeDistributedRateLimit({ key: `corporate-lead:${ip}`, limit: 5, windowMs: 60 * 60 * 1000, failClosed: true });
   if (!limit.allowed) {
-    return NextResponse.json({ error: "Çok fazla talep gönderildi. Lütfen daha sonra tekrar deneyin." }, { status: 429 });
+    return NextResponse.json({ error: "Talep doğrulaması şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin." }, { status: limit.unavailable ? 503 : 429 });
   }
 
   try {

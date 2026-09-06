@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateWebhookEndpoint } from "./webhook-integrations";
+import { createSafeWebhookPayload, validateWebhookEndpoint } from "./webhook-integrations";
 
 describe("webhook endpoint validation", () => {
   it("accepts only HTTPS public endpoint syntax", () => {
@@ -25,5 +25,19 @@ describe("webhook endpoint validation", () => {
     ]) {
       expect(validateWebhookEndpoint(endpoint)).toBeNull();
     }
+  });
+
+  it("allows only operational metadata in lead delivery payloads", () => {
+    const payload = createSafeWebhookPayload("LEAD_CREATED", {
+      leadId: "lead-1",
+      source: "QR",
+      score: 20,
+      status: "NEW",
+      fullName: "Ada Soylu",
+      email: "ada@example.test",
+      phone: "+905550000000",
+    });
+
+    expect(payload.data).toEqual({ leadId: "lead-1", source: "QR", score: 20, status: "NEW" });
   });
 });

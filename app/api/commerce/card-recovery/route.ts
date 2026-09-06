@@ -10,6 +10,7 @@ import {
 } from "../../../../lib/security/route-rate-limits";
 import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 import { recordSystemError } from "../../../../lib/observability/system-errors";
+import { transientTokenUrl } from "../../../../lib/security/transient-link";
 
 export const runtime = "nodejs";
 
@@ -110,7 +111,7 @@ export async function POST(request: NextRequest) {
 
   const mail = await sendActivationEmail({
     to: order.guest_email,
-    activationUrl: `${publicSiteUrl}/aktivasyon?token=${encodeURIComponent(rawToken)}`,
+    activationUrl: transientTokenUrl(publicSiteUrl, "/aktivasyon", rawToken),
     orderNumber: order.order_number,
     hoursValid: activationResendHours,
     audience: "individual",

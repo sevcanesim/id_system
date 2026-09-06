@@ -14,6 +14,7 @@ import {
 } from "../../../../lib/supabase/server-admin";
 import { MFA_REQUIRED_MESSAGE, requiresOrganizationMfaStepUp } from "../../../../lib/organizations/security-policy";
 import { recordSystemError } from "../../../../lib/observability/system-errors";
+import { transientTokenUrl } from "../../../../lib/security/transient-link";
 
 const createSchema = z.object({
   organizationId: z.string().uuid(),
@@ -234,7 +235,7 @@ export async function POST(request: NextRequest) {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin;
   const mail = await sendOrganizationInviteEmail({
     to: member.email,
-    inviteUrl: `${baseUrl}/kurumsal/davet?token=${rawToken}`,
+    inviteUrl: transientTokenUrl(baseUrl, "/kurumsal/davet", rawToken),
     organizationName: organization?.name || "Şirket",
   });
 
@@ -329,7 +330,7 @@ export async function PATCH(request: NextRequest) {
         const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin;
         const mail = await sendOrganizationInviteEmail({
           to: resendResult.email,
-          inviteUrl: `${baseUrl}/kurumsal/davet?token=${rawToken}`,
+          inviteUrl: transientTokenUrl(baseUrl, "/kurumsal/davet", rawToken),
           organizationName: organization?.name || "Şirket",
         });
         inviteRenewed = true;

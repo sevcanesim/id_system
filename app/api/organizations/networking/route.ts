@@ -224,14 +224,9 @@ export async function POST(request: NextRequest) {
       .select("*")
       .maybeSingle();
     if (error || !lead) return NextResponse.json({ error: "Lead güncellenemedi." }, { status: 503 });
-    const leadRow = lead as { id: string; full_name: string; email: string; company: string | null; position: string | null; phone: string | null; source: string; status: string; score: number };
+    const leadRow = lead as { id: string; source: string; status: string; score: number };
     await queueOrganizationWebhookEvent(admin, parsed.data.organizationId, "LEAD_STATUS_CHANGED", {
       leadId: leadRow.id,
-      fullName: leadRow.full_name,
-      email: leadRow.email,
-      phone: leadRow.phone,
-      company: leadRow.company,
-      position: leadRow.position,
       source: leadRow.source,
       status: leadRow.status,
       score: leadRow.score,

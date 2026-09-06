@@ -142,7 +142,7 @@ export async function proxy(request: NextRequest) {
     response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive, nosnippet");
     response.headers.set("Cache-Control", pathname.startsWith("/api/") ? "private, no-store" : "private, no-store, max-age=0");
   }
-  if (pathname === "/aktivasyon" || pathname.startsWith("/aktivasyon/") || pathname === "/checkout" || pathname.startsWith("/checkout/") || pathname.startsWith("/odeme/")) {
+  if (pathname === "/aktivasyon" || pathname.startsWith("/aktivasyon/") || pathname === "/kurumsal/davet" || pathname.startsWith("/kurumsal/davet/") || pathname === "/checkout" || pathname.startsWith("/checkout/") || pathname.startsWith("/odeme/")) {
     response.headers.set("Referrer-Policy", "no-referrer");
     response.headers.set("Cache-Control", "private, no-store, no-cache, max-age=0, must-revalidate");
   }

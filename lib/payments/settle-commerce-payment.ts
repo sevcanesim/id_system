@@ -6,6 +6,7 @@ import { publicSiteUrl } from "./config";
 import { CORPORATE_POST_PURCHASE_HREF, INDIVIDUAL_POST_PURCHASE_HREF } from "../commerce/post-purchase";
 import { sanitizeProviderPayload } from "./sanitize-provider-payload";
 import { recordSystemError } from "../observability/system-errors";
+import { transientTokenUrl } from "../security/transient-link";
 import { getSupabaseAdminClient } from "../supabase/server-admin";
 
 export type CommerceSettleResult =
@@ -141,7 +142,7 @@ async function sendGuestActivationIfTokenPersisted(
     orderNumber: input.orderNumber,
     hoursValid,
     audience: input.corporate ? "corporate" : "individual",
-    activationUrl: `${publicSiteUrl}/aktivasyon?token=${encodeURIComponent(input.rawActivationToken)}`,
+    activationUrl: transientTokenUrl(publicSiteUrl, "/aktivasyon", input.rawActivationToken),
   });
   await admin.from("commerce_email_events").insert({
     order_id: input.orderId,

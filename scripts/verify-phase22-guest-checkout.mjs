@@ -12,7 +12,7 @@ const paymentFlow = `${callback}\n${settle}`;
 
 const apiContracts = [
   "let authenticatedUserId: string | null = null;",
-  "Guest orders remain claimable by email after",
+  'retryQuery.eq("guest_email", normalizedEmail);',
   "guest_email: normalizedEmail",
   "user_id: authenticatedUserId",
   "if (!authenticatedUserId || !membership",
@@ -97,8 +97,8 @@ if (!session.includes("export async function GET") || !sessionHelper.includes("y
   throw new Error("Session route must restore and rotate refresh tokens via HttpOnly cookies.");
 }
 const activation = readFileSync("app/aktivasyon/ActivationClient.tsx", "utf8");
-if (!activation.includes("yenomi-activation-token") || !activation.includes('router.replace("/aktivasyon"') || !activation.includes("pagehide")) {
-  throw new Error("Activation token must be stripped from the URL after capture and cleared on pagehide.");
+if (!activation.includes("window.location.hash") || !activation.includes("history.replaceState") || activation.includes("sessionStorage")) {
+  throw new Error("Activation token must remain in the URL fragment and never enter browser storage.");
 }
 const canonical = readFileSync("app/canonical.css", "utf8");
 if (!canonical.includes(".activation-callout") || !canonical.includes(".p5-next-steps") || !canonical.includes(".p18-review-notice")) {

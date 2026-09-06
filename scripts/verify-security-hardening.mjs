@@ -46,6 +46,9 @@ const ownProfileImage = read("app/api/profile-images/own/route.ts");
 const publicProfileImage = read("app/api/public/profile-images/[publicId]/route.ts");
 const organizationIntegrations = read("app/api/organizations/integrations/route.ts");
 const webhookDelivery = read("lib/organizations/webhook-integrations.ts");
+const networkingLeadApi = read("app/api/networking/leads/route.ts");
+const networkingManageApi = read("app/api/organizations/networking/route.ts");
+const requestIdentity = read("lib/auth/request-identity.ts");
 const loginAudit = read("lib/auth/login-audit.ts");
 const observabilityRetention = read("supabase/migrations/20260906180000_operational_observability_retention.sql");
 const loginAuditMigration = read("supabase/migrations/20260906190000_auth_login_event_telemetry.sql");
@@ -110,6 +113,7 @@ const csp = read("lib/security/content-security-policy.ts");
 mustInclude(csp, "'nonce-${nonce}'", "CSP must mint a per-request script nonce.");
 mustInclude(csp, "'strict-dynamic'", "Nonce CSP must allow Next.js to load its own chunks.");
 mustNotInclude(csp, "script-src 'self' 'unsafe-inline'", "script-src must not allow arbitrary inline scripts.");
+mustNotInclude(csp, "*.supabase.co", "CSP must only allow the configured Supabase origin.");
 
 const loginApi = read("app/api/auth/login/route.ts");
 const loginPage = read("app/giris/page.tsx") + read("app/giris/LoginClient.tsx");
@@ -144,13 +148,23 @@ mustInclude(cardViews, 'headerList.get("sec-gpc")', "Card analytics must honor G
 mustNotInclude(cardViews, 'headerList.get("referer")', "Card analytics must not persist raw referrers.");
 mustNotInclude(cardViews, 'headerList.get("x-vercel-ip-city")', "Card analytics must not persist city-level location.");
 mustInclude(analyticsMinimizationMigration, "purge_card_view_events", "Card analytics needs a bounded retention function.");
-mustInclude(cardWizard, "readPersonalCardDraft", "Individual card drafts must use account-scoped client storage.");
-mustInclude(cardWizard, "writePersonalCardDraft", "Individual card drafts must be written through account-scoped storage.");
+mustNotInclude(cardWizard, "readPersonalCardDraft", "Card editor must not restore personal data from browser storage.");
+mustNotInclude(cardWizard, "writePersonalCardDraft", "Card editor must not persist personal data in browser storage.");
 mustNotInclude(cardWizard, 'localStorage.getItem("yenomi-card-draft")', "Card editor must not read a cross-account draft key.");
 mustNotInclude(cardWizard, 'localStorage.setItem("yenomi-card-draft")', "Card editor must not write a cross-account draft key.");
-mustInclude(clientPrivateState, "CARD_DRAFT_PREFIX", "Private browser state must namespace drafts by account.");
+mustInclude(clientPrivateState, "CARD_DRAFT_PREFIX", "Private browser state must clear account-scoped drafts left by older releases.");
+mustNotInclude(clientPrivateState, "localStorage.setItem", "Private browser state must not write sensitive drafts.");
 mustInclude(clientPrivateState, "clearSensitiveBrowserState", "Sensitive browser state needs an explicit logout cleanup path.");
 mustInclude(authSessionBridge, "clearSensitiveBrowserState", "Logout must clear sensitive browser state.");
+mustInclude(requestIdentity, "hasTrustedSameOrigin", "Cookie-authenticated writes must verify same-origin intent.");
+mustInclude(requestIdentity, "hasBearerCredential", "Bearer API clients must remain explicit when bypassing the cookie CSRF gate.");
+mustInclude(networkingLeadApi, "NETWORKING_IP_FINGERPRINT_SECRET", "Networking IP fingerprints must use a dedicated HMAC secret.");
+mustNotInclude(networkingLeadApi, "createHash(\"sha256\").update(clientIp)", "Networking IPs must not use unsalted hashes.");
+mustInclude(networkingLeadApi, "failClosed: true", "Public networking lead submission must fail closed if distributed rate limiting is unavailable.");
+mustNotInclude(networkingLeadApi, "fullName: submission.fullName", "Lead PII must not be copied into external webhook payloads.");
+mustNotInclude(networkingManageApi, "fullName: leadRow.full_name", "Lead updates must not copy PII into external webhook payloads.");
+mustInclude(webhookDelivery, "WEBHOOK_DATA_FIELDS", "Webhook payloads must be allowlisted by event type.");
+mustNotInclude(webhookDelivery, "data: payload", "Webhook queues must not accept arbitrary payload fields.");
 mustInclude(observabilityRetention, "status <> 'RUNNING'", "Retention must not delete in-flight operational job records.");
 mustInclude(loginApi, "auth-login-email", "Login must also limit by email, not only by IP.");
 mustInclude(loginApi, "limitAuthLoginIp", "Login must also limit by IP to slow credential stuffing.");
@@ -180,9 +194,10 @@ mustInclude(testGate, 'VERCEL_ENV === "production"', "Demo accounts must be bloc
 mustInclude(testGate, "ALLOW_TEST_LOGINS", "Isolated staging must be able to keep fixture logins.");
 mustInclude(sessionRoute, "productionTestLoginBlocked", "Session cookie restore must not hand tokens to production demo accounts.");
 
-mustInclude(activation, "pagehide", "Activation token must clear from sessionStorage on pagehide.");
-mustInclude(activation, "event.persisted", "Activation pagehide must keep the token for bfcache restore.");
-mustNotInclude(activation, "visibilitychange", "Do not clear the activation token on visibilitychange.");
+mustInclude(activation, "window.location.hash", "Activation token must be read from the URL fragment, not query parameters.");
+mustInclude(activation, "history.replaceState", "Legacy activation query tokens must be moved out of server-visible URLs.");
+mustNotInclude(activation, "sessionStorage", "Activation token must not be persisted in browser storage.");
+mustNotInclude(activation, "visibilitychange", "Activation flow must not couple token handling to page visibility.");
 
 const adminOrders = read("app/api/admin/commerce/orders/route.ts");
 const adminCardLink = read("app/api/admin/commerce/card-units/link/route.ts");

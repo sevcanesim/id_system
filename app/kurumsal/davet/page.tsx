@@ -16,7 +16,12 @@ export default function InvitePage() {
     let cancelled = false;
 
     void (async () => {
-      const token = new URLSearchParams(window.location.search).get("token") || "";
+      const legacyQueryToken = new URLSearchParams(window.location.search).get("token") || "";
+      const fragmentToken = new URLSearchParams(window.location.hash.replace(/^#/, "")).get("token") || "";
+      const token = fragmentToken || legacyQueryToken;
+      if (legacyQueryToken) {
+        window.history.replaceState(window.history.state, "", `/kurumsal/davet#token=${encodeURIComponent(token)}`);
+      }
       const supabase = getSupabaseBrowserClient();
       const result = await acceptOrganizationInvite(supabase, token || null);
       if (!cancelled) setState({ ...result, token });
@@ -28,7 +33,7 @@ export default function InvitePage() {
   }, []);
 
   const loginHref = state.token
-    ? `/giris?portal=business&next=${encodeURIComponent(`/kurumsal/davet?token=${encodeURIComponent(state.token)}`)}`
+    ? `/giris?portal=business&next=${encodeURIComponent(`/kurumsal/davet#token=${encodeURIComponent(state.token)}`)}`
     : "/giris?portal=business";
 
   return (

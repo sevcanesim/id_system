@@ -6,9 +6,10 @@ import {
   type InstantConnectProfile,
 } from "../../../../lib/networking/instant-connect";
 import { consumeDistributedRateLimit, requestIp } from "../../../../lib/security/rate-limit";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 import { profileImagePathFromValue, publicProfileImagePath } from "../../../../lib/profile-images";
 import { recordSystemError } from "../../../../lib/observability/system-errors";
+import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
 
 export const runtime = "nodejs";
 
@@ -36,12 +37,8 @@ function noStore(response: NextResponse) {
 }
 
 async function authenticate(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-  const auth = getSupabaseAuthClient();
-  const { data, error } = await auth.auth.getUser(token);
-  if (error || !data.user) return null;
-  return { id: data.user.id };
+  const identity = await resolveRequestIdentity(request);
+  return identity ? { id: identity.user.id } : null;
 }
 
 export async function GET(request: NextRequest) {
@@ -87,9 +84,10 @@ export async function POST(request: NextRequest) {
     key: `instant-connect:${clientIp}`,
     limit: 12,
     windowMs: 60 * 60 * 1000,
+    failClosed: true,
   });
   if (!rateLimit.allowed) {
-    return noStore(NextResponse.json({ code: "HANDSHAKE_FAILED", error: "Çok fazla bağlantı denemesi yapıldı. Lütfen daha sonra tekrar deneyin." }, { status: 429 }));
+    return noStore(NextResponse.json({ code: "HANDSHAKE_FAILED", error: "Bağlantı doğrulaması şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin." }, { status: rateLimit.unavailable ? 503 : 429 }));
   }
 
   const parsed = handshakeSchema.safeParse(await request.json().catch(() => null));

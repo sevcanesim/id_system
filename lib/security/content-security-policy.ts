@@ -1,16 +1,14 @@
 function supabaseConnectSources(): string {
-  const hosted = "https://*.supabase.co wss://*.supabase.co";
   const raw = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  if (!raw) return hosted;
+  if (!raw) return "";
   try {
     const origin = new URL(raw).origin;
-    if (origin.endsWith(".supabase.co")) return hosted;
     const websocketOrigin = origin.startsWith("https:")
       ? `wss://${new URL(raw).host}`
       : `ws://${new URL(raw).host}`;
-    return `${hosted} ${origin} ${websocketOrigin}`;
+    return `${origin} ${websocketOrigin}`;
   } catch {
-    return hosted;
+    return "";
   }
 }
 
@@ -18,7 +16,7 @@ export function buildContentSecurityPolicy(
   nonce: string,
   options?: { allowUnsafeEval?: boolean },
 ): string {
-  const connectSrc = `'self' ${supabaseConnectSources()} https://maps.googleapis.com`;
+  const connectSrc = ["'self'", supabaseConnectSources(), "https://maps.googleapis.com"].filter(Boolean).join(" ");
   const evalSrc = options?.allowUnsafeEval ? " 'unsafe-eval'" : "";
   const scriptSrc = `'self' 'nonce-${nonce}' 'strict-dynamic' https://www.paytr.com${evalSrc}`;
   return [

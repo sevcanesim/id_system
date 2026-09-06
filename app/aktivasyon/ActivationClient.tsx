@@ -10,23 +10,11 @@ import { normalizeEmailField } from "../../lib/form-standards";
 import { setCartOwner } from "../../lib/cart";
 import { INDIVIDUAL_POST_PURCHASE_HREF } from "../../lib/commerce/post-purchase";
 
-const ACTIVATION_TOKEN_KEY = "yenomi-activation-token";
-
-function readHeldToken() {
-  if (typeof window === "undefined") return "";
-  return window.sessionStorage.getItem(ACTIVATION_TOKEN_KEY) || "";
-}
-
-function clearHeldToken() {
-  if (typeof window === "undefined") return;
-  window.sessionStorage.removeItem(ACTIVATION_TOKEN_KEY);
-}
-
 export default function ActivationClient() {
   const params = useSearchParams();
   const router = useRouter();
-  const urlToken = params.get("token") || "";
-  const [token, setToken] = useState(urlToken || readHeldToken());
+  const legacyQueryToken = params.get("token") || "";
+  const [token, setToken] = useState("");
   const [mode, setMode] = useState<"new" | "existing">("new");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,22 +25,14 @@ export default function ActivationClient() {
   const [resending, setResending] = useState(false);
 
   useEffect(() => {
-    if (!urlToken) {
-      setToken(readHeldToken());
-      return;
+    const hashToken = new URLSearchParams(window.location.hash.replace(/^#/, "")).get("token") || "";
+    const resolvedToken = hashToken || legacyQueryToken;
+    if (!resolvedToken) return;
+    setToken(resolvedToken);
+    if (legacyQueryToken) {
+      window.history.replaceState(window.history.state, "", `/aktivasyon#token=${encodeURIComponent(resolvedToken)}`);
     }
-    window.sessionStorage.setItem(ACTIVATION_TOKEN_KEY, urlToken);
-    setToken(urlToken);
-    router.replace("/aktivasyon", { scroll: false });
-  }, [router, urlToken]);
-
-  useEffect(() => {
-    function onPageHide(event: PageTransitionEvent) {
-      if (!event.persisted) clearHeldToken();
-    }
-    window.addEventListener("pagehide", onPageHide);
-    return () => window.removeEventListener("pagehide", onPageHide);
-  }, []);
+  }, [legacyQueryToken]);
 
   useEffect(() => () => {
     setPassword("");
@@ -105,7 +85,8 @@ export default function ActivationClient() {
         corporate = Boolean(payload.corporate);
       }
 
-      clearHeldToken();
+      setToken("");
+      window.history.replaceState(window.history.state, "", "/aktivasyon");
       setPassword("");
       router.push(corporate ? "/kurumsal/panel" : INDIVIDUAL_POST_PURCHASE_HREF);
     } catch (error) {

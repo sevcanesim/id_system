@@ -9,6 +9,7 @@ import { publicError } from "../../../../../lib/errors";
 import { publicSiteUrl } from "../../../../../lib/payments/config";
 import { getDatabaseLifecycleSettings } from "../../../../../lib/config/database";
 import { recordSystemError } from "../../../../../lib/observability/system-errors";
+import { transientTokenUrl } from "../../../../../lib/security/transient-link";
 
 export const runtime = "nodejs";
 const patchSchema = z.object({
@@ -73,7 +74,7 @@ export async function PATCH(request: NextRequest) {
       const kind = await loadCommerceOrderKind(context.admin, parsed.data.orderId);
       const mail = await sendActivationEmail({
         to: currentOrder.guest_email,
-        activationUrl: `${publicSiteUrl}/aktivasyon?token=${encodeURIComponent(rawToken)}`,
+        activationUrl: transientTokenUrl(publicSiteUrl, "/aktivasyon", rawToken),
         orderNumber: currentOrder.order_number,
         hoursValid: activationResendHours,
         audience: kind.corporate ? "corporate" : "individual",

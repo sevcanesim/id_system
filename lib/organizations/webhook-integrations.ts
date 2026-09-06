@@ -152,12 +152,22 @@ export function createWebhookSigningSecret() {
   return encrypted ? { secret, encrypted } : null;
 }
 
-function safeWebhookPayload(eventType: OrganizationWebhookEvent, payload: Record<string, unknown>) {
+const WEBHOOK_DATA_FIELDS: Record<OrganizationWebhookEvent, readonly string[]> = {
+  LEAD_CREATED: ["leadId", "source", "score", "status"],
+  LEAD_STATUS_CHANGED: ["leadId", "source", "score", "status"],
+  MEETING_STATUS_CHANGED: ["meetingId", "leadId", "status", "leadStatus"],
+};
+
+export function createSafeWebhookPayload(eventType: OrganizationWebhookEvent, payload: Record<string, unknown>) {
+  const allowedFields = WEBHOOK_DATA_FIELDS[eventType];
+  const data = Object.fromEntries(
+    allowedFields.flatMap((field) => Object.hasOwn(payload, field) ? [[field, payload[field]]] : []),
+  );
   return {
     version: 1,
     event: eventType,
     occurredAt: new Date().toISOString(),
-    data: payload,
+    data,
   };
 }
 
@@ -181,7 +191,7 @@ export async function queueOrganizationWebhookEvent(
     await admin.from("organization_integration_delivery_jobs").insert(enabled.map((integration) => ({
       integration_id: integration.id,
       event_type: eventType,
-      payload: safeWebhookPayload(eventType, payload),
+      payload: createSafeWebhookPayload(eventType, payload),
     })));
   } catch {}
 }

@@ -20,18 +20,13 @@ import { PageLoadingView } from "../components/ui/States";
 import { useNotice } from "../components/ui/NotificationCenter";
 import { useUnsavedChanges } from "../components/UnsavedChangesContext";
 import { useProfileCardActions } from "../hooks/useProfileCardActions";
-import {
-  clearLegacyUnscopedCardDraft,
-  readPersonalCardDraft,
-  writePersonalCardDraft,
-} from "../../lib/security/client-private-state";
+import { clearLegacyUnscopedCardDraft } from "../../lib/security/client-private-state";
 
 import {
   calculateProfileCompletion,
   ensureRealImage,
   formatMissingItemsText,
   INITIAL_CARD_DATA,
-  sanitizeCardDraft,
   normalizeProfileSlug,
   storagePathFromPublicUrl,
   type CardData,
@@ -323,12 +318,6 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
           return;
         }
         setUserId(user.id);
-        if (!isBusinessCard) {
-          const draft = readPersonalCardDraft(user.id);
-          if (draft) {
-            try { setData(sanitizeCardDraft(JSON.parse(draft))); } catch { /* bozuk taslağı yok say */ }
-          }
-        }
         const { data: sessionData } = await supabase.auth.getSession();
         const accessToken = sessionData.session?.access_token;
         if (!accessToken) {
@@ -798,8 +787,6 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
 
     setSaving(true);
     setMessage("");
-    if (!isBusinessCard && userId) writePersonalCardDraft(userId, JSON.stringify(sanitizeCardDraft(data)));
-
     let uploaded: UploadedImage | null = null;
     try {
       const supabase = getSupabaseBrowserClient();
@@ -911,7 +898,6 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
             notify({ message, tone: "warning" });
           }
         }
-        if (!isBusinessCard && currentUserId) writePersonalCardDraft(currentUserId, JSON.stringify(sanitizeCardDraft({ ...data, image: uploaded?.url ?? data.image })));
         clearLegacyUnscopedCardDraft();
         setProfileSlug(slug);
         setIsPublished(true);

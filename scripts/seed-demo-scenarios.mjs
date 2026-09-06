@@ -1359,7 +1359,7 @@ const guestActivationUrls = [];
       audience: "individual",
       variantSku: guest.variantSku || "YENOMI-NFC-CARD-ANNUAL",
     });
-    guestActivationUrls.push({ email: guest.email, orderNumber: guest.orderNumber, url: `/aktivasyon?token=${encodeURIComponent(seeded.token.raw)}` });
+    guestActivationUrls.push({ email: guest.email, orderNumber: guest.orderNumber, url: `/aktivasyon#token=${encodeURIComponent(seeded.token.raw)}` });
   }
   const corporateGuest = guestOrders.find((row) => row.audience === "corporate");
   if (!corporateGuest) throw new Error("Kurumsal misafir fixture eksik.");
@@ -1370,7 +1370,7 @@ const guestActivationUrls = [];
     audience: "corporate",
     variantSku: corporateGuest.variantSku || "YENOMI-CORP-2",
   });
-  guestActivationUrls.push({ email: corporateGuest.email, orderNumber: corporateGuest.orderNumber, url: `/aktivasyon?token=${encodeURIComponent(seededCorp.token.raw)}` });
+  guestActivationUrls.push({ email: corporateGuest.email, orderNumber: corporateGuest.orderNumber, url: `/aktivasyon#token=${encodeURIComponent(seededCorp.token.raw)}` });
 }
 
 if (resetDemo) {

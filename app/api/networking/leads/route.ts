@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHmac } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { scoreLead } from "../../../../lib/networking/catalog";
@@ -9,6 +9,12 @@ import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 import { recordSystemError } from "../../../../lib/observability/system-errors";
 
 export const runtime = "nodejs";
+
+function networkingIpFingerprint(ip: string) {
+  const secret = process.env.NETWORKING_IP_FINGERPRINT_SECRET?.trim();
+  if (!secret || ip === "unknown") return null;
+  return createHmac("sha256", secret).update(ip).digest("base64url");
+}
 
 const leadSubmissionSchema = z.object({
   profilePublicId: z.string().trim().regex(/^[A-Za-z0-9]{8,32}$/),
@@ -33,9 +39,10 @@ export async function POST(request: NextRequest) {
     key: `networking-lead:${clientIp}`,
     limit: 8,
     windowMs: 60 * 60 * 1000,
+    failClosed: true,
   });
   if (!rateLimit.allowed) {
-    return NextResponse.json({ error: "Çok fazla talep gönderildi. Lütfen daha sonra tekrar deneyin." }, { status: 429 });
+    return NextResponse.json({ error: "Talep doğrulaması şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin." }, { status: rateLimit.unavailable ? 503 : 429 });
   }
 
   let requestBody: unknown;
@@ -103,7 +110,7 @@ export async function POST(request: NextRequest) {
     source: submission.source,
     status: "NEW",
     score: leadScore,
-    ip_hash: clientIp === "unknown" ? null : createHash("sha256").update(clientIp).digest("hex"),
+    ip_hash: networkingIpFingerprint(clientIp),
   }).select("id").single();
 
   if (insertError || !createdLead) {
@@ -118,16 +125,11 @@ export async function POST(request: NextRequest) {
 
   await supabaseAdmin.from("networking_lead_events").insert([
     { lead_id: createdLead.id, kind: "QR_SCAN", payload: { source: submission.source } },
-    { lead_id: createdLead.id, kind: "CONTACT_SHARED", payload: { email: normalizedEmail } },
+    { lead_id: createdLead.id, kind: "CONTACT_SHARED", payload: { source: submission.source } },
   ]);
 
   await queueOrganizationWebhookEvent(supabaseAdmin, cardProfile.organization_id, "LEAD_CREATED", {
     leadId: createdLead.id,
-    fullName: submission.fullName,
-    email: normalizedEmail,
-    phone: normalizedPhone.value,
-    company: submission.company || null,
-    position: submission.position || null,
     source: submission.source,
     score: leadScore,
     status: "NEW",

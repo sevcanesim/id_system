@@ -19,7 +19,7 @@ export async function limitActivationResendIp(ip: string) {
     key: `activation-resend-ip:${ip}`,
     limit: 5,
     windowMs: 60 * 60 * 1000,
-    failClosed: false,
+    failClosed: true,
   });
 }
 
@@ -28,7 +28,7 @@ export async function limitActivationResendOrder(orderId: string) {
     key: `activation-resend-order:${orderId}`,
     limit: 1,
     windowMs: 10 * 60 * 1000,
-    failClosed: false,
+    failClosed: true,
   });
 }
 

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendOrganizationInviteEmail } from "../../../../lib/email/resend";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { transientTokenUrl } from "../../../../lib/security/transient-link";
 
 const schema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("RESEND"), organizationId: z.string().uuid(), memberId: z.string().uuid() }),
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
   const base = process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin;
   const mail = await sendOrganizationInviteEmail({
     to: result.email,
-    inviteUrl: `${base}/kurumsal/davet?token=${raw}`,
+    inviteUrl: transientTokenUrl(base, "/kurumsal/davet", raw),
     organizationName: organization?.name || "Şirket",
   });
   if (!mail.sent) return NextResponse.json({ ok: true, emailSent: false, warning: "Davet yenilendi ancak e-posta gönderilemedi." }, { status: 202 });

@@ -9,6 +9,7 @@ import { getDatabaseLifecycleSettings } from "../../../../../lib/config/database
 import { requestIp } from "../../../../../lib/security/rate-limit";
 import { limitActivationResendIp, limitActivationResendOrder } from "../../../../../lib/security/route-rate-limits";
 import { recordSystemError } from "../../../../../lib/observability/system-errors";
+import { transientTokenUrl } from "../../../../../lib/security/transient-link";
 
 export const runtime = "nodejs";
 const schema = z.object({ email: z.string().trim().email(), orderNumber: z.string().trim().min(4).max(80).optional() });
@@ -18,7 +19,12 @@ export async function POST(request: NextRequest) {
     const parsed = schema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ error: "Geçerli e-posta gir." }, { status: 400 });
     const ipLimit = await limitActivationResendIp(requestIp(request.headers));
-    if (!ipLimit.allowed) return NextResponse.json({ error: "Çok fazla istek gönderildi. Lütfen daha sonra tekrar deneyin." }, { status: 429 });
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { error: ipLimit.unavailable ? "Bağlantı doğrulaması şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin." : "Çok fazla istek gönderildi. Lütfen daha sonra tekrar deneyin." },
+        { status: ipLimit.unavailable ? 503 : 429 },
+      );
+    }
     const admin = getSupabaseAdminClient();
     let query = admin.from("commerce_orders").select("id,order_number,guest_email,status,user_id,activation_deadline_at").eq("guest_email", parsed.data.email.toLowerCase()).eq("status", "PAID").is("user_id", null).order("created_at", { ascending: false }).limit(1);
     if (parsed.data.orderNumber) query = query.eq("order_number", parsed.data.orderNumber);
@@ -38,7 +44,7 @@ export async function POST(request: NextRequest) {
     const { activationResendHours } = await getDatabaseLifecycleSettings();
     const expires = new Date(); expires.setHours(expires.getHours() + activationResendHours);
     await admin.from("activation_tokens").insert({ order_id: paidOrder.id, token_hash: createHash("sha256").update(rawToken).digest("hex"), expires_at: expires.toISOString() });
-    const activationUrl = `${publicSiteUrl}/aktivasyon?token=${encodeURIComponent(rawToken)}`;
+    const activationUrl = transientTokenUrl(publicSiteUrl, "/aktivasyon", rawToken);
     const outbound = await sendActivationEmail({
       to: paidOrder.guest_email,
       activationUrl,

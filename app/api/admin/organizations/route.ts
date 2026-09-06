@@ -7,6 +7,7 @@ import { sendOrganizationInviteEmail } from "../../../../lib/email/resend";
 import { publicSiteUrl } from "../../../../lib/payments/config";
 import { recordSystemError } from "../../../../lib/observability/system-errors";
 import { normalizeCardSlug } from "../../../../lib/validation/slug";
+import { transientTokenUrl } from "../../../../lib/security/transient-link";
 
 export const runtime = "nodejs";
 
@@ -197,7 +198,7 @@ export async function POST(request: NextRequest) {
       try {
         await sendOrganizationInviteEmail({
           to: payload.member.email,
-          inviteUrl: `${publicSiteUrl}/kurumsal/davet?token=${raw}`,
+          inviteUrl: transientTokenUrl(publicSiteUrl, "/kurumsal/davet", raw),
           organizationName: org?.name || parsed.data.fullName,
         });
         emailSent = true;
@@ -242,7 +243,7 @@ export async function POST(request: NextRequest) {
 
     const payload = result as { ok?: boolean; code?: string; organization?: { id: string; name: string; slug: string }; member?: { email: string } } | null;
     if (payload?.ok && payload.organization && payload.member) {
-      const inviteUrl = `${publicSiteUrl}/kurumsal/davet?token=${raw}`;
+      const inviteUrl = transientTokenUrl(publicSiteUrl, "/kurumsal/davet", raw);
       try {
         await sendOrganizationInviteEmail({ to: payload.member.email, inviteUrl, organizationName: payload.organization.name });
       } catch {

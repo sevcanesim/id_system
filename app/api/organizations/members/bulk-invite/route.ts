@@ -9,6 +9,7 @@ import {
 import { canInviteRole, isOrganizationRole } from "../../../../../lib/organizations/permissions";
 import { recordSystemError } from "../../../../../lib/observability/system-errors";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../lib/supabase/server-admin";
+import { transientTokenUrl } from "../../../../../lib/security/transient-link";
 
 const rowSchema = z.object({
   line: z.number().int().positive().optional(),
@@ -208,7 +209,7 @@ export async function POST(request: NextRequest) {
     const member = reserved.member as { id: string; email: string };
     const mail = await sendOrganizationInviteEmail({
       to: member.email,
-      inviteUrl: `${base}/kurumsal/davet?token=${raw}`,
+      inviteUrl: transientTokenUrl(base, "/kurumsal/davet", raw),
       organizationName: org?.name || "Şirket",
     });
     const result: RowResult = {

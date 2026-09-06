@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { getRememberedLogin, getSupabaseBrowserClient, setRememberedLogin } from "../../lib/supabase/browser";
 import { isSupabaseConfigured, supabaseConfigIssue } from "../../lib/supabase/config";
 import { writeSessionCookie } from "../components/AuthSessionBridge";
@@ -37,7 +36,6 @@ export default function LoginClient({
   initialMessage: string;
   portalPurchaseRequired: boolean;
 }) {
-  const router = useRouter();
   const { notify } = useNotice();
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [email, setEmail] = useState("");
@@ -71,9 +69,9 @@ export default function LoginClient({
     if (remembered.remember && remembered.email) setEmail(remembered.email);
 
     const params = new URLSearchParams(window.location.search);
-    const requestedMode = params.get("mode");
+    const requestedMode = parseLoginMode(params.get("mode"));
     setReturnPath(resolveLoginReturnPath(initialPortal, params.get("next")));
-    if (parseLoginMode(requestedMode) === "recovery") setMode("recovery");
+    setMode(requestedMode);
     if (params.get("error")) {
       params.delete("error");
       const nextSearch = params.toString();
@@ -83,16 +81,16 @@ export default function LoginClient({
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
 
-    void supabase.auth.getSession().then(async ({ data }) => {
-      if (!data.session?.user) return;
-      if (requestedMode === "recovery") {
-        setActiveSessionEmail(data.session.user.email ?? null);
-        return;
-      }
+    const synchronizeAuthenticatedSession = async (session: {
+      access_token: string;
+      expires_at?: number | null;
+      refresh_token: string;
+      user: { id: string; email?: string | null };
+    }) => {
       const sessionStored = await writeSessionCookie(
-        data.session.access_token,
-        data.session.expires_at,
-        data.session.refresh_token,
+        session.access_token,
+        session.expires_at,
+        session.refresh_token,
       );
       if (!sessionStored) {
         await supabase.auth.signOut();
@@ -101,12 +99,27 @@ export default function LoginClient({
         showMessage("Oturum kaydedilemedi. Lütfen yeniden dene.", "error");
         return;
       }
-      if (await isAdminSession(data.session.access_token)) {
+      let admin = false;
+      try {
+        admin = await isAdminSession(session.access_token);
+      } catch {
+        admin = false;
+      }
+      if (admin) {
         window.location.replace("/admin/operations");
         return;
       }
-      setCartOwner(data.session.user.id, { claimGuest: true });
-      setActiveSessionEmail(data.session.user.email ?? null);
+      setCartOwner(session.user.id, { claimGuest: true });
+      setActiveSessionEmail(session.user.email ?? null);
+    };
+
+    void supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session?.user) return;
+      if (requestedMode === "recovery") {
+        setActiveSessionEmail(data.session.user.email ?? null);
+        return;
+      }
+      await synchronizeAuthenticatedSession(data.session);
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
@@ -115,12 +128,19 @@ export default function LoginClient({
         setShowPassword(false);
         setPassword("");
         showMessage("Yeni şifreni belirleyebilirsin.", "info");
+        if (session?.user) setActiveSessionEmail(session.user.email ?? null);
+        return;
       }
       if (event === "SIGNED_OUT") {
         setCartOwner(null, { claimGuest: false });
         setActiveSessionEmail(null);
+        return;
       }
-      if (session?.user && event === "PASSWORD_RECOVERY") setActiveSessionEmail(session.user.email ?? null);
+      if (requestedMode === "recovery" && session?.user) {
+        setActiveSessionEmail(session.user.email ?? null);
+        return;
+      }
+      if (session?.user) void synchronizeAuthenticatedSession(session);
     });
     return () => listener.subscription.unsubscribe();
   }, []);
@@ -131,7 +151,7 @@ export default function LoginClient({
       void resolveLoginDestination(supabase, initialPortal, returnPath).then((destination) => {
       window.location.replace(destination.startsWith("/giris") ? "/hesabim" : destination);
     });
-  }, [activeSessionEmail, initialPortal, mode, returnPath, router]);
+  }, [activeSessionEmail, initialPortal, mode, returnPath]);
 
   async function signInWithGoogle() {
     showMessage("");
@@ -180,7 +200,7 @@ export default function LoginClient({
     setLoading(false);
     if (error) return showMessage(authErrorMessage(error, "Şifre yenileme bağlantısı gönderilemedi."), "error");
     setEmail(normalizedEmail);
-    showMessage("Şifre yenileme bağlantısını e-posta adresine gönderdik. Gelen kutunu kontrol et.", "success");
+    showMessage("Bu e-posta ile eşleşen bir hesap varsa yenileme bağlantısı gönderildi. Gelen kutunu kontrol et.", "success");
   }
 
   async function updateRecoveredPassword(event: FormEvent) {
@@ -191,11 +211,44 @@ export default function LoginClient({
     if (!supabase) return showMessage("Giriş hizmeti şu anda kullanılamıyor.", "error");
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password });
-    setLoading(false);
-    if (error) return showMessage(authErrorMessage(error, "Şifre güncellenemedi. Bağlantıyı yeniden isteyebilirsin."), "error");
+    if (error) {
+      setLoading(false);
+      return showMessage(authErrorMessage(error, "Şifre güncellenemedi. Bağlantıyı yeniden isteyebilirsin."), "error");
+    }
+
+    const { data } = await supabase.auth.getSession();
+    const session = data.session;
+    if (!session?.user) {
+      setLoading(false);
+      return showMessage("Şifren güncellendi ancak oturum doğrulanamadı. Lütfen giriş yap.", "info");
+    }
+    const sessionStored = await writeSessionCookie(
+      session.access_token,
+      session.expires_at,
+      session.refresh_token,
+    );
+    if (!sessionStored) {
+      setLoading(false);
+      await supabase.auth.signOut();
+      clearLegacyCart();
+      setCartOwner(null, { claimGuest: false });
+      return showMessage("Oturum kaydedilemedi. Lütfen yeni şifrenle giriş yap.", "error");
+    }
+
     setPassword("");
-    showMessage("Şifren güncellendi. Hesabına yönlendiriliyorsun.", "success");
-    window.setTimeout(() => router.replace("/hesabim"), 450);
+    setCartOwner(session.user.id, { claimGuest: true });
+    setTransitioning(true);
+    showMessage("Şifren güncellendi. Devam ettiğin adıma yönlendiriliyorsun.", "success");
+    let destination = returnPath;
+    try {
+      destination = await Promise.race([
+        resolveLoginDestination(supabase, initialPortal, returnPath),
+        new Promise<string>((resolve) => window.setTimeout(() => resolve("/hesabim"), 4000)),
+      ]);
+    } catch {
+      destination = "/hesabim";
+    }
+    window.location.replace(destination.startsWith("/giris") ? "/hesabim" : destination);
   }
 
   async function submit(event: FormEvent) {
@@ -258,10 +311,9 @@ export default function LoginClient({
     );
     if (duplicateSignup) {
       setLoading(false);
-      setMode("login");
-      setSignupCompleted(false);
       setPassword("");
-      return showMessage("Bu e-posta adresiyle zaten bir hesap var. Şifrenle giriş yaparak devam edebilirsin.", "info");
+      setSignupCompleted(true);
+      return showMessage("Bu adres için işlem tamamlandı. Yeni kayıtsa e-posta doğrulama bağlantını kontrol et; hesabın varsa giriş veya şifre yenileme ile devam edebilirsin.", "success");
     }
     if (result.error) {
       setLoading(false);
@@ -309,7 +361,7 @@ export default function LoginClient({
       let destination = returnPath;
       try {
         destination = await Promise.race([
-          resolveLoginDestination(supabase, "individual", returnPath),
+          resolveLoginDestination(supabase, initialPortal, returnPath),
           new Promise<string>((resolve) => window.setTimeout(() => resolve("/hesabim"), 4000)),
         ]);
       } catch {
@@ -322,24 +374,32 @@ export default function LoginClient({
     window.location.replace(returnPath);
   }
 
+  const corporateCheckout = returnPath === "/checkout" && portalPurchaseRequired && initialPortal === "business";
+  const individualCheckout = returnPath === "/checkout" && portalPurchaseRequired && initialPortal === "individual";
+  const corporateInvite = returnPath.startsWith("/kurumsal/davet");
+
   const title = mode === "recovery"
     ? "Yeni şifreni belirle"
     : mode === "forgot"
       ? "Şifreni yenile"
+      : corporateInvite
+        ? mode === "signup" ? "Ekip davetin için hesap oluştur" : "Ekip davetine devam et"
       : returnPath === "/checkout"
         ? mode === "signup"
-          ? portalPurchaseRequired ? "Ödemeye devam etmek için hesap oluştur" : "Siparişini hesaba bağlamak istersen hesap oluştur"
-          : portalPurchaseRequired ? "Ödemeye devam etmek için giriş yap" : "Siparişini hesaba bağlamak istersen giriş yap"
+          ? corporateCheckout ? "Kurumsal paketi hesabına bağla" : individualCheckout ? "Bireysel hizmetini hesabına bağla" : portalPurchaseRequired ? "Ödemeye devam etmek için hesap oluştur" : "Siparişini hesaba bağlamak istersen hesap oluştur"
+          : corporateCheckout ? "Kurumsal pakete devam et" : individualCheckout ? "Bireysel hizmetine devam et" : portalPurchaseRequired ? "Ödemeye devam etmek için giriş yap" : "Siparişini hesaba bağlamak istersen giriş yap"
         : mode === "signup"
           ? "Yenomi ID hesabını oluştur"
           : "Hesabına giriş yap";
 
   const description = mode === "recovery"
-    ? "Yeni şifreni oluşturduktan sonra doğru çalışma alanına yönlendirileceksin."
+    ? "Yeni şifreni oluşturduktan sonra kaldığın güvenli adıma yönlendirileceksin."
     : mode === "forgot"
-      ? "Hesabındaki e-posta adresini yaz. Sana güvenli bir yenileme bağlantısı gönderelim."
+      ? "Hesabındaki e-posta adresini yaz. Google veya LinkedIn ile giriş yaptıysan aynı yöntemle devam edebilirsin."
+      : corporateInvite
+        ? "Hesabını oluştur veya giriş yap. Davet kabul edilince yalnızca sana tanımlanan ekip erişimi açılır."
       : returnPath === "/checkout"
-        ? portalPurchaseRequired ? "Bu paket portal erişimi içerir. Ödemeye devam etmek için giriş yapmalı veya hesap oluşturmalısın." : "Hesap açmadan ödeme yapabilirsin. Giriş yalnızca siparişi bu e-posta ile hesabına bağlamak içindir."
+        ? corporateCheckout ? "Ödeme onaylandığında bu hesap şirket sahibi yetkisiyle kurumsal panele bağlanır. Şirket bilgileri ödeme adımında doğrulanır." : individualCheckout ? "Ödeme onaylandığında bireysel kartın ve hesabın aynı çalışma alanında açılır." : portalPurchaseRequired ? "Bu paket portal erişimi içerir. Ödemeye devam etmek için giriş yapmalı veya hesap oluşturmalısın." : "Hesap açmadan ödeme yapabilirsin. Giriş yalnızca siparişi bu e-posta ile hesabına bağlamak içindir."
         : mode === "signup"
           ? "Hesabını oluştur. Çalışma alanın hesabına tanımlanan yetkilere göre otomatik hazırlanır."
           : "E-posta ve şifrenle giriş yap. Doğru çalışma alanına otomatik yönlendirileceksin.";
@@ -381,7 +441,7 @@ export default function LoginClient({
             {returnPath === "/checkout" && mode !== "recovery" && (
               <div className="p6-checkout-context" role="status">
                 <span>{portalPurchaseRequired ? "PORTAL HESABI ZORUNLU" : "HESAP İSTEĞE BAĞLI"}</span>
-                {portalPurchaseRequired ? <small>Portal erişimi giriş yaptığın hesaba tanımlanır.</small> : <Link href="/checkout">Ödemeye dön — hesap gerekmez</Link>}
+                {portalPurchaseRequired ? <small>{corporateCheckout ? "Ödeme onaylanınca bu hesap şirket sahibi yetkisiyle kurumsal panele bağlanır." : individualCheckout ? "Ödeme onaylanınca bireysel kartın bu hesaba açılır." : "Portal erişimi giriş yaptığın hesaba tanımlanır."}</small> : <Link href="/checkout">Ödemeye dön — hesap gerekmez</Link>}
               </div>
             )}
             {authAlert}
@@ -395,8 +455,8 @@ export default function LoginClient({
             ) : signupCompleted ? (
               <div className="p6-auth-state" role="status" aria-live="polite">
                 <span className="p6-auth-state-icon"><Icon name="mail" /></span>
-                <h2>E-postanı doğrula</h2>
-                <p><strong>{email}</strong> adresine gönderdiğimiz bağlantıya tıkla. Ardından bu ekrandan giriş yapabilirsin.</p>
+                <h2>E-postanı kontrol et</h2>
+                <p><strong>{email}</strong> adresi yeni bir hesaba aitse doğrulama bağlantısını aç. Mevcut bir hesapsa giriş veya şifre yenileme ile devam edebilirsin.</p>
                 <button className="p6-auth-submit" type="button" onClick={() => { setSignupCompleted(false); setMode("login"); setPassword(""); setMessage(""); }}>Giriş ekranına dön <Icon name="chevronRight" /></button>
                 <small>Mail görünmüyorsa Gereksiz / Diğer klasörlerini kontrol et.</small>
               </div>

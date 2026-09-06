@@ -4,6 +4,7 @@ import { getCardProfileCompletion } from "../lib/card-profile";
 import {
   DEFAULT_BUSINESS_NEXT,
   DEFAULT_INDIVIDUAL_NEXT,
+  parseLoginMode,
   resolveLoginReturnPath,
   safeLoginNext,
 } from "../lib/auth/login-search";
@@ -34,6 +35,13 @@ describe("conversion routing", () => {
     expect(resolveLoginReturnPath("business", "/hesabim")).toBe("/kurumsal/panel");
     expect(resolveLoginReturnPath("individual", "/checkout")).toBe("/checkout");
     expect(resolveLoginReturnPath("business", "/checkout")).toBe("/checkout");
+  });
+
+  it("accepts only supported auth modes from direct links", () => {
+    expect(parseLoginMode("signup")).toBe("signup");
+    expect(parseLoginMode("forgot")).toBe("forgot");
+    expect(parseLoginMode("recovery")).toBe("recovery");
+    expect(parseLoginMode("unknown")).toBe("login");
   });
 
   it("derives profile completion from canonical required fields", () => {

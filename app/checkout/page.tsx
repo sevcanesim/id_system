@@ -84,7 +84,8 @@ export default function CheckoutPage() {
   const [organizationTargets, setOrganizationTargets] = useState<Record<string, OrganizationCheckoutTarget>>({});
   const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>(null);
   const portalPurchase = items.some((item) => requiresPortalAccountSku(item.variantSku));
-  const portalLoginHref = `/giris?portal=${items.some((item) => isCorporatePackageSku(item.variantSku)) ? "business" : "individual"}&purchase=portal&next=%2Fcheckout`;
+  const hasCorporatePackage = items.some((item) => isCorporatePackageSku(item.variantSku));
+  const portalLoginHref = `/giris?portal=${hasCorporatePackage ? "business" : "individual"}&purchase=portal&next=%2Fcheckout`;
   const requiresPortalLogin = portalPurchase && !isAuthenticated;
 
   useEffect(() => {
@@ -188,7 +189,6 @@ export default function CheckoutPage() {
   const hasPremiumUpgrade = items.some((item) => isPremiumUpgradeSku(item.variantSku));
   const hasReplacement = items.some((item) => item.variantSku === COMMERCIAL_SKUS.REPLACEMENT_CARD);
   const hasBusinessCapacity = items.some((item) => typeof item.configuration?.organizationId === "string" && !isCorporatePackageSku(item.variantSku));
-  const hasCorporatePackage = items.some((item) => isCorporatePackageSku(item.variantSku));
   const hasNetworkMailCreditPack = items.some((item) => item.variantSku?.startsWith("YENOMI-NETWORK-MAIL-"));
   const digitalOnlyCart = items.length > 0 && items.every((item) => isDigitalOnlySku(item.variantSku));
   const paymentProviderName = "PayTR";
@@ -462,7 +462,7 @@ export default function CheckoutPage() {
           {!checkoutReady ? (
             <div className="cart-empty checkout-empty-state"><h2>Sipariş yükleniyor…</h2><p>Henüz bir ödeme alınmadı. Sepetin kontrol ediliyor.</p></div>
           ) : requiresPortalLogin ? (
-            <div className="cart-empty checkout-empty-state" role="status"><h2>Giriş sayfasına yönlendiriliyorsun…</h2><p>Portal erişimi içeren paketler ödeme öncesinde hesabınla eşleştirilir. Sepetin korunur.</p></div>
+            <div className="cart-empty checkout-empty-state" role="status"><h2>Giriş sayfasına yönlendiriliyorsun…</h2><p>{hasCorporatePackage ? "Kurumsal paketin, ödeme onaylandığında şirket sahibi olacak hesaba bağlanır. Şirket bilgilerini ödeme adımında tamamlayacaksın." : "Bireysel hizmetin, ödeme onaylandığında kartınla birlikte hesabına açılır."} Sepetin korunur.</p></div>
           ) : !items.length ? (
             <div className="cart-empty checkout-empty-state"><h2>Kartın henüz sepette değil.</h2><Link className="yi-btn yi-btn--primary" href="/urunler/nfc-kart">Kartını Oluştur</Link></div>
           ) : (

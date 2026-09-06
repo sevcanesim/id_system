@@ -28,9 +28,13 @@ export default function CartPage() {
   }, []);
   const total = useMemo(() => items.reduce((sum, item) => sum + item.unitPriceKurus * item.quantity, 0), [items]);
   const shippingIncluded = COMMERCIAL_PRICING.DOMESTIC_SHIPPING.includedForPhysicalProducts;
+  const hasCorporatePackage = items.some((item) => isCorporatePackageSku(item.variantSku));
   const requiresPortalLogin = audience === "guest" && items.some((item) => requiresPortalAccountSku(item.variantSku));
-  const portalLoginHref = `/giris?portal=${items.some((item) => isCorporatePackageSku(item.variantSku)) ? "business" : "individual"}&purchase=portal&next=%2Fcheckout`;
+  const portalLoginHref = `/giris?portal=${hasCorporatePackage ? "business" : "individual"}&purchase=portal&next=%2Fcheckout`;
   const checkoutHref = requiresPortalLogin ? portalLoginHref : "/checkout";
+  const portalPurchaseCopy = hasCorporatePackage
+    ? "Kurumsal paket, ödeme öncesinde şirket sahibi olacak hesaba bağlanır. Ödeme onaylanınca bu hesap kurumsal panelin sahibi olur."
+    : "Bireysel hizmet, ödeme öncesinde hesabına bağlanır. Ödeme onaylanınca kartın ve Kartım alanın hazır olur.";
   const update = (id: string, quantity: number) => { const next = updateCartItemQuantity(items, id, quantity); writeCart(next); setItems(next); };
   const remove = (id: string) => { const next = removeCartItem(items, id); writeCart(next); setItems(next); };
 
@@ -41,7 +45,7 @@ export default function CartPage() {
           <div className="yi-page-head">
             <span>SEPET</span>
             <h1>{items.length ? "Seçimin hazır. Son kez gözden geçir." : "Sepetin şu anda boş."}</h1>
-            <p>{items.length ? requiresPortalLogin ? "Bu paket portal erişimi içerir. Ödemeden önce giriş yaparak paketi hesabına bağla." : "Hesap açmadan ilerleyebilirsin. Fiyat ödeme adımında sunucuda doğrulanır; kart numaran Yenomi’de saklanmaz." : "Güncel kartvizit paylaşımı için Bireysel NFC; bağlantı ve takip için Bireysel Premium’u incele."}</p>
+            <p>{items.length ? requiresPortalLogin ? portalPurchaseCopy : "Hesap açmadan ilerleyebilirsin. Fiyat ödeme adımında sunucuda doğrulanır; kart numaran Yenomi’de saklanmaz." : "Güncel kartvizit paylaşımı için Bireysel NFC; bağlantı ve takip için Bireysel Premium’u incele."}</p>
           </div>
           {!items.length ? (
             <EmptyState
@@ -62,7 +66,7 @@ export default function CartPage() {
                 <span>SİPARİŞ ÖZETİ</span>
                 <div className="yi-cart-summary-rows"><div><span>Ürün toplamı</span><b>{formatTryFromKurus(total)}</b></div><div><span>Kargo</span><b>{shippingIncluded ? "Ücretsiz" : formatTryFromKurus(COMMERCIAL_PRICING.DOMESTIC_SHIPPING.priceKurus)}</b></div><div><span>Vergi</span><b>KDV dahil</b></div><div className="total"><span>Toplam</span><b>{formatTryFromKurus(total)}</b></div></div>
                 {requiresPortalLogin ? <p className="yi-cart-account-prompt">Ödemeye geçtiğinde önce hesabına giriş yapman istenir. Girişten sonra sepetin korunur ve ödeme adımına dönersin.</p> : audience === "guest" ? <p className="yi-cart-account-prompt">Hesabın var mı? <Link href="/giris?next=%2Fcheckout">Giriş yap</Link> <span>— siparişini hesabına bağlayalım.</span></p> : null}
-                <p>{requiresPortalLogin ? "Portal erişimi satın alma hesabına tanımlanır." : "Hesap açmadan ilerleyebilirsin. Siparişin e-posta adresinle otomatik eşleşir."}</p>
+                <p>{requiresPortalLogin ? portalPurchaseCopy : "Hesap açmadan ilerleyebilirsin. Siparişin e-posta adresinle otomatik eşleşir."}</p>
                 <ButtonLink href={checkoutHref} variant="primary">Güvenli ödemeye geç</ButtonLink>
                 <ButtonLink href="/urunler/nfc-kart?paket=premium" variant="ghost">Paketleri yeniden gör</ButtonLink>
               </aside>

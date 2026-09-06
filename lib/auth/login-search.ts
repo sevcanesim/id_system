@@ -39,7 +39,8 @@ export function parseLoginPortal(value: string | null | undefined): LoginPortal 
 }
 
 export function parseLoginMode(value: string | null | undefined): LoginAuthMode {
-  return value === "recovery" ? "recovery" : "login";
+  if (value === "signup" || value === "forgot" || value === "recovery") return value;
+  return "login";
 }
 
 export function resolveLoginReturnPath(portal: LoginPortal, nextParam: string | null | undefined) {

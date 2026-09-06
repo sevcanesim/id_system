@@ -8,8 +8,6 @@ import {
   readSessionCookie,
   REFRESH_COOKIE,
   REMEMBER_COOKIE,
-  resolveRestorableSession,
-  accessTokenIsValid,
 } from "../../../../lib/auth/http-only-session";
 import {
   PRODUCTION_TEST_LOGIN_MESSAGE,
@@ -38,49 +36,11 @@ function clearSession(response: NextResponse) {
   return noStore(response);
 }
 
-export async function GET(request: NextRequest) {
-  try {
-    if (!isTrustedSessionRestoreRequest(request.headers)) {
-      return noStore(NextResponse.json({ error: "Oturum bulunamadı." }, { status: 401 }));
-    }
-    const resolved = await resolveRestorableSession(request);
-    if (!resolved.ok) {
-      const response = NextResponse.json({ error: "Oturum bulunamadı." }, { status: 401 });
-      const accessToken = readSessionCookie(request, ACCESS_COOKIE);
-      const keepAccess = Boolean(accessToken && (await accessTokenIsValid(accessToken)));
-      if (!keepAccess) clearSessionCookies(response);
-      return noStore(response);
-    }
-
-    const auth = getSupabaseAuthClient();
-    const { data: restoredUser } = await auth.auth.getUser(resolved.tokens.accessToken);
-    if (!restoredUser.user) {
-      return clearSession(NextResponse.json({ error: "Oturum bulunamadı." }, { status: 401 }));
-    }
-    const accountType = await readAccountType(resolved.tokens.accessToken, restoredUser.user.id);
-    if (productionTestLoginBlocked({ email: restoredUser.user.email, accountType })) {
-      return clearSession(NextResponse.json({ error: PRODUCTION_TEST_LOGIN_MESSAGE }, { status: 403 }));
-    }
-
-    const response = NextResponse.json({
-      accessToken: resolved.tokens.accessToken,
-      refreshToken: resolved.tokens.refreshToken,
-      expiresAt: resolved.tokens.expiresAt,
-    });
-    if (resolved.rotated) applySessionCookies(response, resolved.tokens);
-    return noStore(response);
-  } catch {
-    void recordSystemError({
-      source: "AUTH_SESSION",
-      errorCode: "SESSION_RESTORE_FAILED",
-      message: "An authenticated session could not be restored.",
-    });
-    return noStore(NextResponse.json({ error: "Oturum okunamadı." }, { status: 500 }));
-  }
-}
-
 export async function POST(request: NextRequest) {
   try {
+    if (!isTrustedSessionRestoreRequest(request.headers) || request.headers.get("origin") !== request.nextUrl.origin) {
+      return clearSession(NextResponse.json({ error: "Oturum isteği doğrulanamadı." }, { status: 403 }));
+    }
     const parsed = schema.safeParse(await request.json());
     if (!parsed.success) {
       return clearSession(NextResponse.json({ error: "Oturum bilgisi geçersiz." }, { status: 400 }));

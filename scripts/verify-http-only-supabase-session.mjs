@@ -8,6 +8,8 @@ const helper = readFileSync("lib/auth/http-only-session.ts", "utf8");
 const middleware = readFileSync("proxy.ts", "utf8");
 const login = readFileSync("app/giris/page.tsx", "utf8") + readFileSync("app/giris/LoginClient.tsx", "utf8");
 const passwordLogin = readFileSync("lib/auth/password-login.ts", "utf8");
+const accountRouter = readFileSync("lib/auth/account-router.ts", "utf8");
+const portalGuard = readFileSync("lib/auth/portal-guard.ts", "utf8");
 const cardWizard = readFileSync("app/olustur/CardWizard.tsx", "utf8");
 const cardActions = readFileSync("app/hooks/useProfileCardActions.ts", "utf8");
 const analyticsPage = readFileSync("app/istatistikler/page.tsx", "utf8");
@@ -62,17 +64,17 @@ function forbidText(source, token, message) {
 requireText(browser, "memoryAuthStorage", "Browser client must persist supabase auth in memory only.");
 requireText(browser, "purgeLegacyAuthStorage", "Browser client must remove leftover sb- auth tokens from Web Storage.");
 requireText(browser, "storage: memoryAuthStorage()", "supabase-js persistSession must use the in-memory Map, not localStorage.");
-requireText(browser, "setSession", "Browser client must restore the in-memory session from HttpOnly cookies.");
-requireText(browser, 'fetch("/api/auth/session"', "Browser client must GET /api/auth/session on load.");
-requireText(browser, "x-yenomi-session", "Browser restore fetch must send the session restore header.");
+forbidText(browser, "setSession", "Browser client must not restore HttpOnly session tokens into JavaScript memory.");
+forbidText(browser, 'fetch("/api/auth/session"', "Browser client must not read session tokens from the server.");
+forbidText(browser, "hydrateBrowserSessionFromCookies", "Cookie-to-browser session hydration must not be retained.");
 forbidText(browser, "window.localStorage.setItem(key, value)", "Browser client must not write supabase auth keys to localStorage.");
 forbidText(browser, "window.sessionStorage.setItem(key, value)", "Browser client must not write supabase auth keys to sessionStorage.");
 requireText(browser, "yenomi-remember-session", "Remember-me may still store a non-secret email preference.");
 
-requireText(session, "export async function GET", "Session route must restore cookies via GET.");
-requireText(session, "isTrustedSessionRestoreRequest", "Session GET must refuse document navigations that would dump tokens.");
 requireText(session, "auth.getUser", "Access cookie must still be verified with auth.getUser before POST set.");
 requireText(session, "httpOnly: true", "Session cookies must remain HttpOnly.");
+forbidText(session, "export async function GET", "Session route must not return session tokens to browser JavaScript.");
+forbidText(session, "refreshToken: resolved.tokens.refreshToken", "Session route must not serialize refresh tokens into a response.");
 requireText(sessionIdentity, "resolveRestorableSession", "Browser identity must be restored from HttpOnly cookies on the server.");
 requireText(sessionIdentity, "user: { id:", "Browser identity response must contain a non-secret user identity.");
 forbidText(sessionIdentity, "accessToken:", "Browser identity response must never expose an access token.");
@@ -91,7 +93,13 @@ requireText(middleware, "clearSessionCookies", "Failed protected-page auth must 
 
 requireText(login, "passwordLogin", "Password login must go through /api/auth/login so the limiter sees the attempt.");
 requireText(login, 'window.location.replace(isDefaultWorkspacePath(returnPath) ? "/hesabim" : returnPath)', "Password login must continue through server-side workspace routing.");
+requireText(login, 'signOut({ scope: "local" })', "OAuth, signup, and recovery handoffs must clear the temporary browser session.");
+forbidText(login, "isAdminSession", "Login must not perform browser bearer admin checks.");
 forbidText(passwordLogin, "hydrateBrowserSessionFromCookies", "Password login must not rehydrate browser memory from HttpOnly cookies.");
+requireText(accountRouter, "getBrowserIdentity", "Workspace routing must use server-provided non-secret identity.");
+forbidText(accountRouter, '.from("user_accounts")', "Workspace routing must not query account records from the browser Supabase client.");
+forbidText(portalGuard, "isAdminSession", "Portal guard must not perform browser bearer admin checks.");
+requireText(session, 'request.headers.get("origin") !== request.nextUrl.origin', "Session cookie writes must reject cross-origin requests.");
 
 requireText(cardWizard, "getBrowserIdentity", "Card editor must resolve its identity through the HttpOnly session endpoint.");
 requireText(cardWizard, 'fetch("/api/profiles/mine", { credentials: "same-origin", cache: "no-store" })', "Card editor must load profiles through its cookie-authenticated API.");

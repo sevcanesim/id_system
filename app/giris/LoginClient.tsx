@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { getRememberedLogin, getSupabaseBrowserClient, setRememberedLogin } from "../../lib/supabase/browser";
 import { isSupabaseConfigured, supabaseConfigIssue } from "../../lib/supabase/config";
 import { writeSessionCookie } from "../components/AuthSessionBridge";
@@ -17,7 +17,6 @@ import {
 } from "../../lib/auth/login-search";
 import type { LoginPortal } from "../../lib/auth/account-type";
 import { passwordLogin } from "../../lib/auth/password-login";
-import { isAdminSession } from "../../lib/auth/portal-guard";
 import { isDefaultWorkspacePath, resolveLoginDestination } from "../../lib/auth/account-router";
 import { clearLegacyCart, setCartOwner } from "../../lib/cart";
 
@@ -49,6 +48,7 @@ export default function LoginClient({
   const [signupCompleted, setSignupCompleted] = useState(false);
   const [activeSessionEmail, setActiveSessionEmail] = useState<string | null>(null);
   const [returnPath, setReturnPath] = useState(initialNext || "/hesabim");
+  const handoffInProgress = useRef(false);
 
   function loginRedirectPath(mode?: "recovery") {
     const params = new URLSearchParams({ portal: initialPortal, next: returnPath });
@@ -99,18 +99,10 @@ export default function LoginClient({
         showMessage("Oturum kaydedilemedi. Lütfen yeniden dene.", "error");
         return;
       }
-      let admin = false;
-      try {
-        admin = await isAdminSession(session.access_token);
-      } catch {
-        admin = false;
-      }
-      if (admin) {
-        window.location.replace("/admin/operations");
-        return;
-      }
       setCartOwner(session.user.id, { claimGuest: true });
       setActiveSessionEmail(session.user.email ?? null);
+      handoffInProgress.current = true;
+      await supabase.auth.signOut({ scope: "local" });
     };
 
     void supabase.auth.getSession().then(async ({ data }) => {
@@ -132,6 +124,7 @@ export default function LoginClient({
         return;
       }
       if (event === "SIGNED_OUT") {
+        if (handoffInProgress.current) return;
         setCartOwner(null, { claimGuest: false });
         setActiveSessionEmail(null);
         return;
@@ -147,8 +140,7 @@ export default function LoginClient({
 
   useEffect(() => {
     if (!activeSessionEmail || mode === "recovery") return;
-    const supabase = getSupabaseBrowserClient();
-      void resolveLoginDestination(supabase, initialPortal, returnPath).then((destination) => {
+      void resolveLoginDestination(initialPortal, returnPath).then((destination) => {
       window.location.replace(destination.startsWith("/giris") ? "/hesabim" : destination);
     });
   }, [activeSessionEmail, initialPortal, mode, returnPath]);
@@ -237,12 +229,14 @@ export default function LoginClient({
 
     setPassword("");
     setCartOwner(session.user.id, { claimGuest: true });
+    handoffInProgress.current = true;
+    await supabase.auth.signOut({ scope: "local" });
     setTransitioning(true);
     showMessage("Şifren güncellendi. Devam ettiğin adıma yönlendiriliyorsun.", "success");
     let destination = returnPath;
     try {
       destination = await Promise.race([
-        resolveLoginDestination(supabase, initialPortal, returnPath),
+        resolveLoginDestination(initialPortal, returnPath),
         new Promise<string>((resolve) => window.setTimeout(() => resolve("/hesabim"), 4000)),
       ]);
     } catch {
@@ -350,24 +344,14 @@ export default function LoginClient({
         return showMessage("Oturum kaydedilemedi. Lütfen yeniden dene.", "error");
       }
 
-      let admin = false;
-      try {
-        admin = await isAdminSession(result.data.session.access_token);
-      } catch {
-        admin = false;
-      }
-      if (admin) {
-        setLoading(false);
-        window.location.replace("/admin/operations");
-        return;
-      }
-
       setLoading(false);
       setActiveSessionEmail(result.data.session.user.email ?? normalizedEmail);
+      handoffInProgress.current = true;
+      await supabase.auth.signOut({ scope: "local" });
       let destination = returnPath;
       try {
         destination = await Promise.race([
-          resolveLoginDestination(supabase, initialPortal, returnPath),
+          resolveLoginDestination(initialPortal, returnPath),
           new Promise<string>((resolve) => window.setTimeout(() => resolve("/hesabim"), 4000)),
         ]);
       } catch {

@@ -69,18 +69,3 @@ export async function validateCardWorkspace(
 
   return { ok: false, message: "Hesap türü doğrulanamadı. Lütfen destek ekibiyle iletişime geçin." };
 }
-
-export async function isAdminSession(accessToken: string): Promise<boolean> {
-  try {
-    const response = await fetch("/api/admin/session", {
-      headers: { authorization: `Bearer ${accessToken}` },
-      cache: "no-store",
-      signal: AbortSignal.timeout(4000),
-    });
-    if (!response.ok) return false;
-    const payload = (await response.json()) as { admin?: boolean };
-    return Boolean(payload.admin);
-  } catch {
-    return false;
-  }
-}

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isPaytrConfigured } from "../../../../../lib/payments/config";
-import { verifyPaytrCallbackHash } from "../../../../../lib/payments/paytr";
+import {
+  paytrFailureCode,
+  verifyPaytrCallbackHash,
+} from "../../../../../lib/payments/paytr";
 import { settleCommercePaymentByPaytrCallback } from "../../../../../lib/payments/settle-commerce-payment";
 import { finalizePaytrCallbackReceipt, recordPaytrCallbackReceived } from "../../../../../lib/payments/payment-callback-receipts";
 import { recordSystemError } from "../../../../../lib/observability/system-errors";
@@ -36,6 +39,9 @@ export async function POST(request: NextRequest) {
     const totalAmount = String(payload.get("total_amount") || "").trim();
     const hash = String(payload.get("hash") || "").trim();
     const paid = status === "success";
+    const failureCode = paid
+      ? null
+      : paytrFailureCode(payload.get("failed_reason_code"));
 
     if (
       !/^PT[A-Za-z0-9]{20,80}$/.test(merchantOid)
@@ -61,9 +67,7 @@ export async function POST(request: NextRequest) {
       paid,
       totalAmountKurus,
       status,
-      // Provider-supplied failure details are untrusted and are not persisted;
-      // they can contain details that do not belong in our audit records.
-      errorCode: paid ? null : "PAYTR_PAYMENT_FAILED",
+      errorCode: failureCode,
       errorMessage: paid ? null : "Ödeme sağlayıcısı işlemi doğrulamadı.",
     });
 
@@ -89,7 +93,7 @@ export async function POST(request: NextRequest) {
       providerReferenceHash,
       status: "PROCESSED",
       orderId: result.orderId,
-      errorCode: result.kind === "failed" ? "PAYTR_PAYMENT_FAILED" : null,
+      errorCode: result.kind === "failed" ? failureCode : null,
     });
 
     return callbackOk();

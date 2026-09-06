@@ -14,6 +14,7 @@ import {
   createPaytrMerchantOid,
   createPaytrTokenHash,
   createPaytrUserBasket,
+  paytrFailureCode,
   verifyPaytrCallbackHash,
 } from "./paytr";
 
@@ -45,6 +46,15 @@ describe("PayTR payment primitives", () => {
       .digest("base64");
     expect(verifyPaytrCallbackHash({ merchantOid, status, totalAmount, hash })).toBe(true);
     expect(verifyPaytrCallbackHash({ merchantOid, status, totalAmount: "249001", hash })).toBe(false);
+  });
+
+  it("retains only numeric PayTR decline codes for diagnostics", () => {
+    expect(paytrFailureCode("51")).toBe("PAYTR_DECLINED_51");
+    expect(paytrFailureCode("05")).toBe("PAYTR_DECLINED_05");
+    expect(paytrFailureCode("customer@example.test")).toBe(
+      "PAYTR_PAYMENT_FAILED",
+    );
+    expect(paytrFailureCode(null)).toBe("PAYTR_PAYMENT_FAILED");
   });
 
   it("creates opaque, non-sequential merchant order ids", () => {

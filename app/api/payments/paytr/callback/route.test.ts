@@ -6,6 +6,7 @@ vi.mock("../../../../../lib/payments/config", () => ({
 }));
 
 vi.mock("../../../../../lib/payments/paytr", () => ({
+  paytrFailureCode: vi.fn(),
   verifyPaytrCallbackHash: vi.fn(),
 }));
 
@@ -22,19 +23,25 @@ vi.mock("../../../../../lib/observability/system-errors", () => ({
   recordSystemError: vi.fn().mockResolvedValue(true),
 }));
 
-import { verifyPaytrCallbackHash } from "../../../../../lib/payments/paytr";
+import {
+  paytrFailureCode,
+  verifyPaytrCallbackHash,
+} from "../../../../../lib/payments/paytr";
 import { settleCommercePaymentByPaytrCallback } from "../../../../../lib/payments/settle-commerce-payment";
 import { finalizePaytrCallbackReceipt } from "../../../../../lib/payments/payment-callback-receipts";
 import { POST } from "./route";
 
 const merchantOid = `PT${"a".repeat(32)}`;
 
-function callbackRequest() {
+function callbackRequest(input: { status?: "success" | "failed"; failureCode?: string } = {}) {
   const form = new FormData();
   form.set("merchant_oid", merchantOid);
-  form.set("status", "success");
+  form.set("status", input.status ?? "success");
   form.set("total_amount", "14900");
   form.set("hash", "signed-callback");
+  if (input.failureCode) {
+    form.set("failed_reason_code", input.failureCode);
+  }
   return new NextRequest("https://yenomi.test/api/payments/paytr/callback", {
     method: "POST",
     body: form,
@@ -44,6 +51,7 @@ function callbackRequest() {
 describe("PayTR callback route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(paytrFailureCode).mockReturnValue("PAYTR_PAYMENT_FAILED");
     vi.mocked(verifyPaytrCallbackHash).mockReturnValue(true);
     vi.mocked(settleCommercePaymentByPaytrCallback).mockResolvedValue({
       kind: "paid",
@@ -76,6 +84,33 @@ describe("PayTR callback route", () => {
     expect(response.status).toBe(401);
     await expect(response.text()).resolves.toBe("INVALID_CALLBACK");
     expect(settleCommercePaymentByPaytrCallback).not.toHaveBeenCalled();
+  });
+
+  it("persists only an allowlisted decline code for a signed failed callback", async () => {
+    vi.mocked(paytrFailureCode).mockReturnValue("PAYTR_DECLINED_51");
+    vi.mocked(settleCommercePaymentByPaytrCallback).mockResolvedValue({
+      kind: "failed",
+      orderId: "order-1",
+    });
+
+    const response = await POST(
+      callbackRequest({ status: "failed", failureCode: "51" }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(paytrFailureCode).toHaveBeenCalledWith("51");
+    expect(settleCommercePaymentByPaytrCallback).toHaveBeenCalledWith(
+      expect.objectContaining({
+        paid: false,
+        errorCode: "PAYTR_DECLINED_51",
+      }),
+    );
+    expect(finalizePaytrCallbackReceipt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "PROCESSED",
+        errorCode: "PAYTR_DECLINED_51",
+      }),
+    );
   });
 
   it("does not acknowledge a callback whose payment state could not be committed", async () => {

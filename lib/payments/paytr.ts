@@ -6,6 +6,7 @@ const PAYTR_NO_INSTALLMENT = "0";
 const PAYTR_MAX_INSTALLMENT = "0";
 const PAYTR_CURRENCY = "TL";
 const PAYTR_IFRAME_V2 = "1";
+const PAYTR_FAILURE_REASON_CODE = /^\d{1,4}$/;
 
 export type PaytrBasketItem = {
   name: string;
@@ -159,4 +160,15 @@ export function verifyPaytrCallbackHash(input: {
   const supplied = Buffer.from(input.hash, "utf8");
   const trusted = Buffer.from(expected, "utf8");
   return supplied.length === trusted.length && timingSafeEqual(supplied, trusted);
+}
+
+export function paytrFailureCode(value: unknown) {
+  if (typeof value !== "string") {
+    return "PAYTR_PAYMENT_FAILED";
+  }
+
+  const code = value.trim();
+  return PAYTR_FAILURE_REASON_CODE.test(code)
+    ? `PAYTR_DECLINED_${code}`
+    : "PAYTR_PAYMENT_FAILED";
 }

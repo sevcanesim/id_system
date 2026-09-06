@@ -130,7 +130,7 @@ export default function NetworkingPanel({
 }: {
   view: View;
   organizationId?: string;
-  token: () => Promise<string | null>;
+  token?: () => Promise<string | null>;
   members?: Member[];
   memberCardStatuses?: MemberCardStatus[];
   variant?: "organization" | "individual";
@@ -152,8 +152,8 @@ export default function NetworkingPanel({
   const [eventProfileIds, setEventProfileIds] = useState<Record<string, string>>({});
 
   async function load() {
-    const access = await token();
-    if (!access || (variant === "organization" && !organizationId)) {
+    const access = token ? await token() : null;
+    if ((token && !access) || (variant === "organization" && !organizationId)) {
       setLoaded(true);
       return;
     }
@@ -162,7 +162,8 @@ export default function NetworkingPanel({
         ? "/api/networking/inbox"
         : `/api/organizations/networking?organizationId=${encodeURIComponent(organizationId || "")}`;
       const response = await fetch(path, {
-        headers: { authorization: `Bearer ${access}` },
+        credentials: "same-origin",
+        headers: access ? { authorization: `Bearer ${access}` } : undefined,
         cache: "no-store",
       });
       const payload = await response.json();
@@ -208,14 +209,15 @@ export default function NetworkingPanel({
   }, [eventLinks]);
 
   async function post(body: Record<string, unknown>) {
-    const access = await token();
-    if (!access) return false;
+    const access = token ? await token() : null;
+    if (token && !access) return false;
     setBusy(true);
     setMessage("");
     try {
       const response = await fetch(variant === "individual" ? "/api/networking/inbox" : "/api/organizations/networking", {
         method: "POST",
-        headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
+        credentials: "same-origin",
+        headers: { "content-type": "application/json", ...(access ? { authorization: `Bearer ${access}` } : {}) },
         body: JSON.stringify(variant === "individual" ? body : { organizationId, ...body }),
       });
       const payload = await response.json();

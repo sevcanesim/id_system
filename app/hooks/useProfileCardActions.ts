@@ -2,7 +2,6 @@
 
 import { useCallback, useState } from "react";
 import { track } from "../../lib/analytics";
-import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 
 type PhysicalCardState = {
   id: string;
@@ -72,24 +71,17 @@ export function useProfileCardActions({
   }, [publicId, qrDataUrl]);
 
   const togglePublished = useCallback(async () => {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase || !profileId || !publicId) return false;
+    if (!profileId || !publicId) return false;
     setBusy(true);
     onMessage?.("");
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
-      if (!token) {
-        onMessage?.("Bu işlem için giriş yapmalısın.");
-        return false;
-      }
       const nextStatus = !isPublished;
       const response = await fetch("/api/profiles/publication", {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          authorization: `Bearer ${token}`,
         },
+        credentials: "same-origin",
         body: JSON.stringify({ profileId, isPublished: nextStatus }),
       });
       if (!response.ok) {
@@ -107,8 +99,7 @@ export function useProfileCardActions({
   }, [isPublished, onMessage, onPublishedChange, profileId, publicId]);
 
   const toggleLostMode = useCallback(async () => {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase || !profileId || !physicalCard) return false;
+    if (!profileId || !physicalCard) return false;
     const nextStatus = cardStatus === "LOST" ? "ACTIVE" : "LOST";
     if (
       nextStatus === "LOST"
@@ -118,18 +109,12 @@ export function useProfileCardActions({
     setBusy(true);
     onMessage?.("");
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
-      if (!token) {
-        onMessage?.("Oturum doğrulanamadı.");
-        return false;
-      }
       const response = await fetch("/api/cards", {
         method: "PATCH",
         headers: {
           "content-type": "application/json",
-          authorization: `Bearer ${token}`,
         },
+        credentials: "same-origin",
         body: JSON.stringify({ cardId: physicalCard.id, status: nextStatus }),
       });
       if (!response.ok) {

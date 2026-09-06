@@ -9,6 +9,10 @@ const middleware = readFileSync("proxy.ts", "utf8");
 const login = readFileSync("app/giris/page.tsx", "utf8") + readFileSync("app/giris/LoginClient.tsx", "utf8");
 const passwordLogin = readFileSync("lib/auth/password-login.ts", "utf8");
 const cardWizard = readFileSync("app/olustur/CardWizard.tsx", "utf8");
+const cardActions = readFileSync("app/hooks/useProfileCardActions.ts", "utf8");
+const analyticsPage = readFileSync("app/istatistikler/page.tsx", "utf8");
+const leadsPage = readFileSync("app/leadler/page.tsx", "utf8");
+const individualInbox = readFileSync("app/api/networking/inbox/route.ts", "utf8");
 const organizationIdentity = readFileSync("app/olustur/domain/organization-identity.ts", "utf8");
 const organizationRoutes = [
   "app/api/organizations/card-profile-link/route.ts",
@@ -64,6 +68,15 @@ requireText(cardWizard, "getBrowserIdentity", "Card editor must resolve its iden
 requireText(cardWizard, 'fetch("/api/profiles/mine", { credentials: "same-origin", cache: "no-store" })', "Card editor must load profiles through its cookie-authenticated API.");
 forbidText(cardWizard, "getSupabaseBrowserClient", "Card editor must not hydrate a browser Supabase session.");
 forbidText(cardWizard, "authorization: `Bearer", "Card editor must not send access tokens in request headers.");
+forbidText(cardActions, "getSupabaseBrowserClient", "Card actions must not hydrate a browser Supabase session.");
+forbidText(cardActions, "authorization: `Bearer", "Card actions must not send access tokens in request headers.");
+requireText(cardActions, 'credentials: "same-origin"', "Card actions must use cookie-authenticated APIs.");
+forbidText(analyticsPage, "getSupabaseBrowserClient", "Analytics must not hydrate a browser Supabase session.");
+forbidText(analyticsPage, "authorization: `Bearer", "Analytics must not send access tokens in request headers.");
+requireText(analyticsPage, 'credentials: "same-origin"', "Analytics must use its cookie-authenticated API.");
+forbidText(leadsPage, "getBrowserSession", "Individual leads must not retrieve browser access tokens.");
+forbidText(leadsPage, "authorization: `Bearer", "Individual leads must not send access tokens in request headers.");
+requireText(individualInbox, "resolveRequestIdentity", "Individual networking APIs must accept the HttpOnly session cookie.");
 forbidText(organizationIdentity, "authorization: `Bearer", "Card editor organization reads must use cookie identity.");
 requireText(organizationRoutes, "resolveRequestIdentity", "Card editor organization APIs must accept the HttpOnly session cookie.");
 

@@ -3,7 +3,8 @@ import { z } from "zod";
 import { isIndividualPremiumPackage } from "../../../../lib/commerce/packages";
 import { LEAD_STATUSES, scoreLabel } from "../../../../lib/networking/catalog";
 import { countMailSentToday, sendDebitedNetworkFollowUp } from "../../../../lib/networking/follow-up";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
+import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 
 export const runtime = "nodejs";
 
@@ -21,15 +22,12 @@ const leadStatusSchema = z.object({
 });
 
 async function requireUser(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-  const auth = getSupabaseAuthClient();
-  const { data } = await auth.auth.getUser(token);
-  if (!data.user) return null;
+  const identity = await resolveRequestIdentity(request);
+  if (!identity) return null;
   return {
-    userId: data.user.id,
-    email: data.user.email ?? null,
-    emailConfirmedAt: data.user.email_confirmed_at ?? null,
+    userId: identity.user.id,
+    email: identity.user.email ?? null,
+    emailConfirmedAt: identity.user.email_confirmed_at ?? null,
   };
 }
 

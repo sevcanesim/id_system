@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import UserPanelShell from "../components/UserPanelShell";
 import AnalyticsTrendChart from "../components/ui/AnalyticsTrendChart";
 import NetworkingPanel from "../kurumsal/panel/components/NetworkingPanel";
-import { getBrowserSession } from "../../lib/auth/get-browser-session";
 import PremiumFeatureGate from "../components/ui/PremiumFeatureGate";
 import { useIndividualPremiumAccess } from "../components/ui/useIndividualPremiumAccess";
 import { LoadingState } from "../components/ui/States";
@@ -24,10 +23,8 @@ export default function IndividualLeadsPage() {
     if (premiumAccess !== "premium") return;
     let cancelled = false;
     void (async () => {
-      const { accessToken } = await getBrowserSession();
-      if (!accessToken) return;
       const response = await fetch("/api/analytics/me", {
-        headers: { authorization: `Bearer ${accessToken}` },
+        credentials: "same-origin",
         cache: "no-store",
       });
       if (response.ok && !cancelled) setAnalytics(await response.json() as Analytics);
@@ -40,11 +37,6 @@ export default function IndividualLeadsPage() {
     return Math.round(analytics.last30DaysViews / Math.max(1, new Set(analytics.byDay.map((point) => point.date)).size));
   }, [analytics]);
   const hasTrendData = Boolean(analytics?.byDay.some((point) => point.count > 0));
-
-  async function token() {
-    const { accessToken } = await getBrowserSession();
-    return accessToken;
-  }
 
   return (
     <UserPanelShell
@@ -73,7 +65,7 @@ export default function IndividualLeadsPage() {
           /> : <div className={styles.emptyTrend}><strong>Henüz veri oluşmadı</strong><span>Kartını paylaşmaya başladığında görüntülenme eğilimin burada görünür.</span><a href="/kartim">Canlı kartı aç →</a></div>}
         </div>
       </section>
-      <NetworkingPanel view="leads" variant="individual" token={token} />
+      <NetworkingPanel view="leads" variant="individual" />
       </>}
     </UserPanelShell>
   );

@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import UserPanelShell from "../components/UserPanelShell";
 import { Card, EmptyState } from "../components/ui";
 import AnalyticsTrendChart from "../components/ui/AnalyticsTrendChart";
-import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import PremiumFeatureGate from "../components/ui/PremiumFeatureGate";
 import { useIndividualPremiumAccess } from "../components/ui/useIndividualPremiumAccess";
 import { LoadingState } from "../components/ui/States";
@@ -31,22 +30,9 @@ export default function AnalyticsPage() {
         if (!cancelled) setLoading(false);
         return;
       }
-      const supabase = getSupabaseBrowserClient();
-      if (!supabase) {
-        setLoading(false);
-        return;
-      }
-
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
       try {
         const response = await fetch("/api/analytics/me", {
-          headers: { authorization: `Bearer ${token}` },
+          credentials: "same-origin",
           cache: "no-store",
         });
         if (response.ok && !cancelled) setData(await response.json());

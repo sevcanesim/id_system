@@ -6,7 +6,7 @@ export async function findExistingCheckoutAttempt(
 ) {
   return admin
     .from("commerce_payment_attempts")
-    .select("id,order_id,status,request_fingerprint,payment_page_url,updated_at")
+    .select("id,order_id,status,request_fingerprint,payment_token_ciphertext,payment_token_expires_at,updated_at")
     .eq("idempotency_key", idempotencyKey)
     .maybeSingle();
 }

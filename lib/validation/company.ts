@@ -1,5 +1,3 @@
-import { isValidTurkishIdentityNumber } from "./payment";
-
 export const COMPANY_ENTITY_TYPES = ["SOLE_PROPRIETORSHIP", "LIMITED_COMPANY", "JOINT_STOCK_COMPANY"] as const;
 
 export type CompanyEntityType = (typeof COMPANY_ENTITY_TYPES)[number];
@@ -41,10 +39,8 @@ export function isCompanyEntityType(value: unknown): value is CompanyEntityType 
   return typeof value === "string" && COMPANY_ENTITY_TYPES.includes(value as CompanyEntityType);
 }
 
-export function isValidCompanyTaxNumber(value: string, entityType: CompanyEntityType): boolean {
-  return entityType === "SOLE_PROPRIETORSHIP"
-    ? isValidTurkishIdentityNumber(value)
-    : isValidTurkishTaxNumber(value);
+export function isValidCompanyTaxNumber(value: string): boolean {
+  return isValidTurkishTaxNumber(value);
 }
 
 export function parseCompanyBilling(input: unknown): { ok: true; company: CompanyBilling } | { ok: false; error: string } {
@@ -59,10 +55,8 @@ export function parseCompanyBilling(input: unknown): { ok: true; company: Compan
   if (name.length < 2 || name.length > 180) {
     return { ok: false, error: "Şirket unvanını gir." };
   }
-  if (!isValidCompanyTaxNumber(taxNumber, entityType)) {
-    return entityType === "SOLE_PROPRIETORSHIP"
-      ? { ok: false, error: "Şahıs işletmesi için geçerli 11 haneli T.C. kimlik numarasını gir." }
-      : { ok: false, error: "Limited ve anonim şirketler için geçerli 10 haneli VKN gir." };
+  if (!isValidCompanyTaxNumber(taxNumber)) {
+    return { ok: false, error: "Kurumsal paket için işletmeye ait geçerli 10 haneli VKN gir." };
   }
   if (taxOffice.length < 2 || taxOffice.length > 80) {
     return { ok: false, error: "Vergi dairesini gir." };

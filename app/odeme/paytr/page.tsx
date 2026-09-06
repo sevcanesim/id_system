@@ -1,17 +1,37 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { createHash } from "crypto";
 import PaytrIframe from "./PaytrIframe";
+import { openPaytrPresentationToken, readPaytrPresentationSecret } from "../../../lib/payments/paytr-presentation";
+import { getSupabaseAdminClient } from "../../../lib/supabase/server-admin";
+
+export const dynamic = "force-dynamic";
 
 type PaytrCheckoutPageProps = {
-  searchParams: Promise<{ token?: string | string[] }>;
+  searchParams: Promise<{ attempt?: string | string[] }>;
 };
 
-function checkoutToken(value: string | string[] | undefined) {
-  const token = Array.isArray(value) ? value[0] : value;
-  return typeof token === "string" && /^[A-Za-z0-9_-]{8,255}$/.test(token) ? token : null;
+const ATTEMPT_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function checkoutToken(value: string | string[] | undefined) {
+  const attemptId = Array.isArray(value) ? value[0] : value;
+  if (typeof attemptId !== "string" || !ATTEMPT_ID_RE.test(attemptId)) return null;
+  const secret = readPaytrPresentationSecret({ cookies: await cookies() }, attemptId);
+  if (!secret) return null;
+  const admin = getSupabaseAdminClient();
+  const { data } = await admin
+    .from("commerce_payment_attempts")
+    .select("status,payment_token_ciphertext,payment_token_expires_at,payment_presentation_secret_hash")
+    .eq("id", attemptId)
+    .eq("provider", "PAYTR")
+    .maybeSingle();
+  if (!data || data.status !== "PENDING" || !data.payment_token_ciphertext || !data.payment_presentation_secret_hash || data.payment_presentation_secret_hash !== createHash("sha256").update(secret).digest("hex")) return null;
+  if (!data.payment_token_expires_at || new Date(data.payment_token_expires_at).getTime() <= Date.now()) return null;
+  return openPaytrPresentationToken(data.payment_token_ciphertext);
 }
 
 export default async function PaytrCheckoutPage({ searchParams }: PaytrCheckoutPageProps) {
-  const token = checkoutToken((await searchParams).token);
+  const token = await checkoutToken((await searchParams).attempt);
   if (!token) {
     return (
       <main id="main-content" className="checkout-page p5-checkout-page yi-footer-compact">

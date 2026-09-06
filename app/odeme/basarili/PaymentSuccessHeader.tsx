@@ -8,13 +8,13 @@ type HeaderAction = { href: string; label: string; primary?: boolean };
 
 export default function PaymentSuccessHeader({ fallbackActions }: { fallbackActions: HeaderAction[] }) {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get("order");
+  const resultReference = searchParams.get("result");
   const [actions, setActions] = useState(fallbackActions);
 
   useEffect(() => {
-    if (!orderId) return;
+    if (!resultReference) return;
     let active = true;
-    fetch(`/api/commerce/orders/status?order=${encodeURIComponent(orderId)}`, { cache: "no-store" })
+    fetch(`/api/commerce/orders/status?result=${encodeURIComponent(resultReference)}`, { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
       .then((data: { activationRequired?: boolean; corporate?: boolean; corporateReady?: boolean; seatPack?: boolean; seatPackFulfillment?: "FULFILLED" | "FAILED" | "PENDING" | null } | null) => {
         if (!active || !data) return;
@@ -39,7 +39,7 @@ export default function PaymentSuccessHeader({ fallbackActions }: { fallbackActi
     return () => {
       active = false;
     };
-  }, [orderId]);
+  }, [resultReference]);
 
   return <AppHeader actions={actions} showDefaultCta={false} />;
 }

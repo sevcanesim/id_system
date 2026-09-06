@@ -22,6 +22,7 @@ import { stampPhysicalProductionConfig } from "../../../../lib/commerce/producti
 import { findExistingCheckoutAttempt } from "../../../../lib/payments/checkout-idempotency-lookup";
 import { rejectCheckoutInitializeFlood } from "../../../../lib/security/route-rate-limits";
 import { checkoutResumeSessionExpiry } from "../../../../lib/commerce/checkout-resume";
+import { applyPaytrPresentationCookie, createPaytrPresentationSecret, createPaytrPresentationUrl, createPaytrResultReference, sealPaytrPresentationToken } from "../../../../lib/payments/paytr-presentation";
 
 export const runtime = "nodejs";
 
@@ -109,7 +110,7 @@ function corporateBillingProfile(organizationId: string, organization: Record<st
   const addressLine = text(organization.billing_address) || text(organization.legal_address);
   const city = text(organization.billing_city) || text(organization.city);
   const district = text(organization.billing_district) || text(organization.district);
-  if (!name || !taxNumber || !addressLine || !city || !district) return null;
+  if (!name || !/^\d{10}$/.test(taxNumber) || !addressLine || !city || !district) return null;
   return {
     organizationId,
     name,
@@ -134,10 +135,12 @@ function jsonWithPendingOrder(body: object, init?: { status?: number }) {
 }
 
 function duplicateAttemptResponse(attempt: {
+  id: string;
   order_id: string;
   status: string;
   request_fingerprint: string | null;
-  payment_page_url: string | null;
+  payment_token_ciphertext: string | null;
+  payment_token_expires_at: string | null;
   updated_at?: string | null;
 }, fingerprint: string) {
   if (attempt.request_fingerprint !== fingerprint) {
@@ -152,8 +155,8 @@ function duplicateAttemptResponse(attempt: {
   if (attempt.status === "PAID") {
     return jsonWithPendingOrder({ ...publicError("ORDER_ALREADY_PAID"), orderId: attempt.order_id }, { status: 409 });
   }
-  if (attempt.status === "PENDING" && attempt.payment_page_url) {
-    return jsonWithPendingOrder({ orderId: attempt.order_id, paymentPageUrl: attempt.payment_page_url, reused: true });
+  if (attempt.status === "PENDING" && attempt.payment_token_ciphertext && attempt.payment_token_expires_at && new Date(attempt.payment_token_expires_at).getTime() > Date.now()) {
+    return jsonWithPendingOrder({ orderId: attempt.order_id, paymentPageUrl: createPaytrPresentationUrl(attempt.id, publicSiteUrl), reused: true });
   }
   if (attempt.status === "FAILED") {
     return jsonWithPendingOrder({
@@ -500,7 +503,7 @@ export async function POST(request: NextRequest) {
       ? companyBilling.company
       : organizationBilling
         ? {
-            entityType: organizationBilling.taxNumber.length === 11 ? "SOLE_PROPRIETORSHIP" as const : "LIMITED_COMPANY" as const,
+            entityType: "LIMITED_COMPANY" as const,
             name: organizationBilling.name,
             taxNumber: organizationBilling.taxNumber,
             taxOffice: organizationBilling.taxOffice,
@@ -734,7 +737,7 @@ export async function POST(request: NextRequest) {
 
     const { data: openAttempt } = await admin
       .from("commerce_payment_attempts")
-      .select("id,order_id,status,request_fingerprint,payment_page_url,updated_at")
+      .select("id,order_id,status,request_fingerprint,payment_token_ciphertext,payment_token_expires_at,updated_at")
       .eq("order_id", order.id)
       .eq("status", "PENDING")
       .order("created_at", { ascending: false })
@@ -750,8 +753,8 @@ export async function POST(request: NextRequest) {
         retryable: true,
       }, { status: 409 });
     }
-    if (openDecision === "reuse" && openAttempt?.payment_page_url) {
-      return jsonWithPendingOrder({ orderId: order.id, paymentPageUrl: openAttempt.payment_page_url, reused: true });
+    if (openDecision === "reuse" && openAttempt?.payment_token_ciphertext) {
+      return jsonWithPendingOrder({ orderId: order.id, paymentPageUrl: createPaytrPresentationUrl(openAttempt.id, publicSiteUrl), reused: true });
     }
     if (openDecision === "abandon" && openAttempt?.id) {
       await admin.from("commerce_payment_attempts").update({
@@ -799,6 +802,7 @@ export async function POST(request: NextRequest) {
     const userIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
       || request.headers.get("x-real-ip")?.trim()
       || "127.0.0.1";
+    const paymentResultReference = createPaytrResultReference(order.id);
     const paytrCheckout = await initializePaytrCheckout({
       merchantOid: paytrMerchantOid,
       userIp,
@@ -814,8 +818,8 @@ export async function POST(request: NextRequest) {
         unitPriceKurus: item.unitPriceKurus,
         quantity: item.quantity,
       })),
-      merchantOkUrl: `${publicSiteUrl}/odeme/basarili?order=${encodeURIComponent(order.id)}`,
-      merchantFailUrl: `${publicSiteUrl}/odeme/basarisiz?order=${encodeURIComponent(order.id)}`,
+      merchantOkUrl: `${publicSiteUrl}/odeme/basarili?result=${encodeURIComponent(paymentResultReference)}`,
+      merchantFailUrl: `${publicSiteUrl}/odeme/basarisiz?result=${encodeURIComponent(paymentResultReference)}`,
     });
 
     if (!paytrCheckout.ok) {
@@ -837,17 +841,27 @@ export async function POST(request: NextRequest) {
       return jsonWithPendingOrder({ ...payload, orderId: order.id, retryable: true }, { status: 502 });
     }
 
-    const paymentPageUrl = `${publicSiteUrl}/odeme/paytr?token=${encodeURIComponent(paytrCheckout.token)}`;
+    const presentationSecret = createPaytrPresentationSecret();
+    const paymentTokenExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    const paymentPageUrl = createPaytrPresentationUrl(reservedAttempt.id, publicSiteUrl);
     await admin.from("commerce_payment_attempts").update({
-      payment_page_url: paymentPageUrl,
+      payment_page_url: null,
+      payment_token_ciphertext: sealPaytrPresentationToken(paytrCheckout.token),
+      payment_token_expires_at: paymentTokenExpiresAt.toISOString(),
+      payment_presentation_secret_hash: presentationSecret.hash,
       updated_at: new Date().toISOString(),
     }).eq("id", reservedAttempt.id);
 
-    return jsonWithPendingOrder({
+    const response = jsonWithPendingOrder({
       orderId: order.id,
       orderNumber: order.order_number,
       paymentPageUrl,
       retried: Boolean(body.retryOrderId),
+    });
+    return applyPaytrPresentationCookie(response, {
+      attemptId: reservedAttempt.id,
+      secret: presentationSecret.value,
+      expiresAt: paymentTokenExpiresAt,
     });
   } catch {
     const payload = publicError("PAYMENT_UNAVAILABLE");

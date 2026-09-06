@@ -39,6 +39,10 @@ const nextConfig: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(self), payment=(self)" },
         ],
       })),
+      ...["/odeme/paytr", "/odeme/basarili", "/odeme/basarisiz"].map((source) => ({
+        source,
+        headers: [{ key: "Referrer-Policy", value: "no-referrer" }],
+      })),
     ];
   },
   async redirects() {

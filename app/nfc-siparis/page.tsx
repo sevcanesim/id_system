@@ -105,8 +105,8 @@ export default function NfcOrderPage() {
   useEffect(() => {
     void lookupPendingCheckoutOrder()
       .then((data) => {
-        if (data.paid && data.orderId) {
-          window.location.replace(`/odeme/basarili?order=${encodeURIComponent(data.orderId)}`);
+        if (data.paid && data.paymentResultUrl) {
+          window.location.replace(data.paymentResultUrl);
         }
       })
       .catch(() => undefined);
@@ -227,9 +227,9 @@ export default function NfcOrderPage() {
     setCheckoutReturnPath("/nfc-siparis");
     track("payment_start", { profileId, quantity: form.quantity });
     const pending = await lookupPendingCheckoutOrder();
-    if (pending.paid && pending.orderId) {
+    if (pending.paid && pending.paymentResultUrl) {
       setSubmitting(false);
-      window.location.replace(`/odeme/basarili?order=${encodeURIComponent(pending.orderId)}`);
+      window.location.replace(pending.paymentResultUrl);
       return;
     }
     const retryOrderId = pending.awaitingPayment ? pending.orderId : null;

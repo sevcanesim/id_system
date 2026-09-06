@@ -14,7 +14,6 @@ import {
   createPaytrMerchantOid,
   createPaytrTokenHash,
   createPaytrUserBasket,
-  paytrIframeUrl,
   verifyPaytrCallbackHash,
 } from "./paytr";
 
@@ -37,7 +36,7 @@ describe("PayTR payment primitives", () => {
     expect(Buffer.from(userBasket, "base64").toString("utf8")).toBe('[["Yenomi ID Premium","2490.00",1]]');
   });
 
-  it("accepts only an exact signed callback and preserves an opaque iframe token", () => {
+  it("accepts only an exact signed callback", () => {
     const merchantOid = "PTabc123";
     const status = "success";
     const totalAmount = "249000";
@@ -46,7 +45,6 @@ describe("PayTR payment primitives", () => {
       .digest("base64");
     expect(verifyPaytrCallbackHash({ merchantOid, status, totalAmount, hash })).toBe(true);
     expect(verifyPaytrCallbackHash({ merchantOid, status, totalAmount: "249001", hash })).toBe(false);
-    expect(paytrIframeUrl("a/b?c")).toBe("https://www.paytr.com/odeme/guvenli/a%2Fb%3Fc");
   });
 
   it("creates opaque, non-sequential merchant order ids", () => {

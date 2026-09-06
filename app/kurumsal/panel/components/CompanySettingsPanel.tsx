@@ -9,7 +9,7 @@ type LegalProfile = {
   name: string;
   corporate_id?: string | null;
   legal_name?: string | null;
-  tax_id_type?: "VKN" | "TCKN" | null;
+  tax_id_type?: "VKN" | null;
   tax_number?: string | null;
   tax_office?: string | null;
   mersis_number?: string | null;
@@ -77,8 +77,7 @@ export default function CompanySettingsPanel({
           : "idle";
   const profileStatus = saveCopy(profileState, profileError);
   const legalName = legalProfile?.legal_name?.trim() || legalProfile?.name || "Kayıt bulunamadı";
-  const inferredTaxIdType = legalProfile?.tax_number?.replace(/\D/g, "").length === 11 ? "TCKN" : "VKN";
-  const taxIdType = legalProfile?.tax_id_type || inferredTaxIdType;
+  const taxIdType = legalProfile?.tax_id_type || "VKN";
   const taxNumber = legalProfile?.tax_number?.trim() || "Kayıt bulunamadı";
   const taxOffice = legalProfile?.tax_office?.trim() || "Kayıt bulunamadı";
   const recordComplete = Boolean(legalProfile?.name?.trim() && legalProfile?.tax_number?.trim() && legalProfile?.tax_office?.trim());

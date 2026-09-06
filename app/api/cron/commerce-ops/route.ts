@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { runCommerceOpsJobs } from "../../../../lib/commerce/commerce-ops-jobs";
+import { runCommerceOpsJobs, runIsolatedCommerceOperation } from "../../../../lib/commerce/commerce-ops-jobs";
 import { reconcileAwaitingProviderPayments } from "../../../../lib/commerce/pending-payment-reconciliation";
 import { recordSystemError } from "../../../../lib/observability/system-errors";
 import { runWithOperationalJobLease } from "../../../../lib/operations/job-lease";
@@ -14,8 +14,10 @@ async function executeCommerceOps(request: NextRequest) {
   }
   try {
     const operation = await runWithOperationalJobLease("commerce-ops", async () => {
-      const providerReconciliation = await reconcileAwaitingProviderPayments();
-      const sweep = await runCommerceOpsJobs();
+      const [providerReconciliation, sweep] = await Promise.all([
+        runIsolatedCommerceOperation("PROVIDER_RECONCILIATION", () => reconcileAwaitingProviderPayments(), { scanned: 0, released: 0, errors: 0 }),
+        runCommerceOpsJobs(),
+      ]);
       return { providerReconciliation, sweep };
     }, ({ providerReconciliation, sweep }) => {
       const reconciled = typeof providerReconciliation.scanned === "number" ? providerReconciliation.scanned : 0;

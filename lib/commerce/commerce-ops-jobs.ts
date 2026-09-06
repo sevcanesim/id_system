@@ -4,11 +4,41 @@ import { sendAbandonedCheckoutEmail, sendOpsFulfillmentAlertEmail } from "../ema
 import { publicSiteUrl } from "../payments/config";
 import { getSupabaseAdminClient } from "../supabase/server-admin";
 import { deliverCorporateLeadNotifications } from "../operations/corporate-lead-notifications";
+import { recordSystemError } from "../observability/system-errors";
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 const ABANDONED_BATCH = 40;
 
 type AdminClient = ReturnType<typeof getSupabaseAdminClient>;
+
+type IsolatedOperation<T extends object> = T & {
+  ok: boolean;
+  errorCode: string | null;
+};
+
+function operationErrorCode(error: unknown, fallback: string) {
+  if (!(error instanceof Error)) return fallback;
+  const normalized = error.message.trim().toUpperCase().replace(/[^A-Z0-9_:-]/g, "_").slice(0, 120);
+  return normalized || fallback;
+}
+
+export async function runIsolatedCommerceOperation<T extends object>(
+  operation: string,
+  task: () => Promise<T>,
+  fallback: T,
+): Promise<IsolatedOperation<T>> {
+  try {
+    return { ...await task(), ok: true, errorCode: null };
+  } catch (error) {
+    const errorCode = operationErrorCode(error, `${operation}_FAILED`);
+    void recordSystemError({
+      source: "COMMERCE_OPS",
+      errorCode,
+      message: `Commerce operation ${operation} did not complete.`,
+    });
+    return { ...fallback, ok: false, errorCode };
+  }
+}
 
 export async function runPaidOrderReconciliation(admin: AdminClient) {
   const { data: reconciliation, error } = await admin.rpc("reconcile_paid_commerce_orders", { p_limit: 250 });
@@ -198,11 +228,13 @@ async function insertIssueAlerts(
 
 export async function runCommerceOpsJobs() {
   const admin = getSupabaseAdminClient();
-  const abandoned = await sendAbandonedCheckoutReminders(admin);
-  const expired = await expireStaleAwaitingOrders(admin);
-  const reconciled = await runPaidOrderReconciliation(admin);
-  const renewals = await queueCorporateCapacityRenewals(admin);
-  const alerts = await notifyOpenFulfillmentIssues(admin);
-  const corporateLeads = await deliverCorporateLeadNotifications(admin);
+  const [abandoned, expired, reconciled, renewals, alerts, corporateLeads] = await Promise.all([
+    runIsolatedCommerceOperation("ABANDONED_CHECKOUT", () => sendAbandonedCheckoutReminders(admin), { scanned: 0, sent: 0, skipped: 0 }),
+    runIsolatedCommerceOperation("EXPIRE_AWAITING_ORDERS", () => expireStaleAwaitingOrders(admin), { ok: false }),
+    runIsolatedCommerceOperation("PAID_ORDER_RECONCILIATION", () => runPaidOrderReconciliation(admin), { ok: false }),
+    runIsolatedCommerceOperation("CORPORATE_CAPACITY_RENEWALS", () => queueCorporateCapacityRenewals(admin), { ok: false, queued: 0 }),
+    runIsolatedCommerceOperation("FULFILLMENT_ISSUE_NOTIFICATIONS", () => notifyOpenFulfillmentIssues(admin), { open: 0, alerted: 0, escalated: 0 }),
+    runIsolatedCommerceOperation("CORPORATE_LEAD_NOTIFICATIONS", () => deliverCorporateLeadNotifications(admin), { inspected: 0, delivered: 0, retried: 0, failed: 0 }),
+  ]);
   return { abandoned, expired, reconciled, renewals, alerts, corporateLeads };
 }

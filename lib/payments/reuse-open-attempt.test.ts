@@ -8,7 +8,7 @@ describe("decideOpenPaymentAttempt", () => {
     expect(decideOpenPaymentAttempt({
       status: "PAID",
       request_fingerprint: "fingerprint",
-      payment_page_url: "https://pay.example/checkout",
+      payment_token_ciphertext: "sealed",
     }, "fingerprint")).toBe("none");
   });
 
@@ -16,7 +16,8 @@ describe("decideOpenPaymentAttempt", () => {
     expect(decideOpenPaymentAttempt({
       status: "PENDING",
       request_fingerprint: "fingerprint",
-      payment_page_url: "https://pay.example/checkout",
+      payment_token_ciphertext: "sealed",
+      payment_token_expires_at: new Date(Date.now() + 60_000).toISOString(),
     }, "fingerprint")).toBe("reuse");
   });
 
@@ -24,12 +25,13 @@ describe("decideOpenPaymentAttempt", () => {
     expect(decideOpenPaymentAttempt({
       status: "PENDING",
       request_fingerprint: "different",
-      payment_page_url: "https://pay.example/checkout",
+      payment_token_ciphertext: "sealed",
+      payment_token_expires_at: new Date(Date.now() + 60_000).toISOString(),
     }, "fingerprint")).toBe("conflict");
     expect(decideOpenPaymentAttempt({
       status: "PENDING",
       request_fingerprint: "fingerprint",
-      payment_page_url: null,
+      payment_token_ciphertext: null,
       updated_at: new Date(1_000).toISOString(),
     }, "fingerprint", 2_000)).toBe("conflict");
   });
@@ -38,7 +40,7 @@ describe("decideOpenPaymentAttempt", () => {
     expect(decideOpenPaymentAttempt({
       status: "PENDING",
       request_fingerprint: "fingerprint",
-      payment_page_url: null,
+      payment_token_ciphertext: null,
       updated_at: new Date(1_000).toISOString(),
     }, "fingerprint", 122_000)).toBe("abandon");
   });

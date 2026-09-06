@@ -30,6 +30,7 @@ const required = [
   'ANALYTICS_FINGERPRINT_SECRET',
   'ORGANIZATION_INTEGRATIONS_ENCRYPTION_KEY',
   'CORPORATE_LEAD_ENCRYPTION_KEY',
+  'PAYTR_PRESENTATION_ENCRYPTION_KEY',
   'OPS_ALERT_TO',
   'LEGAL_TRADE_NAME',
   'LEGAL_ENTITY_TYPE',
@@ -73,6 +74,7 @@ if (!supabaseUrl.includes(`https://${productionRef}.supabase.co`)) fail('Product
 if (!/^https:\/\//.test(redisUrl)) fail('UPSTASH_REDIS_REST_URL HTTPS olmalı.');
 if (partiallyConfigured(paytrKeys)) fail(`PayTR sağlayıcı yapılandırması eksik: ${paytrKeys.filter((key) => !String(env[key] || '').trim()).join(', ')}`);
 if (!hasPaytr) fail('Production için PayTR sağlayıcı yapılandırması eksiksiz olmalı.');
+if (!/^[A-Za-z0-9_-]{43}$/.test(String(env.PAYTR_PRESENTATION_ENCRYPTION_KEY || '').trim())) fail('PAYTR_PRESENTATION_ENCRYPTION_KEY 32 baytlık base64url anahtar olmalı.');
 if (['IYZICO_API_KEY', 'IYZICO_SECRET_KEY', 'IYZICO_BASE_URL', 'IYZICO_WEBHOOK_SECRET'].some((key) => String(env[key] || '').trim())) fail('IYZICO ortam değişkenleri kaldırılmalı; tek ödeme sağlayıcısı PayTR’dir.');
 if (hasPaytr && String(env.PAYTR_TEST_MODE).toLowerCase() === 'true') fail('Production PAYTR_TEST_MODE=true olamaz.');
 if (env.ALLOW_STAGING_MUTATIONS === 'true') fail('Production ortamında ALLOW_STAGING_MUTATIONS=true olamaz.');

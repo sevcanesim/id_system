@@ -2,32 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { loadCommerceOrderKind } from "../../../../../lib/commerce/order-kind";
 import { getSupabaseAdminClient } from "../../../../../lib/supabase/server-admin";
 import { recordSystemError } from "../../../../../lib/observability/system-errors";
+import { resolvePaytrResultReference } from "../../../../../lib/payments/paytr-presentation";
 
 export const runtime = "nodejs";
 
-// Order statuses that mean "payment succeeded" from the shopper's point of
-// view. Anything else (DRAFT, AWAITING_PAYMENT, CANCELLED, REFUNDED, or an
-// unknown/missing order) must never render as a success state.
 const PAID_STATUSES = new Set(["PAID", "PREPARING", "SHIPPED", "COMPLETED"]);
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/**
- * Public, unauthenticated order-status check used by the /odeme/basarili and
- * /odeme/basarisiz result pages so they can verify a payment before showing
- * success content. Deliberately returns only a coarse status enum plus
- * boolean flags (activationRequired, corporate, corporateReady, reviewRequired) and the
- * non-sensitive payment provider — never
- * email, amount, items, company name, user id, or any other order detail —
- * so it stays safe to call without auth for a guest checkout flow. The order
- * id itself is already a public, unguessable UUID that the payment callback
- * puts in the redirect URL, so exposing this minimal status by id does not
- * leak anything new.
- */
 export async function GET(request: NextRequest) {
-  const orderId = request.nextUrl.searchParams.get("order") || "";
-  if (!UUID_RE.test(orderId)) {
+  const paymentResult = request.nextUrl.searchParams.get("result") || "";
+  const resolvedReference = resolvePaytrResultReference(paymentResult);
+  if (!resolvedReference) {
     return NextResponse.json({ found: false, paid: false, status: null }, { status: 400 });
   }
+  const orderId = resolvedReference.orderId;
 
   try {
     const admin = getSupabaseAdminClient();

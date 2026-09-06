@@ -13,7 +13,7 @@ export type Org = {
     /** Returned only for an active OWNER or HR membership. */
     corporate_id?: string | null;
     legal_name?: string | null;
-    tax_id_type?: "VKN" | "TCKN" | null;
+    tax_id_type?: "VKN" | null;
     tax_number?: string | null;
     tax_office?: string | null;
     mersis_number?: string | null;

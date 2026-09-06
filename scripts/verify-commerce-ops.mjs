@@ -41,6 +41,7 @@ check(resend.includes("limitActivationResendIp") && resend.includes("limitActiva
 check(checkout.includes("rejectCheckoutInitializeFlood") && checkout.includes("initializePaytrCheckout"), "checkout throttles before PayTR initialization");
 check(email.includes("sendAbandonedCheckoutEmail") && sql.includes("ABANDONED_CHECKOUT_24H"), "abandoned checkout mail and event types exist");
 check(jobs.includes("sendAbandonedCheckoutReminders") && jobs.includes("notifyOpenFulfillmentIssues"), "ops job sends recovery mail and fulfillment alerts");
+check(jobs.includes("runIsolatedCommerceOperation") && jobs.includes("Promise.all") && cron.includes("PROVIDER_RECONCILIATION"), "independent commerce operations are isolated so one failure cannot block the sweep");
 check(cron.includes("authorizeCommerceCron") && (!vercel || vercel.includes("/api/cron/commerce-ops")), "protected cron route stays authorized");
 check(cron.includes("runWithOperationalJobLease") && organizationWebhookCron.includes("runWithOperationalJobLease") && retentionCron.includes("runWithOperationalJobLease"), "scheduled workers acquire exclusive leases before processing");
 check(jobLease.includes("start_operational_job_run") && jobLease.includes("finish_operational_job_run"), "scheduled workers persist run start and completion states");

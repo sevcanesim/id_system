@@ -48,11 +48,11 @@ for (const script of ["verify:phase20:rc", "verify:phase20:runtime", "verify:pha
 }
 
 const envExample = fs.readFileSync(".env.example", "utf8");
-for (const key of ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SITE_URL", "SUPABASE_SERVICE_ROLE_KEY", "PAYTR_MERCHANT_ID", "PAYTR_MERCHANT_KEY", "PAYTR_MERCHANT_SALT"]) {
+for (const key of ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SITE_URL", "SUPABASE_SERVICE_ROLE_KEY", "PAYTR_MERCHANT_ID", "PAYTR_MERCHANT_KEY", "PAYTR_MERCHANT_SALT", "PAYTR_PRESENTATION_ENCRYPTION_KEY"]) {
   envExample.includes(`${key}=`) ? pass(`local env contract documented: ${key}`) : fail(`local env contract documented: ${key}`);
 }
 const productionEnv = fs.readFileSync("scripts/verify-production-env.mjs", "utf8");
-productionEnv.includes("PRODUCTION_SUPABASE_PROJECT_REF") && productionEnv.includes("PAYTR_MERCHANT_ID") && productionEnv.includes("PAYTR_MERCHANT_KEY") && productionEnv.includes("PAYTR_MERCHANT_SALT")
+productionEnv.includes("PRODUCTION_SUPABASE_PROJECT_REF") && productionEnv.includes("PAYTR_MERCHANT_ID") && productionEnv.includes("PAYTR_MERCHANT_KEY") && productionEnv.includes("PAYTR_MERCHANT_SALT") && productionEnv.includes("PAYTR_PRESENTATION_ENCRYPTION_KEY")
   ? pass("production env gate requires project isolation and a live payment provider")
   : fail("production env gate requires project isolation and a live payment provider");
 

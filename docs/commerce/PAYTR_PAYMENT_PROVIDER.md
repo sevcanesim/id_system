@@ -15,10 +15,13 @@ PAYTR_MERCHANT_ID=
 PAYTR_MERCHANT_KEY=
 PAYTR_MERCHANT_SALT=
 PAYTR_TEST_MODE=true
+PAYTR_PRESENTATION_ENCRYPTION_KEY=
 ```
 
 `NEXT_PUBLIC_` öneki kullanmayın. Üç değer birlikte mevcut olmadıkça ödeme
 başlatılmaz. Üretimde `PAYTR_TEST_MODE=false` olmalıdır.
+
+`PAYTR_PRESENTATION_ENCRYPTION_KEY`, 32 baytlık base64url bir anahtardır. PayTR iframe token'ı bu anahtarla yalnız sunucuda şifrelenir; URL, tarayıcı geçmişi veya uygulama loglarında tutulmaz.
 
 PayTR panelindeki bildirim (callback) adresi şudur:
 
@@ -34,8 +37,9 @@ geliştirmede sağlayıcının ulaşabildiği güvenli bir tünel kullanmadan ca
 
 - PayTR oturum token'ı yalnız sunucuda `merchant_key` ve `merchant_salt` ile
   HMAC-SHA256 imzalanarak oluşturulur.
-- Tarayıcı yalnız opak iframe token'ını `/odeme/paytr` sayfasına taşır; kart
-  bilgisi Yenomi'ye gelmez.
+- Tarayıcı yalnız ödeme denemesi kimliğini taşır. PayTR token'ı veritabanında
+  şifreli saklanır; sayfaya kısa ömürlü, HttpOnly bir sunum çereziyle verilir.
+  Kart bilgisi Yenomi'ye gelmez.
 - Başarılı veya başarısız yönlendirme siparişi değiştirmez. Sipariş yalnız
   PayTR'nin imzalı sunucudan-sunucuya callback'i doğrulanınca işlenir.
 - Callback tutarı, sunucuda hesaplanan sipariş tutarıyla kuruş bazında eşleşmek

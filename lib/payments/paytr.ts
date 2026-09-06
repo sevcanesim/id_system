@@ -2,7 +2,6 @@ import { createHmac, randomUUID, timingSafeEqual } from "crypto";
 import { paytrConfig } from "./config";
 
 const PAYTR_TOKEN_URL = "https://www.paytr.com/odeme/api/get-token";
-const PAYTR_IFRAME_URL = "https://www.paytr.com/odeme/guvenli";
 const PAYTR_NO_INSTALLMENT = "0";
 const PAYTR_MAX_INSTALLMENT = "0";
 const PAYTR_CURRENCY = "TL";
@@ -76,10 +75,6 @@ export function createPaytrTokenHash(input: {
   return createHmac("sha256", input.merchantKey).update(hashInput).digest("base64");
 }
 
-export function paytrIframeUrl(token: string) {
-  return `${PAYTR_IFRAME_URL}/${encodeURIComponent(token)}`;
-}
-
 export async function initializePaytrCheckout(input: PaytrTokenRequest) {
   if (!Number.isInteger(input.amountKurus) || input.amountKurus <= 0) {
     return { ok: false as const, errorCode: "INVALID_AMOUNT", errorMessage: "Ödeme tutarı geçersiz." };
@@ -141,7 +136,7 @@ export async function initializePaytrCheckout(input: PaytrTokenRequest) {
         errorMessage: "PayTR ödeme sayfası oluşturulamadı.",
       };
     }
-    return { ok: true as const, token: payload.token, paymentPageUrl: paytrIframeUrl(payload.token) };
+    return { ok: true as const, token: payload.token };
   } catch {
     return {
       ok: false as const,

@@ -2,21 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import {
-  getCheckoutReturnPath,
-  setPendingCheckoutOrderId,
-} from "../../../lib/payments/browser-checkout";
+import { getCheckoutReturnPath } from "../../../lib/payments/browser-checkout";
 
 export default function PaymentRetryActions() {
-  const searchParams = useSearchParams();
   const [returnPath, setReturnPath] = useState<"/checkout" | "/nfc-siparis">("/checkout");
 
   useEffect(() => {
-    const nextOrderId = searchParams.get("order");
-    if (nextOrderId) setPendingCheckoutOrderId(nextOrderId);
     setReturnPath(getCheckoutReturnPath());
-  }, [searchParams]);
+  }, []);
 
   return (
     <>

@@ -15,7 +15,7 @@ type Props = {
   seatPack?: boolean;
   seatPackFulfillment?: "FULFILLED" | "FAILED" | "PENDING" | null;
   reviewRequired?: boolean;
-  orderId?: string | null;
+  resultReference?: string | null;
   onSetupRetry?: () => Promise<void>;
 };
 
@@ -26,7 +26,7 @@ export default function ActivationAction({
   seatPack = false,
   seatPackFulfillment = null,
   reviewRequired = false,
-  orderId = null,
+  resultReference = null,
   onSetupRetry,
 }: Props) {
   const [ready, setReady] = useState<boolean | null>(null);
@@ -80,7 +80,7 @@ export default function ActivationAction({
   }
 
   async function retrySetup() {
-    if (!orderId || !onSetupRetry) return;
+    if (!resultReference || !onSetupRetry) return;
     setRetrying(true);
     setMessage("");
     try {
@@ -163,7 +163,7 @@ export default function ActivationAction({
         <h2>Ek lisans tanımlaması kontrol ediliyor</h2>
         <p>Ödemen alındı; yeni bir çekim yapılmaz. Ek lisansınız hesabınıza aktarılırken bir kontrol gerekiyor.</p>
         {message ? <div className="checkout-message">{message}</div> : null}
-        {orderId ? (
+        {resultReference ? (
           <button type="button" onClick={() => void retrySetup()} disabled={retrying}>
             {retrying ? "Durum kontrol ediliyor…" : "Durumu Yeniden Kontrol Et"}
           </button>
@@ -179,7 +179,7 @@ export default function ActivationAction({
         <h2>Şirket kurulumu henüz tamamlanmadı</h2>
         <p>Ödemen alındı. Şirket paneli ancak kurulum bitince açılır. Yeni bir çekim yapılmaz.</p>
         {message ? <div className="checkout-message">{message}</div> : null}
-        {orderId ? (
+        {resultReference ? (
           <button type="button" onClick={() => void retrySetup()} disabled={retrying}>
             {retrying ? "Kurulum deneniyor…" : "Kurulumu tekrar dene"}
           </button>
@@ -195,7 +195,7 @@ export default function ActivationAction({
         <h2>{reviewRequired ? "Siparişin hesabına bağlanırken kontrol gerekiyor" : "Dijital hakkın henüz hesabına yazılmadı"}</h2>
         <p>Ödemen alındı; yeni bir çekim yapılmaz. Kartvizit editörü, hakların aktif olunca açılır.</p>
         {message ? <div className="checkout-message">{message}</div> : null}
-        {orderId ? (
+        {resultReference ? (
           <button type="button" onClick={() => void retrySetup()} disabled={retrying}>
             {retrying ? "Bağlantı deneniyor…" : "Hesaba bağlamayı tekrar dene"}
           </button>
@@ -211,7 +211,7 @@ export default function ActivationAction({
         <h2>Ek lisans tanımlaması kontrol ediliyor</h2>
         <p>Ödemen alındı; yeni bir çekim yapılmaz. Ek lisansınız hesabınıza aktarılırken bir kontrol gerekiyor.</p>
         {message ? <div className="checkout-message">{message}</div> : null}
-        {orderId ? (
+        {resultReference ? (
           <button type="button" onClick={() => void retrySetup()} disabled={retrying}>
             {retrying ? "Durum kontrol ediliyor…" : "Durumu Yeniden Kontrol Et"}
           </button>

@@ -22,21 +22,10 @@ type OrderStatusPayload = {
   reviewRequired?: boolean;
 };
 
-/**
- * Gates the payment-success content behind an order verification check.
- *
- * P0 QA finding: opening /odeme/basarili directly (no order, a stale order,
- * or an order that never actually got paid) rendered "Ödemen başarıyla
- * alındı." unconditionally — the page never checked whether the order in
- * the URL exists or is paid. That is both a false status communication and
- * a trust problem. This component checks /api/commerce/orders/status before
- * showing success, and only fires the success analytics event / clears the
- * checkout session once that check actually passes.
- */
 export default function OrderResultGate() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get("order");
-  const [state, setState] = useState<VerifyState>(orderId ? "checking" : "invalid");
+  const resultReference = searchParams.get("result");
+  const [state, setState] = useState<VerifyState>(resultReference ? "checking" : "invalid");
   const [activationRequired, setActivationRequired] = useState(false);
   const [corporate, setCorporate] = useState(false);
   const [corporateReady, setCorporateReady] = useState(false);
@@ -46,7 +35,7 @@ export default function OrderResultGate() {
   const tracked = useRef(false);
 
   useEffect(() => {
-    if (!orderId) {
+    if (!resultReference) {
       setState("invalid");
       return;
     }
@@ -54,7 +43,7 @@ export default function OrderResultGate() {
     setState("checking");
 
     async function verifyPaid() {
-      const statusResponse = await fetch(`/api/commerce/orders/status?order=${encodeURIComponent(orderId!)}`, { cache: "no-store" });
+      const statusResponse = await fetch(`/api/commerce/orders/status?result=${encodeURIComponent(resultReference!)}`, { cache: "no-store" });
       const status = await (statusResponse.ok ? statusResponse.json() : { paid: false });
       return status as OrderStatusPayload;
     }
@@ -66,8 +55,6 @@ export default function OrderResultGate() {
 
         while (active && attempts < 4 && (!data?.paid || (data.corporate && !data.corporateReady))) {
           attempts++;
-          // PayTR'nin imzalı sunucu callback'i tek durum otoritesidir.
-          // Tarayıcı yalnızca sonucu okur; asla ödeme durumunu değiştirmez.
           await new Promise((resolve) => setTimeout(resolve, attempts * 750));
           if (!active) return;
           data = await verifyPaid();
@@ -88,14 +75,14 @@ export default function OrderResultGate() {
     return () => {
       active = false;
     };
-  }, [orderId, searchParams]);
+  }, [resultReference, searchParams]);
 
   useEffect(() => {
     if (state !== "verified" || tracked.current) return;
     tracked.current = true;
-    track("payment_success", orderId ? { orderId } : {});
+    track("payment_success");
     clearCheckoutSession();
-  }, [state, orderId]);
+  }, [state]);
 
   if (state === "checking") {
     return (
@@ -124,8 +111,8 @@ export default function OrderResultGate() {
   const setupIncomplete = corporate && !corporateReady && !activationRequired;
 
   async function retryFulfillment() {
-    if (!orderId) throw new Error("Sipariş bulunamadı.");
-    const statusResponse = await fetch(`/api/commerce/orders/status?order=${encodeURIComponent(orderId)}`, { cache: "no-store" });
+    if (!resultReference) throw new Error("Sipariş bulunamadı.");
+    const statusResponse = await fetch(`/api/commerce/orders/status?result=${encodeURIComponent(resultReference)}`, { cache: "no-store" });
     const data = await (statusResponse.ok ? statusResponse.json() : {}) as OrderStatusPayload;
     setCorporate(Boolean(data.corporate));
     setCorporateReady(Boolean(data.corporateReady));
@@ -199,7 +186,7 @@ export default function OrderResultGate() {
         seatPack={seatPack}
         seatPackFulfillment={seatPackFulfillment}
         reviewRequired={reviewRequired}
-        orderId={orderId}
+        resultReference={resultReference}
         onSetupRetry={retryFulfillment}
       />
       <div className="order-success-actions">

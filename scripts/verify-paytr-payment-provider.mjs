@@ -12,6 +12,7 @@ const checkout = read("app/api/commerce/checkout/route.ts");
 const paytr = read("lib/payments/paytr.ts");
 const callback = read("app/api/payments/paytr/callback/route.ts");
 const settlement = read("lib/payments/settle-commerce-payment.ts");
+const presentation = read("lib/payments/paytr-presentation.ts");
 const csp = read("lib/security/content-security-policy.ts");
 const migration = read("supabase/migrations/20260905093000_paytr_payment_provider.sql");
 const reliabilityMigration = read("supabase/migrations/20260906001000_paytr_only_payment_reliability.sql");
@@ -34,6 +35,8 @@ check(reliabilityMigration.includes("enforce_paytr_commerce_payment_provider") &
 check(csp.includes("https://www.paytr.com"), "CSP explicitly permits the PayTR hosted iframe");
 check(iframe.includes("iframeResizer.min.js?v2") && iframe.includes("iFrameResize"), "checkout uses PayTR V2's official responsive iframe resizer");
 check(migration.includes("when 'PAYTR' then 'PayTR ödeme doğrulandı'") && migration.includes("for update"), "payment history remains provider-aware and atomic");
+check(checkout.includes("payment_token_ciphertext") && checkout.includes("createPaytrPresentationUrl") && !checkout.includes("paytrCheckout.paymentPageUrl"), "PayTR token is encrypted at rest and not returned in the checkout response");
+check(presentation.includes("aes-256-gcm") && presentation.includes("PAYTR_PRESENTATION_COOKIE") && presentation.includes("httpOnly: true"), "hosted payment access requires an encrypted token and HttpOnly presentation secret");
 
 if (failed) process.exit(1);
 console.log("\nPayTR payment provider verification passed.");

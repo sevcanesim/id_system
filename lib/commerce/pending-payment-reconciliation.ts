@@ -6,7 +6,7 @@ const MAX_BATCH = 100;
 /**
  * PayTR is settled only by its signed callback. This job never attempts to
  * infer a payment result; it releases initialization leases for attempts
- * whose hosted payment URL was never persisted after a process failure.
+ * whose encrypted hosted payment token was never persisted after a process failure.
  */
 export async function reconcileAwaitingProviderPayments(now = Date.now()) {
   const admin = getSupabaseAdminClient();
@@ -17,7 +17,7 @@ export async function reconcileAwaitingProviderPayments(now = Date.now()) {
     .select("id,order_id")
     .eq("status", "PENDING")
     .eq("provider", "PAYTR")
-    .is("payment_page_url", null)
+    .is("payment_token_ciphertext", null)
     .lte("updated_at", cutoff)
     .order("updated_at", { ascending: true })
     .limit(MAX_BATCH);
@@ -37,7 +37,7 @@ export async function reconcileAwaitingProviderPayments(now = Date.now()) {
     })
     .in("id", ids)
     .eq("status", "PENDING")
-    .is("payment_page_url", null)
+    .is("payment_token_ciphertext", null)
     .select("id");
   if (releaseError) throw releaseError;
 

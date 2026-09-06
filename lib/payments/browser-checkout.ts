@@ -58,9 +58,10 @@ export type PendingCheckoutLookup = {
   orderId: string | null;
   paid: boolean;
   awaitingPayment: boolean;
+  paymentResultUrl: string | null;
 };
 
-const EMPTY_PENDING: PendingCheckoutLookup = { found: false, orderId: null, paid: false, awaitingPayment: false };
+const EMPTY_PENDING: PendingCheckoutLookup = { found: false, orderId: null, paid: false, awaitingPayment: false, paymentResultUrl: null };
 
 export async function lookupPendingCheckoutOrder(): Promise<PendingCheckoutLookup> {
   if (typeof window === "undefined") return EMPTY_PENDING;
@@ -69,11 +70,14 @@ export async function lookupPendingCheckoutOrder(): Promise<PendingCheckoutLooku
     if (!response.ok) return EMPTY_PENDING;
     const data = await response.json() as Partial<PendingCheckoutLookup>;
     const orderId = typeof data.orderId === "string" && data.orderId ? data.orderId : null;
+    const paymentResultUrl = typeof data.paymentResultUrl === "string" && data.paymentResultUrl.startsWith("/odeme/basarili?result=")
+      ? data.paymentResultUrl
+      : null;
     const paid = Boolean(data.paid);
     const awaitingPayment = Boolean(data.awaitingPayment);
-    if (orderId && (paid || awaitingPayment)) setPendingCheckoutOrderId(orderId);
+    if (orderId && awaitingPayment) setPendingCheckoutOrderId(orderId);
     else clearPendingCheckoutOrderId();
-    return { found: Boolean(data.found) && Boolean(orderId), orderId, paid, awaitingPayment };
+    return { found: Boolean(data.found), orderId, paid, awaitingPayment, paymentResultUrl };
   } catch {
     return EMPTY_PENDING;
   }

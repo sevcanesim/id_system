@@ -44,7 +44,7 @@ const checks = [
   ['product_variants', 'id,product_id'],
   ['commerce_orders', 'id'],
   ['commerce_order_items', 'id'],
-  ['commerce_payment_attempts', 'id,order_id,provider,status,amount_kurus,payment_page_url,updated_at'],
+  ['commerce_payment_attempts', 'id,order_id,provider,status,amount_kurus,payment_token_ciphertext,payment_token_expires_at,payment_presentation_secret_hash,updated_at'],
   ['payment_callback_receipts', 'id,provider,provider_reference_hash,amount_kurus,status,received_at'],
   ['system_error_logs', 'id,request_id,source,error_code,user_id,organization_id,occurred_at'],
   ['auth_login_events', 'id,succeeded,reason,email_domain,is_test_identity,occurred_at'],

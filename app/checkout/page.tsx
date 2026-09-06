@@ -114,8 +114,8 @@ export default function CheckoutPage() {
   useEffect(() => {
     void lookupPendingCheckoutOrder()
       .then((pendingOrder) => {
-        if (pendingOrder.paid && pendingOrder.orderId) {
-          window.location.replace(`/odeme/basarili?order=${encodeURIComponent(pendingOrder.orderId)}`);
+        if (pendingOrder.paid && pendingOrder.paymentResultUrl) {
+          window.location.replace(pendingOrder.paymentResultUrl);
         }
       })
       .catch(() => undefined);
@@ -353,8 +353,8 @@ export default function CheckoutPage() {
     track("checkout_started", { itemCount: items.length, authenticated: isAuthenticated });
     try {
       const pending = await lookupPendingCheckoutOrder();
-      if (pending.paid && pending.orderId) {
-        window.location.replace(`/odeme/basarili?order=${encodeURIComponent(pending.orderId)}`);
+      if (pending.paid && pending.paymentResultUrl) {
+        window.location.replace(pending.paymentResultUrl);
         return;
       }
       const retryOrderId = pending.awaitingPayment ? pending.orderId : null;
@@ -489,11 +489,11 @@ export default function CheckoutPage() {
                     </fieldset> : null}
                     {hasCorporatePackage ? <fieldset className="checkout-company-fields" aria-describedby="company-billing-note">
                       <legend><Icon name="building" />Kurumsal fatura bilgileri</legend>
-                      <p id="company-billing-note">Şahıs işletmesinde 11 haneli T.C. kimlik numarası, limited ve anonim şirkette 10 haneli VKN ile vergi dairesi zorunludur. Ödeme tamamlandığında bu kayıt şirketine aktarılır ve kurumsal panelden değiştirilemez.</p>
+                      <p id="company-billing-note">Şahıs işletmesi, limited ve anonim şirket için işletmeye ait 10 haneli VKN ve vergi dairesi zorunludur. Ödeme tamamlandığında bu kayıt şirketine aktarılır ve kurumsal panelden değiştirilemez.</p>
                       <div className="checkout-company-fields__grid">
                         <label>Şirket türü<select required value={form.companyEntityType} onChange={(event) => { update("companyEntityType", event.target.value as FormState["companyEntityType"]); update("companyTaxNumber", ""); }}><option value="">Şirket türünü seç</option><option value="SOLE_PROPRIETORSHIP">Şahıs işletmesi</option><option value="LIMITED_COMPANY">Limited şirket</option><option value="JOINT_STOCK_COMPANY">Anonim şirket</option></select></label>
                         <label>Şirket unvanı<input required autoComplete="organization" value={form.companyName} onChange={(event) => update("companyName", event.target.value)} /></label>
-                        <label>{form.companyEntityType === "SOLE_PROPRIETORSHIP" ? "11 haneli T.C. kimlik no" : "10 haneli VKN"}<input required inputMode="numeric" maxLength={form.companyEntityType === "SOLE_PROPRIETORSHIP" ? 11 : 10} autoComplete="off" value={form.companyTaxNumber} onChange={(event) => update("companyTaxNumber", event.target.value.replace(/\D/g, ""))} /></label>
+                        <label>10 haneli VKN<input required inputMode="numeric" maxLength={10} autoComplete="off" value={form.companyTaxNumber} onChange={(event) => update("companyTaxNumber", event.target.value.replace(/\D/g, ""))} /></label>
                         <label>Vergi dairesi<input required autoComplete="off" value={form.companyTaxOffice} onChange={(event) => update("companyTaxOffice", event.target.value)} /></label>
                       </div>
                     </fieldset> : null}

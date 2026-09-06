@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
+import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 import { publicError } from "../../../../lib/errors";
 import { recordSystemError } from "../../../../lib/observability/system-errors";
 
@@ -26,15 +27,6 @@ function missingPrintFields(profile: PrintProfile | null) {
   return PRINT_REQUIRED_FIELDS
     .filter(([field]) => !profile[field]?.trim())
     .map(([, label]) => label);
-}
-
-async function authenticatedUser(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-  const auth = getSupabaseAuthClient();
-  const { data, error } = await auth.auth.getUser(token);
-  if (error || !data.user) return null;
-  return data.user;
 }
 
 async function resolveOwnUnit(userId: string, profileId?: string) {
@@ -98,8 +90,8 @@ async function resolveOwnUnit(userId: string, profileId?: string) {
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await authenticatedUser(request);
-    if (!user) return NextResponse.json(publicError("AUTH_REQUIRED"), { status: 401 });
+    const identity = await resolveRequestIdentity(request);
+    if (!identity) return NextResponse.json(publicError("AUTH_REQUIRED"), { status: 401 });
 
     const requestedProfileId = request.nextUrl.searchParams.get("profileId");
     const profileId = requestedProfileId ? z.string().uuid().safeParse(requestedProfileId) : null;
@@ -108,7 +100,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { admin, unit, entitlement, order, profileFound } = await resolveOwnUnit(
-      user.id,
+      identity.user.id,
       profileId?.data,
     );
     if (!profileFound) return NextResponse.json({ error: "Profil bulunamadı." }, { status: 404 });
@@ -135,13 +127,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await authenticatedUser(request);
-    if (!user) return NextResponse.json(publicError("AUTH_REQUIRED"), { status: 401 });
+    const identity = await resolveRequestIdentity(request);
+    if (!identity) return NextResponse.json(publicError("AUTH_REQUIRED"), { status: 401 });
 
     const parsed = completeSchema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ error: "Geçersiz profil." }, { status: 400 });
 
-    const { admin, unit, profile, profileFound } = await resolveOwnUnit(user.id, parsed.data.profileId);
+    const { admin, unit, profile, profileFound } = await resolveOwnUnit(identity.user.id, parsed.data.profileId);
     if (!profileFound) return NextResponse.json({ error: "Profil bulunamadı." }, { status: 404 });
     if (!unit) {
       return NextResponse.json(
@@ -161,7 +153,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await admin.rpc("transition_physical_card_unit", {
       p_unit_id: unit.id,
       p_next_status: "PRINT_PENDING",
-      p_actor_user_id: user.id,
+      p_actor_user_id: identity.user.id,
       p_source: "CUSTOMER",
       p_carrier: null,
       p_tracking_number: null,
@@ -173,7 +165,7 @@ export async function POST(request: NextRequest) {
         source: "CARD_PROCESS",
         errorCode: "PRINT_QUEUE_TRANSITION_FAILED",
         message: "Kart baskı kuyruğu durumu güncellenemedi.",
-        userId: user.id,
+        userId: identity.user.id,
       });
       return NextResponse.json({ error: result?.code ?? "Kart baskı kuyruğuna alınamadı.", current: result?.current }, { status: 409 });
     }

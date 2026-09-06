@@ -5,7 +5,6 @@ import { detectNetworkingLocale, type NetworkingLocale } from "../../../lib/netw
 import { instantConnectErrorMessage } from "../../../lib/networking/instant-connect";
 import { normalizeContactPhone } from "../../../lib/networking/contact-phone";
 import { parseExternalQrPayload } from "../../../lib/networking/external-qr-contact";
-import { getBrowserSession } from "../../../lib/auth/get-browser-session";
 import { Avatar, Button, Field, Input, Skeleton } from "../ui/DesignSystem";
 import { Icon } from "../../icons";
 import InstantConnectScanner, { type InstantConnectScannerCopy } from "./InstantConnectScanner";
@@ -281,10 +280,8 @@ export default function NetworkingCapture({
     let cancelled = false;
     void (async () => {
       try {
-        const { accessToken } = await getBrowserSession();
-        if (!accessToken) return;
         const response = await fetch("/api/networking/instant-connect", {
-          headers: { authorization: "Bearer " + accessToken },
+          credentials: "same-origin",
           cache: "no-store",
         });
         if (!response.ok) return;
@@ -347,16 +344,12 @@ export default function NetworkingCapture({
 
   async function createHandshake(input: { kind: "ACCOUNT" } | { kind: "QR"; sourcePublicId: string }) {
     const headers: Record<string, string> = { "content-type": "application/json" };
-    if (input.kind === "ACCOUNT") {
-      const { accessToken } = await getBrowserSession();
-      if (!accessToken) return { ok: false, error: instantConnectErrorMessage("AUTH_REQUIRED", locale) };
-      headers.authorization = "Bearer " + accessToken;
-    }
 
     try {
       const response = await fetch("/api/networking/instant-connect", {
         method: "POST",
         headers,
+        credentials: "same-origin",
         body: JSON.stringify({
           ...input,
           targetPublicId: profilePublicId,

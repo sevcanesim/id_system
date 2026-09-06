@@ -1,7 +1,8 @@
 import { createHash } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
+import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 import { publicError } from "../../../../lib/errors";
 import { recordSystemError } from "../../../../lib/observability/system-errors";
 
@@ -19,13 +20,8 @@ function claimError(code?: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const authorization = request.headers.get("authorization") || "";
-    const accessToken = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
-    if (!accessToken) return NextResponse.json(publicError("AUTH_REQUIRED"), { status: 401 });
-
-    const auth = getSupabaseAuthClient();
-    const { data, error } = await auth.auth.getUser(accessToken);
-    if (error || !data.user?.email) return NextResponse.json(publicError("AUTH_REQUIRED"), { status: 401 });
+    const identity = await resolveRequestIdentity(request);
+    if (!identity?.user.email) return NextResponse.json(publicError("AUTH_REQUIRED"), { status: 401 });
 
     const parsed = schema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ error: "Geçersiz aktivasyon bağlantısı." }, { status: 400 });
@@ -34,8 +30,8 @@ export async function POST(request: NextRequest) {
     const tokenHash = createHash("sha256").update(parsed.data.token).digest("hex");
     const { data: result, error: claimFailure } = await admin.rpc("claim_commerce_order_activation", {
       p_token_hash: tokenHash,
-      p_user_id: data.user.id,
-      p_user_email: data.user.email,
+      p_user_id: identity.user.id,
+      p_user_email: identity.user.email,
     });
     if (claimFailure || !(result as ClaimResult | null)?.ok) {
       const mapped = claimError((result as ClaimResult | null)?.code);

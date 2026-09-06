@@ -59,7 +59,7 @@ const adminPrivacyRequestsApi = read("app/api/admin/privacy-requests/route.ts");
 const cardViews = read("lib/analytics/card-views.ts");
 const cardWizard = read("app/olustur/CardWizard.tsx");
 const clientPrivateState = read("lib/security/client-private-state.ts");
-const authSessionBridge = read("app/components/AuthSessionBridge.tsx");
+const dashboardShell = read("app/ui/DashboardShell.tsx");
 const runtimeSources = [
   ...sourceFiles("app/api"),
   ...sourceFiles("lib"),
@@ -155,7 +155,7 @@ mustNotInclude(cardWizard, 'localStorage.setItem("yenomi-card-draft")', "Card ed
 mustInclude(clientPrivateState, "CARD_DRAFT_PREFIX", "Private browser state must clear account-scoped drafts left by older releases.");
 mustNotInclude(clientPrivateState, "localStorage.setItem", "Private browser state must not write sensitive drafts.");
 mustInclude(clientPrivateState, "clearSensitiveBrowserState", "Sensitive browser state needs an explicit logout cleanup path.");
-mustInclude(authSessionBridge, "clearSensitiveBrowserState", "Logout must clear sensitive browser state.");
+mustInclude(dashboardShell, "clearSensitiveBrowserState", "Logout must clear sensitive browser state.");
 mustInclude(requestIdentity, "hasTrustedSameOrigin", "Cookie-authenticated writes must verify same-origin intent.");
 mustInclude(requestIdentity, "hasBearerCredential", "Bearer API clients must remain explicit when bypassing the cookie CSRF gate.");
 mustInclude(networkingLeadApi, "NETWORKING_IP_FINGERPRINT_SECRET", "Networking IP fingerprints must use a dedicated HMAC secret.");

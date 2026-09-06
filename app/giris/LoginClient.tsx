@@ -18,7 +18,7 @@ import {
 import type { LoginPortal } from "../../lib/auth/account-type";
 import { passwordLogin } from "../../lib/auth/password-login";
 import { isAdminSession } from "../../lib/auth/portal-guard";
-import { resolveLoginDestination } from "../../lib/auth/account-router";
+import { isDefaultWorkspacePath, resolveLoginDestination } from "../../lib/auth/account-router";
 import { clearLegacyCart, setCartOwner } from "../../lib/cart";
 
 type AuthMode = LoginAuthMode;
@@ -263,6 +263,25 @@ export default function LoginClient({
       const passwordError = validateSignupPassword(password);
       if (passwordError) return showMessage(passwordError, "error");
     }
+    if (mode === "login") {
+      setRememberedLogin(rememberMe);
+      setLoading(true);
+      setEmail(normalizedEmail);
+      const signedIn = await passwordLogin({
+        email: normalizedEmail,
+        password,
+        remember: rememberMe,
+        portal: initialPortal,
+      });
+      if (!signedIn.ok) {
+        setLoading(false);
+        return showMessage(signedIn.message, "error");
+      }
+      setPassword("");
+      setTransitioning(true);
+      window.location.replace(isDefaultWorkspacePath(returnPath) ? "/hesabim" : returnPath);
+      return;
+    }
     if (!isSupabaseConfigured) return showMessage(`Supabase bağlantısı kurulamadı: ${supabaseConfigIssue}`, "error");
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return showMessage("Giriş hizmeti şu anda kullanılamıyor.", "error");
@@ -271,40 +290,29 @@ export default function LoginClient({
     setEmail(normalizedEmail);
 
     const emailRedirectTo = loginRedirectPath();
-    let result;
+    let result: Awaited<ReturnType<typeof supabase.auth.signUp>> | null = null;
     try {
-      if (mode === "signup") {
-        const authCall = supabase.auth.signUp({ email: normalizedEmail, password, options: { emailRedirectTo } });
-        result = await Promise.race([
-          authCall,
-          new Promise<never>((_, reject) => {
-            window.setTimeout(() => reject(new Error("AUTH_TIMEOUT")), 12_000);
-          }),
-        ]);
-      } else {
-        const signedIn = await passwordLogin({
-          email: normalizedEmail,
-          password,
-          remember: rememberMe,
-          portal: initialPortal,
-        });
-        if (!signedIn.ok) {
-          setLoading(false);
-          return showMessage(signedIn.message, "error");
-        }
-        const { data, error } = await supabase.auth.getSession();
-        result = { data, error: error ?? (data.session ? null : { message: "Oturum kaydedilemedi. Lütfen yeniden dene." }) };
-      }
+      const authCall = supabase.auth.signUp({ email: normalizedEmail, password, options: { emailRedirectTo } });
+      result = await Promise.race([
+        authCall,
+        new Promise<never>((_, reject) => {
+          window.setTimeout(() => reject(new Error("AUTH_TIMEOUT")), 12_000);
+        }),
+      ]);
     } catch {
       setLoading(false);
       return showMessage("Giriş hizmetine ulaşılamadı. Bağlantını kontrol edip yeniden dene.", "error");
+    }
+    if (!result) {
+      setLoading(false);
+      return showMessage("Hesap oluşturulamadı. Lütfen yeniden dene.", "error");
     }
 
     const authErrorCode = result.error && typeof result.error === "object" ? (result.error as { code?: string }).code : undefined;
     const signupIdentities = result.data && "user" in result.data
       ? (result.data.user as { identities?: unknown[] } | null)?.identities
       : undefined;
-    const duplicateSignup = mode === "signup" && (
+    const duplicateSignup = (
       authErrorCode === "user_already_exists" ||
       authErrorCode === "email_exists" ||
       Array.isArray(signupIdentities) && signupIdentities.length === 0
@@ -317,9 +325,9 @@ export default function LoginClient({
     }
     if (result.error) {
       setLoading(false);
-      return showMessage(authErrorMessage(result.error, mode === "login" ? "E-posta veya şifre hatalı." : "Hesap oluşturulamadı. Bilgilerini kontrol et."), "error");
+      return showMessage(authErrorMessage(result.error, "Hesap oluşturulamadı. Bilgilerini kontrol et."), "error");
     }
-    if (mode === "signup" && !result.data.session) {
+    if (!result.data.session) {
       setLoading(false);
       setSignupCompleted(true);
       return showMessage("Hesabın oluşturuldu. E-posta doğrulama bağlantısını kontrol et.", "success");
@@ -328,13 +336,11 @@ export default function LoginClient({
       setPassword("");
       setTransitioning(true);
       setCartOwner(result.data.session.user.id, { claimGuest: true });
-      const sessionStored = mode === "signup"
-        ? await writeSessionCookie(
-            result.data.session.access_token,
-            result.data.session.expires_at,
-            result.data.session.refresh_token,
-          )
-        : true;
+      const sessionStored = await writeSessionCookie(
+        result.data.session.access_token,
+        result.data.session.expires_at,
+        result.data.session.refresh_token,
+      );
       if (!sessionStored) {
         setTransitioning(false);
         setLoading(false);

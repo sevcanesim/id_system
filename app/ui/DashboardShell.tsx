@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useId, useState, type ReactNode } from "react";
-import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
-import { validateCardWorkspace, validatePortal, type PortalCheckResult } from "../../lib/auth/portal-guard";
+import { clearBrowserAuthSession } from "../../lib/supabase/browser";
+import { canUseCardWorkspace, isPortalAllowed, type AccountType, type TestLoginScope } from "../../lib/auth/account-type";
+import { getBrowserIdentity } from "../../lib/auth/browser-identity";
 import { clearLegacyCart, setCartOwner } from "../../lib/cart";
+import { clearSensitiveBrowserState } from "../../lib/security/client-private-state";
 import { INDIVIDUAL_PRODUCT_PURCHASE_HREF, needsIndividualProductPurchase } from "../../lib/commerce/individual-portal-access";
 import { writeSessionCookie } from "../components/AuthSessionBridge";
 import PanelSidebar from "../components/ui/PanelSidebar";
@@ -50,15 +52,9 @@ export default function DashboardShell({
 
   useEffect(() => {
     let cancelled = false;
-    const sb = getSupabaseBrowserClient();
-    if (!sb) {
-      setPortalState("allowed");
-      return;
-    }
-
     void (async () => {
-      const { data } = await sb.auth.getUser();
-      if (!data.user) {
+      const identity = await getBrowserIdentity();
+      if (!identity) {
         if (!cancelled) {
           setPortalState("denied");
           window.location.replace(`/giris?portal=${portal}&next=${encodeURIComponent(pathname)}`);
@@ -66,34 +62,28 @@ export default function DashboardShell({
         return;
       }
 
-      const result: PortalCheckResult = portal === "individual"
-        ? await validateCardWorkspace(sb, data.user.id)
-        : await validatePortal(sb, data.user.id, portal);
+      const accountType = identity.account.type as AccountType | null;
+      const testLoginScope = identity.account.testLoginScope as TestLoginScope | null;
+      const allowed = accountType && (portal === "individual"
+        ? canUseCardWorkspace(accountType, testLoginScope)
+        : isPortalAllowed(accountType, "business", testLoginScope));
 
       if (cancelled) return;
-      if (!result.ok) {
+      if (!allowed) {
         setPortalState("denied");
         window.location.replace(portal === "individual" ? "/kurumsal/panel" : "/kartim");
-        return;
-      }
-
-      const sessionRes = await sb.auth.getSession();
-      const token = sessionRes.data.session?.access_token;
-      if (!token) {
-        setEmail(data.user.email || "");
-        setPortalState("allowed");
         return;
       }
 
       try {
         const [orgRes, entitlementRes] = await Promise.all([
           fetch("/api/organizations/mine", {
-            headers: { authorization: `Bearer ${token}` },
+            credentials: "same-origin",
             cache: "no-store",
           }),
           requiresProductAccess
             ? fetch("/api/commerce/entitlements", {
-              headers: { authorization: `Bearer ${token}` },
+              credentials: "same-origin",
               cache: "no-store",
             })
             : Promise.resolve(null),
@@ -122,7 +112,7 @@ export default function DashboardShell({
           hasPendingEntitlement: Boolean(entitlementPayload?.pendingEntitlements?.length),
           hasCorporateMembership,
         })) {
-          setEmail(data.user.email || "");
+          setEmail(identity.user.email || "");
           setPortalState("purchase-required");
           return;
         }
@@ -131,7 +121,7 @@ export default function DashboardShell({
       }
 
       if (cancelled) return;
-      setEmail(data.user.email || "");
+      setEmail(identity.user.email || "");
       setPortalState("allowed");
     })();
 
@@ -141,9 +131,9 @@ export default function DashboardShell({
   }, [activeKey, pathname, portal, requiresProductAccess]);
 
   async function signOut() {
-    const supabase = getSupabaseBrowserClient();
-    if (supabase) await supabase.auth.signOut();
+    await clearBrowserAuthSession();
     await writeSessionCookie(null);
+    clearSensitiveBrowserState();
     clearLegacyCart();
     setCartOwner(null, { claimGuest: false });
     setMobileOpen(false);

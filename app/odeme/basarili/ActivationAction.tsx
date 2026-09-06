@@ -6,7 +6,6 @@ import { writeCart } from "../../../lib/cart";
 import { CORPORATE_POST_PURCHASE_HREF, INDIVIDUAL_POST_PURCHASE_HREF } from "../../../lib/commerce/post-purchase";
 import { normalizeEmailField } from "../../../lib/form-standards";
 import { clearPendingCheckoutOrderId, rotateCheckoutIdempotencyKey } from "../../../lib/payments/browser-checkout";
-import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 
 type Props = {
   activationRequired: boolean;
@@ -43,18 +42,7 @@ export default function ActivationAction({
       setReady(null);
       return;
     }
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) {
-      setReady(false);
-      return;
-    }
-    void supabase.auth.getSession().then(async ({ data }) => {
-      const token = data.session?.access_token;
-      if (!token) {
-        setReady(false);
-        return;
-      }
-      const response = await fetch("/api/commerce/entitlements", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" });
+    void fetch("/api/commerce/entitlements", { credentials: "same-origin", cache: "no-store" }).then(async (response) => {
       setReady(response.ok && Boolean((await response.json()).active));
     });
   }, [activationRequired, corporate, seatPack, reviewRequired]);
@@ -86,14 +74,7 @@ export default function ActivationAction({
     try {
       await onSetupRetry();
       if (corporate || seatPack) return;
-      const supabase = getSupabaseBrowserClient();
-      const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
-      const token = data.session?.access_token;
-      if (!token) {
-        setReady(false);
-        return;
-      }
-      const response = await fetch("/api/commerce/entitlements", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" });
+      const response = await fetch("/api/commerce/entitlements", { credentials: "same-origin", cache: "no-store" });
       setReady(response.ok && Boolean((await response.json()).active));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Kurulum yenilenemedi.");

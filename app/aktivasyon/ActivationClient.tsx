@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import AppHeader from "../components/AppHeader";
 import AppFooter from "../components/AppFooter";
-import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
+import { getBrowserIdentity } from "../../lib/auth/browser-identity";
 import { passwordLogin } from "../../lib/auth/password-login";
 import { normalizeEmailField } from "../../lib/form-standards";
 import { setCartOwner } from "../../lib/cart";
@@ -61,23 +61,17 @@ export default function ActivationClient() {
 
         const signedIn = await passwordLogin({ email, password });
         if (signedIn.ok) {
-          const supabase = getSupabaseBrowserClient();
-          const session = supabase ? (await supabase.auth.getSession()).data.session : null;
-          if (session?.user?.id) setCartOwner(session.user.id, { claimGuest: true });
+          const identity = await getBrowserIdentity();
+          if (identity) setCartOwner(identity.user.id, { claimGuest: true });
         }
       } else {
         const signedIn = await passwordLogin({ email, password });
         if (!signedIn.ok) throw new Error(signedIn.message);
-        const supabase = getSupabaseBrowserClient();
-        const session = supabase ? (await supabase.auth.getSession()).data.session : null;
-        if (!session) throw new Error("E-posta veya şifre hatalı.");
 
         const response = await fetch("/api/commerce/claim", {
           method: "POST",
-          headers: {
-            "content-type": "application/json",
-            authorization: `Bearer ${session.access_token}`,
-          },
+          headers: { "content-type": "application/json" },
+          credentials: "same-origin",
           body: JSON.stringify({ token }),
         });
         const payload = await response.json() as { error?: string; corporate?: boolean };

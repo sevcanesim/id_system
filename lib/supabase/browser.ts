@@ -164,3 +164,8 @@ export function getSupabaseBrowserClient(): SupabaseClient | null {
   }
   return client;
 }
+
+export async function clearBrowserAuthSession() {
+  if (!client) return;
+  await client.auth.signOut({ scope: "local" });
+}

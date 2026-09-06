@@ -14,6 +14,7 @@ import {
 import { type CardBranding } from "../../CardTemplate";
 import { countMembersWithoutPhysicalAssignment, getSeatBreakdown } from "../../../lib/organizations/lifecycle";
 import { clearLegacyCart, setCartOwner } from "../../../lib/cart";
+import { clearSensitiveBrowserState } from "../../../lib/security/client-private-state";
 import { parseBulkInviteCsv, BULK_INVITE_MAX_ROWS } from "../../../lib/organizations/bulk-invite";
 import JobTitlesPanel from "./components/JobTitlesPanel";
 import CorporateLinksPanel from "./components/CorporateLinksPanel";
@@ -1068,6 +1069,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     const supabase = getSupabaseBrowserClient();
     if (supabase) await supabase.auth.signOut();
     await writeSessionCookie(null);
+    clearSensitiveBrowserState();
     clearLegacyCart();
     setCartOwner(null, { claimGuest: false });
     router.replace("/giris?portal=business");

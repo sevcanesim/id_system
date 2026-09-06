@@ -9,7 +9,7 @@ import {
   physicalAddonCartGate,
   type PhysicalAddonCartGate,
 } from "../../lib/commerce/physical-addon-access";
-import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
+import { getBrowserIdentity } from "../../lib/auth/browser-identity";
 
 type Props = {
   productId: string;
@@ -48,14 +48,13 @@ export default function AddToCartButton({
     }
     let cancelled = false;
     void (async () => {
-      const supabase = getSupabaseBrowserClient();
-      const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
-      if (!data.session) {
+      const identity = await getBrowserIdentity();
+      if (!identity) {
         if (!cancelled) setGate("guest");
         return;
       }
       const entitlementResponse = await fetch("/api/commerce/entitlements", {
-        headers: { authorization: `Bearer ${data.session.access_token}` },
+        credentials: "same-origin",
         cache: "no-store",
       });
       const payload = entitlementResponse.ok

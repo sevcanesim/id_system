@@ -4,8 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
 import CardTemplate from "../CardTemplate";
-import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
-import { fetchOwnProfiles } from "../../lib/repositories/profiles";
+import { getBrowserIdentity } from "../../lib/auth/browser-identity";
 import { rowToCardData } from "../../lib/card-profile";
 import type { CardProfileRow } from "../../lib/card-profile";
 import { isManagementRole } from "../../lib/organizations/permissions";
@@ -113,31 +112,27 @@ export default function MyCardsPage() {
 
   useEffect(() => {
     let cancelled = false;
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) { setPageState("ready"); return; }
 
     void (async () => {
-      const { data: authData } = await supabase.auth.getUser();
+      const identity = await getBrowserIdentity();
       if (cancelled) return;
-      if (!authData.user) {
+      if (!identity) {
         setPageState("redirecting");
         router.replace("/giris?next=%2Fkartim");
         return;
       }
 
-      const [{ data: ownProfiles }, { data: sessionData }] = await Promise.all([
-        fetchOwnProfiles(supabase, authData.user.id),
-        supabase.auth.getSession(),
-      ]);
-      if (cancelled) return;
-      const token = sessionData.session?.access_token;
-      if (!token) { setProfiles(ownProfiles); setPageState("ready"); return; }
+      const profilesResponse = await fetch("/api/profiles/mine", { credentials: "same-origin", cache: "no-store" });
+      const profilesPayload = profilesResponse.ok
+        ? await profilesResponse.json() as { profiles?: CardProfileRow[] }
+        : { profiles: [] };
+      const ownProfiles = profilesPayload.profiles ?? [];
 
       const [entitlementsResponse, organizationsResponse, processResponse, cardsResponse] = await Promise.all([
-        fetch("/api/commerce/entitlements", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" }),
-        fetch("/api/organizations/mine", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" }),
-        fetch("/api/commerce/card-process", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" }),
-        fetch(`/api/cards?profileId=${encodeURIComponent(ownProfiles[0]?.id || "")}`, { headers: { authorization: `Bearer ${token}` }, cache: "no-store" }),
+        fetch("/api/commerce/entitlements", { credentials: "same-origin", cache: "no-store" }),
+        fetch("/api/organizations/mine", { credentials: "same-origin", cache: "no-store" }),
+        fetch("/api/commerce/card-process", { credentials: "same-origin", cache: "no-store" }),
+        fetch(`/api/cards?profileId=${encodeURIComponent(ownProfiles[0]?.id || "")}`, { credentials: "same-origin", cache: "no-store" }),
       ]);
       if (cancelled) return;
 
@@ -196,13 +191,10 @@ export default function MyCardsPage() {
     setQueueing(true);
     setMessage("");
     try {
-      const supabase = getSupabaseBrowserClient();
-      const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
-      const token = data.session?.access_token;
-      if (!token) throw new Error("Oturum bulunamadı.");
       const response = await fetch("/api/commerce/card-process", {
         method: "POST",
-        headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ profileId: primary.id, confirmed: true }),
       });
       const payload = await response.json().catch(() => ({}));
@@ -233,11 +225,7 @@ export default function MyCardsPage() {
     setUpdatingLostMode(true);
     setMessage("");
     try {
-      const supabase = getSupabaseBrowserClient();
-      const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
-      const token = data.session?.access_token;
-      if (!token) throw new Error("Oturum doğrulanamadı.");
-      const response = await fetch("/api/cards", { method: "PATCH", headers: { authorization: `Bearer ${token}`, "content-type": "application/json" }, body: JSON.stringify({ cardId: physicalCard.id, status: nextStatus }) });
+      const response = await fetch("/api/cards", { method: "PATCH", headers: { "content-type": "application/json" }, credentials: "same-origin", body: JSON.stringify({ cardId: physicalCard.id, status: nextStatus }) });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "Kayıp modu güncellenemedi.");
       setPhysicalCard((card) => card ? { ...card, status: nextStatus } : card);

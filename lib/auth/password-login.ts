@@ -1,15 +1,9 @@
-import { hydrateBrowserSessionFromCookies } from "../supabase/browser";
 import type { LoginPortal } from "./account-type";
 
 export type PasswordLoginResult =
   | { ok: true }
   | { ok: false; message: string; code?: string };
 
-/**
- * Password sign-in goes through Next.js so Redis rate-limit and the
- * production test-account gate actually see the attempt. Tokens stay in the
- * HttpOnly cookies; the browser client hydrates memory storage afterwards.
- */
 export async function passwordLogin(input: {
   email: string;
   password: string;
@@ -42,7 +36,5 @@ export async function passwordLogin(input: {
   const code = typeof payload.code === "string" ? payload.code : undefined;
   if (!response.ok) return { ok: false, message, code };
 
-  const hydrated = await hydrateBrowserSessionFromCookies();
-  if (!hydrated) return { ok: false, message: "Oturum kaydedilemedi. Lütfen yeniden dene." };
   return { ok: true };
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { isIndividualPremiumPackage } from "../../../lib/commerce/packages";
-import { getBrowserSession } from "../../../lib/auth/get-browser-session";
+import { getBrowserIdentity } from "../../../lib/auth/browser-identity";
 
 type PremiumAccess = "checking" | "premium" | "locked";
 type EntitlementPayload = { entitlements?: Array<{ package_code?: string | null }> };
@@ -13,14 +13,14 @@ export function useIndividualPremiumAccess(): PremiumAccess {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const { accessToken } = await getBrowserSession();
-      if (!accessToken) {
+      const identity = await getBrowserIdentity();
+      if (!identity) {
         if (!cancelled) setAccess("locked");
         return;
       }
       try {
         const response = await fetch("/api/commerce/entitlements", {
-          headers: { authorization: `Bearer ${accessToken}` },
+          credentials: "same-origin",
           cache: "no-store",
         });
         const payload = response.ok ? await response.json() as EntitlementPayload : {};

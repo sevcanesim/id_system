@@ -119,7 +119,7 @@ export async function sendOpsFulfillmentAlertEmail(input:{
 }
 
 export function sendCorporateLeadEmail(input:{id:string;fullName:string;email:string;company:string;employeeCount:string;message:string;plan:string}) {
-  const recipient = process.env.CORPORATE_LEAD_TO?.trim();
+  const recipient = process.env.CORPORATE_LEAD_TO?.trim() || process.env.LEGAL_SALES_EMAIL?.trim();
   if (!recipient) return Promise.resolve({ sent: false as const, reason: "CORPORATE_LEAD_RECIPIENT_MISSING" as const });
   const safe = (value:string) => escapeHtml(value);
   return sendMail({

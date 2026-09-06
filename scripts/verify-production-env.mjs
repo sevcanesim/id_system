@@ -30,7 +30,6 @@ const required = [
   'ANALYTICS_FINGERPRINT_SECRET',
   'ORGANIZATION_INTEGRATIONS_ENCRYPTION_KEY',
   'CORPORATE_LEAD_ENCRYPTION_KEY',
-  'CORPORATE_LEAD_TO',
   'OPS_ALERT_TO',
   'LEGAL_TRADE_NAME',
   'LEGAL_ENTITY_TYPE',
@@ -91,6 +90,8 @@ if (!/^\+?[0-9 ()-]{10,24}$/.test(String(env.LEGAL_PHONE))) fail('LEGAL_PHONE ge
 for (const key of ['LEGAL_CONTACT_EMAIL','LEGAL_KVKK_EMAIL']) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(env[key]))) fail(`${key} geçerli bir e-posta adresi olmalı.`);
 }
+const corporateLeadRecipient = String(env.CORPORATE_LEAD_TO || env.LEGAL_SALES_EMAIL || '').trim();
+if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(corporateLeadRecipient)) fail('CORPORATE_LEAD_TO veya LEGAL_SALES_EMAIL geçerli bir teklif bildirim e-postası olmalı.');
 for (const key of ['LEGAL_TRADE_NAME','LEGAL_ENTITY_TYPE','LEGAL_TAX_OFFICE','LEGAL_REGISTERED_ADDRESS','LEGAL_AUTHORIZED_PERSON','LEGAL_PHONE','LEGAL_WEBSITE','LEGAL_PAYMENT_PROVIDER','LEGAL_INVOICE_PROVIDER']) {
   if (/your-|tanımlanır|placeholder|örnek/i.test(String(env[key]))) fail(`${key} gerçek doğrulanmış değer içermeli.`);
 }

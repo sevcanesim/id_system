@@ -9,32 +9,32 @@ export function JourneySection() {
     >
       <div className="home-premium__journey-head">
         <span className="home-mockup__kicker">NASIL ÇALIŞIR</span>
-        <h2 id="how-it-works-title">Paylaş. Bağlantıyı koru. Takipte kal.</h2>
+        <h2 id="how-it-works-title">Paylaşın. Bağlantıyı koruyun. Etkiyi sürdürün.</h2>
         <p>
-          Bireysel Premium, ilk dokunuştan tanışma sonrasındaki profesyonel
-          takibe kadar aynı akışta kalır.
+          Bireysel Premium, ilk dokunuştan tanışma sonrasındaki özenli takibe
+          kadar tek bir akış sunar.
         </p>
       </div>
       <ol className="home-premium__journey-steps">
         <li>
           <span>01</span>
           <div>
-            <h3>Paylaş</h3>
-            <p>NFC veya QR ile güncel dijital kartvizitini aç.</p>
+            <h3>Paylaşın</h3>
+            <p>NFC veya QR ile güncel dijital kimliğinizi açın.</p>
           </div>
         </li>
         <li>
           <span>02</span>
           <div>
-            <h3>Bağlantıyı koru</h3>
-            <p>Tanıştığın kişileri ve görüşmelerini tek yerde tut.</p>
+            <h3>Bağlantıyı koruyun</h3>
+            <p>Tanıştığınız kişileri ve görüşmeleri tek yerde tutun.</p>
           </div>
         </li>
         <li>
           <span>03</span>
           <div>
-            <h3>Takip et</h3>
-            <p>Network Mail ile görüşme sonrası iletişimi sürdür.</p>
+            <h3>İlerletin</h3>
+            <p>Network Mail ile görüşme sonrasındaki iletişimi sürdürün.</p>
           </div>
         </li>
       </ol>
@@ -42,7 +42,7 @@ export function JourneySection() {
         <p>
           <strong>
             <Link href="/nasil-calisir">
-              Akışın tamamını gör →
+              Deneyimin tamamını görün →
             </Link>
           </strong>
         </p>

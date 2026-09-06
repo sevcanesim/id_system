@@ -8,18 +8,18 @@ import { expect, test } from "@playwright/test";
 
 const PREMIUM_HREF = "/urunler/nfc-kart?paket=premium";
 
-test("hero primary CTA makes the individual Premium level explicit", async ({ page }) => {
+test("hero primary CTA leads directly to the individual Premium package", async ({ page }) => {
   await page.goto("/");
   const heroCta = page.locator(".home-sales-actions a.home-mockup__button--primary");
   await expect(heroCta).toBeVisible();
-  await expect(heroCta).toHaveText(/Bireysel Premium’u İncele/);
+  await expect(heroCta).toHaveText(/Premium deneyimi keşfet/);
   await expect(heroCta).toHaveAttribute("href", PREMIUM_HREF);
 });
 
-test("final CTA section keeps the Premium level explicit", async ({ page }) => {
+test("final CTA section keeps the Premium purchase action clear", async ({ page }) => {
   await page.goto("/");
   const finalCta = page.locator("section[aria-labelledby='final-title'] a.home-mockup__button");
-  await expect(finalCta).toHaveText(/Bireysel Premium’u Seç/);
+  await expect(finalCta).toHaveText(/Premium deneyimi seç/);
   await expect(finalCta).toHaveAttribute("href", PREMIUM_HREF);
 });
 

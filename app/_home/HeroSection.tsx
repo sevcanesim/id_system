@@ -10,8 +10,8 @@ const premiumPrice = formatTryFromKurus(INDIVIDUAL_PREMIUM_PLAN.priceKurus);
 const heroTrust = [
   COMMERCIAL_FULFILLMENT.domesticShipping,
   COMMERCIAL_FULFILLMENT.handover,
-  "Uygulama indirmeden paylaş",
-  "KAYIP MODU · Kaybolursa erişimi kapat",
+  "Uygulama indirmeden açılır",
+  "KAYIP MODU · Erişimi anında kapat",
 ];
 
 export function HeroSection() {
@@ -25,32 +25,32 @@ export function HeroSection() {
           <i aria-hidden="true" /> BİREYSEL PREMIUM · NFC + QR
         </span>
         <h1 id="home-title">
-          İlk izlenimin
+          Kimliğiniz
           <br />
-          <span>hep güncel kalsın.</span>
+          <span>siz değiştikçe güncellensin.</span>
         </h1>
         <p>
-          NFC + QR kartvizitinle tek dokunuşta paylaş; canlı profilini
-          dilediğinde güncelle. Bireysel Premium ile yeni bağlantılarını da
-          takipte tut.
+          Tek dokunuşla açılan, her zaman güncel kalan dijital kimliğiniz.
+          Bireysel Premium ile yalnızca paylaşmaz; yeni bağlantılarınızı da
+          özenle ilerletirsiniz.
         </p>
         <div className="home-mockup__actions home-premium__hero-actions home-sales-actions">
           <Link
             className="home-mockup__button home-mockup__button--gold home-mockup__button--primary"
             href="/urunler/nfc-kart?paket=premium"
           >
-            Bireysel Premium’u İncele <span aria-hidden>→</span>
+            Premium deneyimi keşfet <span aria-hidden>→</span>
           </Link>
           <Link
             className="home-premium__hero-secondary"
             href="#paths-title"
           >
-            Paketleri karşılaştır <span aria-hidden>↓</span>
+            Size uygun kartı bulun <span aria-hidden>↓</span>
           </Link>
         </div>
         <div className="home-sales-offer">
           <strong>Bireysel Premium · {premiumPrice}</strong>
-          <span>NFC + QR kart · ilk yıl erişim · 100 Network Mail</span>
+          <span>NFC + QR kart · ilk yıl erişim · 100 Network Mail · kargo dahil</span>
         </div>
         <div className="home-premium__hero-trust home-sales-trust">
           {heroTrust.map((item) => (

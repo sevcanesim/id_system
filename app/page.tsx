@@ -9,9 +9,9 @@ import { FinalCtaSection } from "./_home/FinalCtaSection";
 import { MobileStickyCta } from "./_home/MobileStickyCta";
 
 export const metadata: Metadata = {
-  title: "Yenomi ID | Her tanışmada güncel kal",
+  title: "Yenomi ID | Dijital Kimliğiniz Her Tanışmada Hazır",
   description:
-    "NFC + QR kartvizit, canlı dijital profil ve bağlantı takibi. Kartın aynı kalır; profesyonel kimliğin her zaman güncel kalır.",
+    "NFC + QR kartvizit, canlı dijital kimlik ve bağlantı yönetimi. Kartınız aynı kalır; profesyonel kimliğiniz her zaman güncel kalır.",
   alternates: { canonical: "/" },
 };
 

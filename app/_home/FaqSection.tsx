@@ -3,7 +3,7 @@ import Link from "next/link";
 const faqItems = [
   [
     "Bireysel Premium ne ekliyor?",
-    "Bireysel Premium; NFC + QR kart ve canlı profile ek olarak toplantı, sunum, kişi yönetimi ve 100 Network Mail kredisi içerir. Tanışma sonrasındaki takip akışını tek yerde tutar.",
+    "Bireysel Premium; NFC + QR kart ve canlı profile ek olarak toplantı, sunum, kişi yönetimi ve 100 Network Mail kredisi içerir. Tanışma sonrasındaki özenli takibi tek yerde tutar.",
   ],
   [
     "Uygulama indirmek gerekiyor mu?",
@@ -11,11 +11,11 @@ const faqItems = [
   ],
   [
     "Bilgilerim değişirse kartı yeniden bastırır mıyım?",
-    "Hayır. Fiziksel kart aynı kalır; profilindeki bilgileri güncellersin.",
+    "Hayır. Fiziksel kart aynı kalır; profilinizdeki bilgileri güncellersiniz.",
   ],
   [
     "Kartımı kaybedersem ne olur?",
-    "Kart erişimini panelden kapatabilir, kayıp moduyla kontrolü koruyabilirsin.",
+    "Kart erişimini panelden kapatabilir, kayıp moduyla kontrolü koruyabilirsiniz.",
   ],
   [
     "NFC kullanılmazsa ne olur?",
@@ -32,7 +32,7 @@ export function FaqSection() {
     <section className="home-sales-faq" aria-labelledby="faq-title">
       <div className="home-sales-faq-intro">
         <span className="home-mockup__kicker">SIK SORULANLAR</span>
-        <h2 id="faq-title">Karar vermeden önce netleşsin.</h2>
+        <h2 id="faq-title">Kararınız net olsun.</h2>
       </div>
       <div className="home-sales-faq-list">
         {faqItems.map(([q, a], i) => (
@@ -46,7 +46,7 @@ export function FaqSection() {
         ))}
       </div>
       <div className="home-sales-support">
-        <Link href="/destek">Yanıtı yardım merkezinde bul →</Link>
+        <Link href="/destek">Yanıtınızı yardım merkezinde bulun →</Link>
       </div>
     </section>
   );

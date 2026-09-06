@@ -17,9 +17,9 @@ const packageComparisonRows = [
   ["Fiyat", individualPrice, premiumPrice, `${corporateEntryPrice}’dan başlar`],
   [
     "En uygun kullanım",
-    "Dijital kartvizit paylaşımı",
-    "Networking ve satış takibi",
-    "Çalışan ve kart yönetimi",
+    "Sade ve güncel paylaşım",
+    "İlişki ve takip yönetimi",
+    "Ekip ve marka yönetimi",
   ],
   ["NFC + QR kart", "included", "included", "Kişi sayısı kadar"],
   ["Kişi / lead toplama", "unavailable", "included", "included"],
@@ -36,21 +36,21 @@ const mobilePackages = [
     price: individualPrice,
     valueIndex: 1,
     href: "/urunler/nfc-kart?paket=individual",
-    action: "Bireysel NFC’yi İncele",
+    action: "Sade kartını seç",
   },
   {
     name: "Bireysel Premium",
     price: premiumPrice,
     valueIndex: 2,
     href: "/urunler/nfc-kart?paket=premium",
-    action: "Bireysel Premium’u Seç",
+    action: "Premium’a geç",
   },
   {
     name: "Kurumsal",
     price: `${corporateEntryPrice}’dan başlar`,
     valueIndex: 3,
     href: "/kurumsal",
-    action: "Kurumsal Paketler",
+    action: "Ekibin için planla",
   },
 ] as const;
 
@@ -81,10 +81,10 @@ export function PackageMatrixSection() {
         <span className="home-mockup__kicker">
           BİREYSEL NFC · BİREYSEL PREMIUM · KURUMSAL
         </span>
-        <h2 id="paths-title">İhtiyacın kadar sade. Etkin olduğunda Premium.</h2>
+        <h2 id="paths-title">İhtiyacınıza göre seçin. Etkiniz büyüdükçe genişleyin.</h2>
         <p>
-          Bireysel NFC profesyonel paylaşım için; Bireysel Premium bağlantı ve
-          takip için; Kurumsal ise ekip kimliğini tek merkezden yönetmek için.
+          Bireysel NFC sade paylaşım için. Bireysel Premium ilişkileri ilerletmek
+          için. Kurumsal, tüm ekipte aynı standardı korumak için.
         </p>
       </div>
       <div
@@ -132,16 +132,16 @@ export function PackageMatrixSection() {
             <span role="rowheader">Seç</span>
             <span role="cell">
               <Link href="/urunler/nfc-kart?paket=individual">
-                Bireysel NFC’yi İncele →
+                Sade kartını seç →
               </Link>
             </span>
             <span role="cell">
               <Link href="/urunler/nfc-kart?paket=premium">
-                Bireysel Premium’u Seç →
+                Premium’a geç →
               </Link>
             </span>
             <span role="cell">
-              <Link href="/kurumsal">Kurumsal çözümü incele →</Link>
+              <Link href="/kurumsal">Ekibin için planla →</Link>
             </span>
           </div>
         </div>

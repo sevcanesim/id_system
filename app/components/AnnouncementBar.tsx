@@ -4,7 +4,7 @@ import { COMMERCIAL_FULFILLMENT } from "../../lib/config/commercial";
 const ITEMS: ReadonlyArray<{ label: string; icon: IconName }> = [
   { label: COMMERCIAL_FULFILLMENT.domesticShipping, icon: "box" },
   { label: COMMERCIAL_FULFILLMENT.handover, icon: "clock" },
-  { label: "PayTR ile güvenli ödeme", icon: "lock" },
+  { label: "PayTR altyapısıyla güvenli ödeme", icon: "lock" },
 ];
 
 export default function AnnouncementBar() {

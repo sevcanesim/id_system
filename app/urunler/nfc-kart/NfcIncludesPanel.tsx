@@ -42,7 +42,7 @@ export default function NfcIncludesPanel() {
           <strong>{formatTryFromKurus(priceKurus)}</strong>
           <small>{premium ? `2. yıldan itibaren ${formatTryFromKurus(COMMERCIAL_PRICING.YENOMI_ID_PREMIUM_RENEWAL.priceKurus)}/yıl · yeni kart gerekmez` : `2. yıldan itibaren ${formatTryFromKurus(COMMERCIAL_PRICING.YENOMI_ID_RENEWAL.priceKurus)}/yıl · yeni kart gerekmez`}</small>
           <Link className="home-mockup__link-secondary" href="#nfc-hero-price-row">
-            {premium ? "Bireysel Premium’u Seç" : "Bireysel NFC’yi Seç"}
+            {premium ? "Premium deneyimi seç" : "Sade kartımı seç"}
           </Link>
         </div>
       </div>

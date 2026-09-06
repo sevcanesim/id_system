@@ -52,7 +52,7 @@ export default function CartPage() {
               icon="cart"
               title={`Bireysel Premium · ${formatTryFromKurus(INDIVIDUAL_PREMIUM_PLAN.priceKurus)}`}
               description={audience === "corporate" ? "NFC + QR kart, kişi yönetimi, toplantı ve sunum araçları, 100 Network Mail ve ilk yıl Premium erişimi dahil. Ek kurumsal kart kapasitesini Kartlar alanından yönetebilirsin." : "NFC + QR kart, kişi yönetimi, toplantı ve sunum araçları, 100 Network Mail ve ilk yıl Premium erişimi dahil."}
-              action={<div className="ds-empty-actions"><Link className="ds-button ds-button--primary" href="/urunler/nfc-kart?paket=premium">Bireysel Premium’u Seç</Link>{audience === "corporate" ? <Link className="home-mockup__link-secondary" href="/kurumsal/panel/kartlar">Kurumsal kartları yönet</Link> : <><Link className="home-mockup__link-secondary" href="/urunler/nfc-kart?paket=individual">Bireysel NFC · {formatTryFromKurus(INDIVIDUAL_PLAN.priceKurus)}</Link><Link className="home-mockup__link-secondary" href="/kurumsal">Kurumsal çözümleri incele</Link></>}</div>}
+              action={<div className="ds-empty-actions"><Link className="ds-button ds-button--primary" href="/urunler/nfc-kart?paket=premium">Premium deneyimi seç</Link>{audience === "corporate" ? <Link className="home-mockup__link-secondary" href="/kurumsal/panel/kartlar">Kurumsal kartları yönet</Link> : <><Link className="home-mockup__link-secondary" href="/urunler/nfc-kart?paket=individual">Bireysel NFC · {formatTryFromKurus(INDIVIDUAL_PLAN.priceKurus)}</Link><Link className="home-mockup__link-secondary" href="/kurumsal">Ekibim için planı gör</Link></>}</div>}
             />
           ) : (
             <div className="yi-cart-layout">

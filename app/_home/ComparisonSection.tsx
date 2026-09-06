@@ -4,15 +4,15 @@ const comparisonRows = [
   [
     "Bilgilerin değişti",
     "Yeniden baskı gerekir",
-    "Profili anında güncellersin",
+    "Profiliniz anında güncel kalır",
   ],
   ["Paylaşım", "Basılı bilgilerle sınırlı", "NFC + QR + canlı profil"],
   [
     "Kart kayboldu",
-    "Kontrol sende değildir",
-    "Kayıp moduyla erişimi kapatırsın",
+    "Kontrol sizde değildir",
+    "Kayıp moduyla erişimi kapatırsınız",
   ],
-  ["İletişim kaydı", "Manuel giriş gerekir", "Tek dokunuşla rehbere kaydet"],
+  ["İletişim kaydı", "Manuel giriş gerekir", "Tek dokunuşla rehbere kaydedilir"],
 ] as const;
 
 export function ComparisonSection() {
@@ -26,7 +26,7 @@ export function ComparisonSection() {
         <h2 id="comparison-title">
           Kart aynı kalır.
           <br />
-          Profil güncel kalır.
+          Kimliğiniz ilerler.
         </h2>
       </div>
       <div

@@ -34,7 +34,7 @@ export default function NfcPurchasePanel({
   const productName = selectedVariant
     ? `${packageName} — ${selectedVariant.name}`
     : packageName;
-  const ctaLabel = packageId === "premium" ? "Bireysel Premium’u Seç →" : "Bireysel NFC’yi Seç →";
+  const ctaLabel = packageId === "premium" ? "Premium deneyimi seç →" : "Sade kartımı seç →";
   const configuration = useMemo(
     () => selectedVariant
       ? { variantId: selectedVariant.id, variantName: selectedVariant.name, packageCode: packageId === "premium" ? INDIVIDUAL_PREMIUM_PLAN.code : INDIVIDUAL_PLAN.code }

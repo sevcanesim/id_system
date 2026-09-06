@@ -97,7 +97,7 @@ export function MobileStickyCta() {
         href="/urunler/nfc-kart?paket=premium"
         tabIndex={isDockVisible ? undefined : -1}
       >
-        Premium’u Seç
+        Premium’a geç
       </Link>
     </aside>
   );

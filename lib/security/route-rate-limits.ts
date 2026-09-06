@@ -14,6 +14,15 @@ export async function limitAuthLoginIp(ip: string) {
   });
 }
 
+export async function limitAuthSignupIp(ip: string) {
+  return consumeDistributedRateLimit({
+    key: `auth-signup-ip:${ip}`,
+    limit: 10,
+    windowMs: 15 * 60_000,
+    failClosed: true,
+  });
+}
+
 export async function limitActivationResendIp(ip: string) {
   return consumeDistributedRateLimit({
     key: `activation-resend-ip:${ip}`,

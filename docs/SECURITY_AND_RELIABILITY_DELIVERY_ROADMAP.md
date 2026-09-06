@@ -9,7 +9,7 @@ Bu belge, kaynak kod denetimindeki bulguları uygulama sırasına bağlar. Bir m
 | P0.1, P0.2, P0.5, P0.6 | Uygulandı | `20260906120000`, `20260906130000` ve `20260906140000` migration'ları bağlı Supabase projesine uygulandı; `supabase db push --dry-run` uzak veritabanının güncel olduğunu doğruluyor. |
 | P0.3 | Kaynakta tamam | PayTR sandbox callback tekrar/yanlış-imza senaryoları gerçek sağlayıcıyla kanıtlanmalı. |
 | P0.4 | Kaynakta tamam | Tip, derleme ve statik kalite kontrolleri geçiyor. Chromium bu çalışma ortamının macOS sandbox kısıtı nedeniyle başlatılamadığından tarayıcı E2E'si yerel CI veya staging'de çalıştırılmalı. |
-| P0.7 | Kısmi ilerleme, açık yayın engeli | Seçili API'ler HttpOnly cookie'den kimlik çözebiliyor; ancak tarayıcı Supabase istemcisi hâlâ access/refresh token alıyor. Tam BFF geçişi bitmeden bu madde kapanmaz. |
+| P0.7 | Kısmi ilerleme, açık yayın engeli | E-posta/şifre ile giriş ve kayıt, HttpOnly oturumu yalnız sunucuda kuruyor; kullanıcı verisi API/BFF katmanından okunuyor. OAuth ve şifre yenileme dönüşü hâlâ geçici tarayıcı Supabase oturumu kullanabildiğinden tam BFF geçişi bitmeden bu madde kapanmaz. |
 | P1.3 | Kısmi uygulandı | `20260906160000` ile atomik lease, `20260906170000` ile süreli job-run geçmişi, `20260906180000` ile 90/180 günlük retention bağlı Supabase projesine uygulandı. Super Admin operasyon ekranı job-run geçmişini gösterir; dış uptime alarmı açık. |
 | P1.5 | Kısmi uygulandı | `app/api`, `lib` ve kart düzenleyici çalışma zamanı hataları ham `console.*` yerine maskeli `system_error_logs` kaydına geçiyor; giriş telemetry'si 90 günlük, service-role-only `auth_login_events` tablosunda HMAC parmak iziyle tutuluyor. `verify:security-hardening` bu sınırlarda ham konsol kaydını engeller. |
 | P1.6 | Kısmi uygulandı | `profile-images` private; upload magic-byte/MIME/boyut kontrolü, WebP yeniden encode ve EXIF temizliğiyle sunucuda işleniyor. Kart analitiği ayrı HMAC anahtarı, DNT/GPC opt-out, ülke seviyesi ve 90 gün retention ile minimize edildi. İndeksleme ve hukuk onaylı silme operasyonu açık. |
@@ -119,16 +119,15 @@ Bu durum, bağlı Supabase projesinin production olduğu anlamına gelmez. Ortam
 
 ### P0.7 Tarayıcı oturumunu BFF modeline taşımak — açık release blocker
 
-**Risk:** Mevcut Supabase SDK, istemci tarafındaki okuma akışları için access ve refresh token'ı JavaScript belleğine kuruyor. `HttpOnly` cookie kullanımı disk saklamasını azaltır; ancak refresh token'ın tarayıcı heap'ine hiç çıkmamasını sağlamaz.
+**Risk:** E-posta/şifre ile giriş ve kayıt BFF üzerinden HttpOnly çerez kuruyor; kullanıcıya ait ürün verisi de cookie-korumalı API katmanından okunuyor. Buna rağmen OAuth ve şifre yenileme dönüşü Supabase'in geçici tarayıcı oturumunu kullanabildiği için access/refresh token'ın bu dar akışlarda JavaScript belleğine çıkma riski sürer.
 
 **Neden bu değişiklik bu pakette tamamlanmadı:** Sadece `/api/auth/session` yanıtını değiştirmek, mevcut tarayıcı tabanlı Supabase sorgularını token yenilenmesi sırasında sessizce kırar. Güvenli çözüm, tüm kullanıcı sorgularını BFF/API katmanına geçirip Supabase browser client'ını özel veriden çıkarmaktır; ara çözüm “sahte refresh token” kullanmak güvenilir değildir.
 
 **Zorunlu sonraki uygulama:**
 
-1. Kullanıcıya ait her `SupabaseClient` sorgusunu server route/repository üzerinden taşı.
-2. `/api/auth/session` GET yanıtından refresh token'ı kaldır; yalnız BFF'nin kullandığı HttpOnly cookie kalsın.
-3. OAuth/recovery callback'lerini sunucu callback route'una taşı; URL hash token'larını ilk yanıtta temizle.
-4. Tarayıcı heap, Local Storage, Session Storage ve Network yanıtlarında refresh token olmadığına dair E2E + DevTools denetim kanıtı olmadan production onayı verme.
+1. OAuth ve recovery callback'lerini sunucu callback route'una taşı; PKCE verifier/state değerini kısa ömürlü HttpOnly çerezde sakla ve URL hash token'larını ilk yanıtta temizle.
+2. OAuth/recovery sonrası `getSupabaseBrowserClient` ile oluşan geçici oturumu tamamen kaldır.
+3. Tarayıcı heap, Local Storage, Session Storage ve Network yanıtlarında refresh token olmadığına dair E2E + DevTools denetim kanıtı olmadan production onayı verme.
 
 ## Faz P1 — Dayanıklılık ve işletim görünürlüğü
 

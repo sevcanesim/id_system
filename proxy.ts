@@ -18,6 +18,7 @@ const UPLOAD_PATH = "/api/organizations/links/upload";
 // available so a limiter outage does not hide the recovery/login UI.
 const FAIL_CLOSED_SCOPES = new Set([
   "auth-login",
+  "auth-signup",
   "checkout",
   "activation",
   "claim",
@@ -27,6 +28,7 @@ type LimitRule = { limit: number; windowMs: number; scope: string };
 
 function ruleFor(pathname: string, method: string): LimitRule | null {
   if (pathname === "/api/auth/login" && method !== "GET") return { limit: 10, windowMs: 60_000, scope: "auth-login" };
+  if (pathname === "/api/auth/signup" && method !== "GET") return { limit: 10, windowMs: 15 * 60_000, scope: "auth-signup" };
   if (pathname === "/api/auth/session") return { limit: 30, windowMs: 60_000, scope: "auth-session-cookie" };
   if (pathname === "/giris") return { limit: 30, windowMs: 60_000, scope: "login-page" };
   if (pathname === "/api/location/reverse") return { limit: 40, windowMs: 60_000, scope: "location" };

@@ -8,6 +8,8 @@ const helper = readFileSync("lib/auth/http-only-session.ts", "utf8");
 const middleware = readFileSync("proxy.ts", "utf8");
 const login = readFileSync("app/giris/page.tsx", "utf8") + readFileSync("app/giris/LoginClient.tsx", "utf8");
 const passwordLogin = readFileSync("lib/auth/password-login.ts", "utf8");
+const passwordSignup = readFileSync("lib/auth/password-signup.ts", "utf8");
+const signupRoute = readFileSync("app/api/auth/signup/route.ts", "utf8");
 const accountRouter = readFileSync("lib/auth/account-router.ts", "utf8");
 const cardWizard = readFileSync("app/olustur/CardWizard.tsx", "utf8");
 const cardActions = readFileSync("app/hooks/useProfileCardActions.ts", "utf8");
@@ -91,10 +93,16 @@ requireText(middleware, "applySessionCookies", "Middleware must write rotated Ht
 requireText(middleware, "clearSessionCookies", "Failed protected-page auth must clear access and refresh cookies.");
 
 requireText(login, "passwordLogin", "Password login must go through /api/auth/login so the limiter sees the attempt.");
+requireText(login, "passwordSignup", "Password signup must go through /api/auth/signup so the server owns its session.");
+forbidText(login, "auth.signUp", "Browser signup must not receive the initial Supabase session.");
 requireText(login, 'window.location.replace(isDefaultWorkspacePath(returnPath) ? "/hesabim" : returnPath)', "Password login must continue through server-side workspace routing.");
 requireText(login, 'signOut({ scope: "local" })', "OAuth, signup, and recovery handoffs must clear the temporary browser session.");
 forbidText(login, "isAdminSession", "Login must not perform browser bearer admin checks.");
 forbidText(passwordLogin, "hydrateBrowserSessionFromCookies", "Password login must not rehydrate browser memory from HttpOnly cookies.");
+forbidText(passwordSignup, "accessToken", "Password signup helper must not accept or expose access tokens.");
+requireText(signupRoute, "applySessionCookies", "Password signup must set HttpOnly cookies on the server.");
+requireText(signupRoute, 'request.headers.get("origin") !== request.nextUrl.origin', "Signup must reject cross-origin browser requests.");
+requireText(signupRoute, "limitAuthSignupIp", "Signup must be rate-limited by IP.");
 requireText(accountRouter, "getBrowserIdentity", "Workspace routing must use server-provided non-secret identity.");
 forbidText(accountRouter, '.from("user_accounts")', "Workspace routing must not query account records from the browser Supabase client.");
 requireText(session, 'request.headers.get("origin") !== request.nextUrl.origin', "Session cookie writes must reject cross-origin requests.");

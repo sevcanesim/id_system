@@ -122,11 +122,16 @@ mustNotInclude(csp, "script-src 'self' 'unsafe-inline'", "script-src must not al
 mustNotInclude(csp, "*.supabase.co", "CSP must only allow the configured Supabase origin.");
 
 const loginApi = read("app/api/auth/login/route.ts");
+const signupApi = read("app/api/auth/signup/route.ts");
 const loginPage = read("app/giris/page.tsx") + read("app/giris/LoginClient.tsx");
 const testGate = read("lib/auth/production-test-gate.ts");
 const sessionRoute = read("app/api/auth/session/route.ts");
 const routeRateLimits = read("lib/security/route-rate-limits.ts");
 mustInclude(loginApi, "signInWithPassword", "Password verification must happen on the Next.js login route.");
+mustInclude(signupApi, "auth.signUp", "Password signup must happen on the Next.js signup route.");
+mustInclude(signupApi, "applySessionCookies", "Password signup sessions must be written as HttpOnly cookies on the server.");
+mustInclude(signupApi, "limitAuthSignupIp", "Signup must be rate-limited by IP.");
+mustInclude(signupApi, 'request.headers.get("origin") !== request.nextUrl.origin', "Signup must reject cross-origin browser requests.");
 mustInclude(loginApi, "productionTestLoginBlocked", "Login must refuse production TEST / @yenomi.test identities.");
 mustInclude(loginApi, "applySessionCookies", "Login must write HttpOnly cookies on the server.");
 mustInclude(loginApi, "logAuthLoginEvent", "Failed login attempts must be visible in logs.");
@@ -205,6 +210,8 @@ mustInclude(middleware, "x-login-portal", "Middleware must copy the login portal
 mustInclude(loginApi, "application/x-www-form-urlencoded", "Password login must accept a native form POST when JavaScript is blocked.");
 mustInclude(loginApi, "formData", "Form login must read urlencoded fields, not only JSON.");
 mustNotInclude(loginPage, "signInWithPassword", "Browser GoTrue sign-in would bypass the Next.js limiter.");
+mustNotInclude(loginPage, "auth.signUp", "Browser GoTrue signup must not receive an initial session token.");
+mustInclude(loginPage, "passwordSignup", "The signup page must send credentials through /api/auth/signup.");
 mustInclude(activation, "passwordLogin", "Activation sign-in must use the rate-limited login route.");
 mustNotInclude(activation, "signInWithPassword", "Activation must not call GoTrue from the browser.");
 mustInclude(testGate, 'VERCEL_ENV === "production"', "Demo accounts must be blocked on Vercel production.");

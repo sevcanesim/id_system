@@ -17,6 +17,7 @@ import {
 } from "../../lib/auth/login-search";
 import type { LoginPortal } from "../../lib/auth/account-type";
 import { passwordLogin } from "../../lib/auth/password-login";
+import { passwordSignup } from "../../lib/auth/password-signup";
 import { isDefaultWorkspacePath, resolveLoginDestination } from "../../lib/auth/account-router";
 import { clearLegacyCart, setCartOwner } from "../../lib/cart";
 
@@ -276,78 +277,32 @@ export default function LoginClient({
       window.location.replace(isDefaultWorkspacePath(returnPath) ? "/hesabim" : returnPath);
       return;
     }
-    if (!isSupabaseConfigured) return showMessage(`Supabase bağlantısı kurulamadı: ${supabaseConfigIssue}`, "error");
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) return showMessage("Giriş hizmeti şu anda kullanılamıyor.", "error");
     setRememberedLogin(rememberMe);
     setLoading(true);
     setEmail(normalizedEmail);
-
-    const emailRedirectTo = loginRedirectPath();
-    let result: Awaited<ReturnType<typeof supabase.auth.signUp>> | null = null;
-    try {
-      const authCall = supabase.auth.signUp({ email: normalizedEmail, password, options: { emailRedirectTo } });
-      result = await Promise.race([
-        authCall,
-        new Promise<never>((_, reject) => {
-          window.setTimeout(() => reject(new Error("AUTH_TIMEOUT")), 12_000);
-        }),
-      ]);
-    } catch {
+    const signedUp = await passwordSignup({
+      email: normalizedEmail,
+      password,
+      remember: rememberMe,
+      portal: initialPortal,
+      next: returnPath,
+    });
+    if (!signedUp.ok) {
       setLoading(false);
-      return showMessage("Giriş hizmetine ulaşılamadı. Bağlantını kontrol edip yeniden dene.", "error");
+      return showMessage(signedUp.message, "error");
     }
-    if (!result) {
+    setPassword("");
+    if (signedUp.requiresConfirmation) {
       setLoading(false);
-      return showMessage("Hesap oluşturulamadı. Lütfen yeniden dene.", "error");
-    }
-
-    const authErrorCode = result.error && typeof result.error === "object" ? (result.error as { code?: string }).code : undefined;
-    const signupIdentities = result.data && "user" in result.data
-      ? (result.data.user as { identities?: unknown[] } | null)?.identities
-      : undefined;
-    const duplicateSignup = (
-      authErrorCode === "user_already_exists" ||
-      authErrorCode === "email_exists" ||
-      Array.isArray(signupIdentities) && signupIdentities.length === 0
-    );
-    if (duplicateSignup) {
-      setLoading(false);
-      setPassword("");
       setSignupCompleted(true);
       return showMessage("Bu adres için işlem tamamlandı. Yeni kayıtsa e-posta doğrulama bağlantını kontrol et; hesabın varsa giriş veya şifre yenileme ile devam edebilirsin.", "success");
     }
-    if (result.error) {
-      setLoading(false);
-      return showMessage(authErrorMessage(result.error, "Hesap oluşturulamadı. Bilgilerini kontrol et."), "error");
-    }
-    if (!result.data.session) {
-      setLoading(false);
-      setSignupCompleted(true);
-      return showMessage("Hesabın oluşturuldu. E-posta doğrulama bağlantısını kontrol et.", "success");
-    }
-    if (result.data.session?.user) {
+    if (signedUp.userId) {
       setPassword("");
       setTransitioning(true);
-      setCartOwner(result.data.session.user.id, { claimGuest: true });
-      const sessionStored = await writeSessionCookie(
-        result.data.session.access_token,
-        result.data.session.expires_at,
-        result.data.session.refresh_token,
-      );
-      if (!sessionStored) {
-        setTransitioning(false);
-        setLoading(false);
-        await supabase.auth.signOut();
-        clearLegacyCart();
-        setCartOwner(null, { claimGuest: false });
-        return showMessage("Oturum kaydedilemedi. Lütfen yeniden dene.", "error");
-      }
-
+      setCartOwner(signedUp.userId, { claimGuest: true });
       setLoading(false);
-      setActiveSessionEmail(result.data.session.user.email ?? normalizedEmail);
-      handoffInProgress.current = true;
-      await supabase.auth.signOut({ scope: "local" });
+      setActiveSessionEmail(normalizedEmail);
       let destination = returnPath;
       try {
         destination = await Promise.race([
@@ -361,7 +316,7 @@ export default function LoginClient({
       return;
     }
     setLoading(false);
-    window.location.replace(returnPath);
+    return showMessage("Hesap oturumu başlatılamadı. Lütfen yeniden dene.", "error");
   }
 
   const corporateCheckout = returnPath === "/checkout" && portalPurchaseRequired && initialPortal === "business";

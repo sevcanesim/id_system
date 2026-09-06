@@ -64,30 +64,31 @@ export async function fetchOrganizationLinks(
   }
 }
 
-export async function fetchCardBranding(userId: string | null | undefined): Promise<CardBranding | null> {
-  if (!userId) return null;
+export async function fetchCardBranding(
+  userId: string | null | undefined,
+  profileOrganizationId?: string | null,
+): Promise<CardBranding | null> {
+  if (!userId && !profileOrganizationId) return null;
   try {
     const admin = getSupabaseAdminClient();
-
-    const { data: membership } = await admin
-      .from("organization_members")
-      .select("organization_id,organizations(name)")
-      .eq("user_id", userId)
-      .eq("status", "ACTIVE")
-      .limit(1)
-      .maybeSingle();
-    if (!membership?.organization_id) return null;
+    const organizationId = profileOrganizationId || (userId ? await resolveOrganizationId(admin, userId) : null);
+    if (!organizationId) return null;
 
     const { data: template } = await admin
       .from("organization_card_templates")
       .select("primary_color,logo_url,fields")
-      .eq("organization_id", membership.organization_id)
+      .eq("organization_id", organizationId)
       .eq("is_default", true)
       .limit(1)
       .maybeSingle();
     if (!template) return null;
 
-    const organization = membership.organizations as unknown as { name?: string } | null;
+    const { data: organization } = await admin
+      .from("organizations")
+      .select("name")
+      .eq("id", organizationId)
+      .maybeSingle();
+
     return {
       logoUrl: template.logo_url ?? null,
       primaryColor: template.primary_color ?? null,

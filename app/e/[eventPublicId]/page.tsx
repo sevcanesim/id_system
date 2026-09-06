@@ -41,7 +41,7 @@ export default async function EventAttributionPage({ params }: { params: Promise
   if (!card.public_id) notFound();
 
   await logCardView(card.id, { source: "EVENT" });
-  const branding = await fetchCardBranding(card.user_id);
+  const branding = await fetchCardBranding(card.user_id, card.organization_id);
   const links = await fetchOrganizationLinks(card.user_id, card.id, card.organization_id);
   const companyVerification = await getPublicCompanyVerification(card.organization_id);
   const locales = await fetchCardLocaleOverlays(admin, card.id);

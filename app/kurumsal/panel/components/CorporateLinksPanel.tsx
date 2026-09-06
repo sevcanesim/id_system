@@ -192,7 +192,7 @@ export default function CorporateLinksPanel({
         <div>
           <span>İÇERİK</span>
           <h2>Kurumsal Bağlantılar</h2>
-          <p>Katalog, sunum ve referans içeriklerini URL veya PDF olarak yönetin. Toplantı Planla alanı yalnız takvim veya randevu bağlantısı kullanır.</p>
+          <p>Yayına aldığınız içerikler şirketinizin tüm aktif üye kartlarında görünür. Katalog, sunum ve referansları URL veya PDF olarak yönetin; Toplantı Planla alanı yalnız takvim veya randevu bağlantısı kullanır.</p>
         </div>
       </header>
 

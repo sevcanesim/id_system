@@ -94,7 +94,7 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
   const query = await searchParams;
   const campaign = Array.isArray(query.utm_campaign) ? query.utm_campaign[0] : query.utm_campaign;
   await logCardView(profile.id, { source: "QR", campaign });
-  const branding = await fetchCardBranding(profile.user_id);
+  const branding = await fetchCardBranding(profile.user_id, profile.organization_id);
   const links = await fetchOrganizationLinks(profile.user_id, profile.id, profile.organization_id);
   const companyVerification = await getPublicCompanyVerification(profile.organization_id);
   const locales = await fetchCardLocaleOverlays(getSupabaseAdminClient(), profile.id);

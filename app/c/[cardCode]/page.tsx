@@ -59,8 +59,8 @@ export default async function PhysicalCardRoute({ params }: { params: Promise<{ 
   if (profile.card_status !== "ACTIVE" || !isCardProfileServiceActive(profile)) return <CardState title="Bu Yenomi profili şu anda aktif değildir." />;
 
   await logCardView(profile.id, { source: "NFC" });
-  const branding = await fetchCardBranding(profile.user_id);
-  const links = await fetchOrganizationLinks(profile.user_id, profile.id);
+  const branding = await fetchCardBranding(profile.user_id, profile.organization_id);
+  const links = await fetchOrganizationLinks(profile.user_id, profile.id, profile.organization_id);
   const companyVerification = await getPublicCompanyVerification(profile.organization_id);
   const locales = await fetchCardLocaleOverlays(admin, profile.id);
 

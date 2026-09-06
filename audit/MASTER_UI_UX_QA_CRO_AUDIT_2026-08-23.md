@@ -324,11 +324,11 @@ CLASSIFICATION: [AUTOMATE]
 TEST ID: QA-2026-08-23-010  
 CATEGORY: [SECURITY]  
 SEVERITY: P2  
-PAGE: `emekli ödeme sağlayıcısı recovery endpointi`
+PAGE: `PayTR recovery endpointi`
 URL: API  
 BROWSER: n/a  
 DEVICE: n/a  
-PRECONDITIONS: Known from `audit/SYSTEM_HARDENING_AUDIT_V25.9.4.md`; not re-exploited here  
+PRECONDITIONS: Payment recovery ownership check requires a current staging verification; not re-exploited here.
 
 PROBLEM: Recover can accept an order UUID in the body when the pending-order cookie is missing. Rate-limited. Settlement sağlayıcı tarafı doğrulamasına bağlıydı. Residual: order-id oracle.
 

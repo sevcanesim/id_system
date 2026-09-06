@@ -83,7 +83,7 @@ Bunun iki sorunu var. Birincisi, `portal` parametresi artık ölü kod — `lib/
 
 ## 5) Checkout'ta pencere odağı kaybı (blur) tüm formu gizliyor, sadece kimlik numarasını değil
 
-`audit/SYSTEM_HARDENING_AUDIT_V25.9.4.md` (satır 75, 98, 182), checkout'taki gizlilik maskesinin amacını net biçimde tanımlıyor: iOS uygulama geçiş ekranında (app switcher) TCKN'nin ekran görüntüsünde görünmesini engellemek, `visibilityState !== "visible"` tetikleyicisiyle. Kodda bu doğru uygulanmış: `document.visibilitychange` olayı hem maskeyi açıyor hem TCKN alanını temizliyor.
+Güncel PayTR checkout'ı T.C. kimlik numarası toplamaz. Gizlilik maskesinin amacı, iOS uygulama geçiş ekranında ödeme formunun görünmesini azaltmaktır; `document.visibilitychange` olayı maskeyi açar.
 
 Ancak `app/checkout/page.tsx` içinde ayrıca bağımsız bir `window` `blur`/`focus` dinleyicisi var:
 
@@ -92,7 +92,7 @@ const onBlur = () => setPrivacyMask(true);
 const onFocus = () => { if (document.visibilityState === "visible") setPrivacyMask(false); };
 ```
 
-Bu, sekme/uygulama gerçekten arka plana geçmese bile — örneğin kullanıcı adres çubuğuna tıkladığında, tarayıcı geliştirici araçlarını açtığında, bir bildirim penceresi üstte belirdiğinde, masaüstünde başka bir pencereye Alt+Tab yaptığında — tüm ödeme formunu ("Ödeme bilgileri gizlendi. Bu sekmeye döndüğünüzde işlem ekranı yeniden görünür. T.C. kimlik numarası güvenlik için temizlendi.") kaplıyor. Belgelenen tehdit modeli (iOS ekran görüntüsü) yalnız `visibilitychange`'i gerektiriyor; salt `blur` masaüstünde çok daha sık tetiklenen, güvenlik açısından karşılığı olmayan bir olay ve mesajı da yanıltıcı ("kimlik numarası temizlendi" her blur'da değil, yalnız gerçek visibility-hide'da doğru).
+Bu, sekme/uygulama gerçekten arka plana geçmese bile — örneğin kullanıcı adres çubuğuna tıkladığında, tarayıcı geliştirici araçlarını açtığında, bir bildirim penceresi üstte belirdiğinde, masaüstünde başka bir pencereye Alt+Tab yaptığında — tüm ödeme formunu kaplıyor. Belgelenen tehdit modeli (iOS ekran görüntüsü) yalnız `visibilitychange`'i gerektiriyor; salt `blur` masaüstünde çok daha sık tetiklenen, güvenlik açısından karşılığı olmayan bir olaydır.
 
 **Öneri:** `blur` tabanlı maskeleme kaldırılmalı veya en azından `visibilityState !== "visible"` ile birlikte tetiklenecek şekilde daraltılmalı; masaüstünde salt pencere odağı kaybında formun tamamen kaybolmasına gerek yok.
 

@@ -352,8 +352,7 @@
     "user_types": [
       "Organization Owner",
       "Corporate Admin",
-      "HR Manager",
-      "Department Manager"
+      "HR Manager"
     ],
     "purpose": "Organizasyon ayarları",
     "primary_action": "Organizasyonu Yönet",
@@ -375,8 +374,7 @@
     "user_types": [
       "Organization Owner",
       "Corporate Admin",
-      "HR Manager",
-      "Department Manager"
+      "HR Manager"
     ],
     "purpose": "Kurumsal çalışan yönetimi",
     "primary_action": "Çalışan Yönet",
@@ -464,8 +462,7 @@
     "user_types": [
       "Organization Owner",
       "Corporate Admin",
-      "HR Manager",
-      "Department Manager"
+      "HR Manager"
     ],
     "purpose": "Kurumsal lisans ve kapasite yönetimi",
     "primary_action": "Lisansları Yönet",
@@ -509,8 +506,7 @@
     "user_types": [
       "Organization Owner",
       "Corporate Admin",
-      "HR Manager",
-      "Department Manager"
+      "HR Manager"
     ],
     "purpose": "Kurumsal rol ve yetki yönetimi",
     "primary_action": "Yetkileri Yönet",
@@ -532,8 +528,7 @@
     "user_types": [
       "Organization Owner",
       "Corporate Admin",
-      "HR Manager",
-      "Department Manager"
+      "HR Manager"
     ],
     "purpose": "Kurumsal kart şablonu yönetimi",
     "primary_action": "Şablonu Yönet",
@@ -1074,5 +1069,109 @@
     "empty_state": false,
     "error_state": true,
     "lines": 195
+  },
+  {
+    "route": "/admin/support",
+    "file": "app/admin/support/page.tsx",
+    "domain": "Internal Admin",
+    "user_types": [
+      "Super Admin"
+    ],
+    "purpose": "Müşteri hesabı, tahsis, sipariş ve operasyon kayıtlarını destek amacıyla incelemek",
+    "primary_action": "Yenomi ID kaydını aç",
+    "secondary_action": "Premium tahsisini yönet",
+    "rendering": "client",
+    "uses_supabase": false,
+    "uses_api_fetch": true,
+    "uses_user_panel_shell": false,
+    "uses_app_header": false,
+    "loading_state": true,
+    "empty_state": true,
+    "error_state": true,
+    "lines": 45
+  },
+  {
+    "route": "/kurumsal/panel/denetim",
+    "file": "app/kurumsal/panel/denetim/page.tsx",
+    "domain": "Corporate Dashboard",
+    "user_types": [
+      "Organization Owner",
+      "Corporate Admin",
+      "HR Manager"
+    ],
+    "purpose": "Kurumsal denetim kayıtlarını görüntülemek",
+    "primary_action": "Denetim kayıtlarını incele",
+    "secondary_action": "Kurumsal genel bakışa dön",
+    "rendering": "client bridge",
+    "uses_supabase": true,
+    "uses_api_fetch": true,
+    "uses_user_panel_shell": false,
+    "uses_app_header": false,
+    "loading_state": true,
+    "empty_state": true,
+    "error_state": true,
+    "lines": 4
+  },
+  {
+    "route": "/kurumsal/panel/entegrasyonlar",
+    "file": "app/kurumsal/panel/entegrasyonlar/page.tsx",
+    "domain": "Corporate Dashboard",
+    "user_types": [
+      "Organization Owner",
+      "Corporate Admin"
+    ],
+    "purpose": "Kurumsal webhook ve CRM entegrasyonlarını yönetmek",
+    "primary_action": "Entegrasyonu yapılandır",
+    "secondary_action": "Kurumsal genel bakışa dön",
+    "rendering": "client bridge",
+    "uses_supabase": true,
+    "uses_api_fetch": true,
+    "uses_user_panel_shell": false,
+    "uses_app_header": false,
+    "loading_state": true,
+    "empty_state": true,
+    "error_state": true,
+    "lines": 2
+  },
+  {
+    "route": "/kurumsal/panel/satin-almalar",
+    "file": "app/kurumsal/panel/satin-almalar/page.tsx",
+    "domain": "Corporate Dashboard",
+    "user_types": [
+      "Organization Owner"
+    ],
+    "purpose": "Şirketin sipariş, fatura ve abonelik kayıtlarını görüntülemek",
+    "primary_action": "Ticari kayıtları incele",
+    "secondary_action": "Kapasiteyi yönet",
+    "rendering": "client bridge",
+    "uses_supabase": true,
+    "uses_api_fetch": true,
+    "uses_user_panel_shell": false,
+    "uses_app_header": false,
+    "loading_state": true,
+    "empty_state": true,
+    "error_state": true,
+    "lines": 4
+  },
+  {
+    "route": "/odeme/paytr",
+    "file": "app/odeme/paytr/page.tsx",
+    "domain": "Commerce",
+    "user_types": [
+      "Individual Buyer",
+      "Organization Owner"
+    ],
+    "purpose": "PayTR güvenli ödeme oturumunu sunmak",
+    "primary_action": "Güvenli ödemeyi tamamla",
+    "secondary_action": "Sipariş özetine dön",
+    "rendering": "server",
+    "uses_supabase": true,
+    "uses_api_fetch": false,
+    "uses_user_panel_shell": false,
+    "uses_app_header": false,
+    "loading_state": false,
+    "empty_state": true,
+    "error_state": true,
+    "lines": 65
   }
 ]

@@ -1,5 +1,11 @@
 import type { IconName } from "../../icons";
-import { normalizeOrganizationRole, type OrganizationRole } from "../../../lib/organizations/permissions";
+import {
+  NETWORKING_MANAGER_ROLES,
+  ORGANIZATION_ADMIN_ROLES,
+  ORGANIZATION_MANAGEMENT_ROLES,
+  normalizeOrganizationRole,
+  type OrganizationRole,
+} from "../../../lib/organizations/permissions";
 import type { SidebarAvailability } from "./sidebar.types";
 
 export type SidebarRole = OrganizationRole | "HR_MANAGER";
@@ -18,14 +24,15 @@ export type SidebarConfigItem = {
   roles?: readonly SidebarRole[];
 };
 
-const CORPORATE_ADMIN: readonly SidebarRole[] = ["OWNER", "ADMIN"];
 const CORPORATE_OWNER: readonly SidebarRole[] = ["OWNER"];
-const CORPORATE_MANAGEMENT: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR", "HR_MANAGER"];
-const CORPORATE_ADMIN_OR_HR: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR", "HR_MANAGER"];
 const CORPORATE_COMMERCE_VIEWERS: readonly SidebarRole[] = ["OWNER"];
+const CORPORATE_ADMIN: readonly SidebarRole[] = ORGANIZATION_ADMIN_ROLES;
+const CORPORATE_MANAGEMENT: readonly SidebarRole[] = ORGANIZATION_MANAGEMENT_ROLES;
+const CORPORATE_ADMIN_OR_HR: readonly SidebarRole[] = ORGANIZATION_MANAGEMENT_ROLES;
+const CORPORATE_NETWORKING_MANAGERS: readonly SidebarRole[] = NETWORKING_MANAGER_ROLES;
 
 export const CORPORATE_SIDEBAR_CONFIG = [
-  { key: "overview", href: "/kurumsal/panel", label: "Genel Bakış", icon: "building", group: "GENEL" },
+  { key: "overview", href: "/kurumsal/panel", label: "Genel Bakış", icon: "building", group: "GENEL", roles: CORPORATE_MANAGEMENT },
   { key: "employees", href: "/kurumsal/panel/calisanlar", label: "Ekip & Kartlar", icon: "users", group: "EKİP", roles: CORPORATE_MANAGEMENT },
   { key: "roles", href: "/kurumsal/panel/roller", label: "Roller & Yetkiler", icon: "lock", group: "EKİP", roles: CORPORATE_ADMIN },
   { key: "organization", href: "/kurumsal/panel/organizasyon", label: "Organizasyon", icon: "building", group: "EKİP", roles: CORPORATE_ADMIN },
@@ -33,9 +40,9 @@ export const CORPORATE_SIDEBAR_CONFIG = [
   { key: "audit", href: "/kurumsal/panel/denetim", label: "Güvenlik & Denetim", icon: "shield", group: "ŞİRKET", roles: CORPORATE_MANAGEMENT },
   { key: "integrations", href: "/kurumsal/panel/entegrasyonlar", label: "Entegrasyonlar", icon: "link", group: "ŞİRKET", roles: CORPORATE_ADMIN },
   { key: "analytics", href: "/kurumsal/panel/istatistikler", label: "İstatistikler", icon: "analytics", group: "NETWORKING", roles: CORPORATE_ADMIN_OR_HR },
-  { key: "leads", href: "/kurumsal/panel/leadler", label: "Network Mail & Leadler", icon: "mail", group: "NETWORKING", roles: CORPORATE_ADMIN },
-  { key: "events", href: "/kurumsal/panel/etkinlikler", label: "Etkinlikler", icon: "clock", group: "NETWORKING", roles: CORPORATE_ADMIN },
-  { key: "meetings", href: "/kurumsal/panel/gorusmeler", label: "Görüşmeler", icon: "headset", group: "NETWORKING", roles: CORPORATE_ADMIN },
+  { key: "leads", href: "/kurumsal/panel/leadler", label: "Network Mail & Leadler", icon: "mail", group: "NETWORKING", roles: CORPORATE_NETWORKING_MANAGERS },
+  { key: "events", href: "/kurumsal/panel/etkinlikler", label: "Etkinlikler", icon: "clock", group: "NETWORKING", roles: CORPORATE_NETWORKING_MANAGERS },
+  { key: "meetings", href: "/kurumsal/panel/gorusmeler", label: "Görüşmeler", icon: "headset", group: "NETWORKING", roles: CORPORATE_NETWORKING_MANAGERS },
   { key: "commerce", href: "/kurumsal/panel/satin-almalar", label: "Abonelik & Satın Almalar", icon: "box", group: "TİCARİ", roles: CORPORATE_COMMERCE_VIEWERS },
   { key: "capacity", href: "/kurumsal/panel/lisans", label: "Paket & Kapasite", icon: "box", group: "TİCARİ", roles: CORPORATE_OWNER },
   { key: "card", href: "/kurumsal/panel/kartim", label: "Kartım", icon: "id", group: "KİŞİSEL" },

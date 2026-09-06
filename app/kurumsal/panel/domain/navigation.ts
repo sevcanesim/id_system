@@ -1,6 +1,5 @@
 import type { IconName } from "../../../icons";
 import { filterSidebarByRole, CORPORATE_SIDEBAR_CONFIG } from "../../../components/ui/sidebar-config";
-import { normalizeOrganizationRole } from "../../../../lib/organizations/permissions";
 
 export const CORPORATE_PANEL_TABS = [
   "overview",
@@ -86,17 +85,9 @@ export const CORPORATE_PANEL_TAB_META: Record<CorporatePanelTab, { label: string
 
 /** Sidebar görünürlüğü ile sunucu yetkilendirmesinin aynı rol dilini kullanması için tek kaynak. */
 export function corporateSidebarTabs(role?: string): readonly CorporatePanelTab[] {
-  const normalizedRole = normalizeOrganizationRole(role);
-  if (!normalizedRole) return CORPORATE_PANEL_TAB_ORDER;
-  if (normalizedRole === "EMPLOYEE") return [];
-  const canManageLicenses = normalizedRole === "OWNER" || normalizedRole === "ADMIN";
-  const allowedTabs: readonly CorporatePanelTab[] = canManageLicenses
-    ? [...CORPORATE_PANEL_TAB_ORDER, "cards"]
-    : CORPORATE_PANEL_TAB_ORDER;
-  return allowedTabs.filter((tab) => {
-    if (tab === "leads" || tab === "events" || tab === "meetings") return canManageLicenses;
-    return true;
-  });
+  return filterSidebarByRole(CORPORATE_SIDEBAR_CONFIG, role)
+    .map((item) => item.key)
+    .filter(isCorporatePanelTab);
 }
 
 export function corporateSidebarItems(role?: string) {

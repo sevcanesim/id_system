@@ -91,6 +91,7 @@ function CardState({ title, children }: { title: string; children?: React.ReactN
         <h1>{title}</h1>
         <p>Kart sahibinin iletişim bilgileri güvenlik nedeniyle gösterilmemektedir.</p>
         {children}
+        <a className="home-mockup__link-secondary" href="/giris?next=%2Fayarlar">Kart sahibiysen hesabından yönet</a>
         <a className="home-mockup__link-secondary" href="/">Ana sayfaya dön</a>
       </section>
     </main>

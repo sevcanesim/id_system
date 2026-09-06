@@ -15,7 +15,7 @@ import { unusedEntitlementId } from "../../lib/commerce/entitlement-bind";
 import { INDIVIDUAL_PRODUCT_PURCHASE_HREF } from "../../lib/commerce/individual-portal-access";
 import type { CardProfileRow } from "../../lib/card-profile";
 import { track } from "../../lib/analytics";
-import { PageLoadingView } from "../components/ui/States";
+import { ErrorState, PageLoadingView } from "../components/ui/States";
 import { useNotice } from "../components/ui/NotificationCenter";
 import { useUnsavedChanges } from "../components/UnsavedChangesContext";
 import { useProfileCardActions } from "../hooks/useProfileCardActions";
@@ -96,7 +96,9 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
   const [auditNotice, setAuditNotice] = useState("");
   const deferredData = useDeferredValue(data);
   const [originalImageUrl, setOriginalImageUrl] = useState("");
-  const [accessState, setAccessState] = useState<"checking" | "allowed" | "denied">("checking");
+  const [accessState, setAccessState] = useState<"checking" | "allowed" | "denied" | "failed">("checking");
+  const [loadFailure, setLoadFailure] = useState("");
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [orgLock, setOrgLock] = useState<OrgLock | null>(null);
   const [orgBranding, setOrgBranding] = useState<CardBranding | null>(null);
   const [corporateTemplate, setCorporateTemplate] = useState<CorporateTemplateSettings | null>(null);
@@ -142,6 +144,8 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
   // güncellenirken bireysel editöre düşmemelidir. Rota bu modu açıkça
   // sabitlediğinde URL yalnızca organizasyon kimliğini taşır.
   const isBusinessCard = mode === "corporate" || (searchParams.get("business") === "1" && Boolean(businessOrganizationId));
+  const editorPath = `${mode === "corporate" ? "/kurumsal/panel/kartim" : "/olustur"}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+  const loginHref = `/giris?portal=${isBusinessCard ? "business" : "individual"}&next=${encodeURIComponent(editorPath)}`;
   const canManageCorporateTemplate = ["OWNER", "ADMIN"].includes(orgLock?.membershipRole.toUpperCase() || "");
   const profileCardActions = useProfileCardActions({
     profileId,
@@ -309,12 +313,17 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
         const identity = await getBrowserIdentity();
         if (!identity) {
           setAccessState("denied");
-          router.replace("/giris?next=%2Folustur");
+          router.replace(loginHref);
           return;
         }
         const user = identity.user;
         setUserId(user.id);
         const profilesResponse = await fetch("/api/profiles/mine", { credentials: "same-origin", cache: "no-store" });
+        if (profilesResponse.status === 401) {
+          setAccessState("denied");
+          router.replace(loginHref);
+          return;
+        }
         if (!profilesResponse.ok) throw new Error("Profil kayıtları yüklenemedi.");
         const profilesPayload = await profilesResponse.json() as { profiles?: CardProfileRow[] };
         const profiles = profilesPayload.profiles ?? [];
@@ -350,6 +359,11 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
         let entitlementPayload: { active?: boolean; next?: string; entitlements?: { id: string }[] } = {};
         if (isBusinessCard && businessOrganizationId) {
           const mineResponse = await fetch("/api/organizations/mine", { credentials: "same-origin", cache: "no-store" });
+          if (mineResponse.status === 401) {
+            setAccessState("denied");
+            router.replace(loginHref);
+            return;
+          }
           const minePayload = await mineResponse.json() as { organizations?: Array<{ organization_id: string }> };
           const hasMembership = mineResponse.ok && Boolean(minePayload.organizations?.some((item) => item.organization_id === businessOrganizationId));
           if (!hasMembership) {
@@ -519,13 +533,13 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
             return finalData;
           });
         }
-      } catch {
+      } catch (error) {
         setContextDirty(false);
-        setAccessState("denied");
-        router.replace("/giris?portal=business");
+        setLoadFailure(error instanceof Error && error.message ? error.message : "Kart bilgileri şu anda yüklenemedi.");
+        setAccessState("failed");
       }
     })();
-  }, [router, businessOrganizationId, brandSettingsRequested, isBusinessCard, isNewCard, mode, requestedProfileId]);
+  }, [router, businessOrganizationId, brandSettingsRequested, isBusinessCard, isNewCard, loginHref, loadAttempt, mode, requestedProfileId]);
 
   function update(field: keyof CardData, value: string) {
     setData((current) => ({ ...current, [field]: value }));
@@ -914,6 +928,21 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
 
   if (accessState === "checking") {
     return <PageLoadingView label="Kimlik Stüdyosu hazırlanıyor" />;
+  }
+  if (accessState === "failed") {
+    return (
+      <main className="ds-page-loading">
+        <ErrorState
+          title="Kimlik Stüdyosu yüklenemedi"
+          description={loadFailure || "Bağlantını kontrol edip tekrar deneyebilirsin."}
+          onRetry={() => {
+            setLoadFailure("");
+            setAccessState("checking");
+            setLoadAttempt((current) => current + 1);
+          }}
+        />
+      </main>
+    );
   }
   if (accessState === "denied") return null;
 

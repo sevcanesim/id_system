@@ -23,6 +23,7 @@ export default function ActivationClient() {
   const [resendMessage, setResendMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [resending, setResending] = useState(false);
+  const [loginRecoveryHref, setLoginRecoveryHref] = useState("");
 
   useEffect(() => {
     const hashToken = new URLSearchParams(window.location.hash.replace(/^#/, "")).get("token") || "";
@@ -60,10 +61,16 @@ export default function ActivationClient() {
         corporate = Boolean(data.corporate);
 
         const signedIn = await passwordLogin({ email, password });
-        if (signedIn.ok) {
-          const identity = await getBrowserIdentity();
-          if (identity) setCartOwner(identity.user.id, { claimGuest: true });
+        if (!signedIn.ok) {
+          setToken("");
+          window.history.replaceState(window.history.state, "", "/aktivasyon");
+          setPassword("");
+          setLoginRecoveryHref(corporate ? "/giris?portal=business&next=%2Fkurumsal%2Fpanel" : `/giris?portal=individual&next=${encodeURIComponent(INDIVIDUAL_POST_PURCHASE_HREF)}`);
+          setActivationMessage("Hesabın ve siparişin başarıyla bağlandı. Oturum açılamadı; giriş yaparak kartını yönetmeye devam edebilirsin.");
+          return;
         }
+        const identity = await getBrowserIdentity();
+        if (identity) setCartOwner(identity.user.id, { claimGuest: true });
       } else {
         const signedIn = await passwordLogin({ email, password });
         if (!signedIn.ok) throw new Error(signedIn.message);
@@ -184,6 +191,7 @@ export default function ActivationClient() {
         ) : (
           <p>E-postandaki bağlantı bu sayfayı token ile açar. Bağlantın yoksa veya süresi dolduysa aşağıdaki formdan yeni bağlantı iste.</p>
         )}
+        {!token && loginRecoveryHref ? <a className="home-mockup__link-secondary" href={loginRecoveryHref}>Girişe git</a> : null}
 
         <div className="activation-resend">
           <h2>Bağlantın gelmedi mi?</h2>

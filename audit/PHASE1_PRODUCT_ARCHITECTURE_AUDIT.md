@@ -36,9 +36,9 @@ Domain dağılımı:
 
 ## 2. User type audit
 
-The real code has one additional corporate role beyond the original master prompt: `DEPARTMENT_MANAGER`. Canonical role set:
+The canonical corporate role set is:
 
-`OWNER` → `ADMIN` → `HR` → `DEPARTMENT_MANAGER` → `EMPLOYEE`.
+`OWNER` → `ADMIN` → `HR` → `EMPLOYEE`.
 
 Full matrix: `audit/PHASE1_USER_TYPE_MATRIX.md`.
 

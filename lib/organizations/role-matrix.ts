@@ -4,6 +4,9 @@ import {
   canManageTemplates,
   canManageNetworking,
   canChangeMemberStatus,
+  canViewOrganizationAnalytics,
+  canViewOrganizationCards,
+  canViewCorporateCommerce,
   type OrganizationRole,
 } from "./permissions";
 
@@ -19,8 +22,7 @@ import {
 // same list, and the accompanying test asserts the two stay in sync.
 
 /** Roles allowed to read organization-wide member data, analytics and cards. */
-export const ORGANIZATION_READER_ROLES: OrganizationRole[] = ["OWNER", "ADMIN", "HR"];
-export const MEMBER_CARD_READER_ROLES: OrganizationRole[] = ["OWNER", "ADMIN", "HR"];
+const ACTIVE = "ACTIVE";
 
 export const ROLE_CAPABILITY_CATEGORIES = [
   { id: "company", label: "Şirket & lisans yönetimi", description: "Şirketin ticari ve abonelik ayarları." },
@@ -44,7 +46,7 @@ export const ROLE_CAPABILITIES: RoleCapability[] = [
     label: "Şirket, abonelik ve faturalandırma ayarları",
     category: "company",
     scope: "COMPANY",
-    allows: (role) => role === "OWNER",
+    allows: (role) => canViewCorporateCommerce(role, ACTIVE),
   },
   {
     // Every non-EMPLOYEE role can invite at least one kind of member.
@@ -83,19 +85,19 @@ export const ROLE_CAPABILITIES: RoleCapability[] = [
     label: "Kurumsal analitik görüntüleme",
     category: "insights",
     scope: "COMPANY",
-    allows: (role) => ORGANIZATION_READER_ROLES.includes(role),
+    allows: (role) => canViewOrganizationAnalytics(role, ACTIVE),
   },
   {
     label: "Fiziksel kart yönetimi",
     category: "card",
     scope: "COMPANY",
-    allows: (role) => ORGANIZATION_READER_ROLES.includes(role),
+    allows: (role) => canViewOrganizationCards(role, ACTIVE),
   },
   {
     label: "Çalışan kartını görüntüleme (salt okunur)",
     category: "card",
     scope: "COMPANY",
-    allows: (role) => MEMBER_CARD_READER_ROLES.includes(role),
+    allows: (role) => canViewOrganizationCards(role, ACTIVE),
   },
   {
     label: "Kendi kartını görüntüleme / düzenleme",
@@ -130,10 +132,10 @@ export const ROLE_GUIDES: Record<OrganizationRole, readonly string[]> = {
     "Şablon belirler.",
   ],
   ADMIN: [
-    "Lisans satın alır.",
     "Çalışan ekler.",
     "Kart atar.",
     "Şablon belirler.",
+    "Ticari kayıtları görüntüleyemez.",
     "Şirket adını değiştiremez.",
   ],
   HR: [

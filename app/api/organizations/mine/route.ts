@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
 import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 import { getOrganizationCapacityTerms } from "../../../../lib/organizations/capacity-terms";
+import { canManageOrganizationLegalProfile, isOrganizationRole } from "../../../../lib/organizations/permissions";
 export async function GET(request:NextRequest){
  const identity=await resolveRequestIdentity(request);if(!identity)return NextResponse.json({error:"Oturum doğrulanamadı."},{status:401});
  const management=request.nextUrl.searchParams.get("management")==="true";
@@ -14,13 +15,12 @@ export async function GET(request:NextRequest){
  const subscriptions=organizationIds.length?await admin.from("organization_subscriptions").select("organization_id,seat_limit,status,expires_at,business_plans(name,code)").in("organization_id",organizationIds).in("status",["ACTIVE","GRACE_PERIOD"]):{data:[],error:null};
  if(subscriptions.error)return NextResponse.json({error:"Şirket aboneliği yüklenemedi."},{status:500});
  const capacityTerms=await getOrganizationCapacityTerms(admin,organizationIds);
- // Corporate IDs are not merely hidden in the UI: only the Company Owner and
- // HR can receive them from this server endpoint. Admins and employees never
- // get the value in their browser response.
+ // Legal and billing identifiers are removed before this response reaches the
+ // browser. Only the Company Owner may receive the values for a binding record.
  return NextResponse.json({organizations:(rows||[]).map((row)=>{
   const sourceOrganization=row.organizations as unknown as Record<string,unknown>|null;
   const {corporate_id:corporateId,legal_name,tax_id_type,tax_number,tax_office,mersis_number,trade_registry_number,billing_address,billing_city,billing_district,billing_postal_code,billing_country_code,billing_email,billing_phone,authorized_person_name,legal_address,city,district,country,...organizationWithoutSensitiveFields}=sourceOrganization||{};
-  const canViewBillingProfile=row.role==="OWNER"||row.role==="HR";
+  const canViewBillingProfile=isOrganizationRole(row.role)&&canManageOrganizationLegalProfile(row.role,row.status);
   const organization=sourceOrganization
     ? canViewBillingProfile
       ? {...organizationWithoutSensitiveFields,corporate_id:corporateId,legal_name,tax_id_type,tax_number,tax_office,mersis_number,trade_registry_number,billing_address,billing_city,billing_district,billing_postal_code,billing_country_code,billing_email,billing_phone,authorized_person_name,legal_address,city,district,country}

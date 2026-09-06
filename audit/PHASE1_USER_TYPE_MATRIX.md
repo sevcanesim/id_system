@@ -9,11 +9,10 @@
 | Organization Owner | Corporate Dashboard | Organizasyon, lisans, yetki, çalışan ve marka yönetmek | `/kurumsal/panel` | Çok fazla işlevin tek route / tek client içinde toplanması |
 | Corporate Admin | Corporate Dashboard | Çalışan, kart, şablon ve içerik operasyonu | `/kurumsal/panel` | Yetki açıklamalarının teknik role isimlerine dönüşmesi |
 | HR Manager | Corporate Dashboard | Çalışan onboarding/offboarding ve profil operasyonu | `/kurumsal/panel` | Yetki sınırlarının UI'da yeterince görünür olmaması |
-| Department Manager | Corporate Dashboard | Kendi departmanı çalışanlarını yönetmek | `/kurumsal/panel` | Master prompt matrisinde eksikti; gerçek kodda aktif role olarak mevcut |
 | Employee | Corporate Onboarding / Card | Daveti kabul etmek ve izin verilen alanları tamamlamak | `/kurumsal/davet`, `/olustur`, `/kartim` | Kurumsal/personal bağlamın karışması |
 | Super Admin | Internal Admin | Sipariş ve organizasyon operasyonu | `/admin` | Internal admin'in product design refactor'ına gereksiz öncelik alması |
 | Test Account | QA | Individual / Corporate senaryolarını doğrulamak | Role göre | Test scope ile gerçek role davranışının karışması |
 
 ## Source-of-truth role set
 
-Kod tabanında organizasyon rolleri `OWNER`, `ADMIN`, `HR`, `DEPARTMENT_MANAGER`, `EMPLOYEE` olarak tanımlı. Phase 2 ve sonraki UX çalışmaları bu gerçek role setini kullanmalı; UI metinleri kullanıcıya teknik enum göstermek yerine anlaşılır rol adları ve yetki açıklamaları sunmalı.
+Kod tabanında organizasyon rolleri `OWNER`, `ADMIN`, `HR`, `EMPLOYEE` olarak tanımlı. UX çalışmaları bu role setini kullanmalı; UI metinleri kullanıcıya teknik enum göstermek yerine anlaşılır rol adları ve yetki açıklamaları sunmalı.

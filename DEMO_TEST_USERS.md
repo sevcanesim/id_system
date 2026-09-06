@@ -27,7 +27,6 @@ Production’da `@yenomi.test` hesabı olamaz (`verify:production:no-demo-users`
 | `trOwner` | `qa26.kurumsal.yonetici@yenomi.test` | CORPORATE_OWNER | CORPORATE | demo-qa-uctan-uca (OWNER) | `qa-trowner` | - | Uçtan uca QA org OWNER. |
 | `trAdmin` | `qa26.kurumsal.admin@yenomi.test` | CORPORATE_ADMIN | CORPORATE | demo-qa-uctan-uca (ADMIN) | `qa-tradmin` | - | OWNER değil ADMIN. |
 | `trHr` | `qa26.ik.yonetici@yenomi.test` | CORPORATE_HR | CORPORATE | demo-qa-uctan-uca (HR) | `qa-trhr` | - | İK; lisans admin uydurulamaz. |
-| `departmentManager` | `qa26.departman.yonetici@yenomi.test` | CORPORATE_DEPARTMENT_MANAGER | CORPORATE | demo-qa-uctan-uca (EMPLOYEE) | `qa-department-manager` | - | Satış Departmanı yöneticisi görünümü. Departman-bazlı yetki modeli henüz veri şemasında ayrı bir rol değildir; bu hesap yetki açığını görünür kılar. |
 | `trRegistered` | `qa26.calisan.kayit@yenomi.test` | CORPORATE_EMPLOYEE | CORPORATE | demo-qa-uctan-uca (EMPLOYEE) | Yok | - | Hesap var, profil yok. |
 | `trNoCard` | `qa26.calisan.kartyok@yenomi.test` | CORPORATE_EMPLOYEE | CORPORATE | demo-qa-uctan-uca (EMPLOYEE) | Yok | - | Aktif üye, kart oluşturulmadı. |
 | `trDigital` | `qa26.calisan.dijital@yenomi.test` | CORPORATE_EMPLOYEE | CORPORATE | demo-qa-uctan-uca (EMPLOYEE) | `qa-trdigital` | - | Dijital kart hazır; duplicate-email prosedürünün hedefi. |

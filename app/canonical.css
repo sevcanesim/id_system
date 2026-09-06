@@ -543,6 +543,10 @@
 .checkout-consent { display:flex; align-items:flex-start; gap:10px; padding:12px 0; color:var(--ink-2); font-size:12px; line-height:1.55; cursor:pointer; }
 .checkout-consent input[type="checkbox"] { flex:0 0 auto; width:18px; height:18px; margin-top:1px; accent-color:var(--gold); }
 .checkout-consent a { color:var(--gold-hi); font-weight:700; text-decoration:underline; text-underline-offset:2px; }
+.checkout-draft-consent { margin:4px 0 12px; color:var(--ink-3); }
+.checkout-back-link { display:inline-flex; align-items:center; gap:7px; margin:0 0 16px; padding:0; border:0; background:transparent; color:var(--gold-hi); font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+.checkout-back-link:hover { color:var(--ink); text-decoration:underline; text-underline-offset:3px; }
+.checkout-back-link:focus-visible { outline:2px solid var(--gold); outline-offset:4px; border-radius:4px; }
 .checkout-consent-compact { padding:9px 0; border-bottom:1px solid var(--border); }
 .checkout-consent-compact:last-of-type { border-bottom:0; }
 .checkout-policy-links { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:14px; color:var(--ink-3); font-size:11px; }

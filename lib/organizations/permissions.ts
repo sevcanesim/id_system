@@ -18,6 +18,7 @@ export function canReadOrganization(role: OrganizationRole, status: string) {
 }
 
 export const ORGANIZATION_MANAGEMENT_ROLES = ["OWNER", "ADMIN", "HR"] as const;
+export const ORGANIZATION_ADMIN_ROLES = ["OWNER", "ADMIN"] as const;
 
 export function isManagementRole(role: string): role is OrganizationRole {
   return (ORGANIZATION_MANAGEMENT_ROLES as readonly string[]).includes(role);
@@ -27,8 +28,16 @@ export function canViewOrganizationCards(role: OrganizationRole, status: string)
   return status === "ACTIVE" && isManagementRole(role);
 }
 
+export function canViewOrganizationAnalytics(role: OrganizationRole, status: string) {
+  return status === "ACTIVE" && isManagementRole(role);
+}
+
+export function canViewOrganizationAudit(role: OrganizationRole, status: string) {
+  return status === "ACTIVE" && isManagementRole(role);
+}
+
 export function canManageTemplates(role: OrganizationRole, status: string) {
-  return status === "ACTIVE" && roleRank[role] >= roleRank.ADMIN;
+  return status === "ACTIVE" && (ORGANIZATION_ADMIN_ROLES as readonly string[]).includes(role);
 }
 
 export const NETWORKING_MANAGER_ROLES = ["OWNER", "ADMIN"] as const;

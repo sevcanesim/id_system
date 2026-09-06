@@ -16,6 +16,12 @@ import { safeClientMessage } from "../../lib/errors";
 import { clearPendingCheckoutOrderId, getOrCreateCheckoutIdempotencyKey, lookupPendingCheckoutOrder, rotateCheckoutIdempotencyKey, setPendingCheckoutOrderId, setCheckoutReturnPath } from "../../lib/payments/browser-checkout";
 import { bootstrapAuthenticatedCheckout, type OrganizationCheckoutTarget } from "../../lib/commerce/checkout-session-bootstrap";
 import { parseCheckoutResumeDraft } from "../../lib/commerce/checkout-resume-draft";
+import {
+  checkoutCartSignature,
+  clearCheckoutBrowserDraft,
+  readCheckoutBrowserDraft,
+  writeCheckoutBrowserDraft,
+} from "../../lib/commerce/checkout-browser-draft";
 import { minimizeCoordinates } from "../../lib/location/coordinates";
 
 type FormState = {
@@ -81,6 +87,7 @@ export default function CheckoutPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeStep, setActiveStep] = useState<"buyer" | "shipping" | "approval">("buyer");
   const [deliveryNoteOpen, setDeliveryNoteOpen] = useState(false);
+  const [saveBrowserDraft, setSaveBrowserDraft] = useState(false);
   const [toast, setToast] = useState("");
   const [organizationTargets, setOrganizationTargets] = useState<Record<string, OrganizationCheckoutTarget>>({});
   const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>(null);
@@ -141,6 +148,19 @@ export default function CheckoutPage() {
       });
       if (cancelled) return;
 
+      const browserDraft = readCheckoutBrowserDraft(checkoutCartSignature(readCart()));
+      if (browserDraft) {
+        setForm((current) => ({
+          ...current,
+          ...browserDraft.form,
+          companyEntityType: isCompanyEntityType(browserDraft.form.companyEntityType)
+            ? browserDraft.form.companyEntityType
+            : current.companyEntityType,
+        }));
+        setDeliveryNoteOpen(browserDraft.deliveryNoteOpen);
+        setSaveBrowserDraft(true);
+      }
+
       try {
         const response = await fetch("/api/commerce/checkout/resume", {
           credentials: "same-origin",
@@ -177,6 +197,26 @@ export default function CheckoutPage() {
     if (!checkoutReady || !requiresPortalLogin) return;
     router.replace(portalLoginHref);
   }, [checkoutReady, portalLoginHref, requiresPortalLogin, router]);
+
+  const browserDraftSignature = useMemo(() => checkoutCartSignature(items), [items]);
+
+  function saveDraftInBrowser() {
+    if (!saveBrowserDraft || !items.length) return;
+    writeCheckoutBrowserDraft({
+      cartSignature: browserDraftSignature,
+      form,
+      deliveryNoteOpen,
+    });
+  }
+
+  useEffect(() => {
+    saveDraftInBrowser();
+  }, [browserDraftSignature, deliveryNoteOpen, form, saveBrowserDraft]);
+
+  function returnToCart() {
+    saveDraftInBrowser();
+    router.push("/sepet");
+  }
 
   const total = useMemo(
     () => items.reduce((sum, item) => sum + item.unitPriceKurus * item.quantity, 0),
@@ -424,6 +464,7 @@ export default function CheckoutPage() {
       }
       if (!checkout.paymentPageUrl) throw new Error("Ödeme sayfası oluşturulamadı.");
       if (checkout.orderId) setPendingCheckoutOrderId(checkout.orderId);
+      clearCheckoutBrowserDraft();
       track("payment_start", { orderId: checkout.orderId, reused: Boolean(checkout.reused) });
       window.location.href = checkout.paymentPageUrl;
     } catch (error) {
@@ -440,11 +481,14 @@ export default function CheckoutPage() {
     <main id="main-content" className={`checkout-page p5-checkout-page yi-footer-compact${isCheckoutState ? " checkout-page--state" : ""}`}>
       <section className="checkout-shell checkout-confirm-shell">
           <div className="checkout-heading checkout-heading-compact">
+            {!isCheckoutState ? <button type="button" className="checkout-back-link" onClick={returnToCart}><Icon name="chevronLeft" /> Sepete dön ve düzenle</button> : null}
             <h1>{hasCorporatePackage ? "Kurumsal siparişini güvenle tamamla." : hasNetworkMailCreditPack ? "Network Mail paketini güvenle tamamla." : digitalOnlyCart ? "Dijital hizmetini güvenle tamamla." : "Siparişini güvenle tamamla."}</h1>
             <p>{hasCorporatePackage ? `Fatura ve teslimat bilgilerini doğrula. Kart bilgilerin yalnızca ${paymentProviderName}’ın güvenli ödeme ekranında işlenir; Yenomi’de saklanmaz.` : isCorporateNetworkMailPurchase ? "Şirketinin kayıtlı cari/fatura profili bu siparişe uygulanır. Kart bilgilerin yalnız ödeme sağlayıcısında işlenir." : hasNetworkMailCreditPack ? "Fatura bilgilerini doğrula. Ödeme onaylanınca Network Mail kredilerin hesabına eklenir." : digitalOnlyCart ? `Fatura ili ve ilçesini doğrula. Teslimat adresi yok; kart bilgilerin yalnızca ${paymentProviderName}’da işlenir.` : `Alıcı ve teslimat bilgilerini doğrula. Kart bilgilerin yalnızca ${paymentProviderName}’da işlenir; Yenomi’de saklanmaz.`}</p>
             <div className="checkout-account-note" role="status">
               {isAuthenticated ? (
                 <><Icon name="check" /> Hesabın bağlı. Siparişin hesabına otomatik eklenir.</>
+              ) : portalPurchase ? (
+                <><Icon name="lock" /> Bu paket hesabına bağlanır. Güvenli ödeme öncesinde giriş yapman gerekir.</>
               ) : (
                 <><Icon name="mail" /> Hesap açmadan ilerleyebilirsin; siparişini daha sonra bu e-posta ile hesabına bağlayabilirsin.</>
               )}
@@ -482,6 +526,17 @@ export default function CheckoutPage() {
                     <label>Ad Soyad<input required autoComplete="name" value={form.recipientName} onChange={(event) => update("recipientName", event.target.value)} /></label>
                     <label>Telefon<input required inputMode="tel" autoComplete="tel" value={form.phone} onChange={(event) => update("phone", normalizeTrPhone(event.target.value))} /></label>
                     <label>E-posta<input required type="email" autoComplete="email" value={form.email} onChange={(event) => !isAuthenticated && update("email", event.target.value)} readOnly={isAuthenticated} /></label>
+                    <label className="checkout-consent checkout-draft-consent">
+                      <input
+                        type="checkbox"
+                        checked={saveBrowserDraft}
+                        onChange={(event) => {
+                          setSaveBrowserDraft(event.target.checked);
+                          if (!event.target.checked) clearCheckoutBrowserDraft();
+                        }}
+                      />
+                      <span>Bu cihazda sipariş taslağımı 24 saat sakla. Kart bilgileri ve onaylar saklanmaz.</span>
+                    </label>
                     {isCorporateNetworkMailPurchase ? <fieldset className="checkout-company-fields" aria-describedby="corporate-billing-note">
                       <legend><Icon name="building" />Kayıtlı şirket fatura profili</legend>
                       <p id="corporate-billing-note">Bu bilgiler şirketinin cari kaydından gelir ve ödeme sırasında değiştirilemez.</p>

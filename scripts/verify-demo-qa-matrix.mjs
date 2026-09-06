@@ -269,13 +269,6 @@ else fail("activation token derived at apply");
 if (seed.includes("allocate_corporate_id")) pass("demo orgs allocate corporate_id");
 else fail("demo orgs allocate corporate_id");
 
-const departmentManager = DEMO_LOGIN_USERS.find((u) => u.key === "departmentManager");
-if (departmentManager?.role === "EMPLOYEE" && departmentManager.department === "Satış") {
-  pass("department-manager fixture records the current role-model gap explicitly");
-} else {
-  fail("department-manager fixture must not pretend unsupported scoped permissions exist");
-}
-
 if (/\bYenomiDemo\d+!/.test(seed) || /\bYenomiDemo\d+!/.test(docs)) {
   fail("seed/docs must not embed the demo password");
 } else {

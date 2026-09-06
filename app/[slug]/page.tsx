@@ -64,7 +64,9 @@ export default async function ProfilePage({ params }: PageProps) {
 
   if (databaseProfile) {
     if (!databaseProfile.public_id) notFound();
-    if (databaseProfile.card_status !== "ACTIVE" || !isCardProfileServiceActive(databaseProfile)) notFound();
+    if (databaseProfile.card_status !== "ACTIVE" || !isCardProfileServiceActive(databaseProfile)) {
+      redirect(cardSharePath(databaseProfile.public_id));
+    }
     redirect(cardSharePath(databaseProfile.public_id));
   }
 

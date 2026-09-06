@@ -10,33 +10,38 @@ const success = readFileSync("app/odeme/basarili/OrderResultGate.tsx", "utf8");
 const activationAction = readFileSync("app/odeme/basarili/ActivationAction.tsx", "utf8");
 const paymentFlow = `${callback}\n${settle}`;
 
-const apiContracts = [
+const accountBoundCheckoutContracts = [
   "let authenticatedUserId: string | null = null;",
   'retryQuery.eq("guest_email", normalizedEmail);',
-  "guest_email: normalizedEmail",
-  "user_id: authenticatedUserId",
+  "userId: authenticatedUserId",
+  "requiresPortalAccountSku",
+  'code: "ACCOUNT_REQUIRED"',
+  "body.customer.email.toLowerCase() !== normalizedEmail",
   "if (!authenticatedUserId || !membership",
 ];
-for (const token of apiContracts) {
-  if (!api.includes(token)) throw new Error(`Missing guest checkout API contract: ${token}`);
+for (const token of accountBoundCheckoutContracts) {
+  if (!api.includes(token)) throw new Error(`Missing account-bound checkout API contract: ${token}`);
 }
 
 const pageContracts = [
   "const [checkoutReady, setCheckoutReady]",
   "const [isAuthenticated, setIsAuthenticated]",
-  "Hesap açmadan ilerleyebilirsin; siparişini daha sonra bu e-posta ile hesabına bağlayabilirsin.",
+  "const portalPurchase",
+  "const requiresPortalLogin",
+  "const portalLoginHref",
+  "Giriş sayfasına yönlendiriliyorsun…",
   "getBrowserIdentity",
   "const mergedCart = readCart();",
 ];
 for (const token of pageContracts) {
-  if (!page.includes(token)) throw new Error(`Missing guest checkout UI contract: ${token}`);
+  if (!page.includes(token)) throw new Error(`Missing account-bound checkout UI contract: ${token}`);
 }
 if (page.includes("headers.authorization") || page.includes("access_token")) {
   throw new Error("Checkout must use the HttpOnly session cookie instead of browser access tokens.");
 }
 
-if (!cart.includes("Hesap açmadan ilerleyebilirsin")) {
-  throw new Error("Cart must explain guest payment timing.");
+if (!cart.includes("Ödemeye geçtiğinde önce hesabına giriş yapman istenir") || !cart.includes("portalLoginHref")) {
+  throw new Error("Cart must send account-bound purchases through the login gate.");
 }
 
 const callbackContracts = [
@@ -111,4 +116,4 @@ if (canonical.includes("#1a0dab") || canonical.includes("#188038")) {
   throw new Error("Footer SERP chrome must not use Google result colors.");
 }
 
-console.log("Phase 22 guest checkout contract: PASS");
+console.log("Phase 22 account-bound checkout contract: PASS");

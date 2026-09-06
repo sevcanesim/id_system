@@ -66,6 +66,8 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
         detail="Kart sahibinin kişisel bilgileri güvenlik nedeniyle gösterilmiyor."
         stateLabel="KAYIP KART GÜVENLİK MODU"
         note="Kart sahibi kartını yeniden etkinleştirene kadar bu bağlantıdaki bilgiler gizli tutulur."
+        actionHref="/giris?next=%2Fayarlar"
+        actionLabel="Kartımı güvenle yönet"
       />
     );
   }
@@ -74,6 +76,8 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
       <PublicCardUnavailable
         title="Bu dijital kart şu an kullanıma açık değil."
         detail="Kart sahibi erişimini yeniden başlattığında, aynı bağlantı otomatik olarak yeniden çalışır."
+        actionHref="/giris?next=%2Fayarlar"
+        actionLabel="Hesabımdan yenile"
       />
     );
   }
@@ -82,6 +86,8 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
       <PublicCardUnavailable
         title="Bu dijital kart şu an kullanıma açık değil."
         detail="Kart sahibi erişimini yeniden başlattığında, aynı bağlantı otomatik olarak yeniden çalışır."
+        actionHref="/giris?next=%2Fayarlar"
+        actionLabel="Hesabımdan yenile"
       />
     );
   }
@@ -116,11 +122,15 @@ function PublicCardUnavailable({
   detail,
   stateLabel = "PROFİL GEÇİCİ OLARAK KAPALI",
   note = "Aynı QR ve NFC bağlantısı, profil yeniden açıldığında çalışmaya devam eder.",
+  actionHref = "/",
+  actionLabel = "Yenomi ID’yi keşfet",
 }: {
   title: string;
   detail: string;
   stateLabel?: string;
   note?: string;
+  actionHref?: string;
+  actionLabel?: string;
 }) {
   return (
     <main id="main-content" className={styles.page}>
@@ -135,8 +145,8 @@ function PublicCardUnavailable({
         <span className={styles.eyebrow}>{stateLabel}</span>
         <h1 id="public-card-unavailable-title">{title}</h1>
         <p>{detail}</p>
-        <a className={styles.action} href="/">
-          Yenomi ID&apos;yi keşfet <span aria-hidden="true"><Icon name="chevronRight" /></span>
+        <a className={styles.action} href={actionHref}>
+          {actionLabel} <span aria-hidden="true"><Icon name="chevronRight" /></span>
         </a>
         <small className={styles.note}>{note}</small>
       </section>

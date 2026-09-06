@@ -71,14 +71,19 @@ Başarısız ve engellenen şifre girişleri Vercel loglarında `auth.login` JSO
 `script-src 'unsafe-inline'` kaldırıldı. Middleware her belgede `x-nonce` + `script-src 'nonce-…' 'strict-dynamic'` basar. `style-src 'unsafe-inline'` hâlâ duruyor (daha düşük öncelik). `next.config.ts` artık ikinci bir CSP basmaz; tarayıcı birden fazla CSP'yi AND uygular ve statik `unsafe-inline` nonce politikasını delerdi.
 
 ## Kritik akış test kapsamı
-`e2e/critical-journeys.spec.ts` dosya adı ödeme zincirinin E2E korunduğu anlamına gelmez. `npm run verify:release` içinde `verify:critical-journeys` **6/7 iskelet skip** uyarısını CI loguna basar. Skip bir PASS değildir.
+Aktif Playwright kaynakları `tests/e2e/` altındadır. Bunlar public hydration,
+dönüşüm CTA'ları, satış metni, responsive yüzey ve kimlik bilgisi verildiğinde
+bireysel/kurumsal panel düzenlerini kapsar. `npm run test:e2e` gerçek bir
+tarayıcı koşusudur; `node scripts/verify-critical-journeys-coverage.mjs` ise
+yalnız test kaynaklarının mevcut olduğunu doğrular. Skip veya statik sözleşme,
+çalışmış sandbox testi değildir.
 
-| ID | Durum |
+| Yolculuk | Kanıt |
 | --- | --- |
-| E2E-06 yedek kart misafir kapısı | Otomatik (yalnız `E2E_BASE_URL` varken) |
-| E2E-01…05, E2E-07 ödeme/claim/entitlement | `test.skip(true)` — otomatize edilmedi |
-| Duplicate callback / auto-claim | Unit: `lib/payments/settle-commerce-payment.test.ts` |
-| Tutar/currency/basket eşleşmesi | Unit: `lib/payments/callback-verification.test.ts` |
-
-Sandbox E2E-03 ve E2E-05 hâlâ iyzico CI secret + canlı base URL ister. Bu repodan o secret'lar yoksa yolculukları yeşil iskelet olarak bırakmak, sahte E2E yazmaktan doğru.
-
+| Public/checkout/login hydration ve mobil navigasyon | Playwright: `public-critical.spec.ts` |
+| Ana sayfa CTA, fiyat ve paket karşılaştırması | Playwright: `home-conversion.spec.ts` |
+| Public satış metni ve ödeme sınırı | Playwright: `public-sales-copy.spec.ts` |
+| Responsive public/commerce/protected-route sınırı | Playwright: `responsive-master.spec.ts` |
+| Bireysel/kurumsal giriş sonrası panel düzeni | Playwright, `E2E_INDIVIDUAL_*` / `E2E_CORPORATE_*` credentials gerekli |
+| Callback tekrar, tutar doğrulama ve güvenli ret tanısı | Vitest payment callback testleri |
+| PayTR sandbox ödeme → entitlement → aktivasyon | İzole sandbox credentials ve callback URL gerektirir; release öncesi zorunlu dış kabul testi |

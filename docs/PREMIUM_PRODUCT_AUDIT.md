@@ -4,7 +4,7 @@
 
 1. The visual system has strong semantic tokens, but `canonical.css` has grown into a 600KB+ monolith. UI ownership is therefore implicit rather than component-scoped, which makes regressions and duplicate selectors hard to detect.
 2. Corporate pricing currently exposes a 2/3/5/10/25/50/100-seat ladder. This is operationally flexible but conversion-heavy: seven public choices plus Enterprise create decision fatigue.
-3. Browser E2E coverage is materially below the apparent verification surface. `e2e/critical-journeys.spec.ts` explicitly automates only one of seven critical journeys; six are skipped.
+3. Browser E2E coverage public ve görsel yüzeylerde aktiftir; PayTR sandbox ödeme → entitlement → aktivasyon zinciri ile yetkili staging akışları hâlâ dış ortam kabul testi gerektirir. Statik test sözleşmesi, bu dış koşuların yerine geçmez.
 4. Security fundamentals are present (HttpOnly session flow, CSP nonce, no-store, request IDs, route-specific rate limits). Security work should focus on data minimization, sensitive-screen masking, redaction, and regression evidence rather than attempting impossible browser-level screenshot prevention.
 
 ## UI / Design system
@@ -45,16 +45,15 @@ Prefer CSS/SVG product mockups using real UI strings and vector icons. Do not sh
 
 | ID | Journey | Automation |
 | --- | --- | --- |
-| E2E-01 | Guest purchase → iyzico → order | Playwright + sandbox |
-| E2E-02 | Payment callback delayed / tab closed → recovery | Playwright + sandbox |
-| E2E-03 | Duplicate callback replay | API integration + Playwright assertion |
-| E2E-04 | Guest entitlement claim by matching email | Playwright |
-| E2E-05 | Authenticated purchase auto-claim | Playwright |
-| E2E-06 | Spare card blocked without entitlement | Playwright — existing |
-| E2E-07 | Spare card allowed with active entitlement | Playwright fixture |
-| E2E-08 | Corporate member invite → accept → profile publish | Playwright |
-| E2E-09 | Member LEFT/SUSPENDED blocks protected actions | Playwright |
-| E2E-10 | Lost physical card disables public physical path without deleting profile | Playwright + DB assertion |
+| E2E-01 | Public route hydration, login form and mobile navigation | Playwright — mevcut |
+| E2E-02 | Homepage/catalogue CTA ve paket fiyatı tutarlılığı | Playwright — mevcut |
+| E2E-03 | Public satış metni, güven ve ödeme sınırı | Playwright — mevcut |
+| E2E-04 | Responsive public/commerce/protected-route sınırı | Playwright — mevcut |
+| E2E-05 | Bireysel ve kurumsal giriş sonrası panel düzeni | Playwright — environment credentials gerekli |
+| E2E-06 | PayTR sandbox ödeme → callback → entitlement → aktivasyon | Sandbox kabul testi — açık |
+| E2E-07 | Corporate invite → accept → profile publish | Seeded staging Playwright — açık |
+| E2E-08 | Member LEFT/SUSPENDED protected mutation reddi | Seeded staging Playwright — açık |
+| E2E-09 | Lost physical card public vCard/profile reddi | Staging + DB assertion — açık |
 
 ### Algorithmic test format
 

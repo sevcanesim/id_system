@@ -1,52 +1,53 @@
 import fs from "node:fs";
-import path from "node:path";
 
 let failed = false;
-const pass = (message) => console.log(`PASS  ${message}`);
-const info = (message) => console.log(`INFO  ${message}`);
-const fail = (message) => {
-  failed = true;
-  console.error(`FAIL  ${message}`);
-};
 
-const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
-for (const retired of ["test:e2e", "test:quality", "test:visual", "test:cross-browser"]) {
-  packageJson.scripts?.[retired]
-    ? fail(`retired Playwright suite is still registered: ${retired}`)
-    : pass(`retired Playwright suite stays unregistered: ${retired}`);
+function pass(message) {
+  console.log(`PASS  ${message}`);
 }
 
-for (const retired of [
+function fail(message) {
+  failed = true;
+  console.error(`FAIL  ${message}`);
+}
+
+function requireFile(file) {
+  if (fs.existsSync(file)) {
+    pass(`E2E source exists: ${file}`);
+    return;
+  }
+
+  fail(`required E2E source is missing: ${file}`);
+}
+
+const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
+const e2eScript = packageJson.scripts?.["test:e2e"];
+
+if (typeof e2eScript === "string" && e2eScript.includes("playwright test")) {
+  pass("test:e2e is registered with Playwright");
+} else {
+  fail("test:e2e must run the Playwright suite");
+}
+
+for (const file of [
   "playwright.config.ts",
-  "playwright.quality.config.ts",
-  "playwright.visual.config.ts",
-  "playwright.cross-browser.config.ts",
+  "tests/e2e/public-critical.spec.ts",
+  "tests/e2e/public-sales-copy.spec.ts",
+  "tests/e2e/home-conversion.spec.ts",
+  "tests/e2e/responsive-master.spec.ts",
+  "tests/e2e/authenticated-visual-layout.spec.ts",
+  "tests/e2e/visual-layout-audit.spec.ts",
 ]) {
-  fs.existsSync(retired)
-    ? fail(`retired Playwright config returned: ${retired}`)
-    : pass(`retired Playwright config stays deleted: ${retired}`);
+  requireFile(file);
 }
 
 const testsReadme = fs.readFileSync("tests/README.md", "utf8");
-testsReadme.includes("intentionally removed")
-  ? pass("test suite reset documents intentional Playwright e2e removal")
-  : fail("test suite reset documents intentional Playwright e2e removal");
-
-function walk(dir, out = []) {
-  if (!fs.existsSync(dir)) return out;
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const abs = path.join(dir, entry.name);
-    if (entry.isDirectory()) walk(abs, out);
-    else out.push(abs);
-  }
-  return out;
-}
-const e2eSpecs = walk("tests/e2e").filter((file) => /\.(test|spec)\.(ts|tsx|js|jsx)$/.test(file));
-if (e2eSpecs.length > 0) {
-  pass(`E2E tests retained (${e2eSpecs.length})`);
+if (testsReadme.includes("focused Playwright critical journeys")) {
+  pass("test documentation describes the active Playwright baseline");
 } else {
-  info("Playwright e2e specs are absent (tests/README reset). Not counted as PASS.");
+  fail("tests/README.md must describe the active Playwright baseline");
 }
 
 if (failed) process.exit(1);
+
 console.log("\nRuntime E2E qualification contract: PASS");

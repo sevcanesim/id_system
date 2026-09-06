@@ -1,54 +1,57 @@
 import { readFileSync } from "node:fs";
 
-const source = readFileSync("e2e/critical-journeys.spec.ts", "utf8");
+const journeys = [
+  {
+    id: "PUBLIC",
+    label: "Public routes, hydrated forms and mobile navigation",
+    file: "tests/e2e/public-critical.spec.ts",
+    required: ["hydrates without page errors", "mobile public navigation opens and closes", "login form accepts input after hydration"],
+  },
+  {
+    id: "CONVERSION",
+    label: "Homepage and catalogue conversion contracts",
+    file: "tests/e2e/home-conversion.spec.ts",
+    required: ["hero primary CTA", "mobile sticky CTA", "package comparison table"],
+  },
+  {
+    id: "SALES_COPY",
+    label: "Public value proposition and payment-boundary copy",
+    file: "tests/e2e/public-sales-copy.spec.ts",
+    required: ["individual Premium value proposition", "clear product and payment boundary", "corporate page sells a managed team identity system"],
+  },
+  {
+    id: "RESPONSIVE",
+    label: "Public, commerce and unauthenticated protected-route responsiveness",
+    file: "tests/e2e/responsive-master.spec.ts",
+    required: ["complete responsive matrix", "stable unauthenticated responsive boundary", "touch-target invariant"],
+  },
+  {
+    id: "AUTHENTICATED_UI",
+    label: "Individual and corporate authenticated layouts",
+    file: "tests/e2e/authenticated-visual-layout.spec.ts",
+    required: ["individual authenticated layout", "corporate authenticated layout", "auditCorporateOwnCard"],
+  },
+];
 
-function fail(message) {
-  console.error(`Critical journeys coverage BAŞARISIZ: ${message}`);
+const missing = [];
+
+for (const journey of journeys) {
+  const source = readFileSync(journey.file, "utf8");
+  const absent = journey.required.filter((marker) => !source.includes(marker));
+  if (absent.length) {
+    missing.push(`${journey.id}: ${absent.join(", ")}`);
+    continue;
+  }
+
+  console.log(`PASS  ${journey.id} — ${journey.label}`);
+}
+
+if (missing.length) {
+  for (const entry of missing) {
+    console.error(`FAIL  ${entry}`);
+  }
   process.exit(1);
 }
 
-const IDS = ["E2E-01", "E2E-02", "E2E-03", "E2E-04", "E2E-05", "E2E-06", "E2E-07"];
-for (const id of IDS) {
-  if (!source.includes(`test("${id}`)) fail(`${id} named test is missing from e2e/critical-journeys.spec.ts.`);
-}
-
-if (!source.includes('test("E2E-06 spare card stays gated for guests"')) {
-  fail("E2E-06 must remain the guest spare-card gate.");
-}
-if (!source.includes('page.goto("/urunler"') || !source.includes("YEDEK KART")) {
-  fail("E2E-06 must actually open /urunler and assert the spare-card gate.");
-}
-
-const e2e06 = source.slice(source.indexOf('test("E2E-06'), source.indexOf('test("E2E-07'));
-if (e2e06.includes("test.skip(true")) {
-  fail("E2E-06 must not be a skeleton skip.");
-}
-
-const explicitAutomation = new Map();
-for (const id of IDS) {
-  const match = source.match(new RegExp(`\\[${id}\\]\\s+AUTOMATION:\\s+(FULL|PARTIAL|NONE)`));
-  if (!match) fail(`${id} must declare [${id}] AUTOMATION: FULL|PARTIAL|NONE.`);
-  explicitAutomation.set(id, match[1]);
-}
-
-const automatedIds = IDS.filter((id) => explicitAutomation.get(id) === "FULL");
-const partialIds = IDS.filter((id) => explicitAutomation.get(id) === "PARTIAL");
-const missingIds = IDS.filter((id) => explicitAutomation.get(id) === "NONE");
-
-const banner = [
-  "================================================================================",
-  `CRITICAL JOURNEYS: ${automatedIds.length}/${IDS.length} FULL, ${partialIds.length}/${IDS.length} PARTIAL, ${missingIds.length}/${IDS.length} NONE.`,
-  `Full: ${automatedIds.join(", ") || "(none)"}.`,
-  `Partial: ${partialIds.join(", ") || "(none)"}.`,
-  `None: ${missingIds.join(", ") || "(none)"}.`,
-  "Payment → entitlement → activation → claim is not considered covered until its journey is marked FULL and runs in CI.",
-  "A skipped Playwright test is not a pass.",
-  "================================================================================",
-].join("\n");
-
-console.error(banner);
-if (process.env.GITHUB_ACTIONS === "true" && (partialIds.length || missingIds.length)) {
-  console.error(`::warning title=Critical journeys::FULL ${automatedIds.length}/${IDS.length}; PARTIAL ${partialIds.length}/${IDS.length}; NONE ${missingIds.length}/${IDS.length}.`);
-}
-
-console.log(`Critical journeys coverage: ${automatedIds.length}/${IDS.length} full.`);
+console.log("\nEXTERNAL  PayTR sandbox payment → entitlement → activation and production-like authenticated fixtures require isolated credentials and are not claimed as executed by this static contract.");
+console.log("Critical journey coverage contract: PASS");

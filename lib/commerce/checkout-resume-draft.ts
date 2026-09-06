@@ -11,6 +11,7 @@ const SAFE_FORM_FIELDS = [
   "postalCode",
   "deliveryNote",
   "companyName",
+  "companyEntityType",
   "companyTaxNumber",
   "companyTaxOffice",
 ] as const;

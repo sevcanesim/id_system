@@ -10,7 +10,7 @@ import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { Icon } from "../icons";
 import { Button } from "../components/ui/DesignSystem";
 import { TURKEY_CITIES, normalizeTrPhone } from "../../lib/form-standards";
-import { parseCompanyBilling } from "../../lib/validation/company";
+import { isCompanyEntityType, parseCompanyBilling, type CompanyEntityType } from "../../lib/validation/company";
 import { track } from "../../lib/analytics";
 import { safeClientMessage } from "../../lib/errors";
 import { clearPendingCheckoutOrderId, getOrCreateCheckoutIdempotencyKey, lookupPendingCheckoutOrder, rotateCheckoutIdempotencyKey, setPendingCheckoutOrderId, setCheckoutReturnPath } from "../../lib/payments/browser-checkout";
@@ -26,6 +26,7 @@ type FormState = {
   city: string;
   postalCode: string;
   deliveryNote: string;
+  companyEntityType: "" | CompanyEntityType;
   latitude?: number;
   longitude?: number;
   companyName: string;
@@ -46,6 +47,7 @@ const initial: FormState = {
   city: "",
   postalCode: "",
   deliveryNote: "",
+  companyEntityType: "",
   companyName: "",
   companyTaxNumber: "",
   companyTaxOffice: "",
@@ -154,6 +156,7 @@ export default function CheckoutPage() {
         setForm((current) => ({
           ...current,
           ...draft.form,
+          companyEntityType: isCompanyEntityType(draft.form.companyEntityType) ? draft.form.companyEntityType : current.companyEntityType,
           distanceSalesAccepted: false,
           personalizationAccepted: false,
         }));
@@ -218,6 +221,7 @@ export default function CheckoutPage() {
   }
 
   const companyComplete = !hasCorporatePackage || parseCompanyBilling({
+    entityType: form.companyEntityType,
     name: form.companyName,
     taxNumber: form.companyTaxNumber,
     taxOffice: form.companyTaxOffice,
@@ -245,7 +249,7 @@ export default function CheckoutPage() {
     if (form.phone.replace(/\D/g, "").length < 10) return "Telefon numaranı kontrol et.";
     if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) return "Geçerli bir e-posta adresi gir.";
     if (hasCorporatePackage) {
-      const parsed = parseCompanyBilling({ name: form.companyName, taxNumber: form.companyTaxNumber, taxOffice: form.companyTaxOffice });
+      const parsed = parseCompanyBilling({ entityType: form.companyEntityType, name: form.companyName, taxNumber: form.companyTaxNumber, taxOffice: form.companyTaxOffice });
       if (!parsed.ok) return parsed.error;
     }
     return "";
@@ -383,7 +387,7 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           items: items.map((item) => ({ productSlug: item.productId, variantSku: item.variantSku, quantity: item.quantity, configuration: item.configuration })),
           customer: { name: form.recipientName.trim(), email: form.email.trim().toLowerCase(), phone: form.phone },
-          company: hasCorporatePackage ? { name: form.companyName.trim(), taxNumber: form.companyTaxNumber, taxOffice: form.companyTaxOffice.trim() } : undefined,
+          company: hasCorporatePackage ? { entityType: form.companyEntityType, name: form.companyName.trim(), taxNumber: form.companyTaxNumber, taxOffice: form.companyTaxOffice.trim() } : undefined,
           shipping: {
             recipientName: form.recipientName.trim(),
             phone: form.phone,
@@ -449,7 +453,7 @@ export default function CheckoutPage() {
               {hasRenewal && <span><Icon name="shield" />Yalnız dijital hizmet yenilemesi</span>}
               {hasNetworkMailCreditPack && <span><Icon name="mail" />Krediler ödeme onayında hesabına eklenir</span>}
               {hasReplacement && <span><Icon name="shield" />Mevcut profilin korunur</span>}
-              {hasCorporatePackage && <span><Icon name="building" />Kurumsal fatura: resmî unvan, 10 haneli VKN, vergi dairesi</span>}
+              {hasCorporatePackage && <span><Icon name="building" />Kurumsal fatura: şirket türüne uygun vergi kimliği ve vergi dairesi</span>}
               {hasCorporatePackage && <span><Icon name="clock" />NFC kartlar {COMMERCIAL_FULFILLMENT.handover.toLocaleLowerCase()}</span>}
               {hasCorporatePackage && <span><Icon name="shield" />1 yıllık kurumsal sistem</span>}
             </div>
@@ -485,10 +489,11 @@ export default function CheckoutPage() {
                     </fieldset> : null}
                     {hasCorporatePackage ? <fieldset className="checkout-company-fields" aria-describedby="company-billing-note">
                       <legend><Icon name="building" />Kurumsal fatura bilgileri</legend>
-                      <p id="company-billing-note">Yalnız resmî vergi kaydı olan şirketler kurumsal paket alabilir. T.C. kimlik numarası kabul edilmez; 10 haneli VKN ve vergi dairesi zorunludur. Ödeme tamamlandığında bu kayıt şirketine aktarılır ve kurumsal panelden değiştirilemez.</p>
+                      <p id="company-billing-note">Şahıs işletmesinde 11 haneli T.C. kimlik numarası, limited ve anonim şirkette 10 haneli VKN ile vergi dairesi zorunludur. Ödeme tamamlandığında bu kayıt şirketine aktarılır ve kurumsal panelden değiştirilemez.</p>
                       <div className="checkout-company-fields__grid">
+                        <label>Şirket türü<select required value={form.companyEntityType} onChange={(event) => { update("companyEntityType", event.target.value as FormState["companyEntityType"]); update("companyTaxNumber", ""); }}><option value="">Şirket türünü seç</option><option value="SOLE_PROPRIETORSHIP">Şahıs işletmesi</option><option value="LIMITED_COMPANY">Limited şirket</option><option value="JOINT_STOCK_COMPANY">Anonim şirket</option></select></label>
                         <label>Şirket unvanı<input required autoComplete="organization" value={form.companyName} onChange={(event) => update("companyName", event.target.value)} /></label>
-                        <label>10 haneli VKN<input required inputMode="numeric" maxLength={10} autoComplete="off" value={form.companyTaxNumber} onChange={(event) => update("companyTaxNumber", event.target.value.replace(/\D/g, ""))} /></label>
+                        <label>{form.companyEntityType === "SOLE_PROPRIETORSHIP" ? "11 haneli T.C. kimlik no" : "10 haneli VKN"}<input required inputMode="numeric" maxLength={form.companyEntityType === "SOLE_PROPRIETORSHIP" ? 11 : 10} autoComplete="off" value={form.companyTaxNumber} onChange={(event) => update("companyTaxNumber", event.target.value.replace(/\D/g, ""))} /></label>
                         <label>Vergi dairesi<input required autoComplete="off" value={form.companyTaxOffice} onChange={(event) => update("companyTaxOffice", event.target.value)} /></label>
                       </div>
                     </fieldset> : null}

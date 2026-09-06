@@ -58,6 +58,7 @@ function checkoutSchema(legalVersions: Awaited<ReturnType<typeof getDatabaseLega
     privacyVersion: z.literal(legalVersions.privacy),
   }).strict(),
   company: z.object({
+    entityType: z.enum(["SOLE_PROPRIETORSHIP", "LIMITED_COMPANY", "JOINT_STOCK_COMPANY"]).optional(),
     name: z.string().max(180).optional(),
     taxNumber: z.string().max(32).optional(),
     taxOffice: z.string().max(80).optional(),
@@ -316,6 +317,7 @@ export async function POST(request: NextRequest) {
       pack.configuration = {
         packageCode: catalog.code,
         seatCount: catalog.seats,
+        companyEntityType: parsedCompany.company.entityType,
         companyName: parsedCompany.company.name,
         taxNumber: parsedCompany.company.taxNumber,
         taxOffice: parsedCompany.company.taxOffice,
@@ -491,7 +493,12 @@ export async function POST(request: NextRequest) {
     const company = companyBilling?.ok
       ? companyBilling.company
       : organizationBilling
-        ? { name: organizationBilling.name, taxNumber: organizationBilling.taxNumber, taxOffice: organizationBilling.taxOffice }
+        ? {
+            entityType: organizationBilling.taxNumber.length === 11 ? "SOLE_PROPRIETORSHIP" as const : "LIMITED_COMPANY" as const,
+            name: organizationBilling.name,
+            taxNumber: organizationBilling.taxNumber,
+            taxOffice: organizationBilling.taxOffice,
+          }
         : null;
 
     const subtotalKurus = calculated.reduce((sum, item) => sum + item.lineTotalKurus, 0);
@@ -696,6 +703,7 @@ export async function POST(request: NextRequest) {
           latitude: shipping.latitude,
           longitude: shipping.longitude,
           companyName: company?.name || "",
+          companyEntityType: company?.entityType || "",
           companyTaxNumber: company?.taxNumber || "",
           companyTaxOffice: company?.taxOffice || "",
         },

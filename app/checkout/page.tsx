@@ -16,6 +16,7 @@ import { safeClientMessage } from "../../lib/errors";
 import { clearPendingCheckoutOrderId, getOrCreateCheckoutIdempotencyKey, lookupPendingCheckoutOrder, rotateCheckoutIdempotencyKey, setPendingCheckoutOrderId, setCheckoutReturnPath } from "../../lib/payments/browser-checkout";
 import { bootstrapAuthenticatedCheckout, type OrganizationCheckoutTarget } from "../../lib/commerce/checkout-session-bootstrap";
 import { parseCheckoutResumeDraft } from "../../lib/commerce/checkout-resume-draft";
+import { minimizeCoordinates } from "../../lib/location/coordinates";
 
 type FormState = {
   recipientName: string;
@@ -302,8 +303,16 @@ export default function CheckoutPage() {
     setLocationBusy(true);
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const latitude = position.coords.latitude;
-        const longitude = position.coords.longitude;
+        const coordinates = minimizeCoordinates(
+          position.coords.latitude,
+          position.coords.longitude,
+        );
+        if (!coordinates) {
+          setLocationBusy(false);
+          setMessage("Konum geçersiz görünüyor. Teslimat adresini elle girebilirsin.");
+          return;
+        }
+        const { latitude, longitude } = coordinates;
         try {
           const response = await fetch(`/api/location/reverse?lat=${latitude}&lng=${longitude}`);
           const location = await response.json();
@@ -314,7 +323,7 @@ export default function CheckoutPage() {
               longitude,
               city: location.city || current.city,
               district: location.district || current.district,
-              addressLine: location.formattedAddress || current.addressLine,
+              addressLine: location.addressLine || current.addressLine,
             }));
             setToast("Konum bulundu. Adresini kontrol ederek devam edebilirsin.");
             window.setTimeout(() => setToast(""), 2600);
@@ -333,7 +342,7 @@ export default function CheckoutPage() {
         setLocationBusy(false);
         setMessage("Konum izni verilmedi. Teslimat adresini elle girebilirsin.");
       },
-      { enableHighAccuracy: true, timeout: 10000 },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },
     );
   }
 

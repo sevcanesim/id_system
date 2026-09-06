@@ -38,6 +38,7 @@ import {
   type OrgLock,
 } from "./domain/organization-identity";
 import { cardShareUrl } from "../../lib/public-card/urls";
+import { minimizeCoordinates } from "../../lib/location/coordinates";
 
 const CARD_SECTIONS = [
   { id: "p8-basic", label: "Temel Bilgiler" },
@@ -624,17 +625,6 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
     return true;
   }
 
-  async function fallbackIpLocation() {
-    try {
-      const response = await fetch("/api/location/ip");
-      if (!response.ok) return false;
-      const payload = await response.json() as { city?: string; district?: string; addressLine?: string };
-      return applyLocationPayload(payload);
-    } catch {
-      return false;
-    }
-  }
-
   async function detectCity() {
     setLocationLoading(true);
     setLocationMessage("");
@@ -642,18 +632,24 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
     const finish = () => setLocationLoading(false);
 
     async function applyGps(latitude: number, longitude: number) {
+      const coordinates = minimizeCoordinates(latitude, longitude);
+      if (!coordinates) {
+        setLocationMessage("Konum geçersiz görünüyor. Konumu elle yazabilirsin.");
+        return;
+      }
       try {
-        const response = await fetch(`/api/location/reverse?lat=${latitude}&lng=${longitude}`);
+        const response = await fetch(`/api/location/reverse?lat=${coordinates.latitude}&lng=${coordinates.longitude}`);
         const payload = await response.json() as { city?: string; district?: string; addressLine?: string };
         if (response.ok && await applyLocationPayload(payload)) return;
       } catch {
-        // GPS çözümlemesi başarısızsa IP yedeğine geçilir; kullanıcı bloklanmaz.
+        setLocationMessage("Konum adrese çevrilemedi. Konumu elle yazabilirsin.");
+        return;
       }
-      await fallbackIpLocation();
+      setLocationMessage("Konum adrese çevrilemedi. Konumu elle yazabilirsin.");
     }
 
     if (!("geolocation" in navigator)) {
-      await fallbackIpLocation();
+      setLocationMessage("Tarayıcın konum özelliğini desteklemiyor. Konumu elle yazabilirsin.");
       finish();
       return;
     }
@@ -663,8 +659,8 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
         await applyGps(coords.latitude, coords.longitude);
         finish();
       },
-      async () => {
-        await fallbackIpLocation();
+      () => {
+        setLocationMessage("Konum izni verilmedi. Konumu elle yazabilirsin.");
         finish();
       },
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },

@@ -13,6 +13,7 @@ import { NfcCardFront, NfcCardBack } from "../components/ui/NfcCardArt";
 import { track } from "../../lib/analytics";
 import { TURKEY_CITIES, normalizeEmailField, normalizeTrPhone } from "../../lib/form-standards";
 import { cardShareUrl } from "../../lib/public-card/urls";
+import { minimizeCoordinates } from "../../lib/location/coordinates";
 import { clearPendingCheckoutOrderId, getOrCreateCheckoutIdempotencyKey, lookupPendingCheckoutOrder, rotateCheckoutIdempotencyKey, setPendingCheckoutOrderId, setCheckoutReturnPath } from "../../lib/payments/browser-checkout";
 // v22: Bu sayfa artık yalnızca ürünü KİŞİSELLEŞTİRİYOR (renk, isim, teslimat).
 // Ödeme ve sipariş oluşturma tek boru hattından geçsin diye
@@ -137,9 +138,16 @@ export default function NfcOrderPage() {
 
 
   async function resolveCoordinates(latitude: number, longitude: number, message = "Konumdan adres önerildi. Bina ve daire bilgisini kontrol et.") {
+    const coordinates = minimizeCoordinates(latitude, longitude);
+    if (!coordinates) {
+      setLocationMessage("Konum geçersiz görünüyor. Adresi elle girebilirsin.");
+      return;
+    }
+    const minimizedLatitude = coordinates.latitude;
+    const minimizedLongitude = coordinates.longitude;
     setLocationMessage("Adres çözümleniyor...");
     try {
-      const response = await fetch(`/api/location/reverse?lat=${latitude}&lng=${longitude}`);
+      const response = await fetch(`/api/location/reverse?lat=${minimizedLatitude}&lng=${minimizedLongitude}`);
       const result = await response.json();
       setForm((current) => ({
         ...current,
@@ -147,13 +155,13 @@ export default function NfcOrderPage() {
         district: result.district || current.district,
         city: result.city || current.city,
         postalCode: result.postalCode || current.postalCode,
-        latitude,
-        longitude,
-        mapUrl: result.mapUrl || `https://www.google.com/maps?q=${latitude},${longitude}`,
+        latitude: minimizedLatitude,
+        longitude: minimizedLongitude,
+        mapUrl: `https://www.google.com/maps?q=${minimizedLatitude},${minimizedLongitude}`,
       }));
       setLocationMessage(response.ok ? message : (result.error || "Konum seçildi; adresi kontrol ederek tamamla."));
     } catch {
-      setForm((current) => ({ ...current, latitude, longitude, mapUrl: `https://www.google.com/maps?q=${latitude},${longitude}` }));
+      setForm((current) => ({ ...current, latitude: minimizedLatitude, longitude: minimizedLongitude, mapUrl: `https://www.google.com/maps?q=${minimizedLatitude},${minimizedLongitude}` }));
       setLocationMessage("Konum seçildi ancak adres otomatik doldurulamadı. Adresi elle tamamla.");
     }
   }
@@ -185,7 +193,7 @@ export default function NfcOrderPage() {
       } else {
         setLocationMessage("Konum alınamadı. Adresi elle girebilirsin.");
       }
-    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+    }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 });
   }
 
   async function submit(event: FormEvent) {

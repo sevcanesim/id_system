@@ -58,6 +58,10 @@ const privacyRequestsApi = read("app/api/privacy/requests/route.ts");
 const adminPrivacyRequestsApi = read("app/api/admin/privacy-requests/route.ts");
 const cardViews = read("lib/analytics/card-views.ts");
 const cardWizard = read("app/olustur/CardWizard.tsx");
+const checkoutPage = read("app/checkout/page.tsx");
+const reverseGeocode = read("app/api/location/reverse/route.ts");
+const coordinates = read("lib/location/coordinates.ts");
+const checkoutResumeDraft = read("lib/commerce/checkout-resume-draft.ts");
 const clientPrivateState = read("lib/security/client-private-state.ts");
 const dashboardShell = read("app/ui/DashboardShell.tsx");
 const runtimeSources = [
@@ -152,6 +156,17 @@ mustNotInclude(cardWizard, "readPersonalCardDraft", "Card editor must not restor
 mustNotInclude(cardWizard, "writePersonalCardDraft", "Card editor must not persist personal data in browser storage.");
 mustNotInclude(cardWizard, 'localStorage.getItem("yenomi-card-draft")', "Card editor must not read a cross-account draft key.");
 mustNotInclude(cardWizard, 'localStorage.setItem("yenomi-card-draft")', "Card editor must not write a cross-account draft key.");
+mustNotInclude(cardWizard, "/api/location/ip", "Card editor must not silently infer a location from the visitor IP.");
+mustInclude(cardWizard, "minimizeCoordinates", "Card editor reverse geocoding must reduce coordinate precision.");
+mustInclude(checkoutPage, "minimizeCoordinates", "Checkout reverse geocoding must reduce coordinate precision.");
+mustInclude(reverseGeocode, "minimizeCoordinates", "Reverse geocoding must reject or minimize untrusted coordinates server-side.");
+mustNotInclude(reverseGeocode, "mapUrl", "Reverse geocoding must not return a persistent exact-coordinate map URL.");
+mustInclude(reverseGeocode, '"Referrer-Policy": "no-referrer"', "Reverse geocoding responses must not spread coordinate URLs through referrers.");
+mustInclude(coordinates, "LOCATION_DECIMAL_PLACES = 4", "Location precision must remain limited to roughly an address block.");
+mustInclude(checkoutResumeDraft, "minimizeCoordinates", "Checkout resume state must not restore more precise coordinates.");
+if (existsSync("app/api/location/ip/route.ts") || existsSync("lib/location/request-ip.ts")) {
+  throw new Error("Silent IP-location fallback sources must remain removed.");
+}
 mustInclude(clientPrivateState, "CARD_DRAFT_PREFIX", "Private browser state must clear account-scoped drafts left by older releases.");
 mustNotInclude(clientPrivateState, "localStorage.setItem", "Private browser state must not write sensitive drafts.");
 mustInclude(clientPrivateState, "clearSensitiveBrowserState", "Sensitive browser state needs an explicit logout cleanup path.");

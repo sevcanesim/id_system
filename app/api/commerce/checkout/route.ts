@@ -24,6 +24,7 @@ import { findExistingCheckoutAttempt } from "../../../../lib/payments/checkout-i
 import { rejectCheckoutInitializeFlood } from "../../../../lib/security/route-rate-limits";
 import { checkoutResumeSessionExpiry } from "../../../../lib/commerce/checkout-resume";
 import { applyPaytrPresentationCookie, createPaytrPresentationSecret, createPaytrPresentationUrl, createPaytrResultReference, sealPaytrPresentationToken } from "../../../../lib/payments/paytr-presentation";
+import { minimizeCoordinates } from "../../../../lib/location/coordinates";
 
 export const runtime = "nodejs";
 
@@ -445,13 +446,16 @@ export async function POST(request: NextRequest) {
           postalCode: organizationBilling.postalCode || null,
         }
       : body.shipping;
+    const minimizedCoordinates = digitalOnlyCart
+      ? null
+      : minimizeCoordinates(shippingSource.latitude, shippingSource.longitude);
     const shipping = {
       ...shippingSource,
       addressLine: digitalOnlyCart
         ? digitalServiceBillingAddress(shippingSource.city, shippingSource.addressLine)
         : shippingSource.addressLine.trim(),
-      latitude: digitalOnlyCart ? null : shippingSource.latitude ?? null,
-      longitude: digitalOnlyCart ? null : shippingSource.longitude ?? null,
+      latitude: minimizedCoordinates?.latitude ?? null,
+      longitude: minimizedCoordinates?.longitude ?? null,
       deliveryNote: digitalOnlyCart ? null : shippingSource.deliveryNote || null,
     };
     if (!digitalOnlyCart && shipping.addressLine.length < 8) {

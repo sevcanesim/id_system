@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { minimizeCoordinates } from "../../../../lib/location/coordinates";
 
 export const runtime = "nodejs";
 
@@ -18,25 +19,34 @@ function component(components: GoogleAddressComponent[] | undefined, ...types: s
 }
 
 export async function GET(request: NextRequest) {
-  const latitude = Number(request.nextUrl.searchParams.get("lat"));
-  const longitude = Number(request.nextUrl.searchParams.get("lng"));
+  const coordinates = minimizeCoordinates(
+    request.nextUrl.searchParams.get("lat"),
+    request.nextUrl.searchParams.get("lng"),
+  );
 
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-    return NextResponse.json({ error: "Geçerli konum bilgisi gerekli." }, { status: 400 });
+  if (!coordinates) {
+    return NextResponse.json(
+      { error: "Geçerli konum bilgisi gerekli." },
+      {
+        status: 400,
+        headers: { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" },
+      },
+    );
   }
 
   const apiKey = process.env.GOOGLE_GEOCODING_API_KEY ?? process.env.GOOGLE_MAPS_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({
-      error: "Adres çözümleme servisi yapılandırılmadı.",
-      latitude,
-      longitude,
-      mapUrl: `https://www.google.com/maps?q=${latitude},${longitude}`,
-    }, { status: 503 });
+    return NextResponse.json(
+      { error: "Adres çözümleme servisi yapılandırılmadı." },
+      {
+        status: 503,
+        headers: { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" },
+      },
+    );
   }
 
   const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
-  url.searchParams.set("latlng", `${latitude},${longitude}`);
+  url.searchParams.set("latlng", `${coordinates.latitude},${coordinates.longitude}`);
   url.searchParams.set("language", "tr");
   url.searchParams.set("region", "tr");
   url.searchParams.set("key", apiKey);
@@ -46,12 +56,13 @@ export async function GET(request: NextRequest) {
   const result = payload.results?.[0];
 
   if (!response.ok || payload.status !== "OK" || !result) {
-    return NextResponse.json({
-      error: payload.error_message || "Konum adrese çevrilemedi. Adresi elle girebilirsin.",
-      latitude,
-      longitude,
-      mapUrl: `https://www.google.com/maps?q=${latitude},${longitude}`,
-    }, { status: 502 });
+    return NextResponse.json(
+      { error: "Konum adrese çevrilemedi. Adresi elle girebilirsin." },
+      {
+        status: 502,
+        headers: { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" },
+      },
+    );
   }
 
   const components = result.address_components;
@@ -64,8 +75,7 @@ export async function GET(request: NextRequest) {
     city,
     district,
     postalCode,
-    latitude,
-    longitude,
-    mapUrl: `https://www.google.com/maps?q=${latitude},${longitude}`,
+  }, {
+    headers: { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" },
   });
 }

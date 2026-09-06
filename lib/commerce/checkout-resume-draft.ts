@@ -1,4 +1,5 @@
 import { createCartItemId, type CartItem, type ProductKind } from "../cart";
+import { minimizeCoordinates } from "../location/coordinates";
 
 const PRODUCT_KINDS = new Set<ProductKind>(["BUSINESS_CARD", "HEALTH_CARD", "NFC_PHYSICAL_CARD"]);
 const SAFE_FORM_FIELDS = [
@@ -80,11 +81,10 @@ export function parseCheckoutResumeDraft(value: unknown): CheckoutResumeDraft | 
     const value = safeText(rawForm[field], field === "addressLine" || field === "deliveryNote" ? 500 : 180);
     if (value !== undefined) form[field] = value;
   }
-  if (typeof rawForm.latitude === "number" && rawForm.latitude >= -90 && rawForm.latitude <= 90) {
-    form.latitude = rawForm.latitude;
-  }
-  if (typeof rawForm.longitude === "number" && rawForm.longitude >= -180 && rawForm.longitude <= 180) {
-    form.longitude = rawForm.longitude;
+  const coordinates = minimizeCoordinates(rawForm.latitude, rawForm.longitude);
+  if (coordinates) {
+    form.latitude = coordinates.latitude;
+    form.longitude = coordinates.longitude;
   }
 
   return { items: items as CartItem[], form };

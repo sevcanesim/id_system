@@ -207,10 +207,7 @@ Bu durum, bağlı Supabase projesinin production olduğu anlamına gelmez. Ortam
 3. Sahip, yetkili kurumsal yönetici ve public kart için farklı yetki kontrollü görsel endpointleri kullanılır. Kart kapanırsa public görsel de 404 olur.
 4. Kart görüntülenme analitiği, servis anahtarından ayrı `ANALYTICS_FINGERPRINT_SECRET` ile yalnız günlük tekrarları ayıran HMAC üretir. Ham referer ve şehir saklanmaz; yalnız doğrulanmış iki harfli ülke kodu alınır. `DNT: 1` ve `Sec-GPC: 1` istekleri hiç kaydedilmez.
 5. Kart görüntülenme olayları günlük operasyon cron'u ile 90 gün sonra silinir.
-
-**Açık işler:**
-
-1. IP konumu ve reverse geocode işlemlerini açık kullanıcı aksiyonuna bağla; koordinat hassasiyetini düşür, veri işleyen envanterine ekle.
+6. Konum çözümleme yalnız kullanıcı tıklamasıyla çalışır. IP tabanlı sessiz yedek kaldırıldı; koordinatlar istemci, reverse geocode ve checkout sınırında 4 ondalık basamağa indirilir. Reverse yanıtı `no-store` ve `no-referrer` taşır; ayrıntılar `docs/DATA_PROCESSING_INVENTORY.md` içinde kayıtlıdır.
 
 **DoD:** Kart kapatıldığında profil görseli erişimi kesilir; analitik/log kayıtlarında ham IP, query token veya EXIF konumu bulunmaz.
 

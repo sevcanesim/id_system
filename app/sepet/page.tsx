@@ -5,7 +5,7 @@ import { cartItemPresentation, readCart, removeCartItem, setCartOwner, updateCar
 import { COMMERCIAL_PRICING, isCorporatePackageSku, requiresPortalAccountSku } from "../../lib/config/commercial";
 import { formatTryFromKurus } from "../../lib/config/product";
 import { INDIVIDUAL_PLAN, INDIVIDUAL_PREMIUM_PLAN } from "../../lib/commerce/packages";
-import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
+import { getBrowserIdentity } from "../../lib/auth/browser-identity";
 import { EmptyState } from "../components/ui/States";
 import { ButtonLink } from "../components/ui/DesignSystem";
 
@@ -16,12 +16,10 @@ export default function CartPage() {
   const [audience, setAudience] = useState<CartAudience>("guest");
   useEffect(() => { const sync = () => setItems(readCart()); sync(); window.addEventListener("yenomi-cart-change", sync); return () => window.removeEventListener("yenomi-cart-change", sync); }, []);
   useEffect(() => {
-    const supabase = getSupabaseBrowserClient(); if (!supabase) return;
-    void supabase.auth.getSession().then(async ({ data }) => {
-      const token = data.session?.access_token; const userId = data.session?.user.id;
-      if (!token || !userId) { setAudience("guest"); return; }
-      setCartOwner(userId, { claimGuest: true });
-      const response = await fetch("/api/organizations/mine?management=true", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" });
+    void getBrowserIdentity().then(async (identity) => {
+      if (!identity) { setAudience("guest"); return; }
+      setCartOwner(identity.user.id, { claimGuest: true });
+      const response = await fetch("/api/organizations/mine?management=true", { credentials: "same-origin", cache: "no-store" });
       if (response.ok) { const payload = await response.json() as { organizations?: unknown[] }; setAudience((payload.organizations ?? []).length ? "corporate" : "individual"); return; }
       setAudience("individual");
     });

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Brand } from "./Brand";
 import { ButtonLink } from "./Button";
 import { Icon } from "../icons";
-import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
+import { getBrowserIdentity } from "../../lib/auth/browser-identity";
 import { cartCount } from "../../lib/cart";
 
 const links = [
@@ -46,8 +46,7 @@ export default function SiteHeader({
   const showAccountLink = (signedIn || !isAuth) && showCtaButtons;
 
   useEffect(() => {
-    const sb = getSupabaseBrowserClient();
-    if (sb) void sb.auth.getUser().then(({ data }) => setSignedIn(Boolean(data.user)));
+    void getBrowserIdentity().then((identity) => setSignedIn(Boolean(identity)));
     const sync = () => setCount(cartCount());
     sync();
     window.addEventListener("yenomi-cart-change", sync);

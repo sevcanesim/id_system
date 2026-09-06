@@ -8,7 +8,7 @@ import { AdminPageHeader, Button, ButtonLink } from "./DesignSystem";
 import PanelSidebar from "./PanelSidebar";
 import { INDIVIDUAL_SIDEBAR_CONFIG } from "./sidebar-config";
 import { resolveSidebarItems } from "./sidebar-state";
-import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
+import { getBrowserIdentity } from "../../../lib/auth/browser-identity";
 
 export type AppShellNavKey = (typeof INDIVIDUAL_SIDEBAR_CONFIG)[number]["key"];
 export type AppShellAction = { href?: string; label: string; onClick?: () => void; primary?: boolean; disabled?: boolean };
@@ -30,13 +30,10 @@ export default function AppShell({ title, description, eyebrow, actions = [], ch
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const supabase = getSupabaseBrowserClient();
-      if (!supabase) return;
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
-      if (!token) return;
+      const identity = await getBrowserIdentity();
+      if (!identity) return;
       try {
-        const response = await fetch("/api/organizations/mine", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" });
+        const response = await fetch("/api/organizations/mine", { credentials: "same-origin", cache: "no-store" });
         if (!response.ok) return;
         const body = (await response.json()) as { organizations?: unknown[] };
         if (!cancelled) setHasCorporateSubscription(Boolean(body.organizations?.length));

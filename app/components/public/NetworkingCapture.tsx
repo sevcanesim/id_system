@@ -212,11 +212,11 @@ const COPY: Record<NetworkingLocale, Copy> = {
 function getVisitorId() {
   const storageKey = "yenomi_vid";
   try {
-    const storedVisitorId = window.localStorage.getItem(storageKey);
+    const storedVisitorId = window.sessionStorage.getItem(storageKey);
     if (storedVisitorId) return storedVisitorId;
 
     const newVisitorId = crypto.randomUUID();
-    window.localStorage.setItem(storageKey, newVisitorId);
+    window.sessionStorage.setItem(storageKey, newVisitorId);
     return newVisitorId;
   } catch {
     return crypto.randomUUID();

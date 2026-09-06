@@ -29,15 +29,16 @@ check(migration.includes("grant execute on function public.create_yenomi_handsha
 
 check(route.includes('kind: z.literal("ACCOUNT")') && route.includes('kind: z.literal("QR")'), "route accepts explicit account and QR paths");
 check(route.includes("authenticate(request)") && route.includes('.eq("user_id", actor.id)'), "one-tap sharing verifies profile ownership");
-check(route.includes("profileByPublicId") && route.includes("create_yenomi_handshake"), "QR exchange resolves a published card on the server");
+check(route.includes('.eq("public_id", submission.targetPublicId)') && route.includes("isInstantConnectProfileEligible") && route.includes("create_yenomi_handshake"), "QR exchange resolves an eligible published card on the server");
 check(route.includes("consumeDistributedRateLimit"), "handshake attempts are rate limited");
 
 check(capture.includes("Yenomi ID ile 1-Tıkla Bağlan"), "public card exposes one-tap Yenomi connection");
-check(capture.includes("QR Kod Okutarak Kart Takası Yap"), "public card exposes QR card exchange");
+check(capture.includes("Yenomi ID QR kodunu okut") && capture.includes("Başka kartın QR kodunu okut"), "public card distinguishes Yenomi and external QR exchange");
 check(capture.includes("Alternatif iletişim formu"), "classic contact form remains available");
 check(capture.includes('kind: "ACCOUNT"') && capture.includes('kind: "QR"'), "client keeps account and QR submissions distinct");
+check(capture.includes('window.sessionStorage.getItem(storageKey)') && capture.includes('window.sessionStorage.setItem(storageKey, newVisitorId)') && !capture.includes('window.localStorage.setItem(storageKey, newVisitorId)'), "public lead visitor ID is limited to the browser tab");
 check(scanner.includes("getUserMedia") && scanner.includes("BarcodeDetector"), "scanner uses a real camera and native QR decoder where available");
-check(scanner.includes("manualLabel") && scanner.includes("parsePublicProfileId"), "scanner has an accessible QR-link fallback");
+check(scanner.includes("manualLabel") && scanner.includes("submitManual"), "scanner has an accessible QR-link fallback");
 check(publicCard.includes("locale={locale}") && cardTemplate.includes("const CARD_COPY") && cardTemplate.includes("digitalBusinessCard"), "English selection localizes the full public-card surface");
 check(headers.includes('camera=(), microphone=()') && headers.includes('camera=(self), microphone=()') && headers.includes('"/p/:path*"'), "camera permission is restricted to public-card routes");
 

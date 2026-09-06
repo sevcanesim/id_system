@@ -15,7 +15,7 @@ This is not a full Apple/Stripe-grade lab run. What was actually executed:
 | Live HTML crawl of public routes | Done: `/`, `/urunler`, `/urunler/nfc-kart`, `/nasil-calisir`, `/kurumsal`, `/destek`, `/giris`, `/sepet`, `/checkout`, `/gizlilik`, `/aktivasyon`, 404, `/p/invalid-id` |
 | Interactive Chrome at 1440 / 1280 / 390 | Homepage + several public pages. Tablet 768 not fully exercised. No real iPhone Safari, Firefox, Edge, or Android device. |
 | Authenticated dashboard / corporate panel | **Not run** (no production credentials in this environment) |
-| iyzico sandbox purchase → entitlement → activation | **Not run** (`IYZICO_*` absent). Playwright E2E-01…05 and E2E-07 are skipped skeletons. |
+| PayTR sandbox purchase → entitlement → activation | **Not run** (`PAYTR_*` absent). Playwright E2E-01…05 and E2E-07 are skipped skeletons. |
 | `verify:db` / staging mutations | **BLOCKED** |
 | Production deploy of current `main` | **Not on live.** Live Vercel is a cache HIT of an older build. Protected Production Deploy still fails `verify:phase20:production` on missing `PRODUCTION_*` / `LEGAL_*` / Vercel secrets. |
 
@@ -37,7 +37,7 @@ Code fixes that do not require production secrets:
 | QA-003 Campaign Mail card | **Code on `main`** (PR #119). Live `/kurumsal` still has `Campaign Mail` (15) / `CAMPAIGN-MAIL` (9). |
 | QA-004 how-it-works board | **Code on `main`** (PR #123). Live still lacks `how-steps-board`. |
 | QA-005 canonical host + sitemap | **Merged.** PR **#126** on `main` (`e76f308`). Live `/sitemap.xml` still hardcodes `qr.yenomilabs.com` and omits marketing routes. |
-| QA-006 guest purchase E2E | **Not run.** Still needs iyzico sandbox. Skipped specs are not a pass. |
+| QA-006 guest purchase E2E | **Not run.** Still needs PayTR sandbox. Skipped specs are not a pass. |
 | QA-008 checkout / activation first paint | **Merged in #126.** Live still serves the stale first-paint copy. |
 | QA-009 footer product links | **Merged in #126.** |
 | QA-010 recover-by-UUID | **Already gated in current code** (`cookie` or authenticated owner). Not re-opened. |
@@ -105,7 +105,7 @@ BROWSER: n/a
 DEVICE: n/a  
 PRECONDITIONS: Human has repo admin on `sevcanesim/id_system`  
 
-PROBLEM: Live Vercel is not current `main`. Deploy job fails `verify:phase20:production` because workflow maps `PRODUCTION_*` secrets and production still lacks required names (`PRODUCTION_SITE_URL`, `PRODUCTION_SUPABASE_PUBLISHABLE_KEY`, `PRODUCTION_IYZICO_*`, `PRODUCTION_UPSTASH_*`, `LEGAL_*`, Vercel IDs).  
+PROBLEM: Live Vercel is not current `main`. Deploy job fails `verify:phase20:production` because workflow maps `PRODUCTION_*` secrets and production still lacks required names (`PRODUCTION_SITE_URL`, `PRODUCTION_SUPABASE_PUBLISHABLE_KEY`, `PRODUCTION_PAYTR_*`, `PRODUCTION_UPSTASH_*`, `LEGAL_*`, Vercel IDs).
 
 STEPS TO REPRODUCE:  
 1. Compare live `/nasil-calisir` (4-up cards) to `main` (`how-steps-board`).  
@@ -215,10 +215,10 @@ TEST ID: QA-2026-08-23-006
 CATEGORY: [FUNCTIONAL] [DATA]  
 SEVERITY: P1  
 PAGE: Guest purchase chain  
-URL: `/urunler/nfc-kart` → `/sepet` → `/checkout` → iyzico → `/odeme/basarili` → `/aktivasyon`  
+URL: `/urunler/nfc-kart` → `/sepet` → `/checkout` → PayTR → `/odeme/basarili` → `/aktivasyon`
 BROWSER: untested live  
 DEVICE: untested  
-PRECONDITIONS: Sandbox iyzico + staging DB  
+PRECONDITIONS: Sandbox PayTR + staging DB
 
 PROBLEM: The revenue path is not covered by a running E2E. `e2e/critical-journeys.spec.ts` documents **COVERAGE: 1/7**. Unit tests cover settlement idempotency; they do not prove 3DS, callback delay, or guest claim.  
 
@@ -324,13 +324,13 @@ CLASSIFICATION: [AUTOMATE]
 TEST ID: QA-2026-08-23-010  
 CATEGORY: [SECURITY]  
 SEVERITY: P2  
-PAGE: `/api/payments/iyzico/recover`  
+PAGE: `emekli ödeme sağlayıcısı recovery endpointi`
 URL: API  
 BROWSER: n/a  
 DEVICE: n/a  
 PRECONDITIONS: Known from `audit/SYSTEM_HARDENING_AUDIT_V25.9.4.md`; not re-exploited here  
 
-PROBLEM: Recover can accept an order UUID in the body when the pending-order cookie is missing. Rate-limited. Settlement still requires iyzico retrieve. Residual: order-id oracle.  
+PROBLEM: Recover can accept an order UUID in the body when the pending-order cookie is missing. Rate-limited. Settlement sağlayıcı tarafı doğrulamasına bağlıydı. Residual: order-id oracle.
 
 EXPECTED RESULT: Recover bound to pending-order cookie **or** authenticated ownership.  
 ACTUAL RESULT: UUID probe still in the threat model.  
@@ -356,7 +356,7 @@ PROBLEM: Marquee duplicates the four trust items (animation loop). HTML dump sho
 
 EXPECTED RESULT: One accessible name; decorative copies `aria-hidden`.  
 ACTUAL RESULT: Duplicated strings in the document.  
-FAIL CONDITION: Screen reader announces SSL / iyzico / kargo twice on every page.  
+FAIL CONDITION: Screen reader announces SSL / PayTR / kargo twice on every page.
 BUSINESS IMPACT: Low conversion; high annoyance on first visit.  
 UX IMPACT: Noise before the H1.  
 RECOMMENDED FIX: `aria-hidden="true"` on `.yi-brand-marquee__track`; keep the existing `role="note"` label.  
@@ -480,7 +480,7 @@ No evidence of a required account wall in front of first-card checkout in code. 
 
 **Visit → understand:** Homepage H1 and two paths (bireysel / kurumsal) are clear. Primary gold is `NFC Kartı Satın Al`. Secondary is text `Ekip paketini incele`. Do not add a third gold.
 
-**Trust:** iyzico / no PAN stored is repeated (ticker, home, PDP, checkout). Slightly noisy but on-strategy. Ticker duplication is the fix, not deleting the claim.
+**Trust:** PayTR / no PAN stored is repeated (ticker, home, PDP, checkout). Slightly noisy but on-strategy. Ticker duplication is the fix, not deleting the claim.
 
 **Select:** PDP package switcher Bireysel ₺799 / Premium ₺1.250. Hero owns fill `Sepete Ekle`; mid/end jumps stay text on `main` (faz4). Live PDP fetch showed multiple Sepete Ekle — confirm post-deploy that only the buy box is filled.
 
@@ -671,7 +671,7 @@ Payment chain: only with sandbox. Until then report **NOT RUN**.
 3. **Confirm live SHA === `main`** — Campaign Mail gone, how-it-works board live.  
 4. **One canonical host** (`NEXT_PUBLIC_SITE_URL`) for sitemap, OG, vCard, QR print.  
 5. **Sitemap completeness** — `/`, `/nasil-calisir`, `/kurumsal`, `/destek`.  
-6. **Real iyzico sandbox E2E-01** — guest pay.  
+6. **Real PayTR sandbox E2E-01** — guest pay.
 7. **E2E-02 recover after closed tab.**  
 8. **E2E-04 guest claim email bind.**  
 9. **Empty checkout first paint** — no “ödeme hazırlanıyor” without a cart.  
@@ -702,4 +702,4 @@ Payment chain: only with sandbox. Until then report **NOT RUN**.
 1. Land **#127** (CSP nonce on Next scripts, funnel document nonce lock, catalog 4-row grid).  
 2. Human: fill production secrets and dispatch Protected Production Deploy.  
 3. Post-deploy smoke: `npm run verify:faz10:smoke` against `PRODUCTION_SITE_URL` (nonce, how-steps-board, no Campaign Mail card, sitemap host). Then iPhone hamburger.  
-4. Do not add `unsafe-inline`, restyle the shell, or treat skipped iyzico E2E as coverage.
+4. Do not add `unsafe-inline`, restyle the shell, or treat skipped PayTR E2E as coverage.

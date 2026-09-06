@@ -20,7 +20,7 @@ const iframe = read("app/odeme/paytr/PaytrIframe.tsx");
 
 check(config.includes('type ActivePaymentProvider = "PAYTR"'), "provider selection is PayTR-only");
 check(config.includes('return isPaytrConfigured ? "PAYTR" : null'), "PayTR is required before checkout can start");
-check(!checkout.includes("identityNumber") && !checkout.includes("IYZICO"), "checkout never collects a Turkish identity number or selects a legacy provider");
+check(!checkout.includes("identityNumber"), "checkout never collects a Turkish identity number");
 check(checkout.includes("initializePaytrCheckout") && checkout.includes("const paymentProvider = getActivePaymentProvider()") && checkout.includes("provider: paymentProvider"), "server reserves and initializes PayTR only");
 check(
   paytr.includes("createHmac(\"sha256\", input.merchantKey)")

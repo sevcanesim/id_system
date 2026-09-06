@@ -3,7 +3,7 @@
 ## Uygulandı — paketleme / ödeme doğrulama / toplu davet (mimari rapor)
 
 - Paylaşım yalnız `npm run package:safe` (`release:package` alias). `verify:pre-share` zip içinde `.env*` olduğunu fail eder. Manuel `zip -r` kök nedeni kilitlendi; canlı secret rotasyonu hâlâ ops görevi.
-- Legacy iyzico `nfc_orders` callback artık `verifyIyzicoCheckoutResult` kullanıyor — commerce settle ile aynı doğrulama.
+- Emekli ödeme akışına ait `nfc_orders` callback'i kaldırıldı; commerce ödeme kesinleştirmesi yalnız PayTR imzalı callback'i ile yapılır.
 - CSV toplu davette `emailSent: false` satırları sonuç ekranında ayrılıyor ve mevcut davet yeniden gönder akışına bağlanıyor.
 - `SUSPENDED` koltuk tüketimi bilinçli ticari politika olarak belgelendi; panelde pasif çalışan uyarısı var.
 
@@ -117,7 +117,7 @@ Güncel durum: v25.8.4 kurumsal kart formundaki alan yetki matrisini tamamladı 
 - Mevcut şirketlerde pozisyon kataloğu ve kurumsal bağlantılar içerik girilene kadar boş kalabilir; ilk kurulum kontrol listesine en az bir ürün kataloğu ve temel pozisyonlar eklenmeli.
 
 ## Sıradaki P1
-- **Ops:** Daha önce paylaşılmış zip arşivlerindeki Supabase service-role, iyzico secret, Maps key ve Vercel OIDC değerlerini rotate et. Paketleme kök nedeni (`zip -r` `.gitignore` görmez) `npm run package:safe` + `npm run verify:pre-share` ile kilitlendi; rotasyon hâlâ canlı ortam görevi — bu agent secret rotate edemez.
+- **Ops:** Daha önce paylaşılmış zip arşivlerindeki Supabase service-role, emekli ödeme sağlayıcısı anahtarları, Maps key ve Vercel OIDC değerlerini rotate et. Paketleme kök nedeni (`zip -r` `.gitignore` görmez) `npm run package:safe` + `npm run verify:pre-share` ile kilitlendi; rotasyon hâlâ canlı ortam görevi — bu agent secret rotate edemez.
 - Lead/CRM modülünün ürün kapsamına alınıp alınmayacağına karar ver; mevcut fixture yalnız "modül bekliyor" organizasyonudur. Birleşik park notu (networking + TR|EN kart + Super Admin tenant + public URL): `docs/product-engineering/17_PARKED_CORPORATE_NETWORKING_LEAD_MODULE.md`. Uygulama kapısı: **`notu uygula`**.
 - `app/kurumsal/panel/page.tsx` bileşenleştirmesi: Employees + EmployeeDrawer v25.8.8'de tamamlandı (bkz. yukarı); yalnız Overview kaldı.
 

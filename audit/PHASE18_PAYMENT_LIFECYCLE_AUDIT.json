@@ -11,7 +11,7 @@
     "account-first auto-claim review reporting"
   ],
   "preserved": [
-    "iyzico provider verification",
+    "PayTR provider verification",
     "checkout idempotency key",
     "server-authoritative product price",
     "server-authoritative business seat count",
@@ -19,7 +19,7 @@
     "physical fulfillment units"
   ],
   "requires_staging": [
-    "real iyzico sandbox redirect and callback",
+    "real PayTR sandbox redirect and callback",
     "callback replay against deployed environment",
     "seat-pack paid callback against active subscription",
     "renewal paid callback against expiring entitlement"

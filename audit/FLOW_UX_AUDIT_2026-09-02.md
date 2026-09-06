@@ -30,7 +30,7 @@ Bu, uygulamanın kendi yönlendirmeleriyle çelişiyor: `app/odeme/basarisiz/pag
 
 Pratikte kurtarma yolu, kullanıcının aynı ürünü tekrar sepete atıp `/checkout`'a gitmesi ve orada `lookupPendingCheckoutOrder()` mekanizmasının (tarayıcıdaki localStorage/cookie üzerinden) eski siparişi tanıyıp `retryOrderId` ile eşlemesine bağlı — ki bu da yalnız aynı cihaz/tarayıcıda çalışır. Başka bir cihazdan giriş yapan (örn. telefondan sipariş verip masaüstünden kontrol eden) bir kullanıcı için bu otomatik eşleşme de yoktur ve sipariş fiilen ödenemez hâlde kalır.
 
-**Öneri:** `AWAITING_PAYMENT` (ve muhtemelen `DRAFT`) durumundaki sipariş kartına, o siparişin `orderId`'sini taşıyan bir "Ödemeyi Tamamla" düğmesi eklenmeli; bu düğme `/checkout?resume=...` akışına (zaten var olan `checkout/resume` token mekanizmasına) veya doğrudan `/api/payments/iyzico/checkout` yeniden başlatmaya bağlanmalı.
+**Öneri:** `AWAITING_PAYMENT` (ve muhtemelen `DRAFT`) durumundaki sipariş kartına, o siparişin `orderId`'sini taşıyan bir "Ödemeyi Tamamla" düğmesi eklenmeli; bu düğme `/checkout?resume=...` akışına (zaten var olan `checkout/resume` token mekanizmasına) veya doğrudan `/api/payments/PayTR/checkout` yeniden başlatmaya bağlanmalı.
 
 ## 2) Süresi dolmuş/pasif kartvizit sayfalarında hiçbir çıkış yolu yok
 

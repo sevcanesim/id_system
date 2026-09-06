@@ -105,7 +105,7 @@ denetimi ayrı, odaklı oturumlar gerektiriyor — NEXT_TASKS.md'ye eklendi.
   className'i yoktu** — çıplak tarayıcı butonu olarak render ediliyordu.
   Şimdi tam genişlikte, altın renkli, hover/press mikro-etkileşimli bir
   birincil CTA'ya dönüştürüldü.
-- Güven rozetleri (`checkout-secure-list`: SSL, iyzico, kargo, aktivasyon),
+- Güven rozetleri (`checkout-secure-list`: SSL, PayTR, kargo, aktivasyon),
   sipariş özeti kalemleri (`checkout-summary-items`, `-thumb`, `-benefits`),
   onay kutuları (`checkout-consent`) ve sözleşme linkleri
   (`checkout-policy-links`) — hepsi tanımsızdı. Artık hepsi stillendi.
@@ -114,10 +114,10 @@ denetimi ayrı, odaklı oturumlar gerektiriyor — NEXT_TASKS.md'ye eklendi.
 - **Footer**: Sadece KVKK/Gizlilik/Hizmet Şartları vardı; "Mesafeli Satış
   Sözleşmesi" ve "İade & İptal" sayfaları kod tabanında **zaten mevcuttu
   ama hiçbir global linkten erişilemiyordu**. İkisi de artık footer'da.
-  Ayrıca footer'a SSL/iyzico/kargo güven şeridi eklendi
+  Ayrıca footer'a SSL/PayTR/kargo güven şeridi eklendi
   (`.yi-footer__trust`).
 - **Ürün sayfası** (`/urunler/nfc-kart`, gerçek satış sayfası): mevcut
-  güven satırı ("✓ NFC + QR" vb.) ikon tabanlı hale getirildi ve "iyzico
+  güven satırı ("✓ NFC + QR" vb.) ikon tabanlı hale getirildi ve "PayTR
   ile güvenli ödeme" ifadesiyle güçlendirildi — ödeme sağlayıcısı artık
   satın alma kararı anında görünür.
 

@@ -21,7 +21,7 @@
     "responsive_overflow"
   ],
   "staging_only_remaining": [
-    "Real iyzico Sandbox checkout and internet-reachable callback",
+    "Real PayTR sandbox checkout and internet-reachable callback",
     "Fresh Supabase database replay with all migrations",
     "Full visual snapshots after browser-backed run",
     "Cross-browser release qualification"

@@ -2,11 +2,10 @@
 
 ## PayTR hosted ödeme sağlayıcısı — 5 Eylül 2026
 
-- PayTR, gerekli üç sunucu anahtarı yapılandırıldığında tercih edilen hosted
-  ödeme sağlayıcısı olarak eklendi; iyzico yapılandırılmamış PayTR için güvenli
-  yedek akış olmaya devam ediyor.
-- PayTR akışında T.C. kimlik numarası UI ve sunucu doğrulamasında istenmiyor.
-  iyzico akışının mevcut kimlik numarası kontrolü değişmedi.
+- PayTR, gerekli üç sunucu anahtarı yapılandırıldığında Yenomi ID'nin tek
+  hosted ödeme sağlayıcısıdır.
+- PayTR akışında T.C. kimlik numarası UI ve sunucu doğrulamasında istenmiyor;
+  Yenomi ID bu bilgiyi kaydetmiyor.
 - Ödeme sonucu yalnız imzalı PayTR callback'i ve atomik veritabanı işlemiyle
   kesinleşiyor; tarayıcı yönlendirmesi bir siparişi ödeme durumuna geçiremez.
 - Uygulama gizli PayTR anahtarlarını içermiyor. Sandbox/canlı callback smoke

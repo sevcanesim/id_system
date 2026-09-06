@@ -23,7 +23,7 @@
     "canonical tokens only"
   ],
   "deferred": [
-    "iyzico/API rewrite",
+    "PayTR API migration",
     "cart data model changes",
     "auth redesign",
     "dashboard activation redesign",

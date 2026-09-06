@@ -118,7 +118,7 @@
   "commerce_contracts": [
     "server-authoritative catalog pricing",
     "checkout idempotency",
-    "iyzico callback verification",
+    "PayTR callback verification",
     "payment/order/entitlement/activation separation"
   ]
 }

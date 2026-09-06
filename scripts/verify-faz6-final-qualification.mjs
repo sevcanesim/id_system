@@ -26,7 +26,7 @@ for (const file of requiredFiles) fs.existsSync(file) ? pass(`final qualificatio
 
 const runtime = fs.readFileSync('docs/RC3_RUNTIME_PROMOTION_CHECKLIST.md', 'utf8');
 for (const marker of [
-  'verify:phase20:staging', 'test:phase19', 'test:e2e', 'IYZICO_BASE_URL=https://sandbox-api.iyzipay.com',
+  'verify:phase20:staging', 'test:phase19', 'test:e2e', 'PAYTR_TEST_MODE=true',
   'verify:phase20:production', 'RC3 -> Production: APPROVED', 'RC3 -> Production: BLOCKED',
 ]) runtime.includes(marker) ? pass(`runtime checklist retains: ${marker}`) : fail(`runtime checklist retains: ${marker}`);
 

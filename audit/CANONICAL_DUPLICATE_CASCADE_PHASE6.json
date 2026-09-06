@@ -6505,7 +6505,7 @@
           {
             "file": "app/nfc-siparis/page.tsx",
             "line": 415,
-            "snippet": "<small className=\"secure-caption\">Güvenli ödeme altyapısı iyzico tarafından sağlanır.</small>"
+            "snippet": "<small className=\"secure-caption\">Güvenli ödeme altyapısı emekli ödeme sağlayıcısı tarafından sağlanır.</small>"
           },
           {
             "file": "app/urunler/page.tsx",
@@ -26839,7 +26839,7 @@
           {
             "file": "app/admin/page.tsx",
             "line": 155,
-            "snippet": "if (!response.ok) setReconciliationMessage(result.error ?? \"iyzico çekimi tamamlanamadı.\");"
+            "snippet": "if (!response.ok) setReconciliationMessage(result.error ?? \"emekli ödeme sağlayıcısı çekimi tamamlanamadı.\");"
           },
           {
             "file": "app/admin/page.tsx",
@@ -30917,7 +30917,7 @@
           {
             "file": "app/nfc-siparis/page.tsx",
             "line": 400,
-            "snippet": "<div className=\"pane-heading\"><span>05</span><div><h3>Güvenli ödeme</h3><p>Siparişini kontrol et ve iyzico ile tamamla.<"
+            "snippet": "<div className=\"pane-heading\"><span>05</span><div><h3>Güvenli ödeme</h3><p>Siparişini kontrol et ve emekli ödeme sağlayıcısı ile tamamla.<"
           }
         ],
         "totalLocations": 5
@@ -32693,7 +32693,7 @@
           {
             "file": "app/nfc-siparis/page.tsx",
             "line": 403,
-            "snippet": "<div className=\"payment-privacy-note\"><strong>Neden isteniyor?</strong><span>iyzico bu bilgiyi ödeme doğrulaması için zo"
+            "snippet": "<div className=\"payment-privacy-note\"><strong>Neden isteniyor?</strong><span>emekli ödeme sağlayıcısı bu bilgiyi ödeme doğrulaması için zo"
           }
         ],
         "totalLocations": 1

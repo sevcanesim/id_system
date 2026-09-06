@@ -1,7 +1,7 @@
 # Yenomi ID — System Hardening Audit
 
-**Baseline:** v25.9.4 · Next.js App Router · Supabase · iyzico  
-**Date:** 21 August 2026  
+**Baseline:** v25.9.4 · Next.js App Router · Supabase · emekli ödeme sağlayıcısı
+**Date:** 21 August 2026
 **Surface:** Web / Safari / PWA. There is no Xcode, Keychain, Core Data or native iOS binary in this repository. Mobile findings map to Safari and the installed web app.
 
 ## Verification
@@ -17,7 +17,7 @@
 | Secrets hygiene | PASS | `--allow-local-env` |
 | Playwright E2E | NOT RUN | `tests/` reset; no e2e specs |
 | `verify:db` / catalog | BLOCKED | No Supabase env in this environment |
-| iyzico sandbox / production env | BLOCKED | Provider secrets absent |
+| emekli ödeme sağlayıcısı sandbox / production env | BLOCKED | Provider secrets absent |
 | Phase 11 employee verifier | FAIL | Pre-existing: stale `return null` / header / version needles. Not introduced here |
 
 Never treat BLOCKED or NOT RUN as PASS.
@@ -29,21 +29,21 @@ Never treat BLOCKED or NOT RUN as PASS.
 1. **Identity swap on retry.** Checkout fingerprint hashed name/phone/identityType but not the TCKN. Same idempotency key + different TCKN reused the payment attempt. KYC/AML hole. **Fixed:** `identityNumber` is now part of the fingerprint hash.
 2. **Spare card sold to guests.** Catalog CTA looked live; checkout 403'd after payment intent. Conversion dead-end. Spare-card gate lives on PR #81; this branch does not change catalog copy.
 3. **Guest extra-card in localStorage.** A crafted cart can still hold `YENOMI-NFC-EXTRA`. Checkout rejects it. Remaining risk: confusing error, not free fulfillment.
-4. **Recover-by-UUID.** `/api/payments/iyzico/recover` accepts a body order UUID when the pending-order cookie is absent. Anyone who learns an order id can probe settlement. Rate-limited. Do not remove email/deep-link recover; bind recover to cookie **or** authenticated ownership.
-5. **Webhook has no provider signature.** Settlement still `retrieveCheckout`s the token against iyzico, so a random token cannot mark paid. Token leak = settle oracle. Response no longer echoes `orderId`.
+4. **Recover-by-UUID.** `/api/payments/paytr/recover` accepts a body order UUID when the pending-order cookie is absent. Anyone who learns an order id can probe settlement. Rate-limited. Do not remove email/deep-link recover; bind recover to cookie **or** authenticated ownership.
+5. **Webhook has no provider signature.** Settlement still `retrieveCheckout`s the token against emekli ödeme sağlayıcısı, so a random token cannot mark paid. Token leak = settle oracle. Response no longer echoes `orderId`.
 6. **Legacy `nfc_orders` callback path** still writes `payment_attempts.raw_result`. Dual state machines. Keep 410 on init; finish draining the retrieve path.
 7. **`/hesabim` was a client-only gate.** Unauthenticated users saw a loading shell before login. **Fixed:** middleware session required.
 8. **Seat-pack `user_id: null`.** Capacity add-on already requires auth. Guest extra-card uses `.eq("user_id", authenticatedUserId)` — null user never matches an entitlement. Server is correct; UI was the lie.
 
 ## 2. Persistence and logging gaps
 
-1. **iyzico `raw_result` stored buyer TCKN, email, GSM, BIN, last4.** Checkout copy said Yenomi does not keep identity. The ledger did. **Fixed:** whitelist settlement fields only.
+1. **emekli ödeme sağlayıcısı `raw_result` stored buyer TCKN, email, GSM, BIN, last4.** Checkout copy said Yenomi does not keep identity. The ledger did. **Fixed:** whitelist settlement fields only.
 2. **`console.error(..., error)` dumped SDK objects** on callback/webhook/recover/claim. **Fixed:** message-only on those paths. Remaining: organization member/analytics logs still print `code`/`message` (acceptable).
 3. **Card draft in `localStorage`** stored phone, email, whatsapp, image. Shared Mac/iPad = PII. **Fixed:** draft keeps name/role/company/social structure; contact and image are dropped on read and write.
 4. **Activation token in `sessionStorage` + URL.** URL is stripped after load (good vs referrer). Session tab still holds the secret. XSS reads it. Keep hashing at rest; do not persist the raw token longer than the claim POST.
 5. **Remembered email in localStorage.** Non-secret preference. Demo `@yenomi.test` already purged. Keep.
 6. **Cart is localStorage, not server.** Background kill + another device = empty cart. Guest checkout depends on this. Accept for guests; authenticated carts should eventually be server-side.
-7. **Abandoned AWAITING_PAYMENT orders** are created before iyzico init. Failed init deletes when `createdNewOrder`. Retry path can leave unpaid rows. Need a sweeper, not a UI spinner.
+7. **Abandoned AWAITING_PAYMENT orders** are created before emekli ödeme sağlayıcısı init. Failed init deletes when `createdNewOrder`. Retry path can leave unpaid rows. Need a sweeper, not a UI spinner.
 8. **Funnel `dataLayer` is a stub.** No GA4/PostHog. Conversion is unmeasured. `console.debug` is dev-only.
 
 ## 3. Load and timeouts
@@ -51,7 +51,7 @@ Never treat BLOCKED or NOT RUN as PASS.
 1. **Rate limiter falls back to in-memory Map** when Upstash is missing. Serverless instances do not share the map. Production env check already requires Upstash — treat missing Redis as a release blocker, not a silent degrade, if the threat model is paranoid.
 2. **`x-forwarded-for` is the rate-limit IP.** Spoofable unless the edge strips it. Trust only the platform-provided client IP.
 3. **`middlewareClientMaxBodySize: 21mb`.** Upload routes need it; every other API inherits it. Memory DoS on JSON POST. Cap JSON routes at ~100kb; keep 21mb only on `links/upload`.
-4. **Checkout does several serial admin queries** (products, membership, subscription, entitlements, insert order/items/address/consents, reserve attempt, iyzico). iyzico timeout after order insert leaves AWAITING_PAYMENT + FAILED attempt — recover exists. Under burst, iyzico is the bottleneck, not Next.
+4. **Checkout does several serial admin queries** (products, membership, subscription, entitlements, insert order/items/address/consents, reserve attempt, emekli ödeme sağlayıcısı). emekli ödeme sağlayıcısı timeout after order insert leaves AWAITING_PAYMENT + FAILED attempt — recover exists. Under burst, emekli ödeme sağlayıcısı is the bottleneck, not Next.
 5. **Middleware calls GoTrue `/auth/v1/user` on every protected page** when the access cookie is present. That is a sync auth hop on `/kartim`, `/olustur`, corporate panel. Cache a short-lived “access valid until exp” in the JWT `exp` without a network call; refresh only when expired (already the refresh path).
 6. **No Playwright journey** covers callback delay, double POST, or tab-close-during-3DS. Those are the production incidents.
 
@@ -69,7 +69,7 @@ Never treat BLOCKED or NOT RUN as PASS.
 | Scenario | Risk | Change |
 | --- | --- | --- |
 | Attacker opens `/api/auth/session` in Safari | Access + refresh tokens render as JSON | **Done:** GET requires `x-yenomi-session: 1` and rejects `document`/`navigate` |
-| iyzico retrieve payload archived | TCKN/BIN in DB backups | **Done:** whitelist `sanitizeProviderPayload` |
+| emekli ödeme sağlayıcısı retrieve payload archived | TCKN/BIN in DB backups | **Done:** whitelist `sanitizeProviderPayload` |
 | Retry checkout with another TCKN | Fingerprint collision | **Done:** identity in fingerprint |
 | Bookmark `/hesabim` while logged out | Private router flash | **Done:** middleware protect |
 | iOS app switcher on checkout | Snapshot of TCKN | **Done:** blur when `visibilityState !== visible` — does **not** stop the Screenshot button |
@@ -99,9 +99,9 @@ Never treat BLOCKED or NOT RUN as PASS.
 
 ### Transport
 
-- HSTS, `X-Frame-Options: DENY`, `frame-ancestors 'none'`, iyzico frame allowlist: present.
+- HSTS, `X-Frame-Options: DENY`, `frame-ancestors 'none'`, emekli ödeme sağlayıcısı frame allowlist: present.
 - **SSL pinning is not available in Safari for web apps.** MitM with a trusted profile CA still works on a supervised device. Compensate with HSTS + tight `connect-src` (already scoped to Supabase + Google Maps).
-- iyzico retrieve is server-side with apiKey/secret. Browser never sees the secret. Good.
+- emekli ödeme sağlayıcısı retrieve is server-side with apiKey/secret. Browser never sees the secret. Good.
 
 ### Local storage (web equivalent of UserDefaults)
 
@@ -122,7 +122,7 @@ Never treat BLOCKED or NOT RUN as PASS.
 4. Recover authorization (cookie or user).
 5. Server-side authenticated cart.
 6. Expire activation `sessionStorage` on `pagehide`.
-7. Do not put TCKN in DOM longer than the iyzico POST; already wiped on pagehide.
+7. Do not put TCKN in DOM longer than the emekli ödeme sağlayıcısı POST; already wiped on pagehide.
 
 ---
 
@@ -155,8 +155,8 @@ Canonical purchase strings are release-gated. Changing them here would fail Faz 
 | Sepete Ekle (yedek, misafir) | Giriş gerekli — **bu PR’de disable + hint** |
 | İlk kartım yok | Sil. Bireysel kart zaten yanda. |
 | Hesabımı Oluştur ve Bağla | Hesabını aç, kartını bağla |
-| iyzico ile güvenle öde | iyzico ile öde. Kartın Yenomi’de durmaz. |
-| Kart numarası Yenomi’de saklanmaz | Kartın iyzico’da işlenir. Kimlik numarası ödeme için kullanılır, Yenomi defterine yazılmaz. |
+| emekli ödeme sağlayıcısı ile güvenle öde | emekli ödeme sağlayıcısı ile öde. Kartın Yenomi’de durmaz. |
+| Kart numarası Yenomi’de saklanmaz | Kartın emekli ödeme sağlayıcısı’da işlenir. Kimlik numarası ödeme için kullanılır, Yenomi defterine yazılmaz. |
 | Hesap açmadan ödeyebilirsin | Kartı şimdi al. Hesabı teslimattan sonra bağlarsın. |
 
 Trust line that is already honest after this PR: identity is not stored in `raw_result`. Keep saying it.
@@ -171,8 +171,8 @@ Classify: **A** = automate (Playwright) · **M** = manual device · **S** = stat
 
 | ID | Amaç | Ön koşul | Adımlar | Beklenen | Fail |
 | --- | --- | --- | --- | --- | --- |
-| E2E-01 | Misafir fiziksel satın alma | iyzico sandbox | PDP → sepet → checkout → 3DS success | `/odeme/basarili`, activation email, unpaid≠fulfilled | Client “success” without PAID row |
-| E2E-02 | Callback gecikmesi | Paid at iyzico, no browser POST | Close tab, recover | Order PAID via recover; no second charge | Stuck AWAITING_PAYMENT |
+| E2E-01 | Misafir fiziksel satın alma | emekli ödeme sağlayıcısı sandbox | PDP → sepet → checkout → 3DS success | `/odeme/basarili`, activation email, unpaid≠fulfilled | Client “success” without PAID row |
+| E2E-02 | Callback gecikmesi | Paid at emekli ödeme sağlayıcısı, no browser POST | Close tab, recover | Order PAID via recover; no second charge | Stuck AWAITING_PAYMENT |
 | E2E-03 | Çift callback | Same token twice | Replay POST | Second is ALREADY_PAID; one entitlement | Duplicate entitlement |
 | E2E-04 | Guest claim | Paid guest order | `/aktivasyon?token=` → signup | Email match binds; wrong email 403 | Cross-account claim |
 | E2E-05 | Auth purchase auto-claim | Logged-in individual | Checkout success | No activation email; `/olustur` ready | Guest token issued to auth user |
@@ -192,7 +192,7 @@ Classify: **A** = automate (Playwright) · **M** = manual device · **S** = stat
 | EDGE-02 | Fingerprint TCKN change | Same attempt reused — **now conflict** |
 | EDGE-03 | Provider payload in DB | TCKN in `raw_result` — **now whitelist** |
 | EDGE-04 | Invalid TCKN | Checkout 400 |
-| EDGE-05 | iyzico timeout after order insert | Recoverable; no silent success |
+| EDGE-05 | emekli ödeme sağlayıcısı timeout after order insert | Recoverable; no silent success |
 | EDGE-06 | XSS copy on public profile | Alert — **removed**; watermark only |
 | EDGE-07 | 21mb JSON to checkout | Should 413 after route cap (remaining) |
 | EDGE-08 | Demo user on production | `verify:production:no-demo-users` |

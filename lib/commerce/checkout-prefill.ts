@@ -54,9 +54,9 @@ export function mergeCheckoutPrefill<T extends CheckoutPrefill>(form: T, incomin
   return merged;
 }
 
-export async function fetchLastOrderCheckoutPrefill(accessToken: string): Promise<CheckoutPrefill | null> {
+export async function fetchLastOrderCheckoutPrefill(): Promise<CheckoutPrefill | null> {
   const response = await fetch("/api/commerce/orders", {
-    headers: { authorization: `Bearer ${accessToken}` },
+    credentials: "same-origin",
     cache: "no-store",
   });
   if (!response.ok) return null;

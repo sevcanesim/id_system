@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import styles from "./OrdersPage.module.css";
 
 export default function ResumePaymentButton({ orderId }: { orderId: string }) {
@@ -13,19 +12,15 @@ export default function ResumePaymentButton({ orderId }: { orderId: string }) {
     setBusy(true);
     setError("");
     try {
-      const supabase = getSupabaseBrowserClient();
-      const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
-      const token = data.session?.access_token;
-      if (!token) {
+      const response = await fetch(`/api/commerce/orders/${encodeURIComponent(orderId)}/resume`, {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+      if (response.status === 401) {
         window.location.assign(`/giris?next=${encodeURIComponent("/siparislerim")}`);
         return;
       }
-
-      const response = await fetch(`/api/commerce/orders/${encodeURIComponent(orderId)}/resume`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store",
-      });
       const payload = await response.json();
       if (!response.ok || typeof payload.href !== "string") {
         throw new Error(typeof payload.error === "string" ? payload.error : "Ödeme devam bağlantısı oluşturulamadı.");

@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getActivePaymentProvider, publicSiteUrl } from "../../../../lib/payments/config";
 import { createPaytrMerchantOid, initializePaytrCheckout } from "../../../../lib/payments/paytr";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
+import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
 import { canPurchaseCorporateCommerce, isOrganizationRole } from "../../../../lib/organizations/permissions";
 import { publicError } from "../../../../lib/errors";
 import {
@@ -190,20 +191,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = parsed.data;
-    const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+    const identity = await resolveRequestIdentity(request);
     let authenticatedUserId: string | null = null;
     let normalizedEmail = body.customer.email.toLowerCase();
 
-    if (bearer) {
-      const auth = getSupabaseAuthClient();
-      const { data: authData } = await auth.auth.getUser(bearer);
-      if (authData.user?.id && authData.user.email) {
-        authenticatedUserId = authData.user.id;
-        observabilityUserId = authData.user.id;
-        normalizedEmail = authData.user.email.toLowerCase();
-        if (body.customer.email.toLowerCase() !== normalizedEmail) {
-          return NextResponse.json({ error: "Sipariş e-postası giriş yaptığın hesapla eşleşmelidir." }, { status: 403 });
-        }
+    if (identity?.user.email) {
+      authenticatedUserId = identity.user.id;
+      observabilityUserId = identity.user.id;
+      normalizedEmail = identity.user.email.toLowerCase();
+      if (body.customer.email.toLowerCase() !== normalizedEmail) {
+        return NextResponse.json({ error: "Sipariş e-postası giriş yaptığın hesapla eşleşmelidir." }, { status: 403 });
       }
     }
 

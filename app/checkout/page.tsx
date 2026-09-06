@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { readCart, writeCart, type CartItem } from "../../lib/cart";
 import { formatTryFromKurus } from "../../lib/config/product";
 import { COMMERCIAL_FULFILLMENT, COMMERCIAL_SKUS, digitalServiceBillingAddress, isCorporatePackageSku, isDigitalOnlySku, isPhysicalBundleSku, isPremiumUpgradeSku, isRenewalSku, requiresPortalAccountSku } from "../../lib/config/commercial";
-import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
+import { getBrowserIdentity } from "../../lib/auth/browser-identity";
 import { Icon } from "../icons";
 import { Button } from "../components/ui/DesignSystem";
 import { TURKEY_CITIES, normalizeTrPhone } from "../../lib/form-standards";
@@ -130,9 +130,8 @@ export default function CheckoutPage() {
     }
 
     void (async () => {
-      const supabase = getSupabaseBrowserClient();
-      const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
-      await bootstrapAuthenticatedCheckout(data.session, {
+      const identity = await getBrowserIdentity();
+      await bootstrapAuthenticatedCheckout(identity ? { user: identity.user } : null, {
         setForm,
         setItems,
         setIsAuthenticated,
@@ -358,13 +357,10 @@ export default function CheckoutPage() {
         return;
       }
       const retryOrderId = pending.awaitingPayment ? pending.orderId : null;
-      const supabase = getSupabaseBrowserClient();
-      const { data: sessionData } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
       const headers: Record<string, string> = {
         "content-type": "application/json",
         "x-idempotency-key": getOrCreateCheckoutIdempotencyKey(),
       };
-      if (sessionData.session?.access_token) headers.authorization = `Bearer ${sessionData.session.access_token}`;
 
       const checkoutAddress = isCorporateNetworkMailPurchase && corporateNetworkMailTarget
         ? {

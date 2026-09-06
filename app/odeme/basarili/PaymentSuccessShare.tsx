@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
-import { fetchOwnProfile } from "../../../lib/repositories/profiles";
+import { getBrowserIdentity } from "../../../lib/auth/browser-identity";
 import { Icon } from "../../icons";
 import { track } from "../../../lib/analytics";
 import { cardShareUrl, publicCardOrigin } from "../../../lib/public-card/urls";
@@ -19,13 +18,16 @@ export default function PaymentSuccessShare() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) return;
-      const { data: profile } = await fetchOwnProfile(supabase, data.user.id);
-      if (profile?.public_id) setPublicUrl(cardShareUrl(profile.public_id, publicCardOrigin()));
-    });
+    let cancelled = false;
+    void (async () => {
+      if (!await getBrowserIdentity()) return;
+      const response = await fetch("/api/profiles/mine", { credentials: "same-origin", cache: "no-store" });
+      if (!response.ok) return;
+      const payload = await response.json() as { profiles?: Array<{ public_id?: string | null }> };
+      const profile = payload.profiles?.[0];
+      if (!cancelled && profile?.public_id) setPublicUrl(cardShareUrl(profile.public_id, publicCardOrigin()));
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   if (!publicUrl) return null;

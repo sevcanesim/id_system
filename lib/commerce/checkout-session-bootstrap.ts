@@ -6,7 +6,6 @@ import {
 } from "./checkout-prefill";
 
 type CheckoutSession = {
-  access_token: string;
   user: {
     id: string;
     email?: string | null;
@@ -70,11 +69,11 @@ export async function bootstrapAuthenticatedCheckout<T extends CheckoutBuyerFiel
 
   const [memberships, lastPaidOrder] = await Promise.all([
     organizationIds.length
-      ? fetch("/api/organizations/mine?management=true", { headers: { authorization: `Bearer ${session.access_token}` } })
+      ? fetch("/api/organizations/mine?management=true", { credentials: "same-origin" })
         .then((response) => response.ok ? response.json() : null)
         .catch(() => null)
       : Promise.resolve(null),
-    fetchLastOrderCheckoutPrefill(session.access_token).catch(() => null),
+    fetchLastOrderCheckoutPrefill().catch(() => null),
   ]);
 
   if (lastPaidOrder) surface.setForm((current) => mergeCheckoutPrefill(current, lastPaidOrder));

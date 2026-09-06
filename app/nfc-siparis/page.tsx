@@ -4,14 +4,12 @@ import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
-import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
-import { isSupabaseConfigured } from "../../lib/supabase/config";
+import { getBrowserIdentity } from "../../lib/auth/browser-identity";
 import { formatTryFromKurus, getNfcOrderTotalKurus, NFC_PRODUCT } from "../../lib/config/product";
 import { highestReachableNfcOrderStep, validateNfcOrderStep } from "../../lib/validation/nfc-order";
 import OrderLocationMap from "../components/OrderLocationMap";
 import { Icon } from "../icons";
 import { NfcCardFront, NfcCardBack } from "../components/ui/NfcCardArt";
-import { fetchOwnProfile } from "../../lib/repositories/profiles";
 import { track } from "../../lib/analytics";
 import { TURKEY_CITIES, normalizeEmailField, normalizeTrPhone } from "../../lib/form-standards";
 import { cardShareUrl } from "../../lib/public-card/urls";
@@ -38,6 +36,14 @@ type FormData = {
   mapUrl: string;
 };
 
+type CheckoutProfile = {
+  id: string;
+  public_id: string | null;
+  name: string | null;
+  role: string | null;
+  phone: string | null;
+  email: string | null;
+};
 
 const initial: FormData = {
   cardColor: "BLACK", printName: "", printTitle: "", phone: "", email: "",
@@ -67,25 +73,31 @@ export default function NfcOrderPage() {
   const publicCardUrl = useMemo(() => publicId ? cardShareUrl(publicId) : "", [publicId]);
 
   useEffect(() => {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) { setLoading(false); return; }
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) {
+    let cancelled = false;
+    void (async () => {
+      const identity = await getBrowserIdentity();
+      if (!identity) {
         router.replace("/giris?next=%2Fnfc-siparis");
         return;
       }
-      setUserId(data.user.id);
-      const { data: profile } = await fetchOwnProfile(supabase, data.user.id);
+      const response = await fetch("/api/profiles/mine", { credentials: "same-origin", cache: "no-store" });
+      const payload = response.ok ? await response.json() as { profiles?: CheckoutProfile[] } : null;
+      const profile = payload?.profiles?.[0];
+      if (cancelled) return;
+      setUserId(identity.user.id);
       track("order_start", { hasPublishedProfile: Boolean(profile?.public_id) });
       if (profile) {
         setProfileId(profile.id);
         setPublicId(profile.public_id || "");
-        setForm((current) => ({ ...current, printName: profile.name ?? "", printTitle: profile.role ?? "", phone: profile.phone ?? "", email: profile.email ?? data.user?.email ?? "" }));
+        setForm((current) => ({ ...current, printName: profile.name ?? "", printTitle: profile.role ?? "", phone: profile.phone ?? "", email: profile.email ?? identity.user.email ?? "" }));
       } else {
-        setForm((current) => ({ ...current, email: data.user?.email ?? "" }));
+        setForm((current) => ({ ...current, email: identity.user.email ?? "" }));
       }
       setLoading(false);
-    }).catch(() => setLoading(false));
+    })().catch(() => {
+      if (!cancelled) setLoading(false);
+    });
+    return () => { cancelled = true; };
   }, [router]);
 
 
@@ -180,8 +192,7 @@ export default function NfcOrderPage() {
     event.preventDefault();
     if (submitting) return; // çift tıklama / çift gönderim koruması
     setMessage("");
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase || !userId) { setMessage("Sipariş vermek için önce giriş yapmalısın."); return; }
+    if (!userId) { setMessage("Sipariş vermek için önce giriş yapmalısın."); return; }
     if (!profileId) { setMessage("Önce dijital kartvizitini oluşturmalısın."); return; }
     if (!legalVersions) { setMessage("Hukuk sürümleri DB’den yüklenmeden ödeme başlatılamaz."); return; }
     const consentVersions = legalVersions;
@@ -197,12 +208,8 @@ export default function NfcOrderPage() {
       setMessage(finalValidationError);
       return;
     }
-    // Kimlik doğrulamasını gönderim anında tazele: uzun süren bir sipariş akışında
-    // oturum yenilenmiş veya başka bir sekmede hesap değiştirilmiş olabilir.
-    // Sayfa açılışında okunan eski `userId` ile sipariş oluşturup, gönderim
-    // anındaki güncel oturumla ödemeye geçmek "Sipariş bulunamadı" hatasına yol açıyordu.
-    const { data: freshAuth } = await supabase.auth.getUser();
-    const currentUserId = freshAuth.user?.id ?? null;
+    const identity = await getBrowserIdentity();
+    const currentUserId = identity?.user.id ?? null;
     if (!currentUserId) {
       setSubmitting(false);
       setMessage("Oturumun sona ermiş. Lütfen tekrar giriş yap.");
@@ -212,16 +219,6 @@ export default function NfcOrderPage() {
       setSubmitting(false);
       setUserId(currentUserId);
       setMessage("Hesabın değişti gibi görünüyor. Bilgilerini kontrol edip tekrar dene.");
-      return;
-    }
-    // Token'ı tazele: form birkaç dakika sürebiliyor, arka planda yenilenmemiş bir
-    // token "Oturum doğrulanamadı" hatasıyla ödemeyi boşuna reddedebiliyordu.
-    await supabase.auth.refreshSession().catch(() => null);
-    const { data: sessionData } = await supabase.auth.getSession();
-    const accessToken = sessionData.session?.access_token;
-    if (!accessToken) {
-      setSubmitting(false);
-      setMessage("Ödeme için oturumunu yenileyip tekrar dene.");
       return;
     }
     setCheckoutReturnPath("/nfc-siparis");
@@ -238,7 +235,7 @@ export default function NfcOrderPage() {
     const response = await fetch("/api/commerce/checkout", {
       method: "POST",
       credentials: "same-origin",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}`, "x-idempotency-key": getOrCreateCheckoutIdempotencyKey() },
+      headers: { "Content-Type": "application/json", "x-idempotency-key": getOrCreateCheckoutIdempotencyKey() },
       body: JSON.stringify({
         items: [{
           productSlug: NFC_PRODUCT.slug,
@@ -287,7 +284,7 @@ export default function NfcOrderPage() {
   }
 
   useEffect(() => {
-    if (loading || !isSupabaseConfigured || userId) return;
+    if (loading || userId) return;
     window.location.replace("/giris?next=%2Fnfc-siparis");
   }, [loading, userId]);
 
@@ -301,7 +298,7 @@ export default function NfcOrderPage() {
   );
 
   if (loading) return <main className="order-page"><div className="result-empty"><h1>Sipariş ekranı yükleniyor.</h1></div></main>;
-  if (!isSupabaseConfigured || !userId) return <main className="order-page order-page-v166"><section className="result-empty"><span className="section-kicker">GÜVENLİ SİPARİŞ</span><h1>Sipariş için hesabına giriş yap.</h1><p>Kartını kişisel Yenomi ID profiline güvenle bağlamak için oturum açmalısın.</p><div className="order-success-actions"><Link href="/giris?next=%2Fnfc-siparis">Giriş Yap</Link></div></section></main>;
+  if (!userId) return <main className="order-page order-page-v166"><section className="result-empty"><span className="section-kicker">GÜVENLİ SİPARİŞ</span><h1>Sipariş için hesabına giriş yap.</h1><p>Kartını kişisel Yenomi ID profiline güvenle bağlamak için oturum açmalısın.</p><div className="order-success-actions"><Link href="/giris?next=%2Fnfc-siparis">Giriş Yap</Link></div></section></main>;
 
   function nextStep() {
     if (currentStepError) {

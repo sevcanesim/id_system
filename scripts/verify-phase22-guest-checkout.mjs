@@ -25,11 +25,14 @@ const pageContracts = [
   "const [checkoutReady, setCheckoutReady]",
   "const [isAuthenticated, setIsAuthenticated]",
   "Hesap açmadan ilerleyebilirsin; siparişini daha sonra bu e-posta ile hesabına bağlayabilirsin.",
-  "headers.authorization",
+  "getBrowserIdentity",
   "const mergedCart = readCart();",
 ];
 for (const token of pageContracts) {
   if (!page.includes(token)) throw new Error(`Missing guest checkout UI contract: ${token}`);
+}
+if (page.includes("headers.authorization") || page.includes("access_token")) {
+  throw new Error("Checkout must use the HttpOnly session cookie instead of browser access tokens.");
 }
 
 if (!cart.includes("Hesap açmadan ilerleyebilirsin")) {

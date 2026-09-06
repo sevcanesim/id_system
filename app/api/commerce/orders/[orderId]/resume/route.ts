@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkoutResumeCodeExpiry, createCheckoutResumeCode, hashCheckoutResumeCode } from "../../../../../../lib/commerce/checkout-resume";
 import { publicError } from "../../../../../../lib/errors";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../../lib/supabase/server-admin";
+import { getSupabaseAdminClient } from "../../../../../../lib/supabase/server-admin";
 import { recordSystemError } from "../../../../../../lib/observability/system-errors";
+import { resolveRequestIdentity } from "../../../../../../lib/auth/request-identity";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ orderId: string }> }) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return NextResponse.json(publicError("AUTH_REQUIRED"), { status: 401 });
-
-  const auth = getSupabaseAuthClient();
-  const { data: authData, error: authError } = await auth.auth.getUser(token);
-  if (authError || !authData.user) return NextResponse.json(publicError("AUTH_REQUIRED"), { status: 401 });
+  const identity = await resolveRequestIdentity(request);
+  if (!identity) return NextResponse.json(publicError("AUTH_REQUIRED"), { status: 401 });
 
   const { orderId } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(orderId)) {
@@ -25,7 +22,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     .from("commerce_orders")
     .select("id,status,user_id")
     .eq("id", orderId)
-    .eq("user_id", authData.user.id)
+    .eq("user_id", identity.user.id)
     .maybeSingle();
 
   if (orderError) {
@@ -33,7 +30,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       source: "COMMERCE_ORDER_RESUME",
       errorCode: "OWNERSHIP_LOOKUP_FAILED",
       message: "Sipariş sahipliği doğrulanamadı.",
-      userId: authData.user.id,
+      userId: identity.user.id,
     });
     return NextResponse.json(publicError("ORDER_LOAD_FAILED"), { status: 500 });
   }
@@ -54,7 +51,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       source: "COMMERCE_ORDER_RESUME",
       errorCode: "SESSION_LOOKUP_FAILED",
       message: "Ödeme devam oturumu yüklenemedi.",
-      userId: authData.user.id,
+      userId: identity.user.id,
     });
     return NextResponse.json({ error: "Ödeme bilgileri şu anda geri yüklenemiyor." }, { status: 503 });
   }
@@ -74,7 +71,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       source: "COMMERCE_ORDER_RESUME",
       errorCode: "CODE_CREATION_FAILED",
       message: "Ödeme devam bağlantısı oluşturulamadı.",
-      userId: authData.user.id,
+      userId: identity.user.id,
     });
     return NextResponse.json({ error: "Ödeme devam bağlantısı oluşturulamadı." }, { status: 503 });
   }

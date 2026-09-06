@@ -13,9 +13,7 @@ const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
   compiler: {
-    removeConsole: {
-      exclude: ["error", "info"],
-    },
+    removeConsole: true,
   },
   outputFileTracingRoot: process.cwd(),
   async headers() {

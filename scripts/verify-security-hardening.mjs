@@ -102,6 +102,9 @@ mustInclude(read("app/layout.tsx"), "x-nonce", "Root layout must consume the mid
 mustNotInclude(nextConfig, "'unsafe-eval'", "CSP must not allow unsafe-eval.");
 mustNotInclude(nextConfig, "Content-Security-Policy", "A static next.config CSP would AND with the nonce policy and re-open unsafe-inline.");
 mustNotInclude(nextConfig, "'unsafe-inline'", "script-src unsafe-inline must not return via next.config.");
+mustInclude(nextConfig, "productionBrowserSourceMaps: false", "Production browser source maps must stay disabled.");
+mustInclude(nextConfig, "poweredByHeader: false", "Framework identification headers must stay disabled.");
+mustInclude(nextConfig, "removeConsole: true", "Production client bundles must not retain console output.");
 
 const csp = read("lib/security/content-security-policy.ts");
 mustInclude(csp, "'nonce-${nonce}'", "CSP must mint a per-request script nonce.");

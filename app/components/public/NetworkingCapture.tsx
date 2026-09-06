@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { detectNetworkingLocale, type NetworkingLocale } from "../../../lib/networking/catalog";
 import { instantConnectErrorMessage } from "../../../lib/networking/instant-connect";
 import { normalizeContactPhone } from "../../../lib/networking/contact-phone";
+import { NETWORKING_CONTACT_PRIVACY_VERSION } from "../../../lib/networking/privacy";
 import { parseExternalQrPayload } from "../../../lib/networking/external-qr-contact";
 import { Avatar, Button, Field, Input, Skeleton } from "../ui/DesignSystem";
 import { Icon } from "../../icons";
@@ -44,6 +45,8 @@ type Copy = {
   alternativeOpen: string;
   alternativeClose: string;
   privacy: string;
+  privacyConsent: string;
+  privacyRequired: string;
   cancel: string;
   done: string;
   scanner: InstantConnectScannerCopy;
@@ -56,6 +59,7 @@ type ContactForm = {
   phone: string;
   company: string;
   position: string;
+  privacyAccepted: boolean;
 };
 
 type InstantIdentity = {
@@ -72,6 +76,7 @@ const EMPTY_CONTACT_FORM: ContactForm = {
   phone: "",
   company: "",
   position: "",
+  privacyAccepted: false,
 };
 
 const COPY: Record<NetworkingLocale, Copy> = {
@@ -110,6 +115,8 @@ const COPY: Record<NetworkingLocale, Copy> = {
     alternativeOpen: "Bilgilerimi form ile paylaş",
     alternativeClose: "Formu kapat",
     privacy: "Bilgileriniz yalnızca bağlantı kurduğunuz kart sahibiyle paylaşılır.",
+    privacyConsent: "Bilgilerimin bu kart sahibiyle bağlantı kurmak amacıyla paylaşılmasını ve Gizlilik Politikası’nı kabul ediyorum.",
+    privacyRequired: "Bilgilerin paylaşımı için gizlilik onayı gereklidir.",
     cancel: "Vazgeç",
     done: "Tamam",
     scanner: {
@@ -176,6 +183,8 @@ const COPY: Record<NetworkingLocale, Copy> = {
     alternativeOpen: "Share my details with a form",
     alternativeClose: "Close form",
     privacy: "Your details are shared only with the card owner you connected with.",
+    privacyConsent: "I agree to share my details with this card owner to establish contact and accept the Privacy Policy.",
+    privacyRequired: "Privacy consent is required to share your details.",
     cancel: "Cancel",
     done: "Done",
     scanner: {
@@ -300,6 +309,11 @@ export default function NetworkingCapture({
   async function submitContact() {
     if (submitting) return;
 
+    if (!contactForm.privacyAccepted) {
+      setErrorMessage(copy.privacyRequired);
+      return;
+    }
+
     const normalizedPhone = normalizeContactPhone(contactForm.phone);
     if (!normalizedPhone.valid) {
       setErrorMessage(copy.invalidPhone);
@@ -319,6 +333,8 @@ export default function NetworkingCapture({
           source: eventId ? "EVENT" : source,
           locale,
           requestMeeting: false,
+          privacyConsent: true,
+          privacyVersion: NETWORKING_CONTACT_PRIVACY_VERSION,
           fullName: contactForm.fullName.trim(),
           email: contactForm.email.trim(),
           phone: normalizedPhone.value || "",
@@ -404,6 +420,7 @@ export default function NetworkingCapture({
       phone: payload.contact.phone || currentForm.phone,
       company: payload.contact.company || currentForm.company,
       position: payload.contact.position || currentForm.position,
+      privacyAccepted: currentForm.privacyAccepted,
     }));
     setShowProfessional(Boolean(payload.contact.company || payload.contact.position));
     setShowContactForm(true);
@@ -537,6 +554,14 @@ export default function NetworkingCapture({
               )}
 
               <p className="p12-networking-privacy">{copy.privacy}</p>
+              <label className="p12-networking-consent">
+                <input
+                  type="checkbox"
+                  checked={contactForm.privacyAccepted}
+                  onChange={(event) => setContactForm((currentForm) => ({ ...currentForm, privacyAccepted: event.target.checked }))}
+                />
+                <span>{copy.privacyConsent}</span>
+              </label>
               <div className="p12-networking-form-actions">
                 <Button type="submit" variant="primary" disabled={submitting} aria-busy={submitting}>{submitting ? copy.submitting : copy.submit}</Button>
                 <Button type="button" variant="ghost" className="p12-networking-back" onClick={() => setShowContactForm(false)} disabled={submitting}>{copy.alternativeClose}</Button>

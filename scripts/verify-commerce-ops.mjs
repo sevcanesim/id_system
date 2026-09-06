@@ -28,6 +28,8 @@ const jobRunSql = read("supabase/migrations/20260906170000_operational_job_run_h
 const observabilityRetentionSql = read("supabase/migrations/20260906180000_operational_observability_retention.sql");
 const analyticsRetentionSql = read("supabase/migrations/20260906210000_card_view_analytics_minimization.sql");
 const corporateLeadSql = read("supabase/migrations/20260906220000_secure_corporate_lead_operations.sql");
+const checkoutRetentionSql = read("supabase/migrations/20260906230000_checkout_session_retention.sql");
+const networkingLeadRetentionSql = read("supabase/migrations/20260906231000_networking_lead_consent_retention.sql");
 const corporateLeadWorker = read("lib/operations/corporate-lead-notifications.ts");
 const corporateLeadRoute = read("app/api/corporate-leads/route.ts");
 const vercel = fs.existsSync("vercel.json") ? read("vercel.json") : "";
@@ -57,6 +59,8 @@ check(sql.includes("FULFILLMENT_ISSUE_ESCALATION"), "fulfillment escalation even
 check(corporateLeadSql.includes("encrypted_payload") && corporateLeadSql.includes("notification_status"), "corporate lead payloads and notification lifecycle are persisted");
 check(corporateLeadWorker.includes("deliverCorporateLeadNotifications") && corporateLeadWorker.includes("PROCESSING"), "corporate lead notifications use a claim and retry lifecycle");
 check(corporateLeadRoute.includes("encryptCorporateLeadPayload") && corporateLeadRoute.includes("createHmac"), "corporate lead intake encrypts contact content and fingerprints source IP with HMAC");
+check(jobs.includes("purgeExpiredCheckoutResumeData") && checkoutRetentionSql.includes("purge_expired_checkout_resume_data"), "expired checkout resume data has a bounded retention purge");
+check(jobs.includes("purgeExpiredNetworkingLeads") && networkingLeadRetentionSql.includes("purge_expired_networking_leads"), "public networking leads have a bounded retention purge");
 
 if (failed) process.exit(1);
 console.log("\nCommerce ops hardening verification passed.");

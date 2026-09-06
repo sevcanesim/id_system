@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { scoreLead } from "../../../../lib/networking/catalog";
 import { normalizeContactPhone } from "../../../../lib/networking/contact-phone";
+import { NETWORKING_CONTACT_PRIVACY_VERSION, NETWORKING_CONTACT_RETENTION_DAYS } from "../../../../lib/networking/privacy";
 import { queueOrganizationWebhookEvent } from "../../../../lib/organizations/webhook-integrations";
 import { consumeDistributedRateLimit, requestIp } from "../../../../lib/security/rate-limit";
 import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
@@ -24,6 +25,8 @@ const leadSubmissionSchema = z.object({
   source: z.enum(["QR", "NFC", "EVENT", "SHARE"]).default("QR"),
   locale: z.enum(["tr", "en"]).default("tr"),
   requestMeeting: z.literal(false).optional().default(false),
+  privacyConsent: z.literal(true),
+  privacyVersion: z.literal(NETWORKING_CONTACT_PRIVACY_VERSION),
   fullName: z.string().trim().min(2).max(120),
   email: z.string().trim().email().max(254),
   company: z.string().trim().max(160).optional().default(""),
@@ -75,12 +78,13 @@ export async function POST(request: NextRequest) {
   }
 
   const normalizedEmail = submission.email.toLowerCase();
+  const retentionExpiresAt = new Date(Date.now() + NETWORKING_CONTACT_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
   const { data: existingLead } = await supabaseAdmin
     .from("networking_leads")
     .select("id")
     .eq("profile_id", cardProfile.id)
-    .eq("visitor_id", submission.visitorId)
     .eq("email", normalizedEmail)
+    .or(`retention_expires_at.is.null,retention_expires_at.gt.${new Date().toISOString()}`)
     .maybeSingle();
 
   if (existingLead) {
@@ -111,6 +115,9 @@ export async function POST(request: NextRequest) {
     status: "NEW",
     score: leadScore,
     ip_hash: networkingIpFingerprint(clientIp),
+    consent_version: submission.privacyVersion,
+    consent_accepted_at: new Date().toISOString(),
+    retention_expires_at: retentionExpiresAt,
   }).select("id").single();
 
   if (insertError || !createdLead) {

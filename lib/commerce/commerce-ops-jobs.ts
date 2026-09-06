@@ -52,6 +52,18 @@ export async function expireStaleAwaitingOrders(admin: AdminClient) {
   return expiry ?? { ok: true };
 }
 
+export async function purgeExpiredCheckoutResumeData(admin: AdminClient) {
+  const { data: purge, error } = await admin.rpc("purge_expired_checkout_resume_data", { p_limit: 500 });
+  if (error) throw error;
+  return purge ?? { checkoutSessionsDeleted: 0, resumeCodesDeleted: 0 };
+}
+
+export async function purgeExpiredNetworkingLeads(admin: AdminClient) {
+  const { data: purge, error } = await admin.rpc("purge_expired_networking_leads", { p_limit: 500 });
+  if (error) throw error;
+  return purge ?? { deleted: 0 };
+}
+
 export async function queueCorporateCapacityRenewals(admin: AdminClient, daysAhead = 30) {
   const { data, error } = await admin.rpc("queue_due_capacity_renewals", { p_days_ahead: daysAhead });
   if (error) throw error;
@@ -228,13 +240,15 @@ async function insertIssueAlerts(
 
 export async function runCommerceOpsJobs() {
   const admin = getSupabaseAdminClient();
-  const [abandoned, expired, reconciled, renewals, alerts, corporateLeads] = await Promise.all([
+  const [abandoned, expired, reconciled, renewals, alerts, corporateLeads, checkoutPrivacy, networkingPrivacy] = await Promise.all([
     runIsolatedCommerceOperation("ABANDONED_CHECKOUT", () => sendAbandonedCheckoutReminders(admin), { scanned: 0, sent: 0, skipped: 0 }),
     runIsolatedCommerceOperation("EXPIRE_AWAITING_ORDERS", () => expireStaleAwaitingOrders(admin), { ok: false }),
     runIsolatedCommerceOperation("PAID_ORDER_RECONCILIATION", () => runPaidOrderReconciliation(admin), { ok: false }),
     runIsolatedCommerceOperation("CORPORATE_CAPACITY_RENEWALS", () => queueCorporateCapacityRenewals(admin), { ok: false, queued: 0 }),
     runIsolatedCommerceOperation("FULFILLMENT_ISSUE_NOTIFICATIONS", () => notifyOpenFulfillmentIssues(admin), { open: 0, alerted: 0, escalated: 0 }),
     runIsolatedCommerceOperation("CORPORATE_LEAD_NOTIFICATIONS", () => deliverCorporateLeadNotifications(admin), { inspected: 0, delivered: 0, retried: 0, failed: 0 }),
+    runIsolatedCommerceOperation("CHECKOUT_PRIVACY_RETENTION", () => purgeExpiredCheckoutResumeData(admin), { checkoutSessionsDeleted: 0, resumeCodesDeleted: 0 }),
+    runIsolatedCommerceOperation("NETWORKING_LEAD_PRIVACY_RETENTION", () => purgeExpiredNetworkingLeads(admin), { deleted: 0 }),
   ]);
-  return { abandoned, expired, reconciled, renewals, alerts, corporateLeads };
+  return { abandoned, expired, reconciled, renewals, alerts, corporateLeads, checkoutPrivacy, networkingPrivacy };
 }

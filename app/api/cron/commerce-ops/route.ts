@@ -34,6 +34,8 @@ async function executeCommerceOps(request: NextRequest) {
       renewals: sweep.renewals,
       alerts: sweep.alerts,
       corporateLeads: sweep.corporateLeads,
+      checkoutPrivacy: sweep.checkoutPrivacy,
+      networkingPrivacy: sweep.networkingPrivacy,
     });
   } catch {
     void recordSystemError({

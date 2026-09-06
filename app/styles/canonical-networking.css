@@ -376,6 +376,24 @@
   line-height: var(--line-height-body);
 }
 
+.p12-public-card-page .p12-networking-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+  line-height: var(--line-height-body);
+  cursor: pointer;
+}
+
+.p12-public-card-page .p12-networking-consent input {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin: 1px 0 0;
+  accent-color: var(--brand-gold-deep);
+}
+
 .p12-public-card-page .p12-networking-message,
 .p12-public-card-page .p12-instant-scanner__message {
   margin: 0;

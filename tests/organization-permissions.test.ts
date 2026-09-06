@@ -24,9 +24,9 @@ describe("organization legal profile permissions", () => {
 });
 
 describe("corporate commerce permissions", () => {
-  it("exposes invoices and commercial history only to the owner and HR", () => {
+  it("exposes invoices and commercial history only to the owner", () => {
     expect(canViewCorporateCommerce("OWNER", "ACTIVE")).toBe(true);
-    expect(canViewCorporateCommerce("HR", "ACTIVE")).toBe(true);
+    expect(canViewCorporateCommerce("HR", "ACTIVE")).toBe(false);
     expect(canViewCorporateCommerce("ADMIN", "ACTIVE")).toBe(false);
     expect(canViewCorporateCommerce("EMPLOYEE", "ACTIVE")).toBe(false);
   });

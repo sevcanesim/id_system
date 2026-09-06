@@ -796,7 +796,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       ? null
       : Math.max(0, subscription.seat_limit - usedSeats);
   const canManageLicenses = org?.role === "OWNER" || org?.role === "ADMIN";
-  const canViewCorporateCommerce = org?.role === "OWNER" || org?.role === "HR";
+  const canViewCorporateCommerce = org?.role === "OWNER";
   const canPurchaseCorporateCommerce = org?.role === "OWNER";
   const canInvite = availableSeats == null || availableSeats > 0;
   const unassignedPhysicalCards = useMemo(
@@ -1411,7 +1411,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
                   ) : (
                     <ErrorState
                       title="Ticari kayıtlara erişim yok"
-                      description="Paket, sipariş ve fatura kayıtları yalnız Şirket Sahibi ile İK tarafından görüntülenebilir."
+                      description="Paket, sipariş ve fatura kayıtları yalnız Şirket Sahibi tarafından görüntülenebilir."
                     />
                   )
                 )}

@@ -17,17 +17,12 @@ type CorporateOrder = {
   invoice: { status: string; number: string | null; documentUrl: string | null; issuedAt: string | null } | null;
 };
 
-/**
- * Corporate billing data is deliberately not exposed through the ordinary
- * customer-order endpoint. Its authorization boundary is company scope and
- * the OWNER/HR roles, not the purchaser's personal account id.
- */
 export async function GET(request: NextRequest) {
   const organizationId = request.nextUrl.searchParams.get("organizationId");
   if (!organizationId) return NextResponse.json({ error: "Şirket seçimi gerekli." }, { status: 400 });
 
-  const actor = await requireOrganizationRole(request, organizationId, ["OWNER", "HR"]);
-  if (!actor) return NextResponse.json({ error: "Satın alma ve fatura geçmişi yalnız Şirket Sahibi ile İK tarafından görüntülenebilir." }, { status: 403 });
+  const actor = await requireOrganizationRole(request, organizationId, ["OWNER"]);
+  if (!actor) return NextResponse.json({ error: "Satın alma ve fatura geçmişi yalnız Şirket Sahibi tarafından görüntülenebilir." }, { status: 403 });
 
   const admin = getSupabaseAdminClient();
   const { data, error } = await admin

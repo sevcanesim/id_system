@@ -22,7 +22,7 @@ const CORPORATE_ADMIN: readonly SidebarRole[] = ["OWNER", "ADMIN"];
 const CORPORATE_OWNER: readonly SidebarRole[] = ["OWNER"];
 const CORPORATE_MANAGEMENT: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR", "HR_MANAGER"];
 const CORPORATE_ADMIN_OR_HR: readonly SidebarRole[] = ["OWNER", "ADMIN", "HR", "HR_MANAGER"];
-const CORPORATE_COMMERCE_VIEWERS: readonly SidebarRole[] = ["OWNER", "HR", "HR_MANAGER"];
+const CORPORATE_COMMERCE_VIEWERS: readonly SidebarRole[] = ["OWNER"];
 
 export const CORPORATE_SIDEBAR_CONFIG = [
   { key: "overview", href: "/kurumsal/panel", label: "Genel Bakış", icon: "building", group: "GENEL" },

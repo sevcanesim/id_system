@@ -82,7 +82,7 @@ export default function CorporateCommercePanel({ organizationId, token, purchase
         <div>
           <span className={styles.eyebrow}><Icon name="box" /> TİCARİ KAYITLAR</span>
           <h2 id="corporate-commerce-title">Abonelik ve satın alma geçmişi</h2>
-          <p>Kurumsal siparişler, faturalar ve Network Mail kredi hareketleri yalnız Şirket Sahibi ile İK için görünür.</p>
+          <p>Kurumsal siparişler, faturalar ve Network Mail kredi hareketleri yalnız Şirket Sahibi tarafından görüntülenir.</p>
         </div>
         <span className={styles.access}><Icon name="lock" /> Sınırlı erişim</span>
       </header>

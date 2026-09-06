@@ -20,17 +20,25 @@ export type LegalIdentity = {
   effectiveDate: string;
 };
 
+export const VERIFIED_YENOMI_IDENTITY = {
+  brandName: "Yenomilabs",
+  productName: "Yenomi ID",
+  brandLine: "Yenomi ID — by Yenomilabs",
+  tradeName: "Sevcan Eşim Karadeniz",
+  entityType: "Şahıs işletmesi",
+} as const;
+
 function read(name: string, fallback = "") {
   return String(process.env[name] ?? fallback).trim();
 }
 
 export function getLegalIdentity(): LegalIdentity {
   return {
-    brandName: read("BRAND_NAME", "Yenomilabs"),
-    productName: read("PRODUCT_NAME", "Yenomi ID"),
-    brandLine: read("BRAND_LINE", "Yenomi ID — by Yenomilabs"),
-    tradeName: read("LEGAL_TRADE_NAME", "Sevcan Eşim Karadeniz"),
-    entityType: read("LEGAL_ENTITY_TYPE", "Şahıs işletmesi"),
+    brandName: VERIFIED_YENOMI_IDENTITY.brandName,
+    productName: VERIFIED_YENOMI_IDENTITY.productName,
+    brandLine: VERIFIED_YENOMI_IDENTITY.brandLine,
+    tradeName: VERIFIED_YENOMI_IDENTITY.tradeName,
+    entityType: VERIFIED_YENOMI_IDENTITY.entityType,
     // These identifiers remain blank until verified. They must never inherit
     // the identifier of a different legal entity.
     taxNumber: read("LEGAL_TAX_NUMBER"),

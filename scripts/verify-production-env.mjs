@@ -94,6 +94,15 @@ for (const key of ['LEGAL_CONTACT_EMAIL','LEGAL_KVKK_EMAIL']) {
 }
 const corporateLeadRecipient = String(env.CORPORATE_LEAD_TO || env.LEGAL_SALES_EMAIL || '').trim();
 if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(corporateLeadRecipient)) fail('CORPORATE_LEAD_TO veya LEGAL_SALES_EMAIL geçerli bir teklif bildirim e-postası olmalı.');
+const verifiedLegalIdentity = {
+  LEGAL_TRADE_NAME: 'Sevcan Eşim Karadeniz',
+  LEGAL_ENTITY_TYPE: 'Şahıs işletmesi',
+  LEGAL_PAYMENT_PROVIDER: 'PayTR',
+  LEGAL_INVOICE_PROVIDER: 'Mysoft',
+};
+for (const [key, expected] of Object.entries(verifiedLegalIdentity)) {
+  if (String(env[key] || '').trim() !== expected) fail(`${key} doğrulanmış Yenomi hukuki kimliğiyle eşleşmeli.`);
+}
 for (const key of ['LEGAL_TRADE_NAME','LEGAL_ENTITY_TYPE','LEGAL_TAX_OFFICE','LEGAL_REGISTERED_ADDRESS','LEGAL_AUTHORIZED_PERSON','LEGAL_PHONE','LEGAL_WEBSITE','LEGAL_PAYMENT_PROVIDER','LEGAL_INVOICE_PROVIDER']) {
   if (/your-|tanımlanır|placeholder|örnek/i.test(String(env[key]))) fail(`${key} gerçek doğrulanmış değer içermeli.`);
 }

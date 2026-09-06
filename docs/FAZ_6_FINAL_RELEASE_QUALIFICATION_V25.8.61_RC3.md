@@ -38,7 +38,7 @@ Bu zincir gerçek linked/staging Supabase erişimi ister ve:
 - Phase 20 staging promotion gate'ini,
 - Phase 19 authenticated browser akışını,
 - staging seed ve catalog doğrulamasını,
-- iyzico sandbox environment sözleşmesini
+- PayTR sandbox environment sözleşmesini
 
 çalıştırır.
 

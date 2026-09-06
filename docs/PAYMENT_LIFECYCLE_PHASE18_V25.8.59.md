@@ -1,6 +1,6 @@
 # Phase 18 — Payment Lifecycle Lock (v25.8.59)
 
-Phase 18 locks the money path after checkout. A verified iyzico payment is never reclassified as a failed payment merely because a downstream fulfillment step needs review.
+Phase 18 locks the money path after checkout. A verified PayTR payment is never reclassified as a failed payment merely because a downstream fulfillment step needs review.
 
 ## Locked contracts
 
@@ -16,4 +16,4 @@ Phase 18 locks the money path after checkout. A verified iyzico payment is never
 
 ## Deliberately not fabricated
 
-This source package cannot prove a live iyzico Sandbox transaction without sandbox credentials and a reachable callback URL. `verify:phase18:payment` checks the lifecycle contract statically; Phase 19/20 release qualification must run the sandbox/staging payment scenario against the deployed callback.
+This source package cannot prove a live PayTR Sandbox transaction without sandbox credentials and a reachable callback URL. `verify:phase18:payment` checks the lifecycle contract statically; Phase 19/20 release qualification must run the sandbox/staging payment scenario against the deployed callback.

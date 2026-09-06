@@ -22,4 +22,4 @@ Organization member suspension/offboarding previously updated `card_profiles` by
 
 ## Runtime qualification
 
-`npm run test:phase19` runs the focused Phase 19 Vitest contract suite and Playwright critical regression suite. Seeded authenticated Playwright cases require the normal demo seed password/environment. Phase 20 staging should run the full release/integration/visual/cross-browser gates plus real iyzico Sandbox callback qualification.
+`npm run test:phase19` runs the focused Phase 19 Vitest contract suite and Playwright critical regression suite. Seeded authenticated Playwright cases require the normal demo seed password/environment. Phase 20 staging should run the full release/integration/visual/cross-browser gates plus real PayTR Sandbox callback qualification.

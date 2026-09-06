@@ -4,7 +4,7 @@ Bu dosya secret içermez. Production promotion öncesi her madde operasyon sahib
 
 - Supabase service-role / secret key rotate edildi.
 - Kullanılan publishable/anon key politikası kontrol edildi; gerekliyse rotate edildi.
-- iyzico API ve secret key rotate edildi.
+- PayTR merchant key ve salt rotate edildi.
 - Google Maps server ve browser key'leri rotate/restrict edildi.
 - Database parolası rotate edildi.
 - Upstash token rotate edildi.

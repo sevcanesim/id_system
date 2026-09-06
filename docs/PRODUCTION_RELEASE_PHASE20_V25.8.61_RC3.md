@@ -27,6 +27,6 @@ RC3 is not stable until the complete unit suite, typecheck, production build, Ph
 ## P0 runtime promotion hardening
 
 - The staging GitHub Actions workflow now runs the canonical `verify:phase20:staging` gate rather than the generic staging suite.
-- Staging promotion requires explicit staging site URL, iyzico sandbox credentials and production URL isolation inputs.
+- Staging promotion requires explicit staging site URL, PayTR sandbox credentials and production URL isolation inputs.
 - Phase 19 authenticated browser regression is therefore a mandatory staging promotion dependency.
 - Runtime evidence must be recorded in `docs/RC3_RUNTIME_PROMOTION_CHECKLIST.md`; static review must not mark these checks as passed.

@@ -41,4 +41,4 @@ Hukuki yapılandırma `lib/config/legal-identity.ts` ve deployment environment d
 - `LEGAL_WEBSITE`, destek, satış ve KVKK e-posta değerleri production environment&apos;da doğrulanmış olmalı.
 - `LEGAL_TAX_NUMBER`, `LEGAL_MERSIS_NUMBER` ve `LEGAL_TRADE_REGISTRY_NUMBER` doğrulanmadıysa boş bırakılmalı.
 - İade/iptal metni hukukî onay olmadan yeni kesin iddialarla genişletilmemeli.
-- PayTR credentials olmadan canlı ödemeye geçilmemeli; teknik iyzico fallback metinlerinin müşteri yüzüne sızmadığı kontrol edilmeli.
+- PayTR credentials olmadan canlı ödemeye geçilmemeli; teknik sağlayıcı fallback metinlerinin müşteri yüzüne sızmadığı kontrol edilmeli.

@@ -4,7 +4,7 @@ Version: 25.8.45
 
 ## Scope
 
-Phase 5 migrates the commercial journey onto the canonical design system without changing payment, cart, entitlement, activation, Supabase, iyzico, order, or routing business logic.
+Phase 5 migrates the commercial journey onto the canonical design system without changing payment, cart, entitlement, activation, Supabase, order, or routing business logic.
 
 Covered surfaces:
 
@@ -43,7 +43,7 @@ Checkout keeps the existing authenticated and idempotent payment architecture in
 - Delivery / billing address,
 - Legal approval,
 - Persistent order summary,
-- iyzico transition.
+- payment-provider transition.
 
 The full marketing footer is replaced by the compact legal footer inside the commerce flow.
 

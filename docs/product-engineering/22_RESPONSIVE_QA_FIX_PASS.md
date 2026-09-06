@@ -37,7 +37,7 @@ Bu sayfanın interaktif canlı testi (scroll simülasyonu) bu sandbox'ta ürün 
 
 ## 3) Announcement bar — PASS
 
-Üstteki bilgi barı 3 mesaj taşıyor, ≤760px'te 3. mesaj (`Güvenli iyzico ödeme`), ≤360px'te 2. mesaj da (`2 iş gününde hazırlanır`) gizleniyor. 375px ve 390px'te canlı ölçüm: kalan mesajların toplam genişliği container'ı **aşmıyor** (`overflowsContainer:false`, en sağdaki öğe 361-376px, container 375-390px). Taşma/scroll ihtiyacı yok, mevcut "breakpoint'e göre gizle" stratejisi doğru çalışıyor.
+Üstteki bilgi barı 3 mesaj taşıyor, ≤760px'te 3. mesaj (`PayTR ile güvenli ödeme`), ≤360px'te 2. mesaj da (`2 iş gününde hazırlanır`) gizleniyor. 375px ve 390px'te canlı ölçüm: kalan mesajların toplam genişliği container'ı **aşmıyor** (`overflowsContainer:false`, en sağdaki öğe 361-376px, container 375-390px). Taşma/scroll ihtiyacı yok, mevcut "breakpoint'e göre gizle" stratejisi doğru çalışıyor.
 
 ## 4) `/nasil-calisir` hero başlığı — FIXED
 

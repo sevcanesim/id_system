@@ -55,7 +55,7 @@ if (!callback.includes("settleCommercePaymentByPaytrCallback") || !callback.incl
 if (status.includes("retrieveCheckout") || status.includes("settlePendingCommercePaymentByOrderId")) {
   throw new Error("Order status GET must stay side-effect free.");
 }
-if (success.includes("/api/payments/iyzico/recover") || !success.includes("reviewRequired && !data.activationRequired")) {
+if (!success.includes("reviewRequired && !data.activationRequired")) {
   throw new Error("Success page must keep payment state read-only and surface authenticated claim failures.");
 }
 if (!api.includes("stampPhysicalProductionConfig") || !api.includes("applyPendingOrderCookie")) {

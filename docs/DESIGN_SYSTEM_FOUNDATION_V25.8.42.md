@@ -2,7 +2,7 @@
 
 ## Amaç
 
-Faz 2, ekranları yeniden tasarlamak için değil, bundan sonraki bütün Yenomi ID yüzeylerinin aynı görsel ve teknik temeli kullanabilmesi için canonical design system foundation kurmak için uygulanmıştır. Business logic, route yapısı, Supabase, RLS, iyzico, aktivasyon, QR/NFC ve organizasyon yetki modeli değiştirilmemiştir.
+Faz 2, ekranları yeniden tasarlamak için değil, bundan sonraki bütün Yenomi ID yüzeylerinin aynı görsel ve teknik temeli kullanabilmesi için canonical design system foundation kurmak için uygulanmıştır. Business logic, route yapısı, Supabase, RLS, ödeme sağlayıcısı, aktivasyon, QR/NFC ve organizasyon yetki modeli değiştirilmemiştir.
 
 ## Canonical source of truth
 

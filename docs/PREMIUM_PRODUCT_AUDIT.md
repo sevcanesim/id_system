@@ -147,7 +147,7 @@ Recommended structure:
 - Primary CTA: `Ekibimi Kur`
 - Secondary CTA: `25+ Kişi İçin Teklif Al`
 
-Trust microcopy should be concrete: `Kart numarası saklanmaz`, `Ödeme iyzico altyapısında`, `Yetkiler rol bazlı`, `Kayıp kart panelden kapatılır`.
+Trust microcopy should be concrete: `Kart numarası saklanmaz`, `Ödeme PayTR altyapısında`, `Yetkiler rol bazlı`, `Kayıp kart panelden kapatılır`.
 
 ## Code-cleanliness policy
 

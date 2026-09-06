@@ -29,7 +29,7 @@
 - Aynı ödeme birden çok sipariş veya entitlement oluşturdu: P0.
 - Production callback erişilemiyor: P0.
 - Production secret sızıntısı şüphesi: derhal ilgili secret'ı rotate et ve deployment'ı durdur.
-- Kaynak paylaşımı yalnız `npm run package:safe` ile. Manuel `zip -r` `.gitignore`'u uygulamaz ve `.env.local` sızdırır. Paylaşmadan önce `npm run verify:pre-share -- <zip>` çalıştır. `.env*` içeren bir arşiv çıktıysa Supabase service-role, iyzico, Maps ve Vercel OIDC değerlerini rotate et.
+- Kaynak paylaşımı yalnız `npm run package:safe` ile. Manuel `zip -r` `.gitignore`'u uygulamaz ve `.env.local` sızdırır. Paylaşmadan önce `npm run verify:pre-share -- <zip>` çalıştır. `.env*` içeren bir arşiv çıktıysa Supabase service-role, PayTR, Maps ve Vercel OIDC değerlerini rotate et.
 
 ## Ödeme mutabakat ekranı
 

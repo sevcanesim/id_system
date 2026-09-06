@@ -117,11 +117,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Bireysel hesapta yalnızca bir dijital profil oluşturabilirsin.", code: "INDIVIDUAL_PROFILE_LIMIT" }, { status: 409 });
     }
   }
-  const { data, error } = await admin.rpc("save_own_card_profile", {
+  const { data, error } = await admin.rpc("save_own_card_profile_with_privacy", {
     p_user_id: identity.user.id,
     p_profile_id: parsed.data.profileId || null,
     p_organization_id: parsed.data.organizationId || null,
     p_patch: patch,
+    p_privacy: {
+      clearSlug: requestedSlug === null,
+      searchIndexingEnabled: requestedSearchIndexing,
+    },
   });
   const result = data as { ok?: boolean; code?: string; profile?: { id: string; public_id?: string | null } } | null;
   if (error || !result?.ok) {
@@ -144,27 +148,5 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ error: "Kartvizit kaydedilemedi.", code }, { status: 500 });
   }
-  const profileId = result.profile?.id;
-  const postSavePatch: { slug?: null; search_indexing_enabled?: boolean } = {};
-  if (requestedSlug === null) postSavePatch.slug = null;
-  if (typeof requestedSearchIndexing === "boolean") postSavePatch.search_indexing_enabled = requestedSearchIndexing;
-
-  if (profileId && Object.keys(postSavePatch).length > 0) {
-    const { data: updated, error: postSaveError } = await admin
-      .from("card_profiles")
-      .update(postSavePatch)
-      .eq("id", profileId)
-      .eq("user_id", identity.user.id)
-      .select("id,public_id,slug,search_indexing_enabled")
-      .maybeSingle();
-    if (postSaveError || !updated) {
-      return NextResponse.json({
-        profile: result.profile,
-        warning: "Kart kaydedildi; gizlilik tercihi ayrıca kaydedilemedi. Lütfen tekrar deneyin.",
-      });
-    }
-    return NextResponse.json({ profile: { ...result.profile, ...updated } });
-  }
-
   return NextResponse.json({ profile: result.profile });
 }

@@ -12,6 +12,93 @@
   gap: var(--space-4);
 }
 
+.p10-corporate-platform .corp-networking-content {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.p10-corporate-platform .corp-networking-content > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.p10-corporate-platform .corp-networking-content header > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.p10-corporate-platform .corp-networking-content header span:first-child {
+  color: var(--text-secondary);
+  font-size: var(--type-caption);
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.p10-corporate-platform .corp-networking-content h3,
+.p10-corporate-platform .corp-networking-content p {
+  margin: 0;
+}
+
+.p10-corporate-platform .corp-networking-content h3 {
+  color: var(--text-primary);
+  font-size: var(--type-title-sm);
+}
+
+.p10-corporate-platform .corp-networking-content p {
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.p10-corporate-platform .corp-networking-content__list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.p10-corporate-platform .corp-networking-content__list article {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--canvas);
+}
+
+.p10-corporate-platform .corp-networking-content__list article > span {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.p10-corporate-platform .corp-networking-content__list article > div {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.p10-corporate-platform .corp-networking-content__list strong {
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.p10-corporate-platform .corp-networking-content__list p {
+  font-size: var(--type-caption);
+}
+
 .p10-corporate-platform .corp-link-card {
   display: block;
   width: 100%;
@@ -233,12 +320,24 @@
 }
 
 @media (max-width: 68.75rem) {
+  .p10-corporate-platform .corp-networking-content__list {
+    grid-template-columns: 1fr;
+  }
+
   .p10-corporate-platform .corp-link-card__body {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
 @media (max-width: 51.25rem) {
+  .p10-corporate-platform .corp-networking-content {
+    padding: var(--space-4);
+  }
+
+  .p10-corporate-platform .corp-networking-content > header {
+    display: grid;
+  }
+
   .p10-corporate-platform .corp-link-card__summary {
     grid-template-columns: minmax(0, 1fr) auto;
     padding: var(--space-4);

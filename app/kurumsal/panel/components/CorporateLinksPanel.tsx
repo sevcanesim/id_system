@@ -61,6 +61,24 @@ type Props = {
 const dateTime = new Intl.DateTimeFormat("tr-TR", { dateStyle: "short", timeStyle: "short" });
 const dateTimeMedium = new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeStyle: "short" });
 
+const NETWORKING_CONTENT = [
+  {
+    icon: "camera" as const,
+    title: "Yenomi ID QR kart takası",
+    detail: "Yenomi ID kullanan kişiler kartlarını karşılıklı olarak bağlantılarına ekler.",
+  },
+  {
+    icon: "qr" as const,
+    title: "Harici kart QR okuma",
+    detail: "vCard, MECARD ve diğer platformlardaki profil bağlantıları güvenli olarak okunur.",
+  },
+  {
+    icon: "contact" as const,
+    title: "Alternatif iletişim formu",
+    detail: "Yenomi ID kullanmayan ziyaretçi, açık onayla iletişim bilgisini kart sahibine bırakır.",
+  },
+] as const;
+
 function publicationLabel(link: CorporateLink) {
   if (!link.configured) return "Boş";
   if (link.isPublished && link.publishAt && new Date(link.publishAt).getTime() > Date.now()) {
@@ -195,6 +213,28 @@ export default function CorporateLinksPanel({
           <p>Yayına aldığınız içerikler şirketinizin tüm aktif üye kartlarında görünür. Katalog, sunum ve referansları URL veya PDF olarak yönetin; Toplantı Planla alanı yalnız takvim veya randevu bağlantısı kullanır.</p>
         </div>
       </header>
+
+      <section className="corp-networking-content" aria-labelledby="corporate-networking-content-title">
+        <header>
+          <div>
+            <span>KARTTA BAĞLANTI KUR</span>
+            <h3 id="corporate-networking-content-title">Tüm üye kartlarında hazır</h3>
+            <p>Bu güvenli bağlantı yöntemleri kurumunuzun aktif üye kartlarında merkezi olarak sunulur.</p>
+          </div>
+          <StatusBadge tone="success"><Icon name="check" /> Yayında</StatusBadge>
+        </header>
+        <div className="corp-networking-content__list">
+          {NETWORKING_CONTENT.map((content) => (
+            <article key={content.title}>
+              <span aria-hidden="true"><Icon name={content.icon} /></span>
+              <div>
+                <strong>{content.title}</strong>
+                <p>{content.detail}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <div className="corp-links-list" role="list">
         {links.map((link, index) => {

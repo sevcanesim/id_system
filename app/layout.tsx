@@ -35,7 +35,6 @@ import "./typography-system.css";
 import "./styles/canonical-transaction-states.css";
 import HashScrollHandler from "./components/HashScrollHandler";
 import AuthSessionBridge from "./components/AuthSessionBridge";
-import MobilePurchaseDockController from "./components/MobilePurchaseDockController";
 import PublicSiteShell from "./components/PublicSiteShell";
 import { NoticeProvider } from "./components/ui/NotificationCenter";
 import { publicCardOrigin } from "../lib/public-card/urls";
@@ -73,7 +72,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html lang="tr" suppressHydrationWarning={Boolean(nonce)}>
       <head />
-      <body><a className="yi-skip-link" href="#main-content">Ana içeriğe geç</a><NoticeProvider><AuthSessionBridge /><HashScrollHandler /><MobilePurchaseDockController /><PublicSiteShell>{children}</PublicSiteShell></NoticeProvider></body>
+      <body><a className="yi-skip-link" href="#main-content">Ana içeriğe geç</a><NoticeProvider><AuthSessionBridge /><HashScrollHandler /><PublicSiteShell>{children}</PublicSiteShell></NoticeProvider></body>
     </html>
   );
 }

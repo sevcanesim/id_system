@@ -53,8 +53,21 @@ async function retryCorporatePackageFulfillment(admin: AdminClient, orderId: str
   }
 }
 
+async function resolveRecoveredCallbackIssue(admin: AdminClient, orderId: string) {
+  const { error } = await admin.rpc("resolve_recovered_payment_callback_issue", { p_order_id: orderId });
+  if (error) {
+    void recordSystemError({
+      source: "COMMERCE_SETTLEMENT",
+      errorCode: "CALLBACK_ISSUE_RESOLUTION_FAILED",
+      message: "Recovered payment callback issue could not be resolved.",
+      details: { databaseCode: error.code ?? null },
+    });
+  }
+}
+
 async function recoverPaidCommerceOrder(admin: AdminClient, orderId: string) {
   await retryCorporatePackageFulfillment(admin, orderId);
+  await resolveRecoveredCallbackIssue(admin, orderId);
   const flags = await loadCommerceOrderKind(admin, orderId);
   if (await isGuestCommerceOrder(admin, orderId)) {
     return { reviewRequired: flags.reviewRequired, corporate: flags.corporate };
@@ -144,6 +157,7 @@ async function finishPaidOrder(
   processed: { order_id: string; guest_email: string | null; order_number: string; outcome: string },
   rawActivationToken: string,
 ): Promise<CommerceSettleResult> {
+  await resolveRecoveredCallbackIssue(admin, processed.order_id);
   const flags = await loadCommerceOrderKind(admin, processed.order_id);
   if (await isGuestCommerceOrder(admin, processed.order_id)) {
     if (processed.outcome === "PAID_PROCESSED" || processed.outcome === "PAID_REVIEW_REQUIRED") {

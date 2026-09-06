@@ -141,7 +141,13 @@ function duplicateAttemptResponse(attempt: {
   updated_at?: string | null;
 }, fingerprint: string) {
   if (attempt.request_fingerprint !== fingerprint) {
-    return jsonWithPendingOrder({ ...publicError("IDEMPOTENCY_CONFLICT"), retryable: true, resetOrder: true }, { status: 409 });
+    return jsonWithPendingOrder({
+      ...publicError("IDEMPOTENCY_CONFLICT", {
+        message: "Ödeme oturumun açık. Bilgilerini değiştirmek için ödeme özetine dönüp yeni bir güvenli ödeme oturumu başlatabilirsin.",
+      }),
+      orderId: attempt.order_id,
+      retryable: true,
+    }, { status: 409 });
   }
   if (attempt.status === "PAID") {
     return jsonWithPendingOrder({ ...publicError("ORDER_ALREADY_PAID"), orderId: attempt.order_id }, { status: 409 });
@@ -549,7 +555,13 @@ export async function POST(request: NextRequest) {
         .maybeSingle();
 
       if (previousAttempt?.request_fingerprint && previousAttempt.request_fingerprint !== fingerprint) {
-        return jsonWithPendingOrder({ ...publicError("IDEMPOTENCY_CONFLICT"), retryable: true, resetOrder: true }, { status: 409 });
+        return jsonWithPendingOrder({
+          ...publicError("IDEMPOTENCY_CONFLICT", {
+            message: "Ödeme oturumun açık. Bilgilerini değiştirmek için ödeme özetine dönüp yeni bir güvenli ödeme oturumu başlatabilirsin.",
+          }),
+          orderId: retryOrder.id,
+          retryable: true,
+        }, { status: 409 });
       }
       order = { id: retryOrder.id, order_number: retryOrder.order_number };
     } else {
@@ -730,7 +742,13 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
     const openDecision = decideOpenPaymentAttempt(openAttempt, fingerprint);
     if (openDecision === "conflict") {
-      return jsonWithPendingOrder({ ...publicError("IDEMPOTENCY_CONFLICT"), retryable: true, resetOrder: true }, { status: 409 });
+      return jsonWithPendingOrder({
+        ...publicError("IDEMPOTENCY_CONFLICT", {
+          message: "Ödeme oturumun açık. Bilgilerini değiştirmek için ödeme özetine dönüp yeni bir güvenli ödeme oturumu başlatabilirsin.",
+        }),
+        orderId: order.id,
+        retryable: true,
+      }, { status: 409 });
     }
     if (openDecision === "reuse" && openAttempt?.payment_page_url) {
       return jsonWithPendingOrder({ orderId: order.id, paymentPageUrl: openAttempt.payment_page_url, reused: true });

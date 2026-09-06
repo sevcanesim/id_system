@@ -28,7 +28,12 @@ export async function POST(request: NextRequest) {
     }
     const orderLimit = await limitActivationResendOrder(paidOrder.id);
     if (!orderLimit.allowed) return NextResponse.json(opaqueAck);
-    await admin.from("activation_tokens").update({ used_at: new Date().toISOString() }).eq("order_id", paidOrder.id).is("used_at", null);
+    await admin
+      .from("activation_tokens")
+      .update({ invalidated_at: new Date().toISOString() })
+      .eq("order_id", paidOrder.id)
+      .is("used_at", null)
+      .is("invalidated_at", null);
     const rawToken = randomBytes(32).toString("hex");
     const { activationResendHours } = await getDatabaseLifecycleSettings();
     const expires = new Date(); expires.setHours(expires.getHours() + activationResendHours);

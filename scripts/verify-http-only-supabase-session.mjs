@@ -9,7 +9,6 @@ const middleware = readFileSync("proxy.ts", "utf8");
 const login = readFileSync("app/giris/page.tsx", "utf8") + readFileSync("app/giris/LoginClient.tsx", "utf8");
 const passwordLogin = readFileSync("lib/auth/password-login.ts", "utf8");
 const accountRouter = readFileSync("lib/auth/account-router.ts", "utf8");
-const portalGuard = readFileSync("lib/auth/portal-guard.ts", "utf8");
 const cardWizard = readFileSync("app/olustur/CardWizard.tsx", "utf8");
 const cardActions = readFileSync("app/hooks/useProfileCardActions.ts", "utf8");
 const analyticsPage = readFileSync("app/istatistikler/page.tsx", "utf8");
@@ -98,7 +97,6 @@ forbidText(login, "isAdminSession", "Login must not perform browser bearer admin
 forbidText(passwordLogin, "hydrateBrowserSessionFromCookies", "Password login must not rehydrate browser memory from HttpOnly cookies.");
 requireText(accountRouter, "getBrowserIdentity", "Workspace routing must use server-provided non-secret identity.");
 forbidText(accountRouter, '.from("user_accounts")', "Workspace routing must not query account records from the browser Supabase client.");
-forbidText(portalGuard, "isAdminSession", "Portal guard must not perform browser bearer admin checks.");
 requireText(session, 'request.headers.get("origin") !== request.nextUrl.origin', "Session cookie writes must reject cross-origin requests.");
 
 requireText(cardWizard, "getBrowserIdentity", "Card editor must resolve its identity through the HttpOnly session endpoint.");

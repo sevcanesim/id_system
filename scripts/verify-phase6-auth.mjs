@@ -29,11 +29,6 @@ const activation = read("app/aktivasyon/page.tsx");
 const checkout = read("app/checkout/page.tsx");
 const css = read("app/canonical.css");
 const pkg = JSON.parse(read("package.json"));
-// v25.8.84 — Faz 22: portal doğrulaması ve hesap yönlendirme mantığı
-// component'lerden lib/auth/*'a çıkarıldı (test edilebilirlik için). Bazı
-// aşağıdaki kontroller artık sayfa dosyası yerine bu paylaşılan modülleri
-// okuyor; davranış aynı, sadece nerede tanımlı olduğu değişti.
-const portalGuard = read("lib/auth/portal-guard.ts");
 const accountRouter = read("lib/auth/account-router.ts");
 
 check(exists("app/canonical.css") && layout.includes('./canonical.css'), "auth flow is owned by the canonical global stylesheet");
@@ -56,7 +51,7 @@ check(login.includes("validateSignupPassword(password)"), "existing password pol
 check(login.includes("showPassword") && login.includes("Şifreyi göster") && login.includes("Şifreyi gizle"), "password visibility toggle is available across auth password fields");
 check(checkout.includes("Hesap açmadan ilerleyebilirsin") && checkout.includes("siparişini daha sonra bu e-posta ile hesabına bağlayabilirsin"), "checkout guests retain an explicit no-account recovery path");
 check(!/className="p6-auth-submit"[\s\S]{0,500}<Icon name="external"/.test(login), "auth submit actions do not use external-link semantics");
-check(login.includes("resolveLoginDestination") && portalGuard.includes('from("user_accounts")'), "existing account authorization is retained before workspace routing");
+check(login.includes("resolveLoginDestination") && accountRouter.includes("getBrowserIdentity") && account.includes("resolveServerAccountDestination"), "account authorization is retained before workspace routing");
 check(login.includes("setCartOwner(result.data.session.user.id"), "cart ownership claim retained after authentication");
 check(login.includes("passwordLogin") && login.includes('isDefaultWorkspacePath(returnPath) ? "/hesabim" : returnPath'), "password login goes through the rate-limited Next.js route and routes through the server workspace resolver");
 check(exists("app/api/auth/session/route.ts"), "session cookie is issued by a server route, not document.cookie");

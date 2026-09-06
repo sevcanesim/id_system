@@ -86,6 +86,22 @@ async function auditRoute(page: Page, route: string, mobile: boolean) {
   }
 }
 
+async function auditCorporateOwnCard(page: Page, mobile: boolean) {
+  await page.goto("/kurumsal/panel", { waitUntil: "domcontentloaded" });
+
+  const cardLink = page.getByRole("link", { name: "Kartım", exact: true });
+  await expect(cardLink).toBeVisible({ timeout: 20_000 });
+  const href = await cardLink.getAttribute("href");
+
+  expect(href, "corporate own-card link").toMatch(
+    /^\/kurumsal\/panel\/kartim\?business=1&organizationId=[^&]+(?:&id=[^&]+|&new=1)$/,
+  );
+
+  await auditRoute(page, href!, mobile);
+  await expect(page.getByText("Panel görünümü hazırlanıyor")).toBeHidden({ timeout: 20_000 });
+  await expect(page.getByText("Canlı Kart Önizlemesi", { exact: true })).toBeVisible({ timeout: 20_000 });
+}
+
 for (const viewport of [
   { name: "mobile", width: 390, height: 844, mobile: true },
   { name: "desktop", width: 1280, height: 900, mobile: false },
@@ -104,5 +120,6 @@ for (const viewport of [
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await login(page, corporateCredentials.email, corporateCredentials.password);
     for (const route of corporateRoutes) await auditRoute(page, route, viewport.mobile);
+    await auditCorporateOwnCard(page, viewport.mobile);
   });
 }

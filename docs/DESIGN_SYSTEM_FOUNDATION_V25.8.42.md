@@ -59,9 +59,9 @@ Mevcut `app/components/ui/States.tsx` public API'si korunmuş, içeride yeni fou
 ## Verification
 
 ```bash
-npm run verify:phase0:static
 npm run verify:phase1:audit
 npm run verify:phase2:foundation
+npm run test:critical
 ```
 
 Dependency kurulmuş bir ortamda ayrıca:

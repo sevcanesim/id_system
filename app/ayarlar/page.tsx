@@ -11,7 +11,8 @@ import { Icon } from "../icons";
 import { isIndividualPremiumPackage, NETWORK_MAIL_CREDIT_PACKS } from "../../lib/commerce/packages";
 import { COMMERCIAL_PRICING } from "../../lib/config/commercial";
 import { NFC_PRODUCT, formatTryFromKurus } from "../../lib/config/product";
-import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
+import { validateSignupPassword } from "../../lib/auth/credentials";
+import { clearSensitiveBrowserState } from "../../lib/security/client-private-state";
 import ResumePaymentButton from "../siparislerim/ResumePaymentButton";
 import styles from "./SettingsLayout.module.css";
 
@@ -63,6 +64,7 @@ type CommerceOrder = {
 type OrdersState = { loading: boolean; orders: CommerceOrder[]; error: boolean };
 type StatusTone = "neutral" | "success" | "warning" | "error" | "info";
 type AccountSnapshot = { name: string; email: string };
+type AccountResponse = { account?: { name?: string; email?: string; pendingEmail?: boolean; yenomiId?: string }; error?: string };
 type PrivacyRequestType = "ACCESS" | "ERASURE";
 type PrivacyRequest = {
   id: string;
@@ -264,7 +266,7 @@ export default function SettingsPage() {
 
   async function loadPrivacyRequests() {
     try {
-      const response = await fetch("/api/privacy/requests", { cache: "no-store" });
+      const response = await fetch("/api/privacy/requests", { credentials: "same-origin", cache: "no-store" });
       if (!response.ok) throw new Error("PRIVACY_REQUESTS_UNAVAILABLE");
       const payload = await response.json() as { requests?: PrivacyRequest[] };
       setPrivacyRequestsState({ loading: false, requests: payload.requests ?? [], error: false });
@@ -276,43 +278,25 @@ export default function SettingsPage() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const supabase = getSupabaseBrowserClient();
-      if (!supabase) {
-        if (!cancelled) router.replace("/giris?next=%2Fayarlar");
-        return;
-      }
-      const { data } = await supabase.auth.getUser();
-      if (cancelled) return;
-      if (!data.user) {
+      const accountResponse = await fetch("/api/account", { credentials: "same-origin", cache: "no-store" });
+      if (!accountResponse.ok) {
         router.replace("/giris?next=%2Fayarlar");
         return;
       }
-
-      const nextEmail = data.user.email || "";
-      const nextName = String(data.user.user_metadata?.name || data.user.user_metadata?.full_name || "");
+      const payload = await accountResponse.json() as AccountResponse;
+      if (cancelled) return;
+      const nextEmail = payload.account?.email || "";
+      const nextName = payload.account?.name || "";
       setEmail(nextEmail);
       setName(nextName);
       setAccountSnapshot({ name: nextName, email: nextEmail });
+      setYenomiId(payload.account?.yenomiId || "");
       setBrowserLabel(currentBrowserLabel());
       void loadPrivacyRequests();
 
-      const { data: account } = await supabase
-        .from("user_accounts")
-        .select("yenomi_id")
-        .eq("id", data.user.id)
-        .maybeSingle();
-      if (!cancelled) setYenomiId(typeof account?.yenomi_id === "string" ? account.yenomi_id : "");
-
-      const { data: sessionData } = await supabase?.auth.getSession() || { data: { session: null } };
-      const accessToken = sessionData.session?.access_token;
-      if (!accessToken) {
-        if (!cancelled) setSubscription({ loading: false, entitlement: null, error: false });
-        return;
-      }
-
       try {
         const response = await fetch("/api/commerce/entitlements", {
-          headers: { authorization: `Bearer ${accessToken}` },
+          credentials: "same-origin",
           cache: "no-store",
         });
         if (!response.ok) throw new Error("ENTITLEMENT_UNAVAILABLE");
@@ -333,16 +317,9 @@ export default function SettingsPage() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const supabase = getSupabaseBrowserClient();
-      const { data } = await supabase?.auth.getSession() || { data: { session: null } };
-      const accessToken = data.session?.access_token;
-      if (!accessToken) {
-        if (!cancelled) setOrdersState({ loading: false, orders: [], error: false });
-        return;
-      }
       try {
         const response = await fetch("/api/commerce/orders", {
-          headers: { authorization: `Bearer ${accessToken}` },
+          credentials: "same-origin",
           cache: "no-store",
         });
         if (!response.ok) throw new Error("ORDERS_UNAVAILABLE");
@@ -363,55 +340,73 @@ export default function SettingsPage() {
   const hasNetworkMail = (subscription.entitlement?.network_mail_limit || 0) > 0;
   const renewalWindowOpen = daysLeft !== null && daysLeft <= 30;
   const accountDirty = name.trim() !== accountSnapshot.name || email.trim() !== accountSnapshot.email;
+  const passwordError = validateSignupPassword(password);
 
   async function saveAccount(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase || !accountDirty) return;
+    if (!accountDirty) return;
     setSavingAccount(true);
     setAccountMessage("");
-
-    const { error } = await supabase.auth.updateUser({
-      email: email.trim(),
-      data: { name: name.trim() },
-    });
-
-    if (error) {
+    try {
+      const response = await fetch("/api/account", {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), name: name.trim() }),
+      });
+      const payload = await response.json().catch(() => null) as AccountResponse | null;
+      if (!response.ok) throw new Error(payload?.error || "ACCOUNT_UPDATE_FAILED");
+      const updatedAccount = { name: payload?.account?.name ?? name.trim(), email: payload?.account?.email ?? email.trim() };
+      setName(updatedAccount.name);
+      setEmail(updatedAccount.email);
+      setAccountSnapshot(updatedAccount);
+      setAccountMessageTone("success");
+      const message = payload?.account?.pendingEmail
+        ? "Hesap bilgileriniz güncellendi. Yeni e-posta adresinizi gelen kutunuzdaki bağlantıdan doğrulayın."
+        : "Hesap bilgileriniz güncellendi.";
+      setAccountMessage(message);
+      notify({ message, tone: "success" });
+    } catch {
       setAccountMessageTone("error");
       setAccountMessage("Hesap bilgileri kaydedilemedi. E-posta adresini kontrol edip tekrar deneyin.");
       notify({ message: "Hesap bilgileri kaydedilemedi. E-posta adresini kontrol edip tekrar deneyin.", tone: "error" });
-    } else {
-      const updatedAccount = { name: name.trim(), email: email.trim() };
-      setAccountSnapshot(updatedAccount);
-      setAccountMessageTone("success");
-      setAccountMessage("Hesap bilgileriniz güncellendi. E-posta değiştiyse doğrulama bağlantısını gelen kutunuzdan onaylayın.");
-      notify({ message: "Hesap bilgileriniz güncellendi. E-posta değiştiyse doğrulama bağlantısını gelen kutunuzdan onaylayın.", tone: "success" });
+    } finally {
+      setSavingAccount(false);
     }
-    setSavingAccount(false);
   }
 
   async function savePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase || password.trim().length < 8) return;
+    if (passwordError) return;
     setSavingPassword(true);
     setSecurityMessage("");
-
-    const { error } = await supabase.auth.updateUser({ password });
-    setSecurityMessageTone(error ? "error" : "success");
-    setSecurityMessage(error ? "Şifre güncellenemedi. En az 8 karakter kullandığınızdan emin olup tekrar deneyin." : "Şifreniz güncellendi.");
-    notify({
-      message: error ? "Şifre güncellenemedi. En az 8 karakter kullandığınızdan emin olup tekrar deneyin." : "Şifreniz güncellendi.",
-      tone: error ? "error" : "success",
-    });
-    if (!error) setPassword("");
-    setSavingPassword(false);
+    try {
+      const response = await fetch("/api/account", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const payload = await response.json().catch(() => null) as { error?: string } | null;
+      if (!response.ok) throw new Error(payload?.error || "PASSWORD_UPDATE_FAILED");
+      setSecurityMessageTone("success");
+      setSecurityMessage("Şifreniz güncellendi.");
+      notify({ message: "Şifreniz güncellendi.", tone: "success" });
+      setPassword("");
+    } catch {
+      const message = "Şifre güncellenemedi. Kuralları kontrol edip tekrar deneyin.";
+      setSecurityMessageTone("error");
+      setSecurityMessage(message);
+      notify({ message, tone: "error" });
+    } finally {
+      setSavingPassword(false);
+    }
   }
 
   async function signOut() {
-    const supabase = getSupabaseBrowserClient();
-    await supabase?.auth.signOut();
-    router.replace("/giris");
+    await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" }).catch(() => undefined);
+    clearSensitiveBrowserState();
+    window.location.assign("/giris");
   }
 
   async function submitPrivacyRequest(type: PrivacyRequestType) {
@@ -420,6 +415,7 @@ export default function SettingsPage() {
     try {
       const response = await fetch("/api/privacy/requests", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type }),
       });
@@ -659,7 +655,7 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div className={styles.securityForm}>
-                <Field label="Yeni Şifre" help="En az 8 karakter">
+                <Field label="Yeni Şifre" help="En az 8 karakter; küçük harf, büyük harf ve rakam içerir.">
                   <Input
                     type="password"
                     minLength={8}
@@ -670,7 +666,7 @@ export default function SettingsPage() {
                     required
                   />
                 </Field>
-                <Button type="submit" variant={password.trim().length >= 8 ? "primary" : "secondary-strong"} disabled={savingPassword || password.trim().length < 8}>
+                <Button type="submit" variant={!passwordError ? "primary" : "secondary-strong"} disabled={savingPassword || Boolean(passwordError)}>
                   {savingPassword ? "Güncelleniyor…" : "Şifreyi Güncelle"}
                 </Button>
               </div>

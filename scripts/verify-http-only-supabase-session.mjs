@@ -13,6 +13,9 @@ const cardActions = readFileSync("app/hooks/useProfileCardActions.ts", "utf8");
 const analyticsPage = readFileSync("app/istatistikler/page.tsx", "utf8");
 const leadsPage = readFileSync("app/leadler/page.tsx", "utf8");
 const individualInbox = readFileSync("app/api/networking/inbox/route.ts", "utf8");
+const settingsPage = readFileSync("app/ayarlar/page.tsx", "utf8");
+const accountRoute = readFileSync("app/api/account/route.ts", "utf8");
+const logoutRoute = readFileSync("app/api/auth/logout/route.ts", "utf8");
 const organizationIdentity = readFileSync("app/olustur/domain/organization-identity.ts", "utf8");
 const organizationRoutes = [
   "app/api/organizations/card-profile-link/route.ts",
@@ -77,6 +80,12 @@ requireText(analyticsPage, 'credentials: "same-origin"', "Analytics must use its
 forbidText(leadsPage, "getBrowserSession", "Individual leads must not retrieve browser access tokens.");
 forbidText(leadsPage, "authorization: `Bearer", "Individual leads must not send access tokens in request headers.");
 requireText(individualInbox, "resolveRequestIdentity", "Individual networking APIs must accept the HttpOnly session cookie.");
+forbidText(settingsPage, "getSupabaseBrowserClient", "Account settings must not hydrate a browser Supabase session.");
+forbidText(settingsPage, "authorization: `Bearer", "Account settings must not send access tokens in request headers.");
+requireText(settingsPage, 'fetch("/api/account", { credentials: "same-origin", cache: "no-store" })', "Account settings must load its identity from a cookie-authenticated API.");
+requireText(accountRoute, "resolveRequestIdentity", "Account API must verify the HttpOnly session server-side.");
+requireText(accountRoute, "validateSignupPassword", "Account API must enforce the shared password policy server-side.");
+requireText(logoutRoute, "clearSessionCookies", "Logout must clear both HttpOnly session cookies.");
 forbidText(organizationIdentity, "authorization: `Bearer", "Card editor organization reads must use cookie identity.");
 requireText(organizationRoutes, "resolveRequestIdentity", "Card editor organization APIs must accept the HttpOnly session cookie.");
 

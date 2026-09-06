@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 import { isOrganizationRole } from "../../../../lib/organizations/permissions";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
 
 async function context(request: NextRequest) {
   const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
@@ -118,7 +119,13 @@ export async function GET(request: NextRequest) {
   }
   if (eventsError) {
     const relationMissing = eventsError.code === "42P01" || eventsError.code === "PGRST205" || (/card_view_events/i.test(eventsError.message || "") && /does not exist|schema cache/i.test(eventsError.message || ""));
-    console.error("[card-analytics] card_view_events query failed", { organizationId, code: eventsError.code, message: eventsError.message });
+    void recordSystemError({
+      source: "CARD_ANALYTICS",
+      errorCode: "VIEW_EVENT_LOOKUP_FAILED",
+      message: "Kurumsal kart görüntülenme verisi yüklenemedi.",
+      organizationId,
+      userId: ctx.user.id,
+    });
 
     // Bu endpoint supabase/migrations/030_card_view_analytics.sql ile oluşturulan card_view_events tablosunu kullanır.
     // Analitik, kurumsal panelin geri kalanını çalışamaz hale getirmemeli.

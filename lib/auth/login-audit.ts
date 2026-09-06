@@ -1,4 +1,6 @@
+import { createHmac } from "node:crypto";
 import { isYenomiTestEmail } from "./production-test-gate";
+import { getSupabaseAdminClient } from "../supabase/server-admin";
 
 function emailDomain(email?: string | null): string | undefined {
   if (!email) return undefined;
@@ -6,20 +8,30 @@ function emailDomain(email?: string | null): string | undefined {
   return at >= 0 ? email.slice(at + 1).toLowerCase() : undefined;
 }
 
-/** Structured login telemetry. Never include passwords or raw tokens. */
-export function logAuthLoginEvent(event: {
+function auditFingerprint(value?: string | null): string | undefined {
+  const secret = process.env.AUTH_LOG_FINGERPRINT_KEY || process.env.ANALYTICS_FINGERPRINT_KEY;
+  if (!value || !secret) return undefined;
+  return createHmac("sha256", secret).update(value).digest("base64url").slice(0, 24);
+}
+
+export async function logAuthLoginEvent(event: {
   ok: boolean;
   reason: string;
   email?: string | null;
   ip?: string | null;
   userId?: string | null;
 }) {
-  console.info("auth.login", JSON.stringify({
-    ok: event.ok,
-    reason: event.reason,
-    email_domain: emailDomain(event.email),
-    test_email: isYenomiTestEmail(event.email),
-    ip: event.ip || undefined,
-    user_id: event.userId || undefined,
-  }));
+  try {
+    const { error } = await getSupabaseAdminClient().from("auth_login_events").insert({
+      succeeded: event.ok,
+      reason: event.reason.toLowerCase().replace(/[^a-z0-9_:-]/g, "_").slice(0, 120) || "unknown",
+      email_domain: emailDomain(event.email),
+      is_test_identity: isYenomiTestEmail(event.email),
+      ip_fingerprint: auditFingerprint(event.ip),
+      user_fingerprint: auditFingerprint(event.userId),
+    });
+    return !error;
+  } catch {
+    return false;
+  }
 }

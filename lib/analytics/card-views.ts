@@ -16,25 +16,22 @@ function clientIp(headerList: Awaited<ReturnType<typeof headers>>) {
 
 function visitorFingerprint(profileId: string, ipAddress: string | null, userAgent: string) {
   if (!ipAddress) return null;
-  const secret = process.env.ANALYTICS_FINGERPRINT_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const secret = process.env.ANALYTICS_FINGERPRINT_SECRET?.trim();
   if (!secret) return null;
   return createHmac("sha256", secret)
     .update(`${profileId}\n${ipAddress}\n${userAgent}`)
     .digest("hex");
 }
 
-function decodeGeoValue(value: string | null) {
-  if (!value) return null;
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
-  }
+function countryCode(value: string | null) {
+  const normalized = value?.trim().toUpperCase() || "";
+  return /^[A-Z]{2}$/.test(normalized) ? normalized : null;
 }
 
-function shouldIgnoreView(host: string, userAgent: string) {
+function shouldIgnoreView(host: string, userAgent: string, doNotTrack: string | null, globalPrivacyControl: string | null) {
   if (process.env.NODE_ENV !== "production") return true;
   if (/^(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(host)) return true;
+  if (doNotTrack === "1" || globalPrivacyControl === "1") return true;
   return AUTOMATED_AGENT.test(userAgent);
 }
 
@@ -55,7 +52,7 @@ export async function logCardView(profileId: string, attribution: ViewAttributio
     const headerList = await headers();
     const host = headerList.get("host") || "";
     const userAgent = (headerList.get("user-agent") || "unknown").slice(0, 512);
-    if (shouldIgnoreView(host, userAgent)) return;
+    if (shouldIgnoreView(host, userAgent, headerList.get("dnt"), headerList.get("sec-gpc"))) return;
 
     const fingerprint = visitorFingerprint(profileId, clientIp(headerList), userAgent);
     const admin = getSupabaseAdminClient();
@@ -74,15 +71,11 @@ export async function logCardView(profileId: string, attribution: ViewAttributio
       if (!lookupError && recentView) return;
     }
 
-    const country = headerList.get("x-vercel-ip-country") || headerList.get("cf-ipcountry");
-    const city = headerList.get("x-vercel-ip-city");
-    const referrer = headerList.get("referer")?.slice(0, 500) || null;
+    const country = countryCode(headerList.get("x-vercel-ip-country") || headerList.get("cf-ipcountry"));
 
     await admin.from("card_view_events").insert({
       profile_id: profileId,
-      country: decodeGeoValue(country),
-      city: decodeGeoValue(city),
-      referrer,
+      country,
       visitor_fingerprint: fingerprint,
       source: attribution.source || "DIRECT",
       campaign: safeCampaign(attribution.campaign),

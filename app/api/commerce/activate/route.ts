@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 import { publicError } from "../../../../lib/errors";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
 
 const schema = z.object({ token: z.string().min(20), email: z.string().email(), password: z.string().min(8).max(72) });
 
@@ -87,9 +88,19 @@ export async function POST(request: NextRequest) {
       try {
         const { error: deleteError } = await admin.auth.admin.deleteUser(userData.user.id);
         deleted = !deleteError;
-        if (deleteError) console.error("activation auth cleanup failed", deleteError.message);
-      } catch (cleanupError) {
-        console.error("activation auth cleanup failed", cleanupError instanceof Error ? cleanupError.message : "unknown");
+        if (deleteError) {
+          void recordSystemError({
+            source: "COMMERCE_ACTIVATION",
+            errorCode: "AUTH_COMPENSATION_FAILED",
+            message: "Aktivasyon sırasında oluşturulan hesap geri alınamadı.",
+          });
+        }
+      } catch {
+        void recordSystemError({
+          source: "COMMERCE_ACTIVATION",
+          errorCode: "AUTH_COMPENSATION_FAILED",
+          message: "Aktivasyon sırasında oluşturulan hesap geri alınamadı.",
+        });
       }
 
       // Only release the DB reservation when the compensating Auth delete is
@@ -120,9 +131,19 @@ export async function POST(request: NextRequest) {
         try {
           const { error: deleteError } = await admin.auth.admin.deleteUser(createdUserId);
           canRelease = !deleteError;
-          if (deleteError) console.error("activation auth cleanup failed", deleteError.message);
-        } catch (cleanupError) {
-          console.error("activation auth cleanup failed", cleanupError instanceof Error ? cleanupError.message : "unknown");
+          if (deleteError) {
+            void recordSystemError({
+              source: "COMMERCE_ACTIVATION",
+              errorCode: "AUTH_COMPENSATION_FAILED",
+              message: "Aktivasyon sırasında oluşturulan hesap geri alınamadı.",
+            });
+          }
+        } catch {
+          void recordSystemError({
+            source: "COMMERCE_ACTIVATION",
+            errorCode: "AUTH_COMPENSATION_FAILED",
+            message: "Aktivasyon sırasında oluşturulan hesap geri alınamadı.",
+          });
         }
       }
       if (canRelease) {
@@ -134,7 +155,11 @@ export async function POST(request: NextRequest) {
         } catch { /* reservation expires automatically */ }
       }
     }
-    console.error("commerce activation error", error instanceof Error ? error.message : "unknown");
+    void recordSystemError({
+      source: "COMMERCE_ACTIVATION",
+      errorCode: "ACTIVATION_FAILED",
+      message: "Sipariş aktivasyonu tamamlanamadı.",
+    });
     return NextResponse.json(publicError("ACTIVATION_FAILED"), { status: 500 });
   }
 }

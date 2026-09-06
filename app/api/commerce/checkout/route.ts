@@ -176,7 +176,6 @@ export async function POST(request: NextRequest) {
     const parsed = checkoutSchema(legalVersions).safeParse(await request.json());
     if (!parsed.success) {
       const payload = publicError("VALIDATION_ERROR");
-      console.error("checkout validation failed", { reference: payload.reference, issueCount: parsed.error.issues.length });
       return NextResponse.json(payload, { status: 400 });
     }
 
@@ -185,9 +184,6 @@ export async function POST(request: NextRequest) {
     let authenticatedUserId: string | null = null;
     let normalizedEmail = body.customer.email.toLowerCase();
 
-    // Physical-only checkout may support a guest purchase. Guest orders remain claimable by email after payment for physical-only purchases.
-    // Portal products are rejected below unless an account is present. If a
-    // session exists, bind the order to it and require the checkout email to match it.
     if (bearer) {
       const auth = getSupabaseAuthClient();
       const { data: authData } = await auth.auth.getUser(bearer);
@@ -248,10 +244,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Capacity add-on lines must target an organization the buyer actually
-    // manages, and only a fully ACTIVE subscription may expand capacity.
-    // GRACE_PERIOD is intentionally excluded: overdue accounts must restore
-    // their base subscription before purchasing additional seats.
     for (const item of calculated) {
       const metadata = (item.variant.metadata as Record<string, unknown> | null) || {};
       const isCapacityAddon = metadata.fulfillment_kind === "BUSINESS_CAPACITY_ADDON"
@@ -576,7 +568,14 @@ export async function POST(request: NextRequest) {
 
       if (orderError || !createdOrder) {
         const payload = publicError("ORDER_CREATE_FAILED");
-        console.error("commerce order create error", { reference: payload.reference, code: orderError?.code });
+        void recordSystemError({
+          source: "COMMERCE_CHECKOUT",
+          errorCode: "ORDER_CREATE_FAILED",
+          message: "Checkout could not create a commerce order.",
+          requestId,
+          userId: observabilityUserId,
+          details: { reference: payload.reference, databaseCode: orderError?.code ?? null },
+        });
         return NextResponse.json(payload, { status: 500 });
       }
 
@@ -625,9 +624,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(publicError("ORDER_CREATE_FAILED"), { status: 500 });
       }
 
-      // The organization profile is the live source of truth. Every order
-      // also receives an immutable copy so later profile corrections never
-      // rewrite the invoice history or a previous payment attempt.
       const { error: billingProfileError } = await admin.from("commerce_order_billing_profiles").insert({
         order_id: order.id,
         billing_type: organizationBilling ? "CORPORATE" : "INDIVIDUAL",
@@ -646,7 +642,14 @@ export async function POST(request: NextRequest) {
       });
       if (billingProfileError) {
         await admin.from("commerce_orders").delete().eq("id", order.id);
-        console.error("commerce billing profile snapshot error", { orderId: order.id, code: billingProfileError.code });
+        void recordSystemError({
+          source: "COMMERCE_CHECKOUT",
+          errorCode: "BILLING_PROFILE_SNAPSHOT_FAILED",
+          message: "Checkout could not persist its billing snapshot.",
+          requestId,
+          userId: observabilityUserId,
+          details: { databaseCode: billingProfileError.code ?? null },
+        });
         return NextResponse.json(publicError("ORDER_CREATE_FAILED"), { status: 500 });
       }
 
@@ -699,9 +702,13 @@ export async function POST(request: NextRequest) {
       },
     }, { onConflict: "order_id" });
     if (resumeSessionError) {
-      console.error("checkout resume snapshot could not be persisted", {
-        orderId: order.id,
-        message: resumeSessionError.message,
+      void recordSystemError({
+        source: "COMMERCE_CHECKOUT",
+        errorCode: "CHECKOUT_RESUME_SNAPSHOT_FAILED",
+        message: "Checkout continuation data could not be persisted.",
+        requestId,
+        userId: observabilityUserId,
+        details: { databaseCode: resumeSessionError.code ?? null },
       });
     }
 
@@ -730,8 +737,6 @@ export async function POST(request: NextRequest) {
     }
 
     const conversationId = randomUUID();
-    // PayTR requires a merchant order id before its hosted session is created;
-    // persist that opaque id first so only the signed callback can settle it.
     const paytrMerchantOid = createPaytrMerchantOid();
     const { data: reservedAttempt, error: reserveError } = await admin
       .from("commerce_payment_attempts")
@@ -754,7 +759,6 @@ export async function POST(request: NextRequest) {
       const { data: racedAttempt } = await findExistingCheckoutAttempt(admin, idempotencyKey);
       if (racedAttempt) return duplicateAttemptResponse(racedAttempt, fingerprint);
       const payload = publicError("PAYMENT_IN_PROGRESS");
-      console.error("payment attempt reservation failed", { reference: payload.reference, code: reserveError?.code });
       void recordSystemError({
         source: "COMMERCE_CHECKOUT",
         errorCode: "PAYMENT_ATTEMPT_RESERVATION_FAILED",
@@ -796,7 +800,6 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString(),
       }).eq("id", reservedAttempt.id);
       const payload = publicError("PAYMENT_UNAVAILABLE");
-      console.error("payment checkout rejected", { reference: payload.reference, provider: paymentProvider, errorCode: paytrCheckout.errorCode, orderId: order.id });
       void recordSystemError({
         source: "COMMERCE_CHECKOUT",
         errorCode: paytrCheckout.errorCode || "PAYTR_INITIALIZATION_FAILED",
@@ -820,12 +823,8 @@ export async function POST(request: NextRequest) {
       paymentPageUrl,
       retried: Boolean(body.retryOrderId),
     });
-  } catch (error) {
+  } catch {
     const payload = publicError("PAYMENT_UNAVAILABLE");
-    console.error("commerce checkout error", {
-      reference: payload.reference,
-      message: error instanceof Error ? error.message : "UNKNOWN",
-    });
     void recordSystemError({
       source: "COMMERCE_CHECKOUT",
       errorCode: "COMMERCE_CHECKOUT_UNHANDLED",

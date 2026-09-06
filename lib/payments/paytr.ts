@@ -37,10 +37,6 @@ function asMoney(kurus: number) {
   return (kurus / 100).toFixed(2);
 }
 
-function asSafeCallbackMessage(value: unknown) {
-  return typeof value === "string" ? value.slice(0, 180) : "PayTR ödeme sayfası oluşturulamadı.";
-}
-
 export function createPaytrMerchantOid() {
   return `PT${randomUUID().replaceAll("-", "")}`;
 }
@@ -84,11 +80,6 @@ export function paytrIframeUrl(token: string) {
   return `${PAYTR_IFRAME_URL}/${encodeURIComponent(token)}`;
 }
 
-/**
- * PayTR's token endpoint creates only a hosted iframe session. A payment is
- * never considered complete here; the signed server-to-server callback is
- * the sole source of payment truth.
- */
 export async function initializePaytrCheckout(input: PaytrTokenRequest) {
   if (!Number.isInteger(input.amountKurus) || input.amountKurus <= 0) {
     return { ok: false as const, errorCode: "INVALID_AMOUNT", errorMessage: "Ödeme tutarı geçersiz." };
@@ -132,8 +123,6 @@ export async function initializePaytrCheckout(input: PaytrTokenRequest) {
     currency: PAYTR_CURRENCY,
     test_mode: testMode,
     lang: "tr",
-    // PayTR's current hosted checkout uses the V2 iframe contract. The
-    // corresponding parent-page resizer is loaded only on /odeme/paytr.
     iframe_v2: PAYTR_IFRAME_V2,
   });
 
@@ -149,7 +138,7 @@ export async function initializePaytrCheckout(input: PaytrTokenRequest) {
       return {
         ok: false as const,
         errorCode: "PAYTR_TOKEN_REJECTED",
-        errorMessage: asSafeCallbackMessage(payload.reason),
+        errorMessage: "PayTR ödeme sayfası oluşturulamadı.",
       };
     }
     return { ok: true as const, token: payload.token, paymentPageUrl: paytrIframeUrl(payload.token) };

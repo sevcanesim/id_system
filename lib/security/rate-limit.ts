@@ -96,8 +96,7 @@ export async function consumeDistributedRateLimit({
       remaining: Math.max(0, limit - count),
       resetAt: now + safeTtl,
     };
-  } catch (error) {
-    console.error("Distributed rate limit unavailable", error instanceof Error ? error.message : "UNKNOWN");
+  } catch {
     if (failClosed) return denyUnavailable(limit, windowMs, now);
     return consumeRateLimit(key, limit, windowMs, now);
   }

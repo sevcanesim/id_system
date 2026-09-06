@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireSuperAdmin } from "../../../../lib/admin/require-admin";
 import { sendOrganizationInviteEmail } from "../../../../lib/email/resend";
 import { publicSiteUrl } from "../../../../lib/payments/config";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
 import { normalizeCardSlug } from "../../../../lib/validation/slug";
 
 export const runtime = "nodejs";
@@ -52,7 +53,12 @@ const provisionSchema = z.object({
 });
 
 function logAdminOperationFailure(operation: string, code?: string | null) {
-  console.error("admin organization operation failed", { operation, code: code || "UNKNOWN" });
+  void recordSystemError({
+    source: "ADMIN_ORGANIZATIONS",
+    errorCode: "OPERATION_FAILED",
+    message: "Super Admin kurumsal hesap işlemi tamamlanamadı.",
+    details: { operation, databaseCode: code || "UNKNOWN" },
+  });
 }
 
 // GET: corporate accounts overview for the admin dashboard (org, active

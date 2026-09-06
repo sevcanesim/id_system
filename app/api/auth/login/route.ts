@@ -20,6 +20,7 @@ import { applySessionCookies } from "../../../../lib/auth/http-only-session";
 import { consumeDistributedRateLimit, requestIp } from "../../../../lib/security/rate-limit";
 import { limitAuthLoginIp } from "../../../../lib/security/route-rate-limits";
 import { getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
 
 export const runtime = "nodejs";
 
@@ -199,8 +200,12 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ ok: true });
     applySessionCookies(response, sessionTokens);
     return noStore(response);
-  } catch (error) {
-    console.error("auth login error", error instanceof Error ? error.message : "UNKNOWN");
+  } catch {
+    void recordSystemError({
+      source: "AUTH_LOGIN",
+      errorCode: "LOGIN_UNAVAILABLE",
+      message: "Password login could not complete.",
+    });
     logAuthLoginEvent({ ok: false, reason: "server_error", ip });
     return fail(request, viaForm, portal, next, 503, "Giriş şu anda tamamlanamıyor. Lütfen yeniden dene.", "LOGIN_UNAVAILABLE");
   }

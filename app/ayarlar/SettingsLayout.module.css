@@ -353,6 +353,60 @@
   padding: clamp(var(--space-4), 2.5vw, var(--space-5));
 }
 
+.privacyCard {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(var(--space-4), 2.5vw, var(--space-5));
+}
+
+.privacyActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.privacyStatus {
+  margin: var(--space-4) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--type-body-sm);
+  line-height: 1.5;
+}
+
+.privacyRequestList {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.privacyRequestList li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-secondary);
+}
+
+.privacyRequestList li > div {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.privacyRequestList strong {
+  color: var(--text-primary);
+  font-size: var(--type-body-sm);
+}
+
+.privacyRequestList span {
+  color: var(--text-tertiary);
+  font-size: var(--type-sm);
+}
+
 .accountCard > form,
 .securityCard > form {
   display: flex;

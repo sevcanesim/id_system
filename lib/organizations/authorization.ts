@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../supabase/server-admin";
+import { resolveRequestIdentity } from "../auth/request-identity";
+import { getSupabaseAdminClient } from "../supabase/server-admin";
 import { isOrganizationRole, type OrganizationRole } from "./permissions";
 
 export type OrganizationActor = {
@@ -18,31 +19,28 @@ export type OrganizationActor = {
  * API handlers that need an organization-scoped role decision.
  */
 export async function getOrganizationActor(request: NextRequest, organizationId: string): Promise<OrganizationActor | null> {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token || !organizationId) return null;
-
-  const auth = getSupabaseAuthClient();
-  const { data: authData } = await auth.auth.getUser(token);
-  if (!authData.user) return null;
+  if (!organizationId) return null;
+  const identity = await resolveRequestIdentity(request);
+  if (!identity) return null;
 
   const admin = getSupabaseAdminClient();
   const { data } = await admin
     .from("organization_members")
     .select("organization_id,role,status,department")
     .eq("organization_id", organizationId)
-    .eq("user_id", authData.user.id)
+    .eq("user_id", identity.user.id)
     .maybeSingle();
 
   if (!data || !isOrganizationRole(data.role) || data.status !== "ACTIVE") return null;
 
   return {
-    userId: authData.user.id,
+    userId: identity.user.id,
     organizationId,
     role: data.role,
     status: data.status,
     department: data.department ?? null,
-    email: authData.user.email ?? null,
-    emailConfirmedAt: authData.user.email_confirmed_at ?? null,
+    email: identity.user.email ?? null,
+    emailConfirmedAt: identity.user.email_confirmed_at ?? null,
   };
 }
 

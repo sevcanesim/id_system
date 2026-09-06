@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
 
 export const runtime = "nodejs";
 
@@ -215,8 +216,12 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ error: "Bilinmeyen eylem." }, { status: 400 });
-  } catch (error) {
-    console.error("Gemini brand assistant error:", error);
+  } catch {
+    void recordSystemError({
+      source: "BRAND_ASSISTANT",
+      errorCode: "REQUEST_FAILED",
+      message: "Marka asistanı isteği işlenemedi.",
+    });
     return NextResponse.json({ error: "Gemini AI servisine ulaşılamadı." }, { status: 500 });
   }
 }

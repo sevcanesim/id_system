@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 import { publicError } from "../../../../lib/errors";
 import { INDIVIDUAL_PRODUCT_PURCHASE_HREF } from "../../../../lib/commerce/individual-portal-access";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,7 +34,12 @@ export async function GET(request: NextRequest) {
     ]);
 
     if (entitlementError || grantError) {
-      console.error("entitlement lookup failed", entitlementError);
+      void recordSystemError({
+        source: "COMMERCE_ENTITLEMENTS",
+        errorCode: "ENTITLEMENT_LOOKUP_FAILED",
+        message: "Dijital hizmet kayıtları yüklenemedi.",
+        userId: data.user.id,
+      });
       return NextResponse.json(publicError("ORDER_FETCH_FAILED"), { status: 500 });
     }
 
@@ -69,8 +75,12 @@ export async function GET(request: NextRequest) {
       pendingEntitlements,
       next: active ? "/olustur" : INDIVIDUAL_PRODUCT_PURCHASE_HREF,
     });
-  } catch (error) {
-    console.error("entitlement access error", error);
+  } catch {
+    void recordSystemError({
+      source: "COMMERCE_ENTITLEMENTS",
+      errorCode: "ENTITLEMENT_ACCESS_FAILED",
+      message: "Dijital hizmet kayıtlarına erişilemedi.",
+    });
     return NextResponse.json(publicError("ORDER_FETCH_FAILED"), { status: 500 });
   }
 }

@@ -68,14 +68,32 @@ function cleanCell(value = '') {
     .trim();
 }
 
-const rows = output
-  .split(/\r?\n/)
-  .map((line) => line.replace(/\u001b\[[0-9;]*m/g, '').trim())
-  .filter((line) => line.includes('|'))
-  .map((line) => line.split('|').map(cleanCell))
-  .filter((cells) => cells.length >= 2)
-  .map(([local, remote, time = '']) => [local, remote, time])
-  .filter(([local, remote]) => /^\d{3,}$/.test(local || '') || /^\d{3,}$/.test(remote || ''));
+function parseMigrationRows() {
+  const jsonLine = output.split(/\r?\n/).find((line) => line.trim().startsWith('{"migrations":'));
+  if (jsonLine) {
+    try {
+      const payload = JSON.parse(jsonLine.trim());
+      if (Array.isArray(payload.migrations)) {
+        return payload.migrations
+          .map(({ local = '', remote = '', time = '' }) => [String(local), String(remote), String(time)])
+          .filter(([local, remote]) => /^\d{3,}$/.test(local) || /^\d{3,}$/.test(remote));
+      }
+    } catch {
+      return [];
+    }
+  }
+
+  return output
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\u001b\[[0-9;]*m/g, '').trim())
+    .filter((line) => line.includes('|'))
+    .map((line) => line.split('|').map(cleanCell))
+    .filter((cells) => cells.length >= 2)
+    .map(([local, remote, time = '']) => [local, remote, time])
+    .filter(([local, remote]) => /^\d{3,}$/.test(local || '') || /^\d{3,}$/.test(remote || ''));
+}
+
+const rows = parseMigrationRows();
 
 if (!rows.length) {
   console.error(output.trim());
@@ -84,16 +102,17 @@ if (!rows.length) {
   process.exit(1);
 }
 
-const drift = rows.filter(([local, remote]) => !local || !remote || local !== remote);
-if (drift.length) {
-  console.error(`Migration drift bulundu: ${drift.length} uyuşmazlık.`);
-  for (const [local, remote, time] of drift) {
-    const kind = local && !remote ? 'LOCAL_ONLY' : !local && remote ? 'REMOTE_ONLY' : 'MISMATCH';
-    console.error(`  ${kind.padEnd(11)} local=${local || '-'} remote=${remote || '-'}${time ? ` time=${time}` : ''}`);
-  }
+const localVersions = new Set(rows.map(([local]) => local).filter(Boolean));
+const remoteVersions = new Set(rows.map(([, remote]) => remote).filter(Boolean));
+const localOnly = [...localVersions].filter((version) => !remoteVersions.has(version));
+const remoteOnly = [...remoteVersions].filter((version) => !localVersions.has(version));
+if (localOnly.length || remoteOnly.length) {
+  console.error(`Migration drift bulundu: ${localOnly.length + remoteOnly.length} uyuşmazlık.`);
+  for (const version of localOnly) console.error(`  LOCAL_ONLY  local=${version} remote=-`);
+  for (const version of remoteOnly) console.error(`  REMOTE_ONLY local=- remote=${version}`);
   console.error('\nBu durumda otomatik `db push` veya `migration repair` çalıştırma.');
   console.error('Önce local-only ve remote-only migrationların aynı şema değişikliklerinin yeniden adlandırılmış sürümleri olup olmadığını doğrula.');
   process.exit(1);
 }
 
-console.log(`Migration drift kontrolü BAŞARILI: ${rows.length} local/remote migration eşleşiyor. Project ref: ${linkedRef}`);
+console.log(`Migration drift kontrolü BAŞARILI: ${localVersions.size} local/remote migration sürümü eşleşiyor. Project ref: ${linkedRef}`);

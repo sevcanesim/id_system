@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { checkoutResumeCodeExpiry, createCheckoutResumeCode, hashCheckoutResumeCode } from "../../../../../../lib/commerce/checkout-resume";
 import { publicError } from "../../../../../../lib/errors";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../../lib/supabase/server-admin";
+import { recordSystemError } from "../../../../../../lib/observability/system-errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,7 +29,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     .maybeSingle();
 
   if (orderError) {
-    console.error("order payment resume ownership lookup failed", { orderId, code: orderError.code });
+    void recordSystemError({
+      source: "COMMERCE_ORDER_RESUME",
+      errorCode: "OWNERSHIP_LOOKUP_FAILED",
+      message: "Sipariş sahipliği doğrulanamadı.",
+      userId: authData.user.id,
+    });
     return NextResponse.json(publicError("ORDER_LOAD_FAILED"), { status: 500 });
   }
   if (!order) return NextResponse.json({ error: "Sipariş bulunamadı." }, { status: 404 });
@@ -44,7 +50,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     .maybeSingle();
 
   if (sessionError) {
-    console.error("order payment resume session lookup failed", { orderId, code: sessionError.code });
+    void recordSystemError({
+      source: "COMMERCE_ORDER_RESUME",
+      errorCode: "SESSION_LOOKUP_FAILED",
+      message: "Ödeme devam oturumu yüklenemedi.",
+      userId: authData.user.id,
+    });
     return NextResponse.json({ error: "Ödeme bilgileri şu anda geri yüklenemiyor." }, { status: 503 });
   }
   if (!session?.draft_payload) {
@@ -59,7 +70,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     redeemed_at: null,
   }, { onConflict: "order_id" });
   if (resumeCodeError) {
-    console.error("order payment resume code could not be created", { orderId, code: resumeCodeError.code });
+    void recordSystemError({
+      source: "COMMERCE_ORDER_RESUME",
+      errorCode: "CODE_CREATION_FAILED",
+      message: "Ödeme devam bağlantısı oluşturulamadı.",
+      userId: authData.user.id,
+    });
     return NextResponse.json({ error: "Ödeme devam bağlantısı oluşturulamadı." }, { status: 503 });
   }
 

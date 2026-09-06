@@ -16,6 +16,7 @@ import {
   productionTestLoginBlocked,
 } from "../../../../lib/auth/production-test-gate";
 import { readAccountType } from "../../../../lib/auth/session-identity";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
 import { getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 
 export const runtime = "nodejs";
@@ -68,8 +69,12 @@ export async function GET(request: NextRequest) {
     });
     if (resolved.rotated) applySessionCookies(response, resolved.tokens);
     return noStore(response);
-  } catch (error) {
-    console.error("auth session restore error", error instanceof Error ? error.message : "UNKNOWN");
+  } catch {
+    void recordSystemError({
+      source: "AUTH_SESSION",
+      errorCode: "SESSION_RESTORE_FAILED",
+      message: "An authenticated session could not be restored.",
+    });
     return noStore(NextResponse.json({ error: "Oturum okunamadı." }, { status: 500 }));
   }
 }
@@ -122,8 +127,12 @@ export async function POST(request: NextRequest) {
     }
 
     return noStore(response);
-  } catch (error) {
-    console.error("auth session cookie error", error instanceof Error ? error.message : "UNKNOWN");
+  } catch {
+    void recordSystemError({
+      source: "AUTH_SESSION",
+      errorCode: "SESSION_COOKIE_WRITE_FAILED",
+      message: "An authenticated session cookie could not be written.",
+    });
     return clearSession(NextResponse.json({ error: "Oturum kaydedilemedi." }, { status: 500 }));
   }
 }

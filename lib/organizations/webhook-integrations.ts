@@ -1,4 +1,7 @@
 import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes } from "node:crypto";
+import { lookup } from "node:dns/promises";
+import { request as httpsRequest } from "node:https";
+import { isIP } from "node:net";
 import { getSupabaseAdminClient } from "../supabase/server-admin";
 
 type IntegrationClient = ReturnType<typeof getSupabaseAdminClient>;
@@ -10,17 +13,110 @@ function encryptionKey() {
   return secret ? createHash("sha256").update(secret).digest() : null;
 }
 
+type ResolvedWebhookEndpoint = {
+  endpoint: URL;
+  address: string;
+  family: 4 | 6;
+};
+
+function isPrivateIpv4(address: string) {
+  const octets = address.split(".").map(Number);
+  if (octets.length !== 4 || octets.some((octet) => !Number.isInteger(octet) || octet < 0 || octet > 255)) return true;
+  const [first, second] = octets;
+  return first === 0
+    || first === 10
+    || first === 127
+    || (first === 100 && second >= 64 && second <= 127)
+    || (first === 169 && second === 254)
+    || (first === 172 && second >= 16 && second <= 31)
+    || (first === 192 && (second === 0 || second === 168))
+    || (first === 198 && (second === 18 || second === 19 || second === 51))
+    || (first === 203 && second === 0)
+    || first >= 224;
+}
+
+function isPrivateIpv6(address: string) {
+  const normalized = address.toLowerCase();
+  if (normalized === "::" || normalized === "::1" || normalized.startsWith("fe80:") || normalized.startsWith("fc") || normalized.startsWith("fd") || normalized.startsWith("2001:db8")) return true;
+  const mappedIpv4 = normalized.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/)?.[1];
+  if (mappedIpv4) return isPrivateIpv4(mappedIpv4);
+  const mappedHex = normalized.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+  if (!mappedHex) return false;
+  const high = Number.parseInt(mappedHex[1], 16);
+  const low = Number.parseInt(mappedHex[2], 16);
+  return isPrivateIpv4(`${high >> 8}.${high & 255}.${low >> 8}.${low & 255}`);
+}
+
+function isPublicAddress(address: string, family: number) {
+  return family === 4 ? !isPrivateIpv4(address) : family === 6 && !isPrivateIpv6(address);
+}
+
+function unbracketIpv6(hostname: string) {
+  return hostname.startsWith("[") && hostname.endsWith("]") ? hostname.slice(1, -1) : hostname;
+}
+
 export function validateWebhookEndpoint(value: string) {
   try {
     const url = new URL(value);
-    const hostname = url.hostname.toLowerCase();
-    const privateIpv4 = /^(127|10)\.|^192\.168\.|^172\.(1[6-9]|2\d|3[01])\./.test(hostname);
-    const privateIpv6 = hostname === "::1" || hostname.startsWith("fc") || hostname.startsWith("fd") || hostname.startsWith("fe80:");
-    if (url.protocol !== "https:" || url.username || url.password || hostname === "localhost" || hostname.endsWith(".local") || hostname.endsWith(".internal") || privateIpv4 || privateIpv6) return null;
+    const hostname = unbracketIpv6(url.hostname.toLowerCase());
+    const family = isIP(hostname);
+    if (
+      url.protocol !== "https:"
+      || url.username
+      || url.password
+      || url.port && url.port !== "443"
+      || hostname === "localhost"
+      || hostname.endsWith(".local")
+      || hostname.endsWith(".internal")
+      || family !== 0 && !isPublicAddress(hostname, family)
+    ) return null;
     return url;
   } catch {
     return null;
   }
+}
+
+export async function resolvePublicWebhookEndpoint(value: URL): Promise<ResolvedWebhookEndpoint | null> {
+  try {
+    const addresses = await lookup(unbracketIpv6(value.hostname), { all: true, verbatim: true });
+    if (!addresses.length || addresses.some((candidate) => !isPublicAddress(candidate.address, candidate.family))) return null;
+    const resolved = addresses[0];
+    return { endpoint: value, address: resolved.address, family: resolved.family as 4 | 6 };
+  } catch {
+    return null;
+  }
+}
+
+function webhookFailureCode(error: unknown) {
+  if (error instanceof Error && /^WEBHOOK_HTTP_\d{3}$/.test(error.message)) return error.message;
+  if (error instanceof Error && error.message === "WEBHOOK_TIMEOUT") return error.message;
+  return "WEBHOOK_DELIVERY_FAILED";
+}
+
+async function postWebhook(endpoint: ResolvedWebhookEndpoint, body: string, headers: Record<string, string>) {
+  await new Promise<void>((resolve, reject) => {
+    const request = httpsRequest({
+      protocol: "https:",
+      hostname: endpoint.endpoint.hostname,
+      port: endpoint.endpoint.port || 443,
+      path: `${endpoint.endpoint.pathname}${endpoint.endpoint.search}`,
+      method: "POST",
+      headers,
+      servername: endpoint.endpoint.hostname,
+      lookup: (_hostname, _options, callback) => callback(null, endpoint.address, endpoint.family),
+    }, (response) => {
+      response.resume();
+      if (response.statusCode && response.statusCode >= 200 && response.statusCode < 300) {
+        resolve();
+        return;
+      }
+      reject(new Error(`WEBHOOK_HTTP_${response.statusCode || 0}`));
+    });
+    request.once("timeout", () => request.destroy(new Error("WEBHOOK_TIMEOUT")));
+    request.once("error", reject);
+    request.setTimeout(10_000);
+    request.end(body);
+  });
 }
 
 function encrypt(value: string) {
@@ -65,8 +161,6 @@ function safeWebhookPayload(eventType: OrganizationWebhookEvent, payload: Record
   };
 }
 
-/** Queue delivery only; CRM traffic is dispatched by the cron endpoint so a
- * lead form never blocks on an external provider. */
 export async function queueOrganizationWebhookEvent(
   admin: IntegrationClient,
   organizationId: string | null | undefined,
@@ -89,10 +183,7 @@ export async function queueOrganizationWebhookEvent(
       event_type: eventType,
       payload: safeWebhookPayload(eventType, payload),
     })));
-  } catch {
-    // The integration migration may not yet be deployed. CRM delivery must
-    // never prevent a card visitor from submitting a lead.
-  }
+  } catch {}
 }
 
 function retryAt(attempts: number) {
@@ -131,7 +222,8 @@ export async function deliverOrganizationWebhookJobs(limit = 25) {
       .eq("id", job.integration_id)
       .eq("status", "ACTIVE")
       .maybeSingle();
-    const endpoint = integration ? validateWebhookEndpoint(integration.endpoint_url) : null;
+    const parsedEndpoint = integration ? validateWebhookEndpoint(integration.endpoint_url) : null;
+    const endpoint = parsedEndpoint ? await resolvePublicWebhookEndpoint(parsedEndpoint) : null;
     const secret = integration ? decrypt(integration.signing_secret_encrypted) : null;
     if (!endpoint || !secret) {
       await admin.from("organization_integration_delivery_jobs").update({ status: "FAILED", last_error: "INTEGRATION_CONFIGURATION_INVALID", updated_at: new Date().toISOString() }).eq("id", job.id);
@@ -141,19 +233,12 @@ export async function deliverOrganizationWebhookJobs(limit = 25) {
 
     const body = JSON.stringify(job.payload);
     try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        redirect: "error",
-        headers: {
+      await postWebhook(endpoint, body, {
           "content-type": "application/json",
           "user-agent": "Yenomi-Integration/1.0",
           "x-yenomi-event": job.event_type,
           "x-yenomi-signature": `sha256=${createHmac("sha256", secret).update(body).digest("hex")}`,
-        },
-        body,
-        signal: AbortSignal.timeout(10_000),
       });
-      if (!response.ok) throw new Error(`HTTP_${response.status}`);
       await admin.from("organization_integration_delivery_jobs").update({ status: "DELIVERED", delivered_at: new Date().toISOString(), last_error: null, updated_at: new Date().toISOString() }).eq("id", job.id);
       delivered += 1;
     } catch (error) {
@@ -162,7 +247,7 @@ export async function deliverOrganizationWebhookJobs(limit = 25) {
       await admin.from("organization_integration_delivery_jobs").update({
         status: terminal ? "FAILED" : "RETRYABLE",
         next_attempt_at: terminal ? now : retryAt(attempts),
-        last_error: error instanceof Error ? error.message.slice(0, 180) : "WEBHOOK_DELIVERY_FAILED",
+        last_error: webhookFailureCode(error),
         updated_at: new Date().toISOString(),
       }).eq("id", job.id);
       if (terminal) failed += 1;

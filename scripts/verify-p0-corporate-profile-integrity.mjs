@@ -4,6 +4,9 @@ const read = (path) => readFileSync(path, "utf8");
 const requireText = (source, token, message) => {
   if (!source.includes(token)) throw new Error(message);
 };
+const requireOneOf = (source, tokens, message) => {
+  if (!tokens.some((token) => source.includes(token))) throw new Error(message);
+};
 const forbidText = (source, token, message) => {
   if (source.includes(token)) throw new Error(message);
 };
@@ -52,7 +55,7 @@ for (const [name, source] of [
 forbidText(memberStatusesRoute, 'profile.company?.toLocaleLowerCase', "Kurumsal kart durumları şirket adı eşleşmesine güvenmemeli.");
 forbidText(analyticsRoute, '.ilike("company", organization.name)', "Kurumsal analitik şirket adı eşleşmesine güvenmemeli.");
 
-requireText(publicationRoute, '.eq("user_id", authData.user.id)', "Yayın durumu route'u profil sahibini doğrulamalı.");
+requireOneOf(publicationRoute, ['.eq("user_id", identity.user.id)', '.eq("user_id", authData.user.id)'], "Yayın durumu route'u profil sahibini doğrulamalı.");
 requireText(profileActions, 'fetch("/api/profiles/publication"', "Tarayıcı yayın durumu değişikliği API üzerinden gitmeli.");
 forbidText(profileRepository, '.from("card_profiles")\n    .update', "Profil repository'si tarayıcıdan doğrudan profil güncellememeli.");
 forbidText(profileRepository, '.from("card_profiles")\n    .insert', "Profil repository'si tarayıcıdan doğrudan profil eklememeli.");

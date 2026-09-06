@@ -11,6 +11,7 @@ import {
   corporatePackageByCode,
 } from "../../../../lib/commerce/packages";
 import { COMMERCIAL_SKUS } from "../../../../lib/config/commercial";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -88,9 +89,11 @@ export async function GET(request: NextRequest) {
     ctx.admin.from("business_plans").select("id,code,name,seat_limit,annual_price_kurus,monthly_price_kurus,is_active").in("code", [...CORPORATE_CODES]).order("seat_limit", { ascending: true }),
   ]);
   if (variantError || planError) {
-    console.error("admin pricing load failed", {
-      variantCode: variantError?.code ?? null,
-      planCode: planError?.code ?? null,
+    void recordSystemError({
+      source: "ADMIN_PRICING",
+      errorCode: "CATALOG_LOAD_FAILED",
+      message: "Yönetim fiyat kataloğu yüklenemedi.",
+      userId: ctx.user.id,
     });
     return NextResponse.json({ error: "Fiyat kataloğu yüklenemedi.", code: variantError?.code ?? planError?.code ?? null }, { status: 500 });
   }

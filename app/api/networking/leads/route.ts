@@ -6,6 +6,7 @@ import { normalizeContactPhone } from "../../../../lib/networking/contact-phone"
 import { queueOrganizationWebhookEvent } from "../../../../lib/organizations/webhook-integrations";
 import { consumeDistributedRateLimit, requestIp } from "../../../../lib/security/rate-limit";
 import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
 
 export const runtime = "nodejs";
 
@@ -106,7 +107,12 @@ export async function POST(request: NextRequest) {
   }).select("id").single();
 
   if (insertError || !createdLead) {
-    console.error("networking lead insert failed");
+    void recordSystemError({
+      source: "NETWORKING_LEAD",
+      errorCode: "LEAD_PERSIST_FAILED",
+      message: "Networking lead kaydı oluşturulamadı.",
+      organizationId: cardProfile.organization_id,
+    });
     return NextResponse.json({ error: "Bilgiler kaydedilemedi." }, { status: 503 });
   }
 

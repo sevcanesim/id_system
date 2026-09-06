@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAuthClient, getSupabaseUserClient } from "../../../../lib/supabase/server-admin";
 import { publicError } from "../../../../lib/errors";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
 
 export const runtime = "nodejs";
 
@@ -30,13 +31,24 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: false });
     if (error) {
       const payload = publicError("ORDER_LOAD_FAILED");
-      console.error("commerce own orders query error", { reference: payload.reference, error });
+      void recordSystemError({
+        source: "COMMERCE_ORDERS",
+        errorCode: "ORDER_QUERY_FAILED",
+        message: "Hesaba ait siparişler sorgulanamadı.",
+        requestId: payload.reference,
+        userId: context.user.id,
+      });
       return NextResponse.json(payload, { status: 500 });
     }
     return NextResponse.json({ orders: data ?? [] });
-  } catch (error) {
+  } catch {
     const payload = publicError("ORDER_LOAD_FAILED");
-    console.error("commerce own orders error", { reference: payload.reference, error });
+    void recordSystemError({
+      source: "COMMERCE_ORDERS",
+      errorCode: "ORDER_LOAD_FAILED",
+      message: "Hesaba ait siparişler yüklenemedi.",
+      requestId: payload.reference,
+    });
     return NextResponse.json(payload, { status: 500 });
   }
 }

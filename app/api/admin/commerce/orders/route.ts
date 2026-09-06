@@ -8,6 +8,7 @@ import { loadCommerceOrderKind } from "../../../../../lib/commerce/order-kind";
 import { publicError } from "../../../../../lib/errors";
 import { publicSiteUrl } from "../../../../../lib/payments/config";
 import { getDatabaseLifecycleSettings } from "../../../../../lib/config/database";
+import { recordSystemError } from "../../../../../lib/observability/system-errors";
 
 export const runtime = "nodejs";
 const patchSchema = z.object({
@@ -28,8 +29,12 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: false });
     if (error) return NextResponse.json(publicError("ORDER_LOAD_FAILED"), { status: 500 });
     return NextResponse.json({ orders: data ?? [] });
-  } catch (error) {
-    console.error("admin commerce orders error", error instanceof Error ? error.message : "UNKNOWN");
+  } catch {
+    void recordSystemError({
+      source: "ADMIN_COMMERCE_ORDERS",
+      errorCode: "ORDER_LIST_FAILED",
+      message: "Super Admin sipariş listesi yüklenemedi.",
+    });
     return NextResponse.json({ error: "Siparişler yüklenemedi." }, { status: 500 });
   }
 }
@@ -155,8 +160,12 @@ export async function PATCH(request: NextRequest) {
       after_value: values,
     });
     return NextResponse.json({ ok: true });
-  } catch (error) {
-    console.error("admin commerce order update error", error instanceof Error ? error.message : "UNKNOWN");
+  } catch {
+    void recordSystemError({
+      source: "ADMIN_COMMERCE_ORDERS",
+      errorCode: "ORDER_UPDATE_FAILED",
+      message: "Super Admin sipariş güncellemesi tamamlanamadı.",
+    });
     return NextResponse.json({ error: "Sipariş güncellenemedi." }, { status: 500 });
   }
 }

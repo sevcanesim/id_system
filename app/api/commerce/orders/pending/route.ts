@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { applyPendingOrderCookie, readPendingOrderId } from "../../../../../lib/payments/pending-order-cookie";
 import { getSupabaseAdminClient } from "../../../../../lib/supabase/server-admin";
+import { recordSystemError } from "../../../../../lib/observability/system-errors";
 
 export const runtime = "nodejs";
 
@@ -22,8 +23,12 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.json({ found: true, orderId: data.id, paid, awaitingPayment, status: data.status });
     if (!paid && !awaitingPayment) return applyPendingOrderCookie(response, null);
     return response;
-  } catch (error) {
-    console.error("pending order cookie lookup failed", error);
+  } catch {
+    void recordSystemError({
+      source: "COMMERCE_PENDING_ORDER",
+      errorCode: "LOOKUP_FAILED",
+      message: "Bekleyen sipariş bilgisi yüklenemedi.",
+    });
     return NextResponse.json({ found: false, orderId: null, paid: false, awaitingPayment: false }, { status: 500 });
   }
 }

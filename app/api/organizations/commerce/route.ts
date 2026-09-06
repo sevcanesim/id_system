@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireOrganizationRole } from "../../../../lib/organizations/authorization";
 import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
 
 export const runtime = "nodejs";
 
@@ -35,7 +36,13 @@ export async function GET(request: NextRequest) {
     .contains("configuration", { organizationId });
 
   if (error) {
-    console.error("organization commerce history query failed", { organizationId, code: error.code });
+    void recordSystemError({
+      source: "ORGANIZATION_COMMERCE",
+      errorCode: "HISTORY_LOOKUP_FAILED",
+      message: "Kurumsal satın alma geçmişi yüklenemedi.",
+      organizationId,
+      userId: actor.userId,
+    });
     return NextResponse.json({ error: "Satın alma geçmişi şu anda yüklenemedi." }, { status: 503 });
   }
 

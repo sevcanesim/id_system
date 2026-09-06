@@ -17,9 +17,11 @@
     "admin:promote": "node scripts/promote-admin.mjs",
     "check:supabase-link": "node scripts/check-supabase-link.mjs",
     "seed:demo": "node scripts/seed-demo-scenarios.mjs",
+    "purge:demo": "node scripts/seed-demo-scenarios.mjs --apply --purge-demo",
     "docs:demo-users": "node scripts/render-demo-test-users.mjs",
     "seed:assigned-card": "node scripts/assign-demo-physical-card.mjs",
     "verify:demo-qa-matrix": "node scripts/verify-demo-qa-matrix.mjs",
+    "verify:demo-fixtures": "node scripts/verify-e2e-fixtures.mjs",
     "verify:secrets": "node scripts/verify-no-secrets.mjs --allow-local-env",
     "verify:release": "npm run verify:secrets && npm run typecheck && npm run verify:corporate-leads && npm run verify:demo-qa-matrix && npm run build",
     "verify:integration": "npm run verify:db && npm run verify:catalog",
@@ -148,6 +150,7 @@
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "sharp": "0.35.4",
     "zod": "^3.24.2"
   },
   "devDependencies": {

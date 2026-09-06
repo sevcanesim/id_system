@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 import { publicError } from "../../../../lib/errors";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
 
 export const runtime = "nodejs";
 
@@ -120,9 +121,14 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: true });
 
     return NextResponse.json({ process: unit, entitlement, order, events: events ?? [] });
-  } catch (error) {
+  } catch {
     const payload = publicError("ORDER_LOAD_FAILED");
-    console.error("own card process error", { reference: payload.reference, error });
+    void recordSystemError({
+      source: "CARD_PROCESS",
+      errorCode: "PROCESS_LOAD_FAILED",
+      message: "Kart işlem durumu yüklenemedi.",
+      requestId: payload.reference,
+    });
     return NextResponse.json(payload, { status: 500 });
   }
 }
@@ -163,13 +169,22 @@ export async function POST(request: NextRequest) {
     });
     const result = data as { ok?: boolean; code?: string; current?: string; from?: string; to?: string } | null;
     if (error || !result?.ok) {
-      console.error("mark card print pending failed", { error, result });
+      void recordSystemError({
+        source: "CARD_PROCESS",
+        errorCode: "PRINT_QUEUE_TRANSITION_FAILED",
+        message: "Kart baskı kuyruğu durumu güncellenemedi.",
+        userId: user.id,
+      });
       return NextResponse.json({ error: result?.code ?? "Kart baskı kuyruğuna alınamadı.", current: result?.current }, { status: 409 });
     }
 
     return NextResponse.json({ ok: true, process: result });
-  } catch (error) {
-    console.error("card process completion error", error);
+  } catch {
+    void recordSystemError({
+      source: "CARD_PROCESS",
+      errorCode: "PROCESS_UPDATE_FAILED",
+      message: "Kart işlem durumu güncellenemedi.",
+    });
     return NextResponse.json({ error: "Kart süreci güncellenemedi." }, { status: 500 });
   }
 }

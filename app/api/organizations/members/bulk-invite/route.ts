@@ -7,6 +7,7 @@ import {
   summarizeBulkInviteResults,
 } from "../../../../../lib/organizations/bulk-invite";
 import { canInviteRole, isOrganizationRole } from "../../../../../lib/organizations/permissions";
+import { recordSystemError } from "../../../../../lib/observability/system-errors";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../lib/supabase/server-admin";
 
 const rowSchema = z.object({
@@ -88,10 +89,11 @@ async function persistRowLog(
     });
     if (!error) return true;
     if (attempt === 1) {
-      console.error("bulk invite audit row could not be persisted", {
-        jobId,
-        rowNumber,
-        message: error.message,
+      void recordSystemError({
+        source: "BULK_INVITE",
+        errorCode: "ROW_AUDIT_PERSIST_FAILED",
+        message: "Toplu davet satır denetim kaydı yazılamadı.",
+        details: { rowNumber },
       });
     }
   }
@@ -120,7 +122,13 @@ export async function POST(request: NextRequest) {
     .select("id")
     .single();
   if (jobError || !job) {
-    console.error("bulk invite audit job could not be created", { message: jobError?.message || null });
+    void recordSystemError({
+      source: "BULK_INVITE",
+      errorCode: "JOB_CREATION_FAILED",
+      message: "Toplu davet iş kaydı oluşturulamadı.",
+      organizationId: parsed.data.organizationId,
+      userId: ctx.user.id,
+    });
     return NextResponse.json({ error: "Toplu davet işlemi güvenli şekilde başlatılamadı." }, { status: 503 });
   }
 
@@ -230,7 +238,13 @@ export async function POST(request: NextRequest) {
     .eq("id", job.id);
 
   if (finalizeError) {
-    console.error("bulk invite audit job could not be finalized", { jobId: job.id, message: finalizeError.message });
+    void recordSystemError({
+      source: "BULK_INVITE",
+      errorCode: "JOB_FINALIZATION_FAILED",
+      message: "Toplu davet iş kaydı tamamlanamadı.",
+      organizationId: parsed.data.organizationId,
+      userId: ctx.user.id,
+    });
   }
 
   return NextResponse.json(

@@ -6,6 +6,7 @@ import {
   verifyCheckoutContinuation,
 } from "../../../../../lib/commerce/checkout-resume";
 import { getSupabaseAdminClient } from "../../../../../lib/supabase/server-admin";
+import { recordSystemError } from "../../../../../lib/observability/system-errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -58,7 +59,11 @@ async function exchangeResumeCode(request: NextRequest, code: string) {
     .maybeSingle();
 
   if (error) {
-    console.error("checkout resume code exchange failed", { code: error.code });
+    void recordSystemError({
+      source: "CHECKOUT_RESUME",
+      errorCode: "CODE_EXCHANGE_FAILED",
+      message: "Ödeme devam bağlantısı doğrulanamadı.",
+    });
     return noStore(NextResponse.json({ error: "Ödeme devam bağlantısı şu anda doğrulanamıyor." }, { status: 503 }));
   }
   if (!data?.order_id) {
@@ -67,7 +72,11 @@ async function exchangeResumeCode(request: NextRequest, code: string) {
 
   const continuation = createCheckoutContinuation(data.order_id);
   if (!continuation) {
-    console.error("checkout resume continuation could not be signed");
+    void recordSystemError({
+      source: "CHECKOUT_RESUME",
+      errorCode: "CONTINUATION_SIGNING_FAILED",
+      message: "Ödeme devam oturumu imzalanamadı.",
+    });
     return noStore(NextResponse.json({ error: "Ödeme devam bağlantısı şu anda doğrulanamıyor." }, { status: 503 }));
   }
 
@@ -94,7 +103,11 @@ export async function GET(request: NextRequest) {
     .maybeSingle();
 
   if (error) {
-    console.error("checkout resume lookup failed", { code: error.code });
+    void recordSystemError({
+      source: "CHECKOUT_RESUME",
+      errorCode: "SESSION_LOOKUP_FAILED",
+      message: "Ödeme taslağı yüklenemedi.",
+    });
     return clearContinuation(noStore(NextResponse.json({ error: "Sipariş taslağı şu anda yüklenemiyor." }, { status: 503 })));
   }
 

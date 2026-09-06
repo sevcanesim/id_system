@@ -9,6 +9,7 @@ import {
   rejectPhysicalCardRecoveryFlood,
 } from "../../../../lib/security/route-rate-limits";
 import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
 
 export const runtime = "nodejs";
 
@@ -85,7 +86,11 @@ export async function POST(request: NextRequest) {
     .is("used_at", null)
     .is("invalidated_at", null);
   if (invalidateError) {
-    console.error("card recovery token invalidation failed", { orderId: order.id, message: invalidateError.message });
+    void recordSystemError({
+      source: "CARD_RECOVERY",
+      errorCode: "TOKEN_INVALIDATION_FAILED",
+      message: "Kart kurtarma için eski aktivasyon bağlantıları geçersizleştirilemedi.",
+    });
     return accepted();
   }
 
@@ -95,7 +100,11 @@ export async function POST(request: NextRequest) {
     expires_at: expiresAt.toISOString(),
   });
   if (tokenError) {
-    console.error("card recovery activation token creation failed", { orderId: order.id, message: tokenError.message });
+    void recordSystemError({
+      source: "CARD_RECOVERY",
+      errorCode: "TOKEN_CREATION_FAILED",
+      message: "Kart kurtarma için aktivasyon bağlantısı oluşturulamadı.",
+    });
     return accepted();
   }
 

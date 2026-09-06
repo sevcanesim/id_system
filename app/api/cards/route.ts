@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseAuthClient, getSupabaseUserClient } from "../../../lib/supabase/server-admin";
+import { resolveRequestIdentity } from "../../../lib/auth/request-identity";
+import { getSupabaseUserClient } from "../../../lib/supabase/server-admin";
 
 const cardStatusSchema = z.object({
   cardId: z.string().uuid(),
@@ -8,11 +9,8 @@ const cardStatusSchema = z.object({
 });
 
 async function context(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-  const auth = getSupabaseAuthClient();
-  const { data } = await auth.auth.getUser(token);
-  return data.user ? { user: data.user, client: getSupabaseUserClient(token) } : null;
+  const identity = await resolveRequestIdentity(request);
+  return identity ? { user: identity.user, client: getSupabaseUserClient(identity.accessToken) } : null;
 }
 
 export async function GET(request: NextRequest) {

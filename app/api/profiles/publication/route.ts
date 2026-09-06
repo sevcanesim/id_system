@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
+import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 
 const schema = z.object({
   profileId: z.string().uuid(),
@@ -8,12 +9,8 @@ const schema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!bearer) return NextResponse.json({ error: "Oturum gerekli." }, { status: 401 });
-
-  const auth = getSupabaseAuthClient();
-  const { data: authData } = await auth.auth.getUser(bearer);
-  if (!authData.user) return NextResponse.json({ error: "Oturum geçersiz." }, { status: 401 });
+  const identity = await resolveRequestIdentity(request);
+  if (!identity) return NextResponse.json({ error: "Oturum geçersiz." }, { status: 401 });
 
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Geçersiz yayın durumu." }, { status: 400 });
@@ -23,7 +20,7 @@ export async function POST(request: NextRequest) {
     .from("card_profiles")
     .update({ is_published: parsed.data.isPublished })
     .eq("id", parsed.data.profileId)
-    .eq("user_id", authData.user.id)
+    .eq("user_id", identity.user.id)
     .select("id,is_published")
     .maybeSingle();
 

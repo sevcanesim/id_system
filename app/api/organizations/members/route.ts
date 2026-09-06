@@ -13,6 +13,7 @@ import {
   getSupabaseAuthClient,
 } from "../../../../lib/supabase/server-admin";
 import { MFA_REQUIRED_MESSAGE, requiresOrganizationMfaStepUp } from "../../../../lib/organizations/security-policy";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
 
 const createSchema = z.object({
   organizationId: z.string().uuid(),
@@ -138,10 +139,12 @@ export async function GET(request: NextRequest) {
   }
 
   if (error) {
-    console.error("[organizations/members] query failed", {
+    void recordSystemError({
+      source: "ORGANIZATION_MEMBERS",
+      errorCode: "MEMBER_LIST_FAILED",
+      message: "Kurumsal çalışan listesi yüklenemedi.",
       organizationId,
-      code: error.code,
-      message: error.message,
+      userId: context.user.id,
     });
     return NextResponse.json({ error: "Çalışanlar yüklenemedi." }, { status: 500 });
   }

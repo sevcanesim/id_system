@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
 import { publicError } from "../../../../lib/errors";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
 
 const schema = z.object({ token: z.string().min(20) });
 type ClaimResult = { ok?: boolean; code?: string; corporate?: boolean };
@@ -42,9 +43,11 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ ok: true, corporate: Boolean((result as ClaimResult | null)?.corporate) });
-  } catch (error) {
-    console.error("commerce claim error", {
-      message: error instanceof Error ? error.message : "UNKNOWN",
+  } catch {
+    void recordSystemError({
+      source: "COMMERCE_CLAIM",
+      errorCode: "ACTIVATION_CLAIM_FAILED",
+      message: "Sipariş aktivasyon bağlantısı hesaba bağlanamadı.",
     });
     return NextResponse.json(publicError("ACTIVATION_FAILED"), { status: 500 });
   }

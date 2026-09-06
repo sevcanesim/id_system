@@ -17,7 +17,6 @@ export function isOrganizationAssetPath(value: string) {
   return ORGANIZATION_ASSET_PATH.test(value.trim());
 }
 
-/** A scheduled asset is not public until both publication controls allow it. */
 export function isOrganizationAssetPubliclyAvailable(
   isPublished: boolean | null | undefined,
   publishAt: string | null | undefined,
@@ -34,17 +33,16 @@ export async function removeOrganizationAsset(admin: StorageAdmin, filePath: str
   if (!isOrganizationAssetPath(path)) return { removed: false };
   const { error } = await admin.storage.from("organization-assets").remove([path]);
   if (error) {
-    console.error("organization asset remove failed", error.message || "unknown");
+    void recordSystemError({
+      source: "ORGANIZATION_ASSET",
+      errorCode: "ASSET_REMOVE_FAILED",
+      message: "Kurumsal dosya depodan kaldırılamadı.",
+    });
     return { removed: false };
   }
   return { removed: true };
 }
 
-/**
- * Corporate PDFs remain private at rest. Callers must authorize access before
- * requesting a short-lived URL, and paths are constrained to this feature's
- * immutable storage namespace.
- */
 export async function createOrganizationAssetSignedUrl(
   admin: StorageAdmin,
   filePath: string | null | undefined,
@@ -57,8 +55,13 @@ export async function createOrganizationAssetSignedUrl(
     .from("organization-assets")
     .createSignedUrl(path, expiresIn);
   if (error || !data?.signedUrl) {
-    console.error("organization asset signing failed", error?.message || "unknown");
+    void recordSystemError({
+      source: "ORGANIZATION_ASSET",
+      errorCode: "ASSET_SIGNING_FAILED",
+      message: "Kurumsal dosya için geçici erişim bağlantısı oluşturulamadı.",
+    });
     return null;
   }
   return data.signedUrl;
 }
+import { recordSystemError } from "../observability/system-errors";

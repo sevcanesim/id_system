@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireSuperAdmin } from "../../../../../lib/admin/require-admin";
+import { recordSystemError } from "../../../../../lib/observability/system-errors";
 
 export const runtime = "nodejs";
 
@@ -37,10 +38,11 @@ export async function GET(request: NextRequest) {
     ]);
 
     if (orderError || attemptError || issueError) {
-      console.error("commerce reconciliation load failed", {
-        orderCode: orderError?.code ?? null,
-        attemptCode: attemptError?.code ?? null,
-        issueCode: issueError?.code ?? null,
+      void recordSystemError({
+        source: "COMMERCE_RECONCILIATION",
+        errorCode: "RECONCILIATION_LOAD_FAILED",
+        message: "Ödeme mutabakatı kayıtları yüklenemedi.",
+        userId: context.user.id,
       });
       return NextResponse.json({ error: "Ödeme mutabakatı yüklenemedi." }, { status: 500 });
     }
@@ -99,8 +101,12 @@ export async function GET(request: NextRequest) {
         orphanPaidAttempts: orphanPaidAttempts.length,
       },
     });
-  } catch (error) {
-    console.error("commerce reconciliation error", error instanceof Error ? error.message : "UNKNOWN");
+  } catch {
+    void recordSystemError({
+      source: "COMMERCE_RECONCILIATION",
+      errorCode: "RECONCILIATION_READ_FAILED",
+      message: "Ödeme mutabakatı sorgulanamadı.",
+    });
     return NextResponse.json({ error: "Ödeme mutabakatı yüklenemedi." }, { status: 500 });
   }
 }
@@ -117,7 +123,12 @@ export async function POST(request: NextRequest) {
       if (parsed.data.action === "expire_stale_awaiting") {
         const { data, error } = await context.admin.rpc("expire_stale_awaiting_payment_orders", { p_limit: 250 });
         if (error) {
-          console.error("stale awaiting-payment expire failed", error.code ?? "UNKNOWN");
+          void recordSystemError({
+            source: "COMMERCE_RECONCILIATION",
+            errorCode: "STALE_PAYMENT_EXPIRY_FAILED",
+            message: "Bekleyen eski ödemeler zaman aşımına alınamadı.",
+            userId: context.user.id,
+          });
           return NextResponse.json({ error: "Eski bekleyen ödemeler iptal edilemedi." }, { status: 500 });
         }
         await context.admin.from("admin_audit_log").insert({
@@ -133,7 +144,12 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await context.admin.rpc("reconcile_paid_commerce_orders", { p_limit: 250 });
     if (error) {
-      console.error("commerce reconciliation run failed", error.code ?? "UNKNOWN");
+      void recordSystemError({
+        source: "COMMERCE_RECONCILIATION",
+        errorCode: "RECONCILIATION_RUN_FAILED",
+        message: "Otomatik ödeme mutabakatı çalıştırılamadı.",
+        userId: context.user.id,
+      });
       return NextResponse.json({ error: "Otomatik ödeme mutabakatı çalıştırılamadı." }, { status: 500 });
     }
 
@@ -146,8 +162,12 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ ok: true, result: data });
-  } catch (error) {
-    console.error("commerce reconciliation run error", error instanceof Error ? error.message : "UNKNOWN");
+  } catch {
+    void recordSystemError({
+      source: "COMMERCE_RECONCILIATION",
+      errorCode: "RECONCILIATION_REQUEST_FAILED",
+      message: "Ödeme mutabakatı işlemi yürütülemedi.",
+    });
     return NextResponse.json({ error: "Otomatik ödeme mutabakatı çalıştırılamadı." }, { status: 500 });
   }
 }
@@ -192,8 +212,12 @@ export async function PATCH(request: NextRequest) {
     });
 
     return NextResponse.json({ ok: true, resolvedAt });
-  } catch (error) {
-    console.error("commerce reconciliation update error", error instanceof Error ? error.message : "UNKNOWN");
+  } catch {
+    void recordSystemError({
+      source: "COMMERCE_RECONCILIATION",
+      errorCode: "ISSUE_RESOLUTION_FAILED",
+      message: "Mutabakat kaydı çözümlenemedi.",
+    });
     return NextResponse.json({ error: "Mutabakat kaydı güncellenemedi." }, { status: 500 });
   }
 }

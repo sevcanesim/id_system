@@ -5,6 +5,7 @@ import { sendActivationEmail, sendOrderReadyEmail } from "../email/resend";
 import { publicSiteUrl } from "./config";
 import { CORPORATE_POST_PURCHASE_HREF, INDIVIDUAL_POST_PURCHASE_HREF } from "../commerce/post-purchase";
 import { sanitizeProviderPayload } from "./sanitize-provider-payload";
+import { recordSystemError } from "../observability/system-errors";
 import { getSupabaseAdminClient } from "../supabase/server-admin";
 
 export type CommerceSettleResult =
@@ -42,7 +43,14 @@ async function isGuestCommerceOrder(admin: AdminClient, orderId: string) {
 
 async function retryCorporatePackageFulfillment(admin: AdminClient, orderId: string) {
   const { error } = await admin.rpc("fulfill_paid_corporate_package_order", { p_order_id: orderId });
-  if (error) console.error("corporate package fulfill retry failed", { orderId, message: error.message });
+  if (error) {
+    void recordSystemError({
+      source: "COMMERCE_SETTLEMENT",
+      errorCode: "CORPORATE_FULFILLMENT_RETRY_FAILED",
+      message: "Corporate package fulfillment retry failed.",
+      details: { databaseCode: error.code ?? null },
+    });
+  }
 }
 
 async function recoverPaidCommerceOrder(admin: AdminClient, orderId: string) {
@@ -62,20 +70,31 @@ async function recoverPaidCommerceOrder(admin: AdminClient, orderId: string) {
 async function autoClaimAuthenticatedOrder(admin: AdminClient, orderId: string) {
   const { data, error } = await admin.rpc("finalize_authenticated_commerce_order", { p_order_id: orderId });
   const payload = (data as { ok?: boolean; review_required?: boolean; open_issue_count?: number; code?: string } | null) || null;
-  // Guest checkout is first-class: ACCOUNT_REQUIRED means "claim by email", not a fulfillment defect.
   if (payload?.code === "ACCOUNT_REQUIRED") {
     return { ok: true, reviewRequired: false, openIssueCount: 0 };
   }
   const ok = !error && Boolean(payload?.ok);
   if (!ok) {
-    console.error("authenticated order auto claim failed", { orderId, message: error?.message || null, code: payload?.code || null });
+    void recordSystemError({
+      source: "COMMERCE_SETTLEMENT",
+      errorCode: "AUTHENTICATED_CLAIM_FAILED",
+      message: "Authenticated order claim could not be finalized.",
+      details: { settlementCode: payload?.code ?? null, databaseCode: error?.code ?? null },
+    });
     const { error: issueError } = await admin.rpc("record_commerce_fulfillment_issue", {
       p_order_id: orderId,
       p_order_item_id: null,
       p_issue_code: "AUTHENTICATED_CLAIM_FAILED",
-      p_details: { code: payload?.code || null, databaseError: error?.message || null },
+      p_details: { code: payload?.code || null, databaseCode: error?.code || null },
     });
-    if (issueError) console.error("claim failure reconciliation issue could not be recorded", { orderId, message: issueError.message });
+    if (issueError) {
+      void recordSystemError({
+        source: "COMMERCE_SETTLEMENT",
+        errorCode: "CLAIM_ISSUE_RECORD_FAILED",
+        message: "Authenticated order claim issue could not be recorded.",
+        details: { databaseCode: issueError.code ?? null },
+      });
+    }
   }
   return { ok, reviewRequired: !ok || Boolean(payload?.review_required), openIssueCount: Number(payload?.open_issue_count || 0) };
 }
@@ -85,7 +104,11 @@ async function sendGuestActivationIfTokenPersisted(
   input: { orderId: string; guestEmail: string | null; orderNumber: string; rawActivationToken: string; corporate: boolean },
 ) {
   if (!input.guestEmail) {
-    console.error("guest activation email skipped: missing recipient", { orderId: input.orderId });
+    void recordSystemError({
+      source: "COMMERCE_SETTLEMENT",
+      errorCode: "ACTIVATION_RECIPIENT_MISSING",
+      message: "Guest activation email was skipped because no recipient is available.",
+    });
     return;
   }
   const tokenHash = createHash("sha256").update(input.rawActivationToken).digest("hex");
@@ -201,22 +224,25 @@ async function settleVerifiedProviderPayment(
   });
 
   if (processError) {
-    console.error("atomic payment callback failed", {
-      attemptId: commerceAttempt.id,
-      orderId: commerceAttempt.order_id,
-      message: processError.message,
+    void recordSystemError({
+      source: "COMMERCE_SETTLEMENT",
+      errorCode: "PAYMENT_CALLBACK_COMMIT_FAILED",
+      message: "The signed payment callback could not be committed atomically.",
+      details: { databaseCode: processError.code ?? null },
     });
     if (verification.paid) {
       const { error: issueError } = await admin.rpc("record_commerce_fulfillment_issue", {
         p_order_id: commerceAttempt.order_id,
         p_order_item_id: null,
         p_issue_code: "PAYMENT_CALLBACK_COMMIT_FAILED",
-        p_details: { attemptId: commerceAttempt.id, databaseError: processError.message },
+        p_details: { databaseCode: processError.code ?? null },
       });
       if (issueError) {
-        console.error("callback commit issue could not be recorded", {
-          orderId: commerceAttempt.order_id,
-          message: issueError.message,
+        void recordSystemError({
+          source: "COMMERCE_SETTLEMENT",
+          errorCode: "PAYMENT_CALLBACK_ISSUE_RECORD_FAILED",
+          message: "The payment callback fulfillment issue could not be recorded.",
+          details: { databaseCode: issueError.code ?? null },
         });
       }
     }

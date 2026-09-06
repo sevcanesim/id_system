@@ -1,4 +1,5 @@
 import { normalizeCardSlug, RESERVED_CARD_SLUGS, validateCardSlug } from "../../../lib/validation/slug";
+import { profileImagePathFromValue } from "../../../lib/profile-images";
 import type { EditableCardData } from "../../CardTemplate";
 
 export type CardData = EditableCardData;
@@ -47,11 +48,7 @@ export function validateProfileSlug(value: string) {
 }
 
 export function storagePathFromPublicUrl(url: string) {
-  if (!url) return null;
-  const marker = "/storage/v1/object/public/profile-images/";
-  const index = url.indexOf(marker);
-  if (index === -1) return null;
-  return decodeURIComponent(url.slice(index + marker.length).split("?")[0]);
+  return profileImagePathFromValue(url);
 }
 
 export async function ensureRealImage(file: File) {
@@ -131,6 +128,5 @@ export function formatMissingItemsText(data: CardData): string {
   }
   return `${missing[0]} ve ${missing[1]} ekleyerek kartını tamamla.`;
 }
-
 
 

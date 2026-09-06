@@ -5,6 +5,7 @@ import {
   canConfigureOrganizationWebhooks,
   createWebhookSigningSecret,
   SUPPORTED_EVENTS,
+  resolvePublicWebhookEndpoint,
   validateWebhookEndpoint,
 } from "../../../../lib/organizations/webhook-integrations";
 import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
@@ -59,7 +60,8 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: "Webhook ayarlarını kontrol edin." }, { status: 400 });
   const actor = await requireOrganizationRole(request, parsed.data.organizationId, ["OWNER", "ADMIN"]);
   if (!actor) return NextResponse.json({ error: "Webhook entegrasyonunu yönetme yetkin yok." }, { status: 403 });
-  const endpoint = validateWebhookEndpoint(parsed.data.endpointUrl);
+  const parsedEndpoint = validateWebhookEndpoint(parsed.data.endpointUrl);
+  const endpoint = parsedEndpoint ? await resolvePublicWebhookEndpoint(parsedEndpoint) : null;
   if (!endpoint) return NextResponse.json({ error: "Yalnız HTTPS ve herkese açık bir webhook adresi kullanılabilir." }, { status: 400 });
   const secret = createWebhookSigningSecret();
   if (!secret) return NextResponse.json({ error: "Sunucuda ORGANIZATION_INTEGRATIONS_ENCRYPTION_KEY yapılandırılmadan webhook etkinleştirilemez.", code: "INTEGRATION_ENCRYPTION_UNCONFIGURED" }, { status: 409 });
@@ -69,7 +71,7 @@ export async function POST(request: NextRequest) {
     organization_id: parsed.data.organizationId,
     provider: "WEBHOOK",
     status: "ACTIVE",
-    endpoint_url: endpoint.toString(),
+    endpoint_url: endpoint.endpoint.toString(),
     signing_secret_encrypted: secret.encrypted,
     event_types: parsed.data.eventTypes,
     created_by: actor.userId,

@@ -1,5 +1,6 @@
 import { assertNetworkDailyCap, assertVerifiedNetworkMailSender, debitNetworkMail } from "../commerce/packages";
 import { sendNetworkingFollowUpEmail, sendOrganizationNetworkMailLimitEmail } from "../email/resend";
+import { recordSystemError } from "../observability/system-errors";
 import { recordOrganizationAuditEvent } from "../organizations/audit";
 import type { getSupabaseAdminClient } from "../supabase/server-admin";
 
@@ -35,7 +36,12 @@ async function notifyOrganizationNetworkMailThreshold(input: {
     .in("role", ["OWNER", "HR"]);
 
   if (error) {
-    console.error("network mail threshold recipient lookup failed", { organizationId: input.organizationId, code: error.code });
+    void recordSystemError({
+      source: "NETWORK_MAIL_THRESHOLD",
+      errorCode: "RECIPIENT_LOOKUP_FAILED",
+      message: "Network Mail eşik bildirimi alıcıları yüklenemedi.",
+      organizationId: input.organizationId,
+    });
     return;
   }
 
@@ -53,8 +59,14 @@ async function notifyOrganizationNetworkMailThreshold(input: {
         organizationName: input.organizationName,
         remaining: input.remaining,
       });
-    } catch (sendError) {
-      console.error("network mail threshold alert failed", { organizationId: input.organizationId, remaining: input.remaining, sendError });
+    } catch {
+      void recordSystemError({
+        source: "NETWORK_MAIL_THRESHOLD",
+        errorCode: "ALERT_DELIVERY_FAILED",
+        message: "Network Mail eşik bildirimi gönderilemedi.",
+        organizationId: input.organizationId,
+        details: { remaining: input.remaining },
+      });
       return { sent: false as const };
     }
   }));
@@ -83,14 +95,27 @@ async function refundConsumedCredit(
       p_organization_id: ledger.organizationId,
       p_amount: amount,
     });
-    if (error) console.error("organization network mail refund failed", error);
+    if (error) {
+      void recordSystemError({
+        source: "NETWORK_MAIL_REFUND",
+        errorCode: "ORGANIZATION_REFUND_FAILED",
+        message: "Kurumsal Network Mail kredi iadesi tamamlanamadı.",
+        organizationId: ledger.organizationId,
+      });
+    }
     return;
   }
   const { error } = await admin.rpc("refund_individual_network_mail", {
     p_entitlement_id: ledger.entitlementId,
     p_amount: amount,
   });
-  if (error) console.error("individual network mail refund failed", error);
+  if (error) {
+    void recordSystemError({
+      source: "NETWORK_MAIL_REFUND",
+      errorCode: "INDIVIDUAL_REFUND_FAILED",
+      message: "Bireysel Network Mail kredi iadesi tamamlanamadı.",
+    });
+  }
 }
 
 export async function sendDebitedNetworkFollowUp(input: {
@@ -146,7 +171,11 @@ export async function sendDebitedNetworkFollowUp(input: {
     ? { kind: "organization" as const, organizationId: input.ledger.organizationId }
     : { kind: "individual" as const, entitlementId: String(consumed.entitlement_id || "") };
   if (refundLedger.kind === "individual" && !consumed.entitlement_id) {
-    console.error("individual network mail consume missing entitlement_id");
+    void recordSystemError({
+      source: "NETWORK_MAIL_FOLLOW_UP",
+      errorCode: "ENTITLEMENT_NOT_RETURNED",
+      message: "Bireysel Network Mail kredi düşümü geçerli bir hak kaydı döndürmedi.",
+    });
     return { ok: false, status: 503, error: "Kredi düşümü doğrulanamadı. Mail gönderilmedi." };
   }
 
@@ -156,8 +185,13 @@ export async function sendDebitedNetworkFollowUp(input: {
     subject: input.mail.subject,
     message: input.mail.message,
     replyTo: sender.replyTo,
-  }).catch((error) => {
-    console.error("network follow-up provider error", error);
+  }).catch(() => {
+    void recordSystemError({
+      source: "NETWORK_MAIL_FOLLOW_UP",
+      errorCode: "EMAIL_PROVIDER_FAILED",
+      message: "Network Mail sağlayıcısı takip e-postasını gönderemedi.",
+      organizationId: input.ledger.kind === "organization" ? input.ledger.organizationId : null,
+    });
     return { sent: false as const, reason: "PROVIDER_ERROR" };
   });
 

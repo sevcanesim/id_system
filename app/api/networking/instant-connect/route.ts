@@ -7,6 +7,8 @@ import {
 } from "../../../../lib/networking/instant-connect";
 import { consumeDistributedRateLimit, requestIp } from "../../../../lib/security/rate-limit";
 import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { profileImagePathFromValue, publicProfileImagePath } from "../../../../lib/profile-images";
+import { recordSystemError } from "../../../../lib/observability/system-errors";
 
 export const runtime = "nodejs";
 
@@ -66,11 +68,15 @@ export async function GET(request: NextRequest) {
         name: profile.name,
         role: profile.role,
         company: profile.company,
-        imageUrl: profile.image_url,
+        imageUrl: profileImagePathFromValue(profile.image_url) ? publicProfileImagePath(profile.public_id) : null,
       },
     }));
-  } catch (error) {
-    console.error("instant connect identity lookup failed", error instanceof Error ? error.message : "UNKNOWN");
+  } catch {
+    void recordSystemError({
+      source: "INSTANT_CONNECT",
+      errorCode: "IDENTITY_LOOKUP_FAILED",
+      message: "Instant Connect profil kimliği yüklenemedi.",
+    });
     return noStore(NextResponse.json({ error: "Profiliniz şu anda okunamıyor." }, { status: 503 }));
   }
 }
@@ -139,13 +145,22 @@ export async function POST(request: NextRequest) {
     });
     const result = data as { ok?: boolean; created?: boolean; code?: string } | null;
     if (error || !result?.ok) {
-      console.error("instant connect handshake failed", error?.message || result?.code || "UNKNOWN");
+      void recordSystemError({
+        source: "INSTANT_CONNECT",
+        errorCode: "HANDSHAKE_REJECTED",
+        message: "Instant Connect bağlantı isteği tamamlanamadı.",
+        userId: actor.id,
+      });
       return noStore(NextResponse.json({ code: result?.code || "HANDSHAKE_FAILED" }, { status: 409 }));
     }
 
     return noStore(NextResponse.json({ ok: true, created: Boolean(result.created) }));
-  } catch (error) {
-    console.error("instant connect route failed", error instanceof Error ? error.message : "UNKNOWN");
+  } catch {
+    void recordSystemError({
+      source: "INSTANT_CONNECT",
+      errorCode: "REQUEST_FAILED",
+      message: "Instant Connect bağlantı isteği işlenemedi.",
+    });
     return noStore(NextResponse.json({ code: "HANDSHAKE_FAILED" }, { status: 503 }));
   }
 }

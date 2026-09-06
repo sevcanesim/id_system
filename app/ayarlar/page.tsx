@@ -63,6 +63,17 @@ type CommerceOrder = {
 type OrdersState = { loading: boolean; orders: CommerceOrder[]; error: boolean };
 type StatusTone = "neutral" | "success" | "warning" | "error" | "info";
 type AccountSnapshot = { name: string; email: string };
+type PrivacyRequestType = "ACCESS" | "ERASURE";
+type PrivacyRequest = {
+  id: string;
+  request_type: PrivacyRequestType;
+  status: "SUBMITTED" | "IN_REVIEW" | "IDENTITY_VERIFIED" | "COMPLETED" | "REJECTED" | "CANCELLED";
+  identity_verified_at: string | null;
+  resolved_at: string | null;
+  resolution_code: string | null;
+  created_at: string;
+};
+type PrivacyRequestsState = { loading: boolean; requests: PrivacyRequest[]; error: boolean };
 
 const ORDER_STATUS: Record<CommerceStatus, { label: string; description: string; tone: StatusTone }> = {
   DRAFT: { label: "Taslak", description: "Sipariş henüz tamamlanmadı.", tone: "neutral" },
@@ -73,6 +84,20 @@ const ORDER_STATUS: Record<CommerceStatus, { label: string; description: string;
   COMPLETED: { label: "Teslim edildi", description: "Sipariş süreci tamamlandı.", tone: "success" },
   CANCELLED: { label: "İptal edildi", description: "Sipariş iptal edildi.", tone: "error" },
   REFUNDED: { label: "İade edildi", description: "Ödeme iade edildi ve ilgili dijital hizmet durduruldu.", tone: "error" },
+};
+
+const PRIVACY_REQUEST_TYPE_LABEL: Record<PrivacyRequestType, string> = {
+  ACCESS: "Veri erişim talebi",
+  ERASURE: "Silme/değerlendirme talebi",
+};
+
+const PRIVACY_REQUEST_STATUS_LABEL: Record<PrivacyRequest["status"], string> = {
+  SUBMITTED: "Alındı",
+  IN_REVIEW: "İnceleniyor",
+  IDENTITY_VERIFIED: "Kimlik doğrulandı",
+  COMPLETED: "Tamamlandı",
+  REJECTED: "Sonuçlandı",
+  CANCELLED: "İptal edildi",
 };
 
 function formatDate(value?: string | null) {
@@ -233,6 +258,20 @@ export default function SettingsPage() {
   const [browserLabel, setBrowserLabel] = useState("Bu cihaz");
   const [subscription, setSubscription] = useState<SubscriptionState>({ loading: true, entitlement: null, error: false });
   const [ordersState, setOrdersState] = useState<OrdersState>({ loading: true, orders: [], error: false });
+  const [privacyRequestsState, setPrivacyRequestsState] = useState<PrivacyRequestsState>({ loading: true, requests: [], error: false });
+  const [privacyRequestMessage, setPrivacyRequestMessage] = useState("");
+  const [submittingPrivacyRequest, setSubmittingPrivacyRequest] = useState<PrivacyRequestType | null>(null);
+
+  async function loadPrivacyRequests() {
+    try {
+      const response = await fetch("/api/privacy/requests", { cache: "no-store" });
+      if (!response.ok) throw new Error("PRIVACY_REQUESTS_UNAVAILABLE");
+      const payload = await response.json() as { requests?: PrivacyRequest[] };
+      setPrivacyRequestsState({ loading: false, requests: payload.requests ?? [], error: false });
+    } catch {
+      setPrivacyRequestsState({ loading: false, requests: [], error: true });
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -255,6 +294,7 @@ export default function SettingsPage() {
       setName(nextName);
       setAccountSnapshot({ name: nextName, email: nextEmail });
       setBrowserLabel(currentBrowserLabel());
+      void loadPrivacyRequests();
 
       const { data: account } = await supabase
         .from("user_accounts")
@@ -372,6 +412,32 @@ export default function SettingsPage() {
     const supabase = getSupabaseBrowserClient();
     await supabase?.auth.signOut();
     router.replace("/giris");
+  }
+
+  async function submitPrivacyRequest(type: PrivacyRequestType) {
+    setSubmittingPrivacyRequest(type);
+    setPrivacyRequestMessage("");
+    try {
+      const response = await fetch("/api/privacy/requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type }),
+      });
+      const payload = await response.json().catch(() => ({})) as { duplicate?: boolean; error?: string };
+      if (!response.ok) throw new Error(payload.error || "PRIVACY_REQUEST_FAILED");
+      const message = payload.duplicate
+        ? "Bu türde açık bir talebiniz zaten var; durumunu aşağıdan takip edebilirsiniz."
+        : "Talebiniz güvenli kayıt altına alındı. Sonuçlandığında hesabınızdan takip edebilirsiniz.";
+      setPrivacyRequestMessage(message);
+      notify({ message, tone: "success" });
+      await loadPrivacyRequests();
+    } catch {
+      const message = "Talebiniz şu anda oluşturulamadı. Lütfen daha sonra tekrar deneyin.";
+      setPrivacyRequestMessage(message);
+      notify({ message, tone: "error" });
+    } finally {
+      setSubmittingPrivacyRequest(null);
+    }
   }
 
   return (
@@ -610,6 +676,33 @@ export default function SettingsPage() {
               </div>
               {securityMessage && <Alert tone={securityMessageTone} className={styles.formAlert}>{securityMessage}</Alert>}
             </form>
+          </Card>
+
+          <Card className={styles.privacyCard}>
+            <div className={styles.cardHeader}>
+              <div>
+                <span className={styles.sectionEyebrow}><Icon name="shield" /> VERİ TALEPLERİ</span>
+                <h2>Veri taleplerini güvenle yönet</h2>
+                <p>Hesabınızla ilişkili veri erişim veya silme/değerlendirme talebini buradan kayıt altına alabilirsiniz.</p>
+              </div>
+            </div>
+            <div className={styles.privacyActions}>
+              <Button type="button" variant="secondary" disabled={Boolean(submittingPrivacyRequest)} onClick={() => void submitPrivacyRequest("ACCESS")}>
+                {submittingPrivacyRequest === "ACCESS" ? "Kaydediliyor…" : "Verilerime erişim iste"}
+              </Button>
+              <Button type="button" variant="secondary" disabled={Boolean(submittingPrivacyRequest)} onClick={() => void submitPrivacyRequest("ERASURE")}>
+                {submittingPrivacyRequest === "ERASURE" ? "Kaydediliyor…" : "Silme talebi oluştur"}
+              </Button>
+            </div>
+            {privacyRequestMessage ? <Alert tone="info" className={styles.formAlert}>{privacyRequestMessage}</Alert> : null}
+            {privacyRequestsState.loading ? <p className={styles.privacyStatus}>Talepleriniz yükleniyor…</p> : privacyRequestsState.error ? <p className={styles.privacyStatus}>Talep geçmişi şu anda yüklenemedi.</p> : privacyRequestsState.requests.length ? (
+              <ul className={styles.privacyRequestList} aria-label="Gizlilik talepleriniz">
+                {privacyRequestsState.requests.map((privacyRequest) => <li key={privacyRequest.id}>
+                  <div><strong>{PRIVACY_REQUEST_TYPE_LABEL[privacyRequest.request_type]}</strong><span>{formatDateTime(privacyRequest.created_at)}</span></div>
+                  <StatusBadge tone={privacyRequest.status === "COMPLETED" ? "success" : privacyRequest.status === "REJECTED" ? "error" : privacyRequest.status === "CANCELLED" ? "neutral" : "info"}>{PRIVACY_REQUEST_STATUS_LABEL[privacyRequest.status]}</StatusBadge>
+                </li>)}
+              </ul>
+            ) : <p className={styles.privacyStatus}>Henüz kayıtlı bir veri talebiniz yok.</p>}
           </Card>
 
           <Card className={styles.legalCard}>

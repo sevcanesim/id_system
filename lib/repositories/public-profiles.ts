@@ -1,4 +1,5 @@
 import { isCardProfileServiceActive, type CardProfileRow } from "../card-profile";
+import { profileImagePathFromValue, publicProfileImagePath } from "../profile-images";
 import { getSupabaseAdminClient } from "../supabase/server-admin";
 
 const PUBLIC_PROFILE_COLUMNS =
@@ -15,6 +16,13 @@ async function applyPhysicalCardState(profile: CardProfileRow) {
   if (state === "LOST") return { data: { ...profile, card_status: "LOST" as const }, error: null };
   if (state === "DISABLED") return { data: { ...profile, card_status: "SUSPENDED" as const }, error: null };
   return { data: profile, error: null };
+}
+
+export function presentPublicProfileImage(profile: CardProfileRow): CardProfileRow {
+  if (!profile.public_id || !profileImagePathFromValue(profile.image_url)) {
+    return { ...profile, image_url: null };
+  }
+  return { ...profile, image_url: publicProfileImagePath(profile.public_id) };
 }
 
 function isSupportedPublicToken(token: string) {
@@ -38,11 +46,17 @@ export async function fetchPublicCardByToken(token: string): Promise<{
 
   const { data: publicIdProfile, error: publicIdError } = await findPublishedProfile("public_id", token);
   if (publicIdError) return { data: null, error: publicIdError.message };
-  if (publicIdProfile) return applyPhysicalCardState(publicIdProfile as CardProfileRow);
+  if (publicIdProfile) {
+    const checked = await applyPhysicalCardState(publicIdProfile as CardProfileRow);
+    return { ...checked, data: checked.data ? presentPublicProfileImage(checked.data) : null };
+  }
 
   const { data: slugProfile, error: slugError } = await findPublishedProfile("slug", token);
   if (slugError) return { data: null, error: slugError.message };
-  if (slugProfile) return applyPhysicalCardState(slugProfile as CardProfileRow);
+  if (slugProfile) {
+    const checked = await applyPhysicalCardState(slugProfile as CardProfileRow);
+    return { ...checked, data: checked.data ? presentPublicProfileImage(checked.data) : null };
+  }
 
   const { data: redirect, error: redirectError } = await admin
     .from("card_profile_slug_redirects")
@@ -58,5 +72,5 @@ export async function fetchPublicCardByToken(token: string): Promise<{
 
   const checked = await applyPhysicalCardState(redirectedProfile as CardProfileRow);
   if (!checked.data || !isCardProfileServiceActive(checked.data)) return checked;
-  return { ...checked, redirectedFrom: token };
+  return { ...checked, data: checked.data ? presentPublicProfileImage(checked.data) : null, redirectedFrom: token };
 }

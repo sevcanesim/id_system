@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
 import { isOrganizationRole } from "../../../../lib/organizations/permissions";
+import { profileImagePathFromValue } from "../../../../lib/profile-images";
+import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 
 // Deliberately GET-only. A company can see what an employee has published on
 // their corporate identity card (for brand/compliance oversight and support),
@@ -11,12 +13,9 @@ import { isOrganizationRole } from "../../../../lib/organizations/permissions";
 // through this endpoint.
 
 async function context(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-  const auth = getSupabaseAuthClient();
-  const { data } = await auth.auth.getUser(token);
-  if (!data.user) return null;
-  return { user: data.user, admin: getSupabaseAdminClient() };
+  const identity = await resolveRequestIdentity(request);
+  if (!identity) return null;
+  return { user: identity.user, admin: getSupabaseAdminClient() };
 }
 
 async function manager(admin: ReturnType<typeof getSupabaseAdminClient>, userId: string, organizationId: string) {
@@ -81,5 +80,11 @@ export async function GET(request: NextRequest) {
   const { data: profiles, error: profileError } = await profileQuery.order("updated_at", { ascending: false });
   if (profileError) return NextResponse.json({ error: "Kart yüklenemedi." }, { status: 500 });
 
-  return NextResponse.json({ profiles: profiles || [], physicalCards, identityChanges: identityChanges || [] });
+  const visibleProfiles = (profiles || []).map((profile) => ({
+    ...profile,
+    image_url: profileImagePathFromValue(profile.image_url)
+      ? `/api/profile-images/member?organizationId=${encodeURIComponent(organizationId)}&profileId=${encodeURIComponent(profile.id)}`
+      : null,
+  }));
+  return NextResponse.json({ profiles: visibleProfiles, physicalCards, identityChanges: identityChanges || [] });
 }

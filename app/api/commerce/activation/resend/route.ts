@@ -8,6 +8,7 @@ import { getSupabaseAdminClient } from "../../../../../lib/supabase/server-admin
 import { getDatabaseLifecycleSettings } from "../../../../../lib/config/database";
 import { requestIp } from "../../../../../lib/security/rate-limit";
 import { limitActivationResendIp, limitActivationResendOrder } from "../../../../../lib/security/route-rate-limits";
+import { recordSystemError } from "../../../../../lib/observability/system-errors";
 
 export const runtime = "nodejs";
 const schema = z.object({ email: z.string().trim().email(), orderNumber: z.string().trim().min(4).max(80).optional() });
@@ -48,8 +49,12 @@ export async function POST(request: NextRequest) {
       provider_message: outbound.sent ? null : outbound.reason,
     });
     return NextResponse.json(opaqueAck);
-  } catch (error) {
-    console.error("activation resend error", error instanceof Error ? error.message : "unknown");
+  } catch {
+    void recordSystemError({
+      source: "COMMERCE_ACTIVATION_RESEND",
+      errorCode: "REQUEST_FAILED",
+      message: "Aktivasyon bağlantısı yenileme isteği işlenemedi.",
+    });
     return NextResponse.json({ error: "Aktivasyon bağlantısı yenilenemedi." }, { status: 500 });
   }
 }

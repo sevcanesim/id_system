@@ -9,7 +9,12 @@ Bu belge, kaynak kod denetimindeki bulguları uygulama sırasına bağlar. Bir m
 | P0.1, P0.2, P0.5, P0.6 | Uygulandı | `20260906120000`, `20260906130000` ve `20260906140000` migration'ları bağlı Supabase projesine uygulandı; `supabase db push --dry-run` uzak veritabanının güncel olduğunu doğruluyor. |
 | P0.3 | Kaynakta tamam | PayTR sandbox callback tekrar/yanlış-imza senaryoları gerçek sağlayıcıyla kanıtlanmalı. |
 | P0.4 | Kaynakta tamam | Tip, derleme ve statik kalite kontrolleri geçiyor. Chromium bu çalışma ortamının macOS sandbox kısıtı nedeniyle başlatılamadığından tarayıcı E2E'si yerel CI veya staging'de çalıştırılmalı. |
-| P0.7 | Açık yayın engeli | Tarayıcıdaki Supabase token yaşam döngüsünü BFF modeline taşıma henüz yapılmadı; bu madde kapanmadan yüksek gizlilik iddiasıyla yayın yapılmaz. |
+| P0.7 | Kısmi ilerleme, açık yayın engeli | Seçili API'ler HttpOnly cookie'den kimlik çözebiliyor; ancak tarayıcı Supabase istemcisi hâlâ access/refresh token alıyor. Tam BFF geçişi bitmeden bu madde kapanmaz. |
+| P1.3 | Kısmi uygulandı | `20260906160000` ile atomik lease, `20260906170000` ile süreli job-run geçmişi, `20260906180000` ile 90/180 günlük retention bağlı Supabase projesine uygulandı. Super Admin operasyon ekranı job-run geçmişini gösterir; dış uptime alarmı açık. |
+| P1.5 | Kısmi uygulandı | `app/api`, `lib` ve kart düzenleyici çalışma zamanı hataları ham `console.*` yerine maskeli `system_error_logs` kaydına geçiyor; giriş telemetry'si 90 günlük, service-role-only `auth_login_events` tablosunda HMAC parmak iziyle tutuluyor. `verify:security-hardening` bu sınırlarda ham konsol kaydını engeller. |
+| P1.6 | Kısmi uygulandı | `profile-images` private; upload magic-byte/MIME/boyut kontrolü, WebP yeniden encode ve EXIF temizliğiyle sunucuda işleniyor. Kart analitiği ayrı HMAC anahtarı, DNT/GPC opt-out, ülke seviyesi ve 90 gün retention ile minimize edildi. İndeksleme ve hukuk onaylı silme operasyonu açık. |
+| P1.7 | Kaynakta tamam | Drift denetimi güncel Supabase CLI JSON çıktısını ve migration sürüm kümelerini güvenilir biçimde karşılaştırıyor. |
+| P2.1 | Kısmi uygulandı | Webhook hedefi DNS çözümlemesiyle özel ağlardan ayrıştırılıyor ve teslim onaylanmış IP'ye sabitleniyor. Egress proxy/allowlist katmanı açık. |
 | Production env | Engelli | PayTR, Redis, `CRON_SECRET` ve hukuk onay değişkenleri tanımlı değil; `verify:production-env` bu nedenle bilinçli olarak başarısız. |
 
 Bu durum, bağlı Supabase projesinin production olduğu anlamına gelmez. Ortam kimliği ve production değişkenleri doğrulanmadan production onayı verilmez.
@@ -158,14 +163,13 @@ Bu durum, bağlı Supabase projesinin production olduğu anlamına gelmez. Ortam
 
 **Risk:** Serverless cron aynı işi çakışarak çalıştırabilir; başarısız olduğunda görünmeden kalabilir.
 
-**Yapılacaklar:**
+**Uygulandı:**
 
-1. `job_runs` ve `job_leases` tabloları ekle; job adı için tek aktif lease kuralı koy.
-2. Her cron çalışmasında `started_at`, `finished_at`, `result`, `processed_count`, `error_code` kaydet.
-3. Son başarılı çalışmanın yaşını izleyen uptime alarmı kur.
-4. Alarm, Super Admin operasyon merkezinde görünmeli; e-posta/pager kanalı kararını operasyon sahibi vermeli.
+1. `operational_job_leases`, job adı başına süreli ve atomik bir lease alır; çakışan cron çağrısı `LEASE_HELD` ile iş almadan biter.
+2. `operational_job_runs`, `started_at`, `finished_at`, başarı/başarısızlık, işlenmiş kayıt sayısı ve sınıflandırılmış hata kodunu saklar.
+3. Ticari operasyon ve webhook teslim worker'ları aynı standardı kullanır.
 
-**DoD:** Aynı cron paralel tetiklendiğinde yalnız biri iş alır; başarısız run görünür ve alarm üretir.
+**Açık işler:** Son başarılı job-run yaşını izleyen dış uptime alarmı ve operasyon kanalının belirlenmesi eklenmelidir.
 
 ### P1.4 Super Admin operasyon merkezi
 
@@ -182,45 +186,53 @@ Bu durum, bağlı Supabase projesinin production olduğu anlamına gelmez. Ortam
 
 ### P1.5 Katalog, aktivasyon ve log dayanıklılığı
 
-**Yapılacaklar:**
+**Uygulandı:** Cron, checkout, ödeme settlement ve kimlik akışları artık ham exception veya sağlayıcı yanıtı yazmadan sınıflandırılmış `system_error_logs` kaydı oluşturur. Logger; e-posta, JWT, uzun gizli değerler ve hassas anahtarları maskeler. Giriş telemetry'si ham IP ve kullanıcı UUID'si yerine HMAC parmak izi tutar. Sağlayıcı payload snapshot'ı referans, payment id ve ham hata metni taşımaz.
+
+**Açık işler:**
 
 1. Fiyatı tek DB katalog kaynağından oku; checkout sırasında ürün/fiyat/katalog sürümü snapshot'ını siparişe yaz. Kod içindeki parasal değerler yalnız test fixture'ında kalmalı.
 2. Aktivasyonu `activation_provisioning_jobs` saga'sına taşı: `USER_CREATED`, `PROFILE_CREATED`, `FINALIZED`, `COMPENSATED`; yarım işleri cron ile uzlaştır.
-3. Merkezi logger dışında veri taşıyan `console.*` kullanma. Token, authorization, e-posta, telefon, adres, query string ve ham hata nesnesini logger katmanında maskele.
-4. `system_error_logs` için 30–90 günlük onaylı retention, purge/anonymization işi ve immutable operasyon audit'i uygula.
+3. Merkezi logger dışında veri taşıyan `console.*` kullanma. Token, authorization, e-posta, telefon, adres, query string ve ham hata nesnesini logger katmanında maskele. Bu kural `app/api`, `lib` ve kart düzenleyici için otomatik olarak doğrulanır.
+4. `system_error_logs` ve giriş telemetry'si için 90 günlük retention, job geçmişi için 180 günlük retention ve günlük purge işi uygulanmıştır; operasyonel silme/adet sonucu job-run kaydında kalır. Harici uyumluluk politikasına göre anonimleştirme süresi ayrıca belirlenmelidir.
 5. `x-forwarded-for` için tek güvenilir proxy standardı belirle; diğer istemci başlıklarını rate limit kimliği olarak kullanma.
 
 **DoD:** Fiyat ayrışması, yarım aktivasyon, tekrar eden cron ve PII taşıyan hata logu için otomatik regresyon testi bulunur.
 
 ### P1.6 Görsel, konum ve analitik veri minimizasyonu
 
-**Yapılacaklar:**
+**Uygulandı:**
 
-1. `profile-images` bucket'ını private yap; yüklemede magic-byte/MIME/boyut kontrolü, yeniden encode ve EXIF/GPS temizliği uygula.
-2. Public kart yalnız kısa ömürlü signed görsel URL kullanmalı; dış `image_url` kaynaklarını güvenli import/proxy olmadan render etmemeli.
-3. Analitikte ayrı `ANALYTICS_FINGERPRINT_KEY`, query string'siz referer, kısa retention ve opt-out/silme akışı kullan.
-4. IP konumu ve reverse geocode işlemlerini açık kullanıcı aksiyonuna bağla; koordinat hassasiyetini düşür, veri işleyen envanterine ekle.
+1. `profile-images` bucket'ı private; eski public storage URL'leri yalnız güvenli nesne yolu olarak çözümlenir.
+2. Görsel yükleme sunucuda magic-byte/MIME/boyut/oran kontrolüyle yeniden WebP encode edilir; EXIF/GPS taşınmaz.
+3. Sahip, yetkili kurumsal yönetici ve public kart için farklı yetki kontrollü görsel endpointleri kullanılır. Kart kapanırsa public görsel de 404 olur.
+4. Kart görüntülenme analitiği, servis anahtarından ayrı `ANALYTICS_FINGERPRINT_SECRET` ile yalnız günlük tekrarları ayıran HMAC üretir. Ham referer ve şehir saklanmaz; yalnız doğrulanmış iki harfli ülke kodu alınır. `DNT: 1` ve `Sec-GPC: 1` istekleri hiç kaydedilmez.
+5. Kart görüntülenme olayları günlük operasyon cron'u ile 90 gün sonra silinir.
+
+**Açık işler:**
+
+1. IP konumu ve reverse geocode işlemlerini açık kullanıcı aksiyonuna bağla; koordinat hassasiyetini düşür, veri işleyen envanterine ekle.
 
 **DoD:** Kart kapatıldığında profil görseli erişimi kesilir; analitik/log kayıtlarında ham IP, query token veya EXIF konumu bulunmaz.
 
-### P1.7 Migration defteri onarımı
+### P1.7 Migration defteri denetimi
 
-**Risk:** Bağlı Supabase projesinin geçmiş migration defterinde `024` ve `20260830` kimlikleri local/remote eşleştirmesinde ayrışıyor. Yeni P0 migration'ları normal `db push` akışıyla uygulanabildi; yine de bu eski ayrışma, gelecekte migration denetiminin güvenilirliğini düşürür.
+**Önceki risk:** Supabase CLI'nın sıraladığı eski `024` ve `20260830` kayıtları aynı satır numarasıyla eşlenmeye çalışıldığında yanlış drift sinyali oluşuyordu.
 
-**Yapılacaklar:**
+**Kodda tamamlandı:**
 
-1. Remote `supabase_migrations.schema_migrations` kayıtlarını ve aynı kimlikli local SQL dosyalarının içerik hash'lerini değişiklik kaydıyla karşılaştır.
-2. Aynı şema değişikliğini temsil ettikleri kanıtlanmadan `migration repair` çalıştırma; ne remote geçmişi ne local SQL dosyası silinmeli.
-3. Eşdeğer kayıt doğrulanırsa, onaylı bakım penceresinde yalnız ilgili kayıt için repair uygula ve `supabase migration list` çıktısını audit'e ekle.
-4. `verify:migration-drift` komutunu güncel Supabase CLI tablosunu da ayrıştıracak şekilde test et; remote up-to-date dry-run'ı tek başına history doğrulaması sayma.
+1. Denetim, CLI JSON çıktısından local/remote migration sürüm kümelerini okur; sıralama farkı yanlış alarm üretmez.
+2. Denetim, bağlı proje için local/remote migration sürüm kümelerinin eşleştiğini doğrular; sabit sürüm sayısına dayanmaz.
+3. Geçmiş migration kayıtları veya local SQL dosyaları silinmedi; `migration repair` kullanılmadı.
 
-**DoD:** Local ve remote migration defteri tam eşleşir; drift komutu parse hatası vermeden sıfır uyuşmazlık raporlar.
+**DoD:** `npm run verify:migration-drift` parse hatası vermeden iki sürüm kümesi arasında uyuşmazlık olmadığını raporlar.
 
 ## Faz P2 — Saldırı yüzeyi ve gizlilik sertleştirmesi
 
 ### P2.1 Webhook/SSRF ve egress kontrolü
 
-**Yapılacaklar:** DNS çözümlemesi sonrası private, loopback, link-local ve IPv6 özel ağ IP'lerini reddeden doğrulama; redirect sonrası her hedefi yeniden doğrulama; allowlist tabanlı egress proxy; kısa timeout ve response boyutu sınırı.
+**Uygulandı:** Webhook URL'si HTTPS/port/host kısıtlarından geçer; yapılandırmada ve her teslimden hemen önce DNS çözümlemesi yapılır. Loopback, private, CGNAT, link-local, metadata/dokümantasyon, multicast ve IPv6 özel ağ adresleri reddedilir. İstek redirect takip etmez, 10 saniyede zaman aşımına uğrar ve DNS sonucu teslim anında onaylanan IP'ye sabitlenir. Kuyrukta yalnız sınıflandırılmış hata kodu tutulur.
+
+**Açık işler:** Allowlist tabanlı egress proxy ve merkezi egress telemetry katmanı eklenmelidir.
 
 ### P2.2 Oturum ve hassas veri yaşam döngüsü
 
@@ -228,7 +240,9 @@ Bu durum, bağlı Supabase projesinin production olduğu anlamına gelmez. Ortam
 
 ### P2.3 Gizlilik istekleri ve indeksleme
 
-**Yapılacaklar:** Arama motoru indeksleme tercihini sürümlü kayıtla tut; varsayılan kapalı; veri erişim/silme talepleri için durum makinesi, kanıt, SLA ve audit log ekle. Kişiselleştirilmiş ürün iadesi hakkında kesin hukuki metin üretme; hukuk onayı olmadan politika yayınlama.
+**Kodda tamamlandı:** Oturum açmış kullanıcı, hesap ayarlarından veri erişim veya silme/değerlendirme talebi oluşturabilir ve durumunu takip edebilir. Aynı kullanıcı için aynı türde ikinci açık talep, yeni kayıt üretmeden var olan talebe döner. Talepler backend-only tablolarda saklanır; `SUBMITTED → IN_REVIEW → IDENTITY_VERIFIED → COMPLETED/REJECTED/CANCELLED` durum makinesi dışında ilerleyemez. Her geçişte append-only kanıt kaydı ve AAL2 Super Admin audit kaydı oluşur. Tamamlanan veya reddedilen talepler sınıflandırılmış bir çözüm kodu gerektirir; sistem kullanıcının verisini otomatik silmez.
+
+**Açık işler:** Arama motoru indeksleme tercihini sürümlü kayıtla tut; varsayılan kapalı. Hukuk ve operasyon ekipleri, geçerli başvuru prosedürüne göre SLA/hedef süre, kimlik doğrulama kanıt standardı, erişim dışa aktarım kanalı ve silme saklama istisnalarını onaylamalıdır. Kişiselleştirilmiş ürün iadesi hakkında kesin hukuki metin üretme; hukuk onayı olmadan politika yayınlama.
 
 ### P2.4 API politika katmanı
 

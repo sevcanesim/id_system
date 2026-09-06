@@ -26,13 +26,14 @@ const env = { ...readEnv(path.resolve(".env.local")), ...process.env };
 const apply = process.argv.includes("--apply");
 const allowNonEmpty = process.argv.includes("--allow-non-empty");
 const resetIsolatedTestProject = process.argv.includes("--reset-isolated-test-project");
-const resetDemo = process.argv.includes("--reset-demo") || resetIsolatedTestProject;
+const purgeDemo = process.argv.includes("--purge-demo");
+const resetDemo = process.argv.includes("--reset-demo") || purgeDemo || resetIsolatedTestProject;
 const url = env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL;
 const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SECRET_KEY;
 const password = env.DEMO_SEED_PASSWORD;
 
 if (!url || !serviceKey) throw new Error("Supabase URL ve service role/secret key gerekli.");
-if (apply && (!password || password.length < 12)) throw new Error("--apply için en az 12 karakterli DEMO_SEED_PASSWORD gerekli.");
+if (apply && !purgeDemo && (!password || password.length < 12)) throw new Error("--apply için en az 12 karakterli DEMO_SEED_PASSWORD gerekli.");
 
 function isLocalSupabaseUrl(targetUrl) {
   try {
@@ -96,9 +97,12 @@ if (!apply) {
   for (const guest of guestOrders) console.log(`- ${guest.email} (${guest.kind}, Auth user yok)`);
   for (const scenario of corporateScenarios) console.log(`- ${scenario.name}: ${scenario.used}/${scenario.limit} koltuk, ${scenario.limit - scenario.used} boş`);
   if (resetIsolatedTestProject) console.log("--reset-isolated-test-project seçildi: yalnız doğrulanmış izole test projesindeki tüm müşteri/domain verisi silinip kanonik QA seti yeniden kurulacak. Katalog, planlar, yasal dokümanlar ve migration kayıtları korunur.");
+  else if (purgeDemo) console.log("--purge-demo seçildi: apply sırasında tüm TEST / @yenomi.test demo kayıtları ve bağlı demo verisi silinecek; yeni fixture oluşturulmayacak.");
   else if (resetDemo) console.log("--reset-demo seçildi: apply sırasında tüm TEST / @yenomi.test demo kayıtları ve bağlı demo verisi silinip kanonik set yeniden kurulacak.");
   if (resetIsolatedTestProject) {
     console.log("Uygulamak için: ALLOW_ISOLATED_TEST_PROJECT_RESET=true TEST_SUPABASE_PROJECT_REF='test-project-ref' DEMO_SEED_PASSWORD='...' npm run seed:demo -- --apply --reset-isolated-test-project");
+  } else if (purgeDemo) {
+    console.log("Uygulamak için: ALLOW_STAGING_MUTATIONS=true STAGING_SUPABASE_PROJECT_REF='test-project-ref' npm run purge:demo");
   } else {
     console.log("Uygulamak için: DEMO_SEED_PASSWORD='...' npm run seed:demo -- --apply --reset-demo");
   }
@@ -106,7 +110,7 @@ if (!apply) {
 }
 
 async function assertSchema() {
-  for (const table of ["admin_users", "admin_access_grants", "admin_audit_log", "products", "product_variants", "commerce_orders", "commerce_order_items", "commerce_order_status_history", "commerce_order_billing_profiles", "commerce_payment_attempts", "payment_callback_receipts", "entitlements", "card_profiles", "business_plans", "organizations", "organization_members", "organization_subscriptions", "organization_entitlements", "organization_security_policies", "commerce_order_consents", "user_accounts", "physical_cards", "commerce_physical_card_units", "organization_invites", "organization_invite_job_audit", "organization_card_templates", "organization_integrations", "organization_integration_delivery_jobs", "networking_events", "networking_event_links", "networking_leads", "networking_lead_events", "networking_meetings", "networking_handshakes", "card_view_events", "activation_tokens", "commerce_invoice_jobs", "individual_network_mail_credit_grants", "organization_network_mail_credit_grants", "profile_custom_url_entitlements", "organization_audit_events", "network_mail_adjustment_ledger", "system_error_logs"]) {
+  for (const table of ["admin_users", "admin_access_grants", "admin_audit_log", "products", "product_variants", "commerce_orders", "commerce_order_items", "commerce_order_status_history", "commerce_order_billing_profiles", "commerce_payment_attempts", "payment_callback_receipts", "entitlements", "card_profiles", "business_plans", "organizations", "organization_members", "organization_subscriptions", "organization_entitlements", "organization_security_policies", "commerce_order_consents", "user_accounts", "physical_cards", "commerce_physical_card_units", "organization_invites", "organization_invite_job_audit", "organization_card_templates", "organization_integrations", "organization_integration_delivery_jobs", "networking_events", "networking_event_links", "networking_leads", "networking_lead_events", "networking_meetings", "networking_handshakes", "card_view_events", "activation_tokens", "commerce_invoice_jobs", "individual_network_mail_credit_grants", "organization_network_mail_credit_grants", "profile_custom_url_entitlements", "organization_audit_events", "network_mail_adjustment_ledger", "system_error_logs", "auth_login_events"]) {
     const { error } = await supabase.from(table).select("*", { head: true, count: "exact" });
     if (error) throw new Error(`Migration eksik (${table}): ${error.message}`);
   }
@@ -175,7 +179,10 @@ async function resetDemoFixtures(allAuthUsers) {
     const allMembersAreTest = members.length > 0 && members.every((member) =>
       demoUserIdSet.has(member.user_id) || isDemoTestEmail(member.email)
     );
-    return markedFixtureSlug || allMembersAreTest;
+    const hasNonTestMember = members.some((member) =>
+      !demoUserIdSet.has(member.user_id) && !isDemoTestEmail(member.email)
+    );
+    return !hasNonTestMember && (markedFixtureSlug || allMembersAreTest);
   });
   const demoOrganizationIds = demoOrganizations.map((organization) => organization.id);
   const demoMemberIds = (membersResult.data || [])
@@ -223,6 +230,7 @@ async function resetDemoFixtures(allAuthUsers) {
   await deleteByIds("individual_network_mail_credit_grants", "user_id", demoUserIds, optionalHistory);
   await deleteByIds("individual_network_mail_credit_grants", "entitlement_id", demoEntitlementIds, optionalHistory);
   await deleteByIds("organization_network_mail_credit_grants", "order_item_id", demoOrderItemIds, optionalHistory);
+  await deleteByIds("commerce_checkout_resume_codes", "order_id", demoOrderIds, optionalHistory);
   await deleteByIds("commerce_invoice_jobs", "order_id", demoOrderIds, optionalHistory);
   await deleteByIds("organization_network_mail_credit_grants", "organization_id", demoOrganizationIds, optionalHistory);
   // organization_links silinirken sürüm trigger'ı yeni bir geçmiş satırı
@@ -239,6 +247,7 @@ async function resetDemoFixtures(allAuthUsers) {
   await deleteByIds("network_mail_adjustment_ledger", "entitlement_id", demoEntitlementIds, optionalHistory);
   await deleteByIds("system_error_logs", "user_id", demoUserIds, optionalHistory);
   await deleteByIds("system_error_logs", "organization_id", demoOrganizationIds, optionalHistory);
+  await supabase.from("auth_login_events").delete().eq("is_test_identity", true).throwOnError();
   await deleteByIds("admin_audit_log", "actor_user_id", demoUserIds, optionalHistory);
   await deleteByIds("admin_access_grants", "user_id", demoUserIds);
   await deleteByIds("admin_access_grants", "organization_id", demoOrganizationIds);
@@ -266,6 +275,8 @@ async function resetDemoFixtures(allAuthUsers) {
   await deleteByIds("commerce_orders", "id", demoOrderIds);
   await deleteByIds("organization_members", "id", demoMemberIds);
   await deleteByIds("organizations", "id", demoOrganizationIds);
+  await deleteByIds("user_identity_types", "user_id", demoUserIds, optionalHistory);
+  await deleteByIds("user_accounts", "id", demoUserIds);
 
   for (const user of demoAuthUsers) {
     const { error } = await supabase.auth.admin.deleteUser(user.id);
@@ -369,6 +380,7 @@ async function resetIsolatedTestProjectFixtures(allAuthUsers) {
   for (const [table, column] of [
     ["network_mail_adjustment_ledger", "id"],
     ["system_error_logs", "id"],
+    ["auth_login_events", "id"],
     ["admin_audit_log", "id"],
     ["admin_access_grants", "id"],
     ["admin_users", "user_id"],
@@ -394,6 +406,17 @@ if (resetIsolatedTestProject) {
 } else if (resetDemo) {
   await resetDemoFixtures(listed);
   listed = await listAllAuthUsers();
+}
+
+if (purgeDemo) {
+  const remainingTestUsers = listed.filter((user) => isDemoTestEmail(user.email));
+  const remainingTestAccounts = await supabase.from("user_accounts").select("id", { count: "exact", head: true }).eq("account_type", "TEST");
+  if (remainingTestAccounts.error) throw remainingTestAccounts.error;
+  if (remainingTestUsers.length || (remainingTestAccounts.count || 0) > 0) {
+    throw new Error(`Demo temizliği doğrulanamadı: ${remainingTestUsers.length} @yenomi.test Auth kullanıcısı ve ${remainingTestAccounts.count || 0} TEST account kaydı kaldı.`);
+  }
+  console.log("Demo temizliği tamamlandı: @yenomi.test Auth kullanıcıları ve TEST account kayıtları sıfırlandı; yeni demo fixture oluşturulmadı.");
+  process.exit(0);
 }
 const foreignUsers = listed.filter((user) => !user.email?.endsWith("@yenomi.test"));
 if (foreignUsers.length && !allowNonEmpty) {

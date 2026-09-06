@@ -242,10 +242,10 @@ if (!seed.includes('from("business_plans").upsert') && !seed.includes('from("bus
   fail("seed must not rewrite commercial plans");
 }
 
-if (seed.includes("const resetDemo") && seed.includes("function isDemoTestEmail") && seed.includes("resetDemoFixtures") && seed.includes("--reset-demo")) {
-  pass("scoped reset only runs when explicitly requested");
+if (seed.includes("const resetDemo") && seed.includes("const purgeDemo") && seed.includes("function isDemoTestEmail") && seed.includes("resetDemoFixtures") && seed.includes("--reset-demo") && seed.includes("--purge-demo")) {
+  pass("scoped reset and permanent purge run only when explicitly requested");
 } else {
-  fail("seed needs an explicit scoped --reset-demo flow");
+  fail("seed needs explicit scoped --reset-demo and --purge-demo flows");
 }
 
 if (seed.includes('normalized.endsWith("@yenomi.test")') && seed.includes('eq("account_type", "TEST")')) {

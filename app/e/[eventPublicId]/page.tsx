@@ -8,6 +8,7 @@ import { fetchCardBranding, fetchOrganizationLinks } from "../../../lib/organiza
 import { fetchCardLocaleOverlays } from "../../../lib/public-card/locales";
 import { logCardView } from "../../../lib/analytics/card-views";
 import { getPublicCompanyVerification } from "../../../lib/organizations/verified-company";
+import { presentPublicProfileImage } from "../../../lib/repositories/public-profiles";
 
 export const dynamic = "force-dynamic";
 // Event attribution links are contextual analytics routes, not indexable
@@ -35,7 +36,7 @@ export default async function EventAttributionPage({ params }: { params: Promise
     .select("id,user_id,organization_id,entitlement_id,slug,public_id,name,role,company,phone,whatsapp,email,website,linkedin,instagram,location,image_url,bio,is_published,card_status,service_started_at,service_expires_at,grace_ends_at")
     .eq("id", eventLink.profile_id)
     .maybeSingle();
-  const card = profile as CardProfileRow | null;
+  const card = profile ? presentPublicProfileImage(profile as CardProfileRow) : null;
   if (!card || !card.is_published || card.card_status !== "ACTIVE" || !isCardProfileServiceActive(card)) notFound();
   if (!card.public_id) notFound();
 

@@ -5,19 +5,18 @@ export type SanitizedProviderPayload = {
   paidPrice: unknown;
   price: unknown;
   currency: unknown;
-  basketId: unknown;
-  conversationId: unknown;
-  paymentId: unknown;
   errorCode: unknown;
-  errorMessage: string | null;
-  merchantOid: unknown;
-  totalAmount: unknown;
 };
+
+function safeProviderCode(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toUpperCase().replace(/[^A-Z0-9_:-]/g, "_").slice(0, 120);
+  return normalized || null;
+}
 
 export function sanitizeProviderPayload(result: unknown): SanitizedProviderPayload | null {
   if (!result || typeof result !== "object") return null;
   const row = result as Record<string, unknown>;
-  const errorMessage = typeof row.errorMessage === "string" ? row.errorMessage.slice(0, 180) : null;
   return {
     provider: row.provider ?? null,
     status: row.status ?? null,
@@ -25,12 +24,6 @@ export function sanitizeProviderPayload(result: unknown): SanitizedProviderPaylo
     paidPrice: row.paidPrice ?? null,
     price: row.price ?? null,
     currency: row.currency ?? null,
-    basketId: row.basketId ?? null,
-    conversationId: row.conversationId ?? null,
-    paymentId: row.paymentId ?? null,
-    errorCode: row.errorCode ?? null,
-    errorMessage,
-    merchantOid: row.merchantOid ?? row.merchant_oid ?? null,
-    totalAmount: row.totalAmount ?? row.total_amount ?? null,
+    errorCode: safeProviderCode(row.errorCode),
   };
 }

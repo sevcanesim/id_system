@@ -1,4 +1,5 @@
 import { getSupabaseAdminClient } from "../supabase/server-admin";
+import { recordSystemError } from "../observability/system-errors";
 import type { OrganizationRole } from "./permissions";
 
 type OrganizationAuditClient = ReturnType<typeof getSupabaseAdminClient>;
@@ -26,11 +27,6 @@ export type OrganizationAuditEventInput = {
   metadata?: Record<string, string | number | boolean | null>;
 };
 
-/**
- * The trail records operation metadata, not URLs, raw e-mail addresses,
- * access tokens or uploaded file paths. Audit failures are logged for
- * operations staff but never expose database details to the end user.
- */
 export async function recordOrganizationAuditEvent(
   admin: OrganizationAuditClient,
   event: OrganizationAuditEventInput,
@@ -47,10 +43,15 @@ export async function recordOrganizationAuditEvent(
   });
 
   if (error) {
-    console.error("[organization-audit] append failed", {
+    void recordSystemError({
+      source: "ORGANIZATION_AUDIT",
+      errorCode: "AUDIT_APPEND_FAILED",
+      message: "Kurumsal denetim kaydı yazılamadı.",
       organizationId: event.organizationId,
-      action: event.action,
-      code: error.code,
+      details: {
+        action: event.action,
+        databaseCode: error.code ?? null,
+      },
     });
   }
 }

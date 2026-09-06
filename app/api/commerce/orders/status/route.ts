@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { loadCommerceOrderKind } from "../../../../../lib/commerce/order-kind";
 import { getSupabaseAdminClient } from "../../../../../lib/supabase/server-admin";
+import { recordSystemError } from "../../../../../lib/observability/system-errors";
 
 export const runtime = "nodejs";
 
@@ -37,7 +38,11 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
 
     if (error) {
-      console.error("commerce order status lookup failed", { orderId, error });
+      void recordSystemError({
+        source: "COMMERCE_ORDER_STATUS",
+        errorCode: "ORDER_LOOKUP_FAILED",
+        message: "Ödeme sonucu sipariş durumu yüklenemedi.",
+      });
       return NextResponse.json({ found: false, paid: false, status: null }, { status: 500 });
     }
 
@@ -70,8 +75,12 @@ export async function GET(request: NextRequest) {
       seatPackFulfillment: flags.seatPackFulfillment ?? null,
       reviewRequired: flags.reviewRequired,
     });
-  } catch (error) {
-    console.error("commerce order status error", { orderId, error });
+  } catch {
+    void recordSystemError({
+      source: "COMMERCE_ORDER_STATUS",
+      errorCode: "STATUS_REQUEST_FAILED",
+      message: "Ödeme sonucu sipariş durumu doğrulanamadı.",
+    });
     return NextResponse.json({ found: false, paid: false, status: null }, { status: 500 });
   }
 }

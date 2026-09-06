@@ -675,7 +675,7 @@ export function renderDemoTestUsersMarkdown() {
     "`scripts/seed-demo-scenarios.mjs` aynı kaydı import eder.",
     "",
     "Şifre git’e yazılmaz. Local apply için `.env.local` içinde `DEMO_SEED_PASSWORD` ve `ALLOW_LOCAL_DEMO_SEED=true`.",
-    "Scoped temizlikte `--reset-demo`, tüm `@yenomi.test` hesaplarını, `TEST` kimlik katmanını ve bunlara bağlı demo verisini silip bu matrisi yeniden kurar.",
+    "Kalıcı temizlik için `npm run purge:demo`, tüm `@yenomi.test` hesaplarını, `TEST` kimlik katmanını ve bunlara bağlı demo verisini siler; yeni fixture oluşturmaz. `--reset-demo` ise aynı kapsamı silip bu matrisi yeniden kurar.",
     "İzole test projesi tamamen boşaltılacaksa `--reset-isolated-test-project` kullanılır. Bu mod yalnız `TEST_SUPABASE_PROJECT_REF` ile doğrulanmış, production referansından farklı bir projede çalışır; katalog, planlar, yasal dokümanlar ve migration kayıtlarını korur.",
     "Production’da `@yenomi.test` hesabı olamaz (`verify:production:no-demo-users`).",
     "",

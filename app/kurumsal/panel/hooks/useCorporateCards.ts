@@ -12,7 +12,7 @@ import { fetchWithPanelTimeout } from "../domain/runtime";
  */
 export function useCorporateCards(
   selectedOrganizationId: string,
-  getAccessToken: () => Promise<string | null>,
+  ensureIdentity: () => Promise<boolean>,
   setMessage: (message: string) => void,
   setDataError: (tab: CorporatePanelTab, error: string | null) => void,
 ) {
@@ -23,12 +23,11 @@ export function useCorporateCards(
   const [analyticsDays, setAnalyticsDays] = useState<7 | 30 | 90>(30);
   const [cardBusy, setCardBusy] = useState<string | null>(null);
 
-  async function loadPhysicalCards(id: string, access?: string) {
-    const auth = access || (await getAccessToken());
-    if (!auth) return;
+  async function loadPhysicalCards(id: string, authenticated?: boolean) {
+    if (!(authenticated || await ensureIdentity())) return;
     const response = await fetchWithPanelTimeout(
       `/api/organizations/physical-cards?organizationId=${id}`,
-      { headers: { authorization: `Bearer ${auth}` } },
+      { credentials: "same-origin" },
     );
     const data = await response.json();
     if (response.ok) {
@@ -38,12 +37,11 @@ export function useCorporateCards(
     } else setDataError("cards", data.error || "Fiziksel kart verileri yüklenemedi.");
   }
 
-  async function loadMemberCardStatuses(id: string, access?: string) {
-    const auth = access || (await getAccessToken());
-    if (!auth) return;
+  async function loadMemberCardStatuses(id: string, authenticated?: boolean) {
+    if (!(authenticated || await ensureIdentity())) return;
     const response = await fetchWithPanelTimeout(
       `/api/organizations/member-card-statuses?organizationId=${id}`,
-      { headers: { authorization: `Bearer ${auth}` } },
+      { credentials: "same-origin" },
     );
     const data = await response.json();
     if (response.ok) {
@@ -54,15 +52,14 @@ export function useCorporateCards(
 
   async function loadCardAnalytics(
     id: string,
-    access?: string,
+    authenticated?: boolean,
     days: 7 | 30 | 90 = analyticsDays,
   ) {
-    const auth = access || (await getAccessToken());
-    if (!auth) return;
+    if (!(authenticated || await ensureIdentity())) return;
     const params = new URLSearchParams({ organizationId: id, days: String(days) });
     const response = await fetchWithPanelTimeout(
       `/api/organizations/card-analytics?${params.toString()}`,
-      { headers: { authorization: `Bearer ${auth}` } },
+      { credentials: "same-origin" },
     );
     const data = await response.json();
     if (response.ok) setCardAnalytics(data);
@@ -91,14 +88,14 @@ export function useCorporateCards(
   }
 
   async function linkReplacementCard(oldCardId: string, newCardId: string) {
-    const access = await getAccessToken();
-    if (!access || !selectedOrganizationId) return;
+    if (!(await ensureIdentity()) || !selectedOrganizationId) return;
     setCardBusy(oldCardId);
     setMessage("");
     try {
       const response = await fetch("/api/organizations/physical-cards", {
         method: "POST",
-        headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ organizationId: selectedOrganizationId, oldCardId, newCardId }),
       });
       const data = await response.json();
@@ -116,14 +113,14 @@ export function useCorporateCards(
   }
 
   async function toggleCardStatus(cardId: string, status: "ACTIVE" | "DISABLED") {
-    const access = await getAccessToken();
-    if (!access || !selectedOrganizationId) return;
+    if (!(await ensureIdentity()) || !selectedOrganizationId) return;
     setCardBusy(cardId);
     setMessage("");
     try {
       const response = await fetch("/api/organizations/physical-cards", {
         method: "PATCH",
-        headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ organizationId: selectedOrganizationId, cardId, status }),
       });
       const data = await response.json();

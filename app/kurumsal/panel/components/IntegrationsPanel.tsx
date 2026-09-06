@@ -14,7 +14,7 @@ type Integration = {
   updatedAt: string;
 };
 
-export default function IntegrationsPanel({ organizationId, token }: { organizationId: string; token: () => Promise<string | null> }) {
+export default function IntegrationsPanel({ organizationId, token }: { organizationId: string; token: () => Promise<boolean> }) {
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [endpointUrl, setEndpointUrl] = useState("");
   const [loading, setLoading] = useState(true);
@@ -26,10 +26,9 @@ export default function IntegrationsPanel({ organizationId, token }: { organizat
 
   const load = useCallback(async () => {
     setLoading(true);
-    const access = await token();
-    if (!access) { setMessage("Entegrasyonları görüntülemek için oturum gerekli."); setLoading(false); return; }
+    if (!(await token())) { setMessage("Entegrasyonları görüntülemek için oturum gerekli."); setLoading(false); return; }
     try {
-      const response = await fetch(`/api/organizations/integrations?organizationId=${encodeURIComponent(organizationId)}`, { headers: { authorization: `Bearer ${access}` }, cache: "no-store" });
+      const response = await fetch(`/api/organizations/integrations?organizationId=${encodeURIComponent(organizationId)}`, { credentials: "same-origin", cache: "no-store" });
       const payload = await response.json();
       if (!response.ok) { setMessage(payload.error || "Entegrasyonlar yüklenemedi."); return; }
       setIntegrations(payload.integrations || []);
@@ -43,13 +42,13 @@ export default function IntegrationsPanel({ organizationId, token }: { organizat
 
   async function saveWebhook(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const access = await token();
-    if (!access) return;
+    if (!(await token())) return;
     setBusy(true); setMessage(""); setSigningSecret("");
     try {
       const response = await fetch("/api/organizations/integrations", {
         method: "POST",
-        headers: { authorization: `Bearer ${access}`, "content-type": "application/json" },
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ action: "CONFIGURE_WEBHOOK", organizationId, endpointUrl, eventTypes: ["LEAD_CREATED", "LEAD_STATUS_CHANGED", "MEETING_STATUS_CHANGED"] }),
       });
       const payload = await response.json();
@@ -63,11 +62,10 @@ export default function IntegrationsPanel({ organizationId, token }: { organizat
   }
 
   async function disableWebhook() {
-    const access = await token();
-    if (!access || !window.confirm("Webhook teslimatlarını durdurmak istediğinize emin misiniz?")) return;
+    if (!(await token()) || !window.confirm("Webhook teslimatlarını durdurmak istediğinize emin misiniz?")) return;
     setBusy(true); setMessage("");
     try {
-      const response = await fetch("/api/organizations/integrations", { method: "DELETE", headers: { authorization: `Bearer ${access}`, "content-type": "application/json" }, body: JSON.stringify({ action: "DISABLE_WEBHOOK", organizationId }) });
+      const response = await fetch("/api/organizations/integrations", { method: "DELETE", headers: { "content-type": "application/json" }, credentials: "same-origin", body: JSON.stringify({ action: "DISABLE_WEBHOOK", organizationId }) });
       const payload = await response.json();
       setMessage(response.ok ? "Webhook devre dışı bırakıldı." : payload.error || "Webhook kapatılamadı.");
       if (response.ok) await load();

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseAdminClient, getSupabaseAuthClient, getSupabaseUserClient } from "../../../../lib/supabase/server-admin";
+import { getSupabaseAdminClient, getSupabaseUserClient } from "../../../../lib/supabase/server-admin";
 import { canViewOrganizationCards, isOrganizationRole } from "../../../../lib/organizations/permissions";
+import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
 
 const patchSchema = z.object({
   organizationId: z.string().uuid(),
@@ -16,12 +17,9 @@ const replacementSchema = z.object({
 });
 
 async function context(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-  const auth = getSupabaseAuthClient();
-  const { data } = await auth.auth.getUser(token);
-  if (!data.user) return null;
-  return { user: data.user, token, admin: getSupabaseAdminClient() };
+  const identity = await resolveRequestIdentity(request);
+  if (!identity) return null;
+  return { user: identity.user, token: identity.accessToken, admin: getSupabaseAdminClient() };
 }
 
 async function manager(admin: ReturnType<typeof getSupabaseAdminClient>, userId: string, organizationId: string) {

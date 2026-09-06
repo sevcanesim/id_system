@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { assuranceLevelFromToken } from "../auth/assurance";
+import { readRequestAccessToken } from "../auth/request-identity";
 import { getSupabaseAdminClient } from "../supabase/server-admin";
 
 type OrganizationSecurityClient = ReturnType<typeof getSupabaseAdminClient>;
@@ -55,7 +56,7 @@ export async function requiresOrganizationMfaStepUp(
 ) {
   const { policy } = await getOrganizationSecurityPolicy(admin, organizationId);
   if (!policy.requireMfaForCriticalActions) return false;
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
+  const token = readRequestAccessToken(request) || "";
   return assuranceLevelFromToken(token) !== "aal2";
 }
 

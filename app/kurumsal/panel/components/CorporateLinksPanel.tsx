@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Icon } from "../../../icons";
 import { Button, Field, Input, StatusBadge } from "../../../components/ui/DesignSystem";
 import { useNotice } from "../../../components/ui/NotificationCenter";
-import { getSupabaseBrowserClient } from "../../../../lib/supabase/browser";
 
 type CorporateLink = {
   id: string | null;
@@ -161,19 +160,12 @@ export default function CorporateLinksPanel({
     if (!window.confirm("Bu sürüm geçmişten kalıcı olarak silinsin mi? Bu işlem geri alınamaz.")) return;
     setDeletingVersionId(version.id);
     try {
-      const supabase = getSupabaseBrowserClient();
-      const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
-      const access = data.session?.access_token;
-      if (!access) {
-        notify({ message: "Sürümü silmek için oturum gerekli.", tone: "error" });
-        return;
-      }
       const response = await fetch("/api/organizations/links", {
         method: "DELETE",
         headers: {
           "content-type": "application/json",
-          authorization: `Bearer ${access}`,
         },
+        credentials: "same-origin",
         body: JSON.stringify({ action: "DELETE_VERSION", versionId: version.id }),
       });
       const payload = await response.json().catch(() => null);

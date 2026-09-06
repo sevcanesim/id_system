@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { corporatePanelDataResources, type CorporatePanelDataResource } from "../domain/tab-data";
 import type { CorporatePanelTab } from "../domain/navigation";
 
-type ResourceLoader = (organizationId: string, accessToken: string) => Promise<void>;
+type ResourceLoader = (organizationId: string, authenticated: boolean) => Promise<void>;
 type ResourceLoaders = Record<CorporatePanelDataResource, ResourceLoader>;
 
 export function useCorporatePanelLazyData(loaders: ResourceLoaders) {
@@ -16,7 +16,7 @@ export function useCorporatePanelLazyData(loaders: ResourceLoaders) {
   async function loadDataResource(
     resource: CorporatePanelDataResource,
     organizationId: string,
-    accessToken: string,
+    authenticated: boolean,
     force = false,
   ) {
     const key = `${organizationId}:${resource}`;
@@ -26,7 +26,7 @@ export function useCorporatePanelLazyData(loaders: ResourceLoaders) {
       if (existing) return existing;
     }
 
-    const request = loadersRef.current[resource](organizationId, accessToken)
+    const request = loadersRef.current[resource](organizationId, authenticated)
       .then(() => {
         loadedDataRef.current.add(key);
       });
@@ -42,12 +42,12 @@ export function useCorporatePanelLazyData(loaders: ResourceLoaders) {
   async function loadDataForTab(
     tab: CorporatePanelTab,
     organizationId: string,
-    accessToken: string,
+    authenticated: boolean,
     force = false,
   ) {
     await Promise.all(
       corporatePanelDataResources(tab).map((resource) =>
-        loadDataResource(resource, organizationId, accessToken, force),
+        loadDataResource(resource, organizationId, authenticated, force),
       ),
     );
   }

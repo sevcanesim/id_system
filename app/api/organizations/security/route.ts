@@ -3,6 +3,7 @@ import { z } from "zod";
 import { assuranceLevelFromToken } from "../../../../lib/auth/assurance";
 import { recordOrganizationAuditEvent } from "../../../../lib/organizations/audit";
 import { requireOrganizationRole } from "../../../../lib/organizations/authorization";
+import { readRequestAccessToken } from "../../../../lib/auth/request-identity";
 import { getOrganizationSecurityPolicy, MFA_REQUIRED_MESSAGE } from "../../../../lib/organizations/security-policy";
 import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 
@@ -12,7 +13,7 @@ const updateSchema = z.object({
 });
 
 function tokenFrom(request: NextRequest) {
-  return request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
+  return readRequestAccessToken(request) || "";
 }
 
 export async function GET(request: NextRequest) {

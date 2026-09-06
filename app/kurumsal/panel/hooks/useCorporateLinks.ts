@@ -4,7 +4,7 @@ import { createPanelRequestScope, fetchWithPanelTimeout } from "../domain/runtim
 
 export function useCorporateLinks(
   selectedOrganizationId: string,
-  getAccessToken: () => Promise<string | null>,
+  ensureIdentity: () => Promise<boolean>,
   setMessage: (message: string) => void,
 ) {
   const [corporateLinks, setCorporateLinks] = useState<CorporateLink[]>([]);
@@ -23,16 +23,15 @@ export function useCorporateLinks(
     return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
   }
 
-  async function loadCorporateLinks(organizationId: string, accessToken?: string) {
+  async function loadCorporateLinks(organizationId: string, authenticated?: boolean) {
     const request = linksRequestScope.current.begin();
-    const bearer = accessToken || (await getAccessToken());
-    if (!bearer || !request.isCurrent()) return;
+    if (!(authenticated || await ensureIdentity()) || !request.isCurrent()) return;
 
     try {
       const response = await fetchWithPanelTimeout(
         `/api/organizations/links?organizationId=${encodeURIComponent(organizationId)}`,
         {
-          headers: { authorization: `Bearer ${bearer}` },
+          credentials: "same-origin",
           cache: "no-store",
           signal: request.signal,
         },
@@ -59,8 +58,7 @@ export function useCorporateLinks(
 
     setLinkBusyKind(kind);
     try {
-      const accessToken = await getAccessToken();
-      if (!accessToken) {
+      if (!(await ensureIdentity())) {
         setMessage("Oturum süresi dolmuş. Lütfen yeniden giriş yap.");
         return;
       }
@@ -69,8 +67,8 @@ export function useCorporateLinks(
         method: "POST",
         headers: {
           "content-type": "application/json",
-          authorization: `Bearer ${accessToken}`,
         },
+        credentials: "same-origin",
         body: JSON.stringify({
           organizationId: selectedOrganizationId,
           kind,
@@ -84,7 +82,7 @@ export function useCorporateLinks(
         return;
       }
 
-      await loadCorporateLinks(selectedOrganizationId, accessToken);
+      await loadCorporateLinks(selectedOrganizationId, true);
       setLinkUrlDraft((current) => ({ ...current, [kind]: "" }));
     } catch {
       setMessage("Bağlantı kaydedilemedi.");
@@ -106,8 +104,7 @@ export function useCorporateLinks(
 
     setLinkBusyKind(kind);
     try {
-      const accessToken = await getAccessToken();
-      if (!accessToken) {
+      if (!(await ensureIdentity())) {
         setMessage("Oturum süresi dolmuş. Lütfen yeniden giriş yap.");
         return;
       }
@@ -121,11 +118,11 @@ export function useCorporateLinks(
 
       const response = await fetchWithPanelTimeout("/api/organizations/links/upload", {
         method: "POST",
-        headers: { authorization: `Bearer ${accessToken}` },
+        credentials: "same-origin",
         body: formData,
       });
       const payload = await response.json();
-      if (response.ok) await loadCorporateLinks(selectedOrganizationId, accessToken);
+      if (response.ok) await loadCorporateLinks(selectedOrganizationId, true);
       else setMessage(payload.error || "PDF yüklenemedi.");
     } catch {
       setMessage("PDF yüklenemedi.");
@@ -138,8 +135,7 @@ export function useCorporateLinks(
     if (!selectedOrganizationId) return;
     setLinkBusyKind(kind);
     try {
-      const accessToken = await getAccessToken();
-      if (!accessToken) {
+      if (!(await ensureIdentity())) {
         setMessage("Oturum süresi dolmuş. Lütfen yeniden giriş yap.");
         return;
       }
@@ -148,12 +144,12 @@ export function useCorporateLinks(
         method: "DELETE",
         headers: {
           "content-type": "application/json",
-          authorization: `Bearer ${accessToken}`,
         },
+        credentials: "same-origin",
         body: JSON.stringify({ organizationId: selectedOrganizationId, kind }),
       });
       if (response.ok) {
-        await loadCorporateLinks(selectedOrganizationId, accessToken);
+        await loadCorporateLinks(selectedOrganizationId, true);
         setMessage("Kurumsal bağlantı kaldırıldı.");
       } else {
         const payload = await response.json().catch(() => null);
@@ -170,8 +166,7 @@ export function useCorporateLinks(
     if (!selectedOrganizationId) return;
     setLinkBusyKind(kind);
     try {
-      const accessToken = await getAccessToken();
-      if (!accessToken) {
+      if (!(await ensureIdentity())) {
         setMessage("Oturum süresi dolmuş. Lütfen yeniden giriş yap.");
         return;
       }
@@ -180,8 +175,8 @@ export function useCorporateLinks(
         method: "PATCH",
         headers: {
           "content-type": "application/json",
-          authorization: `Bearer ${accessToken}`,
         },
+        credentials: "same-origin",
         body: JSON.stringify({
           organizationId: selectedOrganizationId,
           kind,
@@ -191,7 +186,7 @@ export function useCorporateLinks(
       });
       const payload = await response.json();
       if (response.ok) {
-        await loadCorporateLinks(selectedOrganizationId, accessToken);
+        await loadCorporateLinks(selectedOrganizationId, true);
         setMessage(isPublished ? "Kurumsal içerik yayınlandı." : "Kurumsal içerik taslağa alındı.");
       } else {
         setMessage(payload.error || "Yayın durumu güncellenemedi.");
@@ -207,8 +202,7 @@ export function useCorporateLinks(
     if (!selectedOrganizationId) return;
     setLinkBusyKind(kind);
     try {
-      const accessToken = await getAccessToken();
-      if (!accessToken) {
+      if (!(await ensureIdentity())) {
         setMessage("Oturum süresi dolmuş. Lütfen yeniden giriş yap.");
         return;
       }
@@ -217,8 +211,8 @@ export function useCorporateLinks(
         method: "PATCH",
         headers: {
           "content-type": "application/json",
-          authorization: `Bearer ${accessToken}`,
         },
+        credentials: "same-origin",
         body: JSON.stringify({
           action: "ROLLBACK",
           organizationId: selectedOrganizationId,
@@ -227,7 +221,7 @@ export function useCorporateLinks(
       });
       const payload = await response.json();
       if (response.ok) {
-        await loadCorporateLinks(selectedOrganizationId, accessToken);
+        await loadCorporateLinks(selectedOrganizationId, true);
         setMessage("Kurumsal içerik seçilen sürüme geri alındı.");
       } else {
         setMessage(payload.error || "Sürüm geri alınamadı.");

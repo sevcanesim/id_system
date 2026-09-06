@@ -4,7 +4,7 @@ import { fetchWithPanelTimeout } from "../domain/runtime";
 
 export function useJobTitlesAndRequests(
   selectedOrganizationId: string,
-  getAccessToken: () => Promise<string | null>,
+  ensureIdentity: () => Promise<boolean>,
   setMessage: (message: string) => void,
 ) {
   const [jobTitles, setJobTitles] = useState<JobTitleOption[]>([]);
@@ -15,21 +15,20 @@ export function useJobTitlesAndRequests(
   const jobTitlesLoadId = useRef(0);
   const titleRequestsLoadId = useRef(0);
 
-  async function requireAccessToken() {
-    const accessToken = await getAccessToken();
-    if (!accessToken) setMessage("Oturum süresi dolmuş. Lütfen yeniden giriş yap.");
-    return accessToken;
+  async function requireIdentity() {
+    const authenticated = await ensureIdentity();
+    if (!authenticated) setMessage("Oturum süresi dolmuş. Lütfen yeniden giriş yap.");
+    return authenticated;
   }
 
-  async function loadJobTitles(organizationId: string, accessToken?: string) {
+  async function loadJobTitles(organizationId: string, authenticated?: boolean) {
     const loadId = ++jobTitlesLoadId.current;
-    const bearer = accessToken || (await getAccessToken());
-    if (!bearer || loadId !== jobTitlesLoadId.current) return;
+    if (!(authenticated || await ensureIdentity()) || loadId !== jobTitlesLoadId.current) return;
 
     try {
       const response = await fetchWithPanelTimeout(
         `/api/organizations/job-titles?organizationId=${encodeURIComponent(organizationId)}`,
-        { headers: { authorization: `Bearer ${bearer}` }, cache: "no-store" },
+        { credentials: "same-origin", cache: "no-store" },
       );
       const payload = await response.json();
       if (loadId !== jobTitlesLoadId.current) return;
@@ -41,15 +40,14 @@ export function useJobTitlesAndRequests(
     }
   }
 
-  async function loadTitleRequests(organizationId: string, accessToken?: string) {
+  async function loadTitleRequests(organizationId: string, authenticated?: boolean) {
     const loadId = ++titleRequestsLoadId.current;
-    const bearer = accessToken || (await getAccessToken());
-    if (!bearer || loadId !== titleRequestsLoadId.current) return;
+    if (!(authenticated || await ensureIdentity()) || loadId !== titleRequestsLoadId.current) return;
 
     try {
       const response = await fetchWithPanelTimeout(
         `/api/organizations/title-requests?organizationId=${encodeURIComponent(organizationId)}`,
-        { headers: { authorization: `Bearer ${bearer}` }, cache: "no-store" },
+        { credentials: "same-origin", cache: "no-store" },
       );
       const payload = await response.json();
       if (loadId !== titleRequestsLoadId.current) return;
@@ -68,15 +66,14 @@ export function useJobTitlesAndRequests(
 
     setJobTitleBusy(true);
     try {
-      const accessToken = await requireAccessToken();
-      if (!accessToken) return;
+      if (!(await requireIdentity())) return;
 
       const response = await fetchWithPanelTimeout("/api/organizations/job-titles", {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          authorization: `Bearer ${accessToken}`,
         },
+        credentials: "same-origin",
         body: JSON.stringify({ organizationId: selectedOrganizationId, title }),
       });
       const payload = await response.json();
@@ -101,15 +98,14 @@ export function useJobTitlesAndRequests(
 
     setJobTitleBusy(true);
     try {
-      const accessToken = await requireAccessToken();
-      if (!accessToken) return;
+      if (!(await requireIdentity())) return;
 
       const response = await fetchWithPanelTimeout("/api/organizations/job-titles", {
         method: "DELETE",
         headers: {
           "content-type": "application/json",
-          authorization: `Bearer ${accessToken}`,
         },
+        credentials: "same-origin",
         body: JSON.stringify({ organizationId: selectedOrganizationId, id: jobTitleId }),
       });
 
@@ -130,15 +126,14 @@ export function useJobTitlesAndRequests(
   async function resolveTitleRequest(requestId: string, approve: boolean) {
     setTitleRequestBusyId(requestId);
     try {
-      const accessToken = await requireAccessToken();
-      if (!accessToken) return;
+      if (!(await requireIdentity())) return;
 
       const response = await fetchWithPanelTimeout("/api/organizations/title-requests", {
         method: "PATCH",
         headers: {
           "content-type": "application/json",
-          authorization: `Bearer ${accessToken}`,
         },
+        credentials: "same-origin",
         body: JSON.stringify({ requestId, approve }),
       });
       const payload = await response.json();
@@ -149,7 +144,7 @@ export function useJobTitlesAndRequests(
 
       setTitleRequests((current) => current.filter((request) => request.id !== requestId));
       if (approve && selectedOrganizationId) {
-        await loadJobTitles(selectedOrganizationId, accessToken);
+        await loadJobTitles(selectedOrganizationId, true);
       }
     } catch {
       setMessage("Talep işlenemedi.");

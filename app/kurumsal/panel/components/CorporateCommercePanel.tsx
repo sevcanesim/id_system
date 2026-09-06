@@ -21,7 +21,7 @@ type Order = {
 
 type Props = {
   organizationId: string;
-  token: () => Promise<string | null>;
+  token: () => Promise<boolean>;
   purchaseAllowed: boolean;
 };
 
@@ -57,7 +57,7 @@ export default function CorporateCommercePanel({ organizationId, token, purchase
       }
       try {
         const response = await fetch(`/api/organizations/commerce?organizationId=${encodeURIComponent(organizationId)}`, {
-          headers: { authorization: `Bearer ${access}` },
+          credentials: "same-origin",
           cache: "no-store",
         });
         const payload = await response.json() as { orders?: Order[]; error?: string };

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 import { canViewOrganizationCards, isOrganizationRole } from "../../../../lib/organizations/permissions";
+import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
 import {
   getDigitalProfileState,
   getInvitationState,
@@ -8,12 +9,9 @@ import {
 } from "../../../../lib/organizations/lifecycle";
 
 async function context(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-  const auth = getSupabaseAuthClient();
-  const { data } = await auth.auth.getUser(token);
-  if (!data.user) return null;
-  return { user: data.user, admin: getSupabaseAdminClient() };
+  const identity = await resolveRequestIdentity(request);
+  if (!identity) return null;
+  return { user: identity.user, admin: getSupabaseAdminClient() };
 }
 
 export async function GET(request: NextRequest) {

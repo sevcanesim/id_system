@@ -2,8 +2,9 @@ import { createHash, randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendOrganizationInviteEmail } from "../../../../lib/email/resend";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 import { transientTokenUrl } from "../../../../lib/security/transient-link";
+import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
 
 const schema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("RESEND"), organizationId: z.string().uuid(), memberId: z.string().uuid() }),
@@ -11,11 +12,8 @@ const schema = z.discriminatedUnion("action", [
 ]);
 
 async function actor(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-  const auth = getSupabaseAuthClient();
-  const { data } = await auth.auth.getUser(token);
-  return data.user ?? null;
+  const identity = await resolveRequestIdentity(request);
+  return identity?.user ?? null;
 }
 
 export async function POST(request: NextRequest) {

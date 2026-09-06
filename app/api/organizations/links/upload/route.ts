@@ -6,7 +6,8 @@ import {
 import { recordOrganizationAuditEvent } from "../../../../../lib/organizations/audit";
 import { canManageTemplates, isOrganizationRole } from "../../../../../lib/organizations/permissions";
 import { MFA_REQUIRED_MESSAGE, requiresOrganizationMfaStepUp } from "../../../../../lib/organizations/security-policy";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../../lib/supabase/server-admin";
+import { getSupabaseAdminClient } from "../../../../../lib/supabase/server-admin";
+import { resolveRequestIdentity } from "../../../../../lib/auth/request-identity";
 
 // PDF is intentionally limited to document-oriented slots.
 // MEETING is a calendar/booking URL and must never accept file uploads.
@@ -14,12 +15,9 @@ const VALID_KINDS = new Set(["CATALOG", "PRESENTATION", "REFERENCES"]);
 const MAX_SIZE = 20 * 1024 * 1024;
 
 async function context(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-  const auth = getSupabaseAuthClient();
-  const { data } = await auth.auth.getUser(token);
-  if (!data.user) return null;
-  return { user: data.user, admin: getSupabaseAdminClient(), token };
+  const identity = await resolveRequestIdentity(request);
+  if (!identity) return null;
+  return { user: identity.user, admin: getSupabaseAdminClient() };
 }
 
 export async function POST(request: NextRequest) {

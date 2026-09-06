@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
+import { getBrowserIdentity } from "../../../lib/auth/browser-identity";
 import styles from "./CorporateUtilityBar.module.css";
 
 export default function CorporateUtilityBar() {
@@ -10,11 +10,8 @@ export default function CorporateUtilityBar() {
 
   useEffect(() => {
     let cancelled = false;
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
-
-    void supabase.auth.getUser().then(({ data }) => {
-      if (!cancelled) setEmail(data.user?.email || "");
+    void getBrowserIdentity().then((identity) => {
+      if (!cancelled) setEmail(identity?.user.email || "");
     });
 
     return () => {

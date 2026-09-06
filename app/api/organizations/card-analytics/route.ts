@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 import { isOrganizationRole } from "../../../../lib/organizations/permissions";
 import { recordSystemError } from "../../../../lib/observability/system-errors";
+import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
 
 async function context(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-  const auth = getSupabaseAuthClient();
-  const { data } = await auth.auth.getUser(token);
-  if (!data.user) return null;
-  return { user: data.user, admin: getSupabaseAdminClient() };
+  const identity = await resolveRequestIdentity(request);
+  if (!identity) return null;
+  return { user: identity.user, admin: getSupabaseAdminClient() };
 }
 
 async function manager(admin: ReturnType<typeof getSupabaseAdminClient>, userId: string, organizationId: string) {

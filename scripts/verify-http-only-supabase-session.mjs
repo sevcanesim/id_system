@@ -16,6 +16,20 @@ const individualInbox = readFileSync("app/api/networking/inbox/route.ts", "utf8"
 const settingsPage = readFileSync("app/ayarlar/page.tsx", "utf8");
 const accountRoute = readFileSync("app/api/account/route.ts", "utf8");
 const logoutRoute = readFileSync("app/api/auth/logout/route.ts", "utf8");
+const corporatePanel = readFileSync("app/kurumsal/panel/CorporatePanelClient.tsx", "utf8");
+const corporateCards = readFileSync("app/kurumsal/panel/hooks/useCorporateCards.ts", "utf8");
+const corporateLinks = readFileSync("app/kurumsal/panel/hooks/useCorporateLinks.ts", "utf8");
+const corporateTitles = readFileSync("app/kurumsal/panel/hooks/useJobTitlesAndRequests.ts", "utf8");
+const corporateAudit = readFileSync("app/kurumsal/panel/components/AuditPanel.tsx", "utf8");
+const mfaRoute = readFileSync("app/api/auth/mfa/route.ts", "utf8");
+const corporateOrganizationRoutes = [
+  "app/api/organizations/physical-cards/route.ts",
+  "app/api/organizations/member-card-statuses/route.ts",
+  "app/api/organizations/card-analytics/route.ts",
+  "app/api/organizations/job-titles/route.ts",
+  "app/api/organizations/invites/route.ts",
+  "app/api/organizations/links/upload/route.ts",
+].map((path) => readFileSync(path, "utf8")).join("\n");
 const organizationIdentity = readFileSync("app/olustur/domain/organization-identity.ts", "utf8");
 const organizationRoutes = [
   "app/api/organizations/card-profile-link/route.ts",
@@ -86,6 +100,15 @@ requireText(settingsPage, 'fetch("/api/account", { credentials: "same-origin", c
 requireText(accountRoute, "resolveRequestIdentity", "Account API must verify the HttpOnly session server-side.");
 requireText(accountRoute, "validateSignupPassword", "Account API must enforce the shared password policy server-side.");
 requireText(logoutRoute, "clearSessionCookies", "Logout must clear both HttpOnly session cookies.");
+for (const [source, label] of [[corporatePanel, "Corporate panel"], [corporateCards, "Corporate cards"], [corporateLinks, "Corporate links"], [corporateTitles, "Corporate job titles"], [corporateAudit, "Corporate audit"]]) {
+  forbidText(source, "authorization: `Bearer", `${label} must not send access tokens in request headers.`);
+  forbidText(source, "getBrowserSession", `${label} must not retrieve browser access tokens.`);
+}
+forbidText(corporatePanel, "getSupabaseBrowserClient", "Corporate panel must not hydrate a browser Supabase session.");
+forbidText(corporateAudit, "getSupabaseBrowserClient", "Corporate MFA must use its server-side cookie-authenticated endpoint.");
+requireText(corporateOrganizationRoutes, "resolveRequestIdentity", "Organization APIs must accept the HttpOnly session cookie.");
+requireText(mfaRoute, "resolveRequestIdentity", "MFA API must verify the HttpOnly session server-side.");
+requireText(mfaRoute, "applySessionCookies", "Successful MFA verification must rotate the HttpOnly session cookie.");
 forbidText(organizationIdentity, "authorization: `Bearer", "Card editor organization reads must use cookie identity.");
 requireText(organizationRoutes, "resolveRequestIdentity", "Card editor organization APIs must accept the HttpOnly session cookie.");
 

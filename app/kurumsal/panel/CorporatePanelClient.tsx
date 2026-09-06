@@ -2,9 +2,7 @@
 
 import { CSSProperties, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { writeSessionCookie } from "../../components/AuthSessionBridge";
-import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
-import { getBrowserSession } from "../../../lib/auth/get-browser-session";
+import { getBrowserIdentity } from "../../../lib/auth/browser-identity";
 import { Icon } from "../../icons";
 import { EmptyState, ErrorState, LoadingState } from "../../components/ui/States";
 import IDSidebar from "./IDSidebar";
@@ -193,9 +191,9 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
   const [currentUserId, setCurrentUserId] = useState("");
 
   const token = useCallback(async () => {
-    const { accessToken, userId } = await getBrowserSession();
-    if (userId) setCurrentUserId(userId);
-    return accessToken;
+    const identity = await getBrowserIdentity();
+    if (identity?.user.id) setCurrentUserId(identity.user.id);
+    return Boolean(identity);
   }, []);
 
   const {
@@ -245,12 +243,11 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     resetCardsData,
   } = useCorporateCards(selected, token, setMessage, setDataError);
 
-  async function loadMembers(id: string, access?: string) {
-    const auth = access || (await token());
-    if (!auth) return;
+  async function loadMembers(id: string, authenticated?: boolean) {
+    if (!(authenticated || await token())) return;
     const response = await fetchWithPanelTimeout(
       `/api/organizations/members?organizationId=${id}`,
-      { headers: { authorization: `Bearer ${auth}` }, cache: "no-store" },
+      { credentials: "same-origin", cache: "no-store" },
     );
     const membersPayload = await response.json();
     if (response.ok) {
@@ -264,12 +261,11 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     }
   }
 
-  async function loadTemplates(id: string, access?: string) {
-    const auth = access || (await token());
-    if (!auth) return;
+  async function loadTemplates(id: string, authenticated?: boolean) {
+    if (!(authenticated || await token())) return;
     const response = await fetchWithPanelTimeout(
       `/api/organizations/templates?organizationId=${id}`,
-      { headers: { authorization: `Bearer ${auth}` } },
+      { credentials: "same-origin" },
     );
     const templatesPayload = await response.json();
     if (response.ok) {
@@ -335,7 +331,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     try {
       const response = await fetch(
         `/api/organizations/member-profile?organizationId=${selected}&memberId=${member.id}`,
-        { headers: { authorization: `Bearer ${access}` } },
+        { credentials: "same-origin" },
       );
       const memberProfilePayload = await response.json();
       if (!response.ok) {
@@ -370,7 +366,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
         return;
       }
       const response = await fetchWithPanelTimeout("/api/organizations/mine?management=true", {
-        headers: { authorization: `Bearer ${access}` },
+        credentials: "same-origin",
         cache: "no-store",
       });
       const organizationsPayload = await response.json();
@@ -419,7 +415,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
           return;
         }
         const response = await fetchWithPanelTimeout("/api/organizations/mine?management=true", {
-          headers: { authorization: `Bearer ${access}` },
+          credentials: "same-origin",
           cache: "no-store",
         });
         const organizationsPayload = await response.json();
@@ -500,8 +496,8 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       method: "POST",
       headers: {
         "content-type": "application/json",
-        authorization: `Bearer ${access}`,
       },
+      credentials: "same-origin",
       body: JSON.stringify({
         organizationId: selected,
         email: form.email,
@@ -552,7 +548,8 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     try {
       const response = await fetch("/api/organizations/members/bulk-invite", {
         method: "POST",
-        headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({
           organizationId: selected,
           rows: bulkInvitePreview.rows.slice(0, BULK_INVITE_MAX_ROWS).map((row) => ({
@@ -571,7 +568,7 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
         return;
       }
       setBulkInviteResults(bulkInvitePayload);
-      if (bulkInvitePayload.created > 0) await loadMembers(selected, access || undefined);
+      if (bulkInvitePayload.created > 0) await loadMembers(selected, true);
       setMessage(`Toplu davet tamamlandı: ${bulkInvitePayload.created} başarılı, ${bulkInvitePayload.failed} başarısız.`);
     } finally {
       setBulkInviteBusy(false);
@@ -612,12 +609,14 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     const response = existingDefault
       ? await fetch("/api/organizations/templates", {
           method: "PATCH",
-          headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
+          headers: { "content-type": "application/json" },
+          credentials: "same-origin",
           body: JSON.stringify({ templateId: existingDefault.id, ...template, fields: launchFields }),
         })
       : await fetch("/api/organizations/templates", {
           method: "POST",
-          headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
+          headers: { "content-type": "application/json" },
+          credentials: "same-origin",
           body: JSON.stringify({ organizationId: selected, ...template, fields: launchFields, isDefault: true }),
         });
     const templatePayload = await response.json();
@@ -649,8 +648,8 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       method,
       headers: {
         "content-type": "application/json",
-        authorization: `Bearer ${access}`,
       },
+      credentials: "same-origin",
       body: JSON.stringify({ organizationId: selected, memberId, ...body }),
     });
     const mutationPayload = await response.json();
@@ -689,7 +688,8 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       try {
         const response = await fetch("/api/organizations/members", {
           method: "PATCH",
-          headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
+          headers: { "content-type": "application/json" },
+          credentials: "same-origin",
           body: JSON.stringify({ organizationId: selected, memberId, status, reason: "Kurumsal panel toplu işlemi" }),
         });
         if (response.ok) successful.push(memberId);
@@ -722,7 +722,8 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
       try {
         const response = await fetch("/api/organizations/members", {
           method: "PATCH",
-          headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
+          headers: { "content-type": "application/json" },
+          credentials: "same-origin",
           body: JSON.stringify({
             action: "IDENTITY",
             organizationId: selected,
@@ -950,8 +951,8 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
         method: "PATCH",
         headers: {
           "content-type": "application/json",
-          authorization: `Bearer ${access}`,
         },
+        credentials: "same-origin",
         body: JSON.stringify({
           action: "IDENTITY",
           organizationId: selected,
@@ -1066,13 +1067,11 @@ export default function CompanyPanel({ children }: { children?: React.ReactNode 
     router.replace(tabRoutes[fallback]);
   }, [currentTab, org, router]);
   const signOut = async () => {
-    const supabase = getSupabaseBrowserClient();
-    if (supabase) await supabase.auth.signOut();
-    await writeSessionCookie(null);
+    await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" }).catch(() => undefined);
     clearSensitiveBrowserState();
     clearLegacyCart();
     setCartOwner(null, { claimGuest: false });
-    router.replace("/giris?portal=business");
+    window.location.assign("/giris?portal=business");
   };
   const sidebarUser =
     members.find((member) => member.user_id === currentUserId) ||

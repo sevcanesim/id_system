@@ -5,7 +5,6 @@ import { Icon } from "../../../icons";
 import { Button, StatusBadge } from "../../../components/ui/DesignSystem";
 import { EmptyState, LoadingState } from "../../../components/ui/States";
 import { createExcelCsv } from "../../../../lib/csv";
-import { getSupabaseBrowserClient } from "../../../../lib/supabase/browser";
 
 type AuditEvent = {
   id: string;
@@ -18,7 +17,7 @@ type AuditEvent = {
 
 type Props = {
   organizationId: string;
-  token: () => Promise<string | null>;
+  token: () => Promise<boolean>;
 };
 
 type SecurityState = {
@@ -72,17 +71,16 @@ export default function AuditPanel({ organizationId, token }: Props) {
     setLoading(true);
     setError("");
     try {
-      const access = await token();
-      if (!access) {
+      if (!(await token())) {
         setError("Denetim kaydı için oturum gerekli.");
         return;
       }
       const [response, securityResponse] = await Promise.all([
         fetch(`/api/organizations/audit?organizationId=${encodeURIComponent(organizationId)}`, {
-          headers: { authorization: `Bearer ${access}` }, cache: "no-store",
+          credentials: "same-origin", cache: "no-store",
         }),
         fetch(`/api/organizations/security?organizationId=${encodeURIComponent(organizationId)}`, {
-          headers: { authorization: `Bearer ${access}` }, cache: "no-store",
+          credentials: "same-origin", cache: "no-store",
         }),
       ]);
       const payload = await response.json();
@@ -130,45 +128,60 @@ export default function AuditPanel({ organizationId, token }: Props) {
   }
 
   async function startMfaEnrollment() {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) { setSecurityError("MFA kurulumu için oturum gerekli."); return; }
     setSecurityBusy(true);
     setSecurityError("");
-    const { data, error: enrollError } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "Yenomi Business" });
-    if (enrollError || !data?.totp) setSecurityError("Authenticator kurulumu başlatılamadı. Lütfen yeniden deneyin.");
-    else setEnrollment({ factorId: data.id, qrCode: data.totp.qr_code, secret: data.totp.secret });
-    setSecurityBusy(false);
+    try {
+      const response = await fetch("/api/auth/mfa", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "ENROLL" }),
+      });
+      const payload = await response.json().catch(() => null) as { factorId?: string; qrCode?: string; secret?: string; error?: string } | null;
+      if (!response.ok || !payload?.factorId || !payload.qrCode || !payload.secret) setSecurityError(payload?.error || "Authenticator kurulumu başlatılamadı. Lütfen yeniden deneyin.");
+      else setEnrollment({ factorId: payload.factorId, qrCode: payload.qrCode, secret: payload.secret });
+    } catch {
+      setSecurityError("Authenticator kurulumu başlatılamadı. Lütfen yeniden deneyin.");
+    } finally {
+      setSecurityBusy(false);
+    }
   }
 
   async function verifyMfa() {
-    const supabase = getSupabaseBrowserClient();
     const code = verificationCode.replace(/\s/g, "");
-    if (!supabase || !enrollment) return;
+    if (!enrollment) return;
     if (!/^\d{6}$/.test(code)) { setSecurityError("Authenticator uygulamasındaki 6 haneli kodu girin."); return; }
     setSecurityBusy(true);
     setSecurityError("");
-    const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: enrollment.factorId });
-    if (challengeError || !challenge) setSecurityError("Doğrulama başlatılamadı. Yeni kodla tekrar deneyin.");
-    else {
-      const { error: verifyError } = await supabase.auth.mfa.verify({ factorId: enrollment.factorId, challengeId: challenge.id, code });
-      if (verifyError) setSecurityError("Kod doğrulanamadı. Güncel kodu kontrol edin.");
+    try {
+      const response = await fetch("/api/auth/mfa", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "VERIFY", factorId: enrollment.factorId, code }),
+      });
+      const payload = await response.json().catch(() => null) as { error?: string } | null;
+      if (!response.ok) setSecurityError(payload?.error || "Kod doğrulanamadı. Güncel kodu kontrol edin.");
       else {
         setEnrollment(null);
         setVerificationCode("");
         await load();
       }
+    } catch {
+      setSecurityError("Kod doğrulanamadı. Güncel kodu kontrol edin.");
+    } finally {
+      setSecurityBusy(false);
     }
-    setSecurityBusy(false);
   }
 
   async function updatePolicy(enabled: boolean) {
-    const access = await token();
-    if (!access) { setSecurityError("Güvenlik ayarını değiştirmek için oturum gerekli."); return; }
+    if (!(await token())) { setSecurityError("Güvenlik ayarını değiştirmek için oturum gerekli."); return; }
     setSecurityBusy(true);
     setSecurityError("");
     const response = await fetch("/api/organizations/security", {
       method: "PATCH",
-      headers: { authorization: `Bearer ${access}`, "content-type": "application/json" },
+      headers: { "content-type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify({ organizationId, requireMfaForCriticalActions: enabled }),
     });
     if (!response.ok) {

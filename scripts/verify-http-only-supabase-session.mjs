@@ -22,6 +22,9 @@ const corporateLinks = readFileSync("app/kurumsal/panel/hooks/useCorporateLinks.
 const corporateTitles = readFileSync("app/kurumsal/panel/hooks/useJobTitlesAndRequests.ts", "utf8");
 const corporateAudit = readFileSync("app/kurumsal/panel/components/AuditPanel.tsx", "utf8");
 const mfaRoute = readFileSync("app/api/auth/mfa/route.ts", "utf8");
+const invitePage = readFileSync("app/kurumsal/davet/page.tsx", "utf8");
+const inviteClient = readFileSync("lib/auth/organization-invite.ts", "utf8");
+const inviteAcceptRoute = readFileSync("app/api/organizations/invite/accept/route.ts", "utf8");
 const corporateOrganizationRoutes = [
   "app/api/organizations/physical-cards/route.ts",
   "app/api/organizations/member-card-statuses/route.ts",
@@ -109,6 +112,10 @@ forbidText(corporateAudit, "getSupabaseBrowserClient", "Corporate MFA must use i
 requireText(corporateOrganizationRoutes, "resolveRequestIdentity", "Organization APIs must accept the HttpOnly session cookie.");
 requireText(mfaRoute, "resolveRequestIdentity", "MFA API must verify the HttpOnly session server-side.");
 requireText(mfaRoute, "applySessionCookies", "Successful MFA verification must rotate the HttpOnly session cookie.");
+forbidText(invitePage, "getSupabaseBrowserClient", "Invite page must not hydrate a browser Supabase session.");
+forbidText(inviteClient, "authorization: `Bearer", "Invite acceptance must not send access tokens in request headers.");
+requireText(inviteClient, 'credentials: "same-origin"', "Invite acceptance must use the HttpOnly session cookie.");
+requireText(inviteAcceptRoute, "resolveRequestIdentity", "Invite acceptance must verify the HttpOnly session server-side.");
 forbidText(organizationIdentity, "authorization: `Bearer", "Card editor organization reads must use cookie identity.");
 requireText(organizationRoutes, "resolveRequestIdentity", "Card editor organization APIs must accept the HttpOnly session cookie.");
 

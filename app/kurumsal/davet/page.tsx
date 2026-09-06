@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import AppHeader from "../../components/AppHeader";
 import AppFooter from "../../components/AppFooter";
 import { Icon } from "../../icons";
-import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 import { acceptOrganizationInvite, OrganizationInviteResult } from "../../../lib/auth/organization-invite";
 
 type InviteViewState = { status: "checking"; token: string } | (OrganizationInviteResult & { token: string });
@@ -22,8 +21,7 @@ export default function InvitePage() {
       if (legacyQueryToken) {
         window.history.replaceState(window.history.state, "", `/kurumsal/davet#token=${encodeURIComponent(token)}`);
       }
-      const supabase = getSupabaseBrowserClient();
-      const result = await acceptOrganizationInvite(supabase, token || null);
+      const result = await acceptOrganizationInvite(token || null);
       if (!cancelled) setState({ ...result, token });
     })();
 

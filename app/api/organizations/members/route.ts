@@ -10,8 +10,8 @@ import {
 } from "../../../../lib/organizations/permissions";
 import {
   getSupabaseAdminClient,
-  getSupabaseAuthClient,
 } from "../../../../lib/supabase/server-admin";
+import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
 import { MFA_REQUIRED_MESSAGE, requiresOrganizationMfaStepUp } from "../../../../lib/organizations/security-policy";
 import { recordSystemError } from "../../../../lib/observability/system-errors";
 import { transientTokenUrl } from "../../../../lib/security/transient-link";
@@ -59,14 +59,8 @@ type IdentityMutationResult = {
 };
 
 async function requestContext(request: NextRequest) {
-  const accessToken = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!accessToken) return null;
-
-  const authClient = getSupabaseAuthClient();
-  const { data } = await authClient.auth.getUser(accessToken);
-  if (!data.user) return null;
-
-  return { user: data.user, admin: getSupabaseAdminClient(), accessToken };
+  const identity = await resolveRequestIdentity(request);
+  return identity ? { user: identity.user, admin: getSupabaseAdminClient() } : null;
 }
 
 async function getManager(

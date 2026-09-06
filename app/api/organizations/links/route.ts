@@ -8,7 +8,8 @@ import {
 import { recordOrganizationAuditEvent } from "../../../../lib/organizations/audit";
 import { canManageTemplates, isOrganizationRole } from "../../../../lib/organizations/permissions";
 import { MFA_REQUIRED_MESSAGE, requiresOrganizationMfaStepUp } from "../../../../lib/organizations/security-policy";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
+import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
 
 // Kart şablonundaki "Kurumsal Bağlantılar" bölümünün 4 sabit slotu:
 // Ürün Kataloğu, Şirket Sunumu, Toplantı Planla, Referans Projeler.
@@ -48,12 +49,8 @@ const rollbackSchema = z.object({
 });
 
 async function context(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-  const auth = getSupabaseAuthClient();
-  const { data } = await auth.auth.getUser(token);
-  if (!data.user) return null;
-  return { user: data.user, admin: getSupabaseAdminClient(), token };
+  const identity = await resolveRequestIdentity(request);
+  return identity ? { user: identity.user, admin: getSupabaseAdminClient() } : null;
 }
 
 async function membership(admin: ReturnType<typeof getSupabaseAdminClient>, userId: string, organizationId: string) {

@@ -1,21 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
+import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
 
 const schema = z.object({ organizationId: z.string().uuid(), profileId: z.string().uuid() });
 
 export async function POST(request: NextRequest) {
-  const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!bearer) return NextResponse.json({ error: "Oturum gerekli." }, { status: 401 });
-  const auth = getSupabaseAuthClient();
-  const { data } = await auth.auth.getUser(bearer);
-  if (!data.user) return NextResponse.json({ error: "Oturum geçersiz." }, { status: 401 });
+  const identity = await resolveRequestIdentity(request);
+  if (!identity) return NextResponse.json({ error: "Oturum geçersiz." }, { status: 401 });
   const parsed = schema.safeParse(await request.json());
   if (!parsed.success) return NextResponse.json({ error: "Geçersiz kart eşleştirmesi." }, { status: 400 });
 
   const admin = getSupabaseAdminClient();
   const { data: result, error } = await admin.rpc("link_own_corporate_card_profile", {
-    p_actor_user_id: data.user.id,
+    p_actor_user_id: identity.user.id,
     p_organization_id: parsed.data.organizationId,
     p_profile_id: parsed.data.profileId,
   });

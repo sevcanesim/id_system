@@ -76,11 +76,10 @@ function readLockMode(raw: unknown, fallback: LockMode): LockMode {
 }
 
 export async function fetchOrganizationIdentity(
-  accessToken: string,
   preferredOrganizationId?: string | null,
 ): Promise<OrganizationIdentity | null> {
   try {
-    const mineResponse = await fetch("/api/organizations/mine", { headers: { authorization: `Bearer ${accessToken}` } });
+    const mineResponse = await fetch("/api/organizations/mine", { credentials: "same-origin", cache: "no-store" });
     if (!mineResponse.ok) return null;
     const mine = await mineResponse.json() as { organizations?: Array<{ organization_id: string; role?: string | null; organizations: { name: string } | null; organization_subscriptions?: Array<{ seat_limit?: number | null; business_plans?: { name?: string | null } | null }> }> };
     const org = preferredOrganizationId
@@ -89,9 +88,9 @@ export async function fetchOrganizationIdentity(
     if (!org) return null;
 
     const [templateResponse, selfResponse, linksResponse] = await Promise.all([
-      fetch(`/api/organizations/templates?organizationId=${org.organization_id}`, { headers: { authorization: `Bearer ${accessToken}` } }),
-      fetch(`/api/organizations/members?organizationId=${org.organization_id}&self=true`, { headers: { authorization: `Bearer ${accessToken}` } }),
-      fetch(`/api/organizations/links?organizationId=${org.organization_id}`, { headers: { authorization: `Bearer ${accessToken}` } }),
+      fetch(`/api/organizations/templates?organizationId=${org.organization_id}`, { credentials: "same-origin", cache: "no-store" }),
+      fetch(`/api/organizations/members?organizationId=${org.organization_id}&self=true`, { credentials: "same-origin", cache: "no-store" }),
+      fetch(`/api/organizations/links?organizationId=${org.organization_id}`, { credentials: "same-origin", cache: "no-store" }),
     ]);
 
     const templateRow = templateResponse.ok

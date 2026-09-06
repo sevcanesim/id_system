@@ -4,8 +4,7 @@ import Link from "next/link";
 import { ChangeEvent, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import CardTemplate from "../CardTemplate";
-import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
-import { isSupabaseConfigured } from "../../lib/supabase/config";
+import { getBrowserIdentity } from "../../lib/auth/browser-identity";
 import { ownProfileImagePath, profileImagePathFromValue } from "../../lib/profile-images";
 import UserPanelShell from "../components/UserPanelShell";
 import QRCode from "qrcode";
@@ -14,7 +13,7 @@ import { Icon } from "../icons";
 import { TITLE_OPTIONS, normalizeEmailField, normalizeTrPhone } from "../../lib/form-standards";
 import { unusedEntitlementId } from "../../lib/commerce/entitlement-bind";
 import { INDIVIDUAL_PRODUCT_PURCHASE_HREF } from "../../lib/commerce/individual-portal-access";
-import { fetchOwnProfile, fetchOwnProfileById, fetchOwnProfileByOrganizationId, fetchOwnProfiles } from "../../lib/repositories/profiles";
+import type { CardProfileRow } from "../../lib/card-profile";
 import { track } from "../../lib/analytics";
 import { PageLoadingView } from "../components/ui/States";
 import { useNotice } from "../components/ui/NotificationCenter";
@@ -304,39 +303,28 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
 
   useEffect(() => {
     clearLegacyUnscopedCardDraft();
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) {
-      setAccessState(isSupabaseConfigured ? "denied" : "allowed");
-      return;
-    }
-    supabase.auth.getUser().then(async ({ data: authData }) => {
+    void (async () => {
       try {
-        const user = authData.user;
-        if (!user) {
+        const identity = await getBrowserIdentity();
+        if (!identity) {
           setAccessState("denied");
           router.replace("/giris?next=%2Folustur");
           return;
         }
+        const user = identity.user;
         setUserId(user.id);
-        const { data: sessionData } = await supabase.auth.getSession();
-        const accessToken = sessionData.session?.access_token;
-        if (!accessToken) {
-          setAccessState("denied");
-          router.replace("/giris?next=%2Folustur");
-          return;
-        }
+        const profilesResponse = await fetch("/api/profiles/mine", { credentials: "same-origin", cache: "no-store" });
+        if (!profilesResponse.ok) throw new Error("Profil kayıtları yüklenemedi.");
+        const profilesPayload = await profilesResponse.json() as { profiles?: CardProfileRow[] };
+        const profiles = profilesPayload.profiles ?? [];
+        const individualProfiles = profiles.filter((profile) => !profile.organization_id);
 
         // Eski veya eksik bir bağlantı kurumsal profil kimliğini yalnızca
         // `?id=...` ile açabilir. Bu durumda bireysel sidebar'ı bir an bile
         // göstermeden profili ait olduğu kurumsal editör rotasına taşı.
         if (requestedProfileId && !isBusinessCard && !isNewCard) {
-          const [{ data: requestedProfile }, mineResponse] = await Promise.all([
-            fetchOwnProfileById(supabase, user.id, requestedProfileId),
-            fetch("/api/organizations/mine", {
-              headers: { authorization: `Bearer ${accessToken}` },
-              cache: "no-store",
-            }),
-          ]);
+          const mineResponse = await fetch("/api/organizations/mine", { credentials: "same-origin", cache: "no-store" });
+          const requestedProfile = profiles.find((profile) => profile.id === requestedProfileId) ?? null;
           if (requestedProfile && mineResponse.ok) {
             const minePayload = await mineResponse.json() as {
               organizations?: Array<{
@@ -356,11 +344,11 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
             }
           }
         }
-        const organizationIdentityPromise = fetchOrganizationIdentity(accessToken, businessOrganizationId);
+        const organizationIdentityPromise = fetchOrganizationIdentity(businessOrganizationId);
 
         let entitlementPayload: { active?: boolean; next?: string; entitlements?: { id: string }[] } = {};
         if (isBusinessCard && businessOrganizationId) {
-          const mineResponse = await fetch("/api/organizations/mine", { headers: { authorization: `Bearer ${accessToken}` }, cache: "no-store" });
+          const mineResponse = await fetch("/api/organizations/mine", { credentials: "same-origin", cache: "no-store" });
           const minePayload = await mineResponse.json() as { organizations?: Array<{ organization_id: string }> };
           const hasMembership = mineResponse.ok && Boolean(minePayload.organizations?.some((item) => item.organization_id === businessOrganizationId));
           if (!hasMembership) {
@@ -370,7 +358,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
           }
         } else {
           const entitlementResponse = await fetch("/api/commerce/entitlements", {
-            headers: { authorization: `Bearer ${accessToken}` },
+            credentials: "same-origin",
             cache: "no-store",
           });
           entitlementPayload = await entitlementResponse.json() as { active?: boolean; next?: string; entitlements?: { id: string }[] };
@@ -387,26 +375,25 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
         // kullanıcının kişisel ilk kartına düşme. Organizasyon adına bağlı
         // kurumsal profili bul; böylece sidebar'daki Kartım her zaman aynı
         // kurumsal karta açılır.
-        let profile = null;
+        let profile: CardProfileRow | null = null;
         if (!isNewCard && requestedProfileId) {
-          profile = (await fetchOwnProfileById(supabase, user.id, requestedProfileId)).data;
+          profile = profiles.find((candidate) => candidate.id === requestedProfileId) ?? null;
         } else if (!isNewCard && isBusinessCard) {
           const identityForProfile = await organizationIdentityPromise;
           const organizationId = identityForProfile?.lock.organizationId || businessOrganizationId;
           if (organizationId) {
-            profile = (await fetchOwnProfileByOrganizationId(supabase, user.id, organizationId)).data;
+            profile = profiles.find((candidate) => candidate.organization_id === organizationId) ?? null;
           }
         } else if (!isNewCard) {
-          profile = (await fetchOwnProfile(supabase, user.id)).data;
+          profile = individualProfiles[0] ?? null;
         }
         if (!isBusinessCard && (isNewCard || !profile)) {
-          const { data: existingProfiles } = await fetchOwnProfiles(supabase, user.id);
-          if (isNewCard && existingProfiles.length > 0) {
+          if (isNewCard && individualProfiles.length > 0) {
             setAccessState("denied");
             router.replace("/olustur");
             return;
           }
-          const spareEntitlementId = unusedEntitlementId(entitlementPayload.entitlements ?? [], existingProfiles);
+          const spareEntitlementId = unusedEntitlementId(entitlementPayload.entitlements ?? [], individualProfiles);
           if (!spareEntitlementId) {
             setAccessState("denied");
             router.replace(isNewCard ? "/urunler/nfc-kart?paket=individual&reason=no-spare-card" : (entitlementPayload.next || INDIVIDUAL_PRODUCT_PURCHASE_HREF));
@@ -458,18 +445,14 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
             searchIndexingEnabled: Boolean(profile.search_indexing_enabled),
           });
         } else {
-          const metadata = user.user_metadata ?? {};
-          const linkedInName = metadata.full_name ?? metadata.name ?? [metadata.given_name, metadata.family_name].filter(Boolean).join(" ");
-          const linkedInImage = metadata.avatar_url ?? metadata.picture ?? "";
-          const linkedInHeadline = metadata.headline ?? "";
-          setOriginalImageUrl(linkedInImage || "");
+          setOriginalImageUrl("");
           const initialDraftData: CardData = {
-            name: linkedInName || "",
-            role: linkedInHeadline || "",
+            name: "",
+            role: "",
             company: "", phone: "", whatsapp: "",
             email: user.email || "",
             website: "", linkedin: "", instagram: "", location: "",
-            image: linkedInImage || "", bio: ""
+            image: "", bio: ""
           };
           setData(initialDraftData);
           setBaseline({
@@ -484,12 +467,12 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
         // Applied last so a company's centrally managed identity always wins
         // over both a saved profile's old values and LinkedIn prefill — this is
         // what makes locked fields actually stay in sync with company Ayarlar.
-        const identity = await organizationIdentityPromise;
-        if (identity) {
-          setOrgLock(identity.lock);
-          setOrgBranding(identity.branding);
-          setCorporateTemplate(identity.template);
-          setOrgLinks(identity.links);
+        const organizationIdentity = await organizationIdentityPromise;
+        if (organizationIdentity) {
+          setOrgLock(organizationIdentity.lock);
+          setOrgBranding(organizationIdentity.branding);
+          setCorporateTemplate(organizationIdentity.template);
+          setOrgLinks(organizationIdentity.links);
           // Legacy template bookmarks arrive without an organization id. Once
           // the authorized membership is known, canonicalize the URL so later
           // saves remain in the corporate workspace instead of falling back to
@@ -497,7 +480,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
           if (isBusinessCard && !businessOrganizationId) {
             const params = new URLSearchParams({
               business: "1",
-              organizationId: identity.lock.organizationId,
+              organizationId: organizationIdentity.lock.organizationId,
             });
             if (requestedProfileId) params.set("id", requestedProfileId);
             if (isNewCard) params.set("new", "1");
@@ -507,24 +490,24 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
           if (
             brandSettingsRequested &&
             !brandSettingsRequestHandled.current &&
-            ["OWNER", "ADMIN"].includes(identity.lock.membershipRole.toUpperCase())
+            ["OWNER", "ADMIN"].includes(organizationIdentity.lock.membershipRole.toUpperCase())
           ) {
             brandSettingsRequestHandled.current = true;
             setBrandSettings({
-              name: identity.template.name,
-              primaryColor: identity.template.primaryColor,
-              logoUrl: identity.template.logoUrl,
+              name: organizationIdentity.template.name,
+              primaryColor: organizationIdentity.template.primaryColor,
+              logoUrl: organizationIdentity.template.logoUrl,
             });
             setBrandSettingsMessage("");
             setBrandSettingsOpen(true);
           }
           setData((current) => {
             const filledGaps = Object.fromEntries(
-              Object.entries(identity.suggestedValues).filter(
+              Object.entries(organizationIdentity.suggestedValues).filter(
                 ([key, value]) => value && !current[key as keyof CardData],
               ),
             );
-            const finalData = { ...current, ...filledGaps, ...identity.lockedValues };
+            const finalData = { ...current, ...filledGaps, ...organizationIdentity.lockedValues };
             setBaseline((prev) => prev ? { ...prev, data: finalData } : {
               data: finalData,
               englishRole: "",
@@ -540,11 +523,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
         setAccessState("denied");
         router.replace("/giris?portal=business");
       }
-    }).catch(() => {
-      setContextDirty(false);
-      setAccessState("denied");
-      router.replace("/giris?portal=business");
-    });
+    })();
   }, [router, businessOrganizationId, brandSettingsRequested, isBusinessCard, isNewCard, mode, requestedProfileId]);
 
   function update(field: keyof CardData, value: string) {
@@ -584,14 +563,10 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
     setBrandSettingsBusy(true);
     setBrandSettingsMessage("");
     try {
-      const supabase = getSupabaseBrowserClient();
-      const { data: sessionData } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
-      const accessToken = sessionData.session?.access_token;
-      if (!accessToken) throw new Error("Oturum bulunamadı.");
-
       const response = await fetch("/api/organizations/templates", {
         method: corporateTemplate?.id ? "PATCH" : "POST",
-        headers: { "content-type": "application/json", authorization: `Bearer ${accessToken}` },
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
         body: JSON.stringify(corporateTemplate?.id
           ? {
               action: "UPDATE",
@@ -743,13 +718,10 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
     setTitleRequestBusy(true);
     setTitleRequestMessage("");
     try {
-      const supabase = getSupabaseBrowserClient();
-      const { data: sessionData } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
-      const accessToken = sessionData.session?.access_token;
-      if (!accessToken) throw new Error("Oturum bulunamadı.");
       const response = await fetch("/api/organizations/title-requests", {
         method: "POST",
-        headers: { "content-type": "application/json", authorization: `Bearer ${accessToken}` },
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({ organizationId: orgLock.organizationId, title }),
       });
       if (!response.ok) {
@@ -789,18 +761,13 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
     setMessage("");
     let uploaded: UploadedImage | null = null;
     try {
-      const supabase = getSupabaseBrowserClient();
       let currentUserId = userId;
-      if (supabase && !currentUserId) {
-        const { data: authData } = await supabase.auth.getUser();
-        currentUserId = authData.user?.id ?? null;
+      if (!currentUserId) {
+        currentUserId = (await getBrowserIdentity())?.user.id ?? null;
       }
-      if (supabase && currentUserId) {
+      if (currentUserId) {
         uploaded = await uploadImageIfNeeded();
         const slug = normalizeProfileSlug(profileSlug);
-        const { data: sessionData } = await supabase.auth.getSession();
-        const accessToken = sessionData.session?.access_token;
-        if (!accessToken) throw new Error("Oturum bulunamadı. Lütfen tekrar giriş yap.");
         if (!profileId && !isBusinessCard && !newCardEntitlementId) {
           throw new Error("Bu kart için kullanılabilir bir Yenomi ID hakkın yok.");
         }
@@ -813,7 +780,8 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
         // sunucuda zorlanıyor. Bireysel INSERT kullanılmamış entitlement ister.
         const saveResponse = await fetch("/api/profiles/save", {
           method: "POST",
-          headers: { "content-type": "application/json", authorization: `Bearer ${accessToken}` },
+          credentials: "same-origin",
+          headers: { "content-type": "application/json" },
           body: JSON.stringify({
             profileId: profileId || null,
             organizationId: isBusinessCard ? businessOrganizationId : null,
@@ -845,7 +813,8 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
         if (!saveError && saved && isBusinessCard && businessOrganizationId) {
           const linkResponse = await fetch("/api/organizations/card-profile-link", {
             method: "POST",
-            headers: { "content-type": "application/json", authorization: `Bearer ${accessToken}` },
+            credentials: "same-origin",
+            headers: { "content-type": "application/json" },
             body: JSON.stringify({ organizationId: businessOrganizationId, profileId: saved.id }),
           });
           if (!linkResponse.ok) {
@@ -908,12 +877,8 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
           slug,
           searchIndexingEnabled,
         });
-      } else if (isSupabaseConfigured) {
-        const message = "Kalıcı yayın için önce giriş yapmalısın. Taslağın bu tarayıcıya kaydedildi.";
-        setMessage(message);
-        notify({ message, tone: "warning" });
-        setSaving(false);
-        return;
+      } else {
+        throw new Error("Oturumun sona ermiş. Lütfen tekrar giriş yap.");
       }
       if (isBusinessCard && orgLock) {
         try { sessionStorage.setItem(HR_AUDIT_NOTICE_KEY, "1"); } catch { /* bildirim kalıcılığı isteğe bağlı */ }

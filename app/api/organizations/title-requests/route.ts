@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { isOrganizationRole } from "../../../../lib/organizations/permissions";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
+import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
 
 // Çalışanın, şirketin pozisyon kataloğunda olmayan bir ünvan istediği
 // durumlar için onay akışı (yetki matrisindeki Ünvan satırında
@@ -13,12 +14,8 @@ const postSchema = z.object({ organizationId: z.string().uuid(), title: z.string
 const patchSchema = z.object({ requestId: z.string().uuid(), approve: z.boolean(), note: z.string().trim().max(500).optional() });
 
 async function context(request: NextRequest) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-  const auth = getSupabaseAuthClient();
-  const { data } = await auth.auth.getUser(token);
-  if (!data.user) return null;
-  return { user: data.user, admin: getSupabaseAdminClient() };
+  const identity = await resolveRequestIdentity(request);
+  return identity ? { user: identity.user, admin: getSupabaseAdminClient() } : null;
 }
 
 export async function GET(request: NextRequest) {

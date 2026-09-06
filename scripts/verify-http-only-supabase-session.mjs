@@ -8,6 +8,15 @@ const helper = readFileSync("lib/auth/http-only-session.ts", "utf8");
 const middleware = readFileSync("proxy.ts", "utf8");
 const login = readFileSync("app/giris/page.tsx", "utf8") + readFileSync("app/giris/LoginClient.tsx", "utf8");
 const passwordLogin = readFileSync("lib/auth/password-login.ts", "utf8");
+const cardWizard = readFileSync("app/olustur/CardWizard.tsx", "utf8");
+const organizationIdentity = readFileSync("app/olustur/domain/organization-identity.ts", "utf8");
+const organizationRoutes = [
+  "app/api/organizations/card-profile-link/route.ts",
+  "app/api/organizations/links/route.ts",
+  "app/api/organizations/members/route.ts",
+  "app/api/organizations/templates/route.ts",
+  "app/api/organizations/title-requests/route.ts",
+].map((path) => readFileSync(path, "utf8")).join("\n");
 
 function requireText(source, token, message) {
   if (!source.includes(token)) throw new Error(message);
@@ -50,6 +59,13 @@ requireText(middleware, "clearSessionCookies", "Failed protected-page auth must 
 requireText(login, "passwordLogin", "Password login must go through /api/auth/login so the limiter sees the attempt.");
 requireText(login, 'window.location.replace(isDefaultWorkspacePath(returnPath) ? "/hesabim" : returnPath)', "Password login must continue through server-side workspace routing.");
 forbidText(passwordLogin, "hydrateBrowserSessionFromCookies", "Password login must not rehydrate browser memory from HttpOnly cookies.");
+
+requireText(cardWizard, "getBrowserIdentity", "Card editor must resolve its identity through the HttpOnly session endpoint.");
+requireText(cardWizard, 'fetch("/api/profiles/mine", { credentials: "same-origin", cache: "no-store" })', "Card editor must load profiles through its cookie-authenticated API.");
+forbidText(cardWizard, "getSupabaseBrowserClient", "Card editor must not hydrate a browser Supabase session.");
+forbidText(cardWizard, "authorization: `Bearer", "Card editor must not send access tokens in request headers.");
+forbidText(organizationIdentity, "authorization: `Bearer", "Card editor organization reads must use cookie identity.");
+requireText(organizationRoutes, "resolveRequestIdentity", "Card editor organization APIs must accept the HttpOnly session cookie.");
 
 const loginApi = readFileSync("app/api/auth/login/route.ts", "utf8");
 requireText(loginApi, "applySessionCookies", "Password login must set HttpOnly cookies on the server.");

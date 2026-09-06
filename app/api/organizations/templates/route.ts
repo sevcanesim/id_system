@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { canManageTemplates, canReadOrganization, isOrganizationRole } from "../../../../lib/organizations/permissions";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
+import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
+import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
 
 const httpsUrl = z
   .string()
@@ -39,14 +40,8 @@ const deleteSchema = z.object({
 });
 
 async function requestContext(request: NextRequest) {
-  const accessToken = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!accessToken) return null;
-
-  const authClient = getSupabaseAuthClient();
-  const { data } = await authClient.auth.getUser(accessToken);
-  if (!data.user) return null;
-
-  return { user: data.user, admin: getSupabaseAdminClient() };
+  const identity = await resolveRequestIdentity(request);
+  return identity ? { user: identity.user, admin: getSupabaseAdminClient() } : null;
 }
 
 async function getMembership(

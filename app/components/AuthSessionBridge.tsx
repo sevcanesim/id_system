@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { clearLegacyCart, setCartOwner } from "../../lib/cart";
 import { getRememberedLogin, getSupabaseBrowserClient } from "../../lib/supabase/browser";
+import { clearSensitiveBrowserState } from "../../lib/security/client-private-state";
 
 /**
  * Mirrors the Supabase access + refresh tokens into HttpOnly cookies so
@@ -86,6 +87,7 @@ export default function AuthSessionBridge() {
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_OUT") {
+        clearSensitiveBrowserState();
         clearLegacyCart();
         setCartOwner(null, { claimGuest: false });
       }

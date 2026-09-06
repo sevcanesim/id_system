@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 
 function read(path) {
   return readFileSync(path, "utf8");
@@ -12,7 +12,17 @@ function mustNotInclude(haystack, needle, message) {
   if (haystack.includes(needle)) throw new Error(message);
 }
 
+function sourceFiles(directory) {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const target = `${directory}/${entry.name}`;
+    if (entry.isDirectory()) return sourceFiles(target);
+    return entry.isFile() ? [target] : [];
+  });
+}
+
 const paytrCallback = read("app/api/payments/paytr/callback/route.ts");
+const paytr = read("lib/payments/paytr.ts");
+const providerPayload = read("lib/payments/sanitize-provider-payload.ts");
 const callbackReceipts = read("lib/payments/payment-callback-receipts.ts");
 const middleware = read("proxy.ts");
 const rateLimit = read("lib/security/rate-limit.ts");
@@ -30,11 +40,42 @@ const organizationAssetMigration = read("supabase/migrations/20260903110000_priv
 const organizationLinkOpen = read("app/api/organization-links/[id]/open/route.ts");
 const organizationLinkManager = read("app/api/organizations/links/route.ts");
 const organizationLinkUpload = read("app/api/organizations/links/upload/route.ts");
+const profileImageMigration = read("supabase/migrations/20260906150000_private_profile_images.sql");
+const profileImageUpload = read("app/api/profile-images/route.ts");
+const ownProfileImage = read("app/api/profile-images/own/route.ts");
+const publicProfileImage = read("app/api/public/profile-images/[publicId]/route.ts");
+const organizationIntegrations = read("app/api/organizations/integrations/route.ts");
+const webhookDelivery = read("lib/organizations/webhook-integrations.ts");
+const loginAudit = read("lib/auth/login-audit.ts");
+const observabilityRetention = read("supabase/migrations/20260906180000_operational_observability_retention.sql");
+const loginAuditMigration = read("supabase/migrations/20260906190000_auth_login_event_telemetry.sql");
+const privacyRequestMigration = read("supabase/migrations/20260906200000_privacy_request_workflow.sql");
+const analyticsMinimizationMigration = read("supabase/migrations/20260906210000_card_view_analytics_minimization.sql");
+const privacyRequestsApi = read("app/api/privacy/requests/route.ts");
+const adminPrivacyRequestsApi = read("app/api/admin/privacy-requests/route.ts");
+const cardViews = read("lib/analytics/card-views.ts");
+const cardWizard = read("app/olustur/CardWizard.tsx");
+const clientPrivateState = read("lib/security/client-private-state.ts");
+const authSessionBridge = read("app/components/AuthSessionBridge.tsx");
+const runtimeSources = [
+  ...sourceFiles("app/api"),
+  ...sourceFiles("lib"),
+  "app/olustur/CardWizard.tsx",
+].filter((file) => !file.includes(".test."));
+const rawConsoleSources = runtimeSources.filter((file) => /console\.[a-zA-Z]+\s*\(/.test(read(file)));
+
+if (rawConsoleSources.length) {
+  throw new Error(`Runtime kaynaklarda ham console kullanımı yasaktır: ${rawConsoleSources.join(", ")}`);
+}
 
 mustInclude(paytrCallback, "verifyPaytrCallbackHash", "PayTR callback must verify its signature before settlement.");
 mustInclude(paytrCallback, "recordPaytrCallbackReceived", "PayTR callbacks must leave a durable receipt.");
 mustInclude(paytrCallback, "CALLBACK_RETRY", "PayTR callback failures must be retried by the provider.");
 mustInclude(callbackReceipts, "providerReferenceHash", "Callback receipts must not retain raw provider references.");
+mustNotInclude(paytr, "asSafeCallbackMessage", "PayTR provider rejection text must not be retained from an external response.");
+mustNotInclude(providerPayload, "merchantOid:", "Provider payload snapshots must not retain raw merchant references.");
+mustNotInclude(providerPayload, "paymentId:", "Provider payload snapshots must not retain raw provider payment references.");
+mustNotInclude(providerPayload, "errorMessage:", "Provider payload snapshots must not retain raw provider error messages.");
 
 mustInclude(rateLimit, "failClosed", "Distributed limiter must support fail-closed mode.");
 mustInclude(rateLimit, "unavailable: true", "Fail-closed limiter must surface unavailability.");
@@ -76,6 +117,38 @@ mustInclude(loginApi, "signInWithPassword", "Password verification must happen o
 mustInclude(loginApi, "productionTestLoginBlocked", "Login must refuse production TEST / @yenomi.test identities.");
 mustInclude(loginApi, "applySessionCookies", "Login must write HttpOnly cookies on the server.");
 mustInclude(loginApi, "logAuthLoginEvent", "Failed login attempts must be visible in logs.");
+mustInclude(loginAudit, "ip_fingerprint", "Login telemetry must pseudonymize the client IP.");
+mustInclude(loginAudit, "user_fingerprint", "Login telemetry must pseudonymize the account identifier.");
+mustNotInclude(loginAudit, "ip: event.ip", "Login telemetry must not emit raw IP addresses.");
+mustNotInclude(loginAudit, "console.info", "Login telemetry must not emit diagnostic data to process logs.");
+mustInclude(loginAuditMigration, "create table if not exists public.auth_login_events", "Login telemetry must have a durable service-role-only destination.");
+mustInclude(loginAuditMigration, "p_retention_days integer default 90", "Login telemetry must have a 90-day default retention policy.");
+mustInclude(observabilityRetention, "p_error_retention_days integer default 90", "System error logs must have a 90-day default retention policy.");
+mustInclude(privacyRequestMigration, "create table if not exists public.privacy_requests", "Privacy access and erasure requests need durable storage.");
+mustInclude(privacyRequestMigration, "privacy_requests_one_open_request_per_type", "Duplicate open privacy requests must be blocked per user and type.");
+mustInclude(privacyRequestMigration, "create table if not exists public.privacy_request_events", "Privacy request state changes need a durable evidence trail.");
+mustInclude(privacyRequestMigration, "admin_transition_privacy_request", "Privacy requests must transition in a server-side state machine.");
+mustInclude(privacyRequestMigration, "RESOLUTION_CODE_REQUIRED", "Completed privacy requests must retain a classified resolution code.");
+mustInclude(privacyRequestMigration, "revoke all on table public.privacy_requests from public, anon, authenticated", "Privacy requests must remain service-role only.");
+mustInclude(privacyRequestsApi, "resolveRequestIdentity", "Privacy request API must derive the subject from the authenticated request.");
+mustInclude(privacyRequestsApi, "submit_privacy_request", "Privacy request API must use the durable submission RPC.");
+mustInclude(adminPrivacyRequestsApi, "requireSuperAdmin", "Privacy request administration must require AAL2 Super Admin access.");
+mustInclude(adminPrivacyRequestsApi, "admin_transition_privacy_request", "Privacy request administration must use the state-machine RPC.");
+mustInclude(cardViews, "ANALYTICS_FINGERPRINT_SECRET", "Card analytics must use a dedicated HMAC key.");
+mustNotInclude(cardViews, "SUPABASE_SERVICE_ROLE_KEY", "Card analytics must not reuse the service-role key as a fingerprint secret.");
+mustInclude(cardViews, 'headerList.get("dnt")', "Card analytics must honor Do Not Track.");
+mustInclude(cardViews, 'headerList.get("sec-gpc")', "Card analytics must honor Global Privacy Control.");
+mustNotInclude(cardViews, 'headerList.get("referer")', "Card analytics must not persist raw referrers.");
+mustNotInclude(cardViews, 'headerList.get("x-vercel-ip-city")', "Card analytics must not persist city-level location.");
+mustInclude(analyticsMinimizationMigration, "purge_card_view_events", "Card analytics needs a bounded retention function.");
+mustInclude(cardWizard, "readPersonalCardDraft", "Individual card drafts must use account-scoped client storage.");
+mustInclude(cardWizard, "writePersonalCardDraft", "Individual card drafts must be written through account-scoped storage.");
+mustNotInclude(cardWizard, 'localStorage.getItem("yenomi-card-draft")', "Card editor must not read a cross-account draft key.");
+mustNotInclude(cardWizard, 'localStorage.setItem("yenomi-card-draft")', "Card editor must not write a cross-account draft key.");
+mustInclude(clientPrivateState, "CARD_DRAFT_PREFIX", "Private browser state must namespace drafts by account.");
+mustInclude(clientPrivateState, "clearSensitiveBrowserState", "Sensitive browser state needs an explicit logout cleanup path.");
+mustInclude(authSessionBridge, "clearSensitiveBrowserState", "Logout must clear sensitive browser state.");
+mustInclude(observabilityRetention, "status <> 'RUNNING'", "Retention must not delete in-flight operational job records.");
 mustInclude(loginApi, "auth-login-email", "Login must also limit by email, not only by IP.");
 mustInclude(loginApi, "limitAuthLoginIp", "Login must also limit by IP to slow credential stuffing.");
 mustInclude(routeRateLimits, "auth-login-ip", "Login IP limiter must use a dedicated distributed key.");
@@ -126,7 +199,7 @@ for (const [name, source] of [
   mustInclude(source, "requireSuperAdmin", `${name} admin API must require an AAL2 Super Admin session.`);
 }
 
-mustInclude(analytics, "This is not GA4", "Funnel tracker must stay an honest stub.");
+mustInclude(analytics, "window.dataLayer.push", "Funnel tracker must keep events local until a provider is deliberately integrated.");
 mustNotInclude(analytics, "gtag(", "Do not invent a GA4 wiring.");
 
 mustInclude(organizationAssetMigration, "set public = false", "Corporate PDF bucket must be private at rest.");
@@ -144,6 +217,22 @@ mustInclude(organizationLinkOpen, '.eq("organization_id", link.organization_id)'
 mustInclude(organizationLinkOpen, "isOrganizationAssetPubliclyAvailable", "Public organization-link redirects must deny unpublished or future-dated assets.");
 mustInclude(organizationLinkManager, "mayPreviewScheduledAssets", "Only template managers may preview scheduled organization assets.");
 mustInclude(organizationLinkManager, "isOrganizationAssetPubliclyAvailable", "Non-managers must receive asset URLs only after publication.");
+
+mustInclude(profileImageMigration, "public = false", "Profile images must be private at rest.");
+mustInclude(profileImageMigration, "allowed_mime_types = array['image/webp']", "Profile image storage must accept normalized WebP only.");
+mustInclude(profileImageMigration, "drop policy if exists", "Direct profile-image storage policies must be removed.");
+mustInclude(profileImageUpload, "normalizeProfileImage", "Profile uploads must be MIME-verified and re-encoded server-side.");
+mustInclude(profileImageUpload, "isProfileImagePathOwnedBy", "Profile image deletion must verify ownership.");
+mustNotInclude(profileImageUpload, "getPublicUrl", "Profile uploads must not issue permanent public URLs.");
+mustInclude(ownProfileImage, "resolveRequestIdentity", "Own profile image access must require an authenticated identity.");
+mustInclude(publicProfileImage, "isCardProfileServiceActive", "Public profile images must stop serving when the card service ends.");
+mustInclude(publicProfileImage, "X-Content-Type-Options", "Profile image responses must prevent MIME sniffing.");
+
+mustInclude(organizationIntegrations, "resolvePublicWebhookEndpoint", "Webhook endpoints must be DNS-validated before configuration is stored.");
+mustInclude(webhookDelivery, "resolvePublicWebhookEndpoint", "Webhook delivery must resolve DNS immediately before egress.");
+mustInclude(webhookDelivery, "lookup:", "Webhook delivery must pin the approved DNS address for the request.");
+mustInclude(webhookDelivery, "WEBHOOK_HTTP_", "Webhook delivery must persist classified errors rather than raw responses.");
+mustNotInclude(webhookDelivery, "fetch(endpoint", "Webhook delivery must not use an unpinned fetch request.");
 
 mustInclude(vitestConfig, '"**/*.test.ts"', "Vitest must not pick up Playwright spec files.");
 mustInclude(playwrightConfig, 'testDir: "./tests/e2e"', "Playwright must own the tests/e2e directory.");

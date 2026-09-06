@@ -1,26 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { resolveRequestIdentity } from "../../../../lib/auth/request-identity";
+import { isProfileImagePathOwnedBy, profileImagePathFromValue } from "../../../../lib/profile-images";
 import { normalizeCardSlug, validateCardSlug } from "../../../../lib/validation/slug";
-import { getSupabaseAdminClient, getSupabaseAuthClient } from "../../../../lib/supabase/server-admin";
-
-// Kart profili yazmanın (oluşturma + düzenleme) tek giriş noktası.
-//
-// Önceden bu işlem tarayıcıdan doğrudan `card_profiles` tablosuna
-// (anon key + RLS ile) yapılıyordu. RLS yalnızca satır sahipliğini
-// doğruluyor; şirketin Ayarlar panelinden kilitlediği alanlar (Şirket
-// adı, Ünvan, Kurumsal e-posta, Kurumsal telefon, Ad Soyad) yalnızca
-// istemci tarafında `disabled` idi — bir çalışan bu kısıtlamayı
-// doğrudan bir API isteğiyle atlayabilirdi. Bu route artık service-role
-// admin client ile `save_own_card_profile` RPC'sini çağırıyor; kilit ve
-// ünvan kataloğu kontrolü sunucuda, istemcinin gönderdiği veriden
-// bağımsız olarak uygulanıyor.
+import { getSupabaseAdminClient } from "../../../../lib/supabase/server-admin";
 
 const schema = z.object({
   profileId: z.string().uuid().nullable().optional(),
   organizationId: z.string().uuid().nullable().optional(),
   patch: z.object({
-    // A vanity alias is optional. `null` explicitly removes a previously
-    // chosen alias; the immutable public_id remains the card's real address.
     slug: z.string().nullable().optional(),
     entitlement_id: z.string().uuid().optional(),
     name: z.string().trim().min(1),
@@ -41,11 +29,8 @@ const schema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!bearer) return NextResponse.json({ error: "Oturum gerekli." }, { status: 401 });
-  const auth = getSupabaseAuthClient();
-  const { data: authData } = await auth.auth.getUser(bearer);
-  if (!authData.user) return NextResponse.json({ error: "Oturum geçersiz." }, { status: 401 });
+  const identity = await resolveRequestIdentity(request);
+  if (!identity) return NextResponse.json({ error: "Oturum geçersiz." }, { status: 401 });
 
   const parsed = schema.safeParse(await request.json());
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message || "Geçersiz kart bilgisi." }, { status: 400 });
@@ -53,9 +38,6 @@ export async function POST(request: NextRequest) {
   const patch = { ...parsed.data.patch } as Record<string, unknown>;
   const requestedSlug = patch.slug;
   const requestedSearchIndexing = patch.search_indexing_enabled;
-  // These two values are applied after the existing guarded RPC writes the
-  // core profile. The RPC predates optional aliases/privacy controls, while
-  // this route already owns authenticated writes to the user's own profile.
   delete patch.search_indexing_enabled;
   if (requestedSlug === null) delete patch.slug;
   if (typeof patch.slug === "string") {
@@ -66,23 +48,33 @@ export async function POST(request: NextRequest) {
   }
 
   const admin = getSupabaseAdminClient();
-  let existingProfile: { id: string; slug: string | null } | null = null;
+  let existingProfile: { id: string; slug: string | null; image_url: string | null } | null = null;
   if (parsed.data.profileId) {
     const { data, error } = await admin
       .from("card_profiles")
-      .select("id,slug")
+      .select("id,slug,image_url")
       .eq("id", parsed.data.profileId)
-      .eq("user_id", authData.user.id)
+      .eq("user_id", identity.user.id)
       .maybeSingle();
     if (error) return NextResponse.json({ error: "Kart profili kontrol edilemedi." }, { status: 500 });
     if (!data) return NextResponse.json({ error: "Kart profili bulunamadı.", code: "NOT_FOUND" }, { status: 404 });
     existingProfile = data;
   }
 
-  // A readable alias is intentionally not a free identifier. Existing aliases
-  // were migrated as LEGACY grants, so ordinary profile saves preserve them.
-  // We only require the capability when the value actually changes; removing
-  // an alias stays available as a privacy-preserving action.
+  const requestedImage = typeof patch.image_url === "string" ? patch.image_url : null;
+  if (requestedImage) {
+    const imagePath = profileImagePathFromValue(requestedImage);
+    const keepsLegacyImage = Boolean(existingProfile?.image_url && requestedImage === existingProfile.image_url);
+    if (imagePath) {
+      if (!isProfileImagePathOwnedBy(imagePath, identity.user.id)) {
+        return NextResponse.json({ error: "Profil fotoğrafı bu hesaba ait değil." }, { status: 403 });
+      }
+      patch.image_url = imagePath;
+    } else if (!keepsLegacyImage) {
+      return NextResponse.json({ error: "Profil fotoğrafını güvenli yükleme alanından seçin." }, { status: 400 });
+    }
+  }
+
   if (typeof requestedSlug === "string") {
     const requestedNormalized = normalizeCardSlug(requestedSlug);
     const existingNormalized = existingProfile?.slug ? normalizeCardSlug(existingProfile.slug) : null;
@@ -117,7 +109,7 @@ export async function POST(request: NextRequest) {
     const { data: individualProfiles, error: profileLookupError } = await admin
       .from("card_profiles")
       .select("id")
-      .eq("user_id", authData.user.id)
+      .eq("user_id", identity.user.id)
       .is("organization_id", null)
       .limit(1);
     if (profileLookupError) return NextResponse.json({ error: "Mevcut dijital profil kontrol edilemedi." }, { status: 500 });
@@ -126,7 +118,7 @@ export async function POST(request: NextRequest) {
     }
   }
   const { data, error } = await admin.rpc("save_own_card_profile", {
-    p_user_id: authData.user.id,
+    p_user_id: identity.user.id,
     p_profile_id: parsed.data.profileId || null,
     p_organization_id: parsed.data.organizationId || null,
     p_patch: patch,
@@ -162,7 +154,7 @@ export async function POST(request: NextRequest) {
       .from("card_profiles")
       .update(postSavePatch)
       .eq("id", profileId)
-      .eq("user_id", authData.user.id)
+      .eq("user_id", identity.user.id)
       .select("id,public_id,slug,search_indexing_enabled")
       .maybeSingle();
     if (postSaveError || !updated) {

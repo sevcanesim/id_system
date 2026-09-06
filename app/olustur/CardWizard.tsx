@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import CardTemplate from "../CardTemplate";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 import { isSupabaseConfigured } from "../../lib/supabase/config";
+import { ownProfileImagePath, profileImagePathFromValue } from "../../lib/profile-images";
 import UserPanelShell from "../components/UserPanelShell";
 import QRCode from "qrcode";
 import { Badge, Button, Drawer, Field, Input, Modal, Select, Textarea } from "../components/ui";
@@ -19,12 +20,16 @@ import { PageLoadingView } from "../components/ui/States";
 import { useNotice } from "../components/ui/NotificationCenter";
 import { useUnsavedChanges } from "../components/UnsavedChangesContext";
 import { useProfileCardActions } from "../hooks/useProfileCardActions";
+import {
+  clearLegacyUnscopedCardDraft,
+  readPersonalCardDraft,
+  writePersonalCardDraft,
+} from "../../lib/security/client-private-state";
 
 import {
   calculateProfileCompletion,
   ensureRealImage,
   formatMissingItemsText,
-  isSupportedImageMimeType,
   INITIAL_CARD_DATA,
   sanitizeCardDraft,
   normalizeProfileSlug,
@@ -303,15 +308,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
   }, []);
 
   useEffect(() => {
-    // Eski global taslak anahtarı aynı tarayıcıdaki farklı kurumsal demo
-    // kullanıcılarının verisini birbirine sızdırıyordu. Kurumsal kimlik ve
-    // kilitli alanlar sunucudan gelir; bu yüzeyde global kişisel taslak okunmaz.
-    if (!isBusinessCard) {
-      const local = localStorage.getItem("yenomi-card-draft");
-      if (local) {
-        try { setData(sanitizeCardDraft(JSON.parse(local))); } catch { /* bozuk taslağı yok say */ }
-      }
-    }
+    clearLegacyUnscopedCardDraft();
     const supabase = getSupabaseBrowserClient();
     if (!supabase) {
       setAccessState(isSupabaseConfigured ? "denied" : "allowed");
@@ -326,6 +323,12 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
           return;
         }
         setUserId(user.id);
+        if (!isBusinessCard) {
+          const draft = readPersonalCardDraft(user.id);
+          if (draft) {
+            try { setData(sanitizeCardDraft(JSON.parse(draft))); } catch { /* bozuk taslağı yok say */ }
+          }
+        }
         const { data: sessionData } = await supabase.auth.getSession();
         const accessToken = sessionData.session?.access_token;
         if (!accessToken) {
@@ -428,8 +431,10 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
           setProfileId(profile.id);
           setPublicId(profile.public_id || "");
           setIsPublished(Boolean(profile.is_published));
-          const imageUrl = profile.image_url ?? "";
-          setOriginalImageUrl(imageUrl);
+          const storedImage = profile.image_url ?? "";
+          const storedImagePath = profileImagePathFromValue(storedImage);
+          const imageUrl = storedImagePath ? ownProfileImagePath(storedImagePath) : "";
+          setOriginalImageUrl(storedImage);
           setProfileSlug(profile.slug ?? "");
           setSearchIndexingEnabled(Boolean(profile.search_indexing_enabled));
           setData({
@@ -438,9 +443,15 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
             website: profile.website ?? "", linkedin: profile.linkedin ?? "", instagram: profile.instagram ?? "",
             location: profile.location ?? "", image: imageUrl, bio: profile.bio ?? ""
           });
-          const { data: localeRows } = await supabase.from("card_profile_locales").select("locale,role,about").eq("profile_id", profile.id).eq("locale", "en").maybeSingle();
-          const localeRole = localeRows?.role || "";
-          const localeAbout = localeRows?.about || "";
+          const localeResponse = await fetch(`/api/profiles/locales?profileId=${encodeURIComponent(profile.id)}`, {
+            credentials: "same-origin",
+            cache: "no-store",
+          });
+          const localePayload = localeResponse.ok
+            ? await localeResponse.json() as { locale?: { role?: string | null; about?: string | null } | null }
+            : {};
+          const localeRole = localePayload.locale?.role || "";
+          const localeAbout = localePayload.locale?.about || "";
           setEnglishRole(localeRole);
           setEnglishAbout(localeAbout);
 
@@ -535,14 +546,12 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
             return finalData;
           });
         }
-      } catch (err) {
-        console.error("CardWizard authorization error:", err);
+      } catch {
         setContextDirty(false);
         setAccessState("denied");
         router.replace("/giris?portal=business");
       }
-    }).catch((err) => {
-      console.error("CardWizard auth promise rejected:", err);
+    }).catch(() => {
       setContextDirty(false);
       setAccessState("denied");
       router.replace("/giris?portal=business");
@@ -714,33 +723,29 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
     }
   }
 
-  async function uploadImageIfNeeded(currentUserId: string): Promise<UploadedImage> {
+  async function uploadImageIfNeeded(): Promise<UploadedImage> {
     if (!data.image.startsWith("data:")) return { url: data.image, path: storagePathFromPublicUrl(data.image), uploaded: false };
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) return { url: data.image, path: null, uploaded: false };
-
     const response = await fetch(data.image);
     const blob = await response.blob();
-    if (!isSupportedImageMimeType(blob.type)) throw new Error("Profil fotoğrafı geçerli bir görsel değil.");
-    const extension = blob.type === "image/png" ? "png" : blob.type === "image/webp" ? "webp" : "jpg";
-    const path = `${currentUserId}/profile-${Date.now()}.${extension}`;
-    const { error } = await supabase.storage.from("profile-images").upload(path, blob, {
-      contentType: blob.type,
-      upsert: false,
-      cacheControl: "3600"
-    });
-    if (error) throw error;
-    const publicUrl = supabase.storage.from("profile-images").getPublicUrl(path).data.publicUrl;
-    return { url: `${publicUrl}?v=${Date.now()}`, path, uploaded: true };
+    const body = new FormData();
+    body.set("image", new File([blob], "profile-image", { type: blob.type }));
+    const upload = await fetch("/api/profile-images", { method: "POST", body, credentials: "same-origin" });
+    const payload = await upload.json().catch(() => ({})) as { path?: unknown; previewUrl?: unknown; error?: unknown };
+    if (!upload.ok || typeof payload.path !== "string" || typeof payload.previewUrl !== "string") {
+      throw new Error(typeof payload.error === "string" ? payload.error : "Profil fotoğrafı yüklenemedi.");
+    }
+    return { url: payload.previewUrl, path: payload.path, uploaded: true };
   }
 
   async function deletePreviousImageIfNeeded(previousUrl: string, nextPath: string | null) {
     const previousPath = storagePathFromPublicUrl(previousUrl);
     if (!previousPath || previousPath === nextPath) return;
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
-    const { error } = await supabase.storage.from("profile-images").remove([previousPath]);
-    if (error) console.warn("Eski profil fotoğrafı silinemedi:", error.message);
+    await fetch("/api/profile-images", {
+      method: "DELETE",
+      headers: { "content-type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ path: previousPath }),
+    });
   }
 
   async function submitTitleRequest() {
@@ -793,7 +798,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
 
     setSaving(true);
     setMessage("");
-    if (!isBusinessCard) localStorage.setItem("yenomi-card-draft", JSON.stringify(sanitizeCardDraft(data)));
+    if (!isBusinessCard && userId) writePersonalCardDraft(userId, JSON.stringify(sanitizeCardDraft(data)));
 
     let uploaded: UploadedImage | null = null;
     try {
@@ -804,7 +809,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
         currentUserId = authData.user?.id ?? null;
       }
       if (supabase && currentUserId) {
-        uploaded = await uploadImageIfNeeded(currentUserId);
+        uploaded = await uploadImageIfNeeded();
         const slug = normalizeProfileSlug(profileSlug);
         const { data: sessionData } = await supabase.auth.getSession();
         const accessToken = sessionData.session?.access_token;
@@ -838,7 +843,7 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
               linkedin: data.linkedin.trim() || null,
               instagram: data.instagram.trim() || null,
               location: data.location.trim() || null,
-              image_url: uploaded.url || null,
+              image_url: uploaded.path || null,
               bio: data.bio?.trim() || null,
               is_published: true,
               search_indexing_enabled: searchIndexingEnabled,
@@ -889,20 +894,25 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
         if (saved?.public_id) setPublicId(saved.public_id);
         if (savePayload.warning) notify({ message: savePayload.warning as string, tone: "warning" });
         if (saved) {
-          const { error: localeError } = await supabase.from("card_profile_locales").upsert({
-            profile_id: saved.id,
-            locale: "en",
-            role: englishRole.trim() || null,
-            about: englishAbout.trim() || null,
+          const localeResponse = await fetch("/api/profiles/locales", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({
+              profileId: saved.id,
+              locale: "en",
+              role: englishRole.trim() || null,
+              about: englishAbout.trim() || null,
+            }),
           });
-          if (localeError) {
+          if (!localeResponse.ok) {
             const message = "Kart kaydedildi; İngilizce içerik katmanı ayrıca kaydedilemedi.";
             setMessage(message);
             notify({ message, tone: "warning" });
           }
         }
-        if (!isBusinessCard) localStorage.setItem("yenomi-card-draft", JSON.stringify(sanitizeCardDraft({ ...data, image: uploaded?.url ?? data.image })));
-        localStorage.removeItem("yenomi-card-slug");
+        if (!isBusinessCard && currentUserId) writePersonalCardDraft(currentUserId, JSON.stringify(sanitizeCardDraft({ ...data, image: uploaded?.url ?? data.image })));
+        clearLegacyUnscopedCardDraft();
         setProfileSlug(slug);
         setIsPublished(true);
         setBaseline({
@@ -938,8 +948,12 @@ export default function CardWizard({ mode }: { mode?: "corporate" | "individual"
       setSaving(false);
     } catch (error) {
       if (uploaded?.uploaded && uploaded.path) {
-        const supabase = getSupabaseBrowserClient();
-        await supabase?.storage.from("profile-images").remove([uploaded.path]);
+        await fetch("/api/profile-images", {
+          method: "DELETE",
+          headers: { "content-type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ path: uploaded.path }),
+        });
       }
       const rawMessage = error instanceof Error ? error.message : "Kartvizit kaydedilemedi.";
       const friendlyMessage = /failed to fetch|networkerror|load failed/i.test(rawMessage)

@@ -9,6 +9,7 @@ import { logCardView } from "../../../lib/analytics/card-views";
 import { fetchCardLocaleOverlays } from "../../../lib/public-card/locales";
 import CardRecoveryAction from "./CardRecoveryAction";
 import { getPublicCompanyVerification } from "../../../lib/organizations/verified-company";
+import { presentPublicProfileImage } from "../../../lib/repositories/public-profiles";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -50,7 +51,7 @@ export default async function PhysicalCardRoute({ params }: { params: Promise<{ 
     .select("id,user_id,organization_id,entitlement_id,slug,public_id,name,role,company,phone,whatsapp,email,website,linkedin,instagram,location,image_url,bio,is_published,card_status,service_started_at,service_expires_at,grace_ends_at")
     .eq("id", card.owner_profile_id)
     .maybeSingle();
-  const profile = rawProfile as CardProfileRow | null;
+  const profile = rawProfile ? presentPublicProfileImage(rawProfile as CardProfileRow) : null;
 
   if (!profile || !profile.is_published) return <CardState title="Bu Yenomi profili şu anda aktif değildir." />;
   if (!profile.public_id) return <CardState title="Bu Yenomi profili şu anda aktif değildir." />;

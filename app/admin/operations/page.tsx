@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 import styles from "./AdminOperations.module.css";
 
 type Tab = "print" | "network" | "batches" | "leads" | "privacy" | "pricing" | "audit";
@@ -83,27 +82,18 @@ export default function AdminOperationsPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
-  async function token() {
-    const supabase = getSupabaseBrowserClient();
-    const { data: session } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
-    return session.session?.access_token ?? null;
-  }
-
   async function load(mode = demoMode) {
-    const accessToken = await token();
-    if (!accessToken) { setAuthorized(false); setOperationsState("error"); setPricingState("error"); return; }
     setAuthorized(true);
     setMessage("");
     setOperationsError("");
     setPricingError("");
     setOperationsState("loading");
     setPricingState("loading");
-    const headers = { Authorization: `Bearer ${accessToken}` };
     const suffix = mode ? "?demo=1" : "";
 
     const [operationsResult, pricingResult] = await Promise.allSettled([
-      fetch(`/api/admin/operations${suffix}`, { headers, cache: "no-store" }),
-      fetch(`/api/admin/pricing${suffix}`, { headers, cache: "no-store" }),
+      fetch(`/api/admin/operations${suffix}`, { credentials: "same-origin", cache: "no-store" }),
+      fetch(`/api/admin/pricing${suffix}`, { credentials: "same-origin", cache: "no-store" }),
     ]);
 
     if (operationsResult.status === "fulfilled") {
@@ -155,10 +145,9 @@ export default function AdminOperationsPage() {
 
   async function patchOperations(body: Record<string, unknown>, key: string) {
     if (demoMode) { setMessage("Demo modunda değişiklik yapılamaz. Gerçek veriye geçerek işlem yapabilirsiniz."); return; }
-    const accessToken = await token(); if (!accessToken) return;
     setSaving(key); setMessage("");
     try {
-      const response = await fetch("/api/admin/operations", { method: "PATCH", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const response = await fetch("/api/admin/operations", { method: "PATCH", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "İşlem tamamlanamadı.");
       setMessage("İşlem kaydedildi ve denetim günlüğüne işlendi.");
@@ -172,10 +161,9 @@ export default function AdminOperationsPage() {
     if (demoMode) { setMessage("Demo modunda fiyat değiştirilemez."); return; }
     const value = Number(priceDraft[key]?.replace(",", "."));
     if (!Number.isFinite(value) || value < 0) { setMessage("Geçerli bir fiyat girin."); return; }
-    const accessToken = await token(); if (!accessToken) return;
     setSaving(key); setMessage("");
     try {
-      const response = await fetch("/api/admin/pricing", { method: "PATCH", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" }, body: JSON.stringify(kind === "PRODUCT_VARIANT" ? { kind, sku: id, priceKurus: Math.round(value * 100) } : { kind, code: id, priceKurus: Math.round(value * 100) }) });
+      const response = await fetch("/api/admin/pricing", { method: "PATCH", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify(kind === "PRODUCT_VARIANT" ? { kind, sku: id, priceKurus: Math.round(value * 100) } : { kind, code: id, priceKurus: Math.round(value * 100) }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Fiyat güncellenemedi.");
       setMessage("Fiyat güncellendi ve audit log'a kaydedildi.");

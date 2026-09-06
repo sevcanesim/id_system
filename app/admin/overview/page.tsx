@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 import { type Order, money, orderOperationsState, needsPhysicalFulfillment } from "../../../lib/admin/order-classification";
 import { YenomiProductVisual } from "../../ui/YenomiProductVisual";
 import { LoadingState } from "../../components/ui/States";
@@ -35,21 +34,12 @@ export default function AdminOverviewPage() {
   const [authorized, setAuthorized] = useState(true);
   const [message, setMessage] = useState("");
 
-  async function getToken() {
-    const supabase = getSupabaseBrowserClient();
-    const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
-    return data.session?.access_token ?? null;
-  }
-
   async function load() {
-    const token = await getToken();
-    if (!token) { setAuthorized(false); setLoading(false); return; }
     setLoading(true);
     setMessage("");
-    const headers = { Authorization: `Bearer ${token}` };
     const [ordersResult, operationsResult] = await Promise.allSettled([
-      fetch("/api/admin/commerce/orders", { headers, cache: "no-store" }),
-      fetch("/api/admin/operations", { headers, cache: "no-store" }),
+      fetch("/api/admin/commerce/orders", { credentials: "same-origin", cache: "no-store" }),
+      fetch("/api/admin/operations", { credentials: "same-origin", cache: "no-store" }),
     ]);
 
     if (ordersResult.status === "fulfilled") {

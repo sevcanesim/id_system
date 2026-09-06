@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
-import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 import styles from "./AdminAccess.module.css";
 
 type AdminRow = {
@@ -26,18 +25,10 @@ export default function AdminAccessPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  async function token() {
-    const supabase = getSupabaseBrowserClient();
-    const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
-    return data.session?.access_token ?? null;
-  }
-
   async function load() {
-    const accessToken = await token();
-    if (!accessToken) { setError("Oturum bulunamadı."); setLoading(false); return; }
     setLoading(true); setError("");
     try {
-      const response = await fetch("/api/admin/access", { headers: { Authorization: `Bearer ${accessToken}` }, cache: "no-store" });
+      const response = await fetch("/api/admin/access", { credentials: "same-origin", cache: "no-store" });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || "Yönetici erişimleri yüklenemedi.");
       setAdmins(result.admins ?? []);
@@ -53,13 +44,13 @@ export default function AdminAccessPage() {
 
   async function grant(event: FormEvent) {
     event.preventDefault();
-    const accessToken = await token();
-    if (!accessToken || !email.trim()) return;
+    if (!email.trim()) return;
     setBusy("grant"); setMessage(""); setError("");
     try {
       const response = await fetch("/api/admin/access", {
         method: "POST",
-        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "grant", email: email.trim() }),
       });
       const result = await response.json().catch(() => ({}));
@@ -78,13 +69,12 @@ export default function AdminAccessPage() {
     if (row.userId === currentUserId) return;
     const confirmed = window.confirm(`${row.email || "Bu yönetici"} için Super Admin yetkisini kaldırmak istiyor musunuz?`);
     if (!confirmed) return;
-    const accessToken = await token();
-    if (!accessToken) return;
     setBusy(row.userId); setMessage(""); setError("");
     try {
       const response = await fetch("/api/admin/access", {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "revoke", userId: row.userId }),
       });
       const result = await response.json().catch(() => ({}));

@@ -25,6 +25,15 @@ const mfaRoute = readFileSync("app/api/auth/mfa/route.ts", "utf8");
 const invitePage = readFileSync("app/kurumsal/davet/page.tsx", "utf8");
 const inviteClient = readFileSync("lib/auth/organization-invite.ts", "utf8");
 const inviteAcceptRoute = readFileSync("app/api/organizations/invite/accept/route.ts", "utf8");
+const adminSources = [
+  "app/admin/page.tsx",
+  "app/admin/overview/page.tsx",
+  "app/admin/operations/page.tsx",
+  "app/admin/access/page.tsx",
+  "app/admin/support/page.tsx",
+  "app/admin/security/page.tsx",
+  "app/admin/components/AdminSecurityDock.tsx",
+].map((path) => readFileSync(path, "utf8")).join("\n");
 const corporateOrganizationRoutes = [
   "app/api/organizations/physical-cards/route.ts",
   "app/api/organizations/member-card-statuses/route.ts",
@@ -112,10 +121,15 @@ forbidText(corporateAudit, "getSupabaseBrowserClient", "Corporate MFA must use i
 requireText(corporateOrganizationRoutes, "resolveRequestIdentity", "Organization APIs must accept the HttpOnly session cookie.");
 requireText(mfaRoute, "resolveRequestIdentity", "MFA API must verify the HttpOnly session server-side.");
 requireText(mfaRoute, "applySessionCookies", "Successful MFA verification must rotate the HttpOnly session cookie.");
+requireText(mfaRoute, "callMfaApi", "MFA API must call Supabase Auth only from the server.");
+forbidText(mfaRoute, "getSupabaseUserClient", "MFA API must not depend on an in-memory Supabase browser session.");
 forbidText(invitePage, "getSupabaseBrowserClient", "Invite page must not hydrate a browser Supabase session.");
 forbidText(inviteClient, "authorization: `Bearer", "Invite acceptance must not send access tokens in request headers.");
 requireText(inviteClient, 'credentials: "same-origin"', "Invite acceptance must use the HttpOnly session cookie.");
 requireText(inviteAcceptRoute, "resolveRequestIdentity", "Invite acceptance must verify the HttpOnly session server-side.");
+forbidText(adminSources, "getSupabaseBrowserClient", "Admin screens must not hydrate a browser Supabase session.");
+forbidText(adminSources, "authorization: `Bearer", "Admin screens must not send access tokens in request headers.");
+requireText(adminSources, 'credentials: "same-origin"', "Admin screens must use HttpOnly session cookies.");
 forbidText(organizationIdentity, "authorization: `Bearer", "Card editor organization reads must use cookie identity.");
 requireText(organizationRoutes, "resolveRequestIdentity", "Card editor organization APIs must accept the HttpOnly session cookie.");
 

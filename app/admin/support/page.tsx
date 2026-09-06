@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 import styles from "../AdminSales.module.css";
 
 type SupportRecord = { account: { yenomi_id: string; email: string; display_name: string | null; status: string; package_code: string }; grants: Array<{ id: string; grant_reason: string; term_mode: string; renewal_policy: string; status: string; expires_at: string | null; network_mail_remaining: number; network_mail_limit: number }>; orders: Array<{ id: string; order_number: string; status: string; total_kurus: number; currency: string; created_at: string }>; invoices: Array<{ id: string; order_id: string; provider: string; status: string; provider_invoice_id: string | null }>; payments: Array<{ id: string; order_id: string; provider: string; status: string; error_code: string | null }>; systemErrors: Array<{ id: string; request_id: string | null; source: string; error_code: string | null; message: string; occurred_at: string }> };
@@ -18,20 +17,19 @@ export default function AdminSupportPage() {
   const [expiresAt, setExpiresAt] = useState("");
   const [displayName, setDisplayName] = useState("");
 
-  async function token() { const client = getSupabaseBrowserClient(); if (!client) return ""; const { data } = await client.auth.getSession(); return data.session?.access_token || ""; }
   async function search(event: FormEvent) {
     event.preventDefault(); setBusy(true); setMessage("");
-    try { const response = await fetch(`/api/admin/support?yenomiId=${encodeURIComponent(yenomiId.trim())}`, { headers: { Authorization: `Bearer ${await token()}` }, cache: "no-store" }); const body = await response.json(); if (!response.ok) { setRecord(null); setMessage(body.error || "Kayıt okunamadı."); } else { setRecord(body); setDisplayName(body.account.display_name || ""); } }
+    try { const response = await fetch(`/api/admin/support?yenomiId=${encodeURIComponent(yenomiId.trim())}`, { credentials: "same-origin", cache: "no-store" }); const body = await response.json(); if (!response.ok) { setRecord(null); setMessage(body.error || "Kayıt okunamadı."); } else { setRecord(body); setDisplayName(body.account.display_name || ""); } }
     catch { setMessage("Sunucuya ulaşılamadı."); } finally { setBusy(false); }
   }
   async function updateAccount() {
     if (!record) return; setBusy(true); setMessage("");
-    try { const response = await fetch("/api/admin/support", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify({ action: "update_user_account", yenomiId: record.account.yenomi_id, displayName, status: record.account.status }) }); const body = await response.json(); setMessage(response.ok ? "Kullanıcı bilgisi güncellendi ve denetim kaydına işlendi." : (body.error || "Kullanıcı bilgisi güncellenemedi.")); if (response.ok) await search(new Event("submit") as unknown as FormEvent); }
+    try { const response = await fetch("/api/admin/support", { method: "PATCH", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "update_user_account", yenomiId: record.account.yenomi_id, displayName, status: record.account.status }) }); const body = await response.json(); setMessage(response.ok ? "Kullanıcı bilgisi güncellendi ve denetim kaydına işlendi." : (body.error || "Kullanıcı bilgisi güncellenemedi.")); if (response.ok) await search(new Event("submit") as unknown as FormEvent); }
     catch { setMessage("Kullanıcı bilgisi güncellenirken sunucuya ulaşılamadı."); } finally { setBusy(false); }
   }
   async function grant() {
     if (!record) return; setBusy(true); setMessage("");
-    try { const response = await fetch("/api/admin/support", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` }, body: JSON.stringify({ action: "grant_individual_premium", yenomiId: record.account.yenomi_id, grantReason: "ADVERTISING", termMode, renewalPolicy, expiresAt: termMode === "FIXED_TERM" && expiresAt ? new Date(`${expiresAt}T23:59:59.999Z`).toISOString() : null, networkMailLimit: 0 }) }); const body = await response.json(); setMessage(response.ok ? "Premium tahsisi kaydedildi. Network Mail kredisi bu tahsiste 0 olarak başladı." : (body.error || "Tahsis kaydedilemedi.")); if (response.ok) await search(new Event("submit") as unknown as FormEvent); }
+    try { const response = await fetch("/api/admin/support", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "grant_individual_premium", yenomiId: record.account.yenomi_id, grantReason: "ADVERTISING", termMode, renewalPolicy, expiresAt: termMode === "FIXED_TERM" && expiresAt ? new Date(`${expiresAt}T23:59:59.999Z`).toISOString() : null, networkMailLimit: 0 }) }); const body = await response.json(); setMessage(response.ok ? "Premium tahsisi kaydedildi. Network Mail kredisi bu tahsiste 0 olarak başladı." : (body.error || "Tahsis kaydedilemedi.")); if (response.ok) await search(new Event("submit") as unknown as FormEvent); }
     catch { setMessage("Tahsis kaydedilirken sunucuya ulaşılamadı."); } finally { setBusy(false); }
   }
 

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 import styles from "./Security.module.css";
 
 type Factor = { id: string; friendly_name?: string; status?: string; factor_type?: string };
@@ -31,50 +30,53 @@ export default function AdminSecurityPage() {
   const secure = currentLevel === "aal2";
 
   async function load() {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) { setPageState("unauthorized"); return; }
-    const { data: sessionData } = await supabase.auth.getSession();
-    const token = sessionData.session?.access_token;
-    if (!token) { setPageState("unauthorized"); return; }
+    try {
+      const adminResponse = await fetch("/api/admin/security/status", { credentials: "same-origin", cache: "no-store" });
+      if (adminResponse.status === 403) { setPageState("unauthorized"); return; }
+      if (!adminResponse.ok) { setPageState("error"); return; }
 
-    const adminResponse = await fetch("/api/admin/security/status", { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
-    if (adminResponse.status === 403) { setPageState("unauthorized"); return; }
-    if (!adminResponse.ok) { setPageState("error"); return; }
-
-    const [{ data: factorData, error: factorError }, { data: aalData, error: aalError }] = await Promise.all([
-      supabase.auth.mfa.listFactors(),
-      supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
-    ]);
-    if (factorError || aalError) {
+      const mfaResponse = await fetch("/api/auth/mfa", { credentials: "same-origin", cache: "no-store" });
+      const mfa = await mfaResponse.json().catch(() => null) as { factors?: Factor[]; currentLevel?: string; error?: string } | null;
+      if (!mfaResponse.ok || !mfa) {
+        setMessage("Güvenlik bilgileri şu anda kontrol edilemiyor. Lütfen yeniden deneyin.");
+        setPageState("error");
+        return;
+      }
+      setFactors(mfa.factors ?? []);
+      setCurrentLevel(mfa.currentLevel ?? null);
+      setPageState("ready");
+    } catch {
       setMessage("Güvenlik bilgileri şu anda kontrol edilemiyor. Lütfen yeniden deneyin.");
       setPageState("error");
-      return;
     }
-    setFactors((factorData?.all ?? []) as Factor[]);
-    setCurrentLevel(aalData?.currentLevel ?? null);
-    setPageState("ready");
   }
 
   useEffect(() => { void load(); }, []);
 
   async function enroll() {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
     setBusy(true);
     setMessage("");
-    const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "Yenomi ID Super Admin" });
-    if (error || !data?.totp) {
+    try {
+      const response = await fetch("/api/auth/mfa", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "ENROLL" }),
+      });
+      const payload = await response.json().catch(() => null) as { factorId?: string; qrCode?: string; secret?: string; error?: string } | null;
+      if (!response.ok || !payload?.factorId || !payload.qrCode || !payload.secret) {
+        setMessage(payload?.error || "Google Authenticator kurulumu başlatılamadı. Lütfen yeniden deneyin.");
+        return;
+      }
+      setEnrollment({ factorId: payload.factorId, qrCode: payload.qrCode, secret: payload.secret });
+    } catch {
       setMessage("Google Authenticator kurulumu başlatılamadı. Lütfen yeniden deneyin.");
+    } finally {
       setBusy(false);
-      return;
     }
-    setEnrollment({ factorId: data.id, qrCode: data.totp.qr_code, secret: data.totp.secret });
-    setBusy(false);
   }
 
   async function verifyFactor(factorId: string) {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
     const normalized = code.replace(/\s/g, "");
     if (!/^\d{6}$/.test(normalized)) {
       setMessage("Telefonunuzdaki 6 haneli doğrulama kodunu girin.");
@@ -83,41 +85,54 @@ export default function AdminSecurityPage() {
 
     setBusy(true);
     setMessage("");
-    const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({ factorId });
-    if (challengeError || !challengeData) {
-      setMessage("Doğrulama başlatılamadı. Lütfen yeni kodla tekrar deneyin.");
-      setBusy(false);
-      return;
-    }
-    const { error: verifyError } = await supabase.auth.mfa.verify({ factorId, challengeId: challengeData.id, code: normalized });
-    if (verifyError) {
-      setMessage("Kod doğrulanamadı. Google Authenticator'daki güncel kodu kontrol edin.");
-      setBusy(false);
-      return;
-    }
+    try {
+      const response = await fetch("/api/auth/mfa", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "VERIFY", factorId, code: normalized }),
+      });
+      const payload = await response.json().catch(() => null) as { error?: string } | null;
+      if (!response.ok) {
+        setMessage(payload?.error || "Kod doğrulanamadı. Google Authenticator'daki güncel kodu kontrol edin.");
+        return;
+      }
 
-    setCode("");
-    setEnrollment(null);
-    setMessage("Doğrulama tamamlandı. Yönetim ekranına yönlendiriliyorsunuz…");
-    await load();
-    setBusy(false);
-    router.replace(safeNextPath());
-    router.refresh();
+      setCode("");
+      setEnrollment(null);
+      setMessage("Doğrulama tamamlandı. Yönetim ekranına yönlendiriliyorsunuz…");
+      await load();
+      router.replace(safeNextPath());
+      router.refresh();
+    } catch {
+      setMessage("Kod doğrulanamadı. Google Authenticator'daki güncel kodu kontrol edin.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function removeFactor(factorId: string) {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
     if (!window.confirm("Google Authenticator korumasını kaldırmak istediğinize emin misiniz? Yönetim işlemleri için yeniden kurmanız gerekecek.")) return;
     setBusy(true);
     setMessage("");
-    const { error } = await supabase.auth.mfa.unenroll({ factorId });
-    if (error) setMessage("Google Authenticator kaldırılamadı. Lütfen yeniden deneyin.");
-    else {
-      setMessage("Google Authenticator kaldırıldı. Yönetim işlemleri için yeniden kurmanız gerekir.");
-      await load();
+    try {
+      const response = await fetch("/api/auth/mfa", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "UNENROLL", factorId }),
+      });
+      const payload = await response.json().catch(() => null) as { error?: string } | null;
+      if (!response.ok) setMessage(payload?.error || "Google Authenticator kaldırılamadı. Lütfen yeniden deneyin.");
+      else {
+        setMessage("Google Authenticator kaldırıldı. Yönetim işlemleri için yeniden kurmanız gerekir.");
+        await load();
+      }
+    } catch {
+      setMessage("Google Authenticator kaldırılamadı. Lütfen yeniden deneyin.");
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   }
 
   if (pageState === "loading") return <main className={styles.page}><section className={styles.shell}><div className={styles.panel}>Hesap güvenliği kontrol ediliyor…</div></section></main>;

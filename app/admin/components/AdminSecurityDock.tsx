@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 import styles from "./AdminSecurityDock.module.css";
 
 type SecurityState = "loading" | "secure" | "mfa-required" | "signed-out";
@@ -22,22 +21,24 @@ export default function AdminSecurityDock() {
   useEffect(() => {
     let cancelled = false;
     async function check() {
-      const supabase = getSupabaseBrowserClient();
-      if (!supabase) { if (!cancelled) setState("signed-out"); return; }
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) { if (!cancelled) setState("signed-out"); return; }
-      const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      if (cancelled) return;
+      try {
+        const response = await fetch("/api/admin/security/status", { credentials: "same-origin", cache: "no-store" });
+        if (!response.ok) { if (!cancelled) setState("signed-out"); return; }
+        const security = await response.json().catch(() => null) as { aal?: string } | null;
+        if (cancelled) return;
 
-      if (aalData?.currentLevel === "aal2") {
-        setState("secure");
-        return;
-      }
+        if (security?.aal === "aal2") {
+          setState("secure");
+          return;
+        }
 
-      setState("mfa-required");
-      if (pathname !== "/admin/security") {
-        const next = pathname.startsWith("/admin") ? pathname : "/admin";
-        router.replace(`/admin/security?next=${encodeURIComponent(next)}`);
+        setState("mfa-required");
+        if (pathname !== "/admin/security") {
+          const next = pathname.startsWith("/admin") ? pathname : "/admin";
+          router.replace(`/admin/security?next=${encodeURIComponent(next)}`);
+        }
+      } catch {
+        if (!cancelled) setState("signed-out");
       }
     }
     void check();
@@ -45,23 +46,14 @@ export default function AdminSecurityDock() {
   }, [pathname, router]);
 
   async function signOut() {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) { router.replace("/giris"); return; }
     setBusy(true);
-    await supabase.auth.signOut();
+    await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
     router.replace("/giris");
     router.refresh();
   }
 
   if (state === "signed-out") return null;
 
-  // Tek paylaşılan admin shell: marka + tüm domain sekmeleri (Overview,
-  // Satışlar, Operasyon, Kullanıcılar/Yönetici Erişimi, Güvenlik, Devir
-  // Rehberi) + oturum/MFA durumu, layout.tsx üzerinden her /admin/* rotasında
-  // render edilir. Önceden yalnızca app/admin/page.tsx kendi ayrı marka
-  // çubuğunu (AdminHeader) render ediyordu ve bu dock'un üstünde ikinci,
-  // kopuk bir şerit oluşturuyordu; artık marka + "Siteyi Gör" + canlı veri
-  // rozeti de buraya taşındı, ikinci bir admin shell yok.
   return <header className={styles.dock} aria-label="Super Admin navigasyonu">
     <div className={styles.brand}>
       <span className={styles.mark}>Y</span>
